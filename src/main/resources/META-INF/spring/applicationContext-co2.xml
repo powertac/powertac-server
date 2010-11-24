@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+   http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/mail/spring-integration-jms-2.0.xsd">
+
+   <!-- 
+   	Jms Inbound Channel can feed in two different objects, "tariff" and "tariffRevoke", which are automatically 
+   
+    -->
+   <inbound-channel-adapter id="jmsInboundGameControllerAdapter"
+   	channel="competitionTimeObjectChannel">
+	</inbound-channel-adapter>
+
+
+
+
+
+   <bean id="accountingService" class="org.powertac.services.AccountingService"/>
+	<bean id="taxAuthority" class="org.powertac.services.TaxAuthorityService"/>
+	
+	
+	
+	
+	
+	
+	
+	
+	<channel id="competitionTimeObjectChannel" datatype="timeObject">
+	</channel>
+	<service-activator id="accountingServiceActivator"
+		input-channel="competitionTimeObjectChannel"
+		method="initCompetition(competitionInformation "
+		ref="accountingService">
+	</service-activator>
+	<splitter input-channel="timeXmlChannel"
+		id="brokerSplitter">
+	</splitter>
+	<payload-serializing-transformer
+		output-channel="timeXmlChannel"
+		input-channel="competitionTimeObjectChannel" id="timeXmlSerializer">
+	</payload-serializing-transformer>
+	<channel id="timeXmlChannel"></channel>
+
+	<service-activator id="customerServiceActivator" input-channel="channel1">
+	</service-activator>
+	
+	<splitter input-channel="competitionTimeObjectChannel">
+	</splitter>
+	
+</beans:beans>
