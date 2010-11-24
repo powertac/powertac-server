@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+   http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/mail/spring-integration-jms-2.0.xsd">
+
+   
+	<inbound-channel-adapter id="jmsInboundBrokerAdapter" channel="tariffChannel"></inbound-channel-adapter>
+	<channel id="tariffChannel"></channel>
+	
+	<payload-deserializing-transformer input-channel="tariffChannel"
+		id="tariffObjectUnmarshaller" output-channel="tariffObjectChannel">
+	</payload-deserializing-transformer>
+	<channel id="unmarshallerToPayloadTypeRouter"></channel>
+	
+	<payload-type-router id="payLoadTypeRouter" input-channel="unmarshallerToPayloadTypeRouter">
+		<mapping>
+			
+		</mapping>
+	</payload-type-router>
+	
+	<channel id="channel4"></channel>
+	<service-activator input-channel="channel4" ref="taxAuthority" method="chargeTariffPublishingFee"></service-activator>
+	
+	<channel id="channel5"></channel>
+	<service-activator input-channel="channel5" ref="accountingService" method="revoke"></service-activator>
+	
+	<bean id="accountingService" class="org.powertac.services.AccountingService"/>
+	<bean id="taxAuthority" class="org.powertac.services.TaxAuthorityService"/>
+	
+	<filter input-channel="tariffObjectChannel" output-channel="channel6"></filter>
+	<channel id="channel6"></channel>
+</beans:beans>

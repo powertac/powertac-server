@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/integration"
+	xmlns:mail="http://www.springframework.org/schema/integration/mail"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+   http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/mail/spring-integration-jms-2.0.xsd">
+
+   <!-- 
+   	Jms Inbound Channel can feed in two different objects, "tariff" and "tariffRevoke", which are automatically 
+   
+    -->
+	<inbound-channel-adapter id="jmsInboundBrokerAdapter"
+		channel="tariffXmlChannel">
+	</inbound-channel-adapter>
+	<channel id="tariffXmlChannel"></channel>
+
+	<payload-deserializing-transformer input-channel="tariffXmlChannel"
+		id="tariffObjectUnmarshaller" output-channel="tariffObjectChannel">
+	</payload-deserializing-transformer>
+
+
+	<bean id="accountingService" class="org.powertac.services.AccountingService"/>
+	<bean id="taxAuthority" class="org.powertac.services.TaxAuthorityService"/>
+	
+	
+	
+	<channel id="tariffObjectChannel"></channel>
+	<filter input-channel="tariffObjectChannel" id="tariffRuleEnforcer"
+		discard-channel="tariffErrorChannel"
+		output-channel="tariffMarshallerAccountingServiceChannel">
+	</filter>
+	<channel id="tariffErrorChannel"></channel>
+	<channel id="tariffMarshallerAccountingServiceChannel"></channel>
+	<service-activator
+		input-channel="tariffMarshallerAccountingServiceChannel"
+		id="accountingServiceActivator" ref="accountingService"
+		method="processTariff">
+	</service-activator>
+</beans:beans>
