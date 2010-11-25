@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.powertac.server.core</groupId>
     <artifactId>core</artifactId>
@@ -36,6 +37,7 @@
             <name>JBoss Repo</name>
         </repository>
     </repositories>
+
     <pluginRepositories>
         <pluginRepository>
             <id>spring-maven-release</id>
@@ -52,7 +54,15 @@
             <name>Spring Roo Repository</name>
             <url>http://spring-roo-repository.springsource.org/release</url>
         </pluginRepository>
+        <pluginRepository>
+            <id>codehaus.org</id>
+            <url>http://snapshots.repository.codehaus.org</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
     </pluginRepositories>
+
     <dependencies>
         <!-- General dependencies for standard applications -->
         <dependency>
@@ -102,6 +112,7 @@
             <artifactId>flexjson</artifactId>
             <version>2.0</version>
         </dependency>
+
         <!-- ROO dependencies -->
         <dependency>
             <groupId>org.springframework.roo</groupId>
@@ -109,6 +120,7 @@
             <version>${roo.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <!-- Spring Integration Dependencies -->
         <dependency>
             <groupId>org.springframework.integration</groupId>
@@ -125,7 +137,8 @@
             <artifactId>spring-integration-xml</artifactId>
             <version>${spring.integration.version}</version>
         </dependency>
-        <!-- Spring dependencies -->
+
+        <!-- General Spring Dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -172,6 +185,16 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-oxm</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jms</artifactId>
             <version>${spring.version}</version>
         </dependency>
         <dependency>
@@ -287,39 +310,13 @@
             <artifactId>joda-time</artifactId>
             <version>1.6.2</version>
         </dependency>
-        <!-- Groovy dependencies -->
-        <dependency>
-            <groupId>org.codehaus.groovy.maven</groupId>
-            <artifactId>gmaven-mojo</artifactId>
-            <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy.maven.runtime</groupId>
-            <artifactId>gmaven-runtime-1.6</artifactId>
-            <version>1.0</version>
-        </dependency>
 
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-all</artifactId>
-            <version>1.6.7</version>
-        </dependency>
-    <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-    <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jms</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-    <dependency>
             <groupId>org.apache.geronimo.specs</groupId>
             <artifactId>geronimo-jms_1.1_spec</artifactId>
             <version>1.1</version>
         </dependency>
-    <dependency>
+        <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-core</artifactId>
             <version>5.3.2</version>
@@ -334,7 +331,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-    <dependency>
+        <dependency>
             <groupId>org.apache.xbean</groupId>
             <artifactId>xbean-spring</artifactId>
             <version>3.6</version>
@@ -345,39 +342,59 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>1.7.5</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
             <!-- groovy build plugin -->
             <plugin>
-                <groupId>org.codehaus.groovy.maven</groupId>
+                <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
-                <version>1.0</version>
+                <version>1.2</version>
+                <configuration>
+                    <providerSelection>1.7</providerSelection>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
+                            <!-- if you want joint compilation, add stub generation goals here -->
+                        </goals>
+                    </execution>
+                </executions>
                 <dependencies>
                     <dependency>
-                        <groupId>org.codehaus.groovy.maven.runtime</groupId>
-                        <artifactId>gmaven-runtime-1.6</artifactId>
-                        <version>1.0</version>
+                        <groupId>org.codehaus.gmaven.runtime</groupId>
+                        <artifactId>gmaven-runtime-1.7</artifactId>
+                        <version>1.2</version>
+                        <exclusions>
+                            <exclusion>
+                                <groupId>org.codehaus.groovy</groupId>
+                                <artifactId>groovy-all</artifactId>
+                            </exclusion>
+                        </exclusions>
                     </dependency>
                     <dependency>
                         <groupId>org.codehaus.groovy</groupId>
                         <artifactId>groovy-all</artifactId>
-                        <version>1.6.7</version>
+                        <version>1.7.5</version>
                     </dependency>
                 </dependencies>
-
-                <configuration>
-                    <providerSelection>1.6</providerSelection>
-                    <source/>
-                </configuration>
             </plugin>
+
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1-beta-1</version>
                 <!--
-                            <configuration> <webXml>target/web.xml</webXml> </configuration>
-                        -->
+                    <configuration> <webXml>target/web.xml</webXml> </configuration>
+                -->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
