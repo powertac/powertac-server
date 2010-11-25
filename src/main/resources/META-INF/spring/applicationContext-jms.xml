@@ -22,8 +22,8 @@
   <bean class="org.springframework.jms.core.JmsTemplate" id="jmsTemplate">
     <!-- lets wrap in a pool to avoid creating a connection per send -->
     <property name="connectionFactory" ref="cachingConnectionFactory"/>
-  <property name="defaultDestination" ref="myDestination"/>
+  <property name="defaultDestination" ref="powertacserverQueue"/>
     </bean>
-<amq:queue id="myDestination" physicalName="myDestination"/>
+<amq:queue id="powertacserverQueue" physicalName="powertacserverQueue"/>
     <jms:listener-container connection-factory="jmsFactory" destination-type="queue"/>
 </beans>

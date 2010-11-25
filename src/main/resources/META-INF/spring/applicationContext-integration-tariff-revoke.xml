@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:si-jms="http://www.springframework.org/schema/integration/jms"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+   http://www.springframework.org/schema/integration/jms http://www.springframework.org/schema/integration/mail/spring-integration-jms-2.0.xsd">
+
+    <si:channel id="revokeTariffChannel" datatype="org.powertac.server.core.command.RevokeTariffCommand"/>
+
+    <si:service-activator id="revokeTariffActivator" input-channel="revokeTariffChannel" method="revokeTariff">
+        <bean class="org.powertac.server.core.service.AccountingService"/>
+    </si:service-activator>
+
+</beans>
