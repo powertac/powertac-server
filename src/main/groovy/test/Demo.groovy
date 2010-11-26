@@ -1,6 +1,7 @@
 package test
 
 import org.powertac.server.core.domain.Competition
+import org.powertac.server.core.domain.Broker
 
 class Demo {
   public static void main(String[] args) {

@@ -6,6 +6,7 @@ package org.powertac.server.core.domain;
 import java.lang.String;
 import java.util.Set;
 import org.powertac.server.core.domain.CashPosition;
+import org.powertac.server.core.domain.Customer;
 
 privileged aspect Broker_Roo_JavaBean {
     
@@ -31,6 +32,14 @@ privileged aspect Broker_Roo_JavaBean {
     
     public void Broker.setCashPositions(Set<CashPosition> cashPositions) {
         this.cashPositions = cashPositions;
+    }
+    
+    public Set<Customer> Broker.getCustomers() {
+        return this.customers;
+    }
+    
+    public void Broker.setCustomers(Set<Customer> customers) {
+        this.customers = customers;
     }
     
 }
