@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:osgi="http://www.springframework.org/schema/osgi"
+             xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd
+			http://www.springframework.org/schema/osgi
+            http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-	<annotation-config/>
+    <!-- Generate incoming messages -->
+    <beans:bean id="counter" class="org.powertac.server.core.test.Counter"/>
+    <inbound-channel-adapter id="generatorChannel" ref="counter" method="next">
+        <poller max-messages-per-poll="1" fixed-delay="2000"/>
+    </inbound-channel-adapter>
 
-	<channel id="even"/>
-	<channel id="odd"/>
+    <channel id="mainChannel"/>
 
-	<inbound-channel-adapter id="numbers" ref="counter" method="next">
-		<poller max-messages-per-poll="1"  fixed-delay="3000"/>
-	</inbound-channel-adapter>
+    <!-- Get name from customer module -->
+    <osgi:reference id="customerRef" interface="org.powertac.common.interfaces.Customer"/>
+    <service-activator id="customerSa" input-channel="generatorChannel"
+                       output-channel="mainChannel" ref="customerRef" method="name"/>
 
-	<router input-channel="numbers" expression="payload % 2 == 0 ? 'even' : 'odd'"/>
-
-	<service-activator input-channel="odd" ref="oddLogger"/>
-
-	<service-activator input-channel="even" ref="evenLogger"/>
-
-	<beans:bean id="counter" class="org.powertac.server.core.test.Counter"/>
-
-	<beans:bean id="oddLogger" class="org.powertac.server.core.test.Logger"/>
-
-	<beans:bean id="evenLogger" class="org.powertac.server.core.test.Logger"/>
+    <!-- Send name to distribution utility for processing, e.g., logging -->
+    <osgi:reference id="duRef" interface="org.powertac.common.interfaces.DistributionUtility"/>
+    <service-activator id="duSa" input-channel="mainChannel"
+                       ref="duRef" method="log"/>
 
 </beans:beans>

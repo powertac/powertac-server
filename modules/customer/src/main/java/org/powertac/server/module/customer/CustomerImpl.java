@@ -15,7 +15,7 @@ public class CustomerImpl implements Customer {
 
     @Override
     public String name() {
-        return "Default Customer Model";
+        return "The name of the default customer model";
     }
 
 }

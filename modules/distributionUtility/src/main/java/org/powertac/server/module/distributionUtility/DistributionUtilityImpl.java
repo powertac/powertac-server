@@ -18,4 +18,9 @@ public class DistributionUtilityImpl implements DistributionUtility {
         return "Default Distribution Utility Model";
     }
 
+    @Override
+    public void log(String message) {
+        System.out.println("This is the distribution utility logging: " + message);
+    }
+
 }

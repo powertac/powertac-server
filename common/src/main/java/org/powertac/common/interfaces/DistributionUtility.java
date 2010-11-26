@@ -6,4 +6,6 @@ public interface DistributionUtility {
     String id();
     String name();
 
+    void log(String message);
+
 }
