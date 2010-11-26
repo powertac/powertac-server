@@ -3,6 +3,7 @@ package org.powertac.server.core.service;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.powertac.server.core.command.RevokeTariffCommand;
+import org.powertac.server.core.domain.Broker;
 
 public class AccountingService {
 
