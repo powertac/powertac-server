@@ -20,7 +20,7 @@
         <property name="classesToBeBound">
             <list>
                 <value>org.powertac.server.core.command.RevokeTariffCommand</value>
-                <!-- <value>org.powertac.server.core.domain.PublishTariffCommand</value> -->
+                <value>org.powertac.server.core.domain.PublishTariffCommand</value>
                 <!-- <value>org.powertac.server.core.domain.ChangeTariffCommand</value> -->
                 <!-- <value>org.powertac.server.core.domain.SubmitShoutCommand</value> -->
                 <!-- <value>org.powertac.server.core.domain.DeleteShoutCommand</value> -->
@@ -32,7 +32,7 @@
 
     <si:payload-type-router input-channel="incomingCommandChannel">
         <si:mapping type="org.powertac.server.core.command.RevokeTariffCommand" channel="revokeTariffChannel"/>
-        <!-- <si:mapping type="org.powertac.server.core.domain.Tariff" channel="publishTariff"/> -->
+        <si:mapping type="org.powertac.server.core.command.PublishTariffCommand" channel="publishTariffChannel"/>
     </si:payload-type-router>
 
 </beans>
