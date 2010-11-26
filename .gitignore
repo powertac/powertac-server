@@ -1,0 +1,17 @@
+# Eclipse project files
+.project
+
+# IntelliJ IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# OS generated files 
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Compiled source
+*.class
