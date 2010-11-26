@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plan name="powertac.plan" version="0.0.1" scoped="true" atomic="true"
+        xmlns="http://www.springsource.org/schema/dm-server/plan"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.springsource.org/schema/dm-server/plan 
+            http://www.springsource.org/schema/dm-server/plan/springsource-dm-server-plan.xsd">
+	
+	<!-- Spring Integration Core -->				
+	<artifact type="bundle" name="org.springframework.integration" version="2.0.0.RELEASE"/>
+	
+	<!-- Spring Integration XML incl. dependencies -->
+	<artifact type="bundle" name="org.springframework.bundle.ws.xml" version="1.5.9"/>
+	<artifact type="bundle" name="org.springframework.integration.xml" version="2.0.0.RELEASE"/>
+	
+	<!-- Spring Integration JMS incl. dependencies -->
+	<artifact type="bundle" name="com.springsource.javax.jms" version="1.1.0"/>	
+	<artifact type="bundle" name="org.springframework.jms" version="3.0.5.RELEASE"/>
+	<artifact type="bundle" name="org.springframework.integration.jms" version="2.0.0.RELEASE"/>
+		
+	<!-- Modules -->
+    <artifact type="bundle" name="org.powertac.interfaces" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.core" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.module.customerTwo" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.module.distributionUtility" version="0.0.1"/>
+  
+</plan>

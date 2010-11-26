@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.powertac</groupId>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0.0.1</version>
+    <name>PowerTAC Project</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring.version>3.0.5.RELEASE</spring.version>
+        <spring.version.range>[${spring.version},4.0)</spring.version.range>
+        <spring.dm.version>2.0.0.M1</spring.dm.version>
+        <spring.integration.version>2.0.0.RELEASE</spring.integration.version>
+        <bundlor.version>1.0.0.RELEASE</bundlor.version>
+        <!--<felix.bundle.plugin.version>2.0.1</felix.bundle.plugin.version>-->
+        <powertac.interfaces.version>0.0.1</powertac.interfaces.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>com.springsource.repository.bundles.release</id>
+            <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/release</url>
+        </repository>
+        <repository>
+            <id>com.springsource.repository.bundles.external</id>
+            <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/external</url>
+        </repository>
+        <!--
+          <repository>
+              <id>spring-maven-milestone</id>
+              <name>Springframework Maven Repository</name>
+              <url>http://s3.amazonaws.com/maven.springframework.org/milestone</url>
+          </repository>
+          -->
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>com.springsource.repository.bundles.release</id>
+            <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
+            <url>http://repository.springsource.com/maven/bundles/release</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.springsource.bundlor</groupId>
+                <artifactId>com.springsource.bundlor.maven</artifactId>
+                <version>${bundlor.version}</version>
+                <executions>
+                    <execution>
+                        <id>bundlor</id>
+                        <goals>
+                            <goal>bundlor</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <!--<configuration>-->
+                    <!--<bundleSymbolicName>org.powertac.server.${project.artifactId}</bundleSymbolicName>-->
+                    <!--<bundleVersion>${project.version}</bundleVersion>-->
+                <!--</configuration>-->
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3.1</version>
+                <configuration>
+                    <useDefaultManifestFile>true</useDefaultManifestFile>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <modules>
+        <module>interfaces</module>
+        <module>core</module>
+        <module>modules/customer</module>
+        <module>modules/customerTwo</module>
+        <module>modules/distributionUtility</module>
+    </modules>
+
+</project>

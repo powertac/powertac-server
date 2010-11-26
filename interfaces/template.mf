@@ -1,0 +1,4 @@
+Bundle-Name: ${project.artifactId}
+Bundle-Version: ${project.version}
+Bundle-SymbolicName: org.powertac.${project.artifactId}
+Bundle-ManifestVersion: 2

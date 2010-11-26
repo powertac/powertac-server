@@ -1,0 +1,7 @@
+Bundle-Name: ${project.artifactId}
+Bundle-Version: ${project.version}
+Bundle-SymbolicName: org.powertac.server.${project.artifactId}
+Bundle-ManifestVersion: 2
+Bundle-Activator: org.powertac.server.core.GameController
+Excluded-Exports: org.powertac.server.*
+Import-Bundle: org.springframework.core, org.springframework.context, org.springframework.integration

@@ -7,6 +7,9 @@
 *.iws
 .idea/
 
+# Deployment directories
+target/
+
 # OS generated files 
 .DS_Store?
 ehthumbs.db
