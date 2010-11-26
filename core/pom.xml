@@ -13,7 +13,7 @@
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>Server Core Module</name>
+    <name>Server Core</name>
     <url>http://powertac.org</url>
 
     <repositories>
@@ -32,8 +32,8 @@
     <dependencies>
         <dependency>
 			<groupId>org.powertac</groupId>
-			<artifactId>interfaces</artifactId>
-			<version>${powertac.interfaces.version}</version>
+			<artifactId>common</artifactId>
+			<version>${powertac.common.version}</version>
             <scope>provided</scope>
 		</dependency>
         <dependency>

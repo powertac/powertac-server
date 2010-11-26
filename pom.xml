@@ -18,7 +18,7 @@
         <spring.integration.version>2.0.0.RELEASE</spring.integration.version>
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
         <!--<felix.bundle.plugin.version>2.0.1</felix.bundle.plugin.version>-->
-        <powertac.interfaces.version>0.0.1</powertac.interfaces.version>
+        <powertac.common.version>0.0.1</powertac.common.version>
     </properties>
 
     <repositories>
@@ -89,7 +89,7 @@
     </build>
 
     <modules>
-        <module>interfaces</module>
+        <module>common</module>
         <module>core</module>
         <module>modules/customer</module>
         <module>modules/customerTwo</module>

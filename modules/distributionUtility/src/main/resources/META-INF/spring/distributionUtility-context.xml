@@ -8,6 +8,6 @@
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
     <bean id="du" class="org.powertac.server.module.distributionUtility.DistributionUtilityImpl"/>
-    <osgi:service ref="du" interface="org.powertac.interfaces.DistributionUtility"/>
+    <osgi:service ref="du" interface="org.powertac.common.interfaces.DistributionUtility"/>
 
 </beans>

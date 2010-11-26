@@ -1,4 +1,4 @@
-package org.powertac.interfaces;
+package org.powertac.common.interfaces;
 
 public interface DistributionUtility {
 

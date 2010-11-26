@@ -1,4 +1,4 @@
-package org.powertac.commands;
+package org.powertac.common.commands;
 
 import java.math.BigDecimal;
 

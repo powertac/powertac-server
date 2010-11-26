@@ -1,6 +1,6 @@
 package org.powertac.server.module.distributionUtility;
 
-import org.powertac.interfaces.DistributionUtility;
+import org.powertac.common.interfaces.DistributionUtility;
 
 public class DistributionUtilityImpl implements DistributionUtility {
 

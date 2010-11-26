@@ -1,6 +1,6 @@
 package org.powertac.server.module.customer;
 
-import org.powertac.interfaces.Customer;
+import org.powertac.common.interfaces.Customer;
 
 public class CustomerImpl implements Customer {
 

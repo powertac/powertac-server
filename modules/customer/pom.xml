@@ -19,8 +19,8 @@
     <dependencies>
         <dependency>
 			<groupId>org.powertac</groupId>
-			<artifactId>interfaces</artifactId>
-			<version>${powertac.interfaces.version}</version>
+			<artifactId>common</artifactId>
+			<version>${powertac.common.version}</version>
             <scope>provided</scope>
 		</dependency>
         <dependency>

@@ -8,6 +8,6 @@
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
     <bean id="customer" class="org.powertac.server.module.customer.CustomerImpl"/>
-    <osgi:service ref="customer" interface="org.powertac.interfaces.Customer"/>
+    <osgi:service ref="customer" interface="org.powertac.common.interfaces.Customer"/>
 
 </beans>

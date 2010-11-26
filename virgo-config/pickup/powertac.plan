@@ -19,7 +19,7 @@
 	<artifact type="bundle" name="org.springframework.integration.jms" version="2.0.0.RELEASE"/>
 		
 	<!-- Modules -->
-    <artifact type="bundle" name="org.powertac.interfaces" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.common" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.core" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customerTwo" version="0.0.1"/>

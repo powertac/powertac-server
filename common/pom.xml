@@ -9,11 +9,11 @@
         <version>0.0.1</version>
     </parent>
 
-    <artifactId>interfaces</artifactId>
+    <artifactId>common</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>Interfaces</name>
+    <name>Common</name>
     <url>http://powertac.org</url>
     <!--
     <build>

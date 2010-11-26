@@ -1,5 +1,4 @@
-package org.powertac.commands;
-
+package org.powertac.common.commands;
 
 import javax.xml.bind.annotation.XmlElement;
 
