@@ -19,6 +19,8 @@
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
         <!--<felix.bundle.plugin.version>2.0.1</felix.bundle.plugin.version>-->
         <powertac.common.version>0.0.1</powertac.common.version>
+        <!-- Change to your Eclipse Virgo Kernel directory -->
+        <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
     </properties>
 
     <repositories>
@@ -73,8 +75,8 @@
                     </execution>
                 </executions>
                 <!--<configuration>-->
-                    <!--<bundleSymbolicName>org.powertac.server.${project.artifactId}</bundleSymbolicName>-->
-                    <!--<bundleVersion>${project.version}</bundleVersion>-->
+                <!--<bundleSymbolicName>org.powertac.server.${project.artifactId}</bundleSymbolicName>-->
+                <!--<bundleVersion>${project.version}</bundleVersion>-->
                 <!--</configuration>-->
             </plugin>
             <plugin>
@@ -84,6 +86,26 @@
                 <configuration>
                     <useDefaultManifestFile>true</useDefaultManifestFile>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>install</phase>
+                        <configuration>
+                            <tasks>
+                                <copy todir="${powertac.virgo.path}/repository/usr" flatten="true">
+                                    <fileset dir="${basedir}">
+                                        <include name="**/target/*.jar"/>
+                                    </fileset>
+                                </copy>
+                            </tasks>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
