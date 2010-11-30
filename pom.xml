@@ -33,21 +33,21 @@
             <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
             <url>http://repository.springsource.com/maven/bundles/external</url>
         </repository>
-		<repository>
-		    <id>com.springsource.repository.libraries.release</id>
-		    <name>SpringSource Enterprise Bundle Repository - SpringSource Library Releases</name>
-		    <url>http://repository.springsource.com/maven/libraries/release</url>
-		</repository>
-		<repository>
-		    <id>com.springsource.repository.libraries.external</id>
-		    <name>SpringSource Enterprise Bundle Repository - External Library Releases</name>
-		    <url>http://repository.springsource.com/maven/libraries/external</url>
-		</repository>
-		<repository>
-		    <id>zodiac-repository</id>
-		    <name>Zodiac Milestone Repository</name>
-		    <url>http://zodiac.springsource.com/maven/bundles/milestone</url>
-		</repository>
+        <repository>
+            <id>com.springsource.repository.libraries.release</id>
+            <name>SpringSource Enterprise Bundle Repository - SpringSource Library Releases</name>
+            <url>http://repository.springsource.com/maven/libraries/release</url>
+        </repository>
+        <repository>
+            <id>com.springsource.repository.libraries.external</id>
+            <name>SpringSource Enterprise Bundle Repository - External Library Releases</name>
+            <url>http://repository.springsource.com/maven/libraries/external</url>
+        </repository>
+        <repository>
+            <id>zodiac-repository</id>
+            <name>Zodiac Milestone Repository</name>
+            <url>http://zodiac.springsource.com/maven/bundles/milestone</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>

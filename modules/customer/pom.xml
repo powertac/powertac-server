@@ -18,11 +18,11 @@
 
     <dependencies>
         <dependency>
-			<groupId>org.powertac</groupId>
-			<artifactId>common</artifactId>
-			<version>${powertac.common.version}</version>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${powertac.common.version}</version>
             <scope>provided</scope>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

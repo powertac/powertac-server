@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-		<artifactId>parent</artifactId>
-		<groupId>org.powertac</groupId>
-		<version>0.0.1</version>
-	</parent>
+        <artifactId>parent</artifactId>
+        <groupId>org.powertac</groupId>
+        <version>0.0.1</version>
+    </parent>
 
     <artifactId>core</artifactId>
     <version>0.0.1</version>
@@ -26,11 +26,11 @@
 
     <dependencies>
         <dependency>
-			<groupId>org.powertac</groupId>
-			<artifactId>common</artifactId>
-			<version>${powertac.common.version}</version>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${powertac.common.version}</version>
             <scope>provided</scope>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -117,21 +117,21 @@
             <artifactId>spring-oxm</artifactId>
             <version>${spring.version}</version>
         </dependency>
-		<dependency>
-        	<groupId>org.eclipse.gemini.blueprint</groupId>
-        	<artifactId>gemini-blueprint-core</artifactId>
-        	<version>${gemini.blueprint.version}</version>
-    	</dependency>
-    	<dependency>
-        	<groupId>org.eclipse.gemini.blueprint</groupId>
-        	<artifactId>gemini-blueprint-extender</artifactId>
-        	<version>${gemini.blueprint.version}</version>
-    	</dependency>
-    	<dependency>
-        	<groupId>org.eclipse.gemini.blueprint</groupId>
-        	<artifactId>gemini-blueprint-io</artifactId>
-        	<version>${gemini.blueprint.version}</version>
-    	</dependency>
+        <dependency>
+            <groupId>org.eclipse.gemini.blueprint</groupId>
+            <artifactId>gemini-blueprint-core</artifactId>
+            <version>${gemini.blueprint.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.gemini.blueprint</groupId>
+            <artifactId>gemini-blueprint-extender</artifactId>
+            <version>${gemini.blueprint.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.gemini.blueprint</groupId>
+            <artifactId>gemini-blueprint-io</artifactId>
+            <version>${gemini.blueprint.version}</version>
+        </dependency>
     </dependencies>
 
 </project>
