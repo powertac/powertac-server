@@ -14,10 +14,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.version>3.0.5.RELEASE</spring.version>
         <spring.version.range>[${spring.version},4.0)</spring.version.range>
-        <spring.dm.version>2.0.0.M1</spring.dm.version>
         <spring.integration.version>2.0.0.RELEASE</spring.integration.version>
+        <gemini.blueprint.version>1.0.0.M1</gemini.blueprint.version>
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
-        <!--<felix.bundle.plugin.version>2.0.1</felix.bundle.plugin.version>-->
         <powertac.common.version>0.0.1</powertac.common.version>
         <!-- Change to your Eclipse Virgo Kernel directory -->
         <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
@@ -34,13 +33,21 @@
             <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
             <url>http://repository.springsource.com/maven/bundles/external</url>
         </repository>
-        <!--
-          <repository>
-              <id>spring-maven-milestone</id>
-              <name>Springframework Maven Repository</name>
-              <url>http://s3.amazonaws.com/maven.springframework.org/milestone</url>
-          </repository>
-          -->
+		<repository>
+		    <id>com.springsource.repository.libraries.release</id>
+		    <name>SpringSource Enterprise Bundle Repository - SpringSource Library Releases</name>
+		    <url>http://repository.springsource.com/maven/libraries/release</url>
+		</repository>
+		<repository>
+		    <id>com.springsource.repository.libraries.external</id>
+		    <name>SpringSource Enterprise Bundle Repository - External Library Releases</name>
+		    <url>http://repository.springsource.com/maven/libraries/external</url>
+		</repository>
+		<repository>
+		    <id>zodiac-repository</id>
+		    <name>Zodiac Milestone Repository</name>
+		    <url>http://zodiac.springsource.com/maven/bundles/milestone</url>
+		</repository>
     </repositories>
 
     <pluginRepositories>
