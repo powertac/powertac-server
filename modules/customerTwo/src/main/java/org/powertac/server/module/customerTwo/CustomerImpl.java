@@ -1,8 +1,10 @@
 package org.powertac.server.module.customerTwo;
 
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 import org.powertac.common.interfaces.Customer;
 
-public class CustomerImpl implements Customer {
+public class CustomerImpl implements Customer, BundleActivator {
 
     public CustomerImpl() {
         System.out.println("CustomerImpl Two");
@@ -18,4 +20,13 @@ public class CustomerImpl implements Customer {
         return "Second Customer Model";
     }
 
+    @Override
+    public void start(BundleContext context) throws Exception {
+        System.out.println("starting customer two bundle");
+    }
+
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        System.out.println("stopping customer two bundle");
+    }
 }
