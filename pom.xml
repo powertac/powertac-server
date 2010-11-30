@@ -15,6 +15,7 @@
         <spring.version>3.0.5.RELEASE</spring.version>
         <spring.version.range>[${spring.version},4.0)</spring.version.range>
         <spring.integration.version>2.0.0.RELEASE</spring.integration.version>
+        <osgi.version>3.6.0.v20100517</osgi.version>
         <gemini.blueprint.version>1.0.0.M1</gemini.blueprint.version>
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
         <powertac.common.version>0.0.1</powertac.common.version>
@@ -59,6 +60,12 @@
     </pluginRepositories>
 
     <dependencies>
+        <!-- OSGi -->
+        <dependency>
+            <groupId>org.eclipse.osgi</groupId>
+            <artifactId>org.eclipse.osgi</artifactId>
+            <version>${osgi.version}</version>
+        </dependency>
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
