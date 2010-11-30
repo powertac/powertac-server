@@ -1,4 +1,4 @@
-package org.powertac.server.module.customer;
+package org.powertac.server.module.customerTwo;
 
 import org.powertac.common.interfaces.Customer;
 
