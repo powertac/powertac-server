@@ -1,8 +1,6 @@
 package org.powertac.common.interfaces;
 
-import org.powertac.common.commands.CashPositionCommand;
-import org.powertac.common.commands.CashUpdateCommand;
-import org.powertac.common.commands.TariffPublishedCommand;
+import org.powertac.common.commands.*;
 
 import java.util.List;
 
