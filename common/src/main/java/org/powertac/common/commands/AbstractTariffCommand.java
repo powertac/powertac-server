@@ -4,6 +4,7 @@ import org.joda.time.LocalDateTime;
 import org.powertac.common.interfaces.Broker;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -49,6 +50,8 @@ public abstract class AbstractTariffCommand {
   private BigDecimal powerConsumptionPrice21;
   private BigDecimal powerConsumptionPrice22;
   private BigDecimal powerConsumptionPrice23;    // --- " ---"
+    
+  
 
   private BigDecimal powerProductionPrice0;     //kWh dependent power consumption fee (>0) / reward (<0) for hour 0
   private BigDecimal powerProductionPrice1;
@@ -91,6 +94,147 @@ public abstract class AbstractTariffCommand {
   private BigDecimal powerConsumptionSurcharge;   // % fee added to hourly powerConsumptionPrice if consumption exceeds threshold (see above)
 
   private BigDecimal powerProductionThreshold;    // >0: threshold production level; production exceeding this threshold leads to a surcharge (see below) being added to the time dependent powerProductionPrice
-  private BigDecimal powerProductionSurcharge;    // % fee added to hourly powerProductionPrice if production exceeds threshold (see above)
+
+    public BigDecimal getSignupFee() {
+        return signupFee;
+    }
+
+    public void setSignupFee(BigDecimal signupFee) {
+        this.signupFee = signupFee;
+    }
+
+    public BigDecimal getBaseFee() {
+        return baseFee;
+    }
+
+    public void setBaseFee(BigDecimal baseFee) {
+        this.baseFee = baseFee;
+    }
+
+    public LocalDateTime getContractStartDate() {
+        return contractStartDate;
+    }
+
+    public void setContractStartDate(LocalDateTime contractStartDate) {
+        this.contractStartDate = contractStartDate;
+    }
+
+    public LocalDateTime getContractEndDate() {
+        return contractEndDate;
+    }
+
+    public void setContractEndDate(LocalDateTime contractEndDate) {
+        this.contractEndDate = contractEndDate;
+    }
+
+    public Integer getMinimumContractRuntime() {
+        return minimumContractRuntime;
+    }
+
+    public void setMinimumContractRuntime(Integer minimumContractRuntime) {
+        this.minimumContractRuntime = minimumContractRuntime;
+    }
+
+    public Integer getMaximumContractRuntime() {
+        return maximumContractRuntime;
+    }
+
+    public void setMaximumContractRuntime(Integer maximumContractRuntime) {
+        this.maximumContractRuntime = maximumContractRuntime;
+    }
+
+    public BigDecimal getPowerConsumptionThreshold() {
+        return powerConsumptionThreshold;
+    }
+
+    public void setPowerConsumptionThreshold(BigDecimal powerConsumptionThreshold) {
+        this.powerConsumptionThreshold = powerConsumptionThreshold;
+    }
+
+    public BigDecimal getPowerConsumptionSurcharge() {
+        return powerConsumptionSurcharge;
+    }
+
+    public void setPowerConsumptionSurcharge(BigDecimal powerConsumptionSurcharge) {
+        this.powerConsumptionSurcharge = powerConsumptionSurcharge;
+    }
+
+    public BigDecimal getPowerProductionThreshold() {
+        return powerProductionThreshold;
+    }
+
+    public void setPowerProductionThreshold(BigDecimal powerProductionThreshold) {
+        this.powerProductionThreshold = powerProductionThreshold;
+    }
+
+    public BigDecimal getPowerProductionSurcharge() {
+        return powerProductionSurcharge;
+    }
+
+    public void setPowerProductionSurcharge(BigDecimal powerProductionSurcharge) {
+        this.powerProductionSurcharge = powerProductionSurcharge;
+    }
+
+    private BigDecimal powerProductionSurcharge;    // % fee added to hourly powerProductionPrice if production exceeds threshold (see above)
+    
+    public ArrayList<BigDecimal> getPowerProductionPriceList()
+    {
+        ArrayList<BigDecimal> powerProductionPriceList = new ArrayList<BigDecimal>();
+        powerProductionPriceList.add(powerProductionPrice0);
+        powerProductionPriceList.add(powerProductionPrice1);
+        powerProductionPriceList.add(powerProductionPrice2);
+        powerProductionPriceList.add(powerProductionPrice3);
+        powerProductionPriceList.add(powerProductionPrice4);
+        powerProductionPriceList.add(powerProductionPrice5);
+        powerProductionPriceList.add(powerProductionPrice6);
+        powerProductionPriceList.add(powerProductionPrice7);
+        powerProductionPriceList.add(powerProductionPrice8);
+        powerProductionPriceList.add(powerProductionPrice9);
+        powerProductionPriceList.add(powerProductionPrice10);
+        powerProductionPriceList.add(powerProductionPrice11);
+        powerProductionPriceList.add(powerProductionPrice12);
+        powerProductionPriceList.add(powerProductionPrice13);
+        powerProductionPriceList.add(powerProductionPrice14);
+        powerProductionPriceList.add(powerProductionPrice15);
+        powerProductionPriceList.add(powerProductionPrice16);
+        powerProductionPriceList.add(powerProductionPrice17);
+        powerProductionPriceList.add(powerProductionPrice18);
+        powerProductionPriceList.add(powerProductionPrice19);
+        powerProductionPriceList.add(powerProductionPrice20);
+        powerProductionPriceList.add(powerProductionPrice21);
+        powerProductionPriceList.add(powerProductionPrice22);
+        powerProductionPriceList.add(powerProductionPrice23);
+        return powerProductionPriceList;
+    }
+    
+        public ArrayList<BigDecimal> getPowerConsumptionPriceList()
+    {
+        ArrayList<BigDecimal> powerConsumptionPriceList = new ArrayList<BigDecimal>();
+        powerConsumptionPriceList.add(powerConsumptionPrice0);
+        powerConsumptionPriceList.add(powerConsumptionPrice1);
+        powerConsumptionPriceList.add(powerConsumptionPrice2);
+        powerConsumptionPriceList.add(powerConsumptionPrice3);
+        powerConsumptionPriceList.add(powerConsumptionPrice4);
+        powerConsumptionPriceList.add(powerConsumptionPrice5);
+        powerConsumptionPriceList.add(powerConsumptionPrice6);
+        powerConsumptionPriceList.add(powerConsumptionPrice7);
+        powerConsumptionPriceList.add(powerConsumptionPrice8);
+        powerConsumptionPriceList.add(powerConsumptionPrice9);
+        powerConsumptionPriceList.add(powerConsumptionPrice10);
+        powerConsumptionPriceList.add(powerConsumptionPrice11);
+        powerConsumptionPriceList.add(powerConsumptionPrice12);
+        powerConsumptionPriceList.add(powerConsumptionPrice13);
+        powerConsumptionPriceList.add(powerConsumptionPrice14);
+        powerConsumptionPriceList.add(powerConsumptionPrice15);
+        powerConsumptionPriceList.add(powerConsumptionPrice16);
+        powerConsumptionPriceList.add(powerConsumptionPrice17);
+        powerConsumptionPriceList.add(powerConsumptionPrice18);
+        powerConsumptionPriceList.add(powerConsumptionPrice19);
+        powerConsumptionPriceList.add(powerConsumptionPrice20);
+        powerConsumptionPriceList.add(powerConsumptionPrice21);
+        powerConsumptionPriceList.add(powerConsumptionPrice22);
+        powerConsumptionPriceList.add(powerConsumptionPrice23);
+        return powerConsumptionPriceList;
+    }
 
 }
