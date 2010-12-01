@@ -15,6 +15,15 @@
 
     <name>Common</name>
     <url>http://powertac.org</url>
+
+    <dependencies>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+    </dependencies>
+
     <!--
     <build>
         <plugins>
