@@ -1,5 +1,7 @@
 package org.powertac.common.interfaces;
 
+import org.powertac.common.commands.MeterReadingBalanceCommand;
+
 import java.util.List;
 
 public interface DistributionUtility {

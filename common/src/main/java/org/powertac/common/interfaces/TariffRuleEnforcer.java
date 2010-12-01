@@ -10,11 +10,8 @@ import org.springframework.integration.core.MessageSelector;
  * Time: 2:34 PM
  * To change this template use File | Settings | File Templates.
  */
-public class TariffRuleEnforcer implements MessageSelector  {
+public interface TariffRuleEnforcer extends MessageSelector  {
 
-    @Override
-    public boolean accept(Message<?> message) {
-        return false;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
+  @Override
+  public boolean accept(Message<?> message);
 }
