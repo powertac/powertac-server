@@ -40,4 +40,11 @@ public interface AccountingService {
      * @return the identical tariffReplyCommand parameter
      */
     TariffReplyCommand processTariffReply(TariffReplyCommand tariffReplyCommand);
+
+    /**
+     * Stores and forwards the list of customer info
+     * @return the identical customerInfoCommands parameter
+     */
+    List<CustomerInfoCommand> processCustomerInfo(List<CustomerInfoCommand> customerInfoCommands);
+
 }

@@ -22,6 +22,22 @@
             <artifactId>joda-time</artifactId>
             <version>1.6.2</version>
         </dependency>
+        <!-- Spring Integration Dependencies -->
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-core</artifactId>
+            <version>${spring.integration.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-jms</artifactId>
+            <version>${spring.integration.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.integration</groupId>
+            <artifactId>spring-integration-xml</artifactId>
+            <version>${spring.integration.version}</version>
+        </dependency>
     </dependencies>
 
     <!--

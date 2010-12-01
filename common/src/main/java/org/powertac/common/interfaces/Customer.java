@@ -1,9 +1,6 @@
 package org.powertac.common.interfaces;
 
-import org.powertac.common.commands.MeterReadingCommand;
-import org.powertac.common.commands.TariffPublishedCommand;
-import org.powertac.common.commands.TariffReplyCommand;
-import org.powertac.common.commands.TimeslotUpdatedCommand;
+import org.powertac.common.commands.*;
 
 import java.util.List;
 
@@ -25,5 +22,5 @@ public interface Customer {
 
     MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand);
 
-    //CustomerInfoCommand generate
+    CustomerInfoCommand generateCustomerInfo();
 }
