@@ -22,5 +22,5 @@ public interface Customer {
 
     MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand);
 
-    //CustomerInfoCommand generate
+    CustomerInfoCommand generateCustomerInfo();
 }
