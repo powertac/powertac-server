@@ -17,13 +17,15 @@
 	<artifact type="bundle" name="com.springsource.javax.jms" version="1.1.0"/>	
 	<artifact type="bundle" name="org.springframework.jms" version="3.0.5.RELEASE"/>
 	<artifact type="bundle" name="org.springframework.integration.jms" version="2.0.0.RELEASE"/>
-		
+
+    <!-- Other commonly used libraries -->
+    <artifact type="bundle" name="com.springsource.org.joda.time" version="1.6.0"/>
+
 	<!-- Modules -->
     <artifact type="bundle" name="org.powertac.common" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.core" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.accountingService" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
-    <artifact type="bundle" name="org.powertac.server.module.customerTwo" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.distributionUtility" version="0.0.1"/>
   
 </plan>

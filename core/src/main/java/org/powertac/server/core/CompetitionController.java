@@ -3,10 +3,10 @@ package org.powertac.server.core;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
-public class GameController implements BundleActivator {
+public class CompetitionController implements BundleActivator {
 
-    public GameController() {
-        System.out.println("GameController");
+    public CompetitionController() {
+        System.out.println("CompetitionController");
     }
 
     @Override

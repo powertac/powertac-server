@@ -1,7 +1,7 @@
 package org.powertac.common.commands;
 
-import com.sun.corba.se.pept.broker.Broker;
 import org.joda.time.LocalDateTime;
+import org.powertac.common.interfaces.Broker;
 import org.powertac.common.interfaces.Product;
 
 import java.math.BigDecimal;
