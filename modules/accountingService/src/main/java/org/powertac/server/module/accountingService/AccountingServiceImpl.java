@@ -3,13 +3,10 @@ package org.powertac.server.module.accountingService;
 import org.powertac.common.commands.*;
 import org.powertac.common.interfaces.AccountingService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AccountingServiceImpl implements AccountingService {
-
-    public AccountingServiceImpl() {
-        System.out.println("AccountingServiceImpl");
-    }
 
     @Override
     public List<MeterReadingBalanceCommand> processMeterReadings(List<MeterReadingCommand> meterReadingCommandList) {
@@ -28,12 +25,17 @@ public class AccountingServiceImpl implements AccountingService {
 
     @Override
     public List<TariffPublishedCommand> publishTariffList() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        // Demo implementation. Returns empty list.
+        ArrayList<TariffPublishedCommand> tariffList = new ArrayList<TariffPublishedCommand>();
+        TariffPublishedCommand tariffPublishedCommand = new TariffPublishedCommand();
+        tariffList.add(tariffPublishedCommand);
+        return(tariffList);
     }
 
     @Override
     public TariffReplyCommand processTariffReply(TariffReplyCommand tariffReplyCommand) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        // Demo implementation. Should return same object, which is fine.
+        return tariffReplyCommand;
     }
 
     @Override

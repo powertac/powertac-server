@@ -6,10 +6,6 @@ import java.util.List;
 
 public interface Customer {
 
-    /* Model identification */
-    String id();
-    String name();
-
     //void processTimeslot(TimeslotCreatedCommand timeslotCreatedCommand);
     //void processTimeslot(TimeslotUpdatedCommand timeslotUpdatedCommand);
 

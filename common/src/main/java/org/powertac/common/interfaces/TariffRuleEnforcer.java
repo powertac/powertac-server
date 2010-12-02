@@ -1,17 +1,14 @@
 package org.powertac.common.interfaces;
 
-import org.springframework.integration.Message;
-import org.springframework.integration.core.MessageSelector;
+import org.powertac.common.commands.TariffReplyCommand;
 
-/**
- * Created by IntelliJ IDEA.
- * User: ddauer
- * Date: 12/1/10
- * Time: 2:34 PM
- * To change this template use File | Settings | File Templates.
- */
-public interface TariffRuleEnforcer extends MessageSelector  {
+public interface TariffRuleEnforcer  {
 
-  @Override
-  public boolean accept(Message<?> message);
+    /**
+     * Evaluates a given tariff
+     * @param tariffReplyCommand
+     * @return whether tariffReplyCommand is accepted or not
+     */
+  public boolean accept(TariffReplyCommand tariffReplyCommand);
+
 }
