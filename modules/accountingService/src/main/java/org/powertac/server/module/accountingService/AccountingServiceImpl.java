@@ -22,7 +22,7 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public CashPositionCommand processCashUpdate(CashUpdateCommand cashUpdateCommand) {
+    public CashChangedCommand processCashUpdate(CashUpdateCommand cashUpdateCommand) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
