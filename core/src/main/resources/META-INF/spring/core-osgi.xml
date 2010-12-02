@@ -11,6 +11,6 @@
     <reference id="accountingService" interface="org.powertac.common.interfaces.AccountingService"/>
     <!--TODO: Account for multiple customer modules. For now, just one module (with highest OSGi priority) will (automatically) be used-->
     <reference id="customer" interface="org.powertac.common.interfaces.Customer"/>
-    <!--<reference id="tariffRuleEnforcer" interface="org.powertac.common.interfaces.TariffRuleEnforcer"/>-->
+    <reference id="tariffRuleEnforcer" interface="org.powertac.common.interfaces.TariffRuleEnforcer"/>
 
 </beans:beans>

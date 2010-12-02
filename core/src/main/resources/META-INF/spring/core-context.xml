@@ -12,6 +12,6 @@
     <!--Create a proxy bean which maps the Spring Integration filter interface to the generic,-->
     <!--non-integration TariffRuleEnforcer interface-->
     <bean id="tariffRuleEnforcerProxy" class="org.powertac.server.core.TariffRuleEnforcerProxy">
-        <!--<property name="tariffRuleEnforcer" ref="tariffRuleEnforcer"/>-->
+        <property name="tariffRuleEnforcer" ref="tariffRuleEnforcer"/>
     </bean>
 </beans>
