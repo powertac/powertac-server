@@ -39,7 +39,7 @@ public abstract class AbstractTimeslotCommand implements Serializable {
     LocalDateTime endDate;
     Boolean enabled;
 
-    protected AbstractTimeslotCommand(Long timeslotId, LocalDateTime startDate, LocalDateTime endDate, Boolean enabled) {
+    public AbstractTimeslotCommand(Long timeslotId, LocalDateTime startDate, LocalDateTime endDate, Boolean enabled) {
         this.timeslotId = timeslotId;
         this.startDate = startDate;
         this.endDate = endDate;

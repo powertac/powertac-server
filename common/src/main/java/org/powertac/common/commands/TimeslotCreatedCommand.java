@@ -30,7 +30,7 @@ import java.io.Serializable;
  * @version 1.0, Date: 01.12.10
  * @see AbstractTimeslotCommand, TimeslotUpdatedCommand
  */
-public class TimeslotCreatedCommand extends AbstractTimeslotCommand implements Serializable {
+public class TimeslotCreatedCommand extends AbstractTimeslotCommand {
 
     private static final long serialVersionUID = 2795655318065268694L;
 
