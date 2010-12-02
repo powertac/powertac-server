@@ -18,6 +18,7 @@ package org.powertac.common.commands;
 
 import org.joda.time.LocalDateTime;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
@@ -29,9 +30,10 @@ import java.math.BigDecimal;
  * @author Carsten Block
  * @version 1.0, Date: 01.12.10
  */
-public abstract class AbstractTariffCommand {
+public abstract class AbstractTariffCommand implements Serializable {
 
     private static int DECIMALS = 2;
+    private static final long serialVersionUID = -8509590009442007573L;
 
     private Long tariffId;
 

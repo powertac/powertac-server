@@ -18,6 +18,8 @@ package org.powertac.common.commands;
 
 import org.joda.time.LocalDateTime;
 
+import java.io.Serializable;
+
 /**
  * Command object that represents common
  * timeslot data used throughout all timeslot
@@ -28,7 +30,10 @@ import org.joda.time.LocalDateTime;
  * @author Carsten Block
  * @version 1.0, Date: 01.12.10
  */
-public abstract class AbstractTimeslotCommand {
+public abstract class AbstractTimeslotCommand implements Serializable {
+
+    private static final long serialVersionUID = -5259785412810528138L;
+
     Long timeslotId;
     LocalDateTime startDate;
     LocalDateTime endDate;
