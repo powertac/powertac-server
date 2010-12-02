@@ -205,6 +205,7 @@
         <module>modules/accountingService</module>
         <module>modules/customer</module>
         <module>modules/distributionUtility</module>
+        <module>modules/tariffRuleEnforcer</module>
     </modules>
 
 </project>
