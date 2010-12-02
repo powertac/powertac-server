@@ -11,7 +11,7 @@ public interface Customer {
     String name();
 
     //void processTimeslot(TimeslotCreatedCommand timeslotCreatedCommand);
-    //void processTimeslot(TimeslotUpdatedCommand timeslotUpdatedCommand);
+    //void processTimeslot(TimeslotChangedCommand timeslotChangedCommand);
 
     /**
      *
@@ -20,7 +20,7 @@ public interface Customer {
      */
     List<TariffReplyCommand> processTariffList(List<TariffPublishedCommand> tariffPublishedCommandList);
 
-    MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand);
+    MeterReadingCommand generateMeterReading(TimeslotChangedCommand timeslotChangedCommand);
 
     CustomerInfoCommand generateCustomerInfo();
 }
