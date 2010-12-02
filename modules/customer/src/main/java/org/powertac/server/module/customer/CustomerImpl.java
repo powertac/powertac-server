@@ -1,9 +1,6 @@
 package org.powertac.server.module.customer;
 
-import org.powertac.common.commands.MeterReadingCommand;
-import org.powertac.common.commands.TariffPublishedCommand;
-import org.powertac.common.commands.TariffReplyCommand;
-import org.powertac.common.commands.TimeslotUpdatedCommand;
+import org.powertac.common.commands.*;
 import org.powertac.common.interfaces.Customer;
 
 import java.math.BigDecimal;
@@ -32,7 +29,7 @@ public class CustomerImpl implements Customer {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    @Override
+    /*@Override
     public ArrayList<TariffReplyCommand> processTariffList(ArrayList<TariffPublishedCommand> tariffPublishedCommandList) {
         TariffPublishedCommand bestTariff = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
@@ -48,13 +45,18 @@ public class CustomerImpl implements Customer {
         tariffChoice.add(bestTariff);
         return(tariffChoice);
     }
-
+*/
     private BigDecimal getUtility(TariffPublishedCommand tariffPublishedCommand) {
         return null;  //To change body of created methods use File | Settings | File Templates.
     }
 
     @Override
     public MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public CustomerInfoCommand generateCustomerInfo() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
