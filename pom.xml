@@ -204,7 +204,6 @@
         <module>core</module>
         <module>modules/accountingService</module>
         <module>modules/customer</module>
-        <module>modules/customerTwo</module>
         <module>modules/distributionUtility</module>
     </modules>
 

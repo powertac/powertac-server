@@ -1,7 +1,0 @@
-Bundle-Name: ${project.artifactId}
-Bundle-Version: ${project.version}
-Bundle-SymbolicName: org.powertac.server.module.${project.artifactId}
-Bundle-ManifestVersion: 2
-Bundle-Activator: org.powertac.server.module.customerTwo.CustomerImpl
-Excluded-Exports: org.powertac.server.module.customerTwo
-Import-Template: org.powertac.*;version="0.0.1"

@@ -26,7 +26,6 @@
     <artifact type="bundle" name="org.powertac.server.core" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.accountingService" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
-    <artifact type="bundle" name="org.powertac.server.module.customerTwo" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.distributionUtility" version="0.0.1"/>
   
 </plan>
