@@ -1,15 +1,11 @@
 package org.powertac.server.module.customer;
 
-import org.powertac.common.commands.MeterReadingCommand;
-import org.powertac.common.commands.TariffPublishedCommand;
-import org.powertac.common.commands.TariffReplyCommand;
-import org.powertac.common.commands.TimeslotUpdatedCommand;
+import org.powertac.common.commands.*;
 import org.powertac.common.interfaces.Customer;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 
 public class CustomerImpl implements Customer {
 
@@ -29,23 +25,21 @@ public class CustomerImpl implements Customer {
 
     @Override
     public List<TariffReplyCommand> processTariffList(List<TariffPublishedCommand> tariffPublishedCommandList) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public ArrayList<TariffReplyCommand> processTariffList(ArrayList<TariffPublishedCommand> tariffPublishedCommandList) {
-        TariffPublishedCommand bestTariff = null;
+        TariffPublishedCommand bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
         for (TariffPublishedCommand tariffPublishedCommand: tariffPublishedCommandList)
         {
           if(getUtility(tariffPublishedCommand).compareTo(currentMaxUtility)>0)
           {
-            bestTariff = tariffPublishedCommand;
+            bestTariffPublished = tariffPublishedCommand;
           }
         }
 
-         ArrayList<TariffReplyCommand> tariffChoice = new ArrayList<TariffReplyCommand>();
-        tariffChoice.add(bestTariff);
+        ArrayList<TariffReplyCommand> tariffChoice = new ArrayList<TariffReplyCommand>();
+        TariffReplyCommand bestTariffReply = new TariffReplyCommand();
+        //tariffChoice.add(bestTariffPublished); //TODO: we need a simply way to convert TariffPublishedCommands into TariffReplyCommands
+        //bestTariffReply = TariffParser.convert(bestTariffPublished)
+        tariffChoice.add(bestTariffReply);
         return(tariffChoice);
     }
 
@@ -57,5 +51,10 @@ public class CustomerImpl implements Customer {
     public MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+  @Override
+  public CustomerInfoCommand generateCustomerInfo() {
+    return null;  //To change body of implemented methods use File | Settings | File Templates.
+  }
 
 }
