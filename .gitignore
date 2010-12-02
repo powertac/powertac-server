@@ -1,5 +1,6 @@
 # Eclipse project files
 .project
+.settings
 
 # IntelliJ IDEA project files
 *.iml
