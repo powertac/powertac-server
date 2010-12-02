@@ -7,6 +7,6 @@
         http://www.springframework.org/schema/osgi
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-	  <bean id="gameController" class="org.powertac.server.core.GameController" />
+	  <bean id="competitionController" class="org.powertac.server.core.CompetitionController" />
 
 </beans>
