@@ -33,7 +33,7 @@ import java.math.BigDecimal;
  * @version 1.0, Date: 01.12.10
  * @see TariffReplyCommand, AbstractTariffCommand
  */
-public class TariffReplyCommand extends AbstractTariffCommand implements Serializable {
+public class TariffReplyCommand extends AbstractTariffCommand {
 
     private static final long serialVersionUID = -2880976902173580921L;
 

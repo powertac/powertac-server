@@ -38,7 +38,7 @@ import java.util.Set;
  * @version 1.0, Date: 01.12.10
  * @see TariffReplyCommand, AbstractTariffCommand
  */
-public class TariffPublishCommand extends AbstractTariffCommand implements Serializable {
+public class TariffPublishCommand extends AbstractTariffCommand {
 
     private static final long serialVersionUID = 1900809883839146303L;
 

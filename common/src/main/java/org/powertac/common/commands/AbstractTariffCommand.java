@@ -67,7 +67,7 @@ public abstract class AbstractTariffCommand implements Serializable {
     private BigDecimal powerProductionThreshold;    // >0: threshold production level; production exceeding this threshold leads to a surcharge (see below) being added to the time dependent powerProductionPrice
     private BigDecimal powerProductionSurcharge;    // % fee added to hourly powerProductionPrice if production exceeds threshold (see above)
 
-    protected AbstractTariffCommand(Long tariffId, BigDecimal signupFee, BigDecimal baseFee, BigDecimal[] powerConsumptionPriceList, BigDecimal[] powerProductionPriceList, LocalDateTime contractStartDate, LocalDateTime contractEndDate, Integer minimumContractRuntime, Integer maximumContractRuntime, BigDecimal powerConsumptionThreshold, BigDecimal powerConsumptionSurcharge, BigDecimal powerProductionThreshold, BigDecimal powerProductionSurcharge) {
+    public AbstractTariffCommand(Long tariffId, BigDecimal signupFee, BigDecimal baseFee, BigDecimal[] powerConsumptionPriceList, BigDecimal[] powerProductionPriceList, LocalDateTime contractStartDate, LocalDateTime contractEndDate, Integer minimumContractRuntime, Integer maximumContractRuntime, BigDecimal powerConsumptionThreshold, BigDecimal powerConsumptionSurcharge, BigDecimal powerProductionThreshold, BigDecimal powerProductionSurcharge) {
         this.tariffId = tariffId;
         this.signupFee = signupFee;
         this.baseFee = baseFee;
@@ -83,7 +83,7 @@ public abstract class AbstractTariffCommand implements Serializable {
         this.powerProductionSurcharge = powerProductionSurcharge;
     }
 
-    protected AbstractTariffCommand(Long tariffId, Double signupFee, Double baseFee, Double[] powerConsumptionPriceList, Double[] powerProductionPriceList, LocalDateTime contractStartDate, LocalDateTime contractEndDate, Integer minimumContractRuntime, Integer maximumContractRuntime, Double powerConsumptionThreshold, Double powerConsumptionSurcharge, Double powerProductionThreshold, Double powerProductionSurcharge) {
+    public AbstractTariffCommand(Long tariffId, Double signupFee, Double baseFee, Double[] powerConsumptionPriceList, Double[] powerProductionPriceList, LocalDateTime contractStartDate, LocalDateTime contractEndDate, Integer minimumContractRuntime, Integer maximumContractRuntime, Double powerConsumptionThreshold, Double powerConsumptionSurcharge, Double powerProductionThreshold, Double powerProductionSurcharge) {
 
         this.tariffId = tariffId;
 
