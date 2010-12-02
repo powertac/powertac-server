@@ -18,6 +18,7 @@
         <osgi.version>3.6.0.v20100517</osgi.version>
         <gemini.blueprint.version>1.0.0.M1</gemini.blueprint.version>
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
+        <joda.version>1.6.0</joda.version>
         <powertac.common.version>0.0.1</powertac.common.version>
         <!-- Change to your Eclipse Virgo Kernel directory -->
         <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
@@ -65,12 +66,14 @@
             <groupId>org.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${osgi.version}</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
@@ -94,26 +97,31 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aspects</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-tx</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-oxm</artifactId>
             <version>${spring.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.gemini.blueprint</groupId>

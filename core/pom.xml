@@ -38,9 +38,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>1.6.2</version>
+            <groupId>org.joda</groupId>
+            <artifactId>com.springsource.org.joda.time</artifactId>
+            <version>${joda.version}</version>
+            <scope>provided</scope>
         </dependency>
         <!-- Spring Integration Dependencies -->
         <dependency>
