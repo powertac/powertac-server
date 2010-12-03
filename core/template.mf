@@ -2,7 +2,6 @@ Bundle-Name: ${project.artifactId}
 Bundle-Version: ${project.version}
 Bundle-SymbolicName: org.powertac.server.${project.artifactId}
 Bundle-ManifestVersion: 2
-Bundle-Activator: org.powertac.server.core.CompetitionController
 Excluded-Exports: org.powertac.server.*
 Import-Bundle: org.springframework.core, org.springframework.context, org.springframework.integration
-Import-Template: org.powertac.*;version="0.0.1"
+Import-Template: org.powertac.*;version="0.0.1", org.springframework.integration*;version="[2.0.0, 3.0.0)"

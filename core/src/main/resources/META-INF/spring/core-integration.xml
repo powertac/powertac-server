@@ -2,30 +2,58 @@
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xmlns:beans="http://www.springframework.org/schema/beans"
-             xmlns:osgi="http://www.springframework.org/schema/osgi"
              xsi:schemaLocation="http://www.springframework.org/schema/beans
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
-			http://www.springframework.org/schema/integration/spring-integration.xsd
-			http://www.springframework.org/schema/osgi
-            http://www.springframework.org/schema/osgi/spring-osgi.xsd">
+			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-    <!-- Generate incoming messages -->
-    <beans:bean id="counter" class="org.powertac.server.core.test.Counter"/>
-    <inbound-channel-adapter id="generatorChannel" ref="counter" method="next">
-        <poller max-messages-per-poll="1" fixed-delay="2000"/>
+    <!--Generate a TimeslotUpdateCommand every 5 seconds-->
+    <publish-subscribe-channel id="CcTimeslotUpdateCommandChannel"/>
+    <inbound-channel-adapter ref="competitionController" method="processTimeslotUpdate"
+                             channel="CcTimeslotUpdateCommandChannel">
+        <poller fixed-rate="5000"/>
     </inbound-channel-adapter>
 
-    <channel id="mainChannel"/>
+    <!--1. Publish TimeslotUpdateCommand to all brokers-->
+    <!--TODO: Use marshalling to publish the TimeslotUpdateCommand to all brokers-->
 
-    <!-- Get name from customer module -->
-    <osgi:reference id="customerRef" interface="org.powertac.common.interfaces.Customer"/>
-    <service-activator id="customerSa" input-channel="generatorChannel"
-                       output-channel="mainChannel" ref="customerRef" method="name"/>
+    <!--2. Tariff Handling-->
+    <!--Ask the accounting service for the current tariff list-->
+    <publish-subscribe-channel id="AsTariffPublishedCommandChannel"/>
+    <service-activator ref="accountingService" method="publishTariffList" input-channel="CcTimeslotUpdateCommandChannel"
+                       output-channel="AsTariffPublishedCommandChannel"/>
 
-    <!-- Send name to distribution utility for processing, e.g., logging -->
-    <osgi:reference id="duRef" interface="org.powertac.common.interfaces.DistributionUtility"/>
-    <service-activator id="duSa" input-channel="mainChannel"
-                       ref="duRef" method="log"/>
+    <!--2.1. Allow customers to decide if they want to subscribe or negotiate-->
+    <channel id="CuTariffReplyCommandsChannel"/>
+    <service-activator ref="customer" method="processTariffList"
+                       input-channel="AsTariffPublishedCommandChannel" output-channel="CuTariffReplyCommandsChannel"/>
+
+    <!--2.1.1. Validate every reply using the TariffRuleEnforcer-->
+    <!--In order to do so, the message list in CuTariffReplyCommandsChannel is split into single messages first-->
+    <channel id="CuTariffReplyCommandChannel"/>
+    <splitter input-channel="CuTariffReplyCommandsChannel" output-channel="CuTariffReplyCommandChannel"/>
+
+    <!--2.1.2. Use a filter to validate each reply-->
+    <channel id="CuTariffReplyCommandAcceptedChannel"/>
+    <channel id="CuTariffReplyCommandRejectedChannel"/>
+    <filter input-channel="CuTariffReplyCommandChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
+            discard-channel="CuTariffReplyCommandRejectedChannel" ref="tariffRuleEnforcerProxy"/>
+
+    <!--2.1.2.1. Process validated TariffReplyCommand objects and send them to their respective broker-->
+    <channel id="CuBrTariffReplyCommandChannel"/>
+    <service-activator ref="accountingService" method="processTariffReply"
+                       input-channel="CuTariffReplyCommandAcceptedChannel"
+                       output-channel="CuBrTariffReplyCommandChannel"/>
+    <!--2.1.2.1.1-->
+    <!--TODO: Publish TariffReplyCommands to brokers using marshalling-->
+
+    <!--2.1.2.2-->
+    <!--TODO: Process rejected TariffReplyCommand objects from the discarded-channel (notify sender (customer))-->
+
+    <!--2.2 Publish list of TariffPublishedCommands to all brokers -->
+    <!--TODO: Publish TariffPublishedCommands to all brokers through marshalling-->
+
+    <!--3. Process deactivated timeslot-->
+    <!--TODO: Implement -->
 
 </beans:beans>
