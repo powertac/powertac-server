@@ -22,7 +22,6 @@ public class TariffRuleEnforcerProxy implements MessageSelector {
         if (tariffRuleEnforcer != null) {
             return tariffRuleEnforcer.accept((TariffReplyCommand) message.getPayload());
         }
-        // TODO: Default implementation should not return true.
-        return true;
+        return false;
     }
 }
