@@ -50,6 +50,11 @@
             <name>Zodiac Milestone Repository</name>
             <url>http://zodiac.springsource.com/maven/bundles/milestone</url>
         </repository>
+        <repository>
+            <id>JBoss Repo</id>
+            <url>http://repository.jboss.org/maven2</url>
+            <name>JBoss Repo</name>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -205,6 +210,7 @@
         <module>modules/accountingService</module>
         <module>modules/auctioneer</module>
         <module>modules/brokerManager</module>
+        <module>modules/competitionController</module>
         <module>modules/customer</module>
         <module>modules/distributionUtility</module>
         <module>modules/tariffRuleEnforcer</module>
