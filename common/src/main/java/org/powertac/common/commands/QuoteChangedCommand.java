@@ -7,7 +7,7 @@ import org.powertac.common.interfaces.Timeslot;
 import java.math.BigDecimal;
 
 /**
- * An OrderbookChangedCommand essentially represents
+ * A QuoteChangedCommand essentially represents
  * an orderbook state up to the depth of 1 order on
  * the buy and sell side.
  *
