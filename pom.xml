@@ -206,7 +206,6 @@
 
     <modules>
         <module>common</module>
-        <module>core</module>
         <module>modules/accountingService</module>
         <module>modules/auctioneer</module>
         <module>modules/brokerManager</module>
