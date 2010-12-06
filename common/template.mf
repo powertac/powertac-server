@@ -1,5 +1,0 @@
-Bundle-Name: ${project.artifactId}
-Bundle-Version: ${project.version}
-Bundle-SymbolicName: org.powertac.${project.artifactId}
-Bundle-ManifestVersion: 2
-Import-Template: org.joda.time;version="[1.6.0, 2.0.0)", org.springframework.integration*;version="[2.0.0, 3.0.0)"
