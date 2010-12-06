@@ -33,7 +33,7 @@ public class TimeslotChangedCommand extends AbstractTimeslotCommand {
 
     private static final long serialVersionUID = -1312243299103119351L;
 
-    protected TimeslotChangedCommand(Long timeslotId, LocalDateTime startDate, LocalDateTime endDate, Boolean enabled) {
+    public TimeslotChangedCommand(Long timeslotId, LocalDateTime startDate, LocalDateTime endDate, Boolean enabled) {
         super(timeslotId, startDate, endDate, enabled);
     }
 }
