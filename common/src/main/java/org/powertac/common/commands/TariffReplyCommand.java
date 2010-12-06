@@ -39,6 +39,10 @@ public class TariffReplyCommand extends AbstractTariffCommand {
 
     private TariffState tariffState;
 
+    public TariffReplyCommand() {
+        // TODO: Remove me. This is simply a help so that generic objects can be instantiated during the development phase
+    }
+
     public TariffReplyCommand(TariffState tariffState, Long tariffId, BigDecimal signupFee, BigDecimal baseFee, BigDecimal[] powerConsumptionPriceList, BigDecimal[] powerProductionPriceList, LocalDateTime contractStartDate, LocalDateTime contractEndDate, Integer minimumContractRuntime, Integer maximumContractRuntime, BigDecimal powerConsumptionThreshold, BigDecimal powerConsumptionSurcharge, BigDecimal powerProductionThreshold, BigDecimal powerProductionSurcharge) {
         super(tariffId, signupFee, baseFee, powerConsumptionPriceList, powerProductionPriceList, contractStartDate, contractEndDate, minimumContractRuntime, maximumContractRuntime, powerConsumptionThreshold, powerConsumptionSurcharge, powerProductionThreshold, powerProductionSurcharge);
         this.tariffState = tariffState;
