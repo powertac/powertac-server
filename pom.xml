@@ -203,6 +203,7 @@
         <module>common</module>
         <module>core</module>
         <module>modules/accountingService</module>
+        <module>modules/auctioneer</module>
         <module>modules/customer</module>
         <module>modules/distributionUtility</module>
         <module>modules/tariffRuleEnforcer</module>
