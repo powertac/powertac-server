@@ -24,7 +24,7 @@ import java.math.BigDecimal;
 
 /**
  * Command object that represents a tariff reply, i.e.
- * a subscription to a <code>PublishTariffCommand</code>
+ * a subscription to a <code>TariffPublishedCommand</code>
  * or a counter offer in a negotiation process.
  *
  * Once created this command object is immutable.
