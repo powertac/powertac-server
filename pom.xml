@@ -212,6 +212,7 @@
         <module>modules/competitionController</module>
         <module>modules/customer</module>
         <module>modules/distributionUtility</module>
+        <module>modules/liquidityProvider</module>
         <module>modules/tariffRuleEnforcer</module>
     </modules>
 
