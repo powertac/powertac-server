@@ -215,6 +215,7 @@
         <module>modules/liquidityProvider</module>
         <module>modules/physicalEnvironment</module>
         <module>modules/tariffRuleEnforcer</module>
+        <module>modules/taxAuthority</module>
     </modules>
 
 </project>
