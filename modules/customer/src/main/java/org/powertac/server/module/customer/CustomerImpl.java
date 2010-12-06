@@ -66,8 +66,8 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
-    public MeterReadingCommand generateMeterReading(TimeslotUpdatedCommand timeslotUpdatedCommand) {
-        return null;
+    public MeterReadingCommand generateMeterReading(TimeslotChangedCommand timeslotChangedCommand) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override

@@ -1,12 +1,16 @@
 package org.powertac.server.core;
 
-import org.powertac.common.commands.TimeslotUpdatedCommand;
+import org.joda.time.LocalDateTime;
+import org.powertac.common.commands.TimeslotChangedCommand;
 
 public class CompetitionController {
 
-    public TimeslotUpdatedCommand processTimeslotUpdate() {
+    public TimeslotChangedCommand processTimeslotChange() {
         // Demo implementation. Returns timeslot skeleton.
-        TimeslotUpdatedCommand timeslotUpdatedCommand = new TimeslotUpdatedCommand();
-        return timeslotUpdatedCommand;
+        Long id = new Long(1);
+        LocalDateTime localDateTime = new LocalDateTime();
+        Boolean enabled = true;
+        TimeslotChangedCommand timeslotChangedCommand = new TimeslotChangedCommand(id, localDateTime, localDateTime, enabled);
+        return timeslotChangedCommand;
     }
 }
