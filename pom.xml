@@ -19,6 +19,7 @@
         <gemini.blueprint.version>1.0.0.M1</gemini.blueprint.version>
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
         <joda.version>1.6.0</joda.version>
+        <junit.version>4.8.1</junit.version>
         <powertac.common.version>0.0.1</powertac.common.version>
         <!-- Change to your Eclipse Virgo Kernel directory -->
         <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
@@ -147,7 +148,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.8.1</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
