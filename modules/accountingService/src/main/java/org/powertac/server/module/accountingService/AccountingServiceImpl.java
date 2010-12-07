@@ -14,7 +14,7 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public DepotPositionCommand processDepotUpdate(DepotUpdateCommand depotUpdateCommand) {
+    public DepotChangedCommand processDepotUpdate(DepotUpdateCommand depotUpdateCommand) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
