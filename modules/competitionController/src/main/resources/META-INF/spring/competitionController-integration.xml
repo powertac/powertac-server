@@ -31,7 +31,7 @@
     </inbound-channel-adapter>
 
     <!--1. Publish TimeslotUpdateCommand to all brokers-->
-    <!--TODO: Use marshalling to publish the TimeslotUpdateCommand to all brokers-->
+    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CcTimeslotUpdateCommandChannel"/>
 
     <!--2. Tariff Handling-->
     <!--Ask the accounting service for the current tariff list-->
@@ -39,35 +39,35 @@
     <service-activator ref="accountingService" method="publishTariffList" input-channel="CcTimeslotUpdateCommandChannel"
                        output-channel="AsTariffPublishedCommandChannel"/>
 
-    <!--2.1. Allow customers to decide if they want to subscribe or negotiate-->
+    <!--2.1 Publish list of TariffPublishedCommands to all brokers -->
+    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="AsTariffPublishedCommandChannel"/>
+
+    <!--2.2. Allow customers to decide if they want to subscribe or negotiate-->
     <channel id="CuTariffReplyCommandsChannel"/>
     <service-activator ref="customer" method="processTariffList"
                        input-channel="AsTariffPublishedCommandChannel" output-channel="CuTariffReplyCommandsChannel"/>
 
-    <!--2.1.1. Validate every reply using the TariffRuleEnforcer-->
+    <!--2.2.1. Validate every reply using the TariffRuleEnforcer-->
     <!--In order to do so, the message list in CuTariffReplyCommandsChannel is split into single messages first-->
     <channel id="CuTariffReplyCommandChannel"/>
     <splitter input-channel="CuTariffReplyCommandsChannel" output-channel="CuTariffReplyCommandChannel"/>
 
-    <!--2.1.2. Use a filter to validate each reply-->
+    <!--2.2.2. Use a filter to validate each reply-->
     <channel id="CuTariffReplyCommandAcceptedChannel"/>
     <channel id="CuTariffReplyCommandRejectedChannel"/>
     <filter input-channel="CuTariffReplyCommandChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
             discard-channel="CuTariffReplyCommandRejectedChannel" ref="tariffRuleEnforcerProxy"/>
 
-    <!--2.1.2.1. Process validated TariffReplyCommand objects and send them to their respective broker-->
+    <!--2.2.2.1. Process validated TariffReplyCommand objects and send them to their respective broker-->
     <channel id="CuBrTariffReplyCommandChannel"/>
     <service-activator ref="accountingService" method="processTariffReply"
                        input-channel="CuTariffReplyCommandAcceptedChannel"
                        output-channel="CuBrTariffReplyCommandChannel"/>
-    <!--2.1.2.1.1-->
-    <!--TODO: Publish TariffReplyCommands to brokers using marshalling-->
+    <!--2.2.2.1.1-->
+    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CuBrTariffReplyCommandChannel"/>
 
-    <!--2.1.2.2-->
+    <!--2.2.2.2-->
     <!--TODO: Process rejected TariffReplyCommand objects from the discarded-channel (notify sender (customer))-->
-
-    <!--2.2 Publish list of TariffPublishedCommands to all brokers -->
-    <!--TODO: Publish TariffPublishedCommands to all brokers through marshalling-->
 
     <!--3. Process deactivated timeslot-->
     <channel id="CcFilteredTimeslotUpdateCommandChannel"/>
