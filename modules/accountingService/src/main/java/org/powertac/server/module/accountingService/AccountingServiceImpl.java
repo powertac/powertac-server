@@ -1,10 +1,13 @@
 package org.powertac.server.module.accountingService;
 
 import org.powertac.common.commands.*;
+import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.interfaces.AccountingService;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AccountingServiceImpl implements AccountingService {
 
@@ -24,10 +27,12 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public List<TariffPublishedCommand> publishTariffList() {
-        // Demo implementation. Returns empty list.
-        ArrayList<TariffPublishedCommand> tariffList = new ArrayList<TariffPublishedCommand>();
-        TariffPublishedCommand tariffPublishedCommand = new TariffPublishedCommand();
+    public List<TariffPublishCommand> publishTariffList() {
+        // Demo implementation. This should return a list of all currently stored tariffs.
+        ArrayList<TariffPublishCommand> tariffList = new ArrayList<TariffPublishCommand>();
+        Set<CustomerType> permittedCustomerTypes = new HashSet<CustomerType>();
+        permittedCustomerTypes.add(CustomerType.ConsumerOffice);
+        TariffPublishCommand tariffPublishedCommand = new TariffPublishCommand(permittedCustomerTypes, "testToken", 1l,1.0, 1.0, new Double[] {1.0, 1.0}, new Double[] {0.1, 0.1}, new org.joda.time.LocalDateTime(), new org.joda.time.LocalDateTime(), 1, 2, 1.0, 2.0, 3.0, 4.0);
         tariffList.add(tariffPublishedCommand);
         return(tariffList);
     }
