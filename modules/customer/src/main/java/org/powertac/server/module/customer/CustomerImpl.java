@@ -1,6 +1,8 @@
 package org.powertac.server.module.customer;
 
+import org.powertac.common.builders.TariffBuilder;
 import org.powertac.common.commands.*;
+import org.powertac.common.enumerations.TariffState;
 import org.powertac.common.interfaces.Customer;
 
 import java.math.BigDecimal;
@@ -40,20 +42,18 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
-    public List<TariffReplyCommand> processTariffList(List<TariffPublishedCommand> tariffPublishedCommandList) {
-        /*TariffPublishedCommand bestTariffPublished = null;
+    public List<TariffReplyCommand> processTariffList(List<TariffPublishCommand> tariffPublishCommandList) {
+        TariffPublishCommand bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
-        for (TariffPublishedCommand tariffPublishedCommand : tariffPublishedCommandList) {
-            if (getUtility(tariffPublishedCommand).compareTo(currentMaxUtility) > 0) {
-                bestTariffPublished = tariffPublishedCommand;
+        for (TariffPublishCommand tariffPublishCommand : tariffPublishCommandList) {
+            if (getUtility(tariffPublishCommand).compareTo(currentMaxUtility) > 0) {
+                bestTariffPublished = tariffPublishCommand;
             }
-        }*/
+        }
 
-        // Demo implementation. Returns empty list.
+        // Demo implementation.
         ArrayList<TariffReplyCommand> tariffChoice = new ArrayList<TariffReplyCommand>();
-        TariffReplyCommand bestTariffReply = new TariffReplyCommand();
-        //tariffChoice.add(bestTariffPublished); //TODO: we need a simple way to convert TariffPublishedCommands into TariffReplyCommands
-        //bestTariffReply = TariffParser.convert(bestTariffPublished)
+        TariffReplyCommand bestTariffReply = TariffBuilder.fromTariff(bestTariffPublished).setTariffState(TariffState.InNegotiation).buildTariffReplyCommand();
         tariffChoice.add(bestTariffReply);
         return (tariffChoice);
     }
@@ -61,7 +61,7 @@ public class CustomerImpl implements Customer {
     private BigDecimal[] loadProfile;
     private BigDecimal[] consumptionPlan;
 
-    private BigDecimal getUtility(TariffPublishedCommand tariffPublishedCommand) {
+    private BigDecimal getUtility(TariffPublishCommand tariffPublishedCommand) {
         return null;
     }
 
