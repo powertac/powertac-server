@@ -43,6 +43,7 @@ public class CustomerImpl implements Customer {
 
     @Override
     public List<TariffReplyCommand> processTariffList(List<TariffPublishCommand> tariffPublishCommandList) {
+        System.out.println("processTariffList " + tariffPublishCommandList);
         TariffPublishCommand bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
         for (TariffPublishCommand tariffPublishCommand : tariffPublishCommandList) {
@@ -62,12 +63,13 @@ public class CustomerImpl implements Customer {
     private BigDecimal[] consumptionPlan;
 
     private BigDecimal getUtility(TariffPublishCommand tariffPublishedCommand) {
-        return null;
+        return new BigDecimal(1);
     }
 
     @Override
     public MeterReadingCommand generateMeterReading(TimeslotChangedCommand timeslotChangedCommand) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        System.out.println("generateMeterReading " + timeslotChangedCommand);
+        return new MeterReadingCommand();
     }
 
     @Override
