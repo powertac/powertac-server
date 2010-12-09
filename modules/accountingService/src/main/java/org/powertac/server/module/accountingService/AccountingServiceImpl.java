@@ -13,17 +13,22 @@ public class AccountingServiceImpl implements AccountingService {
 
     @Override
     public List<MeterReadingBalanceCommand> processMeterReadings(List<MeterReadingCommand> meterReadingCommandList) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        System.out.println("processMeterReadings " + meterReadingCommandList);
+        List balanceList = new ArrayList<MeterReadingBalanceCommand>();
+        balanceList.add(new MeterReadingBalanceCommand());
+        return balanceList;
     }
 
     @Override
     public DepotChangedCommand processDepotUpdate(DepotUpdateCommand depotUpdateCommand) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        System.out.println("processDepotUpdate " + depotUpdateCommand);
+        return new DepotChangedCommand();
     }
 
     @Override
     public CashChangedCommand processCashUpdate(CashUpdateCommand cashUpdateCommand) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        System.out.println("processCashUpdate " + cashUpdateCommand);
+        return new CashChangedCommand();
     }
 
     @Override
