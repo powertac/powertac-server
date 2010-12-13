@@ -23,7 +23,7 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
-    <!--Generate a TimeslotChangedCommand every 5 seconds-->
+    <!--Generate a TimeslotChanged every 5 seconds-->
     <publish-subscribe-channel id="CcTimeslotChangedCommandChannel"/>
     <inbound-channel-adapter ref="competitionController" method="processTimeslotChange"
                              channel="CcTimeslotChangedCommandChannel">
