@@ -1,7 +1,7 @@
 package org.powertac.server.module.distributionUtility;
 
 import org.powertac.common.commands.CashUpdate;
-import org.powertac.common.commands.DepotUpdateCommand;
+import org.powertac.common.commands.DepotUpdate;
 import org.powertac.common.commands.MeterReadingBalanceCommand;
 import org.powertac.common.interfaces.DistributionUtility;
 
@@ -34,7 +34,7 @@ public class DistributionUtilityImpl implements DistributionUtility {
         System.out.println("processMeterReadingBalances " + meterReadingBalanceCommands);
         List cashAndDepotUpdateCommands = new ArrayList();
         cashAndDepotUpdateCommands.add(new CashUpdate());
-        cashAndDepotUpdateCommands.add(new DepotUpdateCommand());
+        cashAndDepotUpdateCommands.add(new DepotUpdate());
         return cashAndDepotUpdateCommands;
     }
 

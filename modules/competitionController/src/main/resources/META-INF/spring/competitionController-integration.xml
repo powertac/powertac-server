@@ -112,7 +112,7 @@
               output-channel="DuAsCashOrDepotUpdateCommandChannel"/>
     <payload-type-router input-channel="DuAsCashOrDepotUpdateCommandChannel">
         <mapping type="org.powertac.common.commands.CashUpdate" channel="DuAsCashUpdateCommandChannel"/>
-        <mapping type="org.powertac.common.commands.DepotUpdateCommand" channel="DuAsDepotUpdateCommandChannel"/>
+        <mapping type="org.powertac.common.commands.DepotUpdate" channel="DuAsDepotUpdateCommandChannel"/>
     </payload-type-router>
 
     <!--3.3.2.2 Call the appropriate cash/depot update method of the Accounting Service -->

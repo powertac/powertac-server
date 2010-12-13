@@ -20,8 +20,8 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public DepotChanged processDepotUpdate(DepotUpdateCommand depotUpdateCommand) {
-        System.out.println("processDepotUpdate " + depotUpdateCommand);
+    public DepotChanged processDepotUpdate(DepotUpdate depotUpdate) {
+        System.out.println("processDepotUpdate " + depotUpdate);
         return new DepotChanged();
     }
 
