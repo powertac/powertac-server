@@ -16,7 +16,7 @@
 
 package org.powertac.server.module.competitionController;
 
-import org.powertac.common.commands.TariffReplyCommand;
+import org.powertac.common.commands.TariffReply;
 import org.powertac.common.interfaces.TariffRuleEnforcer;
 import org.springframework.integration.Message;
 import org.springframework.integration.core.MessageSelector;
@@ -44,7 +44,7 @@ public class TariffRuleEnforcerProxy implements MessageSelector {
     @Override
     public boolean accept(Message<?> message) {
         if (tariffRuleEnforcer != null) {
-            return tariffRuleEnforcer.accept((TariffReplyCommand) message.getPayload());
+            return tariffRuleEnforcer.accept((TariffReply) message.getPayload());
         }
         return false;
     }

@@ -43,9 +43,9 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public TariffReplyCommand processTariffReply(TariffReplyCommand tariffReplyCommand) {
+    public TariffReply processTariffReply(TariffReply tariffReply) {
         // Demo implementation. Should return same object, which is fine.
-        return tariffReplyCommand;
+        return tariffReply;
     }
 
     @Override

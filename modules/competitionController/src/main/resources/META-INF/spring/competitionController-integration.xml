@@ -59,7 +59,7 @@
     <filter input-channel="CuTariffReplyCommandChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
             discard-channel="CuTariffReplyCommandRejectedChannel" ref="tariffRuleEnforcerProxy"/>
 
-    <!--2.2.2.1. Process validated TariffReplyCommand objects and send them to their respective broker-->
+    <!--2.2.2.1. Process validated TariffReply objects and send them to their respective broker-->
     <channel id="CuBrTariffReplyCommandChannel"/>
     <service-activator ref="accountingService" method="processTariffReply"
                        input-channel="CuTariffReplyCommandAcceptedChannel"
@@ -68,7 +68,7 @@
     <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CuBrTariffReplyCommandChannel"/>
 
     <!--2.2.2.2-->
-    <!--TODO: Process rejected TariffReplyCommand objects from the discarded-channel (notify sender (customer))-->
+    <!--TODO: Process rejected TariffReply objects from the discarded-channel (notify sender (customer))-->
 
     <!--3. Process deactivated timeslot-->
     <publish-subscribe-channel id="CcFilteredTimeslotChangedCommandChannel" apply-sequence="true"/>

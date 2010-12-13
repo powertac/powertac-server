@@ -42,7 +42,7 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
-    public List<TariffReplyCommand> processTariffList(List<TariffPublish> tariffPublishList) {
+    public List<TariffReply> processTariffList(List<TariffPublish> tariffPublishList) {
         System.out.println("processTariffList " + tariffPublishList);
         TariffPublish bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
@@ -53,8 +53,8 @@ public class CustomerImpl implements Customer {
         }
 
         // Demo implementation.
-        ArrayList<TariffReplyCommand> tariffChoice = new ArrayList<TariffReplyCommand>();
-        TariffReplyCommand bestTariffReply = TariffBuilder.fromTariff(bestTariffPublished).setTariffState(TariffState.InNegotiation).buildTariffReplyCommand();
+        ArrayList<TariffReply> tariffChoice = new ArrayList<TariffReply>();
+        TariffReply bestTariffReply = TariffBuilder.fromTariff(bestTariffPublished).setTariffState(TariffState.InNegotiation).buildTariffReplyCommand();
         tariffChoice.add(bestTariffReply);
         return (tariffChoice);
     }
