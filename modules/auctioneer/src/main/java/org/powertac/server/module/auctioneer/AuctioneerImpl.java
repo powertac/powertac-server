@@ -19,7 +19,7 @@ package org.powertac.server.module.auctioneer;
 import org.powertac.common.commands.ShoutChanged;
 import org.powertac.common.commands.ShoutCreate;
 import org.powertac.common.commands.ShoutDelete;
-import org.powertac.common.commands.ShoutUpdateCommand;
+import org.powertac.common.commands.ShoutUpdate;
 import org.powertac.common.interfaces.Auctioneer;
 
 import java.util.List;
@@ -37,7 +37,7 @@ public class AuctioneerImpl implements Auctioneer {
     }
 
     @Override
-    public ShoutChanged processShoutUpdate(ShoutUpdateCommand shoutUpdateCommand) {
+    public ShoutChanged processShoutUpdate(ShoutUpdate shoutUpdate) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
