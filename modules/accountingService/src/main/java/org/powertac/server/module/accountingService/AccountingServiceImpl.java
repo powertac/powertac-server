@@ -49,7 +49,7 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public List<CustomerInfoCommand> processCustomerInfo(List<CustomerInfoCommand> customerInfoCommands) {
+    public List<CustomerInfo> processCustomerInfo(List<CustomerInfo> customerInfo) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

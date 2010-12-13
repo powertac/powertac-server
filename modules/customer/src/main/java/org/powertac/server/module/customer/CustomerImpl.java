@@ -73,7 +73,7 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
-    public CustomerInfoCommand generateCustomerInfo() {
+    public CustomerInfo generateCustomerInfo() {
         return null;
     }
 
