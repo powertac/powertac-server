@@ -5,16 +5,18 @@ import org.powertac.common.commands.WeatherForecastData;
 import org.powertac.common.commands.WeatherRealData;
 import org.powertac.common.interfaces.PhysicalEnvironment;
 
-class PhysicalEnvironmentImpl implements PhysicalEnvironment {
+import java.util.List;
 
+class PhysicalEnvironmentImpl implements PhysicalEnvironment {
 
     @Override
     public WeatherRealData generateRealWeatherData(TimeslotChanged timeslotChanged) {
-        return null;
+        System.out.println("generateRealWeatherData " + timeslotChanged);
+        return new WeatherRealData();
     }
 
     @Override
-    public WeatherForecastData generateForecastWeatherData(TimeslotChanged timeslotChanged) {
+    public List<WeatherForecastData> generateForecastWeatherData(TimeslotChanged currentTimeslot) {
         return null;
     }
 }

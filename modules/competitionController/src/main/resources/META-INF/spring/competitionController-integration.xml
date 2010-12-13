@@ -75,36 +75,45 @@
     <filter input-channel="CcTimeslotChangedChannel" output-channel="CcFilteredTimeslotChangedChannel"
             expression="payload.enabled"/>
 
-    <!--3.1. Get meter reading from all customers for the given timeslot-->
+    <!--3.1. Get real weather data from the physical environment-->
+    <publish-subscribe-channel id="PeWeatherRealDataChannel"/>
+    <service-activator ref="physicalEnvironment" method="generateRealWeatherData"
+                       input-channel="CcFilteredTimeslotChangedChannel"
+                       output-channel="PeWeatherRealDataChannel"/>
+
+    <!--3.2. First, publish weather data to all brokers-->
+    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="PeWeatherRealDataChannel"/>
+
+    <!--3.3. Second, get meter reading from all customers for the given weather data (which includes the reference to the timeslot-->
     <channel id="CcCuMeterReadingChannel"/>
     <service-activator ref="customer" method="generateMeterReading"
-                       input-channel="CcFilteredTimeslotChangedChannel"
+                       input-channel="PeWeatherRealDataChannel"
                        output-channel="CcCuMeterReadingChannel"/>
 
-    <!--3.2. Wait for all customer modules to report their readings and collect them-->
+    <!--3.4. Wait for all customer modules to report their readings and collect them-->
     <channel id="CuAsMeterReadingCommandsChannel"/>
     <aggregator input-channel="CcCuMeterReadingChannel" output-channel="CuAsMeterReadingCommandsChannel"/>
 
-    <!--3.3 Have the Accounting Service process the meter readings. Everyone can subscribe to receive the output-->
+    <!--3.5 Have the Accounting Service process the meter readings. Everyone can subscribe to receive the output-->
     <publish-subscribe-channel id="AsMeterReadingBalanceCommandsChannel"/>
     <service-activator ref="accountingService" method="processMeterReadings"
                        input-channel="CuAsMeterReadingCommandsChannel"
                        output-channel="AsMeterReadingBalanceCommandsChannel"/>
 
-    <!--3.3.1 Send the processed meter reading (=balance) to the appropriate broker-->
+    <!--3.5.1 Send the processed meter reading (=balance) to the appropriate broker-->
     <channel id="AsBrMeterReadingBalanceChannel"/>
     <splitter input-channel="AsMeterReadingBalanceCommandsChannel"
               output-channel="AsBrMeterReadingBalanceChannel"/>
     <service-activator ref="brokerManager" method="broadcastCommand"
                        input-channel="AsBrMeterReadingBalanceChannel"/>
 
-    <!--3.3.2 Have the Distribution Utility process the meter balances. A list of cash/depot updates will be returned-->
+    <!--3.5.2 Have the Distribution Utility process the meter balances. A list of cash/depot updates will be returned-->
     <channel id="DuAsCashAndDepotUpdateCommandsChannel"/>
     <service-activator ref="distributionUtility" method="processMeterReadingBalances"
                        input-channel="AsMeterReadingBalanceCommandsChannel"
                        output-channel="DuAsCashAndDepotUpdateCommandsChannel"/>
 
-    <!--3.3.2.1 Split the depot/cash update commands and route them based on their type-->
+    <!--3.5.2.1 Split the depot/cash update commands and route them based on their type-->
     <channel id="DuAsCashOrDepotUpdateChannel"/>
     <channel id="DuAsCashUpdateChannel"/>
     <channel id="DuAsDepotUpdateChannel"/>
@@ -115,7 +124,7 @@
         <mapping type="org.powertac.common.commands.DepotUpdate" channel="DuAsDepotUpdateChannel"/>
     </payload-type-router>
 
-    <!--3.3.2.2 Call the appropriate cash/depot update method of the Accounting Service -->
+    <!--3.5.2.2 Call the appropriate cash/depot update method of the Accounting Service -->
     <channel id="AsBrCashAndDepotUpdateChannel"/>
     <service-activator ref="accountingService" method="processCashUpdate"
                        input-channel="DuAsCashUpdateChannel"
@@ -125,7 +134,7 @@
                        input-channel="DuAsDepotUpdateChannel"
                        output-channel="AsBrCashAndDepotUpdateChannel"/>
 
-    <!--3.3.2.3. Forward any update command to the broker-->
+    <!--3.5.2.3. Forward any update command to the broker-->
     <service-activator ref="brokerManager" method="broadcastCommand"
                        input-channel="AsBrCashAndDepotUpdateChannel"/>
 
