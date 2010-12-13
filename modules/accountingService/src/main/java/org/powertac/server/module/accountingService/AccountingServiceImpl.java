@@ -26,8 +26,8 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public CashChanged processCashUpdate(CashUpdateCommand cashUpdateCommand) {
-        System.out.println("processCashUpdate " + cashUpdateCommand);
+    public CashChanged processCashUpdate(CashUpdate cashUpdate) {
+        System.out.println("processCashUpdate " + cashUpdate);
         return new CashChanged();
     }
 

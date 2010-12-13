@@ -111,7 +111,7 @@
     <splitter input-channel="DuAsCashAndDepotUpdateCommandsChannel"
               output-channel="DuAsCashOrDepotUpdateCommandChannel"/>
     <payload-type-router input-channel="DuAsCashOrDepotUpdateCommandChannel">
-        <mapping type="org.powertac.common.commands.CashUpdateCommand" channel="DuAsCashUpdateCommandChannel"/>
+        <mapping type="org.powertac.common.commands.CashUpdate" channel="DuAsCashUpdateCommandChannel"/>
         <mapping type="org.powertac.common.commands.DepotUpdateCommand" channel="DuAsDepotUpdateCommandChannel"/>
     </payload-type-router>
 
