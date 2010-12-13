@@ -12,8 +12,8 @@ import java.util.Set;
 public class AccountingServiceImpl implements AccountingService {
 
     @Override
-    public List<MeterReadingBalance> processMeterReadings(List<MeterReadingCommand> meterReadingCommandList) {
-        System.out.println("processMeterReadings " + meterReadingCommandList);
+    public List<MeterReadingBalance> processMeterReadings(List<MeterReading> meterReadingList) {
+        System.out.println("processMeterReadings " + meterReadingList);
         List balanceList = new ArrayList<MeterReadingBalance>();
         balanceList.add(new MeterReadingBalance());
         return balanceList;
