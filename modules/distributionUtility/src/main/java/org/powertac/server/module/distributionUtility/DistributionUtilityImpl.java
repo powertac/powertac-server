@@ -2,7 +2,7 @@ package org.powertac.server.module.distributionUtility;
 
 import org.powertac.common.commands.CashUpdate;
 import org.powertac.common.commands.DepotUpdate;
-import org.powertac.common.commands.MeterReadingBalanceCommand;
+import org.powertac.common.commands.MeterReadingBalance;
 import org.powertac.common.interfaces.DistributionUtility;
 
 import java.util.ArrayList;
@@ -30,8 +30,8 @@ public class DistributionUtilityImpl implements DistributionUtility {
     }
 
     @Override
-    public List processMeterReadingBalances(List<MeterReadingBalanceCommand> meterReadingBalanceCommands) {
-        System.out.println("processMeterReadingBalances " + meterReadingBalanceCommands);
+    public List processMeterReadingBalances(List<MeterReadingBalance> meterReadingBalances) {
+        System.out.println("processMeterReadingBalances " + meterReadingBalances);
         List cashAndDepotUpdateCommands = new ArrayList();
         cashAndDepotUpdateCommands.add(new CashUpdate());
         cashAndDepotUpdateCommands.add(new DepotUpdate());

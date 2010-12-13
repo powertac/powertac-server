@@ -12,10 +12,10 @@ import java.util.Set;
 public class AccountingServiceImpl implements AccountingService {
 
     @Override
-    public List<MeterReadingBalanceCommand> processMeterReadings(List<MeterReadingCommand> meterReadingCommandList) {
+    public List<MeterReadingBalance> processMeterReadings(List<MeterReadingCommand> meterReadingCommandList) {
         System.out.println("processMeterReadings " + meterReadingCommandList);
-        List balanceList = new ArrayList<MeterReadingBalanceCommand>();
-        balanceList.add(new MeterReadingBalanceCommand());
+        List balanceList = new ArrayList<MeterReadingBalance>();
+        balanceList.add(new MeterReadingBalance());
         return balanceList;
     }
 
