@@ -24,66 +24,66 @@
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
     <!--Generate a TimeslotChanged every 5 seconds-->
-    <publish-subscribe-channel id="CcTimeslotChangedCommandChannel"/>
+    <publish-subscribe-channel id="CcTimeslotChangedChannel"/>
     <inbound-channel-adapter ref="competitionController" method="processTimeslotChange"
-                             channel="CcTimeslotChangedCommandChannel">
+                             channel="CcTimeslotChangedChannel">
         <poller fixed-rate="5000"/>
     </inbound-channel-adapter>
 
     <!--1. Publish TimeslotUpdateCommand to all brokers-->
-    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CcTimeslotChangedCommandChannel"/>
+    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CcTimeslotChangedChannel"/>
 
     <!--2. Tariff Handling-->
     <!--Ask the accounting service for the current tariff list-->
-    <publish-subscribe-channel id="AsTariffPublishedCommandChannel"/>
+    <publish-subscribe-channel id="AsTariffPublishedChannel"/>
     <service-activator ref="accountingService" method="publishTariffList"
-                       input-channel="CcTimeslotChangedCommandChannel"
-                       output-channel="AsTariffPublishedCommandChannel"/>
+                       input-channel="CcTimeslotChangedChannel"
+                       output-channel="AsTariffPublishedChannel"/>
 
     <!--2.1 Publish list of TariffPublishedCommands to all brokers -->
-    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="AsTariffPublishedCommandChannel"/>
+    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="AsTariffPublishedChannel"/>
 
     <!--2.2. Allow customers to decide if they want to subscribe or negotiate-->
     <channel id="CuTariffReplyCommandsChannel"/>
     <service-activator ref="customer" method="processTariffList"
-                       input-channel="AsTariffPublishedCommandChannel" output-channel="CuTariffReplyCommandsChannel"/>
+                       input-channel="AsTariffPublishedChannel" output-channel="CuTariffReplyCommandsChannel"/>
 
     <!--2.2.1. Validate every reply using the TariffRuleEnforcer-->
     <!--In order to do so, the message list in CuTariffReplyCommandsChannel is split into single messages first-->
-    <channel id="CuTariffReplyCommandChannel"/>
-    <splitter input-channel="CuTariffReplyCommandsChannel" output-channel="CuTariffReplyCommandChannel"/>
+    <channel id="CuTariffReplyChannel"/>
+    <splitter input-channel="CuTariffReplyCommandsChannel" output-channel="CuTariffReplyChannel"/>
 
     <!--2.2.2. Use a filter to validate each reply-->
     <channel id="CuTariffReplyCommandAcceptedChannel"/>
     <channel id="CuTariffReplyCommandRejectedChannel"/>
-    <filter input-channel="CuTariffReplyCommandChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
+    <filter input-channel="CuTariffReplyChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
             discard-channel="CuTariffReplyCommandRejectedChannel" ref="tariffRuleEnforcerProxy"/>
 
     <!--2.2.2.1. Process validated TariffReply objects and send them to their respective broker-->
-    <channel id="CuBrTariffReplyCommandChannel"/>
+    <channel id="CuBrTariffReplyChannel"/>
     <service-activator ref="accountingService" method="processTariffReply"
                        input-channel="CuTariffReplyCommandAcceptedChannel"
-                       output-channel="CuBrTariffReplyCommandChannel"/>
+                       output-channel="CuBrTariffReplyChannel"/>
     <!--2.2.2.1.1-->
-    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CuBrTariffReplyCommandChannel"/>
+    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CuBrTariffReplyChannel"/>
 
     <!--2.2.2.2-->
     <!--TODO: Process rejected TariffReply objects from the discarded-channel (notify sender (customer))-->
 
     <!--3. Process deactivated timeslot-->
-    <publish-subscribe-channel id="CcFilteredTimeslotChangedCommandChannel" apply-sequence="true"/>
-    <filter input-channel="CcTimeslotChangedCommandChannel" output-channel="CcFilteredTimeslotChangedCommandChannel"
+    <publish-subscribe-channel id="CcFilteredTimeslotChangedChannel" apply-sequence="true"/>
+    <filter input-channel="CcTimeslotChangedChannel" output-channel="CcFilteredTimeslotChangedChannel"
             expression="payload.enabled"/>
 
     <!--3.1. Get meter reading from all customers for the given timeslot-->
-    <channel id="CcCuMeterReadingCommandChannel"/>
+    <channel id="CcCuMeterReadingChannel"/>
     <service-activator ref="customer" method="generateMeterReading"
-                       input-channel="CcFilteredTimeslotChangedCommandChannel"
-                       output-channel="CcCuMeterReadingCommandChannel"/>
+                       input-channel="CcFilteredTimeslotChangedChannel"
+                       output-channel="CcCuMeterReadingChannel"/>
 
     <!--3.2. Wait for all customer modules to report their readings and collect them-->
     <channel id="CuAsMeterReadingCommandsChannel"/>
-    <aggregator input-channel="CcCuMeterReadingCommandChannel" output-channel="CuAsMeterReadingCommandsChannel"/>
+    <aggregator input-channel="CcCuMeterReadingChannel" output-channel="CuAsMeterReadingCommandsChannel"/>
 
     <!--3.3 Have the Accounting Service process the meter readings. Everyone can subscribe to receive the output-->
     <publish-subscribe-channel id="AsMeterReadingBalanceCommandsChannel"/>
@@ -92,11 +92,11 @@
                        output-channel="AsMeterReadingBalanceCommandsChannel"/>
 
     <!--3.3.1 Send the processed meter reading (=balance) to the appropriate broker-->
-    <channel id="AsBrMeterReadingBalanceCommandChannel"/>
+    <channel id="AsBrMeterReadingBalanceChannel"/>
     <splitter input-channel="AsMeterReadingBalanceCommandsChannel"
-              output-channel="AsBrMeterReadingBalanceCommandChannel"/>
+              output-channel="AsBrMeterReadingBalanceChannel"/>
     <service-activator ref="brokerManager" method="broadcastCommand"
-                       input-channel="AsBrMeterReadingBalanceCommandChannel"/>
+                       input-channel="AsBrMeterReadingBalanceChannel"/>
 
     <!--3.3.2 Have the Distribution Utility process the meter balances. A list of cash/depot updates will be returned-->
     <channel id="DuAsCashAndDepotUpdateCommandsChannel"/>
@@ -105,28 +105,28 @@
                        output-channel="DuAsCashAndDepotUpdateCommandsChannel"/>
 
     <!--3.3.2.1 Split the depot/cash update commands and route them based on their type-->
-    <channel id="DuAsCashOrDepotUpdateCommandChannel"/>
-    <channel id="DuAsCashUpdateCommandChannel"/>
-    <channel id="DuAsDepotUpdateCommandChannel"/>
+    <channel id="DuAsCashOrDepotUpdateChannel"/>
+    <channel id="DuAsCashUpdateChannel"/>
+    <channel id="DuAsDepotUpdateChannel"/>
     <splitter input-channel="DuAsCashAndDepotUpdateCommandsChannel"
-              output-channel="DuAsCashOrDepotUpdateCommandChannel"/>
-    <payload-type-router input-channel="DuAsCashOrDepotUpdateCommandChannel">
-        <mapping type="org.powertac.common.commands.CashUpdate" channel="DuAsCashUpdateCommandChannel"/>
-        <mapping type="org.powertac.common.commands.DepotUpdate" channel="DuAsDepotUpdateCommandChannel"/>
+              output-channel="DuAsCashOrDepotUpdateChannel"/>
+    <payload-type-router input-channel="DuAsCashOrDepotUpdateChannel">
+        <mapping type="org.powertac.common.commands.CashUpdate" channel="DuAsCashUpdateChannel"/>
+        <mapping type="org.powertac.common.commands.DepotUpdate" channel="DuAsDepotUpdateChannel"/>
     </payload-type-router>
 
     <!--3.3.2.2 Call the appropriate cash/depot update method of the Accounting Service -->
-    <channel id="AsBrCashAndDepotUpdateCommandChannel"/>
+    <channel id="AsBrCashAndDepotUpdateChannel"/>
     <service-activator ref="accountingService" method="processCashUpdate"
-                       input-channel="DuAsCashUpdateCommandChannel"
-                       output-channel="AsBrCashAndDepotUpdateCommandChannel"/>
+                       input-channel="DuAsCashUpdateChannel"
+                       output-channel="AsBrCashAndDepotUpdateChannel"/>
 
     <service-activator ref="accountingService" method="processDepotUpdate"
-                       input-channel="DuAsDepotUpdateCommandChannel"
-                       output-channel="AsBrCashAndDepotUpdateCommandChannel"/>
+                       input-channel="DuAsDepotUpdateChannel"
+                       output-channel="AsBrCashAndDepotUpdateChannel"/>
 
     <!--3.3.2.3. Forward any update command to the broker-->
     <service-activator ref="brokerManager" method="broadcastCommand"
-                       input-channel="AsBrCashAndDepotUpdateCommandChannel"/>
+                       input-channel="AsBrCashAndDepotUpdateChannel"/>
 
 </beans:beans>
