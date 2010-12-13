@@ -42,13 +42,13 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
-    public List<TariffReplyCommand> processTariffList(List<TariffPublishCommand> tariffPublishCommandList) {
-        System.out.println("processTariffList " + tariffPublishCommandList);
-        TariffPublishCommand bestTariffPublished = null;
+    public List<TariffReplyCommand> processTariffList(List<TariffPublish> tariffPublishList) {
+        System.out.println("processTariffList " + tariffPublishList);
+        TariffPublish bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
-        for (TariffPublishCommand tariffPublishCommand : tariffPublishCommandList) {
-            if (getUtility(tariffPublishCommand).compareTo(currentMaxUtility) > 0) {
-                bestTariffPublished = tariffPublishCommand;
+        for (TariffPublish tariffPublish : tariffPublishList) {
+            if (getUtility(tariffPublish).compareTo(currentMaxUtility) > 0) {
+                bestTariffPublished = tariffPublish;
             }
         }
 
@@ -62,7 +62,7 @@ public class CustomerImpl implements Customer {
     private BigDecimal[] loadProfile;
     private BigDecimal[] consumptionPlan;
 
-    private BigDecimal getUtility(TariffPublishCommand tariffPublishedCommand) {
+    private BigDecimal getUtility(TariffPublish tariffPublished) {
         return new BigDecimal(1);
     }
 

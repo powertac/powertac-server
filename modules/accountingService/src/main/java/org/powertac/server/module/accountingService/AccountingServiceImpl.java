@@ -32,13 +32,13 @@ public class AccountingServiceImpl implements AccountingService {
     }
 
     @Override
-    public List<TariffPublishCommand> publishTariffList() {
+    public List<TariffPublish> publishTariffList() {
         // Demo implementation. This should return a list of all currently stored tariffs.
-        ArrayList<TariffPublishCommand> tariffList = new ArrayList<TariffPublishCommand>();
+        ArrayList<TariffPublish> tariffList = new ArrayList<TariffPublish>();
         Set<CustomerType> permittedCustomerTypes = new HashSet<CustomerType>();
         permittedCustomerTypes.add(CustomerType.ConsumerOffice);
-        TariffPublishCommand tariffPublishedCommand = new TariffPublishCommand(permittedCustomerTypes, "testToken", 1l,1.0, 1.0, new Double[] {1.0, 1.0}, new Double[] {0.1, 0.1}, new org.joda.time.LocalDateTime(), new org.joda.time.LocalDateTime(), 1, 2, 1.0, 2.0, 3.0, 4.0);
-        tariffList.add(tariffPublishedCommand);
+        TariffPublish tariffPublish = new TariffPublish(permittedCustomerTypes, "testToken", 1l,1.0, 1.0, new Double[] {1.0, 1.0}, new Double[] {0.1, 0.1}, new org.joda.time.LocalDateTime(), new org.joda.time.LocalDateTime(), 1, 2, 1.0, 2.0, 3.0, 4.0);
+        tariffList.add(tariffPublish);
         return(tariffList);
     }
 
