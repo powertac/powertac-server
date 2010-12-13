@@ -1,5 +1,6 @@
 package org.powertac.server.module.accountingService;
 
+import org.powertac.common.builders.CashBuilder;
 import org.powertac.common.commands.*;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.interfaces.AccountingService;
@@ -28,7 +29,7 @@ public class AccountingServiceImpl implements AccountingService {
     @Override
     public CashChanged processCashUpdate(CashUpdate cashUpdate) {
         System.out.println("processCashUpdate " + cashUpdate);
-        return new CashChanged();
+        return CashBuilder.withEmpty().buildCashChanged();
     }
 
     @Override
