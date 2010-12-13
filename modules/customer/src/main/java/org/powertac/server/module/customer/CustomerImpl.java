@@ -67,6 +67,11 @@ public class CustomerImpl implements Customer {
     }
 
     @Override
+    public void processWeatherForecasts(List<WeatherForecastData> weatherForecastDataList) {
+        System.out.println("processWeatherForecasts " + weatherForecastDataList);
+    }
+
+    @Override
     public MeterReading generateMeterReading(WeatherRealData weatherRealData) {
         System.out.println("generateMeterReading " + weatherRealData);
         return new MeterReading();

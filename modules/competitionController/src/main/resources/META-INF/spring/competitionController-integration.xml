@@ -138,4 +138,17 @@
     <service-activator ref="brokerManager" method="broadcastCommand"
                        input-channel="AsBrCashAndDepotUpdateChannel"/>
 
+    <!--4. Publish weather forecasts for every enabled timeslot-->
+    <publish-subscribe-channel id="PeWeatherForecastDataChannel"/>
+    <service-activator ref="physicalEnvironment" method="generateForecastWeatherData"
+                       input-channel="CcTimeslotChangedChannel"
+                       output-channel="PeWeatherForecastDataChannel"/>
+
+    <!--4.1. Send the forecast list to all brokers-->
+    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="PeWeatherForecastDataChannel"/>
+
+    <!--4.2. Send the forecast list to all customers-->
+    <service-activator ref="customer" method="processWeatherForecasts" input-channel="PeWeatherForecastDataChannel"/>
+
+
 </beans:beans>
