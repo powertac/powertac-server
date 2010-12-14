@@ -25,7 +25,6 @@
 
     <!--Create OSGi references to all modules within the server-->
     <reference id="accountingService" interface="org.powertac.common.interfaces.AccountingService"/>
-    <reference id="brokerManager" interface="org.powertac.common.interfaces.BrokerManager"/>
     <!--TODO: Account for multiple customer modules. For now, just one module (with highest OSGi priority) will (automatically) be used-->
     <reference id="customer" interface="org.powertac.common.interfaces.Customer"/>
     <reference id="distributionUtility" interface="org.powertac.common.interfaces.DistributionUtility"/>

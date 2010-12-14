@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-package org.powertac.server.module.brokerManager;
-
-import org.powertac.common.interfaces.BrokerManager;
+package org.powertac.server.module.competitionController;
 
 import java.util.List;
 
-public class BrokerManagerImpl implements BrokerManager {
+public class BrokerManager {
 
-    @Override
     public void broadcastCommand(Object commandObject) {
         System.out.println("broadcastCommand " + commandObject);
     }
 
-    @Override
     public void broadcastCommands(List commandList) {
         System.out.println("broadcastCommands " + commandList);
     }
 
-    @Override
     public void sendCommand(Object command) {
         System.out.println("sendCommand " + command);
     }

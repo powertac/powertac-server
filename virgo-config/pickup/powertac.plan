@@ -21,7 +21,6 @@
     <artifact type="bundle" name="org.powertac.common" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.accountingService" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.auctioneer" version="0.0.1"/>
-    <artifact type="bundle" name="org.powertac.server.module.brokerManager" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.competitionController" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.databaseService" version="0.0.1"/>

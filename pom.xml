@@ -216,7 +216,6 @@
         <module>common</module>
         <module>modules/accountingService</module>
         <module>modules/auctioneer</module>
-        <module>modules/brokerManager</module>
         <module>modules/competitionController</module>
         <module>modules/customer</module>
         <module>modules/databaseService</module>
