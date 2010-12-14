@@ -24,6 +24,7 @@
     <artifact type="bundle" name="org.powertac.server.module.brokerManager" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.competitionController" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.customer" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.module.databaseService" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.distributionUtility" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.liquidityProvider" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.physicalEnvironment" version="0.0.1"/>
