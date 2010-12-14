@@ -1,0 +1,3 @@
+[submodule "modules/common"]
+	path = modules/common
+	url = git@github.com:powertac/domain-data.git
