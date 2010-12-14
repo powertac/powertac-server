@@ -4,12 +4,16 @@ import org.powertac.common.builders.TariffBuilder;
 import org.powertac.common.commands.*;
 import org.powertac.common.enumerations.TariffState;
 import org.powertac.common.interfaces.Customer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerImpl implements Customer {
+
+    final static Logger log = LoggerFactory.getLogger(CustomerImpl.class);
 
     public CustomerImpl() {
         loadProfile = new BigDecimal[24];
@@ -37,13 +41,11 @@ public class CustomerImpl implements Customer {
         loadProfile[21] = new BigDecimal("0.5863");
         loadProfile[22] = new BigDecimal("0.4942");
         loadProfile[23] = new BigDecimal("0.3764");
-
-
     }
 
     @Override
     public List<TariffReply> processTariffList(List<TariffPublish> tariffPublishList) {
-        System.out.println("processTariffList " + tariffPublishList);
+        log.debug("processTariffList " + tariffPublishList);
         TariffPublish bestTariffPublished = null;
         BigDecimal currentMaxUtility = new BigDecimal(0);
         for (TariffPublish tariffPublish : tariffPublishList) {
@@ -68,12 +70,12 @@ public class CustomerImpl implements Customer {
 
     @Override
     public void processWeatherForecasts(List<WeatherForecastData> weatherForecastDataList) {
-        System.out.println("processWeatherForecasts " + weatherForecastDataList);
+        log.debug("processWeatherForecasts " + weatherForecastDataList);
     }
 
     @Override
     public MeterReading generateMeterReading(WeatherRealData weatherRealData) {
-        System.out.println("generateMeterReading " + weatherRealData);
+        log.debug("generateMeterReading " + weatherRealData);
         return new MeterReading();
     }
 

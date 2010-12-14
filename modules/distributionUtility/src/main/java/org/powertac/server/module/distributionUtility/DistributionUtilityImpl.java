@@ -4,14 +4,18 @@ import org.powertac.common.builders.CashBuilder;
 import org.powertac.common.commands.DepotUpdate;
 import org.powertac.common.commands.MeterReadingBalance;
 import org.powertac.common.interfaces.DistributionUtility;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DistributionUtilityImpl implements DistributionUtility {
+    
+    final static Logger log = LoggerFactory.getLogger(DistributionUtilityImpl.class);    
 
     public DistributionUtilityImpl() {
-        System.out.println("DistributionUtilityImpl");
+        log.debug("DistributionUtilityImpl");
     }
 
     @Override
@@ -26,12 +30,12 @@ public class DistributionUtilityImpl implements DistributionUtility {
 
     @Override
     public void log(String message) {
-        System.out.println("This is the distribution utility logging: " + message);
+        log.debug("This is the distribution utility logging: " + message);
     }
 
     @Override
     public List processMeterReadingBalances(List<MeterReadingBalance> meterReadingBalances) {
-        System.out.println("processMeterReadingBalances " + meterReadingBalances);
+        log.debug("processMeterReadingBalances " + meterReadingBalances);
         List cashAndDepotUpdateCommands = new ArrayList();
         cashAndDepotUpdateCommands.add(CashBuilder.withEmpty().buildCashChanged());
         cashAndDepotUpdateCommands.add(new DepotUpdate());
