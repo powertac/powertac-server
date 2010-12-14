@@ -21,10 +21,14 @@ import org.powertac.common.commands.ShoutCreate;
 import org.powertac.common.commands.ShoutDelete;
 import org.powertac.common.commands.ShoutUpdate;
 import org.powertac.common.interfaces.Auctioneer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class AuctioneerImpl implements Auctioneer {
+
+    final static Logger log = LoggerFactory.getLogger(AuctioneerImpl.class);
 
     @Override
     public List processShoutCreate(ShoutCreate shoutCreate) {

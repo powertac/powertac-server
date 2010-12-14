@@ -2,8 +2,12 @@ package org.powertac.server.module.competitionController;
 
 import org.joda.time.LocalDateTime;
 import org.powertac.common.commands.TimeslotChanged;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CompetitionController {
+
+    final static Logger log = LoggerFactory.getLogger(CompetitionController.class);
 
     public TimeslotChanged processTimeslotChange() {
         // Demo implementation. Returns timeslot skeleton.

@@ -20,6 +20,7 @@
         <bundlor.version>1.0.0.RELEASE</bundlor.version>
         <joda.version>1.6.0</joda.version>
         <junit.version>4.8.1</junit.version>
+        <slf4j.version>1.6.1</slf4j.version>
         <powertac.common.version>0.0.1</powertac.common.version>
         <!-- Change to your Eclipse Virgo Kernel directory -->
         <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
@@ -72,6 +73,13 @@
             <groupId>org.eclipse.osgi</groupId>
             <artifactId>org.eclipse.osgi</artifactId>
             <version>${osgi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
         <!-- Spring dependencies -->
@@ -216,9 +224,9 @@
         <module>common</module>
         <module>modules/accountingService</module>
         <module>modules/auctioneer</module>
-        <module>modules/brokerManager</module>
         <module>modules/competitionController</module>
         <module>modules/customer</module>
+        <module>modules/databaseService</module>
         <module>modules/distributionUtility</module>
         <module>modules/liquidityProvider</module>
         <module>modules/physicalEnvironment</module>

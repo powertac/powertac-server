@@ -10,11 +10,11 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>brokerManager</artifactId>
+    <artifactId>databaseService</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
-    <name>Broker Manager Module</name>
+    <name>Database Service Module</name>
     <url>http://powertac.org</url>
 
     <dependencies>

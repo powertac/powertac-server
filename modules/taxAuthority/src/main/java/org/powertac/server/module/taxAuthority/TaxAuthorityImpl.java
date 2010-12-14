@@ -17,9 +17,11 @@
 package org.powertac.server.module.taxAuthority;
 
 import org.powertac.common.interfaces.TaxAuthority;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TaxAuthorityImpl implements TaxAuthority {
 
-
+    final static Logger log = LoggerFactory.getLogger(TaxAuthorityImpl.class);
 
 }

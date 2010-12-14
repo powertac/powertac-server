@@ -4,6 +4,8 @@ import org.powertac.common.builders.CashBuilder;
 import org.powertac.common.commands.*;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.interfaces.AccountingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,9 +14,11 @@ import java.util.Set;
 
 public class AccountingServiceImpl implements AccountingService {
 
+    final static Logger log = LoggerFactory.getLogger(AccountingServiceImpl.class);
+
     @Override
     public List<MeterReadingBalance> processMeterReadings(List<MeterReading> meterReadingList) {
-        System.out.println("processMeterReadings " + meterReadingList);
+        log.debug("processMeterReadings " + meterReadingList);
         List balanceList = new ArrayList<MeterReadingBalance>();
         balanceList.add(new MeterReadingBalance());
         return balanceList;
@@ -22,13 +26,13 @@ public class AccountingServiceImpl implements AccountingService {
 
     @Override
     public DepotChanged processDepotUpdate(DepotUpdate depotUpdate) {
-        System.out.println("processDepotUpdate " + depotUpdate);
+        log.debug("processDepotUpdate " + depotUpdate) ;
         return new DepotChanged();
     }
 
     @Override
     public CashChanged processCashUpdate(CashUpdate cashUpdate) {
-        System.out.println("processCashUpdate " + cashUpdate);
+        log.debug("processCashUpdate " + cashUpdate);
         return CashBuilder.withEmpty().buildCashChanged();
     }
 

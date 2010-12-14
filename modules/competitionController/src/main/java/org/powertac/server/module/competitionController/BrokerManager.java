@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package org.powertac.server.module.brokerManager;
+package org.powertac.server.module.competitionController;
 
-import org.powertac.common.interfaces.BrokerManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public class BrokerManagerImpl implements BrokerManager {
-
-    @Override
+public class BrokerManager {
+    
+    final static Logger log = LoggerFactory.getLogger(BrokerManager.class);
+    
     public void broadcastCommand(Object commandObject) {
-        System.out.println("broadcastCommand " + commandObject);
+        log.debug("broadcastCommand " + commandObject);
     }
 
-    @Override
     public void broadcastCommands(List commandList) {
-        System.out.println("broadcastCommands " + commandList);
+        log.debug("broadcastCommands " + commandList);
     }
 
-    @Override
     public void sendCommand(Object command) {
-        System.out.println("sendCommand " + command);
+        log.debug("sendCommand " + command);
     }
 }
