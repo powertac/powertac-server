@@ -20,12 +20,12 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="competitionController" class="org.powertac.server.module.competitionController.CompetitionController"/>
-    <bean id="brokerManager" class="org.powertac.server.module.competitionController.BrokerManager"/>
+    <bean id="competitionController" class="org.powertac.server.module.competitioncontroller.CompetitionController"/>
+    <bean id="brokerManager" class="org.powertac.server.module.competitioncontroller.BrokerManager"/>
 
     <!--Create a proxy bean which maps the Spring Integration filter interface to the generic,-->
     <!--non-integration TariffRuleEnforcer interface-->
-    <bean id="tariffRuleEnforcerProxy" class="org.powertac.server.module.competitionController.TariffRuleEnforcerProxy">
+    <bean id="tariffRuleEnforcerProxy" class="org.powertac.server.module.competitioncontroller.TariffRuleEnforcerProxy">
         <property name="tariffRuleEnforcer" ref="tariffRuleEnforcer"/>
     </bean>
 </beans>

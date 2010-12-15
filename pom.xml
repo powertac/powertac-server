@@ -230,7 +230,7 @@
     <module>modules/accountingservice</module>
     <module>modules/auctioneer</module>
     <module>modules/common</module>
-    <module>modules/competitionController</module>
+    <module>modules/competitioncontroller</module>
     <module>modules/customer</module>
     <module>modules/databaseservice</module>
     <module>modules/distributionUtility</module>

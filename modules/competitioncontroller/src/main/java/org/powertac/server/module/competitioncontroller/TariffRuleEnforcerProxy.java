@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.powertac.server.module.competitionController;
+package org.powertac.server.module.competitioncontroller;
 
 import org.powertac.common.commands.TariffReply;
 import org.powertac.common.interfaces.TariffRuleEnforcer;

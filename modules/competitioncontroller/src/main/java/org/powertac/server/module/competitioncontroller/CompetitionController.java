@@ -1,4 +1,4 @@
-package org.powertac.server.module.competitionController;
+package org.powertac.server.module.competitioncontroller;
 
 import org.joda.time.LocalDateTime;
 import org.powertac.common.commands.TimeslotChanged;

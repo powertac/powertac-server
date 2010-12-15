@@ -10,7 +10,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>competitionController</artifactId>
+    <artifactId>competitioncontroller</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
