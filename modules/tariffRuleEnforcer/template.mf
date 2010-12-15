@@ -3,4 +3,4 @@ Bundle-Version: ${project.version}
 Bundle-SymbolicName: org.powertac.server.module.${project.artifactId}
 Bundle-ManifestVersion: 2
 Excluded-Exports: org.powertac.server.module.tariffRuleEnforcer
-Import-Template: org.powertac.*;version="0.0.1", org.slf4j.*;version="1.6.1"
+Import-Template: org.joda.time;version="[1.6.0, 2.0.0)", org.powertac.*;version="0.0.1", org.slf4j.*;version="1.6.1"
