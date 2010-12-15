@@ -10,7 +10,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>taxAuthority</artifactId>
+    <artifactId>taxauthority</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 

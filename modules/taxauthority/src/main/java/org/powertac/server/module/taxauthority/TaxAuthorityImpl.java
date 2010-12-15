@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.powertac.server.module.taxAuthority;
+package org.powertac.server.module.taxauthority;
 
 import org.powertac.common.interfaces.TaxAuthority;
 import org.slf4j.Logger;
