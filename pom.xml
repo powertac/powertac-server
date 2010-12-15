@@ -159,6 +159,12 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.joda</groupId>
+      <artifactId>com.springsource.org.joda.time</artifactId>
+      <version>${joda.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -226,7 +232,7 @@
     <module>modules/common</module>
     <module>modules/competitionController</module>
     <module>modules/customer</module>
-    <module>modules/databaseService</module>
+    <module>modules/databaseservice</module>
     <module>modules/distributionUtility</module>
     <module>modules/liquidityProvider</module>
     <module>modules/physicalEnvironment</module>
