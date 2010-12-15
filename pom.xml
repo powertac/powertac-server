@@ -22,8 +22,8 @@
     <junit.version>4.8.1</junit.version>
     <slf4j.version>1.6.1</slf4j.version>
     <powertac.common.version>0.0.1</powertac.common.version>
-    <!-- Change to your Eclipse Virgo Kernel directory -->
-    <powertac.virgo.path>/Users/ddauer/Development/PowerTAC/virgo-kernel-2.1.0.RELEASE</powertac.virgo.path>
+    <!--Virgo Path is relative to each module's directory-->
+    <powertac.virgo.path>../../virgo-kernel</powertac.virgo.path>
   </properties>
 
   <repositories>
