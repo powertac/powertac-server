@@ -1,4 +1,4 @@
-package org.powertac.server.module.tariffRuleEnforcer;
+package org.powertac.server.module.tariffruleenforcer;
 
 import org.powertac.common.commands.TariffReply;
 import org.powertac.common.interfaces.TariffRuleEnforcer;

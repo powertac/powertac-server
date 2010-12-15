@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/osgi
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-    <bean id="tre" class="org.powertac.server.module.tariffRuleEnforcer.TariffRuleEnforcerImpl"/>
+    <bean id="tre" class="org.powertac.server.module.tariffruleenforcer.TariffRuleEnforcerImpl"/>
     <osgi:service ref="tre" interface="org.powertac.common.interfaces.TariffRuleEnforcer"/>
 
 </beans>

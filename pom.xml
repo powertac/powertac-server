@@ -236,7 +236,7 @@
     <module>modules/distributionutility</module>
     <module>modules/liquidityprovider</module>
     <module>modules/physicalenvironment</module>
-    <module>modules/tariffRuleEnforcer</module>
+    <module>modules/tariffruleenforcer</module>
     <module>modules/taxAuthority</module>
   </modules>
 
