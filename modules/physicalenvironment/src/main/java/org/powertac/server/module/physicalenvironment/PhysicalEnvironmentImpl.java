@@ -1,4 +1,4 @@
-package org.powertac.server.module.physicalEnvironment;
+package org.powertac.server.module.physicalenvironment;
 
 import org.powertac.common.commands.TimeslotChanged;
 import org.powertac.common.commands.WeatherForecastData;

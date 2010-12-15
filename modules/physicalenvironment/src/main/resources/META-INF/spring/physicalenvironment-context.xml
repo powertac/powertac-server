@@ -23,7 +23,7 @@
         http://www.springframework.org/schema/osgi
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-    <bean id="physicalEnvironment" class="org.powertac.server.module.physicalEnvironment.PhysicalEnvironmentImpl"/>
+    <bean id="physicalEnvironment" class="org.powertac.server.module.physicalenvironment.PhysicalEnvironmentImpl"/>
     <osgi:service ref="physicalEnvironment" interface="org.powertac.common.interfaces.PhysicalEnvironment"/>
 
 </beans>

@@ -26,7 +26,7 @@
     <artifact type="bundle" name="org.powertac.server.module.databaseservice" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.distributionutility" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.liquidityprovider" version="0.0.1"/>
-    <artifact type="bundle" name="org.powertac.server.module.physicalEnvironment" version="0.0.1"/>
+    <artifact type="bundle" name="org.powertac.server.module.physicalenvironment" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.tariffRuleEnforcer" version="0.0.1"/>
     <artifact type="bundle" name="org.powertac.server.module.taxAuthority" version="0.0.1"/>
 
