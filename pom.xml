@@ -227,7 +227,7 @@
   </build>
 
   <modules>
-    <module>modules/accountingService</module>
+    <module>modules/accountingservice</module>
     <module>modules/auctioneer</module>
     <module>modules/common</module>
     <module>modules/competitionController</module>

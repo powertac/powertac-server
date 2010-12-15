@@ -1,4 +1,4 @@
-package org.powertac.server.module.accountingService;
+package org.powertac.server.module.accountingservice;
 
 import org.powertac.common.builders.CashBuilder;
 import org.powertac.common.commands.*;

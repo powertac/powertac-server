@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/osgi
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-    <bean id="as" class="org.powertac.server.module.accountingService.AccountingServiceImpl"/>
+    <bean id="as" class="org.powertac.server.module.accountingservice.AccountingServiceImpl"/>
     <osgi:service ref="as" interface="org.powertac.common.interfaces.AccountingService"/>
 
 </beans>
