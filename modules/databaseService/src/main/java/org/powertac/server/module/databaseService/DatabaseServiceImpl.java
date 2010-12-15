@@ -1,4 +1,4 @@
-package org.powertac.server.module.databaseService;
+package org.powertac.server.module.databaseservice;
 
 import org.powertac.common.interfaces.DatabaseService;
 import org.slf4j.Logger;
