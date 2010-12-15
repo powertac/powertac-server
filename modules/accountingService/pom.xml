@@ -24,18 +24,6 @@
             <version>${powertac.common.version}</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.joda</groupId>
-            <artifactId>com.springsource.org.joda.time</artifactId>
-            <version>${joda.version}</version>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
 </project>
