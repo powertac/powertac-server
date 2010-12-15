@@ -234,7 +234,7 @@
     <module>modules/customer</module>
     <module>modules/databaseservice</module>
     <module>modules/distributionutility</module>
-    <module>modules/liquidityProvider</module>
+    <module>modules/liquidityprovider</module>
     <module>modules/physicalEnvironment</module>
     <module>modules/tariffRuleEnforcer</module>
     <module>modules/taxAuthority</module>

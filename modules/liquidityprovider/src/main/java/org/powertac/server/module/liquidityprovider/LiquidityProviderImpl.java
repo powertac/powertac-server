@@ -1,4 +1,4 @@
-package org.powertac.server.module.liquidityProvider;
+package org.powertac.server.module.liquidityprovider;
 
 import org.powertac.common.interfaces.LiquidityProvider;
 import org.slf4j.Logger;

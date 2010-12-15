@@ -10,7 +10,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>liquidityProvider</artifactId>
+    <artifactId>liquidityprovider</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
