@@ -1,4 +1,4 @@
-package org.powertac.server.module.distributionUtility;
+package org.powertac.server.module.distributionutility;
 
 import org.powertac.common.builders.CashBuilder;
 import org.powertac.common.commands.DepotUpdate;
