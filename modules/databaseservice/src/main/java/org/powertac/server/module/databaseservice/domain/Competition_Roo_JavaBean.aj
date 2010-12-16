@@ -11,6 +11,7 @@ import org.powertac.common.enumerations.CompetitionStatus;
 import org.powertac.server.module.databaseservice.domain.BrokerCompetition;
 import org.powertac.server.module.databaseservice.domain.CashRecord;
 import org.powertac.server.module.databaseservice.domain.Customer;
+import org.powertac.server.module.databaseservice.domain.MeterReading;
 
 privileged aspect Competition_Roo_JavaBean {
     
@@ -84,6 +85,14 @@ privileged aspect Competition_Roo_JavaBean {
     
     public void Competition.setCustomers(Set<Customer> customers) {
         this.customers = customers;
+    }
+    
+    public Set<MeterReading> Competition.getMeterReadings() {
+        return this.meterReadings;
+    }
+    
+    public void Competition.setMeterReadings(Set<MeterReading> meterReadings) {
+        this.meterReadings = meterReadings;
     }
     
 }

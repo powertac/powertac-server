@@ -18,6 +18,10 @@ privileged aspect MeterReadingDataOnDemand_Roo_DataOnDemand {
     
     public MeterReading MeterReadingDataOnDemand.getNewTransientMeterReading(int index) {
         org.powertac.server.module.databaseservice.domain.MeterReading obj = new org.powertac.server.module.databaseservice.domain.MeterReading();
+        obj.setAmount(new java.math.BigDecimal(index));
+        obj.setCompetition(null);
+        obj.setCustomer(null);
+        obj.setTimeslot(null);
         return obj;
     }
     

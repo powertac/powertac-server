@@ -6,8 +6,10 @@ package org.powertac.server.module.databaseservice.domain;
 import java.lang.Boolean;
 import java.lang.String;
 import java.math.BigDecimal;
+import java.util.Set;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.server.module.databaseservice.domain.Competition;
+import org.powertac.server.module.databaseservice.domain.MeterReading;
 
 privileged aspect Customer_Roo_JavaBean {
     
@@ -129,6 +131,14 @@ privileged aspect Customer_Roo_JavaBean {
     
     public void Customer.setSunToPowerRating(BigDecimal sunToPowerRating) {
         this.sunToPowerRating = sunToPowerRating;
+    }
+    
+    public Set<MeterReading> Customer.getMeterReadings() {
+        return this.meterReadings;
+    }
+    
+    public void Customer.setMeterReadings(Set<MeterReading> meterReadings) {
+        this.meterReadings = meterReadings;
     }
     
 }

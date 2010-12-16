@@ -10,7 +10,11 @@ privileged aspect MeterReading_Roo_ToString {
     public String MeterReading.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("Competition: ").append(getCompetition()).append(", ");
+        sb.append("Customer: ").append(getCustomer()).append(", ");
+        sb.append("Timeslot: ").append(getTimeslot()).append(", ");
+        sb.append("Amount: ").append(getAmount());
         return sb.toString();
     }
     

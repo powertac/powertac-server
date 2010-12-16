@@ -22,7 +22,7 @@ privileged aspect CustomerDataOnDemand_Roo_DataOnDemand {
         obj.setCanNegotiate(Boolean.TRUE);
         obj.setCarbonEmissionRate(new java.math.BigDecimal(index));
         obj.setCompetition(null);
-        obj.setCustomerType(org.powertac.common.enumerations.CustomerType.class.getEnumConstants()[0]);
+        obj.setCustomerType(null);
         obj.setLowerPowerCap(new java.math.BigDecimal(index));
         obj.setMaxResponsiveness(new java.math.BigDecimal(index));
         obj.setMinResponsiveness(new java.math.BigDecimal(index));

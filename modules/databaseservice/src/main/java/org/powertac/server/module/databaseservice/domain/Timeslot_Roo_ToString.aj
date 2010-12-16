@@ -10,7 +10,8 @@ privileged aspect Timeslot_Roo_ToString {
     public String Timeslot.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("MeterReadings: ").append(getMeterReadings() == null ? "null" : getMeterReadings().size());
         return sb.toString();
     }
     
