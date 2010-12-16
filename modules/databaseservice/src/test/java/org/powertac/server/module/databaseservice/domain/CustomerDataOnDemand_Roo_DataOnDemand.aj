@@ -18,6 +18,21 @@ privileged aspect CustomerDataOnDemand_Roo_DataOnDemand {
     
     public Customer CustomerDataOnDemand.getNewTransientCustomer(int index) {
         org.powertac.server.module.databaseservice.domain.Customer obj = new org.powertac.server.module.databaseservice.domain.Customer();
+        obj.setAnnualPowerAvg(new java.math.BigDecimal(index));
+        obj.setCanNegotiate(Boolean.TRUE);
+        obj.setCarbonEmissionRate(new java.math.BigDecimal(index));
+        obj.setCompetition(null);
+        obj.setCustomerType(org.powertac.common.enumerations.CustomerType.class.getEnumConstants()[0]);
+        obj.setLowerPowerCap(new java.math.BigDecimal(index));
+        obj.setMaxResponsiveness(new java.math.BigDecimal(index));
+        obj.setMinResponsiveness(new java.math.BigDecimal(index));
+        obj.setMultiContracting(Boolean.TRUE);
+        obj.setName("name_" + index);
+        obj.setSmartMetering(Boolean.TRUE);
+        obj.setSunToPowerRating(new java.math.BigDecimal(index));
+        obj.setTempToPowerRating(new java.math.BigDecimal(index));
+        obj.setUpperPowerCap(new java.math.BigDecimal(index));
+        obj.setWindToPowerRating(new java.math.BigDecimal(index));
         return obj;
     }
     

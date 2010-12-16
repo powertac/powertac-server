@@ -38,4 +38,7 @@ public class Competition {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
     private Set<CashRecord> cashRecords = new HashSet<CashRecord>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
+    private Set<Customer> customers = new HashSet<Customer>();
 }

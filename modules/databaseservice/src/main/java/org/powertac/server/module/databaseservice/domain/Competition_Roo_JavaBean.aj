@@ -10,6 +10,7 @@ import org.joda.time.LocalDateTime;
 import org.powertac.common.enumerations.CompetitionStatus;
 import org.powertac.server.module.databaseservice.domain.BrokerCompetition;
 import org.powertac.server.module.databaseservice.domain.CashRecord;
+import org.powertac.server.module.databaseservice.domain.Customer;
 
 privileged aspect Competition_Roo_JavaBean {
     
@@ -75,6 +76,14 @@ privileged aspect Competition_Roo_JavaBean {
     
     public void Competition.setCashRecords(Set<CashRecord> cashRecords) {
         this.cashRecords = cashRecords;
+    }
+    
+    public Set<Customer> Competition.getCustomers() {
+        return this.customers;
+    }
+    
+    public void Competition.setCustomers(Set<Customer> customers) {
+        this.customers = customers;
     }
     
 }
