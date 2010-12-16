@@ -18,6 +18,8 @@ privileged aspect ProductDataOnDemand_Roo_DataOnDemand {
     
     public Product ProductDataOnDemand.getNewTransientProduct(int index) {
         org.powertac.server.module.databaseservice.domain.Product obj = new org.powertac.server.module.databaseservice.domain.Product();
+        obj.setCompetition(null);
+        obj.setProductType(null);
         return obj;
     }
     

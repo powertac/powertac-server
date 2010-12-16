@@ -13,6 +13,7 @@ import org.powertac.server.module.databaseservice.domain.CashRecord;
 import org.powertac.server.module.databaseservice.domain.Customer;
 import org.powertac.server.module.databaseservice.domain.MeterReading;
 import org.powertac.server.module.databaseservice.domain.Orderbook;
+import org.powertac.server.module.databaseservice.domain.Product;
 
 privileged aspect Competition_Roo_JavaBean {
     
@@ -102,6 +103,14 @@ privileged aspect Competition_Roo_JavaBean {
     
     public void Competition.setOrderbooks(Set<Orderbook> orderbooks) {
         this.orderbooks = orderbooks;
+    }
+    
+    public Set<Product> Competition.getProducts() {
+        return this.products;
+    }
+    
+    public void Competition.setProducts(Set<Product> products) {
+        this.products = products;
     }
     
 }

@@ -21,7 +21,8 @@ privileged aspect Competition_Roo_ToString {
         sb.append("CashRecords: ").append(getCashRecords() == null ? "null" : getCashRecords().size()).append(", ");
         sb.append("Customers: ").append(getCustomers() == null ? "null" : getCustomers().size()).append(", ");
         sb.append("MeterReadings: ").append(getMeterReadings() == null ? "null" : getMeterReadings().size()).append(", ");
-        sb.append("Orderbooks: ").append(getOrderbooks() == null ? "null" : getOrderbooks().size());
+        sb.append("Orderbooks: ").append(getOrderbooks() == null ? "null" : getOrderbooks().size()).append(", ");
+        sb.append("Products: ").append(getProducts() == null ? "null" : getProducts().size());
         return sb.toString();
     }
     

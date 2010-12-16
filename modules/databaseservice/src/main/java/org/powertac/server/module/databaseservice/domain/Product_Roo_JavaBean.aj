@@ -4,9 +4,19 @@
 package org.powertac.server.module.databaseservice.domain;
 
 import java.util.Set;
+import org.powertac.common.enumerations.ProductType;
+import org.powertac.server.module.databaseservice.domain.Competition;
 import org.powertac.server.module.databaseservice.domain.Orderbook;
 
 privileged aspect Product_Roo_JavaBean {
+    
+    public Competition Product.getCompetition() {
+        return this.competition;
+    }
+    
+    public void Product.setCompetition(Competition competition) {
+        this.competition = competition;
+    }
     
     public Set<Orderbook> Product.getOrderbooks() {
         return this.orderbooks;
@@ -14,6 +24,14 @@ privileged aspect Product_Roo_JavaBean {
     
     public void Product.setOrderbooks(Set<Orderbook> orderbooks) {
         this.orderbooks = orderbooks;
+    }
+    
+    public ProductType Product.getProductType() {
+        return this.productType;
+    }
+    
+    public void Product.setProductType(ProductType productType) {
+        this.productType = productType;
     }
     
 }
