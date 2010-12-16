@@ -5,8 +5,10 @@ package org.powertac.server.module.databaseservice.domain;
 
 import java.lang.Boolean;
 import java.lang.String;
+import java.util.Set;
 import org.joda.time.LocalDateTime;
 import org.powertac.common.enumerations.CompetitionStatus;
+import org.powertac.server.module.databaseservice.domain.BrokerCompetition;
 
 privileged aspect Competition_Roo_JavaBean {
     
@@ -56,6 +58,14 @@ privileged aspect Competition_Roo_JavaBean {
     
     public void Competition.setLastUpdated(LocalDateTime lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+    
+    public Set<BrokerCompetition> Competition.getBrokerCompetitions() {
+        return this.brokerCompetitions;
+    }
+    
+    public void Competition.setBrokerCompetitions(Set<BrokerCompetition> brokerCompetitions) {
+        this.brokerCompetitions = brokerCompetitions;
     }
     
 }

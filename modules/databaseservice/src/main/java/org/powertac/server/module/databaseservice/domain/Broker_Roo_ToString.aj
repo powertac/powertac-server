@@ -11,7 +11,8 @@ privileged aspect Broker_Roo_ToString {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
         sb.append("Version: ").append(getVersion()).append(", ");
-        sb.append("AuthToken: ").append(getAuthToken());
+        sb.append("AuthToken: ").append(getAuthToken()).append(", ");
+        sb.append("BrokerCompetitions: ").append(getBrokerCompetitions() == null ? "null" : getBrokerCompetitions().size());
         return sb.toString();
     }
     

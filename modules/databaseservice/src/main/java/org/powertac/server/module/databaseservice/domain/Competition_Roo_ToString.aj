@@ -16,7 +16,8 @@ privileged aspect Competition_Roo_ToString {
         sb.append("CurrentCompetition: ").append(getCurrentCompetition()).append(", ");
         sb.append("CompetitionStatus: ").append(getCompetitionStatus()).append(", ");
         sb.append("DateCreated: ").append(getDateCreated()).append(", ");
-        sb.append("LastUpdated: ").append(getLastUpdated());
+        sb.append("LastUpdated: ").append(getLastUpdated()).append(", ");
+        sb.append("BrokerCompetitions: ").append(getBrokerCompetitions() == null ? "null" : getBrokerCompetitions().size());
         return sb.toString();
     }
     

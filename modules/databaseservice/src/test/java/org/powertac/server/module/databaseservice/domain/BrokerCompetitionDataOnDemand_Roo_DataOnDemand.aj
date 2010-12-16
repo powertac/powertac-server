@@ -18,6 +18,9 @@ privileged aspect BrokerCompetitionDataOnDemand_Roo_DataOnDemand {
     
     public BrokerCompetition BrokerCompetitionDataOnDemand.getNewTransientBrokerCompetition(int index) {
         org.powertac.server.module.databaseservice.domain.BrokerCompetition obj = new org.powertac.server.module.databaseservice.domain.BrokerCompetition();
+        obj.setBroker(null);
+        obj.setCompetition(null);
+        obj.setReady(Boolean.TRUE);
         return obj;
     }
     

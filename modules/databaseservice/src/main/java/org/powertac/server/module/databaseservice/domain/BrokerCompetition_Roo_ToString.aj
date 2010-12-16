@@ -10,7 +10,10 @@ privileged aspect BrokerCompetition_Roo_ToString {
     public String BrokerCompetition.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("Broker: ").append(getBroker()).append(", ");
+        sb.append("Competition: ").append(getCompetition()).append(", ");
+        sb.append("Ready: ").append(getReady());
         return sb.toString();
     }
     

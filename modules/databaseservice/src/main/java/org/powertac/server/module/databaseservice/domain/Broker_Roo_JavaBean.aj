@@ -4,6 +4,8 @@
 package org.powertac.server.module.databaseservice.domain;
 
 import java.lang.String;
+import java.util.Set;
+import org.powertac.server.module.databaseservice.domain.BrokerCompetition;
 
 privileged aspect Broker_Roo_JavaBean {
     
@@ -13,6 +15,14 @@ privileged aspect Broker_Roo_JavaBean {
     
     public void Broker.setAuthToken(String authToken) {
         this.authToken = authToken;
+    }
+    
+    public Set<BrokerCompetition> Broker.getBrokerCompetitions() {
+        return this.brokerCompetitions;
+    }
+    
+    public void Broker.setBrokerCompetitions(Set<BrokerCompetition> brokerCompetitions) {
+        this.brokerCompetitions = brokerCompetitions;
     }
     
 }
