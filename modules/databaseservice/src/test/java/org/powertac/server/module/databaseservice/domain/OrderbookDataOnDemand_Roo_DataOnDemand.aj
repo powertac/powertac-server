@@ -18,6 +18,51 @@ privileged aspect OrderbookDataOnDemand_Roo_DataOnDemand {
     
     public Orderbook OrderbookDataOnDemand.getNewTransientOrderbook(int index) {
         org.powertac.server.module.databaseservice.domain.Orderbook obj = new org.powertac.server.module.databaseservice.domain.Orderbook();
+        obj.setAsk1(new java.math.BigDecimal(index));
+        obj.setAsk10(new java.math.BigDecimal(index));
+        obj.setAsk2(new java.math.BigDecimal(index));
+        obj.setAsk3(new java.math.BigDecimal(index));
+        obj.setAsk4(new java.math.BigDecimal(index));
+        obj.setAsk5(new java.math.BigDecimal(index));
+        obj.setAsk6(new java.math.BigDecimal(index));
+        obj.setAsk7(new java.math.BigDecimal(index));
+        obj.setAsk8(new java.math.BigDecimal(index));
+        obj.setAsk9(new java.math.BigDecimal(index));
+        obj.setAskSize1(new java.math.BigDecimal(index));
+        obj.setAskSize10(new java.math.BigDecimal(index));
+        obj.setAskSize2(new java.math.BigDecimal(index));
+        obj.setAskSize3(new java.math.BigDecimal(index));
+        obj.setAskSize4(new java.math.BigDecimal(index));
+        obj.setAskSize5(new java.math.BigDecimal(index));
+        obj.setAskSize6(new java.math.BigDecimal(index));
+        obj.setAskSize7(new java.math.BigDecimal(index));
+        obj.setAskSize8(new java.math.BigDecimal(index));
+        obj.setAskSize9(new java.math.BigDecimal(index));
+        obj.setBid1(new java.math.BigDecimal(index));
+        obj.setBid10(new java.math.BigDecimal(index));
+        obj.setBid2(new java.math.BigDecimal(index));
+        obj.setBid3(new java.math.BigDecimal(index));
+        obj.setBid4(new java.math.BigDecimal(index));
+        obj.setBid5(new java.math.BigDecimal(index));
+        obj.setBid6(new java.math.BigDecimal(index));
+        obj.setBid7(new java.math.BigDecimal(index));
+        obj.setBid8(new java.math.BigDecimal(index));
+        obj.setBid9(new java.math.BigDecimal(index));
+        obj.setBidSize1(new java.math.BigDecimal(index));
+        obj.setBidSize10(new java.math.BigDecimal(index));
+        obj.setBidSize2(new java.math.BigDecimal(index));
+        obj.setBidSize3(new java.math.BigDecimal(index));
+        obj.setBidSize4(new java.math.BigDecimal(index));
+        obj.setBidSize5(new java.math.BigDecimal(index));
+        obj.setBidSize6(new java.math.BigDecimal(index));
+        obj.setBidSize7(new java.math.BigDecimal(index));
+        obj.setBidSize8(new java.math.BigDecimal(index));
+        obj.setBidSize9(new java.math.BigDecimal(index));
+        obj.setCompetition(null);
+        obj.setDateExecuted(null);
+        obj.setProduct(null);
+        obj.setTimeslot(null);
+        obj.setTransactionID(new Integer(index).longValue());
         return obj;
     }
     

@@ -10,7 +10,8 @@ privileged aspect Product_Roo_ToString {
     public String Product.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("Orderbooks: ").append(getOrderbooks() == null ? "null" : getOrderbooks().size());
         return sb.toString();
     }
     

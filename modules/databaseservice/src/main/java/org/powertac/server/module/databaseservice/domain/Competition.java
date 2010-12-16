@@ -44,4 +44,7 @@ public class Competition {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
     private Set<MeterReading> meterReadings = new HashSet<MeterReading>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
+    private Set<Orderbook> orderbooks = new HashSet<Orderbook>();
 }

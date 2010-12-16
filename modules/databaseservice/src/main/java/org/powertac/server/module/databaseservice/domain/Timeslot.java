@@ -16,4 +16,7 @@ public class Timeslot {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "timeslot")
     private Set<MeterReading> meterReadings = new HashSet<MeterReading>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "timeslot")
+    private Set<Orderbook> orderbooks = new HashSet<Orderbook>();
 }

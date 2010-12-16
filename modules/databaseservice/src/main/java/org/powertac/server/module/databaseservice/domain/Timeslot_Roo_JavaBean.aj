@@ -5,6 +5,7 @@ package org.powertac.server.module.databaseservice.domain;
 
 import java.util.Set;
 import org.powertac.server.module.databaseservice.domain.MeterReading;
+import org.powertac.server.module.databaseservice.domain.Orderbook;
 
 privileged aspect Timeslot_Roo_JavaBean {
     
@@ -14,6 +15,14 @@ privileged aspect Timeslot_Roo_JavaBean {
     
     public void Timeslot.setMeterReadings(Set<MeterReading> meterReadings) {
         this.meterReadings = meterReadings;
+    }
+    
+    public Set<Orderbook> Timeslot.getOrderbooks() {
+        return this.orderbooks;
+    }
+    
+    public void Timeslot.setOrderbooks(Set<Orderbook> orderbooks) {
+        this.orderbooks = orderbooks;
     }
     
 }
