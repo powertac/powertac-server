@@ -10,7 +10,15 @@ privileged aspect CashRecord_Roo_ToString {
     public String CashRecord.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("Competition: ").append(getCompetition()).append(", ");
+        sb.append("Broker: ").append(getBroker()).append(", ");
+        sb.append("Amount: ").append(getAmount()).append(", ");
+        sb.append("Balance: ").append(getBalance()).append(", ");
+        sb.append("Description: ").append(getDescription()).append(", ");
+        sb.append("Latest: ").append(getLatest()).append(", ");
+        sb.append("TransactionId: ").append(getTransactionId()).append(", ");
+        sb.append("DateCreated: ").append(getDateCreated());
         return sb.toString();
     }
     

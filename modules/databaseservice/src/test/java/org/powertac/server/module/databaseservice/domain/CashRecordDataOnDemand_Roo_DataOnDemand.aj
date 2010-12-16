@@ -18,6 +18,14 @@ privileged aspect CashRecordDataOnDemand_Roo_DataOnDemand {
     
     public CashRecord CashRecordDataOnDemand.getNewTransientCashRecord(int index) {
         org.powertac.server.module.databaseservice.domain.CashRecord obj = new org.powertac.server.module.databaseservice.domain.CashRecord();
+        obj.setAmount(new java.math.BigDecimal(index));
+        obj.setBalance(new java.math.BigDecimal(index));
+        obj.setBroker(null);
+        obj.setCompetition(null);
+        obj.setDateCreated(null);
+        obj.setDescription("description_" + index);
+        obj.setLatest(null);
+        obj.setTransactionId(new Integer(index).longValue());
         return obj;
     }
     

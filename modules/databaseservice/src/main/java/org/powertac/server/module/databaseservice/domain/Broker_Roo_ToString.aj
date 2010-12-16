@@ -12,7 +12,8 @@ privileged aspect Broker_Roo_ToString {
         sb.append("Id: ").append(getId()).append(", ");
         sb.append("Version: ").append(getVersion()).append(", ");
         sb.append("AuthToken: ").append(getAuthToken()).append(", ");
-        sb.append("BrokerCompetitions: ").append(getBrokerCompetitions() == null ? "null" : getBrokerCompetitions().size());
+        sb.append("BrokerCompetitions: ").append(getBrokerCompetitions() == null ? "null" : getBrokerCompetitions().size()).append(", ");
+        sb.append("CashRecords: ").append(getCashRecords() == null ? "null" : getCashRecords().size());
         return sb.toString();
     }
     
