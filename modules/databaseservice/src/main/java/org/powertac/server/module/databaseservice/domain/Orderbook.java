@@ -6,6 +6,7 @@ import org.springframework.roo.addon.entity.RooEntity;
 import org.springframework.roo.addon.javabean.RooJavaBean;
 import org.springframework.roo.addon.tostring.RooToString;
 
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -19,12 +20,15 @@ import java.math.BigDecimal;
 public class Orderbook implements Serializable, Comparable {
 
   @ManyToOne
+  @JoinColumn
   private Competition competition;
 
   @ManyToOne
+  @JoinColumn
   private Product product;
 
   @ManyToOne
+  @JoinColumn
   private Timeslot timeslot;
 
   @NotNull
