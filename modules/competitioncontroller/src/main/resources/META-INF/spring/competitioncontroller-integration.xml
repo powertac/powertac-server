@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2002-2010 the original author or authors.
+  ~ Copyright 2009-2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,133 +22,6 @@
 			http://www.springframework.org/schema/beans/spring-beans.xsd
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
-
-    <!--Generate a TimeslotChanged every 5 seconds-->
-    <publish-subscribe-channel id="CcTimeslotChangedChannel"/>
-    <inbound-channel-adapter ref="competitionController" method="processTimeslotChange"
-                             channel="CcTimeslotChangedChannel">
-        <poller fixed-rate="5000"/>
-    </inbound-channel-adapter>
-
-    <!--1. Publish TimeslotUpdateCommand to all brokers-->
-    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CcTimeslotChangedChannel"/>
-
-    <!--2. Tariff Handling-->
-    <!--Ask the accounting service for the current tariff list-->
-    <publish-subscribe-channel id="AsTariffPublishedChannel"/>
-    <service-activator ref="accountingService" method="publishTariffList"
-                       input-channel="CcTimeslotChangedChannel"
-                       output-channel="AsTariffPublishedChannel"/>
-
-    <!--2.1 Publish list of TariffPublishedCommands to all brokers -->
-    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="AsTariffPublishedChannel"/>
-
-    <!--2.2. Allow customers to decide if they want to subscribe or negotiate-->
-    <channel id="CuTariffReplyCommandsChannel"/>
-    <service-activator ref="customer" method="processTariffList"
-                       input-channel="AsTariffPublishedChannel" output-channel="CuTariffReplyCommandsChannel"/>
-
-    <!--2.2.1. Validate every reply using the TariffRuleEnforcer-->
-    <!--In order to do so, the message list in CuTariffReplyCommandsChannel is split into single messages first-->
-    <channel id="CuTariffReplyChannel"/>
-    <splitter input-channel="CuTariffReplyCommandsChannel" output-channel="CuTariffReplyChannel"/>
-
-    <!--2.2.2. Use a filter to validate each reply-->
-    <channel id="CuTariffReplyCommandAcceptedChannel"/>
-    <channel id="CuTariffReplyCommandRejectedChannel"/>
-    <filter input-channel="CuTariffReplyChannel" output-channel="CuTariffReplyCommandAcceptedChannel"
-            discard-channel="CuTariffReplyCommandRejectedChannel" ref="tariffRuleEnforcerProxy"/>
-
-    <!--2.2.2.1. Process validated TariffReply objects and send them to their respective broker-->
-    <channel id="CuBrTariffReplyChannel"/>
-    <service-activator ref="accountingService" method="processTariffReply"
-                       input-channel="CuTariffReplyCommandAcceptedChannel"
-                       output-channel="CuBrTariffReplyChannel"/>
-    <!--2.2.2.1.1-->
-    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="CuBrTariffReplyChannel"/>
-
-    <!--2.2.2.2-->
-    <!--TODO: Process rejected TariffReply objects from the discarded-channel (notify sender (customer))-->
-
-    <!--3. Process deactivated timeslot-->
-    <publish-subscribe-channel id="CcFilteredTimeslotChangedChannel" apply-sequence="true"/>
-    <filter input-channel="CcTimeslotChangedChannel" output-channel="CcFilteredTimeslotChangedChannel"
-            expression="payload.enabled"/>
-
-    <!--3.1. Get real weather data from the physical environment-->
-    <publish-subscribe-channel id="PeWeatherRealDataChannel"/>
-    <service-activator ref="physicalEnvironment" method="generateRealWeatherData"
-                       input-channel="CcFilteredTimeslotChangedChannel"
-                       output-channel="PeWeatherRealDataChannel"/>
-
-    <!--3.2. First, publish weather data to all brokers-->
-    <service-activator ref="brokerManager" method="broadcastCommand" input-channel="PeWeatherRealDataChannel"/>
-
-    <!--3.3. Second, get meter reading from all customers for the given weather data (which includes the reference to the timeslot-->
-    <channel id="CcCuMeterReadingChannel"/>
-    <service-activator ref="customer" method="generateMeterReading"
-                       input-channel="PeWeatherRealDataChannel"
-                       output-channel="CcCuMeterReadingChannel"/>
-
-    <!--3.4. Wait for all customer modules to report their readings and collect them-->
-    <channel id="CuAsMeterReadingCommandsChannel"/>
-    <aggregator input-channel="CcCuMeterReadingChannel" output-channel="CuAsMeterReadingCommandsChannel"/>
-
-    <!--3.5 Have the Accounting Service process the meter readings. Everyone can subscribe to receive the output-->
-    <publish-subscribe-channel id="AsMeterReadingBalanceCommandsChannel"/>
-    <service-activator ref="accountingService" method="processMeterReadings"
-                       input-channel="CuAsMeterReadingCommandsChannel"
-                       output-channel="AsMeterReadingBalanceCommandsChannel"/>
-
-    <!--3.5.1 Send the processed meter reading (=balance) to the appropriate broker-->
-    <channel id="AsBrMeterReadingBalanceChannel"/>
-    <splitter input-channel="AsMeterReadingBalanceCommandsChannel"
-              output-channel="AsBrMeterReadingBalanceChannel"/>
-    <service-activator ref="brokerManager" method="broadcastCommand"
-                       input-channel="AsBrMeterReadingBalanceChannel"/>
-
-    <!--3.5.2 Have the Distribution Utility process the meter balances. A list of cash/depot updates will be returned-->
-    <channel id="DuAsCashAndDepotUpdateCommandsChannel"/>
-    <service-activator ref="distributionUtility" method="processMeterReadingBalances"
-                       input-channel="AsMeterReadingBalanceCommandsChannel"
-                       output-channel="DuAsCashAndDepotUpdateCommandsChannel"/>
-
-    <!--3.5.2.1 Split the depot/cash update commands and route them based on their type-->
-    <channel id="DuAsCashOrDepotUpdateChannel"/>
-    <channel id="DuAsCashUpdateChannel"/>
-    <channel id="DuAsDepotUpdateChannel"/>
-    <splitter input-channel="DuAsCashAndDepotUpdateCommandsChannel"
-              output-channel="DuAsCashOrDepotUpdateChannel"/>
-    <payload-type-router input-channel="DuAsCashOrDepotUpdateChannel">
-        <mapping type="org.powertac.common.commands.CashUpdate" channel="DuAsCashUpdateChannel"/>
-        <mapping type="org.powertac.common.commands.DepotUpdate" channel="DuAsDepotUpdateChannel"/>
-    </payload-type-router>
-
-    <!--3.5.2.2 Call the appropriate cash/depot update method of the Accounting Service -->
-    <channel id="AsBrCashAndDepotUpdateChannel"/>
-    <service-activator ref="accountingService" method="processCashUpdate"
-                       input-channel="DuAsCashUpdateChannel"
-                       output-channel="AsBrCashAndDepotUpdateChannel"/>
-
-    <service-activator ref="accountingService" method="processDepotUpdate"
-                       input-channel="DuAsDepotUpdateChannel"
-                       output-channel="AsBrCashAndDepotUpdateChannel"/>
-
-    <!--3.5.2.3. Forward any update command to the broker-->
-    <service-activator ref="brokerManager" method="broadcastCommand"
-                       input-channel="AsBrCashAndDepotUpdateChannel"/>
-
-    <!--4. Publish weather forecasts for every enabled timeslot-->
-    <publish-subscribe-channel id="PeWeatherForecastDataChannel"/>
-    <service-activator ref="physicalEnvironment" method="generateForecastWeatherData"
-                       input-channel="CcTimeslotChangedChannel"
-                       output-channel="PeWeatherForecastDataChannel"/>
-
-    <!--4.1. Send the forecast list to all brokers-->
-    <service-activator ref="brokerManager" method="broadcastCommands" input-channel="PeWeatherForecastDataChannel"/>
-
-    <!--4.2. Send the forecast list to all customers-->
-    <service-activator ref="customer" method="processWeatherForecasts" input-channel="PeWeatherForecastDataChannel"/>
 
 
 </beans:beans>
