@@ -15,6 +15,7 @@ import org.powertac.server.module.databaseservice.domain.MeterReading;
 import org.powertac.server.module.databaseservice.domain.Orderbook;
 import org.powertac.server.module.databaseservice.domain.Product;
 import org.powertac.server.module.databaseservice.domain.Tariff;
+import org.powertac.server.module.databaseservice.domain.Timeslot;
 
 privileged aspect Competition_Roo_JavaBean {
     
@@ -120,6 +121,14 @@ privileged aspect Competition_Roo_JavaBean {
     
     public void Competition.setTariffs(Set<Tariff> tariffs) {
         this.tariffs = tariffs;
+    }
+    
+    public Set<Timeslot> Competition.getTimeslots() {
+        return this.timeslots;
+    }
+    
+    public void Competition.setTimeslots(Set<Timeslot> timeslots) {
+        this.timeslots = timeslots;
     }
     
 }

@@ -53,4 +53,7 @@ public class Competition {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
     private Set<Tariff> tariffs = new HashSet<Tariff>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
+    private Set<Timeslot> timeslots = new HashSet<Timeslot>();
 }

@@ -18,6 +18,9 @@ privileged aspect TimeslotDataOnDemand_Roo_DataOnDemand {
     
     public Timeslot TimeslotDataOnDemand.getNewTransientTimeslot(int index) {
         org.powertac.server.module.databaseservice.domain.Timeslot obj = new org.powertac.server.module.databaseservice.domain.Timeslot();
+        obj.setCompetition(null);
+        obj.setEndDateTime(null);
+        obj.setStartDateTime(null);
         return obj;
     }
     

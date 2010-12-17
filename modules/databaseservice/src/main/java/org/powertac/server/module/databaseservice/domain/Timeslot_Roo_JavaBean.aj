@@ -4,10 +4,20 @@
 package org.powertac.server.module.databaseservice.domain;
 
 import java.util.Set;
+import org.joda.time.LocalDateTime;
+import org.powertac.server.module.databaseservice.domain.Competition;
 import org.powertac.server.module.databaseservice.domain.MeterReading;
 import org.powertac.server.module.databaseservice.domain.Orderbook;
 
 privileged aspect Timeslot_Roo_JavaBean {
+    
+    public Competition Timeslot.getCompetition() {
+        return this.competition;
+    }
+    
+    public void Timeslot.setCompetition(Competition competition) {
+        this.competition = competition;
+    }
     
     public Set<MeterReading> Timeslot.getMeterReadings() {
         return this.meterReadings;
@@ -23,6 +33,22 @@ privileged aspect Timeslot_Roo_JavaBean {
     
     public void Timeslot.setOrderbooks(Set<Orderbook> orderbooks) {
         this.orderbooks = orderbooks;
+    }
+    
+    public LocalDateTime Timeslot.getStartDateTime() {
+        return this.startDateTime;
+    }
+    
+    public void Timeslot.setStartDateTime(LocalDateTime startDateTime) {
+        this.startDateTime = startDateTime;
+    }
+    
+    public LocalDateTime Timeslot.getEndDateTime() {
+        return this.endDateTime;
+    }
+    
+    public void Timeslot.setEndDateTime(LocalDateTime endDateTime) {
+        this.endDateTime = endDateTime;
     }
     
 }
