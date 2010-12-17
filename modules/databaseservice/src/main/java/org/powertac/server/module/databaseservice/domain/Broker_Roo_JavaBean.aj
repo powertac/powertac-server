@@ -7,6 +7,7 @@ import java.lang.String;
 import java.util.Set;
 import org.powertac.server.module.databaseservice.domain.BrokerCompetition;
 import org.powertac.server.module.databaseservice.domain.CashRecord;
+import org.powertac.server.module.databaseservice.domain.Tariff;
 
 privileged aspect Broker_Roo_JavaBean {
     
@@ -32,6 +33,14 @@ privileged aspect Broker_Roo_JavaBean {
     
     public void Broker.setCashRecords(Set<CashRecord> cashRecords) {
         this.cashRecords = cashRecords;
+    }
+    
+    public Set<Tariff> Broker.getTariffs() {
+        return this.tariffs;
+    }
+    
+    public void Broker.setTariffs(Set<Tariff> tariffs) {
+        this.tariffs = tariffs;
     }
     
 }

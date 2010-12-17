@@ -10,6 +10,7 @@ import java.util.Set;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.server.module.databaseservice.domain.Competition;
 import org.powertac.server.module.databaseservice.domain.MeterReading;
+import org.powertac.server.module.databaseservice.domain.Tariff;
 
 privileged aspect Customer_Roo_JavaBean {
     
@@ -139,6 +140,14 @@ privileged aspect Customer_Roo_JavaBean {
     
     public void Customer.setMeterReadings(Set<MeterReading> meterReadings) {
         this.meterReadings = meterReadings;
+    }
+    
+    public Set<Tariff> Customer.getTariffs() {
+        return this.tariffs;
+    }
+    
+    public void Customer.setTariffs(Set<Tariff> tariffs) {
+        this.tariffs = tariffs;
     }
     
 }

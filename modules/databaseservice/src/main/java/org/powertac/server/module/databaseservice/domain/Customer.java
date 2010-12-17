@@ -56,4 +56,7 @@ public class Customer {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
     private Set<MeterReading> meterReadings = new HashSet<MeterReading>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer")
+    private Set<Tariff> tariffs = new HashSet<Tariff>();
 }

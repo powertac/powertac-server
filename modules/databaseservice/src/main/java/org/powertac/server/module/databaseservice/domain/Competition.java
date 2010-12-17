@@ -50,4 +50,7 @@ public class Competition {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
     private Set<Product> products = new HashSet<Product>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "competition")
+    private Set<Tariff> tariffs = new HashSet<Tariff>();
 }

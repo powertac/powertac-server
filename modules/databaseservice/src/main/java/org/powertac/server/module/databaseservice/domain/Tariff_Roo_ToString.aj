@@ -10,7 +10,11 @@ privileged aspect Tariff_Roo_ToString {
     public String Tariff.toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("Id: ").append(getId()).append(", ");
-        sb.append("Version: ").append(getVersion());
+        sb.append("Version: ").append(getVersion()).append(", ");
+        sb.append("Competition: ").append(getCompetition()).append(", ");
+        sb.append("Broker: ").append(getBroker()).append(", ");
+        sb.append("Customer: ").append(getCustomer()).append(", ");
+        sb.append("TariffState: ").append(getTariffState());
         return sb.toString();
     }
     

@@ -26,7 +26,8 @@ privileged aspect Customer_Roo_ToString {
         sb.append("WindToPowerRating: ").append(getWindToPowerRating()).append(", ");
         sb.append("TempToPowerRating: ").append(getTempToPowerRating()).append(", ");
         sb.append("SunToPowerRating: ").append(getSunToPowerRating()).append(", ");
-        sb.append("MeterReadings: ").append(getMeterReadings() == null ? "null" : getMeterReadings().size());
+        sb.append("MeterReadings: ").append(getMeterReadings() == null ? "null" : getMeterReadings().size()).append(", ");
+        sb.append("Tariffs: ").append(getTariffs() == null ? "null" : getTariffs().size());
         return sb.toString();
     }
     

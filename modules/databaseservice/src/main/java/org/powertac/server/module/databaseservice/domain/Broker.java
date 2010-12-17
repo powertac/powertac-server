@@ -23,4 +23,7 @@ public class Broker {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "broker")
     private Set<CashRecord> cashRecords = new HashSet<CashRecord>();
+
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "broker")
+    private Set<Tariff> tariffs = new HashSet<Tariff>();
 }

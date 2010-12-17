@@ -18,6 +18,10 @@ privileged aspect TariffDataOnDemand_Roo_DataOnDemand {
     
     public Tariff TariffDataOnDemand.getNewTransientTariff(int index) {
         org.powertac.server.module.databaseservice.domain.Tariff obj = new org.powertac.server.module.databaseservice.domain.Tariff();
+        obj.setBroker(null);
+        obj.setCompetition(null);
+        obj.setCustomer(null);
+        obj.setTariffState(null);
         return obj;
     }
     
