@@ -237,7 +237,7 @@
     <module>modules/liquidityprovider</module>
     <module>modules/physicalenvironment</module>
     <module>modules/tariffruleenforcer</module>
-    <module>modules/taxAuthority</module>
+    <module>modules/taxauthority</module>
   </modules>
 
 </project>
