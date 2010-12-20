@@ -23,5 +23,14 @@
 			http://www.springframework.org/schema/integration
 			http://www.springframework.org/schema/integration/spring-integration.xsd">
 
+  <!--Run cron job every minute-->
+  <inbound-channel-adapter ref="competitionController" method="processCronRun" channel="cronChannel">
+    <poller cron="* * * * *"/>
+  </inbound-channel-adapter>
+
+  <publish-subscribe-channel id="cronChannel"/>
+
+  <!--Define all channel subscribers (i.e. modules) that will receive the CompetitionChanged command (in given sequential order)-->
+  <service-activator ref="brokerManager" method="processCompetitionChangedCommand" input-channel="cronChannel"/>
 
 </beans:beans>
