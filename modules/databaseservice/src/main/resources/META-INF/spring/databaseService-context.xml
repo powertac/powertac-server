@@ -7,7 +7,7 @@
         http://www.springframework.org/schema/osgi
         http://www.springframework.org/schema/osgi/spring-osgi.xsd">
 
-<bean id="db" class="org.powertac.server.module.databaseservice.DatabaseServiceImpl"/w>
+<bean id="db" class="org.powertac.server.module.databaseservice.DatabaseServiceImpl"/>
 
   <osgi:service ref="db" interface="org.powertac.common.interfaces.DatabaseService"/>
 
