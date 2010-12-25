@@ -227,12 +227,12 @@
   </build>
 
   <modules>
+    <module>modules/common</module>
+    <module>modules/databaseservice</module>
     <module>modules/accountingservice</module>
     <module>modules/auctioneer</module>
-    <module>modules/common</module>
     <module>modules/competitioncontroller</module>
     <module>modules/customer</module>
-    <module>modules/databaseservice</module>
     <module>modules/distributionutility</module>
     <module>modules/liquidityprovider</module>
     <module>modules/physicalenvironment</module>
