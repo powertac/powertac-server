@@ -1,0 +1,26 @@
+# Eclipse project files
+.project
+.settings
+.classpath
+
+# IntelliJ IDEA project files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Deployment directories
+target/
+
+# OS generated files 
+.DS_Store?
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Compiled source
+*.class
+
+# Cobertura generated files
+cobertura.ser
