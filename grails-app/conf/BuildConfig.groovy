@@ -36,31 +36,18 @@ grails.project.dependency.resolution = {
     // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
     // runtime 'mysql:mysql-connector-java:5.1.13'
     compile('org.apache.activemq:activemq-core:5.4.1') {
-      excludes 'commons-collections'
-      //excludes 'commons-pool'
-      excludes 'commons-logging'
-      excludes 'junit'
-      excludes 'log4j'
-      excludes 'spring-context'
-      excludes 'spring-parent'
-      excludes 'spring-aop'
-      excludes 'spring-asm'
-      excludes 'spring-beans'
-      excludes 'spring-expression'
+      excludes 'commons-collections',  'commons-logging', 'junit', 'log4j', 'spring-context', 'spring-parent', 'spring-aop', 'spring-asm', 'spring-beans', 'spring-expression'
     }
 
     compile('org.apache.activemq:activemq-pool:5.4.1') {
-      excludes 'commons-collections'
-      excludes 'commons-pool'
-      excludes 'commons-logging'
-      excludes 'junit'
-      excludes 'log4j'
-      excludes 'spring-context'
-      excludes 'spring-parent'
-      excludes 'spring-aop'
-      excludes 'spring-asm'
-      excludes 'spring-beans'
-      excludes 'spring-expression'
+      excludes 'commons-collections', 'commons-pool', 'commons-logging',  'junit',  'log4j',  'spring-context',  'spring-parent',  'spring-aop',  'spring-asm',  'spring-beans',  'spring-expression'
+    }
+
+    compile ('org.springframework.integration:spring-integration-core:2.0.0.RELEASE') {
+      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
+    }
+    compile ('org.springframework.integration:spring-integration-jms:2.0.0.RELEASE') {
+      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
     }
   }
 }
@@ -70,6 +57,6 @@ coverage {
   nopost = true
 
   exclusions = [
-      "org/grails/**",
-      "**BuildConfig**"]
+      'org/grails/**',
+      '**BuildConfig**']
 }
