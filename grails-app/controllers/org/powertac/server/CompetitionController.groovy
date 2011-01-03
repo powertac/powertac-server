@@ -1,4 +1,4 @@
-package powertac.server
+package org.powertac.server
 
 import org.powertac.common.Competition
 
