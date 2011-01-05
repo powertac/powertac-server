@@ -11,13 +11,71 @@ html * {
     right: 0;
 }
 
-body {
-    background: #fff;
-    color: #333;
-    font: 11px verdana, arial, helvetica, sans-serif;
+
+#wrap {
+  background: #ffffff;
+  color: #404040;
+  margin: 0 auto;
+  width: 900px;
 }
-#grailsLogo {
-	padding:20px;
+
+#header img {
+  border: none;
+}
+
+/* Main content */
+#content {
+  line-height: 1.7em;
+  margin: 0px 30px 0 30px;
+  padding-bottom: 0;
+  text-align: left;
+}
+
+/* Footer */
+#footer {
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  clear: both;
+  color: #808080;
+  font-size: 0.9em;
+  margin: 0 auto;
+  padding: 8px 0;
+  text-align: center;
+  width: 760px;
+}
+
+#footer p {
+  margin: 0;
+  padding: 0;
+}
+
+#footer a {
+  background: inherit;
+  color: #808080;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+#footer a:hover {
+  text-decoration: underline;
+}
+
+#footer span {
+  font-size: 1.2em;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font: 11px verdana, arial, helvetica, sans-serif;
+  background: #f4f4f4 url(../images/skin/bg.gif) top center repeat-y;
+  color: #404040;
+}
+
+
+#tacLogo {
+	padding: 10px 10px 0 10px;
 }
 
 a:link, a:visited, a:hover {
@@ -30,6 +88,20 @@ h1 {
     color: #48802c;
     font-weight: normal;
     font-size: 16px;
+    margin: .8em 0 .3em 0;
+}
+
+h2 {
+    color: #48802c;
+    font-weight: normal;
+    font-size: 14px;
+    margin: .8em 0 .3em 0;
+}
+
+h3 {
+    color: #48802c;
+    font-weight: normal;
+    font-size: 12px;
     margin: .8em 0 .3em 0;
 }
 
@@ -138,6 +210,7 @@ table {
 }
 tr {
     border: 0;
+    cursor: pointer;
 }
 td, th {
     font: 11px verdana, arial, helvetica, sans-serif;
@@ -256,6 +329,18 @@ th.desc a {
     overflow: visible;
     padding: 2px 6px;
 }
+.buttons input.stop {
+    background: transparent url(../images/skin/stop.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+.buttons input.start {
+    background: transparent url(../images/skin/start.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+.buttons input.reset {
+    background: transparent url(../images/skin/reset.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
 .buttons input.delete {
     background: transparent url(../images/skin/database_delete.png) 5px 50% no-repeat;
     padding-left: 28px;
@@ -266,5 +351,111 @@ th.desc a {
 }
 .buttons input.save {
     background: transparent url(../images/skin/database_save.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+
+/*** Orderbook ***/
+.orderbook {
+  float: left;
+  width: 330px;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  margin: 0 0 20px 0;
+  padding: 10px 0 0 0;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+.orderbook a {
+  color: #006dba;
+  font-weight: normal;
+}
+
+.orderbook h1 {
+  margin: 1px;
+  padding: 1px;
+  border-bottom: 1px solid #ccc;
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.orderbook_title {
+  font-size: 0.7em;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.orderbook_subtitle {
+  font-size: 0.5em;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.orderbook_buy {
+  float: left;
+  width: 150px;
+  margin: 5px 0 0 3px;
+  padding: 5px;
+  border-top: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  font-size: 0.9em;
+  text-align: right;
+}
+
+.orderbook_sell {
+  float: left;
+  width: 150px;
+  margin: 5px 0 0 -1px;
+  padding: 5px;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  font-size: 0.9em;
+  text-align: left;
+}
+
+.oq {
+  float: left;
+  width: 70px;
+  margin-left: 4px;
+  border-right: 1px solid #ccc;
+  font-size: 0.7em;
+  text-align: left;
+}
+
+.op {
+  float: left;
+  width: 70px;
+  margin-left: 4px;
+  font-size: 0.7em;
+  text-align: left;
+}
+
+.logo {
+  padding: 20px;
+  font-size: 2em;
+}
+
+.userReady {
+    background: transparent url(../images/skin/tick.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+
+.userNotReady {
+    background: transparent url(../images/skin/cross.png) 5px 50% no-repeat;
+    margin: 2px 0;
+    padding-left: 28px;
+}
+
+.statusEnabled {
+    background: transparent url(../images/skin/tick.png) 5px 50% no-repeat;
+    padding-left: 28px;
+}
+
+.statusDisabled {
+    background: transparent url(../images/skin/cross.png) 5px 50% no-repeat;
+    margin: 2px 0;
     padding-left: 28px;
 }

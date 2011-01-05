@@ -18,29 +18,20 @@
 
 <html>
 <head>
-    <title>Welcome</title>
-    <meta name="layout" content="main"/>
+  <title>Terms of Use</title>
+  <meta name="layout" content="main"/>
 </head>
 <body>
 
-<h1>Dashboard</h1>
+  <h1>Terms of Use</h1>
 
-<div class="clear"></div>
+  <div class="clear"></div>
 
-<div id="content-box">
+  <div id="content-box">
 
+    <p>Terms of use are under construction.</p>
 
-    <div class="section section-last">
-
-        <div class="section-header">
-            Upcoming competitions
-        </div>
-
-
-
-    </div> <!-- section -->
-
-</div>
+  </div> <!-- content-box -->
 
 </body>
 </html>

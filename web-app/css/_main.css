@@ -1,0 +1,360 @@
+body {
+  background: #f3f3f3;
+}
+
+#top {
+  background: #f3f3f3 url(../images/skin/bg-top.gif) top center no-repeat;
+}
+
+#announcements {
+  background: #f3f3f3 url(../images/skin/bg.gif) top center repeat-y;
+  padding-bottom: 20px;
+}
+
+#serverid {
+  background: #f3f3f3 url(../images/skin/bg.gif) top center repeat-y;
+  padding-bottom: 20px;
+}
+
+#bg {
+  background: #f3f3f3 url(../images/skin/bg.gif) top center repeat-y;
+  padding-bottom: 20px;
+}
+
+#footer {
+  background: #f3f3f3 url(../images/skin/bg-bottom.gif) top center no-repeat;
+  text-align: center;
+  padding-bottom: 15px;
+}
+
+#disclaimer {
+  line-height: 10px;
+}
+
+#logo {
+  margin-top: 20px;
+}
+
+#userlogin {
+  margin-top: 25px;
+}
+
+/* NAVIGATION MENU */
+
+.nav {
+  background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+  border: 1px #ccc;
+  border-style: solid none none none;
+  margin: 5px 0 10px 0;
+  padding: 5px 0 5px 10px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.menuButton {
+  padding: 0 5px;
+}
+
+.menuButton a {
+  padding: 4px 6px;
+  color: #666;
+  text-decoration: none;
+}
+
+.menuButton a.home {
+  background: url(../images/skin/house.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.menuButton a.list {
+  background: url(../images/skin/database_table.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.menuButton a.create {
+  background: url(../images/skin/database_add.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+/* Errors */
+div.errors {
+  background: #fff3f3;
+  border: 1px solid red;
+  color: #cc0000;
+  margin: 10px 0 5px 0;
+  padding: 5px 0 5px 0;
+}
+
+div.errors ul {
+  list-style: none;
+  padding: 0;
+}
+
+div.errors li {
+  background: url(../images/skin/exclamation.png) 8px 0% no-repeat;
+  padding-left: 30px;
+}
+
+td.errors select {
+  border: 1px solid red;
+}
+
+td.errors input {
+  border: 1px solid red;
+}
+
+/* Sort Symbols in tables */
+th {
+  background: #fff url(../images/skin/shadow.jpg);
+  color: #666;
+  padding: 2px 6px;
+}
+
+th a:link, th a:visited, th a:hover {
+  color: #333;
+  display: block;
+  text-decoration: none;
+  width: 100%;
+}
+
+th.asc a, th.desc a {
+  background-position: right;
+  background-repeat: no-repeat;
+}
+
+th.asc a {
+  background-image: url(../images/skin/sorted_asc.gif);
+}
+
+th.desc a {
+  background-image: url(../images/skin/sorted_desc.gif);
+}
+
+/* PAGINATION */
+
+.paginateButtons {
+  background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+  border: 1px solid #ccc;
+  border-top: 0;
+  color: #666;
+  font-size: 10px;
+  overflow: hidden;
+  padding: 10px 3px;
+}
+
+.paginateButtons a {
+  background: #fff;
+  border: 1px solid;
+  border-color: #ccc #aaa #aaa #ccc;
+  color: #666;
+  margin: 0 3px;
+  padding: 2px 6px;
+}
+
+.paginateButtons span {
+  padding: 3px 3px;
+}
+
+/* ACTION BUTTONS */
+
+.buttons {
+  background: #fff url(../images/skin/shadow.jpg) bottom repeat-x;
+  border: 1px #ccc;
+  border-style: solid none solid none;
+  color: #666;
+  margin-top: 5px;
+  overflow: hidden;
+  padding: 3px 0 3px 10px;
+}
+
+.buttons input {
+  background: #fff;
+  border: 0;
+  color: #333;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 3px;
+  overflow: visible;
+  padding: 2px 6px;
+}
+
+.buttons input.stop {
+  background: transparent url(../images/skin/stop.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.start {
+  background: transparent url(../images/skin/start.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.schedule {
+  background: transparent url(../images/skin/schedule.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.reset {
+  background: transparent url(../images/skin/reset.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.delete {
+  background: transparent url(../images/skin/database_delete.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.edit {
+  background: transparent url(../images/skin/database_edit.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.buttons input.save {
+  background: transparent url(../images/skin/database_save.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+/*** Orderbook ***/
+.orderbook {
+  float: left;
+  width: 330px;
+  background: #fafafa;
+  border: 1px solid #ccc;
+  margin: 0 0 20px 0;
+  padding: 10px 0 0 0;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+.orderbook a {
+  color: #006dba;
+  font-weight: normal;
+}
+
+.orderbook h1 {
+  margin: 1px;
+  padding: 1px;
+  border-bottom: 1px solid #ccc;
+  font-size: 0.8em;
+  text-align: center;
+}
+
+.orderbook_title {
+  font-size: 0.7em;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.orderbook_subtitle {
+  font-size: 0.5em;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+.orderbook_buy {
+  float: left;
+  width: 150px;
+  margin: 5px 0 0 3px;
+  padding: 5px;
+  border-top: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  font-size: 0.9em;
+  text-align: right;
+}
+
+.orderbook_sell {
+  float: left;
+  width: 150px;
+  margin: 5px 0 0 -1px;
+  padding: 5px;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+  font-size: 0.9em;
+  text-align: left;
+}
+
+.oq {
+  float: left;
+  width: 70px;
+  margin-left: 4px;
+  border-right: 1px solid #ccc;
+  font-size: 0.7em;
+  text-align: left;
+}
+
+.op {
+  float: left;
+  width: 70px;
+  margin-left: 4px;
+  font-size: 0.7em;
+  text-align: left;
+}
+
+/* Status indicators */
+
+.userReady {
+  background: transparent url(../images/skin/tick.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.userNotReady {
+  background: transparent url(../images/skin/cross.png) 5px 50% no-repeat;
+  margin: 2px 0;
+  padding-left: 28px;
+}
+
+.statusEnabled {
+  background: transparent url(../images/skin/tick.png) 5px 50% no-repeat;
+  padding-left: 28px;
+}
+
+.statusDisabled {
+  background: transparent url(../images/skin/cross.png) 5px 50% no-repeat;
+  margin: 2px 0;
+  padding-left: 28px;
+}
+
+/* small image links */
+.competition {
+  background: url(../images/skin/competition.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.taq {
+  background: url(../images/skin/taq.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.orders {
+  background: url(../images/skin/orders.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.orderbooks {
+  background: url(../images/skin/report.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.cash {
+  background: url(../images/skin/money.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.forecasts {
+  background: url(../images/skin/chart_bar.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.depots {
+  background: url(../images/skin/briefcase.png) center left no-repeat;
+  padding-left: 25px;
+}
+
+.products {
+  background: url(../images/skin/basket.png) center left no-repeat;
+  padding-left: 25px;
+}
+

@@ -18,29 +18,21 @@
 
 <html>
 <head>
-    <title>Welcome</title>
-    <meta name="layout" content="main"/>
+  <title>Developer Mailing List</title>
+  <meta name="layout" content="main"/>
 </head>
 <body>
 
-<h1>Dashboard</h1>
+  <h1>Developer Mailing List</h1>
 
-<div class="clear"></div>
+  <div class="clear"></div>
 
-<div id="content-box">
+  <div id="content-box">
 
+    <a id="nabblelink" href="http://power-tac-developers.975333.n3.nabble.com/">Power TAC Developers</a>
+    <script src="http://power-tac-developers.975333.n3.nabble.com/embed/f1884242"></script>
 
-    <div class="section section-last">
-
-        <div class="section-header">
-            Upcoming competitions
-        </div>
-
-
-
-    </div> <!-- section -->
-
-</div>
+  </div> <!-- content-box -->
 
 </body>
 </html>

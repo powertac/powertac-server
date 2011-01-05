@@ -18,29 +18,38 @@
 
 <html>
 <head>
-    <title>Welcome</title>
+    <title>Getting Started</title>
     <meta name="layout" content="main"/>
 </head>
 <body>
 
-<h1>Dashboard</h1>
+<h1>Getting Started</h1>
 
 <div class="clear"></div>
 
 <div id="content-box">
 
-
-    <div class="section section-last">
+    <div class="section">
 
         <div class="section-header">
-            Upcoming competitions
+            Three easy steps
         </div>
 
+        <div class="section-content">
 
+            <p>Participating is easy! Try it yourself:</p>
+
+            <ul class="numberedList">
+                <li><a href="${createLink(uri: '/downloads.gsp')}" title="Download">Download</a> the latest demo agent.</li>
+                <li><a href="${createLink(uri: '/tutorial.gsp')}" title="Read">Read</a> the quick start tutorial.</li>
+                <li><g:link controller="register" title="Register">Register</g:link> yourself on this server to be able to create and run a competition.</li>
+            </ul>
+
+        </div>
 
     </div> <!-- section -->
 
-</div>
+</div> <!-- content-box -->
 
 </body>
 </html>
