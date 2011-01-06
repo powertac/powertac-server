@@ -49,6 +49,14 @@ grails.project.dependency.resolution = {
     compile ('org.springframework.integration:spring-integration-jms:2.0.0.RELEASE') {
       excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
     }
+
+    compile ('org.springframework.integration:spring-integration-xml:2.0.0.RELEASE') {
+      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
+    }
+
+    compile ('com.thoughtworks.xstream:xstream:1.3.1') {
+      excludes 'commons-lang', 'joda-time', 'junit'
+    }
   }
 }
 

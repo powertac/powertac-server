@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:si="http://www.springframework.org/schema/integration"
+       xmlns:si-xml="http://www.springframework.org/schema/integration/xml"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans.xsd
+			http://www.springframework.org/schema/integration
+			http://www.springframework.org/schema/integration/spring-integration-2.0.xsd
+			http://www.springframework.org/schema/integration/xml
+			http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
+
+  <si:gateway service-interface="org.powertac.server.IStringMessageService"
+              id="demoMessagingGateway"
+              default-request-channel="BrIncomingXml"/>
+
+  <si:channel id="BrIncomingXml"/>
+
+  <bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+    <property name="aliases">
+      <props>
+        <prop key="ShoutDoCreate">org.powertac.common.command.ShoutDoCreateCmd</prop>
+        <prop key="ShoutDoDelete">org.powertac.common.command.ShoutDoDeleteCmd</prop>
+        <prop key="ShoutDoUpdate">org.powertac.common.command.ShoutDoUpdateCmd</prop>
+      </props>
+    </property>
+    <!--1001 = NO_REFERENCES, 1002 = ID_REFERENCES -->
+    <property name="mode" value="1001"/>
+  </bean>
+
+  <si-xml:unmarshalling-transformer unmarshaller="xstreamMarshaller" input-channel="BrIncomingXml"
+                                    output-channel="BrIncoming"/>
+
+  <si:channel id="BrIncoming"/>
+
+  <si:service-activator id="localService" method="store" input-channel="BrIncoming"
+                        ref="timeslotManagementService"/>
+</beans>
