@@ -24,8 +24,7 @@
         <prop key="ShoutDoUpdate">org.powertac.common.command.ShoutDoUpdateCmd</prop>
       </props>
     </property>
-    <!--1001 = NO_REFERENCES, 1002 = ID_REFERENCES -->
-    <property name="mode" value="1001"/>
+    <property name="mode" value="1001"/><!--1001=NO_REFERENCES, 1002=ID_REFERENCES -->
   </bean>
 
   <si-xml:unmarshalling-transformer unmarshaller="xstreamMarshaller" input-channel="BrIncomingXml"
@@ -35,4 +34,11 @@
 
   <si:service-activator id="localService" method="store" input-channel="BrIncoming"
                         ref="timeslotManagementService"/>
+
+  <si:gateway service-interface="org.powertac.server.ICommandEncodingService" id="commandEncode" default-request-channel="incomingShoutCmd"/>
+
+  <si:channel id="incomingShoutCmd"/>
+
+  <si-xml:marshalling-transformer marshaller="xstreamMarshaller" input-channel="incomingShoutCmd" output-channel="shout"/>
+  <si:service-activator method="handleShout" input-channel="shout" ref="timeslotManagementService"/>
 </beans>

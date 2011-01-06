@@ -1,8 +1,13 @@
 package org.powertac.server
 
+import org.powertac.common.command.ShoutDoCreateCmd
+import org.powertac.common.enumerations.BuySellIndicator
+import org.powertac.common.enumerations.OrderType
+
 class DemoMessageController {
 
   def demoMessagingGateway
+  def commandEncode
 
   def scaffold = DemoMessage
 
@@ -20,5 +25,11 @@ class DemoMessageController {
         redirect(action: 'show', id: params.id)
       }
     }
+  }
+
+  def encodeShout = {
+    ShoutDoCreateCmd cmd = new ShoutDoCreateCmd(competitionId: 'testCompetition', userName: 'testUser', apiKey: 'testKey', productId: 'testProductId', timeslotId: 'testTimeslotId', buySellIndicator: BuySellIndicator.BUY, quantity: 1.0298, limitPrice: 93.0235, orderType: OrderType.LIMIT)
+    flash.message = commandEncode.encodeShoutDoCreateCommand(cmd)
+    redirect action: 'list'
   }
 }

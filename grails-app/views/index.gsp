@@ -18,8 +18,8 @@
 
 <html>
 <head>
-    <title>Welcome</title>
-    <meta name="layout" content="main"/>
+  <title>Welcome</title>
+  <meta name="layout" content="main"/>
 </head>
 <body>
 
@@ -29,17 +29,23 @@
 
 <div id="content-box">
 
+  <div class="section section-last">
+    <div class="section-header">
+      Installed PowerTAC Plugins
+    </div>
+    <ul>
+      <g:set var="pluginManager"
+          value="${applicationContext.getBean('pluginManager')}"></g:set>
 
-    <div class="section section-last">
+      <g:each var="plugin" in="${pluginManager.userPlugins}">
+        <g:if test="${plugin.name.contains('powertac')}">
+          <li>${plugin.name} - ${plugin.version}</li>
+        </g:if>
+      </g:each>
 
-        <div class="section-header">
-            Upcoming competitions
-        </div>
+    </ul>
 
-
-
-    </div> <!-- section -->
-
+  </div>
 </div>
 
 </body>
