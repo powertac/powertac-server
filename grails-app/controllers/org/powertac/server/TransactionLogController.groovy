@@ -7,7 +7,7 @@ class TransactionLogController {
 
   def scaffold = TransactionLog
 
-  def toXml = {
+  def get = {
     def transactionLogInstance = TransactionLog.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: transactionLogInstance as XML)
   }

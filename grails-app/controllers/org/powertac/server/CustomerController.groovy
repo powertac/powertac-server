@@ -7,7 +7,7 @@ class CustomerController {
 
   def scaffold = Customer
 
-  def toXml = {
+  def get = {
     def customerInstance = Customer.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: customerInstance as XML)
   }

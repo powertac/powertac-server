@@ -7,7 +7,7 @@ class MeterReadingController {
 
   def scaffold = MeterReading
 
-  def toXml = {
+  def get = {
     def meterReadingInstance = MeterReading.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: meterReadingInstance as XML)
   }

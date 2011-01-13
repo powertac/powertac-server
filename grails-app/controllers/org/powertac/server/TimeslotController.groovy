@@ -7,7 +7,7 @@ class TimeslotController {
 
   def scaffold = Timeslot
 
-  def toXml = {
+  def get = {
     def timeslotInstance = Timeslot.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: timeslotInstance as XML)
   }

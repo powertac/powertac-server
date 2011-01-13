@@ -7,7 +7,7 @@ class PositionUpdateController {
 
   def scaffold = PositionUpdate
 
-  def toXml = {
+  def get = {
     def positionUpdateInstance = PositionUpdate.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: positionUpdateInstance as XML)
   }

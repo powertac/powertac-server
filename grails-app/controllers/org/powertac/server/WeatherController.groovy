@@ -7,7 +7,7 @@ class WeatherController {
 
   def scaffold = Weather
 
-  def toXml = {
+  def get = {
     def weatherInstance = Weather.get(params.id)
     render (contentType:"text/xml",encoding:"UTF-8", text: weatherInstance as XML)
   }

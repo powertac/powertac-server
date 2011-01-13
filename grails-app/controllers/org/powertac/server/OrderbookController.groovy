@@ -7,7 +7,7 @@ class OrderbookController {
 
   def scaffold = Orderbook
 
-  def toXml = {
+  def get = {
     def orderbookInstance = Orderbook.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: orderbookInstance as XML)
   }

@@ -7,7 +7,7 @@ class CashUpdateController {
 
   def scaffold = CashUpdate
 
-  def toXml = {
+  def get = {
     def cashUpdateInstance = CashUpdate.get(params.id)
     render (contentType:"text/xml",encoding:"UTF-8", text: cashUpdateInstance as XML)
   }

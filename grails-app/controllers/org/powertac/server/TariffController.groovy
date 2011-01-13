@@ -7,7 +7,7 @@ class TariffController {
 
   def scaffold = Tariff
 
-  def toXml = {
+  def get = {
     def tariffInstance = Tariff.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: tariffInstance as XML)
   }

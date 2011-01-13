@@ -6,7 +6,7 @@ import org.powertac.common.Shout
 class ShoutController {
 
   def scaffold = Shout
-  def toXml = {
+  def get = {
     def shoutInstance = Shout.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: shoutInstance as XML)
   }
