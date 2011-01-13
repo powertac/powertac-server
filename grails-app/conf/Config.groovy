@@ -135,3 +135,5 @@ powertac {
   connector.external.url = "failover:tcp://127.0.0.1:61616"
   broker.url = 'tcp://localhost:61616'
 }
+// Added by the powertac-common plugin:
+grails.validateable.packages = ['org.powertac.common.command']
