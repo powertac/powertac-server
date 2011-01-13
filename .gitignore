@@ -1,8 +1,3 @@
-# Eclipse project files
-.project
-.settings
-.classpath
-
 # IntelliJ IDEA project files
 *.iml
 *.ipr
@@ -12,7 +7,7 @@
 # Deployment directories
 target/
 
-# OS generated files 
+# OS generated files
 .DS_Store?
 .DS_Store
 ehthumbs.db
