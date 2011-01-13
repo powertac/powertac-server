@@ -10,6 +10,7 @@
   <ul>
     <li>Historic Data</li>
     <li><g:link controller="competition" action="list" class="competitions" title="Competitions">Competitions</g:link></li>
+    <li><g:link controller="broker" action="list" class="brokers" title="Brokers">Brokers</g:link></li>
     <li><g:link controller="transactionLog" action="list" class="quotesntrades" title="Transaction Log">Transaction Log</g:link></li>
     <li><g:link controller="shout" action="list" class="orders" title="Shouts">Shouts</g:link></li>
     <li><g:link controller="orderbook" action="list" class="orderbooks" title="Orderbooks">Orderbooks</g:link></li>
