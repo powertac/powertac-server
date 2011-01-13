@@ -12,6 +12,7 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
+        tmpDataDirectory="/tmp"
         transportConnectors = [new TransportConnector(uri: new URI(ConfigurationHolder.config.powertac.broker.url))]
       }
       jmsFactory(org.apache.activemq.ActiveMQConnectionFactory) {
@@ -22,6 +23,7 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
+        tmpDataDirectory="/tmp"
         transportConnectors = [
             new TransportConnector(name: 'tcp', uri: new URI(ConfigurationHolder.config.powertac.broker.url))
         ]
@@ -34,6 +36,7 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
+        tmpDataDirectory="/tmp"
         transportConnectors = [
             new TransportConnector(name: 'tcp', uri: new URI(ConfigurationHolder.config.powertac.broker.url))
         ]
