@@ -10,12 +10,16 @@
 			http://www.springframework.org/schema/integration/xml
 			http://www.springframework.org/schema/integration/xml/spring-integration-xml-2.0.xsd">
 
+  <!--Auctioneer related messaging architecture-->
+
+  <!--Demo gateway for testing purposes that can receive incoming messages-->
   <si:gateway service-interface="org.powertac.server.IStringMessageService"
               id="demoMessagingGateway"
               default-request-channel="BrIncomingXml"/>
 
   <si:channel id="BrIncomingXml"/>
 
+  <!--Define (un)marshalling rules-->
   <bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
     <property name="aliases">
       <props>
@@ -24,21 +28,87 @@
         <prop key="ShoutDoUpdate">org.powertac.common.command.ShoutDoUpdateCmd</prop>
       </props>
     </property>
-    <property name="mode" value="1001"/><!--1001=NO_REFERENCES, 1002=ID_REFERENCES -->
+    <property name="mode" value="1001"/>
+    <!--1001=NO_REFERENCES, 1002=ID_REFERENCES -->
   </bean>
 
+  <!--Map XML to domain class-->
   <si-xml:unmarshalling-transformer unmarshaller="xstreamMarshaller" input-channel="BrIncomingXml"
                                     output-channel="BrIncoming"/>
 
-  <si:channel id="BrIncoming"/>
+  <si:publish-subscribe-channel id="BrIncoming"/>
+
+  <!--Route domain class to different channels-->
+  <si:payload-type-router input-channel="BrIncoming">
+    <si:mapping type="org.powertac.common.command.ShoutDoCreateCmd" channel="BrIncomingShoutDoCreate"/>
+    <si:mapping type="org.powertac.common.command.ShoutDoDeleteCmd" channel="BrIncomingShoutDoDelete"/>
+    <si:mapping type="org.powertac.common.command.ShoutDoUpdateCmd" channel="BrIncomingShoutDoUpdate"/>
+  </si:payload-type-router>
+
+  <si:publish-subscribe-channel id="BrIncomingShoutDoCreate"/>
+  <si:publish-subscribe-channel id="BrIncomingShoutDoDelete"/>
+  <si:publish-subscribe-channel id="BrIncomingShoutDoUpdate"/>
+
+  <!--Process ShoutDoCreate command-->
+  <si:service-activator ref="auctionService" method="processShoutCreate"
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingShoutDoCreateResultList"/>
+  <!--TODO:Change output-channel to generic channel to which all Do*Cmd result lists are directed-->
+
+  <si:channel id="BrIncomingShoutDoCreateResultList"/>
+
+  <!--Split result list-->
+  <!--TODO:more generic naming-->
+  <si:splitter input-channel="BrIncomingShoutDoCreateResultList" output-channel="BrIncomingShoutDoCreateResultSingle"/>
+
+  <si:channel id="BrIncomingShoutDoCreateResultSingle"/>
+
+  <!--Route single result by domain class type. Possible types defined in Auctioneer interface-->
+  <!-- TODO: Make this a general router for all Do*Cmd objects! -->
+  <si:payload-type-router input-channel="BrIncomingShoutDoCreateResultSingle">
+    <si:mapping type="org.powertac.common.command.CashDoUpdateCmd" channel="ProcessCashDoUpdateCmd"/>
+    <si:mapping type="org.powertac.common.command.PositionDoUpdateCmd" channel="ProcessPositionDoUpdateCmd"/>
+    <si:mapping type="org.powertac.common.Orderbook" channel="BrOutgoingAll"/>
+    <si:mapping type="org.powertac.common.TransactionLog" channel="BrOutgoingAll"/>
+    <si:mapping type="org.powertac.common.Shout" channel="BrOutgoingSingle"/>
+  </si:payload-type-router>
+
+  <!--Process CashDoUpdateCmd objects. This additional processing in contrast to Orderbook/TransactionLog/Shout objects-->
+  <!--is necessary because a Cmd object needs to be processed by some entity (i.e. Accounting Service) that -->
+  <!--will return the domain class object (i.e. CashUpdate) which is to be communicated to broker(s)-->
+  <si:channel id="ProcessCashDoUpdateCmd"/>
+
+  <si:service-activator ref="accountingService" method="processCashUpdate"
+                        input-channel="ProcessCashDoUpdateCmd" output-channel="BrOutgoingSingle"/>
+
+  <!--Process ShoutDoDelete command-->
+
+
+  <!--Process ShoutDoUpdate command-->
+
+
+  <!--NOTE: The following is supposed to be global behavior and should probably be sourced out to another xml-->
+  <!-- ==================== -->
+  <!--Channel to send message to single broker specified within the object-->
+  <si:channel id="BrOutgoingSingle"/>
+  <!--Channel to send message to all brokers-->
+  <si:channel id="BrOutgoingAll"/>
+
+  <si:service-activator ref="brokerManagementService" method="sendMessage"
+                        input-channel="BrOutgoingSingle"/>
+
+  <si:service-activator ref="brokerManagementService" method="broadcastMessage"
+                        input-channel="BrOutgoingAll"/>
+  <!-- ==================== -->
 
   <si:service-activator id="localService" method="store" input-channel="BrIncoming"
                         ref="timeslotManagementService"/>
 
-  <si:gateway service-interface="org.powertac.server.ICommandEncodingService" id="commandEncode" default-request-channel="incomingShoutCmd"/>
+  <si:gateway service-interface="org.powertac.server.ICommandEncodingService" id="commandEncode"
+              default-request-channel="incomingShoutCmd"/>
 
   <si:channel id="incomingShoutCmd"/>
 
-  <si-xml:marshalling-transformer marshaller="xstreamMarshaller" input-channel="incomingShoutCmd" output-channel="shout"/>
+  <si-xml:marshalling-transformer marshaller="xstreamMarshaller" input-channel="incomingShoutCmd"
+                                  output-channel="shout"/>
   <si:service-activator method="handleShout" input-channel="shout" ref="timeslotManagementService"/>
 </beans>
