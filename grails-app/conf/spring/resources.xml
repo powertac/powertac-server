@@ -45,21 +45,9 @@
     <si:mapping type="org.powertac.common.command.ShoutDoUpdateCmd" channel="BrIncomingShoutDoUpdate"/>
   </si:payload-type-router>
 
-  <si:channel id="BrIncomingShoutDoCreate"/>
-  <si:channel id="BrIncomingShoutDoDelete"/>
-  <si:channel id="BrIncomingShoutDoUpdate"/>
-
-  <!--Process ShoutDoCreate command-->
-  <si:service-activator ref="auctionService" method="processShoutCreate"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
-
-  <!--Process ShoutDoDelete command-->
-  <si:service-activator ref="auctionService" method="processShoutDelete"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
-
-  <!--Process ShoutDoUpdate command-->
-  <si:service-activator ref="auctionService" method="processShoutUpdate"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
+  <!-- ===== -->
+  <!--Module processing here in other xml files-->
+  <!-- ===== -->
 
   <si:channel id="BrIncomingCommandProcessed"/>
 
@@ -97,8 +85,6 @@
   <si:service-activator ref="accountingService" method="processPositionUpdate"
                         input-channel="ProcessPositionDoUpdateCmd" output-channel="BrOutgoingSingle"/>
 
-  <!--NOTE: The following is supposed to be global behavior and should probably be sourced out to another xml-->
-  <!-- ==================== -->
   <!--Channel to send message to single broker specified within the object-->
   <si:channel id="BrOutgoingSingle"/>
   <!--Channel to send message to all brokers-->
@@ -110,6 +96,7 @@
   <si:service-activator ref="brokerManagementService" method="broadcastMessage"
                         input-channel="BrOutgoingAll"/>
   <!-- ==================== -->
+  <!--Old stuff:-->
 
   <si:service-activator id="localService" method="store" input-channel="BrIncoming"
                         ref="timeslotManagementService"/>
