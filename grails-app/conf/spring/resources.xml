@@ -51,25 +51,31 @@
 
   <!--Process ShoutDoCreate command-->
   <si:service-activator ref="auctionService" method="processShoutCreate"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
 
   <!--Process ShoutDoDelete command-->
   <si:service-activator ref="auctionService" method="processShoutDelete"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
 
   <!--Process ShoutDoUpdate command-->
   <si:service-activator ref="auctionService" method="processShoutUpdate"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandProcessed"/>
 
-  <si:channel id="BrIncomingCommandResultList"/>
+  <si:channel id="BrIncomingCommandProcessed"/>
+
+  <!--Check result type. If result is list, route it to a splitter. Otherwise route message directly to next router-->
+  <si:payload-type-router input-channel="BrIncomingCommandProcessed"
+                          default-output-channel="BrIncomingCommandProcessedSingle">
+    <si:mapping type="java.util.List" channel="BrIncomingCommandProcessedList"/>
+  </si:payload-type-router>
 
   <!--Split result list-->
-  <si:splitter input-channel="BrIncomingCommandResultList" output-channel="BrIncomingCommandResultSingle"/>
+  <si:splitter input-channel="BrIncomingCommandProcessedList" output-channel="BrIncomingCommandProcessedSingle"/>
 
-  <si:channel id="BrIncomingCommandResultSingle"/>
+  <si:channel id="BrIncomingCommandProcessedSingle"/>
 
   <!--Route single result by domain class type. Possible types defined in Auctioneer interface-->
-  <si:payload-type-router input-channel="BrIncomingCommandResultSingle">
+  <si:payload-type-router input-channel="BrIncomingCommandProcessedSingle">
     <si:mapping type="org.powertac.common.command.CashDoUpdateCmd" channel="ProcessCashDoUpdateCmd"/>
     <si:mapping type="org.powertac.common.command.PositionDoUpdateCmd" channel="ProcessPositionDoUpdateCmd"/>
     <si:mapping type="org.powertac.common.Orderbook" channel="BrOutgoingAll"/>
@@ -89,7 +95,7 @@
   <si:channel id="ProcessPositionDoUpdateCmd"/>
 
   <si:service-activator ref="accountingService" method="processPositionUpdate"
-                         input-channel="ProcessPositionDoUpdateCmd" output-channel="BrOutgoingSingle"/>
+                        input-channel="ProcessPositionDoUpdateCmd" output-channel="BrOutgoingSingle"/>
 
   <!--NOTE: The following is supposed to be global behavior and should probably be sourced out to another xml-->
   <!-- ==================== -->
