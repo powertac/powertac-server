@@ -45,9 +45,9 @@
     <si:mapping type="org.powertac.common.command.ShoutDoUpdateCmd" channel="BrIncomingShoutDoUpdate"/>
   </si:payload-type-router>
 
-  <si:publish-subscribe-channel id="BrIncomingShoutDoCreate"/>
-  <si:publish-subscribe-channel id="BrIncomingShoutDoDelete"/>
-  <si:publish-subscribe-channel id="BrIncomingShoutDoUpdate"/>
+  <si:channel id="BrIncomingShoutDoCreate"/>
+  <si:channel id="BrIncomingShoutDoDelete"/>
+  <si:channel id="BrIncomingShoutDoUpdate"/>
 
   <!--Process ShoutDoCreate command-->
   <si:service-activator ref="auctionService" method="processShoutCreate"
