@@ -51,20 +51,25 @@
 
   <!--Process ShoutDoCreate command-->
   <si:service-activator ref="auctionService" method="processShoutCreate"
-                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingShoutDoCreateResultList"/>
-  <!--TODO:Change output-channel to generic channel to which all Do*Cmd result lists are directed-->
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
 
-  <si:channel id="BrIncomingShoutDoCreateResultList"/>
+  <!--Process ShoutDoDelete command-->
+  <si:service-activator ref="auctionService" method="processShoutDelete"
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
+
+  <!--Process ShoutDoUpdate command-->
+  <si:service-activator ref="auctionService" method="processShoutUpdate"
+                        input-channel="BrIncomingShoutDoCreate" output-channel="BrIncomingCommandResultList"/>
+
+  <si:channel id="BrIncomingCommandResultList"/>
 
   <!--Split result list-->
-  <!--TODO:more generic naming-->
-  <si:splitter input-channel="BrIncomingShoutDoCreateResultList" output-channel="BrIncomingShoutDoCreateResultSingle"/>
+  <si:splitter input-channel="BrIncomingCommandResultList" output-channel="BrIncomingCommandResultSingle"/>
 
-  <si:channel id="BrIncomingShoutDoCreateResultSingle"/>
+  <si:channel id="BrIncomingCommandResultSingle"/>
 
   <!--Route single result by domain class type. Possible types defined in Auctioneer interface-->
-  <!-- TODO: Make this a general router for all Do*Cmd objects! -->
-  <si:payload-type-router input-channel="BrIncomingShoutDoCreateResultSingle">
+  <si:payload-type-router input-channel="BrIncomingCommandResultSingle">
     <si:mapping type="org.powertac.common.command.CashDoUpdateCmd" channel="ProcessCashDoUpdateCmd"/>
     <si:mapping type="org.powertac.common.command.PositionDoUpdateCmd" channel="ProcessPositionDoUpdateCmd"/>
     <si:mapping type="org.powertac.common.Orderbook" channel="BrOutgoingAll"/>
@@ -80,11 +85,11 @@
   <si:service-activator ref="accountingService" method="processCashUpdate"
                         input-channel="ProcessCashDoUpdateCmd" output-channel="BrOutgoingSingle"/>
 
-  <!--Process ShoutDoDelete command-->
+  <!--Process PositionDoUpdateCmd objects. Additional processing required for the same reason as above-->
+  <si:channel id="ProcessPositionDoUpdateCmd"/>
 
-
-  <!--Process ShoutDoUpdate command-->
-
+  <si:service-activator ref="accountingService" method="processPositionUpdate"
+                         input-channel="ProcessPositionDoUpdateCmd" output-channel="BrOutgoingSingle"/>
 
   <!--NOTE: The following is supposed to be global behavior and should probably be sourced out to another xml-->
   <!-- ==================== -->
