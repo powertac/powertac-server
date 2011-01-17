@@ -20,12 +20,17 @@
   <si:channel id="BrIncomingXml"/>
 
   <!--Define (un)marshalling rules-->
-  <bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+  <bean id="xmlUnMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+    <property name="converters">
+      <list>
+        <bean class="org.powertac.server.converter.ShoutDoCreateCmdConverter"/>
+      </list>
+    </property>
     <property name="aliases">
       <props>
-        <prop key="ShoutDoCreate">org.powertac.common.command.ShoutDoCreateCmd</prop>
-        <prop key="ShoutDoDelete">org.powertac.common.command.ShoutDoDeleteCmd</prop>
-        <prop key="ShoutDoUpdate">org.powertac.common.command.ShoutDoUpdateCmd</prop>
+        <prop key="shoutDoCreate">org.powertac.common.command.ShoutDoCreateCmd</prop>
+        <prop key="shoutDoDelete">org.powertac.common.command.ShoutDoDeleteCmd</prop>
+        <prop key="shoutDoUpdate">org.powertac.common.command.ShoutDoUpdateCmd</prop>
       </props>
     </property>
     <property name="mode" value="1001"/>
@@ -33,7 +38,7 @@
   </bean>
 
   <!--Map XML to domain class-->
-  <si-xml:unmarshalling-transformer unmarshaller="xstreamMarshaller" input-channel="BrIncomingXml"
+  <si-xml:unmarshalling-transformer unmarshaller="xmlUnMarshaller" input-channel="BrIncomingXml"
                                     output-channel="BrIncoming"/>
 
   <si:publish-subscribe-channel id="BrIncoming"/>
@@ -106,7 +111,7 @@
 
   <si:channel id="incomingShoutCmd"/>
 
-  <si-xml:marshalling-transformer marshaller="xstreamMarshaller" input-channel="incomingShoutCmd"
+  <si-xml:marshalling-transformer marshaller="xmlUnMarshaller" input-channel="incomingShoutCmd"
                                   output-channel="shout"/>
   <si:service-activator method="handleShout" input-channel="shout" ref="timeslotManagementService"/>
 </beans>
