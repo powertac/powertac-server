@@ -2,6 +2,12 @@ grails.project.class.dir = "target/classes"
 grails.project.test.class.dir = "target/test-classes"
 grails.project.test.reports.dir = "target/test-reports"
 //grails.project.war.file = "target/${appName}-${appVersion}.war"
+
+// development plugin locations
+grails.plugin.location.PowertacCommon = "../powertac-common"
+grails.plugin.location.PowertacServerInterface = "../powertac-server-interface"
+grails.plugin.location.PowertacAccountingService = "../powertac-accounting-service"
+
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
   inherits("global") {
@@ -30,7 +36,9 @@ grails.project.dependency.resolution = {
   }
 
   plugins {
-    compile "org.powertac.plugins:powertac-common:0.1"
+    //compile "org.powertac.plugins:powertac-common:0.9 > *"
+    //compile "powertac-common"
+    
   }
 
   dependencies {

@@ -1,14 +1,14 @@
 package org.powertac.server
 
 import grails.converters.XML
-import org.powertac.common.Customer
+import org.powertac.common.CustomerInfo
 
 class CustomerController {
 
-  def scaffold = Customer
+  def scaffold = CustomerInfo
 
   def get = {
-    def customerInstance = Customer.get(params.id)
+    def customerInstance = CustomerInfo.get(params.id)
     render(contentType: "text/xml", encoding: "UTF-8", text: customerInstance as XML)
   }
 }
