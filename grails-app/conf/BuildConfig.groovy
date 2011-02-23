@@ -44,6 +44,7 @@ grails.project.dependency.resolution = {
   dependencies {
     // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
     // runtime 'mysql:mysql-connector-java:5.1.13'
+	runtime 'com.thoughtworks.xstream:xstream:1.3.1'
     compile('org.apache.activemq:activemq-core:5.4.1') {
       excludes 'commons-collections',  'commons-logging', 'junit', 'log4j', 'spring-context', 'spring-parent', 'spring-aop', 'spring-asm', 'spring-beans', 'spring-expression'
     }
