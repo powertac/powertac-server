@@ -1,7 +1,7 @@
 package org.powertac.server
 
 import grails.converters.XML
-import org.powertac.common.command.ShoutDoCreateCmd
+import org.powertac.common.msg.ShoutDoCreateCmd
 import org.powertac.common.enumerations.BuySellIndicator
 import org.powertac.common.enumerations.OrderType
 import org.powertac.common.*
