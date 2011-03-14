@@ -1,7 +1,5 @@
 package org.powertac.server;
 
-import org.powertac.common.msg.ShoutDoCreateCmd;
-
 /**
  * TODO: Add Description
  *

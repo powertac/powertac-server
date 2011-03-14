@@ -24,7 +24,7 @@ import org.apache.commons.lang.RandomStringUtils
 import org.powertac.common.Competition
 import org.powertac.common.Orderbook
 import org.powertac.common.Product
-import org.powertac.common.TransactionLog
+import org.powertac.common.MarketTransaction
 import org.powertac.common.enumerations.CompetitionStatus
 
 class CompetitionTagLib {
@@ -47,7 +47,7 @@ class CompetitionTagLib {
       def model = [:]
       model.competition = competition
       model.productList = Product.findAllByEnabledAndCompetition(true, competition)
-      model.transactionLogList = TransactionLog.findAllByCompetition(competition, [sort: 'dateCreated', order: 'desc', max: 5])
+      model.transactionLogList = MarketTransaction.findAllByCompetition(competition, [sort: 'dateCreated', order: 'desc', max: 5])
       out << render(template: "currentCompetition", model: model)
     }
   }

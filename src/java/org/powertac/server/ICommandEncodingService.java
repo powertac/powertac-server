@@ -1,6 +1,6 @@
 package org.powertac.server;
 
-import org.powertac.common.msg.ShoutDoCreateCmd;
+import org.powertac.common.msg.TariffExpire;
 
 /**
  * TODO: Add Description
@@ -9,5 +9,5 @@ import org.powertac.common.msg.ShoutDoCreateCmd;
  * @version 1.0, Date: 06.01.11
  */
 public interface ICommandEncodingService {
-  public String encodeShoutDoCreateCommand(ShoutDoCreateCmd cmd);
+  public String encodeTariffExpire(TariffExpire cmd);
 }
