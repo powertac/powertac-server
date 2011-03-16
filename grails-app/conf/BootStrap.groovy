@@ -9,10 +9,10 @@ class BootStrap {
   def init = { servletContext ->
     environments {
       development {
-        def competition = new Competition(name: 'testCompetition', enabled: true, current: true).save()
-        new Broker(competition: competition, userName: 'testUser', apiKey: 'testApiKey-which-needs-to-be-longer-than-32-characters').save()
-        new Product(competition: competition, productType: ProductType.Future).save()
-        new Timeslot(competition: competition, serialNumber: 0).save()
+        def competition = new Competition(name: 'testCompetition').save()
+        new Broker(userName: 'testUser', apiKey: 'testApiKey-which-needs-to-be-longer-than-32-characters').save()
+        //new Product(productType: ProductType.Future).save()
+        new Timeslot(serialNumber: 0).save()
       }
     }
   }

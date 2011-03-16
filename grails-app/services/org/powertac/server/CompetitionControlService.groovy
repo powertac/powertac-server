@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,19 @@ import org.joda.time.Instant
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 
 /**
- * This is the competition controller.
+ * This is the competition controller. It has three major roles in the
+ * server:
+ * <ol>
+ * <li>At server startup, it sets up the environment and manages the
+ * broker login process, most of which is delegated to the BrokerProxy.</li>
+ * <li>Once the simulation starts, it is awakened every 
+ * <code>timeslotLength</code> seconds and runs through
+ * <code>timeslotPhaseCount</code> phases, calling the <code>activate()</code>
+ * methods on registered components. Phases start at 1; by default there
+ * are 3 phases.</li>
+ * <li>When the number of timeslots equals <code>timeslotCount</code>, the
+ * simulation is ended and the database is dumped.</li>
+ * </ol>
  * @author jcollins
  */
 class CompetitionControlService {
@@ -28,11 +40,24 @@ class CompetitionControlService {
   
   int timeslotPhaseCount = 3 // # of phases/timeslot
   int timeslotLength = 5 // seconds
+  int timeslotCount = 60 // default length of game
   boolean running = false
   
   def timeService // inject simulation time service dependency
   
   def phaseRegistrations
+  int timeslotCounter = 0
+  
+  /**
+   * Runs the initialization process and starts the simulation.
+   */
+  void init ()
+  {
+    // TODO - other initialization code goes here
+    
+    timeslotCounter = timeslotCount
+    start()
+  }
 
   /**
    * Sign up for notifications
@@ -40,10 +65,15 @@ class CompetitionControlService {
   void registerTimeslotPhase(TimeslotPhaseProcessor thing, 
                              int phase)
   {
-    if (phaseRegistrations == null) {
-      phaseRegistrations = new List[timeslotPhaseCount]
+    if (phase <= 0 || phase > timeslotPhaseCount) {
+      log.error "phase ${phase} out of range (1..${timeslotPhaseCount})"
     }
-    phaseRegistrations[phase].add(thing)
+    else {
+      if (phaseRegistrations == null) {
+        phaseRegistrations = new List[timeslotPhaseCount]
+      }
+      phaseRegistrations[phase - 1].add(thing)
+    }
   }
   
   /**
@@ -52,8 +82,18 @@ class CompetitionControlService {
   void start ()
   {
     running = true
+    scheduleStep()
   }
-  
+
+  /**
+   * Schedules a step of the simulation
+   */
+  void scheduleStep ()
+  {
+    timeService.addAction(new Instant(time.millis + TimeService.HOUR),
+      { this.step() })
+  }
+    
   /**
    * Runs a step of the simulation
    */
@@ -65,10 +105,16 @@ class CompetitionControlService {
     }
     def time = timeService.currentTime
     phaseRegistrations.eachWithIndex { fnList, index ->
-      fnList*.activate(time, index)
+      fnList*.activate(time, index + 1)
     }
-    timeService.addAction(new Instant(time.millis + TimeService.HOUR),
-        { this.step() })
+    if (--timeslotCounter <= 0) {
+      log.info "Stopping simulation after ${timeslotCount} steps"
+      running = false
+    }
+    else {
+      log.info "Schedule step"
+      scheduleStep()
+    }
   }
   
   /**
