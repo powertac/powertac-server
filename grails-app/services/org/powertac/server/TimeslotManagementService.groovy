@@ -1,7 +1,10 @@
 package org.powertac.server
 
-import org.powertac.common.Competition
+//import org.powertac.common.Competition
 
+/**
+ * Does anyone know what this is for?
+ */
 class TimeslotManagementService {
 
   static transactional = true
