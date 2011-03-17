@@ -1,7 +1,5 @@
 package org.powertac.server
 
-//import org.springframework.integration.Message
-
 class BrokerManagementService {
 
   static transactional = true

@@ -52,17 +52,6 @@ grails.project.dependency.resolution = {
     compile('org.apache.activemq:activemq-pool:5.4.1') {
       excludes 'commons-collections', 'commons-pool', 'commons-logging',  'junit',  'log4j',  'spring-context',  'spring-parent',  'spring-aop',  'spring-asm',  'spring-beans',  'spring-expression'
     }
-
-    compile ('org.springframework.integration:spring-integration-core:2.0.0.RELEASE') {
-      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
-    }
-    compile ('org.springframework.integration:spring-integration-jms:2.0.0.RELEASE') {
-      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
-    }
-
-    compile ('org.springframework.integration:spring-integration-xml:2.0.0.RELEASE') {
-      excludes 'log4j', 'spring-aop', 'spring-beans', 'spring-context', 'spring-context-support', 'spring-core', 'spring-tx'
-    }
   }
 }
 
