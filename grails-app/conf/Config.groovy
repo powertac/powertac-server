@@ -1,3 +1,5 @@
+import grails.plugins.springsecurity.SecurityConfigType
+
 // locations to search for config files that get merged into the main config
 // config files can either be Java properties files or ConfigSlurper scripts
 
@@ -137,3 +139,14 @@ powertac {
 }
 // Added by the powertac-common plugin:
 grails.validateable.packages = ['org.powertac.common.command']
+
+// Added by the Spring Security Core plugin
+grails.plugins.springsecurity.userLookup.userDomainClassName = 'org.powertac.common.Broker'
+grails.plugins.springsecurity.userLookup.authorityJoinClassName = 'org.powertac.common.BrokerRole'
+grails.plugins.springsecurity.authority.className = 'org.powertac.common.Role'
+
+// Permission mapping
+//grails.plugins.springsecurity.securityConfigType = SecurityConfigType.InterceptUrlMap
+//grails.plugins.springsecurity.interceptUrlMap = [
+//    '/*': ["hasRole('ROLE_ADMIN')"]
+//]
