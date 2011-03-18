@@ -16,37 +16,5 @@
   - governing permissions and limitations under the License.
   --}%
 
-<html>
-<head>
-  <title>Welcome</title>
-  <meta name="layout" content="main"/>
-</head>
-<body>
-
-<h1>Dashboard</h1>
-
-<div class="clear"></div>
-
-<div id="content-box">
-
-  <div class="section section-last">
-    <div class="section-header">
-      Installed PowerTAC Plugins
-    </div>
-    <ul>
-      <g:set var="pluginManager"
-          value="${applicationContext.getBean('pluginManager')}"></g:set>
-
-      <g:each var="plugin" in="${pluginManager.userPlugins}">
-        <g:if test="${plugin.name.contains('powertac')}">
-          <li>${plugin.name} - ${plugin.version}</li>
-        </g:if>
-      </g:each>
-
-    </ul>
-
-  </div>
-</div>
-
-</body>
-</html>
+// TODO: Verify that web-app is installed, otherwise render something different
+<g:render template="index" plugin="powertac-web-app"/>
