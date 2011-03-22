@@ -24,10 +24,9 @@ class BootStrap {
       BrokerRole.create adminUser, adminRole
     }
 
-//    def competition = new Competition(name: 'testCompetition').save()
-//    new Broker(userName: 'testUser', apiKey: 'testApiKey-which-needs-to-be-longer-than-32-characters').save()
-//    //new Product(productType: ProductType.Future).save()
-//    new Timeslot(serialNumber: 0).save()
+    // Create default competition
+    def competition = new Competition(name: "defaultCompetition", current: true).save()
+    competition.addToBrokers(adminUser);
 
   }
   def destroy = {
