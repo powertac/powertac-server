@@ -29,18 +29,20 @@ import org.powertac.common.interfaces.BrokerProxy
 class BrokerProxyService implements BrokerProxy {
 
   static transactional = true
+  static expose = ['jms']
+
+  def jmsService
 
   /**
    * Send a message to a specific broker
    */
   void sendMessage(Broker broker, Object messageObject) {
     def queueName = broker.toQueueName()
-    def xmlString = messageObject as XML
-    // TODO: "as XML" syntax soo simple here
+    def xml = messageObject as XML
     try {
-      sendQueueJMSMessage(queueName, xmlString)
+      jmsService.send(queueName, xml.toString())
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xmlString)")
+      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
   }
 
@@ -59,12 +61,11 @@ class BrokerProxyService implements BrokerProxy {
   void broadcastMessage(Object messageObject) {
     def brokerQueueNames = Competition.currentCompetition()?.brokers?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
-    def xmlString = messageObject as XML
-    // TODO: "as XML" syntax soo simple here
+    def xml = messageObject as XML
     try {
-      sendQueueJMSMessage(queueName, xmlString)
+      jmsService.send(queueName, xml.toString())
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xmlString)")
+      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
   }
 
@@ -82,7 +83,8 @@ class BrokerProxyService implements BrokerProxy {
    */
   @Queue(name = "server.inputQueue")
   def receiveMessage(String xmlMessage) {
-    def xml = new XmlSlurper().parseText(xmlMessage)
+   //  def xml = new XmlSlurper().parseText(xmlMessage)
     log.debug "received ${xmlMessage}"
+    jmsService.send("brokers.defaultBroker.outputQueue", "testmyass")
   }
 }
