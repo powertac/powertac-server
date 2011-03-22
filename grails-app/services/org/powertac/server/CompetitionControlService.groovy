@@ -17,6 +17,7 @@ package org.powertac.server
 
 import org.joda.time.Instant
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.Competition
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -44,7 +45,8 @@ class CompetitionControlService {
   boolean running = false
   
   def timeService // inject simulation time service dependency
-  
+  def jmsManagementService
+
   def phaseRegistrations
   int timeslotCounter = 0
   
@@ -54,6 +56,8 @@ class CompetitionControlService {
   void init ()
   {
     // TODO - other initialization code goes here
+
+    jmsManagementService.createQueues(Competition.currentCompetition())
     
     timeslotCounter = timeslotCount
     start()
