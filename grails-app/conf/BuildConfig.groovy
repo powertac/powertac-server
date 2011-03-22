@@ -39,19 +39,19 @@ grails.project.dependency.resolution = {
   plugins {
     //compile "org.powertac.plugins:powertac-common:0.9 > *"
     //compile "powertac-common"
-    
+
   }
 
   dependencies {
     // specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
     // runtime 'mysql:mysql-connector-java:5.1.13'
-	runtime 'com.thoughtworks.xstream:xstream:1.3.1'
-    compile('org.apache.activemq:activemq-core:5.4.1') {
-      excludes 'commons-collections',  'commons-logging', 'junit', 'log4j', 'spring-context', 'spring-parent', 'spring-aop', 'spring-asm', 'spring-beans', 'spring-expression'
+    runtime 'com.thoughtworks.xstream:xstream:1.3.1'
+    compile('org.apache.activemq:activemq-core:5.4.2') {
+      excludes 'commons-collections', 'commons-logging', 'junit', 'log4j', 'spring-context', 'spring-parent', 'spring-aop', 'spring-asm', 'spring-beans', 'spring-expression', 'xalan', 'xml-apis'
     }
 
-    compile('org.apache.activemq:activemq-pool:5.4.1') {
-      excludes 'commons-collections', 'commons-pool', 'commons-logging',  'junit',  'log4j',  'spring-context',  'spring-parent',  'spring-aop',  'spring-asm',  'spring-beans',  'spring-expression'
+    compile('org.apache.activemq:activemq-pool:5.4.2') {
+      excludes 'commons-collections', 'commons-pool', 'commons-logging', 'junit', 'log4j', 'spring-context', 'spring-parent', 'spring-aop', 'spring-asm', 'spring-beans', 'spring-expression', 'xalan', 'xml-apis'
     }
   }
 }
