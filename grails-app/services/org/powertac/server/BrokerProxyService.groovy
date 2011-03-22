@@ -44,6 +44,15 @@ class BrokerProxyService implements BrokerProxy {
     }
   }
 
+    /**
+   * Send a list of messages to a specific broker
+   */
+  void sendMessages(Broker broker, List<?> messageObjects) {
+    messageObjects?.each { message ->
+      sendMessage(broker, message)
+    }
+  }
+
   /**
    * Send a message to all brokers
    */
@@ -56,6 +65,15 @@ class BrokerProxyService implements BrokerProxy {
       sendQueueJMSMessage(queueName, xmlString)
     } catch (Exception e) {
       throw new JMSException("Failed to send message to queue '$queueName' ($xmlString)")
+    }
+  }
+
+  /**
+   * Sends a list of messages to all brokers
+   */
+  void broadcastMessages(List<?> messageObjects) {
+     messageObjects?.each { message ->
+      broadcastMessage(message)
     }
   }
 
