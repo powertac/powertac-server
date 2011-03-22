@@ -17,6 +17,7 @@ class BootStrap {
     def adminUser = Broker.findByUsername('defaultBroker') ?: new Broker(
         username: 'defaultBroker',
         password: springSecurityService.encodePassword('password'),
+        apiKey: '5d064dd7-1ec9-4a98-bece-2ca09b03e364',
         enabled: true).save(failOnError: true)
 
     // Add default broker to admin role
