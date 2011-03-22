@@ -80,12 +80,12 @@ class JmsManagementService {
   /**
    * Creates queues for every broker in the competition as well as global queues
    */
-  def createQueues(Competition competition) throws JMSException {
+  def createQueues() throws JMSException {
     try {
       BrokerViewMBean mbean = getMBean()
       mbean.addQueue('server.inputQueue')
 
-      def brokers = competition?.brokers
+      def brokers = Competition.currentCompetition()?.brokers
       brokers.each { broker ->
         mbean.addQueue(broker?.toQueueName())
       }

@@ -17,7 +17,6 @@ package org.powertac.server
 
 import org.joda.time.Instant
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.Competition
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -57,7 +56,7 @@ class CompetitionControlService {
   {
     // TODO - other initialization code goes here
 
-    jmsManagementService.createQueues(Competition.currentCompetition())
+    jmsManagementService.createQueues()
     
     timeslotCounter = timeslotCount
     start()
