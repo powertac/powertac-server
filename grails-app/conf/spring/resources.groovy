@@ -12,8 +12,9 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
-        tmpDataDirectory="/tmp"
-        transportConnectors = [new TransportConnector(uri: new URI(ConfigurationHolder.config.powertac.broker.url))]
+        tmpDataDirectory = "/tmp"
+        transportConnectors = [
+            new TransportConnector(name: 'tcp', uri: new URI(ConfigurationHolder.config.powertac.broker.url))]
       }
       jmsFactory(org.apache.activemq.ActiveMQConnectionFactory) {
         brokerURL = ConfigurationHolder.config.powertac.broker.url
@@ -23,7 +24,7 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
-        tmpDataDirectory="/tmp"
+        tmpDataDirectory = "/tmp"
         transportConnectors = [
             new TransportConnector(name: 'tcp', uri: new URI(ConfigurationHolder.config.powertac.broker.url))
         ]
@@ -36,7 +37,7 @@ beans = {
       jmsBroker(XBeanBrokerService) {
         useJmx = 'true'
         persistent = 'false'
-        tmpDataDirectory="/tmp"
+        tmpDataDirectory = "/tmp"
         transportConnectors = [
             new TransportConnector(name: 'tcp', uri: new URI(ConfigurationHolder.config.powertac.broker.url))
         ]
@@ -54,6 +55,4 @@ beans = {
   defaultJmsTemplate(org.springframework.jms.core.JmsTemplate) {
     connectionFactory = ref("jmsConnectionFactory")
   }
-
-  // ---  Spring Integration Configuration ---
 }
