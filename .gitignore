@@ -7,6 +7,7 @@
 # Deployment directories
 target/
 activemq-data/
+logs/
 
 # OS generated files
 .DS_Store?

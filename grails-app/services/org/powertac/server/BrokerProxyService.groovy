@@ -37,6 +37,10 @@ class BrokerProxyService implements BrokerProxy {
    * Send a message to a specific broker
    */
   void sendMessage(Broker broker, Object messageObject) {
+    if (broker.local) {
+      // no messages needed
+      return
+    }
     def queueName = broker.toQueueName()
     def xml = messageObject as XML
     try {
