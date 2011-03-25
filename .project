@@ -24,69 +24,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>code-coverage-1.2-grails-app-i18n</name>
+			<name>.link_to_grails_plugins</name>
 			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/code-coverage-1.2/grails-app/i18n</locationURI>
-		</link>
-		<link>
-			<name>flot-0.2.2-grails-app-taglib</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/flot-0.2.2/grails-app/taglib</locationURI>
-		</link>
-		<link>
-			<name>help-balloons-1.4-grails-app-taglib</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/help-balloons-1.4/grails-app/taglib</locationURI>
-		</link>
-		<link>
-			<name>joda-time-1.1-grails-app-taglib</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/joda-time-1.1/grails-app/taglib</locationURI>
-		</link>
-		<link>
-			<name>joda-time-1.1-src-groovy</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/joda-time-1.1/src/groovy</locationURI>
-		</link>
-		<link>
-			<name>joda-time-1.1-src-java</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/joda-time-1.1/src/java</locationURI>
-		</link>
-		<link>
-			<name>jquery-1.4.4-grails-app-conf</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/jquery-1.4.4/grails-app/conf</locationURI>
-		</link>
-		<link>
-			<name>jquery-1.4.4-grails-app-i18n</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/jquery-1.4.4/grails-app/i18n</locationURI>
-		</link>
-		<link>
-			<name>jquery-1.4.4-grails-app-services</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/jquery-1.4.4/grails-app/services</locationURI>
-		</link>
-		<link>
-			<name>jquery-1.4.4-grails-app-taglib</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/jquery-1.4.4/grails-app/taglib</locationURI>
-		</link>
-		<link>
-			<name>jquery-1.4.4-src-groovy</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/jquery-1.4.4/src/groovy</locationURI>
-		</link>
-		<link>
-			<name>powertac-random-0.1-grails-app-domain</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/powertac-random-0.1/grails-app/domain</locationURI>
-		</link>
-		<link>
-			<name>powertac-random-0.1-grails-app-services</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/powertac-random-0.1/grails-app/services</locationURI>
+			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins</locationURI>
 		</link>
 		<link>
 			<name>powertac-style-0.1.1-grails-app-controllers</name>
@@ -97,56 +37,6 @@
 			<name>powertac-style-0.1.1-grails-app-views</name>
 			<type>2</type>
 			<locationURI>GRAILS_ROOT/1.3.6/projects/powertac-server/plugins/powertac-style-0.1.1/grails-app/views</locationURI>
-		</link>
-		<link>
-			<name>powertac-style-0.1.2-grails-app-controllers</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/powertac-style-0.1.2/grails-app/controllers</locationURI>
-		</link>
-		<link>
-			<name>powertac-style-0.1.2-grails-app-views</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/powertac-style-0.1.2/grails-app/views</locationURI>
-		</link>
-		<link>
-			<name>quartz-0.4.2-grails-app-conf</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/quartz-0.4.2/grails-app/conf</locationURI>
-		</link>
-		<link>
-			<name>quartz-0.4.2-grails-app-i18n</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/quartz-0.4.2/grails-app/i18n</locationURI>
-		</link>
-		<link>
-			<name>quartz-0.4.2-grails-app-services</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/quartz-0.4.2/grails-app/services</locationURI>
-		</link>
-		<link>
-			<name>quartz-0.4.2-src-groovy</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/quartz-0.4.2/src/groovy</locationURI>
-		</link>
-		<link>
-			<name>quartz-0.4.2-src-java</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/quartz-0.4.2/src/java</locationURI>
-		</link>
-		<link>
-			<name>runtime-logging-0.2-grails-app-controllers</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/runtime-logging-0.2/grails-app/controllers</locationURI>
-		</link>
-		<link>
-			<name>runtime-logging-0.2-grails-app-views</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/runtime-logging-0.2/grails-app/views</locationURI>
-		</link>
-		<link>
-			<name>tomcat-1.3.7-src-groovy</name>
-			<type>2</type>
-			<locationURI>GRAILS_ROOT/1.3.7/projects/powertac-server/plugins/tomcat-1.3.7/src/groovy</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
