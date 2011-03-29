@@ -26,7 +26,7 @@ class BootStrap {
     }
 
     // Create default competition
-    def competition = new Competition(name: "defaultCompetition", current: true).save()
+    def competition = new Competition(name: "defaultCompetition").save()
     competition.addToBrokers(adminUser);
 
   }

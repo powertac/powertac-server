@@ -71,8 +71,8 @@ def logDirectory = "${catalinaBase}/logs"
 // default for all environments
 log4j = { root ->
   appenders {
-    rollingFile name: 'stdout', file: "${logDirectory}/${appName}.log".toString(), maxFileSize: '100KB'
-    rollingFile name: 'stacktrace', file: "${logDirectory}/${appName}_stack.log".toString(), maxFileSize: '100KB'
+    //rollingFile name: 'stdout', file: "${logDirectory}/${appName}.log".toString(), maxFileSize: '100KB'
+    //rollingFile name: 'stacktrace', file: "${logDirectory}/${appName}_stack.log".toString(), maxFileSize: '100KB'
     //console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
   }
 
@@ -88,7 +88,14 @@ log4j = { root ->
       'org.hibernate',
       'org.activemq',
       'grails.app'
-  root.level = org.apache.log4j.Level.ERROR
+      
+  info 'org.powertac.common',
+       'org.powertac.server',
+       'org.powertac.accountingservice',
+       'org.powertac.tariffmarket',
+       'org.powertac.genco'
+      
+  root.level = org.apache.log4j.Level.INFO
 }
 
 // special settings with development env
@@ -111,6 +118,12 @@ environments {
           'org.activemq',
           'grails.app'
 
+     info 'org.powertac.common',
+          'org.powertac.server',
+          'org.powertac.accountingservice',
+          'org.powertac.tariffmarket',
+          'org.powertac.genco'
+   
       root.level = org.apache.log4j.Level.INFO
     }
   }
