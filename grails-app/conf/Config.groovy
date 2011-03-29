@@ -122,7 +122,7 @@ environments {
            'org.activemq',
            'grails.app'
 
-      info 'org.powertac.server'
+      info 'grails.app.service.org.powertac.server', 'grails.app.controller.org.powertac.server'
     }
   }
 }
