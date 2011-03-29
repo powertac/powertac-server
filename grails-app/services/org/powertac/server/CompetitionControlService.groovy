@@ -66,7 +66,7 @@ class CompetitionControlService {
     if (setup() == false)
       return
     // TODO - other initialization code goes here
-    start(competition.timeslotLength * TimeService.MINUTE / competition.simulationRate)
+    start((long)(competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
   }
 
   /**
@@ -90,12 +90,18 @@ class CompetitionControlService {
    */
   void start (long scheduleMillis)
   {
-    // TODO - wait for start time
-    running = true
-    // Start up the clock
-    timeService.updateTime()
     quartzScheduler.start()
+    // wait for start time
+    long now = new Date().getTime()
+    long start = now + scheduleMillis * 2 - now % scheduleMillis
+    competition.simulationStartTime = new Instant(start)
+    // TODO - communicate start time to brokers
+    timeService.start = start
+    // Start up the clock at the correct time
+    Thread.sleep(start - new Date().getTime())
     ClockDriveJob.schedule(scheduleMillis)
+    timeService.updateTime()
+    running = true
     scheduleStep()
   }
 
@@ -169,7 +175,6 @@ class CompetitionControlService {
     // set simulation time parameters, making sure that simulationStartTime
     // is still sufficiently in the future.
     timeService.base = competition.simulationBaseTime.millis
-    timeService.start = competition.simulationStartTime.millis
     long rate = competition.simulationRate
     long rem = rate % competition.timeslotLength
     if (rem > 0) {
@@ -222,7 +227,7 @@ class CompetitionControlService {
     Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
     if (newTs == null) {
       long start = current.startInstant.millis + (newSerial - current.serialNumber) * timeslotMillis
-      newTs = new Timeslot(serialNumber: lastTimeslotSerial,
+      newTs = new Timeslot(serialNumber: newSerial,
                            enabled: true,
                            startInstant: new Instant(start),
                            endInstant: new Instant(start + timeslotMillis))

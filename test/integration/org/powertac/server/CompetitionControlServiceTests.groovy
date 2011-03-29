@@ -48,9 +48,8 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
     super.setUp()
     Competition.list()*.delete()
     base = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
-    start = new DateTime(2011, 4, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
     competition =
-      new Competition(name: 'test', simulationStartTime: start, simulationBaseTime: base)
+      new Competition(name: 'test', simulationBaseTime: base)
     assert competition.save()
     timeService.currentTime = base
 

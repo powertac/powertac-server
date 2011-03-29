@@ -101,30 +101,28 @@ log4j = { root ->
 // special settings with development env
 environments {
   development {
-    log4j = { root ->
+    log4j = {
       appenders {
         console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
       }
+      root {
+        info()
+        additivity = true
+      }
       warn 'org.codehaus.groovy.grails.web.servlet',  //  controllers
-          'org.codehaus.groovy.grails.web.pages', //  GSP
-          'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-          'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-          'org.codehaus.groovy.grails.web.mapping', // URL mapping
-          'org.codehaus.groovy.grails.commons', // core / classloading
-          'org.codehaus.groovy.grails.plugins', // plugins
-          'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
-          'org.springframework',
-          'org.hibernate',
-          'org.activemq',
-          'grails.app'
+           'org.codehaus.groovy.grails.web.pages', //  GSP
+           'org.codehaus.groovy.grails.web.sitemesh', //  layouts
+           'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+           'org.codehaus.groovy.grails.web.mapping', // URL mapping
+           'org.codehaus.groovy.grails.commons', // core / classloading
+           'org.codehaus.groovy.grails.plugins', // plugins
+           'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
+           'org.springframework',
+           'org.hibernate',
+           'org.activemq',
+           'grails.app'
 
-     info 'org.powertac.common',
-          'org.powertac.server',
-          'org.powertac.accountingservice',
-          'org.powertac.tariffmarket',
-          'org.powertac.genco'
-   
-      root.level = org.apache.log4j.Level.INFO
+      info 'org.powertac.server'
     }
   }
 }
