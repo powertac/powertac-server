@@ -53,7 +53,7 @@ class CompetitionControlService {
   def jmsManagementService
 
   def phaseRegistrations
-  int timeslotCounter = 0
+  int timeslotCount = 0
   long timeslotMillis
   
   /**
@@ -128,14 +128,13 @@ class CompetitionControlService {
     phaseRegistrations.eachWithIndex { fnList, index ->
       fnList*.activate(time, index + 1)
     }
-    if (--timeslotCounter <= 0) {
+    if (--timeslotCount <= 0) {
       log.info "Stopping simulation after ${timeslotCount} steps"
       // TODO - variable length game (optional?)
       running = false
     }
     else {
       activateNextTimeslot()
-      log.info "Schedule step"
       scheduleStep()
     }
   }
@@ -165,7 +164,7 @@ class CompetitionControlService {
     
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
-    timeslotCounter = competition.minimumTimeslotCount
+    timeslotCount = competition.minimumTimeslotCount
     timeService.currentTime = competition.simulationBaseTime
     createInitialTimeslots(competition.simulationBaseTime,
                            competition.deactivateTimeslotsAhead,
@@ -190,7 +189,7 @@ class CompetitionControlService {
   void createInitialTimeslots (Instant base, int initialSlots,
                                        int openSlots)
   {
-    long start = base.millis - timeslotMillis // first step happens before first clock update
+    long start = base.millis //- timeslotMillis // first step happens before first clock update
     for (i in 0..<initialSlots) {
       Timeslot ts = 
           new Timeslot(serialNumber: i, 
@@ -216,7 +215,7 @@ class CompetitionControlService {
       log.error "current timeslot is null at ${timeService.currentTime}!"
       return
     }
-    int oldSerial = current.serialNumber + competition.deactivateTimeslotsAhead
+    int oldSerial = current.serialNumber + competition.deactivateTimeslotsAhead -1
     Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
     oldTs.enabled = false
     oldTs.save()

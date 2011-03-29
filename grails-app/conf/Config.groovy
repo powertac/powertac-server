@@ -86,14 +86,9 @@ log4j = { root ->
       'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
       'org.springframework',
       'org.hibernate',
-      'org.activemq',
-      'grails.app'
+      'org.activemq'
       
-  info 'org.powertac.common',
-       'org.powertac.server',
-       'org.powertac.accountingservice',
-       'org.powertac.tariffmarket',
-       'org.powertac.genco'
+  info 'grails.app'
       
   root.level = org.apache.log4j.Level.INFO
 }
@@ -119,10 +114,9 @@ environments {
            'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
            'org.springframework',
            'org.hibernate',
-           'org.activemq',
-           'grails.app'
+           'org.activemq'
 
-      info 'grails.app.service.org.powertac.server', 'grails.app.controller.org.powertac.server'
+      info 'grails.app'
     }
   }
 }
