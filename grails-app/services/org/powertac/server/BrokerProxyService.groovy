@@ -21,6 +21,8 @@ import grails.converters.XML
 import javax.jms.JMSException
 import org.powertac.common.Competition
 import org.powertac.common.interfaces.BrokerProxy
+import org.powertac.common.interfaces.BrokerTariffListener
+import org.powertac.common.interfaces.BrokerMarketListener
 
 /**
  * BrokerProxyService is responsible for handling in- and outgoing communication with brokers
@@ -32,6 +34,9 @@ class BrokerProxyService implements BrokerProxy {
   static expose = ['jms']
 
   def jmsService
+
+  def tariffRegistrations = []
+  def marketRegistrations = []
 
   /**
    * Send a message to a specific broker
@@ -50,7 +55,7 @@ class BrokerProxyService implements BrokerProxy {
     }
   }
 
-    /**
+  /**
    * Send a list of messages to a specific broker
    */
   void sendMessages(Broker broker, List<?> messageObjects) {
@@ -77,7 +82,7 @@ class BrokerProxyService implements BrokerProxy {
    * Sends a list of messages to all brokers
    */
   void broadcastMessages(List<?> messageObjects) {
-     messageObjects?.each { message ->
+    messageObjects?.each { message ->
       broadcastMessage(message)
     }
   }
@@ -87,8 +92,22 @@ class BrokerProxyService implements BrokerProxy {
    */
   @Queue(name = "server.inputQueue")
   def receiveMessage(String xmlMessage) {
-   //  def xml = new XmlSlurper().parseText(xmlMessage)
+    //  def xml = new XmlSlurper().parseText(xmlMessage)
     log.debug "received ${xmlMessage}"
-    jmsService.send("brokers.defaultBroker.outputQueue", "testmyass")
+    jmsService.send("brokers.defaultBroker.outputQueue", "test")
+  }
+
+  /**
+   * Should be called if tariff-related incoming broker messages should be sent to listener
+   */
+  void registerBrokerTariffListener(BrokerTariffListener listener) {
+    tariffRegistrations.add(listener)
+  }
+
+  /**
+   * Should be called if market-related incoming broker messages should be sent to listener
+   */
+  void registerBrokerTariffListener(BrokerMarketListener listener) {
+    marketRegistrations.add(listener)
   }
 }

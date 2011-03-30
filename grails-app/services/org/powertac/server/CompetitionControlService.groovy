@@ -21,6 +21,7 @@ import org.powertac.common.Timeslot
 import org.powertac.common.TimeService
 import org.powertac.common.ClockDriveJob
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.Broker
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -101,6 +102,11 @@ class CompetitionControlService {
     Thread.sleep(start - new Date().getTime())
     ClockDriveJob.schedule(scheduleMillis)
     timeService.updateTime()
+    // Initialize brokers
+    Broker.findAllByEnabled(true)?.each { broker ->
+      broker.initCash()
+    }
+    // Set final paramaters
     running = true
     scheduleStep()
   }
