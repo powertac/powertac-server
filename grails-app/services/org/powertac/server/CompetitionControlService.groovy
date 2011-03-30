@@ -129,7 +129,7 @@ class CompetitionControlService {
       fnList*.activate(time, index + 1)
     }
     if (--timeslotCount <= 0) {
-      log.info "Stopping simulation after ${timeslotCount} steps"
+      log.info "Stopping simulation"
       // TODO - variable length game (optional?)
       running = false
     }
