@@ -181,5 +181,6 @@
 			<attribute name="com.springsource.sts.grails.core.SOURCE_FOLDER" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-genco"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>

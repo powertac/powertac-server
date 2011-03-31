@@ -82,6 +82,9 @@ class CompetitionControlService {
       if (phaseRegistrations == null) {
         phaseRegistrations = new List[timeslotPhaseCount]
       }
+      if (phaseRegistrations[phase - 1] == null) {
+        phaseRegistrations[phase - 1] = [] // do we really have to do this?
+      }
       phaseRegistrations[phase - 1].add(thing)
     }
   }
@@ -103,9 +106,9 @@ class CompetitionControlService {
     ClockDriveJob.schedule(scheduleMillis)
     timeService.updateTime()
     // Initialize brokers
-    Broker.findAllByEnabled(true)?.each { broker ->
-      broker.initCash()
-    }
+    //Broker.findAllByEnabled(true)?.each { broker ->
+    //  broker.initCash()
+    //}
     // Set final paramaters
     running = true
     scheduleStep()
