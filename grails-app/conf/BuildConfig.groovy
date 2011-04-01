@@ -8,6 +8,8 @@ grails.plugin.location.PowertacCommon = "../powertac-common"
 grails.plugin.location.PowertacServerInterface = "../powertac-server-interface"
 grails.plugin.location.PowertacAccountingService = "../powertac-accounting-service"
 grails.plugin.location.PowertacWebApp = "../powertac-web-app"
+grails.plugin.location.PowertacRandom = "../powertac-random"
+grails.plugin.location.PowertacGenco = "../powertac-genco"
 
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies

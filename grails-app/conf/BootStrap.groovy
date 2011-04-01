@@ -9,6 +9,7 @@ import org.powertac.common.BrokerRole
 class BootStrap {
 
   def springSecurityService
+  def simpleGencoService
 
   def init = { servletContext ->
     // Create admin role
@@ -24,9 +25,12 @@ class BootStrap {
     if (!adminUser.authorities.contains(adminRole)) {
       BrokerRole.create adminUser, adminRole
     }
+    
+    // Initialize the genco service
+    simpleGencoService.init()
 
     // Create default competition
-    def competition = new Competition(name: "defaultCompetition", current: true).save()
+    def competition = new Competition(name: "defaultCompetition").save()
     competition.addToBrokers(adminUser);
 
   }

@@ -71,8 +71,8 @@ def logDirectory = "${catalinaBase}/logs"
 // default for all environments
 log4j = { root ->
   appenders {
-    rollingFile name: 'stdout', file: "${logDirectory}/${appName}.log".toString(), maxFileSize: '100KB'
-    rollingFile name: 'stacktrace', file: "${logDirectory}/${appName}_stack.log".toString(), maxFileSize: '100KB'
+    //rollingFile name: 'stdout', file: "${logDirectory}/${appName}.log".toString(), maxFileSize: '100KB'
+    //rollingFile name: 'stacktrace', file: "${logDirectory}/${appName}_stack.log".toString(), maxFileSize: '100KB'
     //console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
   }
 
@@ -86,32 +86,37 @@ log4j = { root ->
       'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
       'org.springframework',
       'org.hibernate',
-      'org.activemq',
-      'grails.app'
-  root.level = org.apache.log4j.Level.ERROR
+      'org.activemq'
+      
+  info 'grails.app'
+      
+  root.level = org.apache.log4j.Level.INFO
 }
 
 // special settings with development env
 environments {
   development {
-    log4j = { root ->
+    log4j = {
       appenders {
         console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
       }
+      root {
+        info()
+        additivity = true
+      }
       warn 'org.codehaus.groovy.grails.web.servlet',  //  controllers
-          'org.codehaus.groovy.grails.web.pages', //  GSP
-          'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-          'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-          'org.codehaus.groovy.grails.web.mapping', // URL mapping
-          'org.codehaus.groovy.grails.commons', // core / classloading
-          'org.codehaus.groovy.grails.plugins', // plugins
-          'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
-          'org.springframework',
-          'org.hibernate',
-          'org.activemq',
-          'grails.app'
+           'org.codehaus.groovy.grails.web.pages', //  GSP
+           'org.codehaus.groovy.grails.web.sitemesh', //  layouts
+           'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+           'org.codehaus.groovy.grails.web.mapping', // URL mapping
+           'org.codehaus.groovy.grails.commons', // core / classloading
+           'org.codehaus.groovy.grails.plugins', // plugins
+           'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
+           'org.springframework',
+           'org.hibernate',
+           'org.activemq'
 
-      root.level = org.apache.log4j.Level.INFO
+      info 'grails.app'
     }
   }
 }
@@ -133,8 +138,7 @@ grails.gorm.default.mapping = {
 //PowerTAC specific settings
 powertac {
   jmx.broker.url = "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi"
-  connector.internal.url = "failover:tcp://127.0.0.1:61616"
-  connector.external.url = "failover:tcp://127.0.0.1:61616"
+  connector.url = "failover:(tcp://127.0.0.1:61616)"
   broker.url = 'tcp://localhost:61616'
 }
 // Added by the powertac-common plugin:
