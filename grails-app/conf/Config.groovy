@@ -138,8 +138,7 @@ grails.gorm.default.mapping = {
 //PowerTAC specific settings
 powertac {
   jmx.broker.url = "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi"
-  connector.internal.url = "failover:tcp://127.0.0.1:61616"
-  connector.external.url = "failover:tcp://127.0.0.1:61616"
+  connector.url = "failover:(tcp://127.0.0.1:61616)"
   broker.url = 'tcp://localhost:61616'
 }
 // Added by the powertac-common plugin:
