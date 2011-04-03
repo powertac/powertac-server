@@ -68,11 +68,16 @@ class BrokerProxyService implements BrokerProxy {
    * Send a message to all brokers
    */
   void broadcastMessage(Object messageObject) {
+    def xml = messageObject as XML
+    broadcastMessage(xml.toString())
+  }
+
+  void broadcastMessage(String text) {
     def brokerQueueNames = Competition.currentCompetition()?.brokers?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
-    def xml = messageObject as XML
+    log.info("Broadcast queue name is ${queueName}")
     try {
-      jmsService.send(queueName, xml.toString())
+      jmsService.send(queueName, text)
     } catch (Exception e) {
       throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
@@ -94,7 +99,7 @@ class BrokerProxyService implements BrokerProxy {
   def receiveMessage(String xmlMessage) {
     //  def xml = new XmlSlurper().parseText(xmlMessage)
     log.debug "received ${xmlMessage}"
-    jmsService.send("brokers.defaultBroker.outputQueue", "test")
+    broadcastMessage("test")
   }
 
   /**
@@ -107,7 +112,7 @@ class BrokerProxyService implements BrokerProxy {
   /**
    * Should be called if market-related incoming broker messages should be sent to listener
    */
-  void registerBrokerTariffListener(BrokerMarketListener listener) {
+  void registerBrokerMarketListener(BrokerMarketListener listener) {
     marketRegistrations.add(listener)
   }
 }
