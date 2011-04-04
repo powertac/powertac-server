@@ -16,12 +16,11 @@
 package org.powertac.server
 
 import org.joda.time.Instant
-import org.powertac.common.Competition
-import org.powertac.common.Timeslot
-import org.powertac.common.TimeService
-import org.powertac.common.ClockDriveJob
+import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.Broker
+import org.springframework.context.ApplicationContext
+import org.springframework.context.ApplicationContextAware
+import org.powertac.common.*
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -39,7 +38,7 @@ import org.powertac.common.Broker
  * </ol>
  * @author John Collins
  */
-class CompetitionControlService {
+class CompetitionControlService implements ApplicationContextAware {
 
   static transactional = false
   
@@ -52,6 +51,9 @@ class CompetitionControlService {
   def clockDriveJob
   def timeService // inject simulation time service dependency
   def jmsManagementService
+  def brokerProxyService
+
+  def applicationContext
 
   def phaseRegistrations
   int timeslotCount = 0
@@ -192,6 +194,14 @@ class CompetitionControlService {
     }
     timeService.rate = rate
     timeService.modulo = competition.timeslotLength * TimeService.MINUTE
+
+    // publish customer info
+    def customerServiceImplementations = getObjectsForInterface(Customer)
+    customerServiceImplementations?.each { Customer customer ->
+      CustomerInfo customerInfo = customer.generateCustomerInfo()
+      brokerProxyService.broadcastMessage(customerInfo)
+    }
+
     return true
   }
   
@@ -246,5 +256,14 @@ class CompetitionControlService {
     newTs.save()
     log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
     // TODO - communicate timeslot updates to brokers
+  }
+
+  void setApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext
+  }
+
+  def getObjectsForInterface(iface) {
+    def classMap = applicationContext.getBeansOfType(iface)
+    classMap.collect { it.value } // return only the object, which is the maps' value
   }
 }
