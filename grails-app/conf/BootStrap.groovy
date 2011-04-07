@@ -12,9 +12,11 @@ class BootStrap {
   def simpleGencoService
 
   def init = { servletContext ->
+
     // Create admin role
     def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
-    // Create default broker
+
+    // Create grails sample broker which is admin at the same time
     def adminUser = Broker.findByUsername('grailsDemo') ?: new Broker(
         username: 'grailsDemo',
         password: springSecurityService.encodePassword('password'),

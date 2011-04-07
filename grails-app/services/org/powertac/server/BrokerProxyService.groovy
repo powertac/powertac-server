@@ -72,12 +72,12 @@ class BrokerProxyService implements BrokerProxy {
     broadcastMessage(xml.toString())
 
     // Include local brokers
-    def localBrokers = Competition.currentCompetition()?.brokers?.findAll { (it.local) }
+    def localBrokers = Broker.findAll { (it.local) }
     localBrokers*.receiveMessage(messageObject)
   }
 
   void broadcastMessage(String text) {
-    def brokerQueueNames = Competition.currentCompetition()?.brokers?.findAll { !(it.local) }?.collect { it.toQueueName() }
+    def brokerQueueNames = Broker.findAll { !(it.local) }?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
     log.info("Broadcast queue name is ${queueName}")
     try {
