@@ -43,7 +43,7 @@ class BrokerProxyService implements BrokerProxy {
    */
   void sendMessage(Broker broker, Object messageObject) {
     if (broker.local) {
-      // no messages needed
+      broker.receiveMessage(messageObject)
       return
     }
     def queueName = broker.toQueueName()
