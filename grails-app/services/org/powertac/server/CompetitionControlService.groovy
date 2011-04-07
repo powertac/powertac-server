@@ -18,6 +18,7 @@ package org.powertac.server
 import org.joda.time.Instant
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.msg.SimStart
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
@@ -101,16 +102,15 @@ class CompetitionControlService implements ApplicationContextAware {
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
     competition.simulationStartTime = new Instant(start)
-    // TODO - communicate start time to brokers
-    timeService.start = start
+    // communicate start time to brokers
+    SimStart startMsg = new SimStart(start: simulationStartTime)
+    brokerProxyService.broadcastMessage(startMsg)
+    
     // Start up the clock at the correct time
+    timeService.start = start
     Thread.sleep(start - new Date().getTime())
     ClockDriveJob.schedule(scheduleMillis)
     timeService.updateTime()
-    // Initialize brokers
-    //Broker.findAllByEnabled(true)?.each { broker ->
-    //  broker.initCash()
-    //}
     // Set final paramaters
     running = true
     scheduleStep()
