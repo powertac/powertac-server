@@ -18,7 +18,6 @@ class BootStrap {
     def adminUser = Broker.findByUsername('grailsDemo') ?: new Broker(
         username: 'grailsDemo',
         password: springSecurityService.encodePassword('password'),
-        apiKey: '5d064dd7-1ec9-4a98-bece-2ca09b03e367',
         enabled: true).save(failOnError: true)
 
     // Add default broker to admin role
