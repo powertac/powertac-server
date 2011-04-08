@@ -38,12 +38,12 @@ class BrokerProxyService implements BrokerProxy {
   def tariffRegistrations = []
   def marketRegistrations = []
 
-  /**
-   * Send a message to a specific broker
-   */
+/**
+ * Send a message to a specific broker
+ */
   void sendMessage(Broker broker, Object messageObject) {
     if (broker.local) {
-      // no messages needed
+      broker.receiveMessage(messageObject)
       return
     }
     def queueName = broker.toQueueName()
@@ -55,59 +55,68 @@ class BrokerProxyService implements BrokerProxy {
     }
   }
 
-  /**
-   * Send a list of messages to a specific broker
-   */
+/**
+ * Send a list of messages to a specific broker
+ */
   void sendMessages(Broker broker, List<?> messageObjects) {
     messageObjects?.each { message ->
       sendMessage(broker, message)
     }
   }
 
-  /**
-   * Send a message to all brokers
-   */
+/**
+ * Send a message to all brokers
+ */
   void broadcastMessage(Object messageObject) {
-    def brokerQueueNames = Competition.currentCompetition()?.brokers?.collect { it.toQueueName() }
-    def queueName = brokerQueueNames.join(",")
     def xml = messageObject as XML
+    broadcastMessage(xml.toString())
+
+    // Include local brokers
+    def localBrokers = Broker.findAll { (it.local) }
+    localBrokers*.receiveMessage(messageObject)
+  }
+
+  void broadcastMessage(String text) {
+    def brokerQueueNames = Broker.findAll { !(it.local) }?.collect { it.toQueueName() }
+    def queueName = brokerQueueNames.join(",")
+    log.info("Broadcast queue name is ${queueName}")
     try {
-      jmsService.send(queueName, xml.toString())
+      jmsService.send(queueName, text)
     } catch (Exception e) {
       throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
   }
 
-  /**
-   * Sends a list of messages to all brokers
-   */
+/**
+ * Sends a list of messages to all brokers
+ */
   void broadcastMessages(List<?> messageObjects) {
     messageObjects?.each { message ->
       broadcastMessage(message)
     }
   }
 
-  /**
-   * Receives and routes all incoming messages
-   */
+/**
+ * Receives and routes all incoming messages
+ */
   @Queue(name = "server.inputQueue")
   def receiveMessage(String xmlMessage) {
     //  def xml = new XmlSlurper().parseText(xmlMessage)
     log.debug "received ${xmlMessage}"
-    jmsService.send("brokers.defaultBroker.outputQueue", "test")
+    broadcastMessage("test")
   }
 
-  /**
-   * Should be called if tariff-related incoming broker messages should be sent to listener
-   */
+/**
+ * Should be called if tariff-related incoming broker messages should be sent to listener
+ */
   void registerBrokerTariffListener(BrokerTariffListener listener) {
     tariffRegistrations.add(listener)
   }
 
-  /**
-   * Should be called if market-related incoming broker messages should be sent to listener
-   */
-  void registerBrokerTariffListener(BrokerMarketListener listener) {
+/**
+ * Should be called if market-related incoming broker messages should be sent to listener
+ */
+  void registerBrokerMarketListener(BrokerMarketListener listener) {
     marketRegistrations.add(listener)
   }
 }
