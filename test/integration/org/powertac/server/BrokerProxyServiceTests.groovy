@@ -66,7 +66,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     tariffSpec = new TariffSpecification(broker: bob, expiration: exp,
                                          minDuration: TimeService.WEEK * 8)
     Rate r1 = new Rate(value: 0.121)
-    tariffSpec.addToRates(r1)
+    tariffSpec.rates = [r1]
     //assert tariffSpec.save()
     tariffMarketService.afterPropertiesSet()
   }
@@ -79,8 +79,14 @@ class BrokerProxyServiceTests extends GroovyTestCase
   void testTariffProcess() 
   {
     XStream xstream = new XStream()
+    xstream.processAnnotations(TariffSpecification.class)
+    xstream.processAnnotations(Rate.class)
+    
+    tariffSpec.id = 't1'
+    tariffSpec.rates[0].id = 'r1'
     String xml = xstream.toXML(tariffSpec)
-
+    
+    //tariffSpec.delete(flush: true)
     brokerProxyService.receiveMessage(xml)
     TariffStatus status = bobMsgs[0]
     assertNotNull("non-null status", status)
