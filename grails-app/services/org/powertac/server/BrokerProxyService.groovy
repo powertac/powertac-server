@@ -82,7 +82,8 @@ class BrokerProxyService
     try {
       jmsService.send(queueName, xml)
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
+      log.error "Failed to send message to queue '$queueName' ($xml)"
+      //throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
   }
 
@@ -112,7 +113,8 @@ class BrokerProxyService
     try {
       jmsService.send(queueName, text)
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
+      log.error "Failed to send message to queue '$queueName' ($text)"
+      //throw new JMSException("Failed to send message to queue '$queueName' ($text)")
     }
   }
 
@@ -145,14 +147,16 @@ class BrokerProxyService
 /**
  * Should be called if tariff-related incoming broker messages should be sent to listener
  */
-  void registerBrokerTariffListener(BrokerMessageListener listener) {
+  void registerBrokerTariffListener(BrokerMessageListener listener) 
+  {
     tariffRegistrations.add(listener)
   }
 
 /**
  * Should be called if market-related incoming broker messages should be sent to listener
  */
-  void registerBrokerMarketListener(BrokerMessageListener listener) {
+  void registerBrokerMarketListener(BrokerMessageListener listener) 
+  {
     marketRegistrations.add(listener)
   }
 }
