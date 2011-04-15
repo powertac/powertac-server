@@ -77,7 +77,7 @@ class BrokerProxyService implements BrokerProxy {
   }
 
   void broadcastMessage(String text) {
-    def brokerQueueNames = Broker.findAll { !(it.local) }?.collect { it.toQueueName() }
+    def brokerQueueNames = Broker.findAllByLocal(false).collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
     log.info("Broadcast queue name is ${queueName}")
     try {
@@ -101,7 +101,6 @@ class BrokerProxyService implements BrokerProxy {
  */
   @Queue(name = "server.inputQueue")
   def receiveMessage(String xmlMessage) {
-    //  def xml = new XmlSlurper().parseText(xmlMessage)
     log.debug "received ${xmlMessage}"
     broadcastMessage("test")
   }
