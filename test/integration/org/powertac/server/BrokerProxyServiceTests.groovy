@@ -23,6 +23,8 @@ import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.TimeService
 import org.powertac.common.msg.TariffStatus
+import com.thoughtworks.xstream.*
+
 
 import grails.test.*
 
@@ -49,7 +51,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     super.setUp()
     
     // init time service
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
+    def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
     timeService.setCurrentTime(start)
 
     bob = new Broker(username: "Bob", local: true)
@@ -76,8 +78,11 @@ class BrokerProxyServiceTests extends GroovyTestCase
 
   void testTariffProcess() 
   {
-    brokerProxyService.receiveMessage(tariffSpec)
+    XStream xstream = new XStream()
+    String xml = xstream.toXML(tariffSpec)
+
+    brokerProxyService.receiveMessage(xml)
     TariffStatus status = bobMsgs[0]
-    assertNotNull("non-null status")
+    assertNotNull("non-null status", status)
   }
 }

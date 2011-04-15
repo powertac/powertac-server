@@ -22,6 +22,7 @@ import org.powertac.common.msg.SimStart
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
+import org.powertac.common.interfaces.CompetitionControl
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -39,7 +40,7 @@ import org.powertac.common.*
  * </ol>
  * @author John Collins
  */
-class CompetitionControlService implements ApplicationContextAware {
+class CompetitionControlService implements ApplicationContextAware, CompetitionControl {
 
   static transactional = false
   
