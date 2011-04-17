@@ -37,6 +37,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   def timeService
   def tariffMarketService
   def brokerProxyService
+  def sessionFactory
 
   Broker bob
   def bobMsgs = []
@@ -48,6 +49,11 @@ class BrokerProxyServiceTests extends GroovyTestCase
   protected void setUp() 
   {
     super.setUp()
+    
+    // clean up from earlier tests
+    Broker.list()*.delete()
+    TariffSpecification.list()*.delete()
+    Rate.list()*.delete()
     
     // init time service
     def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
@@ -66,7 +72,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
                                          minDuration: TimeService.WEEK * 8)
     Rate r1 = new Rate(value: 0.121)
     tariffSpec.rates = [r1]
-    //assert tariffSpec.save()
     tariffMarketService.afterPropertiesSet()
   }
 
@@ -77,24 +82,48 @@ class BrokerProxyServiceTests extends GroovyTestCase
 
   void testTariffProcess() 
   {
+    //serialize a tariff spec
     XStream xstream = new XStream()
     xstream.processAnnotations(TariffSpecification.class)
     xstream.processAnnotations(Rate.class)
-    
-    tariffSpec.id = 't1'
-    tariffSpec.rates[0].id = 'r1'
     String xml = xstream.toXML(tariffSpec)
 
-//    brokerProxyService.receiveMessage(xml)
-//    TariffStatus status = bobMsgs[0]
-//    assertNotNull("non-null status", status)
+    // clear the current session to avoid unique-id conflict
+    sessionFactory.currentSession.clear()
+    
+    // send the message through the proxy service
+    brokerProxyService.receiveMessage(xml)
+    TariffStatus status = bobMsgs[0]
+    assertNotNull("non-null status", status)
 
   }
 
-  void testLocalBroadcastMessage() {
+  void testLocalBroadcastMessage() 
+  {
      brokerProxyService.broadcastMessage(tariffSpec)
      def receivedMessage = bobMsgs[0]
      assertNotNull("non-null tariffSpec", receivedMessage)
      assertEquals(tariffSpec, receivedMessage)
+  }
+  
+  void testPersistence ()
+  {
+    // save original tariffSpec id
+    String tsid = tariffSpec.id
+    
+    XStream xstream = new XStream()
+    xstream.processAnnotations(TariffSpecification.class)
+    xstream.processAnnotations(Rate.class)
+    String xml = xstream.toXML(tariffSpec)
+
+    // clear the current session to avoid unique-id conflict
+    sessionFactory.currentSession.clear()
+    
+    // send the message through the proxy service
+    brokerProxyService.receiveMessage(xml)
+    List<TariffSpecification> tss = TariffSpecification.list()
+    assertEquals("1 spec", 1, tss.size())
+    assertEquals("correct id", tsid, tss[0].id)
+    assertNotSame("different object", tariffSpec, tss[0])
   }
 }

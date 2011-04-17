@@ -121,7 +121,8 @@ class BrokerProxyService
 /**
  * Sends a list of messages to all brokers
  */
-  void broadcastMessages(List<?> messageObjects) {
+  void broadcastMessages(List<?> messageObjects) 
+  {
     broadcastMessage(messageObjects)
   }
 
@@ -129,9 +130,20 @@ class BrokerProxyService
  * Receives and routes all incoming messages
  */
   @Queue(name = "server.inputQueue")
-  def receiveMessage(String xmlMessage) {
+  void receiveMessage(String xmlMessage) 
+  {
     def thing = xstream.fromXML(xmlMessage)
     log.debug "received ${xmlMessage}"
+    
+    // persist incoming messages (#169)
+    if (!thing.validate()) {
+      log.warn("validation error on ${xmlMessage}: ${thing.errors.allErrors.collect {it.toString}}")
+    }
+    else {
+      thing.save()
+    }
+    
+    // dispatch to listeners
     if (tariffMessageTypes.contains(thing.class)) {
       tariffRegistrations.each { listener ->
         listener.receiveMessage(thing)
@@ -143,8 +155,8 @@ class BrokerProxyService
       }
     }
 
-    broadcastMessage("I got your message")
-    log.debug "receiveMessage - end"
+    //broadcastMessage("I got your message")
+    //log.debug "receiveMessage - end"
   }
 
 /**

@@ -85,7 +85,8 @@ class JmsManagementService {
       BrokerViewMBean mbean = getMBean()
       mbean.addQueue('server.inputQueue')
 
-      def brokers = Competition.currentCompetition()?.brokers
+      //def brokers = Competition.currentCompetition()?.brokers
+      def brokers = Broker.list()
       brokers.each { broker ->
         mbean.addQueue(broker?.toQueueName())
       }
