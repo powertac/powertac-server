@@ -20,6 +20,7 @@ import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Instant
 import org.powertac.common.Broker;
+import org.powertac.common.BrokerRole
 import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.TimeService
@@ -52,10 +53,10 @@ class BrokerProxyServiceTests extends GroovyTestCase
     super.setUp()
     
     // clean up from earlier tests
-    Broker.list()*.delete()
-    TariffSpecification.list()*.delete()
     Rate.list()*.delete()
-    
+    TariffSpecification.list()*.delete()
+    Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
+
     // init time service
     def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
     timeService.setCurrentTime(start)
@@ -90,8 +91,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
     String xml = xstream.toXML(tariffSpec)
 
     // clear the current session to avoid unique-id conflict
-    tariffSpec.delete()
-    sessionFactory.getCurrentSession().clear()
+    //    tariffSpec.delete()
+    //    sessionFactory.getCurrentSession().clear()
     
     // send the message through the proxy service
     brokerProxyService.receiveMessage(xml)
