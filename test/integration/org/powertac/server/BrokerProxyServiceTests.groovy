@@ -23,6 +23,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.BrokerRole
 import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
+import org.powertac.common.Tariff
 import org.powertac.common.TimeService
 import org.powertac.common.msg.TariffStatus
 import com.thoughtworks.xstream.*
@@ -53,8 +54,9 @@ class BrokerProxyServiceTests extends GroovyTestCase
     super.setUp()
     
     // clean up from earlier tests
-    Rate.list()*.delete()
+    //Rate.list()*.delete()
     TariffSpecification.list()*.delete()
+    Tariff.list()*.delete()
     Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
 
     // init time service
@@ -62,10 +64,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
     timeService.setCurrentTime(start)
 
     bob = new Broker(username: "Bob", local: true)
+    bob.testProxy = [receive: { msg -> bobMsgs << msg }]
     assert (bob.save())
-    def bobProxy =
-      [receive: { msg -> bobMsgs << msg }]
-    bob.testProxy = bobProxy
     jim = new Broker(username: "Jim", local: true)
     assert (jim.save())
     
@@ -75,6 +75,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     Rate r1 = new Rate(value: 0.121)
     tariffSpec.rates = [r1]
     tariffMarketService.afterPropertiesSet()
+    println "tariffSpec id: ${tariffSpec.id}, r1 id: ${r1.id}"
   }
 
   protected void tearDown() 
@@ -90,9 +91,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
     xstream.processAnnotations(Rate.class)
     String xml = xstream.toXML(tariffSpec)
 
-    // clear the current session to avoid unique-id conflict
-    //    tariffSpec.delete()
-    //    sessionFactory.getCurrentSession().clear()
+    // delete the spec so we can save it after deserializing
+    tariffSpec.delete()
     
     // send the message through the proxy service
     brokerProxyService.receiveMessage(xml)

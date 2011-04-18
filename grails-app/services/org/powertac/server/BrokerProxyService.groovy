@@ -40,8 +40,8 @@ class BrokerProxyService
   
   XStream xstream
 
-  def tariffRegistrations = []
-  def marketRegistrations = []
+  Set tariffRegistrations = []
+  Set marketRegistrations = []
   Set tariffMessageTypes = 
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
