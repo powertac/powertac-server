@@ -102,12 +102,12 @@ class BrokerProxyService
     broadcastMessage(xml)
 
     // Include local brokers
-    def localBrokers = Broker.findAll().findAll { (it.local) }
+    def localBrokers = Broker.list().findAll { (it.local) }
     localBrokers*.receiveMessage(messageObject)
   }
 
   void broadcastMessage(String text) {
-    def brokerQueueNames = Broker.findAll().findAll { !(it.local) }?.collect { it.toQueueName() }
+    def brokerQueueNames = Broker.list().findAll { !(it.local) }?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
     log.info("Broadcast queue name is ${queueName}")
     try {
@@ -141,8 +141,12 @@ class BrokerProxyService
     }
     else {
       thing.save()
+      routeMessage(thing)
     }
-    
+  }
+  
+  void routeMessage(Object thing)
+  {
     // dispatch to listeners
     if (tariffMessageTypes.contains(thing.class)) {
       tariffRegistrations.each { listener ->

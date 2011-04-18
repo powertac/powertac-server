@@ -54,12 +54,14 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   def timeService // inject simulation time service dependency
   def jmsManagementService
   def brokerProxyService
+  def randomSeedService
 
   def applicationContext
 
   def phaseRegistrations
   int timeslotCount = 0
   long timeslotMillis
+  Random randomGen
   
   /**
    * Runs the initialization process and starts the simulation.
@@ -71,6 +73,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     if (setup() == false)
       return
     // TODO - other initialization code goes here
+
     start((long)(competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
   }
 
@@ -171,17 +174,24 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
       log.error "no competition instance available - cannot start"
       return false
     }
+    // set up random sequence for CCS
+    long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
+                                                 competition.id, 'game-setup')
+    randomGen = new Random(randomSeed)
+
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
     
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
-    timeslotCount = competition.minimumTimeslotCount
+    timeslotCount = computeGameLength(competition.minimumTimeslotCount,
+                                      competition.expectedTimeslotCount)
     timeService.currentTime = competition.simulationBaseTime
-    createInitialTimeslots(competition.simulationBaseTime,
-                           competition.deactivateTimeslotsAhead,
-                           competition.timeslotsOpen)
-    // TODO - send open timeslots to brokers
+    List<Timeslot> slots =
+        createInitialTimeslots(competition.simulationBaseTime,
+                               competition.deactivateTimeslotsAhead,
+                               competition.timeslotsOpen)
+    brokerProxyService.broadcastMessage(slots)
 
     // set simulation time parameters, making sure that simulationStartTime
     // is still sufficiently in the future.
@@ -202,13 +212,12 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
       CustomerInfo customerInfo = customer.generateCustomerInfo()
       brokerProxyService.broadcastMessage(customerInfo)
     }
-
     return true
   }
   
-  void createInitialTimeslots (Instant base, int initialSlots,
-                                       int openSlots)
+  List<Timeslot> createInitialTimeslots (Instant base, int initialSlots, int openSlots)
   {
+    List<Timeslot> result = []
     long start = base.millis //- timeslotMillis // first step happens before first clock update
     for (i in 0..<initialSlots) {
       Timeslot ts = 
@@ -216,6 +225,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
                        startInstant: new Instant(start + i * timeslotMillis), 
                        endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
+      //result << ts
     }
     for (i in initialSlots..<(initialSlots + openSlots)) {
       Timeslot ts =
@@ -224,7 +234,9 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
                        startInstant: new Instant(start + i * timeslotMillis),
                        endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
+      result << ts
     }
+    return result
   }
   
   void activateNextTimeslot ()
@@ -256,14 +268,26 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     }
     newTs.save()
     log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
-    // TODO - communicate timeslot updates to brokers
+    // Communicate timeslot updates to brokers
+    brokerProxyService.broadcastMessage([oldTs, newTs])
+  }
+  
+  int computeGameLength(minLength, expLength)
+  {
+    double roll = randomGen.nextDouble()
+    // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
+    double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength))
+    log.info('game-length k=${k}, roll=${roll}')
+    return minLength + (int)Math.round(k)
   }
 
-  void setApplicationContext(ApplicationContext applicationContext) {
+  void setApplicationContext(ApplicationContext applicationContext) 
+  {
     this.applicationContext = applicationContext
   }
 
-  def getObjectsForInterface(iface) {
+  def getObjectsForInterface(iface) 
+  {
     def classMap = applicationContext.getBeansOfType(iface)
     classMap.collect { it.value } // return only the object, which is the maps' value
   }

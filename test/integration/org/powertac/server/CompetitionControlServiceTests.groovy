@@ -70,6 +70,22 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
     assertTrue('successful setup', competitionControlService.setup())
     assertTrue('queues created', queuesCreated)
     assertEquals('current time updated', base, timeService.currentTime)
-    assertEquals('25 timeslots created', 25, Timeslot.count())
+    assertEquals('24 timeslots created', 24, Timeslot.count())
+  }
+  
+  // you have to look at std out to see the results here. Need to mock
+  // the random number generator before this will be a proper test.
+  void testGameLength ()
+  {
+    competitionControlService.setup()
+    int ml = 100
+    int el = 110
+    int sum = 0
+    for (i in 0..<20) {
+      int gl = competitionControlService.computeGameLength(ml, el)
+      println "count=${gl}"
+      sum += gl
+    }
+    println "mean value: ${sum / 20.0}"
   }
 }

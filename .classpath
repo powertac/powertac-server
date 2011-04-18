@@ -172,5 +172,10 @@
 			<attribute name="com.springsource.sts.grails.core.SOURCE_FOLDER" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-auctioneer-pda"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-broker-default"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-distribution-utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-household-customer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-random"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>

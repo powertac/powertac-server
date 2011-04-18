@@ -15,6 +15,7 @@
  */
 package org.powertac.server
 
+import org.hibernate.SessionFactory
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Instant
@@ -37,7 +38,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   def timeService
   def tariffMarketService
   def brokerProxyService
-  def sessionFactory
+  SessionFactory sessionFactory
 
   Broker bob
   def bobMsgs = []
@@ -89,7 +90,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
     String xml = xstream.toXML(tariffSpec)
 
     // clear the current session to avoid unique-id conflict
-    sessionFactory.currentSession.clear()
+    tariffSpec.delete()
+    sessionFactory.getCurrentSession().clear()
     
     // send the message through the proxy service
     brokerProxyService.receiveMessage(xml)
