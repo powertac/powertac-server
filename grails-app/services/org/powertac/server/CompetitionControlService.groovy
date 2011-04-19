@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
+import org.powertac.common.interfaces.PowerTacPlugin
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -174,6 +175,20 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
       log.error "no competition instance available - cannot start"
       return false
     }
+
+    // configure competition instance
+    def pluginImplementations = getObjectsForInterface(PowerTacPlugin)
+    pluginImplementations?.each { PowerTacPlugin plugin ->
+      // collect configuration data
+      Map configData = plugin.configDataForBrokers()
+      if (configData) {
+        // Add config data to parameters map
+        competition.parameterMap.putAll(configData)
+      }
+    }
+    // TODO: Publish Competition object at right place - when exactly?
+    // brokerProxyService.broadcastMessage(competition)
+
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
                                                  competition.id, 'game-setup')
