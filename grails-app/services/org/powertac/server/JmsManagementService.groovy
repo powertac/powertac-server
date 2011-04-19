@@ -26,6 +26,7 @@ import org.apache.activemq.broker.jmx.QueueViewMBean
 import javax.jms.JMSException
 import org.powertac.common.Competition
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import org.powertac.common.Broker
 
 /**
  * This is the JMS management service. It can create and delete queues for JMS communication with brokers and also
