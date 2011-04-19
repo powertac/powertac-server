@@ -81,11 +81,13 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
     int ml = 100
     int el = 110
     int sum = 0
-    for (i in 0..<20) {
+    int counter = 10000
+    for (i in 0..<counter) {
       int gl = competitionControlService.computeGameLength(ml, el)
-      println "count=${gl}"
+      //println "count=${gl}"
       sum += gl
     }
-    println "mean value: ${sum / 20.0}"
+    println "mean value: ${sum / (double)counter}"
+    assertEquals("reasonable mean", (double)el, (sum / (double)counter), 0.3)
   }
 }

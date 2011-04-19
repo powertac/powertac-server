@@ -175,6 +175,13 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
       log.error "no competition instance available - cannot start"
       return false
     }
+    // set up random sequence for CCS
+    long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
+                                                 competition.id, 'game-setup')
+    randomGen = new Random(randomSeed)
+
+    // set up broker queues (are they logged in already?)
+    jmsManagementService.createQueues()
 
     // configure competition instance
     def pluginImplementations = getObjectsForInterface(PowerTacPlugin)
@@ -186,17 +193,9 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
         competition.parameterMap.putAll(configData)
       }
     }
-    // TODO: Publish Competition object at right place - when exactly?
-    // brokerProxyService.broadcastMessage(competition)
+    // Publish Competition object at right place - when exactly?
+    brokerProxyService.broadcastMessage(competition)
 
-    // set up random sequence for CCS
-    long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
-                                                 competition.id, 'game-setup')
-    randomGen = new Random(randomSeed)
-
-    // set up broker queues (are they logged in already?)
-    jmsManagementService.createQueues()
-    
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
     timeslotCount = computeGameLength(competition.minimumTimeslotCount,
@@ -293,7 +292,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
     double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength))
     log.info('game-length k=${k}, roll=${roll}')
-    return minLength + (int)Math.round(k)
+    return minLength + (int)Math.ceil(k)
   }
 
   void setApplicationContext(ApplicationContext applicationContext) 
