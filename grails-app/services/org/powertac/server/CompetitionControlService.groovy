@@ -23,7 +23,6 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
-import org.powertac.common.interfaces.PowerTacPlugin
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -184,14 +183,8 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     jmsManagementService.createQueues()
 
     // configure competition instance
-    def pluginImplementations = getObjectsForInterface(PowerTacPlugin)
-    pluginImplementations?.each { PowerTacPlugin plugin ->
-      // collect configuration data
-      Map configData = plugin.configDataForBrokers()
-      if (configData) {
-        // Add config data to parameters map
-        competition.parameterMap.putAll(configData)
-      }
+    PluginConfig.list().each { config ->
+      competition.addToPlugins(config)
     }
     // Publish Competition object at right place - when exactly?
     brokerProxyService.broadcastMessage(competition)
@@ -290,9 +283,9 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   {
     double roll = randomGen.nextDouble()
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
-    double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength))
+    double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength + 1))
     log.info('game-length k=${k}, roll=${roll}')
-    return minLength + (int)Math.ceil(k)
+    return minLength + (int)Math.floor(k)
   }
 
   void setApplicationContext(ApplicationContext applicationContext) 
