@@ -109,7 +109,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: new Instant(start))
+    SimStart startMsg = new SimStart(start: simulationStartTime, brokers: Broker.list().collect { it.username })
     brokerProxyService.broadcastMessage(startMsg)
     
     // Start up the clock at the correct time
