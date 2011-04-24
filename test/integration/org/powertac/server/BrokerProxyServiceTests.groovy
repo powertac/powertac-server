@@ -57,15 +57,17 @@ class BrokerProxyServiceTests extends GroovyTestCase
     //Rate.list()*.delete()
     TariffSpecification.list()*.delete()
     Tariff.list()*.delete()
-    Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
+    //Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
 
     // init time service
     def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
     timeService.setCurrentTime(start)
 
+    Broker.findByUsername('Bob')?.delete()
     bob = new Broker(username: "Bob", local: true)
     bob.testProxy = [receive: { msg -> bobMsgs << msg }]
     assert (bob.save())
+    Broker.findByUsername('Jim')?.delete()
     jim = new Broker(username: "Jim", local: true)
     assert (jim.save())
     

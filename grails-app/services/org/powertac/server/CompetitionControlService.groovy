@@ -23,6 +23,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
+import greenbill.dbstuff.DataExport
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -46,7 +47,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   
   Competition competition
   
-  int timeslotPhaseCount = 3 // # of phases/timeslot
+  int timeslotPhaseCount = 3 // # of phases/quartzScheduler.start()timeslot
   boolean running = false
   
   def quartzScheduler
@@ -62,6 +63,8 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   int timeslotCount = 0
   long timeslotMillis
   Random randomGen
+  
+  String dumpFile = "logs/PowerTAC-dump.xml"
   
   /**
    * Runs the initialization process and starts the simulation.
@@ -95,7 +98,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
       phaseRegistrations[phase - 1].add(thing)
     }
   }
-  
+
   /**
    * Starts the simulation.  
    */
@@ -105,9 +108,8 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     // wait for start time
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
-    competition.simulationStartTime = new Instant(start)
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: simulationStartTime)
+    SimStart startMsg = new SimStart(start: new Instant(start))
     brokerProxyService.broadcastMessage(startMsg)
     
     // Start up the clock at the correct time
@@ -136,7 +138,7 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   {
     if (!running) {
       log.info("Stop simulation")
-      return
+      shutDown()
     }
     def time = timeService.currentTime
     log.info "step at $time"
@@ -145,8 +147,9 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     }
     if (--timeslotCount <= 0) {
       log.info "Stopping simulation"
-      // TODO - variable length game (optional?)
+      // 
       running = false
+      shutDown()
     }
     else {
       activateNextTimeslot()
@@ -160,6 +163,19 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   void stop ()
   {
     running = false
+  }
+  
+  /**
+   * Shuts down the simulation and cleans up
+   */
+  void shutDown ()
+  {
+    running = false
+    quartzScheduler.shutdown()
+    //File dumpfile = new File(dumpFile)
+    DataExport de = new DataExport()
+    de.dataSource = getDataSource()
+    de.export("*", dumpFile)
   }
   
   //--------- local methods -------------
