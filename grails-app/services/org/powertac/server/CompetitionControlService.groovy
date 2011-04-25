@@ -23,6 +23,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
+import org.powertac.common.interfaces.InitializationService
+import org.powertac.DefaultBroker
+import org.powertac.common.Role
 import greenbill.dbstuff.DataExport
 
 /**
@@ -41,8 +44,9 @@ import greenbill.dbstuff.DataExport
  * </ol>
  * @author John Collins
  */
-class CompetitionControlService implements ApplicationContextAware, CompetitionControl {
-
+class CompetitionControlService 
+    implements ApplicationContextAware, CompetitionControl 
+{
   static transactional = false
   
   Competition competition
@@ -65,6 +69,49 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
   Random randomGen
   
   String dumpFile = "logs/PowerTAC-dump.xml"
+  
+  /**
+   * Pre-game server setup - creates the basic configuration elements
+   * to make them accessible to the web-based game-setup functions.
+   */
+  void preGame ()
+  {
+    // Create admin role
+    def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
+
+    // Create default broker which is admin at the same time
+    def defaultBroker = Broker.findByUsername('defaultBroker') ?: new DefaultBroker(
+        username: 'defaultBroker', local: true,
+        password: springSecurityService.encodePassword('password'),
+        enabled: true)
+    if (!defaultBroker.validate()) {
+      log.error("validation failure: default broker")
+    }
+    defaultBroker.save(failOnError: true)
+
+    // Add default broker to admin role
+    if (!defaultBroker.authorities.contains(adminRole)) {
+      BrokerRole.create defaultBroker, adminRole
+    }
+
+    // Create default competition
+    competition = new Competition(name: "defaultCompetition")
+    if (!competition.validate()) {
+      log.error("validation failure: competition")
+    }
+    competition.save()
+    
+    // Set up all the plugin configurations
+    def initializers = getObjectsForInterface(InitializationService)
+    initializers?.each { initializer ->
+      initializer.setDefaults()
+    }
+    // configure competition instance
+    PluginConfig.list().each { config ->
+      competition.addToPlugins(config)
+    }
+    competition.save()
+  }
   
   /**
    * Runs the initialization process and starts the simulation.
@@ -194,14 +241,13 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
                                                  competition.id, 'game-setup')
     randomGen = new Random(randomSeed)
+    
+    // configure plugins
+    configurePlugins()
 
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
 
-    // configure competition instance
-    PluginConfig.list().each { config ->
-      competition.addToPlugins(config)
-    }
     // Publish Competition object at right place - when exactly?
     brokerProxyService.broadcastMessage(competition)
 
@@ -300,8 +346,47 @@ class CompetitionControlService implements ApplicationContextAware, CompetitionC
     double roll = randomGen.nextDouble()
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
     double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength + 1))
-    log.info('game-length k=${k}, roll=${roll}')
+    //log.info('game-length k=${k}, roll=${roll}')
     return minLength + (int)Math.floor(k)
+  }
+  
+  void configurePlugins ()
+  {
+    def initializers = getObjectsForInterface(InitializationService)
+    List completedPlugins = []
+    List deferredInitializers = []
+    initializers?.each { initializer ->
+      String success = initializer.initialize(competition, completedPlugins)
+      if (success == null) {
+        // defer this one
+        log.info("deferring ${initializer}")
+        deferredInitializers << initializer
+      }
+      else {
+        log.info("completed ${success}")
+        completedPlugins << success
+      }
+    }
+    int tryCounter = deferredInitializers.size()
+    List remaining = deferredInitializers
+    while (deferredInitializers.size() > 0 && tryCounter > 0) {
+      InitializationService init = remaining[0]
+      remaining = remaining[1..(remaining.size() - 1)]
+      tryCounter -= 1
+      String success = initializer.initialize(competition, completedPlugins)
+      if (success == null) {
+        // defer this one
+        log.info("deferring ${initializer}")
+        remaining << initializer
+      }
+      else {
+        log.info("completed ${success}")
+        completedPlugins << success
+      }
+    }
+    remaining*.each { initializer ->
+      log.error("Failed to initialize ${initializer}")
+    }
   }
 
   void setApplicationContext(ApplicationContext applicationContext) 

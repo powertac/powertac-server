@@ -40,6 +40,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   def timeService
   def tariffMarketService
   def brokerProxyService
+  def competitionControlService
   SessionFactory sessionFactory
 
   Broker bob
@@ -62,6 +63,10 @@ class BrokerProxyServiceTests extends GroovyTestCase
     // init time service
     def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
     timeService.setCurrentTime(start)
+    
+    // set up plugins
+    competitionControlService.preGame()
+    competitionControlService.configurePlugins()
 
     Broker.findByUsername('Bob')?.delete()
     bob = new Broker(username: "Bob", local: true)
