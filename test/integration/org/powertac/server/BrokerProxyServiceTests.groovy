@@ -29,10 +29,15 @@ import org.powertac.common.msg.TariffStatus
 import com.thoughtworks.xstream.*
 
 import grails.test.*
+import org.powertac.common.Shout
+import org.powertac.common.enumerations.BuySellIndicator
+import org.powertac.common.Product
+import org.powertac.common.enumerations.ProductType
+import org.powertac.common.Timeslot
 
 /**
  * Tests for the Broker Proxy Service.
- * @author John Collins
+ * @author John Collins, Daniel Schnurr
  */
 class BrokerProxyServiceTests extends GroovyTestCase 
 {
@@ -49,6 +54,9 @@ class BrokerProxyServiceTests extends GroovyTestCase
   def jimMsgs = []
   
   TariffSpecification tariffSpec
+  Shout incomingShout
+  Product sampleProduct
+  Timeslot sampleTimeslot
 
   protected void setUp() 
   {
@@ -83,6 +91,15 @@ class BrokerProxyServiceTests extends GroovyTestCase
     tariffSpec.rates = [r1]
     tariffMarketService.afterPropertiesSet()
     println "tariffSpec id: ${tariffSpec.id}, r1 id: ${r1.id}"
+
+    // Shout initialization
+    sampleProduct = new Product(productType: ProductType.Future)
+    sampleTimeslot = new Timeslot(serialNumber: 1,
+                                  startInstant: new Instant(start.millis + TimeService.HOUR),
+                                  endInstant: new Instant(start.millis + TimeService.HOUR * 2),
+                                  enabled: true)
+    assert (sampleTimeslot.save())
+    incomingShout = new Shout(broker: bob, product: sampleProduct, timeslot: sampleTimeslot, buySellIndicator: BuySellIndicator.BUY)
   }
 
   protected void tearDown() 
@@ -136,4 +153,44 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertEquals("correct id", tsid, tss[0].id)
     assertNotSame("different object", tariffSpec, tss[0])
   }
+
+  void testTimeslotSerialization() {
+
+    XStream xstream = new XStream()
+    xstream.processAnnotations(Timeslot.class)
+    String xml = xstream.toXML(sampleTimeslot)
+
+    def thing = xstream.fromXML(xml)
+    assert (thing instanceof Timeslot)
+  }
+
+  void testShoutProcess()
+  {
+    incomingShout.limitPrice = 10.0
+    incomingShout.quantity = 200.0
+
+    //serialize a tariff spec
+    XStream xstream = new XStream()
+    xstream.processAnnotations(Shout.class)
+    xstream.processAnnotations(Product.class)
+    xstream.processAnnotations(Timeslot.class)
+    String xml = xstream.toXML(incomingShout)
+
+    //delete shout
+    incomingShout.delete()
+
+    // send the message through the proxy service
+    brokerProxyService.receiveMessage(xml)
+
+    Shout persistedShout = Shout.findByBroker(bob)
+    assertEquals(sampleTimeslot, persistedShout.timeslot)
+    assertEquals(BuySellIndicator.BUY, persistedShout.buySellIndicator)
+    assertEquals(10.0, persistedShout.limitPrice)
+    assertEquals(200.0, persistedShout.quantity)
+
+    //Todo: product is not deserialized correctly
+    //assertEquals(sampleProduct, persistedShout.product)
+
+  }
+
 }
