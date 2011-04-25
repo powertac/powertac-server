@@ -154,16 +154,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertNotSame("different object", tariffSpec, tss[0])
   }
 
-  void testTimeslotSerialization() {
-
-    XStream xstream = new XStream()
-    xstream.processAnnotations(Timeslot.class)
-    String xml = xstream.toXML(sampleTimeslot)
-
-    def thing = xstream.fromXML(xml)
-    assert (thing instanceof Timeslot)
-  }
-
   void testShoutProcess()
   {
     incomingShout.limitPrice = 10.0
