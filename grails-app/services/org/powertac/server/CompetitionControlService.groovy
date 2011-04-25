@@ -58,6 +58,7 @@ class CompetitionControlService
   def clockDriveJob
   def timeService // inject simulation time service dependency
   def jmsManagementService
+  def springSecurityService
   def brokerProxyService
   def randomSeedService
 
@@ -76,6 +77,7 @@ class CompetitionControlService
    */
   void preGame ()
   {
+    log.info "pre-game initialization"
     // Create admin role
     def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
 
@@ -103,13 +105,9 @@ class CompetitionControlService
     
     // Set up all the plugin configurations
     def initializers = getObjectsForInterface(InitializationService)
-    initializers?.each { initializer ->
-      initializer.setDefaults()
-    }
+    initializers?.each { it.setDefaults() }
     // configure competition instance
-    PluginConfig.list().each { config ->
-      competition.addToPlugins(config)
-    }
+    PluginConfig.list().each { competition.addToPlugins(it) }
     competition.save()
   }
   
@@ -156,7 +154,7 @@ class CompetitionControlService
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: simulationStartTime, brokers: Broker.list().collect { it.username })
+    SimStart startMsg = new SimStart(start: new Instant(start), brokers: Broker.list().collect { it.username })
     brokerProxyService.broadcastMessage(startMsg)
     
     // Start up the clock at the correct time
@@ -237,13 +235,17 @@ class CompetitionControlService
       log.error "no competition instance available - cannot start"
       return false
     }
+    
+    // configure plugins
+    if (!configurePlugins()) {
+      log.error "failed to configure plugins"
+      return false
+    }
+
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
                                                  competition.id, 'game-setup')
     randomGen = new Random(randomSeed)
-    
-    // configure plugins
-    configurePlugins()
 
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
@@ -350,17 +352,21 @@ class CompetitionControlService
     return minLength + (int)Math.floor(k)
   }
   
-  void configurePlugins ()
+  boolean configurePlugins ()
   {
     def initializers = getObjectsForInterface(InitializationService)
     List completedPlugins = []
     List deferredInitializers = []
-    initializers?.each { initializer ->
+    for (initializer in initializers) {
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
         log.info("deferring ${initializer}")
         deferredInitializers << initializer
+      }
+      else if (success == 'fail') {
+        log.error "Failed to initialize plugin ${initializer}"
+        return false
       }
       else {
         log.info("completed ${success}")
@@ -387,6 +393,7 @@ class CompetitionControlService
     remaining*.each { initializer ->
       log.error("Failed to initialize ${initializer}")
     }
+    return true
   }
 
   void setApplicationContext(ApplicationContext applicationContext) 
