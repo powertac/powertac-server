@@ -79,17 +79,17 @@ class CompetitionControlService
   {
     log.info "pre-game initialization"
     // Create admin role
-    def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN').save(failOnError: true)
+    def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
+    assert adminRole.save()
 
     // Create default broker which is admin at the same time
     def defaultBroker = Broker.findByUsername('defaultBroker') ?: new DefaultBroker(
         username: 'defaultBroker', local: true,
         password: springSecurityService.encodePassword('password'),
         enabled: true)
-    if (!defaultBroker.validate()) {
-      log.error("validation failure: default broker")
+    if (!defaultBroker.save()) {
+      log.error("could not save default broker")
     }
-    defaultBroker.save(failOnError: true)
 
     // Add default broker to admin role
     if (!defaultBroker.authorities.contains(adminRole)) {
@@ -98,17 +98,21 @@ class CompetitionControlService
 
     // Create default competition
     competition = new Competition(name: "defaultCompetition")
-    if (!competition.validate()) {
-      log.error("validation failure: competition")
+    if (!competition.save()) {
+      log.error("could not save competition")
     }
-    competition.save()
     
     // Set up all the plugin configurations
     def initializers = getObjectsForInterface(InitializationService)
     initializers?.each { it.setDefaults() }
     // configure competition instance
-    PluginConfig.list().each { competition.addToPlugins(it) }
-    competition.save()
+    PluginConfig.list().each { config ->
+      log.info("adding plugin ${config}")
+      competition.addToPlugins(config)
+    }
+    if (!competition.save()) {
+      log.error("could not save competition with plugins")
+    }
   }
   
   /**
