@@ -46,11 +46,10 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
   protected void setUp() 
   {
     super.setUp()
-    Competition.list()*.delete()
     base = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
-    competition =
-      new Competition(name: 'test', simulationBaseTime: base)
-    assert competition.save()
+    competition = Competition.currentCompetition()
+    competition.simulationBaseTime = base
+    competition.save()
     timeService.currentTime = base
 
     // mock all needed services other than timeService

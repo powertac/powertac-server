@@ -72,7 +72,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     timeService.setCurrentTime(start)
     
     // set up plugins
-    competitionControlService.preGame()
+    //competitionControlService.preGame()
     competitionControlService.configurePlugins()
 
     Broker.findByUsername('Bob')?.delete()
@@ -161,7 +161,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
     //serialize a tariff spec
     XStream xstream = new XStream()
     xstream.processAnnotations(Shout.class)
-    xstream.processAnnotations(Product.class)
     xstream.processAnnotations(Timeslot.class)
     String xml = xstream.toXML(incomingShout)
 
