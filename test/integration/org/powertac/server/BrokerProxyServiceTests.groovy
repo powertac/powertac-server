@@ -31,7 +31,6 @@ import com.thoughtworks.xstream.*
 import grails.test.*
 import org.powertac.common.Shout
 import org.powertac.common.enumerations.BuySellIndicator
-import org.powertac.common.Product
 import org.powertac.common.enumerations.ProductType
 import org.powertac.common.Timeslot
 
@@ -55,7 +54,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   
   TariffSpecification tariffSpec
   Shout incomingShout
-  Product sampleProduct
+  ProductType sampleProduct
   Timeslot sampleTimeslot
 
   protected void setUp() 
@@ -93,7 +92,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     println "tariffSpec id: ${tariffSpec.id}, r1 id: ${r1.id}"
 
     // Shout initialization
-    sampleProduct = new Product(productType: ProductType.Future)
+    sampleProduct = ProductType.Future
     sampleTimeslot = new Timeslot(serialNumber: 1,
                                   startInstant: new Instant(start.millis + TimeService.HOUR),
                                   endInstant: new Instant(start.millis + TimeService.HOUR * 2),
