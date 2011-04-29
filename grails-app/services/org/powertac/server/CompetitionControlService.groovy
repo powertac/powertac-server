@@ -24,7 +24,6 @@ import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.InitializationService
-import org.powertac.DefaultBroker
 import org.powertac.common.Role
 import greenbill.dbstuff.DataExport
 
@@ -83,7 +82,7 @@ class CompetitionControlService
     assert adminRole.save()
 
     // Create default broker which is admin at the same time
-    def defaultBroker = Broker.findByUsername('defaultBroker') ?: new DefaultBroker(
+    def defaultBroker = Broker.findByUsername('defaultBroker') ?: new Broker(
         username: 'defaultBroker', local: true,
         password: springSecurityService.encodePassword('password'),
         enabled: true)

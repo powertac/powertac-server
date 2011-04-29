@@ -137,7 +137,7 @@ class BrokerProxyService
     
     // persist incoming messages (#169)
     if (!thing.validate()) {
-      log.warn("validation error on ${xmlMessage}: ${thing.errors.allErrors.collect {it.toString}}")
+      log.warn("validation error on ${xmlMessage}: ${thing.errors.allErrors.collect {it.toString()}}")
     }
     else {
       thing.save()
