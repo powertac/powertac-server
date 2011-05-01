@@ -82,18 +82,18 @@ class CompetitionControlService
     assert adminRole.save()
 
     // Create default broker which is admin at the same time
-    def defaultBroker = Broker.findByUsername('defaultBroker') ?: new Broker(
+    /*def defaultBroker = Broker.findByUsername('defaultBroker') ?: new Broker(
         username: 'defaultBroker', local: true,
         password: springSecurityService.encodePassword('password'),
         enabled: true)
     if (!defaultBroker.save()) {
       log.error("could not save default broker")
     }
-
+*/
     // Add default broker to admin role
-    if (!defaultBroker.authorities.contains(adminRole)) {
-      BrokerRole.create defaultBroker, adminRole
-    }
+//    if (!defaultBroker.authorities.contains(adminRole)) {
+//      BrokerRole.create defaultBroker, adminRole
+//    }
 
     // Create default competition
     competition = new Competition(name: "defaultCompetition")
