@@ -15,17 +15,16 @@
  */
 package org.powertac.server
 
+import greenbill.dbstuff.DataExport
 import org.joda.time.Instant
+import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
+import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 import org.powertac.common.msg.SimStart
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
-import org.powertac.common.interfaces.CompetitionControl
-import org.powertac.common.interfaces.InitializationService
-import org.powertac.common.Role
-import greenbill.dbstuff.DataExport
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -43,16 +42,16 @@ import greenbill.dbstuff.DataExport
  * </ol>
  * @author John Collins
  */
-class CompetitionControlService 
-    implements ApplicationContextAware, CompetitionControl 
+class CompetitionControlService
+implements ApplicationContextAware, CompetitionControl
 {
   static transactional = false
-  
+
   Competition competition
-  
+
   int timeslotPhaseCount = 3 // # of phases/quartzScheduler.start()timeslot
   boolean running = false
-  
+
   def quartzScheduler
   def clockDriveJob
   def timeService // inject simulation time service dependency
@@ -63,13 +62,15 @@ class CompetitionControlService
 
   def applicationContext
 
+  def dataSource
+
   def phaseRegistrations
   int timeslotCount = 0
   long timeslotMillis
   Random randomGen
-  
-  String dumpFile = "logs/PowerTAC-dump.xml"
-  
+
+  String dumpFilePrefix = "logs/PowerTAC-dump-"
+
   /**
    * Pre-game server setup - creates the basic configuration elements
    * to make them accessible to the web-based game-setup functions.
@@ -100,7 +101,7 @@ class CompetitionControlService
     if (!competition.save()) {
       log.error("could not save competition")
     }
-    
+
     // Set up all the plugin configurations
     def initializers = getObjectsForInterface(InitializationService)
     initializers?.each { it.setDefaults() }
@@ -113,7 +114,7 @@ class CompetitionControlService
       log.error("could not save competition with plugins")
     }
   }
-  
+
   /**
    * Runs the initialization process and starts the simulation.
    */
@@ -125,13 +126,13 @@ class CompetitionControlService
       return
     // TODO - other initialization code goes here
 
-    start((long)(competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
+    start((long) (competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
   }
 
   /**
    * Sign up for notifications
    */
-  void registerTimeslotPhase(TimeslotPhaseProcessor thing, int phase)
+  void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
   {
     if (phase <= 0 || phase > timeslotPhaseCount) {
       log.error "phase ${phase} out of range (1..${timeslotPhaseCount})"
@@ -159,7 +160,7 @@ class CompetitionControlService
     // communicate start time to brokers
     SimStart startMsg = new SimStart(start: new Instant(start), brokers: Broker.list().collect { it.username })
     brokerProxyService.broadcastMessage(startMsg)
-    
+
     // Start up the clock at the correct time
     timeService.start = start
     Thread.sleep(start - new Date().getTime())
@@ -176,9 +177,9 @@ class CompetitionControlService
   void scheduleStep ()
   {
     timeService.addAction(new Instant(timeService.currentTime.millis + timeslotMillis),
-      { this.step() })
+        { this.step() })
   }
-    
+
   /**
    * Runs a step of the simulation
    */
@@ -204,7 +205,7 @@ class CompetitionControlService
       scheduleStep()
     }
   }
-  
+
   /**
    * Stops the simulation.
    */
@@ -212,7 +213,7 @@ class CompetitionControlService
   {
     running = false
   }
-  
+
   /**
    * Shuts down the simulation and cleans up
    */
@@ -222,11 +223,12 @@ class CompetitionControlService
     quartzScheduler.shutdown()
     //File dumpfile = new File(dumpFile)
     DataExport de = new DataExport()
-    de.dataSource = getDataSource()
-    de.export("*", dumpFile)
+    de.dataSource = dataSource
+    de.export("*", dumpFilePrefix, 'powertac')
   }
-  
+
   //--------- local methods -------------
+
   boolean setup ()
   {
     if (Competition.count() > 1) {
@@ -238,7 +240,7 @@ class CompetitionControlService
       log.error "no competition instance available - cannot start"
       return false
     }
-    
+
     // configure plugins
     if (!configurePlugins()) {
       log.error "failed to configure plugins"
@@ -247,7 +249,7 @@ class CompetitionControlService
 
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
-                                                 competition.id, 'game-setup')
+        competition.id, 'game-setup')
     randomGen = new Random(randomSeed)
 
     // set up broker queues (are they logged in already?)
@@ -259,12 +261,12 @@ class CompetitionControlService
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
     timeslotCount = computeGameLength(competition.minimumTimeslotCount,
-                                      competition.expectedTimeslotCount)
+        competition.expectedTimeslotCount)
     timeService.currentTime = competition.simulationBaseTime
     List<Timeslot> slots =
-        createInitialTimeslots(competition.simulationBaseTime,
-                               competition.deactivateTimeslotsAhead,
-                               competition.timeslotsOpen)
+    createInitialTimeslots(competition.simulationBaseTime,
+        competition.deactivateTimeslotsAhead,
+        competition.timeslotsOpen)
     brokerProxyService.broadcastMessage(slots)
 
     // set simulation time parameters, making sure that simulationStartTime
@@ -288,31 +290,31 @@ class CompetitionControlService
     }
     return true
   }
-  
+
   List<Timeslot> createInitialTimeslots (Instant base, int initialSlots, int openSlots)
   {
     List<Timeslot> result = []
     long start = base.millis //- timeslotMillis // first step happens before first clock update
     for (i in 0..<initialSlots) {
-      Timeslot ts = 
-          new Timeslot(serialNumber: i, 
-                       startInstant: new Instant(start + i * timeslotMillis), 
-                       endInstant: new Instant(start + (i + 1) * timeslotMillis))
+      Timeslot ts =
+      new Timeslot(serialNumber: i,
+          startInstant: new Instant(start + i * timeslotMillis),
+          endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
       //result << ts
     }
     for (i in initialSlots..<(initialSlots + openSlots)) {
       Timeslot ts =
-          new Timeslot(serialNumber: i,
-                       enabled: true,
-                       startInstant: new Instant(start + i * timeslotMillis),
-                       endInstant: new Instant(start + (i + 1) * timeslotMillis))
+      new Timeslot(serialNumber: i,
+          enabled: true,
+          startInstant: new Instant(start + i * timeslotMillis),
+          endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
       result << ts
     }
     return result
   }
-  
+
   void activateNextTimeslot ()
   {
     // first, deactivate the oldest active timeslot
@@ -321,21 +323,21 @@ class CompetitionControlService
       log.error "current timeslot is null at ${timeService.currentTime}!"
       return
     }
-    int oldSerial = current.serialNumber + competition.deactivateTimeslotsAhead -1
+    int oldSerial = current.serialNumber + competition.deactivateTimeslotsAhead - 1
     Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
     oldTs.enabled = false
     oldTs.save()
     log.info "Deactivated timeslot $oldSerial, start ${oldTs.startInstant}"
-    
+
     // then create if necessary and activate the newest timeslot
     int newSerial = current.serialNumber + competition.deactivateTimeslotsAhead + competition.timeslotsOpen
     Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
     if (newTs == null) {
       long start = current.startInstant.millis + (newSerial - current.serialNumber) * timeslotMillis
       newTs = new Timeslot(serialNumber: newSerial,
-                           enabled: true,
-                           startInstant: new Instant(start),
-                           endInstant: new Instant(start + timeslotMillis))
+          enabled: true,
+          startInstant: new Instant(start),
+          endInstant: new Instant(start + timeslotMillis))
     }
     else {
       newTs.enabled = true
@@ -345,16 +347,16 @@ class CompetitionControlService
     // Communicate timeslot updates to brokers
     brokerProxyService.broadcastMessage([oldTs, newTs])
   }
-  
-  int computeGameLength(minLength, expLength)
+
+  int computeGameLength (minLength, expLength)
   {
     double roll = randomGen.nextDouble()
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
     double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength + 1))
     //log.info('game-length k=${k}, roll=${roll}')
-    return minLength + (int)Math.floor(k)
+    return minLength + (int) Math.floor(k)
   }
-  
+
   boolean configurePlugins ()
   {
     def initializers = getObjectsForInterface(InitializationService)
@@ -399,12 +401,12 @@ class CompetitionControlService
     return true
   }
 
-  void setApplicationContext(ApplicationContext applicationContext) 
+  void setApplicationContext (ApplicationContext applicationContext)
   {
     this.applicationContext = applicationContext
   }
 
-  def getObjectsForInterface(iface) 
+  def getObjectsForInterface (iface)
   {
     def classMap = applicationContext.getBeansOfType(iface)
     classMap.collect { it.value } // return only the object, which is the maps' value

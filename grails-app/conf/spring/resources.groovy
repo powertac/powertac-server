@@ -21,4 +21,8 @@ beans = {
       brokerURL = ConfigurationHolder.config.powertac.broker.url
     }
   }
+
+  messageConverter(org.powertac.common.MessageConverter) { bean ->
+    bean.initMethod = 'afterPropertiesSet'
+  }
 }
