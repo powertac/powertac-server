@@ -69,12 +69,14 @@ if (!catalinaBase) catalinaBase = '.'   // just in case
 def logDirectory = "${catalinaBase}/logs"
 
 // default for all environments
-log4j = { root ->
+log4j = {
   appenders {
-    //rollingFile name: 'stdout', file: "${logDirectory}/${appName}.log".toString(), maxFileSize: '100KB'
-    //rollingFile name: 'stacktrace', file: "${logDirectory}/${appName}_stack.log".toString(), maxFileSize: '100KB'
-    //console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
+    console name: 'stdout',
+//        layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n"),
+        threshold: org.apache.log4j.Level.INFO
+    file name: 'file', file: 'logs/powertac-server.log', threshold: org.apache.log4j.Level.DEBUG
   }
+
 
   error 'org.codehaus.groovy.grails.web.servlet',  //  controllers
       'org.codehaus.groovy.grails.web.pages', //  GSP
@@ -89,35 +91,15 @@ log4j = { root ->
       'org.activemq'
       
   debug 'grails.app'
-      
-  root.level = org.apache.log4j.Level.INFO
+
+  root {
+    debug 'stdout', 'file'
+  }
 }
 
 // special settings with development env
 environments {
   development {
-    log4j = {
-      appenders {
-        console name: 'stdout', layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n")
-      }
-      root {
-        info()
-        additivity = true
-      }
-      warn 'org.codehaus.groovy.grails.web.servlet',  //  controllers
-           'org.codehaus.groovy.grails.web.pages', //  GSP
-           'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-           'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-           'org.codehaus.groovy.grails.web.mapping', // URL mapping
-           'org.codehaus.groovy.grails.commons', // core / classloading
-           'org.codehaus.groovy.grails.plugins', // plugins
-           'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
-           'org.springframework',
-           'org.hibernate',
-           'org.activemq'
-
-      debug 'grails.app'
-    }
   }
 }
 
