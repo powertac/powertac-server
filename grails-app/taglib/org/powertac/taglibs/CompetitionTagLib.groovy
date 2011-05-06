@@ -23,7 +23,6 @@ import java.text.DecimalFormatSymbols
 import org.apache.commons.lang.RandomStringUtils
 import org.powertac.common.Competition
 import org.powertac.common.Orderbook
-import org.powertac.common.Product
 import org.powertac.common.MarketTransaction
 import org.powertac.common.enumerations.CompetitionStatus
 
@@ -46,7 +45,6 @@ class CompetitionTagLib {
     if (competition) {
       def model = [:]
       model.competition = competition
-      model.productList = Product.findAllByEnabledAndCompetition(true, competition)
       model.transactionLogList = MarketTransaction.findAllByCompetition(competition, [sort: 'dateCreated', order: 'desc', max: 5])
       out << render(template: "currentCompetition", model: model)
     }
@@ -80,20 +78,6 @@ class CompetitionTagLib {
       out << render(template: "/announcement", model: [announcements: announcements])
     }
   }
-
-    def productAndOrderbook = {attrs, body ->
-        Product orderbookProduct = Product.get(attrs.product.id)
-
-        if (orderbookProduct) {
-            def orderbookInstance = Orderbook.withCriteria(uniqueResult: true) {
-                maxResults(1)
-                eq('product', orderbookProduct)
-                eq('outdated', false)
-            }
-
-            out << render(template: "currentCompetitionProduct", model: [productInstance: orderbookProduct, orderbookInstance: orderbookInstance])
-        }
-    }
 
     def orderbookSafeFormatter = {attrs, body ->
         def number = attrs.value
@@ -181,7 +165,7 @@ class CompetitionTagLib {
             Integer timezoneOffset = null
 
             def personInstance = Person.get(attrs.person)
-            def products = Product.findAllByCompetition(competitionInstance, [sort: 'serialNumber', order: 'asc'])
+            def products = [] 
 
             if (!products) {
                 if (attrs.type != "small") {

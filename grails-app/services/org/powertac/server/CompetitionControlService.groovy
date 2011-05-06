@@ -22,6 +22,10 @@ import org.powertac.common.msg.SimStart
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
+import org.powertac.common.interfaces.CompetitionControl
+import org.powertac.common.interfaces.InitializationService
+import org.powertac.common.Role
+import greenbill.dbstuff.DataExport
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -39,26 +43,76 @@ import org.powertac.common.*
  * </ol>
  * @author John Collins
  */
-class CompetitionControlService implements ApplicationContextAware {
-
+class CompetitionControlService 
+    implements ApplicationContextAware, CompetitionControl 
+{
   static transactional = false
   
   Competition competition
   
-  int timeslotPhaseCount = 3 // # of phases/timeslot
+  int timeslotPhaseCount = 3 // # of phases/quartzScheduler.start()timeslot
   boolean running = false
   
   def quartzScheduler
   def clockDriveJob
   def timeService // inject simulation time service dependency
   def jmsManagementService
+  def springSecurityService
   def brokerProxyService
+  def randomSeedService
 
   def applicationContext
 
   def phaseRegistrations
   int timeslotCount = 0
   long timeslotMillis
+  Random randomGen
+  
+  String dumpFile = "logs/PowerTAC-dump.xml"
+  
+  /**
+   * Pre-game server setup - creates the basic configuration elements
+   * to make them accessible to the web-based game-setup functions.
+   */
+  void preGame ()
+  {
+    log.info "pre-game initialization"
+    // Create admin role
+    def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
+    assert adminRole.save()
+
+    // Create default broker which is admin at the same time
+    def defaultBroker = Broker.findByUsername('defaultBroker') ?: new Broker(
+        username: 'defaultBroker', local: true,
+        password: springSecurityService.encodePassword('password'),
+        enabled: true)
+    if (!defaultBroker.save()) {
+      log.error("could not save default broker")
+    }
+
+    // Add default broker to admin role
+    if (!defaultBroker.authorities.contains(adminRole)) {
+      BrokerRole.create defaultBroker, adminRole
+    }
+
+    // Create default competition
+    competition = new Competition(name: "defaultCompetition")
+    if (!competition.save()) {
+      log.error("could not save competition")
+    }
+    
+    // Set up all the plugin configurations
+    def initializers = getObjectsForInterface(InitializationService)
+    initializers?.each { it.setDefaults() }
+    // configure competition instance
+    PluginConfig.list().each { config ->
+      log.info("adding plugin ${config}")
+      competition.addToPlugins(config)
+    }
+    if (!competition.save()) {
+      log.error("could not save competition with plugins")
+    }
+  }
   
   /**
    * Runs the initialization process and starts the simulation.
@@ -70,6 +124,7 @@ class CompetitionControlService implements ApplicationContextAware {
     if (setup() == false)
       return
     // TODO - other initialization code goes here
+
     start((long)(competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
   }
 
@@ -91,7 +146,7 @@ class CompetitionControlService implements ApplicationContextAware {
       phaseRegistrations[phase - 1].add(thing)
     }
   }
-  
+
   /**
    * Starts the simulation.  
    */
@@ -101,9 +156,8 @@ class CompetitionControlService implements ApplicationContextAware {
     // wait for start time
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
-    competition.simulationStartTime = new Instant(start)
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: simulationStartTime)
+    SimStart startMsg = new SimStart(start: new Instant(start), brokers: Broker.list().collect { it.username })
     brokerProxyService.broadcastMessage(startMsg)
     
     // Start up the clock at the correct time
@@ -132,7 +186,7 @@ class CompetitionControlService implements ApplicationContextAware {
   {
     if (!running) {
       log.info("Stop simulation")
-      return
+      shutDown()
     }
     def time = timeService.currentTime
     log.info "step at $time"
@@ -141,8 +195,9 @@ class CompetitionControlService implements ApplicationContextAware {
     }
     if (--timeslotCount <= 0) {
       log.info "Stopping simulation"
-      // TODO - variable length game (optional?)
+      // 
       running = false
+      shutDown()
     }
     else {
       activateNextTimeslot()
@@ -158,6 +213,19 @@ class CompetitionControlService implements ApplicationContextAware {
     running = false
   }
   
+  /**
+   * Shuts down the simulation and cleans up
+   */
+  void shutDown ()
+  {
+    running = false
+    quartzScheduler.shutdown()
+    //File dumpfile = new File(dumpFile)
+    DataExport de = new DataExport()
+    de.dataSource = getDataSource()
+    de.export("*", dumpFile)
+  }
+  
   //--------- local methods -------------
   boolean setup ()
   {
@@ -170,17 +238,34 @@ class CompetitionControlService implements ApplicationContextAware {
       log.error "no competition instance available - cannot start"
       return false
     }
+    
+    // configure plugins
+    if (!configurePlugins()) {
+      log.error "failed to configure plugins"
+      return false
+    }
+
+    // set up random sequence for CCS
+    long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
+                                                 competition.id, 'game-setup')
+    randomGen = new Random(randomSeed)
+
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
-    
+
+    // Publish Competition object at right place - when exactly?
+    brokerProxyService.broadcastMessage(competition)
+
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
-    timeslotCount = competition.minimumTimeslotCount
+    timeslotCount = computeGameLength(competition.minimumTimeslotCount,
+                                      competition.expectedTimeslotCount)
     timeService.currentTime = competition.simulationBaseTime
-    createInitialTimeslots(competition.simulationBaseTime,
-                           competition.deactivateTimeslotsAhead,
-                           competition.timeslotsOpen)
-    // TODO - send open timeslots to brokers
+    List<Timeslot> slots =
+        createInitialTimeslots(competition.simulationBaseTime,
+                               competition.deactivateTimeslotsAhead,
+                               competition.timeslotsOpen)
+    brokerProxyService.broadcastMessage(slots)
 
     // set simulation time parameters, making sure that simulationStartTime
     // is still sufficiently in the future.
@@ -201,13 +286,12 @@ class CompetitionControlService implements ApplicationContextAware {
       CustomerInfo customerInfo = customer.generateCustomerInfo()
       brokerProxyService.broadcastMessage(customerInfo)
     }
-
     return true
   }
   
-  void createInitialTimeslots (Instant base, int initialSlots,
-                                       int openSlots)
+  List<Timeslot> createInitialTimeslots (Instant base, int initialSlots, int openSlots)
   {
+    List<Timeslot> result = []
     long start = base.millis //- timeslotMillis // first step happens before first clock update
     for (i in 0..<initialSlots) {
       Timeslot ts = 
@@ -215,6 +299,7 @@ class CompetitionControlService implements ApplicationContextAware {
                        startInstant: new Instant(start + i * timeslotMillis), 
                        endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
+      //result << ts
     }
     for (i in initialSlots..<(initialSlots + openSlots)) {
       Timeslot ts =
@@ -223,7 +308,9 @@ class CompetitionControlService implements ApplicationContextAware {
                        startInstant: new Instant(start + i * timeslotMillis),
                        endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
+      result << ts
     }
+    return result
   }
   
   void activateNextTimeslot ()
@@ -255,14 +342,70 @@ class CompetitionControlService implements ApplicationContextAware {
     }
     newTs.save()
     log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
-    // TODO - communicate timeslot updates to brokers
+    // Communicate timeslot updates to brokers
+    brokerProxyService.broadcastMessage([oldTs, newTs])
+  }
+  
+  int computeGameLength(minLength, expLength)
+  {
+    double roll = randomGen.nextDouble()
+    // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
+    double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength + 1))
+    //log.info('game-length k=${k}, roll=${roll}')
+    return minLength + (int)Math.floor(k)
+  }
+  
+  boolean configurePlugins ()
+  {
+    def initializers = getObjectsForInterface(InitializationService)
+    List completedPlugins = []
+    List deferredInitializers = []
+    for (initializer in initializers) {
+      String success = initializer.initialize(competition, completedPlugins)
+      if (success == null) {
+        // defer this one
+        log.info("deferring ${initializer}")
+        deferredInitializers << initializer
+      }
+      else if (success == 'fail') {
+        log.error "Failed to initialize plugin ${initializer}"
+        return false
+      }
+      else {
+        log.info("completed ${success}")
+        completedPlugins << success
+      }
+    }
+    int tryCounter = deferredInitializers.size()
+    List remaining = deferredInitializers
+    while (deferredInitializers.size() > 0 && tryCounter > 0) {
+      InitializationService init = remaining[0]
+      remaining = remaining[1..(remaining.size() - 1)]
+      tryCounter -= 1
+      String success = initializer.initialize(competition, completedPlugins)
+      if (success == null) {
+        // defer this one
+        log.info("deferring ${initializer}")
+        remaining << initializer
+      }
+      else {
+        log.info("completed ${success}")
+        completedPlugins << success
+      }
+    }
+    remaining*.each { initializer ->
+      log.error("Failed to initialize ${initializer}")
+    }
+    return true
   }
 
-  void setApplicationContext(ApplicationContext applicationContext) {
+  void setApplicationContext(ApplicationContext applicationContext) 
+  {
     this.applicationContext = applicationContext
   }
 
-  def getObjectsForInterface(iface) {
+  def getObjectsForInterface(iface) 
+  {
     def classMap = applicationContext.getBeansOfType(iface)
     classMap.collect { it.value } // return only the object, which is the maps' value
   }

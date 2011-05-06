@@ -11,6 +11,7 @@
 	<classpathentry kind="src" path="test/unit"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="com.springsource.sts.grails.core.CLASSPATH_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-genco"/>
 	<classpathentry excluding="BuildConfig.groovy|*DataSource.groovy|UrlMappings.groovy|Config.groovy|BootStrap.groovy|spring/resources.groovy" kind="src" path=".link_to_grails_plugins/quartz-0.4.2/grails-app/conf">
 		<attributes>
 			<attribute name="com.springsource.sts.grails.core.SOURCE_FOLDER" value="true"/>
@@ -181,6 +182,10 @@
 			<attribute name="com.springsource.sts.grails.core.SOURCE_FOLDER" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/powertac-genco"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-auctioneer-pda"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-broker-default"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-distribution-utility"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-household-customer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-random"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>

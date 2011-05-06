@@ -26,6 +26,7 @@ import org.apache.activemq.broker.jmx.QueueViewMBean
 import javax.jms.JMSException
 import org.powertac.common.Competition
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import org.powertac.common.Broker
 
 /**
  * This is the JMS management service. It can create and delete queues for JMS communication with brokers and also
@@ -85,7 +86,8 @@ class JmsManagementService {
       BrokerViewMBean mbean = getMBean()
       mbean.addQueue('server.inputQueue')
 
-      def brokers = Competition.currentCompetition()?.brokers
+      //def brokers = Competition.currentCompetition()?.brokers
+      def brokers = Broker.list()
       brokers.each { broker ->
         mbean.addQueue(broker?.toQueueName())
       }

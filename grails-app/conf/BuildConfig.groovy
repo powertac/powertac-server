@@ -7,6 +7,7 @@ grails.project.test.reports.dir = "target/test-reports"
 grails.plugin.location.PowertacCommon = "../powertac-common"
 grails.plugin.location.PowertacServerInterface = "../powertac-server-interface"
 grails.plugin.location.PowertacAccountingService = "../powertac-accounting-service"
+grails.plugin.location.PowertacAuctioneerPda = "../powertac-auctioneer-pda"
 grails.plugin.location.PowertacWebApp = "../powertac-web-app"
 grails.plugin.location.PowertacRandom = "../powertac-random"
 grails.plugin.location.PowertacGenco = "../powertac-genco"
@@ -42,7 +43,7 @@ grails.project.dependency.resolution = {
   plugins {
     //compile "org.powertac.plugins:powertac-common:0.9 > *"
     //compile "powertac-common"
-
+    compile ":db-stuff:0.3.0"
   }
 
   dependencies {

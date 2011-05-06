@@ -17,26 +17,57 @@ package org.powertac.server
 
 import grails.plugin.jms.Queue
 import org.powertac.common.Broker
-import grails.converters.XML
+import com.thoughtworks.xstream.*
 import javax.jms.JMSException
-import org.powertac.common.Competition
+import org.powertac.common.*
+import org.powertac.common.msg.*
 import org.powertac.common.interfaces.BrokerProxy
-import org.powertac.common.interfaces.BrokerTariffListener
-import org.powertac.common.interfaces.BrokerMarketListener
+import org.powertac.common.interfaces.BrokerMessageListener
 
 /**
  * BrokerProxyService is responsible for handling in- and outgoing communication with brokers
  * @author David Dauer
  */
-class BrokerProxyService implements BrokerProxy {
+class BrokerProxyService 
+    implements BrokerProxy,
+               org.springframework.beans.factory.InitializingBean
+{
 
   static transactional = true
   static expose = ['jms']
 
   def jmsService
+  
+  XStream xstream
 
-  def tariffRegistrations = []
-  def marketRegistrations = []
+  Set tariffRegistrations = []
+  Set marketRegistrations = []
+  Set tariffMessageTypes = 
+    [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
+     TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
+  
+  void afterPropertiesSet ()
+  {
+    xstream = new XStream()
+    xstream.processAnnotations(Competition.class)
+    xstream.processAnnotations(SimStart.class)
+    xstream.processAnnotations(CustomerInfo.class)
+    xstream.processAnnotations(CashPosition.class)
+    xstream.processAnnotations(Timeslot.class)
+    xstream.processAnnotations(ClearedTrade.class)
+    xstream.processAnnotations(MarketPosition.class)
+    xstream.processAnnotations(MarketTransaction.class)
+    xstream.processAnnotations(Shout.class)
+    xstream.processAnnotations(TariffStatus.class)
+    xstream.processAnnotations(TariffTransaction.class)
+    xstream.processAnnotations(TariffSpecification.class)
+    xstream.processAnnotations(Rate.class)
+    xstream.processAnnotations(HourlyCharge.class)
+    xstream.processAnnotations(TariffUpdate.class)
+    xstream.processAnnotations(TariffExpire.class)
+    xstream.processAnnotations(TariffRevoke.class)
+    xstream.processAnnotations(VariableRateUpdate.class)
+  }
 
 /**
  * Send a message to a specific broker
@@ -47,11 +78,12 @@ class BrokerProxyService implements BrokerProxy {
       return
     }
     def queueName = broker.toQueueName()
-    def xml = messageObject as XML
+    String xml = xstream.toXML(messageObject)
     try {
-      jmsService.send(queueName, xml.toString())
+      jmsService.send(queueName, xml)
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
+      log.error "Failed to send message to queue '$queueName' ($xml)"
+      //throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
     }
   }
 
@@ -59,64 +91,91 @@ class BrokerProxyService implements BrokerProxy {
  * Send a list of messages to a specific broker
  */
   void sendMessages(Broker broker, List<?> messageObjects) {
-    messageObjects?.each { message ->
-      sendMessage(broker, message)
-    }
+    sendMessage(broker, messageObjects)
   }
 
 /**
  * Send a message to all brokers
  */
   void broadcastMessage(Object messageObject) {
-    def xml = messageObject as XML
-    broadcastMessage(xml.toString())
+    String xml = xstream.toXML(messageObject)
+    broadcastMessage(xml)
 
     // Include local brokers
-    def localBrokers = Broker.findAll { (it.local) }
+    def localBrokers = Broker.list().findAll { (it.local) }
     localBrokers*.receiveMessage(messageObject)
   }
 
   void broadcastMessage(String text) {
-    def brokerQueueNames = Broker.findAll { !(it.local) }?.collect { it.toQueueName() }
+    def brokerQueueNames = Broker.list().findAll { !(it.local) }?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
     log.info("Broadcast queue name is ${queueName}")
     try {
       jmsService.send(queueName, text)
     } catch (Exception e) {
-      throw new JMSException("Failed to send message to queue '$queueName' ($xml)")
+      log.error "Failed to send message to queue '$queueName' ($text)"
+      //throw new JMSException("Failed to send message to queue '$queueName' ($text)")
     }
   }
 
 /**
  * Sends a list of messages to all brokers
  */
-  void broadcastMessages(List<?> messageObjects) {
-    messageObjects?.each { message ->
-      broadcastMessage(message)
-    }
+  void broadcastMessages(List<?> messageObjects) 
+  {
+    broadcastMessage(messageObjects)
   }
 
 /**
  * Receives and routes all incoming messages
  */
   @Queue(name = "server.inputQueue")
-  def receiveMessage(String xmlMessage) {
-    //  def xml = new XmlSlurper().parseText(xmlMessage)
+  void receiveMessage(String xmlMessage) 
+  {
+    def thing = xstream.fromXML(xmlMessage)
     log.debug "received ${xmlMessage}"
-    broadcastMessage("test")
+    
+    // persist incoming messages (#169)
+    if (!thing.validate()) {
+      log.warn("validation error on ${xmlMessage}: ${thing.errors.allErrors.collect {it.toString()}}")
+    }
+    else {
+      thing.save()
+      routeMessage(thing)
+    }
+  }
+  
+  void routeMessage(Object thing)
+  {
+    // dispatch to listeners
+    if (tariffMessageTypes.contains(thing.class)) {
+      tariffRegistrations.each { listener ->
+        listener.receiveMessage(thing)
+      }
+    }
+    else {
+      marketRegistrations.each { listener ->
+        listener.receiveMessage(thing)
+      }
+    }
+
+    //broadcastMessage("I got your message")
+    //log.debug "receiveMessage - end"
   }
 
 /**
  * Should be called if tariff-related incoming broker messages should be sent to listener
  */
-  void registerBrokerTariffListener(BrokerTariffListener listener) {
+  void registerBrokerTariffListener(BrokerMessageListener listener) 
+  {
     tariffRegistrations.add(listener)
   }
 
 /**
  * Should be called if market-related incoming broker messages should be sent to listener
  */
-  void registerBrokerMarketListener(BrokerMarketListener listener) {
+  void registerBrokerMarketListener(BrokerMessageListener listener) 
+  {
     marketRegistrations.add(listener)
   }
 }

@@ -88,7 +88,7 @@ log4j = { root ->
       'org.hibernate',
       'org.activemq'
       
-  info 'grails.app'
+  debug 'grails.app'
       
   root.level = org.apache.log4j.Level.INFO
 }
@@ -116,7 +116,7 @@ environments {
            'org.hibernate',
            'org.activemq'
 
-      info 'grails.app'
+      debug 'grails.app'
     }
   }
 }
