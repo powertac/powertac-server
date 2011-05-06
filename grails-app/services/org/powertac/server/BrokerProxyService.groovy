@@ -17,7 +17,6 @@ package org.powertac.server
 
 import grails.plugin.jms.Queue
 import org.powertac.common.Broker
-import com.thoughtworks.xstream.*
 import javax.jms.JMSException
 import org.powertac.common.*
 import org.powertac.common.msg.*
@@ -37,8 +36,8 @@ class BrokerProxyService
   static expose = ['jms']
 
   def jmsService
-  
-  XStream xstream
+  def messageConverter
+
 
   Set tariffRegistrations = []
   Set marketRegistrations = []
@@ -46,28 +45,7 @@ class BrokerProxyService
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
   
-  void afterPropertiesSet ()
-  {
-    xstream = new XStream()
-    xstream.processAnnotations(Competition.class)
-    xstream.processAnnotations(SimStart.class)
-    xstream.processAnnotations(CustomerInfo.class)
-    xstream.processAnnotations(CashPosition.class)
-    xstream.processAnnotations(Timeslot.class)
-    xstream.processAnnotations(ClearedTrade.class)
-    xstream.processAnnotations(MarketPosition.class)
-    xstream.processAnnotations(MarketTransaction.class)
-    xstream.processAnnotations(Shout.class)
-    xstream.processAnnotations(TariffStatus.class)
-    xstream.processAnnotations(TariffTransaction.class)
-    xstream.processAnnotations(TariffSpecification.class)
-    xstream.processAnnotations(Rate.class)
-    xstream.processAnnotations(HourlyCharge.class)
-    xstream.processAnnotations(TariffUpdate.class)
-    xstream.processAnnotations(TariffExpire.class)
-    xstream.processAnnotations(TariffRevoke.class)
-    xstream.processAnnotations(VariableRateUpdate.class)
-  }
+  void afterPropertiesSet ()  {}
 
 /**
  * Send a message to a specific broker
@@ -78,7 +56,7 @@ class BrokerProxyService
       return
     }
     def queueName = broker.toQueueName()
-    String xml = xstream.toXML(messageObject)
+    String xml = messageConverter.toXML(messageObject)
     try {
       jmsService.send(queueName, xml)
     } catch (Exception e) {
@@ -98,7 +76,7 @@ class BrokerProxyService
  * Send a message to all brokers
  */
   void broadcastMessage(Object messageObject) {
-    String xml = xstream.toXML(messageObject)
+    String xml = messageConverter.toXML(messageObject)
     broadcastMessage(xml)
 
     // Include local brokers
@@ -132,7 +110,7 @@ class BrokerProxyService
   @Queue(name = "server.inputQueue")
   void receiveMessage(String xmlMessage) 
   {
-    def thing = xstream.fromXML(xmlMessage)
+    def thing = messageConverter.fromXML(xmlMessage)
     log.debug "received ${xmlMessage}"
     
     // persist incoming messages (#169)
