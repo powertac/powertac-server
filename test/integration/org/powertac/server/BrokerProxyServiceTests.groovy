@@ -19,8 +19,10 @@ import org.hibernate.SessionFactory
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Instant
-import org.powertac.common.Broker;
+import org.powertac.common.Broker
 import org.powertac.common.BrokerRole
+import org.powertac.common.Competition
+import org.powertac.common.PluginConfig
 import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
 import org.powertac.common.Tariff
@@ -42,6 +44,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
 {
   
   def timeService
+  def tariffMarketInitializationService
   def tariffMarketService
   def brokerProxyService
   def competitionControlService
@@ -52,6 +55,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   Broker jim
   def jimMsgs = []
   
+  Competition comp
   TariffSpecification tariffSpec
   Shout incomingShout
   ProductType sampleProduct
@@ -66,6 +70,15 @@ class BrokerProxyServiceTests extends GroovyTestCase
     TariffSpecification.list()*.delete()
     Tariff.list()*.delete()
     //Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
+    
+    // create a Competition, needed for initialization
+    if (Competition.count() == 0) {
+      comp = new Competition(name: 'broker-proxy-test')
+      assert comp.save()
+    }
+    else {
+      comp = Competition.list().first()
+    }
 
     // init time service
     def start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant()
@@ -74,6 +87,11 @@ class BrokerProxyServiceTests extends GroovyTestCase
     // set up plugins
     //competitionControlService.preGame()
     competitionControlService.configurePlugins()
+    
+    // initialize the tariff market
+    //PluginConfig.findByRoleName('TariffMarket')?.delete()
+    tariffMarketInitializationService.setDefaults()
+    tariffMarketInitializationService.initialize(comp, ['AccountingService'])
 
     Broker.findByUsername('Bob')?.delete()
     bob = new Broker(username: "Bob", local: true)
@@ -88,7 +106,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
                                          minDuration: TimeService.WEEK * 8)
     Rate r1 = new Rate(value: 0.121)
     tariffSpec.rates = [r1]
-    tariffMarketService.afterPropertiesSet()
     println "tariffSpec id: ${tariffSpec.id}, r1 id: ${r1.id}"
 
     // Shout initialization
