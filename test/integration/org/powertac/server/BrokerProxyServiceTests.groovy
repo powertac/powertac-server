@@ -163,10 +163,11 @@ class BrokerProxyServiceTests extends GroovyTestCase
     sessionFactory.currentSession.clear()
     
     // send the message through the proxy service
+    // result should be three tariffs, because the defaults are there also
     brokerProxyService.receiveMessage(xml)
     List<TariffSpecification> tss = TariffSpecification.list()
-    assertEquals("1 spec", 1, tss.size())
-    assertEquals("correct id", tsid, tss[0].id)
+    assertEquals("3 specs", 3, tss.size())
+    assertEquals("correct id", tsid, tss[2].id)
     assertNotSame("different object", tariffSpec, tss[0])
   }
 
