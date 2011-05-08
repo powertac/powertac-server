@@ -223,6 +223,7 @@ implements ApplicationContextAware, CompetitionControl
     running = false
     quartzScheduler.shutdown()
     //File dumpfile = new File(dumpFile)
+
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export("*", dumpFilePrefix, 'powertac')
@@ -390,12 +391,12 @@ implements ApplicationContextAware, CompetitionControl
     while (deferredInitializers.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
       remaining = (remaining.size() > 1) ? remaining[1..(remaining.size() - 1)] : []
-      tryCounter -= 1
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
         log.info("deferring ${initializer}")
         remaining << initializer
+        tryCounter -= 1
       }
       else {
         log.info("completed ${success}")
