@@ -388,7 +388,7 @@ implements ApplicationContextAware, CompetitionControl
     }
     int tryCounter = deferredInitializers.size()
     List remaining = deferredInitializers
-    while (deferredInitializers.size() > 0 && tryCounter > 0) {
+    while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
       remaining = (remaining.size() > 1) ? remaining[1..(remaining.size() - 1)] : []
       String success = initializer.initialize(competition, completedPlugins)
