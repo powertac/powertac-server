@@ -15,13 +15,14 @@
  */
 package org.powertac.server
 
-import greenbill.dbstuff.DataExport
+//import greenbill.dbstuff.DataExport
 import org.joda.time.Instant
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 import org.powertac.common.msg.SimStart
+import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
@@ -222,9 +223,9 @@ implements ApplicationContextAware, CompetitionControl
     running = false
     quartzScheduler.shutdown()
     //File dumpfile = new File(dumpFile)
-    DataExport de = new DataExport()
-    de.dataSource = dataSource
-    de.export("*", dumpFilePrefix, 'powertac')
+    //DataExport de = new DataExport()
+    //de.dataSource = dataSource
+    //de.export("*", dumpFilePrefix, 'powertac')
   }
 
   //--------- local methods -------------
@@ -269,7 +270,9 @@ implements ApplicationContextAware, CompetitionControl
         createInitialTimeslots(competition.simulationBaseTime,
                                competition.deactivateTimeslotsAhead,
                                competition.timeslotsOpen)
-    brokerProxyService.broadcastMessage(slots)
+    TimeslotUpdate msg = new TimeslotUpdate(enabled: slots)
+    msg.save()
+    brokerProxyService.broadcastMessage(msg)
 
     // set simulation time parameters, making sure that simulationStartTime
     // is still sufficiently in the future.
@@ -347,7 +350,9 @@ implements ApplicationContextAware, CompetitionControl
     newTs.save()
     log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
     // Communicate timeslot updates to brokers
-    brokerProxyService.broadcastMessage([oldTs, newTs])
+    TimeslotUpdate msg = new TimeslotUpdate(enabled: [newTs], disabled: [oldTs])
+    msg.save()
+    brokerProxyService.broadcastMessage(msg)
   }
 
   int computeGameLength (minLength, expLength)
