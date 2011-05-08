@@ -390,7 +390,6 @@ implements ApplicationContextAware, CompetitionControl
     while (deferredInitializers.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
       remaining = (remaining.size() > 1) ? remaining[1..(remaining.size() - 1)] : []
-      tryCounter -= 1
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
@@ -400,6 +399,7 @@ implements ApplicationContextAware, CompetitionControl
       else {
         log.info("completed ${success}")
         completedPlugins << success
+        tryCounter -= 1
       }
     }
     remaining*.each { initializer ->
