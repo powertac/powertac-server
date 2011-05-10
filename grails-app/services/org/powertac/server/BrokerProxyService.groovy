@@ -36,7 +36,7 @@ class BrokerProxyService
   static expose = ['jms']
 
   def jmsService
-  def messageConverter
+  MessageConverter messageConverter = new MessageConverter()
 
 
   Set tariffRegistrations = []
