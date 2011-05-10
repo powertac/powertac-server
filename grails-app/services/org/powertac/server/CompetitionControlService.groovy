@@ -22,6 +22,7 @@ import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 import org.powertac.common.msg.SimStart
+import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
@@ -222,6 +223,7 @@ implements ApplicationContextAware, CompetitionControl
     running = false
     quartzScheduler.shutdown()
     //File dumpfile = new File(dumpFile)
+
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export("*", dumpFilePrefix, 'powertac')
@@ -241,6 +243,9 @@ implements ApplicationContextAware, CompetitionControl
       return false
     }
 
+    // set the clock before configuring plugins - some of them need to know the time.
+    timeService.currentTime = competition.simulationBaseTime
+    
     // configure plugins
     if (!configurePlugins()) {
       log.error "failed to configure plugins"
@@ -249,7 +254,7 @@ implements ApplicationContextAware, CompetitionControl
 
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
-        competition.id, 'game-setup')
+                                                 competition.id, 'game-setup')
     randomGen = new Random(randomSeed)
 
     // set up broker queues (are they logged in already?)
@@ -261,13 +266,14 @@ implements ApplicationContextAware, CompetitionControl
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
     timeslotCount = computeGameLength(competition.minimumTimeslotCount,
-        competition.expectedTimeslotCount)
-    timeService.currentTime = competition.simulationBaseTime
+                                      competition.expectedTimeslotCount)
     List<Timeslot> slots =
-    createInitialTimeslots(competition.simulationBaseTime,
-        competition.deactivateTimeslotsAhead,
-        competition.timeslotsOpen)
-    brokerProxyService.broadcastMessage(slots)
+        createInitialTimeslots(competition.simulationBaseTime,
+                               competition.deactivateTimeslotsAhead,
+                               competition.timeslotsOpen)
+    TimeslotUpdate msg = new TimeslotUpdate(enabled: slots)
+    msg.save()
+    brokerProxyService.broadcastMessage(msg)
 
     // set simulation time parameters, making sure that simulationStartTime
     // is still sufficiently in the future.
@@ -345,7 +351,9 @@ implements ApplicationContextAware, CompetitionControl
     newTs.save()
     log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
     // Communicate timeslot updates to brokers
-    brokerProxyService.broadcastMessage([oldTs, newTs])
+    TimeslotUpdate msg = new TimeslotUpdate(enabled: [newTs], disabled: [oldTs])
+    msg.save()
+    brokerProxyService.broadcastMessage(msg)
   }
 
   int computeGameLength (minLength, expLength)
@@ -380,15 +388,15 @@ implements ApplicationContextAware, CompetitionControl
     }
     int tryCounter = deferredInitializers.size()
     List remaining = deferredInitializers
-    while (deferredInitializers.size() > 0 && tryCounter > 0) {
+    while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
       remaining = (remaining.size() > 1) ? remaining[1..(remaining.size() - 1)] : []
-      tryCounter -= 1
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
         log.info("deferring ${initializer}")
         remaining << initializer
+        tryCounter -= 1
       }
       else {
         log.info("completed ${success}")
