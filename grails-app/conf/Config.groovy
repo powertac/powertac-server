@@ -75,6 +75,7 @@ log4j = {
 //        layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n"),
         threshold: org.apache.log4j.Level.INFO
     file name: 'file', file: 'logs/powertac-server.log', threshold: org.apache.log4j.Level.DEBUG
+		file name: 'auctionLogger', file: 'logs/auctioneer.log', threshold: org.apache.log4j.Level.DEBUG
   }
 
 
@@ -91,6 +92,8 @@ log4j = {
       'org.activemq'
       
   debug 'grails.app'
+	
+	debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
 
   root {
     debug 'stdout', 'file'
