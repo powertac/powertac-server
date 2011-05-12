@@ -193,9 +193,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertEquals(BuySellIndicator.BUY, persistedShout.buySellIndicator)
     assertEquals(10.0, persistedShout.limitPrice)
     assertEquals(200.0, persistedShout.quantity)
-
-    //Todo: product is not deserialized correctly
-    //assertEquals(sampleProduct, persistedShout.product)
+    assertEquals(sampleProduct, persistedShout.product)
 
   }
 
