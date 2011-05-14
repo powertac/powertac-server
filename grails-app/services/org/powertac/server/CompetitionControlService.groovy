@@ -59,6 +59,7 @@ implements ApplicationContextAware, CompetitionControl
   def jmsManagementService
   def springSecurityService
   def brokerProxyService
+  def tariffMarketService
   def randomSeedService
 
   def applicationContext
@@ -127,7 +128,8 @@ implements ApplicationContextAware, CompetitionControl
       return
     // TODO - other initialization code goes here
 
-    start((long) (competition.timeslotLength * TimeService.MINUTE / competition.simulationRate))
+    start((long) (competition.timeslotLength * TimeService.MINUTE /
+		  competition.simulationRate))
   }
 
   /**
@@ -159,7 +161,9 @@ implements ApplicationContextAware, CompetitionControl
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: new Instant(start), brokers: Broker.list().collect { it.username })
+    SimStart startMsg = new SimStart(start: new Instant(start),
+				     brokers: Broker.list().collect {
+				       it.username })
     brokerProxyService.broadcastMessage(startMsg)
 
     // Start up the clock at the correct time
@@ -177,8 +181,9 @@ implements ApplicationContextAware, CompetitionControl
    */
   void scheduleStep ()
   {
-    timeService.addAction(new Instant(timeService.currentTime.millis + timeslotMillis),
-        { this.step() })
+    timeService.addAction(new Instant(timeService.currentTime.millis +
+				      timeslotMillis),
+			  { this.step() })
   }
 
   /**
@@ -243,7 +248,8 @@ implements ApplicationContextAware, CompetitionControl
       return false
     }
 
-    // set the clock before configuring plugins - some of them need to know the time.
+    // set the clock before configuring plugins - some of them need to
+    // know the time.
     timeService.currentTime = competition.simulationBaseTime
     
     // configure plugins
@@ -262,6 +268,10 @@ implements ApplicationContextAware, CompetitionControl
 
     // Publish Competition object at right place - when exactly?
     brokerProxyService.broadcastMessage(competition)
+
+    // Publish default tariffs - they should have been created above
+    // in the call to configurePlugins()
+    tariffMarketService.publishTariffs()
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
@@ -297,10 +307,13 @@ implements ApplicationContextAware, CompetitionControl
     return true
   }
 
-  List<Timeslot> createInitialTimeslots (Instant base, int initialSlots, int openSlots)
+  List<Timeslot> createInitialTimeslots (Instant base,
+					 int initialSlots,
+					 int openSlots)
   {
     List<Timeslot> result = []
-    long start = base.millis //- timeslotMillis // first step happens before first clock update
+    long start = base.millis //- timeslotMillis
+                             // first step happens before first clock update
     for (i in 0..<initialSlots) {
       Timeslot ts =
       new Timeslot(serialNumber: i,
@@ -329,17 +342,21 @@ implements ApplicationContextAware, CompetitionControl
       log.error "current timeslot is null at ${timeService.currentTime}!"
       return
     }
-    int oldSerial = current.serialNumber + competition.deactivateTimeslotsAhead - 1
+    int oldSerial = (current.serialNumber +
+		     competition.deactivateTimeslotsAhead - 1)
     Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
     oldTs.enabled = false
     oldTs.save()
     log.info "Deactivated timeslot $oldSerial, start ${oldTs.startInstant}"
 
     // then create if necessary and activate the newest timeslot
-    int newSerial = current.serialNumber + competition.deactivateTimeslotsAhead + competition.timeslotsOpen
+    int newSerial = (current.serialNumber +
+		     competition.deactivateTimeslotsAhead +
+		     competition.timeslotsOpen)
     Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
     if (newTs == null) {
-      long start = current.startInstant.millis + (newSerial - current.serialNumber) * timeslotMillis
+      long start = (current.startInstant.millis +
+		    (newSerial - current.serialNumber) * timeslotMillis)
       newTs = new Timeslot(serialNumber: newSerial,
           enabled: true,
           startInstant: new Instant(start),
@@ -360,7 +377,9 @@ implements ApplicationContextAware, CompetitionControl
   {
     double roll = randomGen.nextDouble()
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
-    double k = Math.log(1.0 - roll) / Math.log(1.0 - 1.0 / (expLength - minLength + 1))
+    double k = (Math.log(1.0 - roll) /
+		Math.log(1.0 - 1.0 /
+			 (expLength - minLength + 1)))
     //log.info('game-length k=${k}, roll=${roll}')
     return minLength + (int) Math.floor(k)
   }
@@ -390,7 +409,8 @@ implements ApplicationContextAware, CompetitionControl
     List remaining = deferredInitializers
     while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
-      remaining = (remaining.size() > 1) ? remaining[1..(remaining.size() - 1)] : []
+      remaining = (remaining.size() > 1) ?
+                   remaining[1..(remaining.size() - 1)] : []
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
@@ -417,6 +437,7 @@ implements ApplicationContextAware, CompetitionControl
   def getObjectsForInterface (iface)
   {
     def classMap = applicationContext.getBeansOfType(iface)
-    classMap.collect { it.value } // return only the object, which is the maps' value
+    classMap.collect { it.value } // return only the object, which is
+				  // the maps' value
   }
 }
