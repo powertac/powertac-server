@@ -28,8 +28,7 @@ import org.powertac.common.interfaces.BrokerMessageListener
  * @author David Dauer
  */
 class BrokerProxyService 
-    implements BrokerProxy,
-               org.springframework.beans.factory.InitializingBean
+    implements BrokerProxy
 {
 
   static transactional = true
@@ -45,8 +44,6 @@ class BrokerProxyService
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
   
-  void afterPropertiesSet ()  {}
-
 /**
  * Send a message to a specific broker
  */
