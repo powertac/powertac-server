@@ -36,8 +36,42 @@ each one.
 Significant outstanding issues from the github ticket system at
 https://github.com/powertac/powertac-server/issues:
 
+#90 - javadoc generation does not work. This is a bug in Grails, which
+ might be overcome with a customer ant script that is so far not
+ written.
+
+#117 - winner determination algorithm not yet implemented to
+ specification.
+
+#133 - database dump and server recycle at end-of-game are not yet
+ working. 
+
+#134 - customer models do not yet produce any power. They are strictly
+ consumers.
+
+#172 - customer tariff subscription algorithm is not yet implemented
+ as defined in the specification.
+
+#174 - game visualizer is not yet ready.
+
+#175 - the weather service is not yet available.
+
+#184 - load and price profiles are not available to brokers at
+ startup.
+
+#185 - the balancing algorithm is primitive, does not match the
+ specification.
+
 #217 - default tariffs are broadcast at the first tariff broadcast
  time, not at the beginning as they should be.
 
 #219 - market clearing transfers funds in the wrong direction - from
  seller to buyer rather than buyer to seller.
+
+#222 - performance is not where we would like it. In the meantime, it
+ is necessary to run timeslots somewhat longer than 5 seconds. The
+ default is currently set at 12 seconds. This is easy to change if you
+ edit the Competition instance in the web interface.
+
+#223 - genco brokers are included in broker lists. They should not be
+ there. 
