@@ -168,12 +168,12 @@ implements ApplicationContextAware, CompetitionControl
 
     // Start up the clock at the correct time
     timeService.start = start
-    Thread.sleep(start - new Date().getTime())
-    ClockDriveJob.schedule(scheduleMillis)
+    Thread.sleep(start - new Date().getTime() + 10l)
     timeService.updateTime()
+    scheduleStep()
+    ClockDriveJob.schedule(scheduleMillis)
     // Set final paramaters
     running = true
-    scheduleStep()
   }
 
   /**
@@ -184,6 +184,7 @@ implements ApplicationContextAware, CompetitionControl
     timeService.addAction(new Instant(timeService.currentTime.millis +
 				      timeslotMillis),
 			  { this.step() })
+    //timeService.addAction(new Instant(0l), { this.step() })
   }
 
   /**
@@ -198,6 +199,7 @@ implements ApplicationContextAware, CompetitionControl
     def time = timeService.currentTime
     log.info "step at $time"
     phaseRegistrations.eachWithIndex { fnList, index ->
+      log.info "activate phase ${index + 1}: ${fnList}"
       fnList*.activate(time, index + 1)
     }
     if (--timeslotCount <= 0) {
