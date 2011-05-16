@@ -37,6 +37,7 @@ class BrokerProxyService
   def jmsService
   MessageConverter messageConverter = new MessageConverter()
 
+  def visualizationProxyService
 
   Set tariffRegistrations = []
   Set marketRegistrations = []
@@ -48,6 +49,9 @@ class BrokerProxyService
  * Send a message to a specific broker
  */
   void sendMessage(Broker broker, Object messageObject) {
+    // dispatch to visualizers
+    visualizationProxyService.forwardMessage(messageObject)
+
     if (broker.local) {
       broker.receiveMessage(messageObject)
       return
@@ -73,6 +77,9 @@ class BrokerProxyService
  * Send a message to all brokers
  */
   void broadcastMessage(Object messageObject) {
+    // dispatch to visualizers
+    visualizationProxyService.forwardMessage(messageObject)
+
     String xml = messageConverter.toXML(messageObject)
     broadcastMessage(xml)
 
@@ -122,6 +129,9 @@ class BrokerProxyService
   
   void routeMessage(Object thing)
   {
+    // dispatch to visualizers
+    visualizationProxyService.forwardMessage(thing)
+
     // dispatch to listeners
     if (tariffMessageTypes.contains(thing.class)) {
       tariffRegistrations.each { listener ->
