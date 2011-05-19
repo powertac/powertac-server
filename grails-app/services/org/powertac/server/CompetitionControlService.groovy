@@ -267,6 +267,8 @@ implements ApplicationContextAware, CompetitionControl
 
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
+    
+    setTimeParameters()
 
     // Publish Competition object at right place - when exactly?
     brokerProxyService.broadcastMessage(competition)
@@ -287,9 +289,21 @@ implements ApplicationContextAware, CompetitionControl
     msg.save()
     brokerProxyService.broadcastMessage(msg)
 
-    // set simulation time parameters, making sure that simulationStartTime
-    // is still sufficiently in the future.
+    // publish customer info
+    def customerServiceImplementations = getObjectsForInterface(Customer)
+    customerServiceImplementations?.each { Customer customer ->
+      CustomerInfo customerInfo = customer.generateCustomerInfo()
+      brokerProxyService.broadcastMessage(customerInfo)
+    }
+    return true
+  }
+
+  // set simulation time parameters, making sure that simulationStartTime
+  // is still sufficiently in the future.
+  void setTimeParameters()
+  {
     timeService.base = competition.simulationBaseTime.millis
+    timeService.currentTime = competition.simulationBaseTime
     long rate = competition.simulationRate
     long rem = rate % competition.timeslotLength
     if (rem > 0) {
@@ -299,14 +313,6 @@ implements ApplicationContextAware, CompetitionControl
     }
     timeService.rate = rate
     timeService.modulo = competition.timeslotLength * TimeService.MINUTE
-
-    // publish customer info
-    def customerServiceImplementations = getObjectsForInterface(Customer)
-    customerServiceImplementations?.each { Customer customer ->
-      CustomerInfo customerInfo = customer.generateCustomerInfo()
-      brokerProxyService.broadcastMessage(customerInfo)
-    }
-    return true
   }
 
   List<Timeslot> createInitialTimeslots (Instant base,
