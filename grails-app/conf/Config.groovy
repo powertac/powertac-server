@@ -73,28 +73,29 @@ log4j = {
   appenders {
     console name: 'stdout', threshold: org.apache.log4j.Level.WARN
     rollingFile name: 'file', file: 'logs/powertac-server.log', maxFileSize: '100MB'
-		rollingFile name: 'auctionLogger', file: 'logs/auctioneer.log', maxFileSize: '100MB'
+		//rollingFile name: 'auctionLogger', file: 'logs/auctioneer.log', maxFileSize: '100MB'
   }
 
 
-  error 'org.codehaus.groovy.grails.web.servlet',  //  controllers
-      'org.codehaus.groovy.grails.web.pages', //  GSP
-      'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-      'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-      'org.codehaus.groovy.grails.web.mapping', // URL mapping
-      'org.codehaus.groovy.grails.commons', // core / classloading
-      'org.codehaus.groovy.grails.plugins', // plugins
-      'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
+  error 'org.codehaus',
+      //'org.codehaus.groovy.grails.web.servlet',  //  controllers
+      //'org.codehaus.groovy.grails.web.pages', //  GSP
+      //'org.codehaus.groovy.grails.web.sitemesh', //  layouts
+      //'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
+      //'org.codehaus.groovy.grails.web.mapping', // URL mapping
+      //'org.codehaus.groovy.grails.commons', // core / classloading
+      //'org.codehaus.groovy.grails.plugins', // plugins
+      //'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
       'org.springframework',
       'org.hibernate',
       'org.activemq'
       
   debug 'grails.app'
 	
-	debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
+	//debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
 
   root {
-    debug 'file', 'stdout'
+    warn 'file', 'stdout'
   }
 }
 
