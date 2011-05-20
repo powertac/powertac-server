@@ -71,11 +71,9 @@ def logDirectory = "${catalinaBase}/logs"
 // default for all environments
 log4j = {
   appenders {
-    console name: 'stdout',
-//        layout: pattern(conversionPattern: "%d [%t] %-5p %c %x - %m%n"),
-        threshold: org.apache.log4j.Level.INFO
-    file name: 'file', file: 'logs/powertac-server.log', threshold: org.apache.log4j.Level.DEBUG
-		file name: 'auctionLogger', file: 'logs/auctioneer.log', threshold: org.apache.log4j.Level.DEBUG
+    console name: 'stdout', threshold: org.apache.log4j.Level.WARN
+    rollingFile name: 'file', file: 'logs/powertac-server.log', maxFileSize: '100MB'
+		rollingFile name: 'auctionLogger', file: 'logs/auctioneer.log', maxFileSize: '100MB'
   }
 
 
@@ -96,7 +94,7 @@ log4j = {
 	debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
 
   root {
-    debug 'stdout', 'file'
+    debug 'file', 'stdout'
   }
 }
 
