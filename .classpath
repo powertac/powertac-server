@@ -187,5 +187,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-distribution-utility"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-household-customer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-random"/>
+	<classpathentry kind="lib" path=".link_to_grails_plugins/db-stuff-0.3.0"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>

@@ -45,7 +45,7 @@ grails.project.dependency.resolution = {
   plugins {
     //compile "org.powertac.plugins:powertac-common:0.9 > *"
     //compile "powertac-common"
-    compile ":db-stuff:0.3.0"
+    compile ':db-stuff:0.3.0'
   }
 
   dependencies {

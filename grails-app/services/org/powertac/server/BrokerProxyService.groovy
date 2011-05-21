@@ -81,6 +81,7 @@ class BrokerProxyService
     visualizationProxyService.forwardMessage(messageObject)
 
     String xml = messageConverter.toXML(messageObject)
+    log.debug "broadcast ${xml}"
     broadcastMessage(xml)
 
     // Include local brokers

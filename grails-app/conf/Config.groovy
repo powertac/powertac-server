@@ -72,8 +72,7 @@ def logDirectory = "${catalinaBase}/logs"
 log4j = {
   appenders {
     console name: 'stdout', threshold: org.apache.log4j.Level.WARN
-    rollingFile name: 'file', file: 'logs/powertac-server.log', maxFileSize: '100MB'
-		//rollingFile name: 'auctionLogger', file: 'logs/auctioneer.log', maxFileSize: '100MB'
+    file name: 'file', file: 'logs/powertac-server.log', append: false
   }
 
 
@@ -90,7 +89,8 @@ log4j = {
       'org.hibernate',
       'org.activemq'
       
-  debug 'grails.app'
+  info 'grails.app'
+  debug 'grails.app.service.org.powertac.server'
 	
 	//debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
 

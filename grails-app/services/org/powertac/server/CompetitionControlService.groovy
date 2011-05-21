@@ -84,20 +84,6 @@ implements ApplicationContextAware, CompetitionControl
     def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
     assert adminRole.save()
 
-    // Create default broker which is admin at the same time
-    /*def defaultBroker = Broker.findByUsername('defaultBroker') ?: new Broker(
-        username: 'defaultBroker', local: true,
-        password: springSecurityService.encodePassword('password'),
-        enabled: true)
-    if (!defaultBroker.save()) {
-      log.error("could not save default broker")
-    }
-*/
-    // Add default broker to admin role
-//    if (!defaultBroker.authorities.contains(adminRole)) {
-//      BrokerRole.create defaultBroker, adminRole
-//    }
-
     // Create default competition
     competition = new Competition(name: "defaultCompetition")
     if (!competition.save()) {
@@ -161,9 +147,7 @@ implements ApplicationContextAware, CompetitionControl
     long now = new Date().getTime()
     long start = now + scheduleMillis * 2 - now % scheduleMillis
     // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: new Instant(start),
-				     brokers: Broker.list().collect {
-				       it.username })
+    SimStart startMsg = new SimStart(start: new Instant(start))
     brokerProxyService.broadcastMessage(startMsg)
 
     // Start up the clock at the correct time
@@ -271,6 +255,8 @@ implements ApplicationContextAware, CompetitionControl
     setTimeParameters()
 
     // Publish Competition object at right place - when exactly?
+    competition.brokers = Broker.list().collect { it.username }
+    competition.save()
     brokerProxyService.broadcastMessage(competition)
 
     // Publish default tariffs - they should have been created above
