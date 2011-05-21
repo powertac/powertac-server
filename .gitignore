@@ -8,6 +8,7 @@
 target/
 activemq-data/
 logs/
+.settings/
 
 # OS generated files
 .DS_Store?
