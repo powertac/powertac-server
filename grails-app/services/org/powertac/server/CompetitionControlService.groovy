@@ -61,6 +61,7 @@ implements ApplicationContextAware, CompetitionControl
   def brokerProxyService
   def tariffMarketService
   def randomSeedService
+  def logService
 
   def applicationContext
 
@@ -142,6 +143,7 @@ implements ApplicationContextAware, CompetitionControl
    */
   void start (long scheduleMillis)
   {
+    logService.start()
     quartzScheduler.start()
     // wait for start time
     long now = new Date().getTime()
@@ -218,6 +220,7 @@ implements ApplicationContextAware, CompetitionControl
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export("*", dumpFilePrefix, 'powertac')
+    logService.stop()
   }
 
   //--------- local methods -------------
