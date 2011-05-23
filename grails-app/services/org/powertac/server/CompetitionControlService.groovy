@@ -61,7 +61,6 @@ implements ApplicationContextAware, CompetitionControl
   def brokerProxyService
   def tariffMarketService
   def randomSeedService
-  def logService
 
   def applicationContext
 
@@ -143,7 +142,6 @@ implements ApplicationContextAware, CompetitionControl
    */
   void start (long scheduleMillis)
   {
-    logService.start()
     quartzScheduler.start()
     // wait for start time
     long now = new Date().getTime()
@@ -156,7 +154,7 @@ implements ApplicationContextAware, CompetitionControl
     timeService.start = start
     Thread.sleep(start - new Date().getTime() + 10l)
     timeService.updateTime()
-    scheduleStep()
+    scheduleStep(0)
     ClockDriveJob.schedule(scheduleMillis)
     // Set final paramaters
     running = true
@@ -165,12 +163,10 @@ implements ApplicationContextAware, CompetitionControl
   /**
    * Schedules a step of the simulation
    */
-  void scheduleStep ()
+  void scheduleStep (long offset)
   {
-    timeService.addAction(new Instant(timeService.currentTime.millis +
-				      timeslotMillis),
+    timeService.addAction(new Instant(timeService.currentTime.millis + offset),
 			  { this.step() })
-    //timeService.addAction(new Instant(0l), { this.step() })
   }
 
   /**
@@ -196,7 +192,7 @@ implements ApplicationContextAware, CompetitionControl
     }
     else {
       activateNextTimeslot()
-      scheduleStep()
+      scheduleStep(timeslotMillis)
     }
   }
 
@@ -220,7 +216,6 @@ implements ApplicationContextAware, CompetitionControl
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export("*", dumpFilePrefix, 'powertac')
-    logService.stop()
   }
 
   //--------- local methods -------------
@@ -336,11 +331,11 @@ implements ApplicationContextAware, CompetitionControl
     // first, deactivate the oldest active timeslot
     Timeslot current = Timeslot.currentTimeslot()
     if (current == null) {
-      log.error "current timeslot is null at ${timeService.currentTime}!"
+      log.error "current timeslot is null at ${timeService.currentTime} !"
       return
     }
     int oldSerial = (current.serialNumber +
-		     competition.deactivateTimeslotsAhead - 1)
+		     competition.deactivateTimeslotsAhead)
     Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
     oldTs.enabled = false
     oldTs.save()
