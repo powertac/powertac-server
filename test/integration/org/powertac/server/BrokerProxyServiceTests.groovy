@@ -22,6 +22,7 @@ import org.joda.time.Instant
 import org.powertac.common.Broker
 import org.powertac.common.BrokerRole
 import org.powertac.common.Competition
+import org.powertac.common.MessageConverter;
 import org.powertac.common.PluginConfig
 import org.powertac.common.Rate
 import org.powertac.common.TariffSpecification
@@ -60,7 +61,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
   Shout incomingShout
   ProductType sampleProduct
   Timeslot sampleTimeslot
-
+  MessageConverter messageConverter = new MessageConverter()
+  
   protected void setUp() 
   {
     super.setUp()
@@ -126,10 +128,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   void testTariffProcess() 
   {
     //serialize a tariff spec
-    XStream xstream = new XStream()
-    xstream.processAnnotations(TariffSpecification.class)
-    xstream.processAnnotations(Rate.class)
-    String xml = xstream.toXML(tariffSpec)
+    String xml = messageConverter.toXML(tariffSpec)
 
     // delete the spec so we can save it after deserializing
     tariffSpec.delete()
@@ -154,10 +153,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     // save original tariffSpec id
     String tsid = tariffSpec.id
     
-    XStream xstream = new XStream()
-    xstream.processAnnotations(TariffSpecification.class)
-    xstream.processAnnotations(Rate.class)
-    String xml = xstream.toXML(tariffSpec)
+    String xml = messageConverter.toXML(tariffSpec)
 
     // clear the current session to avoid unique-id conflict
     sessionFactory.currentSession.clear()
@@ -177,10 +173,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     incomingShout.quantity = 200.0
 
     //serialize a tariff spec
-    XStream xstream = new XStream()
-    xstream.processAnnotations(Shout.class)
-    xstream.processAnnotations(Timeslot.class)
-    String xml = xstream.toXML(incomingShout)
+    String xml = messageConverter.toXML(incomingShout)
 
     //delete shout
     incomingShout.delete()
@@ -194,7 +187,5 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertEquals(10.0, persistedShout.limitPrice)
     assertEquals(200.0, persistedShout.quantity)
     assertEquals(sampleProduct, persistedShout.product)
-
   }
-
 }
