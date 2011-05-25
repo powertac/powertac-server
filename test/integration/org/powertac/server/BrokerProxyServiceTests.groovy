@@ -50,6 +50,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
   def brokerProxyService
   def competitionControlService
   SessionFactory sessionFactory
+  MessageConverter messageConverter
 
   Broker bob
   def bobMsgs = []
@@ -61,7 +62,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
   Shout incomingShout
   ProductType sampleProduct
   Timeslot sampleTimeslot
-  MessageConverter messageConverter = new MessageConverter()
   
   protected void setUp() 
   {
@@ -163,8 +163,11 @@ class BrokerProxyServiceTests extends GroovyTestCase
     brokerProxyService.receiveMessage(xml)
     List<TariffSpecification> tss = TariffSpecification.list()
     assertEquals("3 specs", 3, tss.size())
-    assertEquals("correct id", tsid, tss[2].id)
-    assertNotSame("different object", tariffSpec, tss[0])
+    assertNotNull("exists", TariffSpecification.findById(tsid))
+
+    // can't rely on insertion order
+    // assertEquals("correct id", tsid, tss[2].id)
+    // assertNotSame("different object", tariffSpec, tss[0])
   }
 
   void testShoutProcess()
