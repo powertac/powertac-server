@@ -75,24 +75,14 @@ log4j = {
     file name: 'file', file: 'logs/powertac-server.log', append: false
   }
 
-
   error 'org.codehaus',
-      //'org.codehaus.groovy.grails.web.servlet',  //  controllers
-      //'org.codehaus.groovy.grails.web.pages', //  GSP
-      //'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-      //'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-      //'org.codehaus.groovy.grails.web.mapping', // URL mapping
-      //'org.codehaus.groovy.grails.commons', // core / classloading
-      //'org.codehaus.groovy.grails.plugins', // plugins
-      //'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
       'org.springframework',
       'org.hibernate',
-      'org.activemq'
+      'org.activemq',
+      'net.sf.ehcache'
       
   info 'grails.app'
   debug 'grails.app.service.org.powertac.server'
-	
-	//debug auctionLogger: 'grails.app.service.org.powertac.auctioneer.pda.AuctionService'
 
   root {
     warn 'file', 'stdout'
