@@ -211,7 +211,6 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
-    //File dumpfile = new File(dumpFile)
 
     DataExport de = new DataExport()
     de.dataSource = dataSource

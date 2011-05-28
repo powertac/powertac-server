@@ -15,6 +15,7 @@ grails.plugin.location.PowertacRandom = "../powertac-random"
 grails.plugin.location.PowertacGenco = "../powertac-genco"
 grails.plugin.location.PowertacBrokerDefault = "../powertac-broker-default"
 grails.plugin.location.PowertacVisualizer = "../powertac-visualizer"
+grails.plugin.location.PowertacDbStuff = "../powertac-db-stuff"
 
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
@@ -44,9 +45,6 @@ grails.project.dependency.resolution = {
   }
 
   plugins {
-    //compile "org.powertac.plugins:powertac-common:0.9 > *"
-    //compile "powertac-common"
-    compile ':db-stuff:0.3.0'
   }
 
   dependencies {
