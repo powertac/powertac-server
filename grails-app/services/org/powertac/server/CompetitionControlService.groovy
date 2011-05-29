@@ -211,6 +211,7 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
+    File dumpfile = new File(dumpFile)
 
     DataExport de = new DataExport()
     de.dataSource = dataSource
@@ -275,8 +276,9 @@ implements ApplicationContextAware, CompetitionControl
     // publish customer info
     def customerServiceImplementations = getObjectsForInterface(Customer)
     customerServiceImplementations?.each { Customer customer ->
-      CustomerInfo customerInfo = customer.generateCustomerInfo()
-      brokerProxyService.broadcastMessage(customerInfo)
+      customer.generateCustomerInfoList().each { customerInfo ->
+        brokerProxyService.broadcastMessage(customerInfo)
+      }
     }
     return true
   }
