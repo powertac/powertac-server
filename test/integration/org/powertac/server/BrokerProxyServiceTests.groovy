@@ -197,61 +197,6 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertEquals(10.0, persistedShout.limitPrice)
     assertEquals(200.0, persistedShout.quantity)
     assertEquals(sampleProduct, persistedShout.product)
-  }
-  
-  void testCustomerInfo()
-  {
-    customerInfo = new CustomerInfo(name:"Anty", customerType: CustomerType.CustomerHousehold,
-      powerTypes: [PowerType.CONSUMPTION])
-    if (!customerInfo.validate()) {
-    customerInfo.errors.each { println it.toString() }
-    fail("Could not save customerInfo")
-    }
-    assert(customerInfo.save())
-    
-    //serialize a customer info
-    String xml = messageConverter.toXML(customerInfo)
-    
-    // delete the spec so we can save it after deserializing
-    customerInfo.delete()
-        
-    // send the message through the proxy service
-    brokerProxyService.receiveMessage(xml)
-    
-    CustomerInfo persistedCustomerInfo = CustomerInfo.findByName("Anty")
-    assertEquals(persistedCustomerInfo.powerTypes, [PowerType.CONSUMPTION])
-
-    customerInfo = new CustomerInfo(name:"Peter", customerType: CustomerType.CustomerHousehold,
-      powerTypes: [PowerType.PRODUCTION])
-    if (!customerInfo.validate()) {
-    customerInfo.errors.each { println it.toString() }
-    fail("Could not save customerInfo")
-    }
-    assert(customerInfo.save())
-    
-    customer = new AbstractCustomer(CustomerInfo: customerInfo)
-    customer.init()
-    customer.subscribeDefault()
-    if (!customer.validate()) {
-      customer.errors.each { println it.toString() }
-      fail("Could not save customer")
-    }
-    assert(customer.save())
-    
-    //serialize a customer info
-    xml = messageConverter.toXML(customer.customerInfo)
- 
-    // delete the spec so we can save it after deserializing
-    customer.delete()
-    customerInfo.delete()
-    
-    // send the message through the proxy service
-    brokerProxyService.receiveMessage(xml)
-    
-    CustomerInfo persistedCustomerInfo2 = CustomerInfo.findByName("Peter")
-    assertEquals(persistedCustomerInfo2.powerTypes, [PowerType.PRODUCTION])
-          
-  }
-  
+  }  
   
 }
