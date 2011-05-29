@@ -239,7 +239,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assert(customer.save())
     
     //serialize a customer info
-    xml = messageConverter.toXML(customer.generateCustomerInfo())
+    xml = messageConverter.toXML(customer.customerInfo)
  
     // delete the spec so we can save it after deserializing
     customer.delete()

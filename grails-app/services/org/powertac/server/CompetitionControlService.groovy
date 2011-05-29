@@ -61,6 +61,7 @@ implements ApplicationContextAware, CompetitionControl
   def brokerProxyService
   def tariffMarketService
   def randomSeedService
+  def abstractCustomerService
 
   def applicationContext
 
@@ -274,12 +275,8 @@ implements ApplicationContextAware, CompetitionControl
     brokerProxyService.broadcastMessage(msg)
 
     // publish customer info
-    def customerServiceImplementations = getObjectsForInterface(Customer)
-    customerServiceImplementations?.each { Customer customer ->
-      customer.generateCustomerInfoList().each { customerInfo ->
-        brokerProxyService.broadcastMessage(customerInfo)
-      }
-    }
+    List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
+    brokerProxyService.broadcastMessage(customers)
     return true
   }
 
