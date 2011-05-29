@@ -19,9 +19,11 @@ import org.hibernate.SessionFactory
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.joda.time.Instant
+import org.powertac.common.AbstractCustomer
 import org.powertac.common.Broker
 import org.powertac.common.BrokerRole
 import org.powertac.common.Competition
+import org.powertac.common.CustomerInfo
 import org.powertac.common.MessageConverter;
 import org.powertac.common.PluginConfig
 import org.powertac.common.Rate
@@ -35,6 +37,8 @@ import grails.test.*
 import org.powertac.common.Shout
 import org.powertac.common.enumerations.BuySellIndicator
 import org.powertac.common.enumerations.ProductType
+import org.powertac.common.enumerations.CustomerType
+import org.powertac.common.enumerations.PowerType
 import org.powertac.common.Timeslot
 
 /**
@@ -62,6 +66,8 @@ class BrokerProxyServiceTests extends GroovyTestCase
   Shout incomingShout
   ProductType sampleProduct
   Timeslot sampleTimeslot
+  CustomerInfo customerInfo 
+  AbstractCustomer customer
   
   protected void setUp() 
   {
@@ -71,6 +77,7 @@ class BrokerProxyServiceTests extends GroovyTestCase
     //Rate.list()*.delete()
     TariffSpecification.list()*.delete()
     Tariff.list()*.delete()
+    CustomerInfo.list()*.delete()
     //Broker.list().each { BrokerRole.removeAll(it);  it.delete() }
     
     // create a Competition, needed for initialization
@@ -191,4 +198,60 @@ class BrokerProxyServiceTests extends GroovyTestCase
     assertEquals(200.0, persistedShout.quantity)
     assertEquals(sampleProduct, persistedShout.product)
   }
+  
+  void testCustomerInfo()
+  {
+    customerInfo = new CustomerInfo(name:"Anty", customerType: CustomerType.CustomerHousehold,
+      powerTypes: [PowerType.CONSUMPTION])
+    if (!customerInfo.validate()) {
+    customerInfo.errors.each { println it.toString() }
+    fail("Could not save customerInfo")
+    }
+    assert(customerInfo.save())
+    
+    //serialize a customer info
+    String xml = messageConverter.toXML(customerInfo)
+    
+    // delete the spec so we can save it after deserializing
+    customerInfo.delete()
+        
+    // send the message through the proxy service
+    brokerProxyService.receiveMessage(xml)
+    
+    CustomerInfo persistedCustomerInfo = CustomerInfo.findByName("Anty")
+    assertEquals(persistedCustomerInfo.powerTypes, [PowerType.CONSUMPTION])
+
+    customerInfo = new CustomerInfo(name:"Peter", customerType: CustomerType.CustomerHousehold,
+      powerTypes: [PowerType.PRODUCTION])
+    if (!customerInfo.validate()) {
+    customerInfo.errors.each { println it.toString() }
+    fail("Could not save customerInfo")
+    }
+    assert(customerInfo.save())
+    
+    customer = new AbstractCustomer(CustomerInfo: customerInfo)
+    customer.init()
+    customer.subscribeDefault()
+    if (!customer.validate()) {
+      customer.errors.each { println it.toString() }
+      fail("Could not save customer")
+    }
+    assert(customer.save())
+    
+    //serialize a customer info
+    xml = messageConverter.toXML(customer.generateCustomerInfo())
+ 
+    // delete the spec so we can save it after deserializing
+    customer.delete()
+    customerInfo.delete()
+    
+    // send the message through the proxy service
+    brokerProxyService.receiveMessage(xml)
+    
+    CustomerInfo persistedCustomerInfo2 = CustomerInfo.findByName("Peter")
+    assertEquals(persistedCustomerInfo2.powerTypes, [PowerType.PRODUCTION])
+          
+  }
+  
+  
 }

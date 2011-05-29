@@ -124,7 +124,8 @@ class BrokerProxyService
     }
     else {
       thing.save()
-      routeMessage(thing)
+      if (thing instanceof CustomerInfo){}
+      else routeMessage(thing)
     }
   }
   
