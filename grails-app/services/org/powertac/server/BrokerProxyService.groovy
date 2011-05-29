@@ -124,8 +124,7 @@ class BrokerProxyService
     }
     else {
       thing.save()
-      // JEC - I do not understand how we would ever receive a CustomerInfo instance.
-      if (!(thing instanceof CustomerInfo)) routeMessage(thing)
+      routeMessage(thing)
     }
   }
   
