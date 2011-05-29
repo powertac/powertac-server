@@ -15,7 +15,7 @@
  */
 package org.powertac.server
 
-//import greenbill.dbstuff.DataExport
+import greenbill.dbstuff.DataExport
 import org.joda.time.Instant
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
@@ -211,11 +211,11 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
-    //File dumpfile = new File(dumpFile)
+    File dumpfile = new File(dumpFile)
 
-    //DataExport de = new DataExport()
-    //de.dataSource = dataSource
-    //de.export("*", dumpFilePrefix, 'powertac')
+    DataExport de = new DataExport()
+    de.dataSource = dataSource
+    de.export("*", dumpFilePrefix, 'powertac')
   }
 
   //--------- local methods -------------
@@ -277,7 +277,6 @@ implements ApplicationContextAware, CompetitionControl
     def customerServiceImplementations = getObjectsForInterface(Customer)
     customerServiceImplementations?.each { Customer customer ->
       customer.generateCustomerInfoList().each { customerInfo ->
-        println(customerInfo)
         brokerProxyService.broadcastMessage(customerInfo)
       }
     }
