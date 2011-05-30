@@ -48,7 +48,8 @@ implements ApplicationContextAware, CompetitionControl
 {
   static transactional = false
 
-  Competition competition
+  Competition competition // convenience var, invalid across sessions
+  String competitionId
 
   int timeslotPhaseCount = 3 // # of phases/quartzScheduler.start()timeslot
   boolean running = false
@@ -90,6 +91,7 @@ implements ApplicationContextAware, CompetitionControl
     if (!competition.save()) {
       log.error("could not save competition")
     }
+    competitionId = competition.id
 
     // Set up all the plugin configurations
     def initializers = getObjectsForInterface(InitializationService)
@@ -111,9 +113,9 @@ implements ApplicationContextAware, CompetitionControl
   {
     // to enhance testability, initialization is split into a static phase
     // followed by starting the clock
+    competition = Competition.get(competitionId)
     if (setup() == false)
       return
-    // TODO - other initialization code goes here
 
     start((long) (competition.timeslotLength * TimeService.MINUTE /
 		  competition.simulationRate))
@@ -179,6 +181,7 @@ implements ApplicationContextAware, CompetitionControl
       log.info("Stop simulation")
       shutDown()
     }
+    competition = Competition.get(competitionId)
     def time = timeService.currentTime
     log.info "step at $time"
     phaseRegistrations.eachWithIndex { fnList, index ->
@@ -212,31 +215,21 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
-    File dumpfile = new File(dumpFile)
+    File dumpfile = new File("${dumpFilePrefix}${competitionId}")
 
     DataExport de = new DataExport()
     de.dataSource = dataSource
-    de.export("*", dumpFilePrefix, 'powertac')
+    de.export("*", dumpfile, 'powertac')
   }
 
   //--------- local methods -------------
 
   boolean setup ()
   {
-    if (Competition.count() > 1) {
-      log.error "more than one Competition instance in db - cannot start"
-      return false
-    }
-    competition = Competition.list().first()
-    if (competition == null) {
-      log.error "no competition instance available - cannot start"
-      return false
-    }
-
     // set the clock before configuring plugins - some of them need to
     // know the time.
     timeService.currentTime = competition.simulationBaseTime
-    
+
     // configure plugins
     if (!configurePlugins()) {
       log.error "failed to configure plugins"
