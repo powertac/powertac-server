@@ -26,6 +26,7 @@ import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
+import greenbill.dbstuff.DbCreate
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -215,11 +216,18 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
-    File dumpfile = new File("${dumpFilePrefix}${competitionId}")
+    File dumpfile = new File("${dumpFilePrefix}${competitionId}.xml")
 
     DataExport de = new DataExport()
     de.dataSource = dataSource
-    de.export("*", dumpfile, 'powertac')
+    de.export(dumpfile, 'powertac')
+
+//    def final grailsSettings = grails.util.BuildSettingsHolder.settings
+//    def dsFile = new File("${grailsSettings.baseDir}/grails-app/conf/DataSource.groovy")
+//    def dsConfig = new ConfigSlurper(grailsSettings.grailsEnv).parse(dsFile.text)
+//    DbCreate dc = new DbCreate()
+//    dc.dataSource = dataSource
+//    dc.dropAndCreate('powertac', dsConfig)
   }
 
   //--------- local methods -------------
