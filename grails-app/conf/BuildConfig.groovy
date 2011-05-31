@@ -13,7 +13,7 @@ grails.plugin.location.PowertacHouseholdCustomer = "../powertac-household-custom
 grails.plugin.location.PowertacWebApp = "../powertac-web-app"
 grails.plugin.location.PowertacRandom = "../powertac-random"
 grails.plugin.location.PowertacGenco = "../powertac-genco"
-grails.plugin.location.PowertacBrokerDefault = "../powertac-broker-default"
+grails.plugin.location.PowertacDefaultBroker = "../powertac-default-broker"
 grails.plugin.location.PowertacVisualizer = "../powertac-visualizer"
 grails.plugin.location.PowertacDbStuff = "../powertac-db-stuff"
 
