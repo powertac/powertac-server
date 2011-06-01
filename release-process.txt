@@ -1,0 +1,43 @@
+Process for creating a Power TAC release package
+------------------------------------------------
+
+- Make sure your master branch is up to date. Because of the need to
+  change the config in the release, you don't what to have to merge from
+  the release back to the master.
+
+- Make sure the plugin.xml file is NOT in the master branch. That gets
+  created automatically during the packaging process on the release
+  branch, and does not need to be committed.
+
+- On the master branch, update plugin version id in each plugin that
+  has changed since last release.
+
+- Make sure your .grails/settings.groovy contains your repository
+  credentials.
+
+- Install the maven-publisher plugin, even if it's already there.
+
+- Once the master branch is in good shape, commit and push it.
+
+- For each plugin, sorted topologically by dependency (start with
+  common and random, which have no dependencies):
+
+  - Create a new branch for the release (such as release-0.3) in the
+    server and each plugin (git checkout -b release-0.3).
+
+  - test and commit locally.
+
+  - in BuildConfig.groovy, remove the
+    grails.project.dependency.distribution clause.
+
+  - in server/../BuildConfig.groovy, remove the local plugin dependencies, and
+    replace them with repository dependencies using
+    install-plugin. It's not necessary to do this for the plugins,
+    because they will not be used independently.
+
+  - publish as
+    > grails maven-deploy --repository=powertacPlugins
+
+Versions for release-0.3, in sorted order
+
+common 0.10
