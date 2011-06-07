@@ -15,18 +15,19 @@
  */
 package org.powertac.server
 
-import greenbill.dbstuff.DataExport
 import org.joda.time.Instant
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.msg.SimEnd
 import org.powertac.common.msg.SimStart
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import greenbill.dbstuff.DbCreate
+import greenbill.dbstuff.DataExport
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -156,12 +157,31 @@ implements ApplicationContextAware, CompetitionControl
 
     // Start up the clock at the correct time
     timeService.start = start
-    Thread.sleep(start - new Date().getTime() + 10l)
+    //Thread.sleep(start - new Date().getTime() + 10l)
     timeService.updateTime()
-    scheduleStep(0)
-    ClockDriveJob.schedule(scheduleMillis)
+    scheduleFirstStep()
+    //ClockDriveJob.schedule(scheduleMillis)
+    ClockDriveJob.schedule(new Date(start))
     // Set final paramaters
     running = true
+  }
+  
+  void scheduleFirstStep ()
+  {
+    log.debug("scheduleFirstStep - start")
+    timeService.addAction(new Instant(timeService.currentTime.millis),
+        { this.firstStep() })
+  }
+  
+  void firstStep() {
+    log.debug("firstStep - start")
+    def repeatJobTrigger =  quartzScheduler.getTrigger('default', 'default')
+    repeatJobTrigger.repeatInterval = timeslotMillis / competition.simulationRate
+    repeatJobTrigger.repeatCount = -1
+    quartzScheduler.rescheduleJob(repeatJobTrigger.name,
+                                  repeatJobTrigger.group,
+                                  repeatJobTrigger)
+    this.step()
   }
 
   /**
@@ -216,6 +236,10 @@ implements ApplicationContextAware, CompetitionControl
   {
     running = false
     quartzScheduler.shutdown()
+
+    SimEnd endMsg = new SimEnd()
+    brokerProxyService.broadcastMessage(endMsg)
+
     File dumpfile = new File("${dumpFilePrefix}${competitionId}.xml")
 
     DataExport de = new DataExport()
@@ -255,6 +279,10 @@ implements ApplicationContextAware, CompetitionControl
     setTimeParameters()
 
     // Publish Competition object at right place - when exactly?
+    if (!competition.isAttached()) {
+      log.warn "Competition ${competitionId} is detached"
+      competition.attach()
+    }
     competition.brokers = Broker.list().collect { it.username }
     competition.save()
     brokerProxyService.broadcastMessage(competition)
