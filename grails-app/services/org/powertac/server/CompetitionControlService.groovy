@@ -399,8 +399,9 @@ implements ApplicationContextAware, CompetitionControl
     double k = (Math.log(1.0 - roll) /
 		Math.log(1.0 - 1.0 /
 			 (expLength - minLength + 1)))
-    //log.info('game-length k=${k}, roll=${roll}')
-    return minLength + (int) Math.floor(k)
+    int length = minLength + (int) Math.floor(k)
+    log.info("game-length ${length} (k=${k}, roll=${roll})")
+    return length
   }
 
   boolean configurePlugins ()
