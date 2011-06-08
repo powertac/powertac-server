@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import greenbill.dbstuff.DbCreate
 import greenbill.dbstuff.DataExport
+import org.quartz.SimpleTrigger
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -159,29 +160,20 @@ implements ApplicationContextAware, CompetitionControl
     timeService.start = start
     //Thread.sleep(start - new Date().getTime() + 10l)
     timeService.updateTime()
-    scheduleFirstStep()
-    //ClockDriveJob.schedule(scheduleMillis)
-    ClockDriveJob.schedule(new Date(start))
+
     // Set final paramaters
     running = true
-  }
-  
-  void scheduleFirstStep ()
-  {
-    log.debug("scheduleFirstStep - start")
-    timeService.addAction(new Instant(timeService.currentTime.millis),
-        { this.firstStep() })
-  }
-  
-  void firstStep() {
-    log.debug("firstStep - start")
+
+    scheduleStep(0)
+
     def repeatJobTrigger =  quartzScheduler.getTrigger('default', 'default')
     repeatJobTrigger.repeatInterval = timeslotMillis / competition.simulationRate
-    repeatJobTrigger.repeatCount = -1
+    repeatJobTrigger.repeatCount = SimpleTrigger.REPEAT_INDEFINITELY
+    repeatJobTrigger.startTime = new Date(start)
+
     quartzScheduler.rescheduleJob(repeatJobTrigger.name,
                                   repeatJobTrigger.group,
                                   repeatJobTrigger)
-    this.step()
   }
 
   /**
