@@ -30,6 +30,7 @@ import greenbill.dbstuff.DbCreate
 import greenbill.dbstuff.DataExport
 import org.quartz.SimpleTrigger
 import org.codehaus.groovy.grails.commons.GrailsApplication
+import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -79,7 +80,7 @@ implements ApplicationContextAware, CompetitionControl
   long timeslotMillis
   Random randomGen
 
-  String dumpFilePrefix = "logs/PowerTAC-dump-"
+  String dumpFilePrefix = (ConfigurationHolder.config.powertac?.dumpFilePrefix) ?: "logs/PowerTAC-dump-"
 
   /**
    * Pre-game server setup - creates the basic configuration elements
@@ -271,7 +272,7 @@ implements ApplicationContextAware, CompetitionControl
 
     // set up broker queues (are they logged in already?)
     jmsManagementService.createQueues()
-    
+
     setTimeParameters()
 
     // Publish Competition object at right place - when exactly?
