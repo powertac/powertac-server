@@ -16,6 +16,7 @@ grails.plugin.location.PowertacGenco = "../powertac-genco"
 grails.plugin.location.PowertacDefaultBroker = "../powertac-default-broker"
 grails.plugin.location.PowertacVisualizer = "../powertac-visualizer"
 grails.plugin.location.PowertacDbStuff = "../powertac-db-stuff"
+grails.plugin.location.PowertacPhysicalEnvironment = "../powertac-physical-environment"
 
 grails.project.dependency.resolution = {
   // inherit Grails' default dependencies
