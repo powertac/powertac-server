@@ -29,6 +29,7 @@ import org.powertac.common.*
 import greenbill.dbstuff.DbCreate
 import greenbill.dbstuff.DataExport
 import org.quartz.SimpleTrigger
+import org.codehaus.groovy.grails.commons.GrailsApplication
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -66,8 +67,10 @@ implements ApplicationContextAware, CompetitionControl
   def tariffMarketService
   def randomSeedService
   def abstractCustomerService
+  def logService
 
   def applicationContext
+  def grailsApplication
 
   def dataSource
 
@@ -148,6 +151,7 @@ implements ApplicationContextAware, CompetitionControl
    */
   void start (long scheduleMillis)
   {
+    logService.start()
     quartzScheduler.start()
     // wait for start time
     long now = new Date().getTime()
@@ -238,12 +242,12 @@ implements ApplicationContextAware, CompetitionControl
     de.dataSource = dataSource
     de.export(dumpfile, 'powertac')
 
-//    def final grailsSettings = grails.util.BuildSettingsHolder.settings
-//    def dsFile = new File("${grailsSettings.baseDir}/grails-app/conf/DataSource.groovy")
-//    def dsConfig = new ConfigSlurper(grailsSettings.grailsEnv).parse(dsFile.text)
-//    DbCreate dc = new DbCreate()
-//    dc.dataSource = dataSource
-//    dc.dropAndCreate('powertac', dsConfig)
+    logService.stop()
+
+    // refresh DB
+    DbCreate dc = new DbCreate()
+    dc.dataSource = dataSource
+    dc.create(grailsApplication)
   }
 
   //--------- local methods -------------
