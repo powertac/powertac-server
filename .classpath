@@ -183,10 +183,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-auctioneer-pda"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/powertac-broker-default"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-distribution-utility"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-household-customer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-random"/>
-	<classpathentry kind="lib" path=".link_to_grails_plugins/db-stuff-0.3.0"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-default-broker"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-physical-environment"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/powertac-visualizer"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>
