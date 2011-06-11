@@ -72,6 +72,7 @@ implements ApplicationContextAware, CompetitionControl
 
   def applicationContext
   def grailsApplication
+  def sessionFactory
 
   def dataSource
 
@@ -249,6 +250,11 @@ implements ApplicationContextAware, CompetitionControl
     DbCreate dc = new DbCreate()
     dc.dataSource = dataSource
     dc.create(grailsApplication)
+
+    sessionFactory.currentSession.clear()
+
+    // reinit game
+    preGame()
   }
 
   //--------- local methods -------------
