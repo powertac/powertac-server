@@ -54,7 +54,8 @@ public class SimulationClockControl
 {
   public enum Status { CLEAR, COMPLETE, PAUSED }
   
-  private final long postPauseDelay = 500l; // 500 msec
+  private static final long postPauseDelay = 500l; // 500 msec
+  private static final long watchdogSlack = 200l; // 200 msec
   
   private TimeService timeService;
   private Status state = Status.CLEAR;
@@ -94,8 +95,7 @@ public class SimulationClockControl
    */
   public void scheduleTick ()
   {
-    theTimer.schedule(tickAction, 
-                      computeNextTickTime() - new Date().getTime());
+    theTimer.schedule(tickAction, new Date(computeNextTickTime()));
   }
   
   /**
@@ -176,23 +176,32 @@ public class SimulationClockControl
   
   private class TickAction extends TimerTask
   {
-
+    /**
+     * Runs a tick - updates the timeService, clears the state,
+     * schedules the watchdog, and notifies the simulator. The
+     * monitor object is the singleton.
+     */
     @Override
     public void run ()
     {
-      // TODO Auto-generated method stub
-      
+      timeService.updateTime();
+      state = Status.CLEAR;
+      theTimer.schedule(watchdogAction, 
+                        new Date(computeNextTickTime() - watchdogSlack));
+      instance.notifyAll();
     }
   }
   
   private class WatchdogAction extends TimerTask
   {
-
+    /**
+     * Checks for sim task completion by calling pauseMaybe on the
+     * instance.
+     */
     @Override
     public void run ()
     {
-      // TODO Auto-generated method stub
-      
+      instance.pauseMaybe();
     }
   }
 }
