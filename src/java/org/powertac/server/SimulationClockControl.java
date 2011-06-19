@@ -52,30 +52,34 @@ import org.powertac.common.TimeService;
  */
 public class SimulationClockControl
 {
-  public enum Status { CLEAR, COMPLETE, PAUSED }
+  public enum Status { CLEAR, COMPLETE, PAUSED, STOPPED }
   
   private static final long postPauseDelay = 500l; // 500 msec
   private static final long watchdogSlack = 200l; // 200 msec
   
   private TimeService timeService;
-  private Status state = Status.CLEAR;
-  
   private long base;
   private long start;
   private long rate;
   private long modulo;
+
+  private Status state = Status.CLEAR; // package visibility for testing
+  private int nextTick = -1;
   
   private Timer theTimer;
-  private TickAction tickAction;
-  private WatchdogAction watchdogAction;
+  //private TickAction tickAction;
+  private WatchdogAction currentWatchdog;
 
   private SimulationClockControl (TimeService timeService)
   {
     super();
     this.timeService = timeService;
+    this.base = timeService.getBase();
+    this.rate = timeService.getRate();
+    this.modulo = timeService.getModulo();
     theTimer = new Timer();
-    tickAction = new TickAction();
-    watchdogAction = new WatchdogAction();
+    //tickAction = new TickAction();
+    //watchdogAction = new WatchdogAction();
   }
   
   /**
@@ -95,15 +99,19 @@ public class SimulationClockControl
    */
   public void scheduleTick ()
   {
-    theTimer.schedule(tickAction, new Date(computeNextTickTime()));
+    System.out.println("scheduleTick() " + new Date().getTime());
+    long nextTick = computeNextTickTime();
+    theTimer.schedule(new TickAction(), new Date(nextTick));
   }
   
   /**
    * Indicates that the simulator has completed its work on the current
-   * timeslot. If the sim was paused, then un-pause it.
+   * timeslot. If the sim was paused, then un-pause it. On the last tick,
+   * call stop() rather than complete().
    */
   public synchronized void complete ()
   {
+    System.out.println("complete() " + new Date().getTime());
     if (state == Status.PAUSED) {
       // compute new start time, communicate it to brokers, and re-start
       // the clock.
@@ -112,22 +120,65 @@ public class SimulationClockControl
       start += actualNextTick - originalNextTick;
       timeService.setStart(start);
       // TODO: communicate to brokers somehow
+      state = Status.PAUSED;
       scheduleTick();
    }
-    setState(Status.COMPLETE);
+    state = Status.COMPLETE;
+  }
+  
+  /**
+   * Stops the clock. Call this method when processing on the last tick is
+   * finished.
+   */
+  public synchronized void stop ()
+  {
+    System.out.println("Stop at " + new Date().getTime());
+    state = Status.STOPPED;
+    if (currentWatchdog != null) {
+      currentWatchdog.cancel();
+      currentWatchdog = null;
+    }
+  }
+  
+  /**
+   * Blocks the caller until the next tick.
+   */
+  public synchronized void waitForTick (int n)
+  {
+    // Can we guarantee this is called BEFORE the corresponding notifyTick()?
+    System.out.println("nextTick=" + nextTick + ", n=" + n);
+    while (nextTick < n) {
+      try {
+        wait();
+      }
+      catch (InterruptedException ie) { }
+    }
+  }
+  
+  /**
+   * notifies the waiting thread (if any).
+   */
+  private synchronized void notifyTick ()
+  {
+    nextTick += 1;
+    notifyAll();
   }
   
   /**
    * Pauses the clock and notifies brokers just in case the current state
-   * is not COMPLETE, otherwise schedules the next tick. This method and 
-   * the complete() method are synchronized to protect against complete()
-   * being called before state is set to paused.
+   * is CLEAR, otherwise if the state is COMPLETE, schedules the next tick. 
+   * No action is taken if the current state is PAUSED or STOPPED, thereby
+   * effectively stopping the clock. 
+   * This method and the complete() method are synchronized to protect 
+   * against complete() being called before state is set to paused.
    */
   private synchronized void pauseMaybe ()
   {
+    System.out.println("pauseMaybe() " + new Date().getTime());
     if (state == Status.CLEAR) {
       // sim thread is not finished
-      setState(Status.PAUSED);
+      System.out.println("pausing");
+      state = Status.PAUSED; // clock resumed by calling complete()
       // TODO: communicate pause to brokers
     }
     else if (state == Status.COMPLETE) {
@@ -136,21 +187,27 @@ public class SimulationClockControl
     }
   }
 
-  private synchronized void setState (Status newState)
-  {
-    state = newState;
-  }
-  
-  private synchronized Status getState ()
+  synchronized Status getState () // package visibility for test support
   {
     return state;
   }
 
   private long computeNextTickTime ()
   {
-    long simTime = timeService.getCurrentTime().getMillis();
-    long nextSimTime = simTime + modulo;
-    return start + (nextSimTime - base) / rate;
+    long current = new Date().getTime();
+    if (current < start) {
+      // first tick is special
+      System.out.println("first tick at " + start + "; current is " + current);
+      return start;
+    }
+    else {
+      // second and subsequent ticks
+      long simTime = timeService.getCurrentTime().getMillis();
+      long nextSimTime = simTime + modulo;
+      long nextTick = start + (nextSimTime - base) / rate; 
+      System.out.println("next tick: time " + current + "; next tick at " + nextTick);
+      return nextTick;
+    }
   }
   
   // ---- Singleton methods ----
@@ -184,11 +241,14 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
+      System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
       state = Status.CLEAR;
-      theTimer.schedule(watchdogAction, 
-                        new Date(computeNextTickTime() - watchdogSlack));
-      instance.notifyAll();
+      long wdTime = computeNextTickTime() - watchdogSlack;
+      System.out.println("watchdog set for " + wdTime);
+      currentWatchdog = new WatchdogAction();
+      theTimer.schedule(currentWatchdog, new Date(wdTime));
+      notifyTick();
     }
   }
   
@@ -201,7 +261,9 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
+      System.out.println("WatchdogAction.run() " + new Date().getTime());
       instance.pauseMaybe();
+      currentWatchdog = null;
     }
   }
 }
