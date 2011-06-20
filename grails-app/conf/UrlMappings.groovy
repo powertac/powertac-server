@@ -9,5 +9,6 @@ class UrlMappings {
 
 		"/"(view:"/index")
 		"500"(view:'/error')
+                "/visualizer"(controller:"visualizer")
 	}
 }
