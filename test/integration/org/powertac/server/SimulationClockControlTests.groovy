@@ -78,7 +78,7 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     // now we wait, and check the notify time
     scc.waitForTick(0)
     long wakeup = new Date().getTime()
-    assertEquals("correct time", wakeup, start, 60)
+    assertEquals("correct time", wakeup, start, 20)
     // stop the clock
     scc.stop()
     assertEquals("stopped", SimulationClockControl.Status.STOPPED, scc.state)
@@ -94,7 +94,7 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     // now we wait, and check the notify time
     scc.waitForTick(0)
     long wakeup = new Date().getTime()
-    assertEquals ("correct time, tick 0", start, wakeup, 60)
+    assertEquals ("correct time, tick 0", start, wakeup, 20)
     // short interval - wait one sec and finish
     Thread.sleep(1000)
     scc.complete()
@@ -103,7 +103,7 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     long due = start + interval
     scc.waitForTick(1)
     wakeup = new Date().getTime()
-    assertEquals("correct time, tick 1", due, wakeup, 60)
+    assertEquals("correct time, tick 1", due, wakeup, 20)
     // long interval - wait 3 sec and finish
     Thread.sleep(3000)
     assertEquals("paused", SimulationClockControl.Status.PAUSED, scc.state)
@@ -111,12 +111,12 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     
     // start should have moved back about 500 msec + post-pause delay
     long newStart = timeService.start
-    assertEquals("start pushed back", start + 1000, newStart, 60)
+    assertEquals("start pushed back", start + 1000, newStart, 20)
     // another short interval
     due = newStart + interval * 2
     scc.waitForTick(2)
     wakeup = new Date().getTime()
-    assertEquals("correct time, tick 2", due, wakeup, 60)
+    assertEquals("correct time, tick 2", due, wakeup, 20)
     // stop the clock
     scc.stop()
     assertEquals("stopped", SimulationClockControl.Status.STOPPED, scc.state)

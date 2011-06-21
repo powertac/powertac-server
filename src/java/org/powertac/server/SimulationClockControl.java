@@ -58,6 +58,7 @@ public class SimulationClockControl
   private static final long watchdogSlack = 200l; // 200 msec
   
   private TimeService timeService;
+  private CompetitionControlService competitionControl;
   private long base;
   private long start;
   private long rate;
@@ -70,9 +71,11 @@ public class SimulationClockControl
   //private TickAction tickAction;
   private WatchdogAction currentWatchdog;
 
-  private SimulationClockControl (TimeService timeService)
+  private SimulationClockControl (CompetitionControlService competitionControl,
+                                  TimeService timeService)
   {
     super();
+    this.competitionControl = competitionControl;
     this.timeService = timeService;
     this.base = timeService.getBase();
     this.rate = timeService.getRate();
@@ -99,7 +102,7 @@ public class SimulationClockControl
    */
   public void scheduleTick ()
   {
-    System.out.println("scheduleTick() " + new Date().getTime());
+    //System.out.println("scheduleTick() " + new Date().getTime());
     long nextTick = computeNextTickTime();
     theTimer.schedule(new TickAction(), new Date(nextTick));
   }
@@ -111,7 +114,7 @@ public class SimulationClockControl
    */
   public synchronized void complete ()
   {
-    System.out.println("complete() " + new Date().getTime());
+    //System.out.println("complete() " + new Date().getTime());
     if (state == Status.PAUSED) {
       // compute new start time, communicate it to brokers, and re-start
       // the clock.
@@ -119,8 +122,7 @@ public class SimulationClockControl
       long actualNextTick = new Date().getTime() + postPauseDelay;
       start += actualNextTick - originalNextTick;
       timeService.setStart(start);
-      // TODO: communicate to brokers somehow
-      state = Status.PAUSED;
+      competitionControl.resume(start);
       scheduleTick();
    }
     state = Status.COMPLETE;
@@ -146,7 +148,7 @@ public class SimulationClockControl
   public synchronized void waitForTick (int n)
   {
     // Can we guarantee this is called BEFORE the corresponding notifyTick()?
-    System.out.println("nextTick=" + nextTick + ", n=" + n);
+    //System.out.println("nextTick=" + nextTick + ", n=" + n);
     while (nextTick < n) {
       try {
         wait();
@@ -174,12 +176,12 @@ public class SimulationClockControl
    */
   private synchronized void pauseMaybe ()
   {
-    System.out.println("pauseMaybe() " + new Date().getTime());
+    //System.out.println("pauseMaybe() " + new Date().getTime());
     if (state == Status.CLEAR) {
       // sim thread is not finished
-      System.out.println("pausing");
+      //System.out.println("pausing");
       state = Status.PAUSED; // clock resumed by calling complete()
-      // TODO: communicate pause to brokers
+      competitionControl.pause();
     }
     else if (state == Status.COMPLETE) {
       // sim finished - schedule the next tick
@@ -192,12 +194,22 @@ public class SimulationClockControl
     return state;
   }
 
+  /**
+   * Sets state in synchronized block. Needed for cases (such as
+   * TickAction.run()) where state needs to be set from outside a
+   * synchronized block.
+   */
+  synchronized void setState (Status newState)
+  {
+    state = newState;
+  }
+
   private long computeNextTickTime ()
   {
     long current = new Date().getTime();
     if (current < start) {
       // first tick is special
-      System.out.println("first tick at " + start + "; current is " + current);
+      //System.out.println("first tick at " + start + "; current is " + current);
       return start;
     }
     else {
@@ -205,7 +217,7 @@ public class SimulationClockControl
       long simTime = timeService.getCurrentTime().getMillis();
       long nextSimTime = simTime + modulo;
       long nextTick = start + (nextSimTime - base) / rate; 
-      System.out.println("next tick: time " + current + "; next tick at " + nextTick);
+      //System.out.println("next tick: time " + current + "; next tick at " + nextTick);
       return nextTick;
     }
   }
@@ -216,9 +228,10 @@ public class SimulationClockControl
   /**
    * Creates the instance and sets the reference to the timeService.
    */
-  public static void initialize (TimeService timeService)
+  public static void initialize (CompetitionControlService competitionControl,
+                                 TimeService timeService)
   {
-    instance = new SimulationClockControl(timeService);
+    instance = new SimulationClockControl(competitionControl, timeService);
   }
   
   /**
@@ -241,11 +254,11 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      System.out.println("TickAction.run() " + new Date().getTime());
+      //System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
-      state = Status.CLEAR;
+      setState(Status.CLEAR);
       long wdTime = computeNextTickTime() - watchdogSlack;
-      System.out.println("watchdog set for " + wdTime);
+      //System.out.println("watchdog set for " + wdTime);
       currentWatchdog = new WatchdogAction();
       theTimer.schedule(currentWatchdog, new Date(wdTime));
       notifyTick();
@@ -261,7 +274,7 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      System.out.println("WatchdogAction.run() " + new Date().getTime());
+      //System.out.println("WatchdogAction.run() " + new Date().getTime());
       instance.pauseMaybe();
       currentWatchdog = null;
     }

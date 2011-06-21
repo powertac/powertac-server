@@ -28,7 +28,7 @@ import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import greenbill.dbstuff.DbCreate
 import greenbill.dbstuff.DataExport
-import org.quartz.SimpleTrigger
+//import org.quartz.SimpleTrigger
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
@@ -59,8 +59,9 @@ implements ApplicationContextAware, CompetitionControl
   int timeslotPhaseCount = 3 // # of phases/quartzScheduler.start()timeslot
   boolean running = false
 
-  def quartzScheduler
-  def clockDriveJob
+  SimulationClockControl clock
+  //def quartzScheduler
+  //def clockDriveJob
   def timeService // inject simulation time service dependency
   def jmsManagementService
   def springSecurityService
@@ -142,7 +143,7 @@ implements ApplicationContextAware, CompetitionControl
         phaseRegistrations = new List[timeslotPhaseCount]
       }
       if (phaseRegistrations[phase - 1] == null) {
-        phaseRegistrations[phase - 1] = [] // do we really have to do this?
+        phaseRegistrations[phase - 1] = []
       }
       phaseRegistrations[phase - 1].add(thing)
     }
@@ -154,41 +155,43 @@ implements ApplicationContextAware, CompetitionControl
   void start (long scheduleMillis)
   {
     logService.start()
-    quartzScheduler.start()
-    // wait for start time
-    long now = new Date().getTime()
-    long start = now + scheduleMillis * 2 - now % scheduleMillis
-    // communicate start time to brokers
-    SimStart startMsg = new SimStart(start: new Instant(start))
-    brokerProxyService.broadcastMessage(startMsg)
+    runAsync {
+      SimulationClockControl.initialize(this, timeService)
+      clock = SimulationClockControl.getInstance()
+      //quartzScheduler.start()
+      // wait for start time
+      long now = new Date().getTime()
+      //long start = now + scheduleMillis * 2 - now % scheduleMillis
+      long start = now + TimeService.SECOND // start in one second
+      // communicate start time to brokers
+      SimStart startMsg = new SimStart(start: new Instant(start))
+      brokerProxyService.broadcastMessage(startMsg)
 
-    // Start up the clock at the correct time
-    timeService.start = start
-    //Thread.sleep(start - new Date().getTime() + 10l)
-    timeService.updateTime()
+      // Start up the clock at the correct time
+      clock.setStart(start)
+      timeService.init()
+      //timeService.start = start
+      //Thread.sleep(start - new Date().getTime() + 10l)
+      //timeService.updateTime()
 
-    // Set final paramaters
-    running = true
+      // Set final paramaters
+      running = true
 
-    scheduleStep(0)
+      // run the simulation
+      int slot = 0
+      clock.scheduleTick()
+      while (running) {
+        log.info("Wait for tick $slot")
+        clock.waitForTick(slot++)
+        step()
+        clock.complete()
+      }
 
-    def repeatJobTrigger =  quartzScheduler.getTrigger('default', 'default')
-    repeatJobTrigger.repeatInterval = timeslotMillis / competition.simulationRate
-    repeatJobTrigger.repeatCount = SimpleTrigger.REPEAT_INDEFINITELY
-    repeatJobTrigger.startTime = new Date(start)
-
-    quartzScheduler.rescheduleJob(repeatJobTrigger.name,
-                                  repeatJobTrigger.group,
-                                  repeatJobTrigger)
-  }
-
-  /**
-   * Schedules a step of the simulation
-   */
-  void scheduleStep (long offset)
-  {
-    timeService.addAction(new Instant(timeService.currentTime.millis + offset),
-			  { this.step() })
+      // simulation is complete
+      log.info("Stop simulation")
+      clock.stop()
+      shutDown()
+    }
   }
 
   /**
@@ -196,10 +199,6 @@ implements ApplicationContextAware, CompetitionControl
    */
   void step ()
   {
-    if (!running) {
-      log.info("Stop simulation")
-      shutDown()
-    }
     competition = Competition.get(competitionId)
     def time = timeService.currentTime
     log.info "step at $time"
@@ -215,7 +214,6 @@ implements ApplicationContextAware, CompetitionControl
     }
     else {
       activateNextTimeslot()
-      scheduleStep(timeslotMillis)
     }
   }
 
@@ -233,7 +231,7 @@ implements ApplicationContextAware, CompetitionControl
   void shutDown ()
   {
     running = false
-    quartzScheduler.shutdown()
+    //quartzScheduler.shutdown()
 
     SimEnd endMsg = new SimEnd()
     brokerProxyService.broadcastMessage(endMsg)
@@ -263,6 +261,9 @@ implements ApplicationContextAware, CompetitionControl
   {
     // set the clock before configuring plugins - some of them need to
     // know the time.
+    if (timeService == null) {
+      log.error "autowire failure: timeService"
+    }
     timeService.currentTime = competition.simulationBaseTime
 
     // configure plugins
@@ -462,5 +463,46 @@ implements ApplicationContextAware, CompetitionControl
     def classMap = applicationContext.getBeansOfType(iface)
     classMap.collect { it.value } // return only the object, which is
 				  // the maps' value
+  }
+  
+  // ------- pause-mode broker communication -------
+  /**
+   * Signals that the clock is paused due to server overrun. The pause
+   * must be communicated to brokers.
+   */
+  void pause ()
+  {
+    log.info "pause"
+    // create and post the pause message
+  }
+  
+  /**
+   * Signals that the clock is resumed. Brokers must be informed of the new
+   * start time in order to sync their own clocks.
+   */
+  void resume (long newStart)
+  {
+    log.info "resume"
+    // create and post the resume message  
+  }
+  
+  /**
+   * Allows a broker to request a pause. It may or may not be allowed.
+   * If allowed, then the pause will take effect when the current simulation
+   * cycle has finished, or immediately if no simulation cycle is currently
+   * in progress.
+   */
+  void requestPause (Broker requester)
+  {
+    
+  }
+  
+  /**
+   * Releases a broker-initiated pause. After the clock is re-started, the
+   * resume() method will be called to communicate a new start time.
+   */
+  void releasePause (Broker requester)
+  {
+    
   }
 }

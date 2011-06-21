@@ -58,7 +58,7 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
     // mock all needed services other than timeService
     competitionControlService.jmsManagementService = 
       [createQueues: { -> queuesCreated = true }]
-    competitionControlService.quartzScheduler = [start: { -> schedulerStarted = true }]
+    //competitionControlService.quartzScheduler = [start: { -> schedulerStarted = true }]
     //clockDriveJob.timeService = [updateTime: { -> updateCounter += 1 }]
   }
 
