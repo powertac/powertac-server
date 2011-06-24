@@ -28,7 +28,7 @@ import org.springframework.context.ApplicationContextAware
 import org.powertac.common.*
 import greenbill.dbstuff.DbCreate
 import greenbill.dbstuff.DataExport
-//import org.quartz.SimpleTrigger
+import org.hibernate.*
 import org.codehaus.groovy.grails.commons.GrailsApplication
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 
@@ -60,8 +60,7 @@ implements ApplicationContextAware, CompetitionControl
   boolean running = false
 
   SimulationClockControl clock
-  //def quartzScheduler
-  //def clockDriveJob
+  SessionFactory sessionFactory
   def timeService // inject simulation time service dependency
   def jmsManagementService
   def springSecurityService
@@ -73,7 +72,6 @@ implements ApplicationContextAware, CompetitionControl
 
   def applicationContext
   def grailsApplication
-  def sessionFactory
 
   def dataSource
 
@@ -173,18 +171,30 @@ implements ApplicationContextAware, CompetitionControl
       //timeService.start = start
       //Thread.sleep(start - new Date().getTime() + 10l)
       //timeService.updateTime()
+      if (sessionFactory == null) {
+        log.error "could not find hibernate session factory"
+      }
+      else {
 
-      // Set final paramaters
-      running = true
+        // Set final paramaters
+        running = true
 
-      // run the simulation
-      int slot = 0
-      clock.scheduleTick()
-      while (running) {
-        log.info("Wait for tick $slot")
-        clock.waitForTick(slot++)
-        step()
-        clock.complete()
+        // run the simulation
+        int slot = 0
+        clock.scheduleTick()
+        while (running) {
+          log.info("Wait for tick $slot")
+          clock.waitForTick(slot++)
+          step()
+          clock.complete()
+          def hibSession = sessionFactory.getCurrentSession()
+          if (hibSession == null) {
+            log.error "null hibernate session"
+          }
+          else {
+            hibSession.flush()
+          }
+        }
       }
 
       // simulation is complete
