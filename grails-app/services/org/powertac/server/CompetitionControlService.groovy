@@ -21,6 +21,8 @@ import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 import org.powertac.common.msg.SimEnd
+import org.powertac.common.msg.SimPause
+import org.powertac.common.msg.SimResume
 import org.powertac.common.msg.SimStart
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
@@ -156,7 +158,6 @@ implements ApplicationContextAware, CompetitionControl
     runAsync {
       SimulationClockControl.initialize(this, timeService)
       clock = SimulationClockControl.getInstance()
-      //quartzScheduler.start()
       // wait for start time
       long now = new Date().getTime()
       //long start = now + scheduleMillis * 2 - now % scheduleMillis
@@ -484,6 +485,8 @@ implements ApplicationContextAware, CompetitionControl
   {
     log.info "pause"
     // create and post the pause message
+    SimPause msg = new SimPause()
+    brokerProxyService.broadcastMessage(msg)
   }
   
   /**
@@ -493,7 +496,9 @@ implements ApplicationContextAware, CompetitionControl
   void resume (long newStart)
   {
     log.info "resume"
-    // create and post the resume message  
+    // create and post the resume message
+    SimResume msg = new SimResume(start: new Instant(newStart))
+    brokerProxyService.broadcastMessage(msg)
   }
   
   /**
