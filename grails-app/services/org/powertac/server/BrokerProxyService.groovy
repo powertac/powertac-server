@@ -58,6 +58,7 @@ class BrokerProxyService
     }
     def queueName = broker.toQueueName()
     String xml = messageConverter.toXML(messageObject)
+    log.debug "send to ${broker.username} ${xml}"
     try {
       jmsService.send(queueName, xml)
     } catch (Exception e) {

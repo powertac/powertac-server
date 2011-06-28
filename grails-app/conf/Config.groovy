@@ -82,7 +82,7 @@ log4j = {
       'net.sf.ehcache'
       
   info 'grails.app'
-  debug 'grails.app.service.org.powertac.server'
+  debug 'grails.app.service.org.powertac.server'//, 'org.hibernate.SQL'
 
   root {
     warn 'file', 'stdout'
