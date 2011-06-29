@@ -15,9 +15,11 @@
  */
 package org.powertac.server
 
+import org.codehaus.groovy.grails.commons.ConfigurationHolder
+import org.hibernate.*
 import org.joda.time.Instant
+import org.powertac.common.*
 import org.powertac.common.interfaces.CompetitionControl
-import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 import org.powertac.common.msg.SimEnd
@@ -27,13 +29,6 @@ import org.powertac.common.msg.SimStart
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-import org.powertac.common.*
-import greenbill.dbstuff.DbCreate
-import greenbill.dbstuff.DataExport
-import org.hibernate.*
-import org.codehaus.groovy.grails.commons.GrailsApplication
-import org.codehaus.groovy.grails.commons.ConfigurationHolder
-
 /**
  * This is the competition controller. It has three major roles in the
  * server:
@@ -51,8 +46,7 @@ import org.codehaus.groovy.grails.commons.ConfigurationHolder
  * @author John Collins
  */
 class CompetitionControlService
-implements ApplicationContextAware, CompetitionControl
-{
+implements ApplicationContextAware, CompetitionControl {
   static transactional = false
 
   Competition competition // convenience var, invalid across sessions
@@ -70,6 +64,7 @@ implements ApplicationContextAware, CompetitionControl
   def tariffMarketService
   def randomSeedService
   def abstractCustomerService
+  def householdCustomerService
   def logService
 
   def applicationContext
@@ -128,7 +123,7 @@ implements ApplicationContextAware, CompetitionControl
       return
 
     start((long) (competition.timeslotLength * TimeService.MINUTE /
-		  competition.simulationRate))
+        competition.simulationRate))
   }
 
   /**
@@ -220,7 +215,7 @@ implements ApplicationContextAware, CompetitionControl
     }
     if (--timeslotCount <= 0) {
       log.info "Stopping simulation"
-      // 
+      //
       running = false
       shutDown()
     }
@@ -253,9 +248,7 @@ implements ApplicationContextAware, CompetitionControl
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export(dumpfile, 'powertac')
-
     logService.stop()
-
     // refresh DB
     DbCreate dc = new DbCreate()
     dc.dataSource = dataSource
@@ -286,7 +279,7 @@ implements ApplicationContextAware, CompetitionControl
 
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
-                                                 competition.id, 'game-setup')
+        competition.id, 'game-setup')
     randomGen = new Random(randomSeed)
 
     // set up broker queues (are they logged in already?)
@@ -310,11 +303,11 @@ implements ApplicationContextAware, CompetitionControl
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
     timeslotCount = computeGameLength(competition.minimumTimeslotCount,
-                                      competition.expectedTimeslotCount)
+        competition.expectedTimeslotCount)
     List<Timeslot> slots =
         createInitialTimeslots(competition.simulationBaseTime,
-                               competition.deactivateTimeslotsAhead,
-                               competition.timeslotsOpen)
+        competition.deactivateTimeslotsAhead,
+        competition.timeslotsOpen)
     TimeslotUpdate msg = new TimeslotUpdate(enabled: slots)
     msg.save()
     brokerProxyService.broadcastMessage(msg)
@@ -322,6 +315,10 @@ implements ApplicationContextAware, CompetitionControl
     // publish customer info
     List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
     brokerProxyService.broadcastMessage(customers)
+
+    // Publish Bootstrap Data Map
+    List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
+    brokerProxyService.broadcastMessage(bootstrapData)
     return true
   }
 
@@ -343,15 +340,15 @@ implements ApplicationContextAware, CompetitionControl
   }
 
   List<Timeslot> createInitialTimeslots (Instant base,
-					 int initialSlots,
-					 int openSlots)
+  int initialSlots,
+  int openSlots)
   {
     List<Timeslot> result = []
     long start = base.millis //- timeslotMillis
-                             // first step happens before first clock update
+    // first step happens before first clock update
     for (i in 0..<initialSlots) {
       Timeslot ts =
-      new Timeslot(serialNumber: i,
+          new Timeslot(serialNumber: i,
           startInstant: new Instant(start + i * timeslotMillis),
           endInstant: new Instant(start + (i + 1) * timeslotMillis))
       ts.save()
@@ -359,7 +356,7 @@ implements ApplicationContextAware, CompetitionControl
     }
     for (i in initialSlots..<(initialSlots + openSlots)) {
       Timeslot ts =
-      new Timeslot(serialNumber: i,
+          new Timeslot(serialNumber: i,
           enabled: true,
           startInstant: new Instant(start + i * timeslotMillis),
           endInstant: new Instant(start + (i + 1) * timeslotMillis))
@@ -378,7 +375,7 @@ implements ApplicationContextAware, CompetitionControl
       return
     }
     int oldSerial = (current.serialNumber +
-		     competition.deactivateTimeslotsAhead)
+        competition.deactivateTimeslotsAhead)
     Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
     oldTs.enabled = false
     oldTs.save()
@@ -386,12 +383,12 @@ implements ApplicationContextAware, CompetitionControl
 
     // then create if necessary and activate the newest timeslot
     int newSerial = (current.serialNumber +
-		     competition.deactivateTimeslotsAhead +
-		     competition.timeslotsOpen)
+        competition.deactivateTimeslotsAhead +
+        competition.timeslotsOpen)
     Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
     if (newTs == null) {
       long start = (current.startInstant.millis +
-		    (newSerial - current.serialNumber) * timeslotMillis)
+          (newSerial - current.serialNumber) * timeslotMillis)
       newTs = new Timeslot(serialNumber: newSerial,
           enabled: true,
           startInstant: new Instant(start),
@@ -413,8 +410,8 @@ implements ApplicationContextAware, CompetitionControl
     double roll = randomGen.nextDouble()
     // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
     double k = (Math.log(1.0 - roll) /
-		Math.log(1.0 - 1.0 /
-			 (expLength - minLength + 1)))
+        Math.log(1.0 - 1.0 /
+        (expLength - minLength + 1)))
     int length = minLength + (int) Math.floor(k)
     log.info("game-length ${length} (k=${k}, roll=${roll})")
     return length
@@ -446,7 +443,7 @@ implements ApplicationContextAware, CompetitionControl
     while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining[0]
       remaining = (remaining.size() > 1) ?
-                   remaining[1..(remaining.size() - 1)] : []
+          remaining[1..(remaining.size() - 1)] : []
       String success = initializer.initialize(competition, completedPlugins)
       if (success == null) {
         // defer this one
@@ -474,9 +471,9 @@ implements ApplicationContextAware, CompetitionControl
   {
     def classMap = applicationContext.getBeansOfType(iface)
     classMap.collect { it.value } // return only the object, which is
-				  // the maps' value
+    // the maps' value
   }
-  
+
   // ------- pause-mode broker communication -------
   /**
    * Signals that the clock is paused due to server overrun. The pause
@@ -489,7 +486,7 @@ implements ApplicationContextAware, CompetitionControl
     SimPause msg = new SimPause()
     brokerProxyService.broadcastMessage(msg)
   }
-  
+
   /**
    * Signals that the clock is resumed. Brokers must be informed of the new
    * start time in order to sync their own clocks.
@@ -501,7 +498,7 @@ implements ApplicationContextAware, CompetitionControl
     SimResume msg = new SimResume(start: new Instant(newStart))
     brokerProxyService.broadcastMessage(msg)
   }
-  
+
   /**
    * Allows a broker to request a pause. It may or may not be allowed.
    * If allowed, then the pause will take effect when the current simulation
@@ -510,15 +507,15 @@ implements ApplicationContextAware, CompetitionControl
    */
   void requestPause (Broker requester)
   {
-    
+
   }
-  
+
   /**
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
    */
   void releasePause (Broker requester)
   {
-    
+
   }
 }
