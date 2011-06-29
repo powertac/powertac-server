@@ -103,6 +103,7 @@ implements ApplicationContextAware, CompetitionControl
     competitionId = competition.id
 
     // Set up all the plugin configurations
+    phaseRegistrations = null
     def initializers = getObjectsForInterface(InitializationService)
     initializers?.each { it.setDefaults() }
     // configure competition instance
