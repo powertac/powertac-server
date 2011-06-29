@@ -15,8 +15,6 @@
  */
 package org.powertac.server
 
-import greenbill.dbstuff.DataExport
-import greenbill.dbstuff.DbCreate
 import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.hibernate.*
 import org.joda.time.Instant
@@ -31,7 +29,6 @@ import org.powertac.common.msg.SimStart
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
-
 /**
  * This is the competition controller. It has three major roles in the
  * server:
@@ -250,9 +247,7 @@ implements ApplicationContextAware, CompetitionControl {
     DataExport de = new DataExport()
     de.dataSource = dataSource
     de.export(dumpfile, 'powertac')
-
     logService.stop()
-
     // refresh DB
     DbCreate dc = new DbCreate()
     dc.dataSource = dataSource
@@ -321,7 +316,7 @@ implements ApplicationContextAware, CompetitionControl {
     brokerProxyService.broadcastMessage(customers)
 
     // Publish Bootstrap Data Map
-    Map bootstrapData = householdCustomerService.generateBootstrapDataMap()
+    List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
     brokerProxyService.broadcastMessage(bootstrapData)
     return true
   }
