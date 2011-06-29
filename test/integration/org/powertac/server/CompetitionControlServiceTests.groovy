@@ -22,7 +22,6 @@ import org.joda.time.DateTimeZone
 import org.powertac.common.Competition
 import org.powertac.common.Timeslot
 import org.powertac.common.TimeService
-import org.powertac.common.ClockDriveJob
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
 
 import grails.test.*
@@ -58,8 +57,6 @@ class CompetitionControlServiceTests extends GrailsUnitTestCase
     // mock all needed services other than timeService
     competitionControlService.jmsManagementService = 
       [createQueues: { -> queuesCreated = true }]
-    //competitionControlService.quartzScheduler = [start: { -> schedulerStarted = true }]
-    //clockDriveJob.timeService = [updateTime: { -> updateCounter += 1 }]
   }
 
   protected void tearDown() 

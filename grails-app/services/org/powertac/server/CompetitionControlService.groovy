@@ -322,6 +322,10 @@ implements ApplicationContextAware, CompetitionControl
     // publish customer info
     List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
     brokerProxyService.broadcastMessage(customers)
+
+    // Publish Bootstrap Data Map
+    List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
+    brokerProxyService.broadcastMessage(bootstrapData)
     return true
   }
 

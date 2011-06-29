@@ -30,8 +30,14 @@ class SimulationClockControlTests extends GrailsUnitTestCase
   long current
   long start
   long base
+  long rate
   long modulo
 
+  // mock CompetitionControl
+  def ccs = [
+    'start': { },
+    'resume': { start -> }] as CompetitionControlService
+  
   protected void setUp ()
   {
     super.setUp()
@@ -39,7 +45,9 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     start = current + TimeService.SECOND * 2 // two seconds from now
     base = 10000l
     modulo = TimeService.MINUTE * 30 // 2.5 sec timeslot
+    rate = 720l // 5 sec/hr
     timeService.base = base
+    timeService.rate = rate
     timeService.modulo = modulo
   }
 
@@ -50,7 +58,7 @@ class SimulationClockControlTests extends GrailsUnitTestCase
   
   SimulationClockControl getInstance ()
   {
-    SimulationClockControl.initialize(timeService)
+    SimulationClockControl.initialize(ccs, timeService)
     return SimulationClockControl.getInstance()
   }
 
@@ -105,7 +113,7 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     wakeup = new Date().getTime()
     assertEquals("correct time, tick 1", due, wakeup, 20)
     // long interval - wait 3 sec and finish
-    Thread.sleep(3000)
+    Thread.sleep(4000)
     assertEquals("paused", SimulationClockControl.Status.PAUSED, scc.state)
     scc.complete()
     

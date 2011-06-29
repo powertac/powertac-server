@@ -81,8 +81,6 @@ public class SimulationClockControl
     this.rate = timeService.getRate();
     this.modulo = timeService.getModulo();
     theTimer = new Timer();
-    //tickAction = new TickAction();
-    //watchdogAction = new WatchdogAction();
   }
   
   /**
@@ -134,7 +132,7 @@ public class SimulationClockControl
    */
   public synchronized void stop ()
   {
-    System.out.println("Stop at " + new Date().getTime());
+    //System.out.println("Stop at " + new Date().getTime());
     state = Status.STOPPED;
     if (currentWatchdog != null) {
       currentWatchdog.cancel();
@@ -207,6 +205,7 @@ public class SimulationClockControl
   private long computeNextTickTime ()
   {
     long current = new Date().getTime();
+    // not a valid test?
     if (current < start) {
       // first tick is special
       //System.out.println("first tick at " + start + "; current is " + current);
