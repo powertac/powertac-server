@@ -20,10 +20,10 @@ import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.msg.SimEnd
-import org.powertac.common.msg.SimPause
-import org.powertac.common.msg.SimResume
-import org.powertac.common.msg.SimStart
+import org.powertac.common.command.SimEnd
+import org.powertac.common.command.SimPause
+import org.powertac.common.command.SimResume
+import org.powertac.common.command.SimStart
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
