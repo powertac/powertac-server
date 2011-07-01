@@ -23,6 +23,7 @@ import org.powertac.common.msg.*
 import org.powertac.common.command.*
 import org.powertac.common.interfaces.BrokerProxy
 import org.powertac.common.interfaces.BrokerMessageListener
+import org.powertac.common.interfaces.CompetitionControl
 
 /**
  * BrokerProxyService is responsible for handling in- and outgoing communication with brokers
@@ -39,10 +40,11 @@ class BrokerProxyService
   MessageConverter messageConverter = new MessageConverter()
 
   def visualizationProxyService // autowire
-  def competitionControlService
+  //def competitionControlService - circular dependency
 
   Set tariffRegistrations = []
   Set marketRegistrations = []
+  Set simRegistrations = []
   Set tariffMessageTypes = 
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
@@ -144,7 +146,9 @@ class BrokerProxyService
       }
     }
     else if (simMessageTypes.contains(thing.class)) {
-      competitionControlService?.receiveMessage(thing)
+	  simRegistrations.each { listener ->
+        listener.receiveMessage(thing)
+	  }
     }
     else {
       marketRegistrations.each { listener ->
@@ -170,5 +174,10 @@ class BrokerProxyService
   void registerBrokerMarketListener(BrokerMessageListener listener) 
   {
     marketRegistrations.add(listener)
+  }
+  
+  void registerSimListener(CompetitionControl listener)
+  {
+  	simRegistrations.add(listener)
   }
 }

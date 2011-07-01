@@ -20,12 +20,12 @@ import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.command.PauseRelease
-import org.powertac.common.command.PauseRequest
-import org.powertac.common.command.SimEnd
-import org.powertac.common.command.SimPause
-import org.powertac.common.command.SimResume
-import org.powertac.common.command.SimStart
+import org.powertac.common.msg.PauseRelease;
+import org.powertac.common.msg.PauseRequest;
+import org.powertac.common.command.SimEnd;
+import org.powertac.common.command.SimPause;
+import org.powertac.common.command.SimResume;
+import org.powertac.common.command.SimStart;
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -93,6 +93,8 @@ implements ApplicationContextAware, CompetitionControl
   void preGame ()
   {
     log.info "pre-game initialization"
+	// add broker message registration
+	brokerProxyService.registerSimListener(this)
     // Create admin role
     def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
     assert adminRole.save()
