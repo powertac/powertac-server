@@ -52,7 +52,7 @@ import org.powertac.common.TimeService;
  */
 public class SimulationClockControl
 {
-  public enum Status { CLEAR, COMPLETE, PAUSED, STOPPED }
+  public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
   
   private static final long postPauseDelay = 500l; // 500 msec
   private static final long watchdogSlack = 200l; // 200 msec
@@ -66,10 +66,32 @@ public class SimulationClockControl
 
   private Status state = Status.CLEAR; // package visibility for testing
   private int nextTick = -1;
+  private boolean pauseRequested = false;
   
   private Timer theTimer;
-  //private TickAction tickAction;
   private WatchdogAction currentWatchdog;
+  
+  // ------------- Singleton methods -------------
+  private static SimulationClockControl instance;
+
+  /**
+   * Creates the instance and sets the reference to the timeService.
+   */
+  public static void initialize (CompetitionControlService competitionControl,
+                                 TimeService timeService)
+  {
+    instance = new SimulationClockControl(competitionControl, timeService);
+  }
+  
+  /**
+   * Returns the instance, which of course will be null if the singleton
+   * is not yet initialized.
+   * @return
+   */
+  public static SimulationClockControl getInstance ()
+  {
+    return instance;
+  }
 
   private SimulationClockControl (CompetitionControlService competitionControl,
                                   TimeService timeService)
@@ -83,6 +105,7 @@ public class SimulationClockControl
     theTimer = new Timer();
   }
   
+  // --------------- external api ----------------
   /**
    * Sets the sim clock start time, which in turn gets propagated to the
    * timeService.
@@ -100,29 +123,41 @@ public class SimulationClockControl
    */
   public void scheduleTick ()
   {
-    //System.out.println("scheduleTick() " + new Date().getTime());
+    System.out.println("scheduleTick() " + new Date().getTime());
     long nextTick = computeNextTickTime();
-    theTimer.schedule(new TickAction(), new Date(nextTick));
+    boolean success = false;
+    while (!success) {
+      try {
+        theTimer.schedule(new TickAction(this), new Date(nextTick));
+        success = true;
+      }
+      catch (IllegalStateException ise) {
+        System.out.println("Timer failure: " + ise.toString());
+        // at this point there should be no outstanding timer tasks
+        theTimer = new Timer();
+      }
+    }
   }
   
   /**
    * Indicates that the simulator has completed its work on the current
-   * timeslot. If the sim was paused, then un-pause it. On the last tick,
-   * call stop() rather than complete().
+   * timeslot. If the sim was delayed, then resume it. On the last tick,
+   * client must call stop() rather than complete().
    */
   public synchronized void complete ()
   {
-    //System.out.println("complete() " + new Date().getTime());
-    if (state == Status.PAUSED) {
-      // compute new start time, communicate it to brokers, and re-start
-      // the clock.
-      long originalNextTick = computeNextTickTime();
-      long actualNextTick = new Date().getTime() + postPauseDelay;
-      start += actualNextTick - originalNextTick;
-      timeService.setStart(start);
-      competitionControl.resume(start);
-      scheduleTick();
-   }
+    System.out.println("complete() " + new Date().getTime());
+    if (state == Status.DELAYED) {
+      if (pauseRequested) {
+        // already paused, just change the state
+        state = Status.PAUSED;
+        pauseRequested = false;
+        return;
+      }
+      else
+        resume();
+    }
+    // let watchdog start the next tick
     state = Status.COMPLETE;
   }
   
@@ -146,7 +181,7 @@ public class SimulationClockControl
   public synchronized void waitForTick (int n)
   {
     // Can we guarantee this is called BEFORE the corresponding notifyTick()?
-    //System.out.println("nextTick=" + nextTick + ", n=" + n);
+    System.out.println("waitForTick() nextTick=" + nextTick + ", n=" + n);
     while (nextTick < n) {
       try {
         wait();
@@ -155,6 +190,33 @@ public class SimulationClockControl
     }
   }
   
+  /**
+   * Serves an external pause request. 
+   */
+  public synchronized void requestPause ()
+  {
+    // just set the flag. We'll pay attention to it the next
+    // time complete() is called.
+    pauseRequested = true;
+  }
+  
+  /**
+   * Releases an externally-requested pause.
+   */
+  public synchronized void releasePause ()
+  {
+    if (state != Status.PAUSED) {
+      // not paused yet, just clear the request
+      pauseRequested = false;
+    }
+    else {
+      // already paused, just proceed
+      state = Status.COMPLETE;
+      resume();
+    }
+  }
+
+  // ------------------------- internal methods ------------------
   /**
    * notifies the waiting thread (if any).
    */
@@ -172,19 +234,38 @@ public class SimulationClockControl
    * This method and the complete() method are synchronized to protect 
    * against complete() being called before state is set to paused.
    */
-  private synchronized void pauseMaybe ()
+  private synchronized void delayMaybe ()
   {
-    //System.out.println("pauseMaybe() " + new Date().getTime());
+    System.out.println("delayMaybe() " + new Date().getTime());
     if (state == Status.CLEAR) {
       // sim thread is not finished
-      //System.out.println("pausing");
-      state = Status.PAUSED; // clock resumed by calling complete()
+      //System.out.println("delaying");
+      state = Status.DELAYED; // clock resumed by calling complete()
       competitionControl.pause();
+    }
+    else if (pauseRequested) {
+      // don't schedule the next tick here
+      state = Status.PAUSED;
+      competitionControl.pause();
+      pauseRequested = false;
     }
     else if (state == Status.COMPLETE) {
       // sim finished - schedule the next tick
       scheduleTick();
     }
+  }
+
+  // compute new start time, communicate it to brokers, and re-start
+  // the clock.
+  private void resume ()
+  {
+    System.out.println("resume()");
+    long originalNextTick = computeNextTickTime();
+    long actualNextTick = new Date().getTime() + postPauseDelay;
+    start += actualNextTick - originalNextTick;
+    timeService.setStart(start);
+    competitionControl.resume(start);
+    scheduleTick();
   }
 
   synchronized Status getState () // package visibility for test support
@@ -208,7 +289,7 @@ public class SimulationClockControl
     // not a valid test?
     if (current < start) {
       // first tick is special
-      //System.out.println("first tick at " + start + "; current is " + current);
+      System.out.println("first tick at " + start + "; current is " + current);
       return start;
     }
     else {
@@ -216,35 +297,21 @@ public class SimulationClockControl
       long simTime = timeService.getCurrentTime().getMillis();
       long nextSimTime = simTime + modulo;
       long nextTick = start + (nextSimTime - base) / rate; 
-      //System.out.println("next tick: time " + current + "; next tick at " + nextTick);
+      System.out.println("next tick: current " + current + "; next tick at " + nextTick);
       return nextTick;
     }
   }
   
-  // ---- Singleton methods ----
-  private static SimulationClockControl instance;
-
-  /**
-   * Creates the instance and sets the reference to the timeService.
-   */
-  public static void initialize (CompetitionControlService competitionControl,
-                                 TimeService timeService)
-  {
-    instance = new SimulationClockControl(competitionControl, timeService);
-  }
-  
-  /**
-   * Returns the instance, which of course will be null if the singleton
-   * is not yet initialized.
-   * @return
-   */
-  public static SimulationClockControl getInstance ()
-  {
-    return instance;
-  }
-  
   private class TickAction extends TimerTask
   {
+    SimulationClockControl scc;
+    
+    TickAction (SimulationClockControl scc)
+    {
+      super();
+      this.scc = scc;
+    }
+    
     /**
      * Runs a tick - updates the timeService, clears the state,
      * schedules the watchdog, and notifies the simulator. The
@@ -253,19 +320,27 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      //System.out.println("TickAction.run() " + new Date().getTime());
+      System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
-      setState(Status.CLEAR);
+      scc.setState(Status.CLEAR);
       long wdTime = computeNextTickTime() - watchdogSlack;
-      //System.out.println("watchdog set for " + wdTime);
-      currentWatchdog = new WatchdogAction();
+      System.out.println("watchdog set for " + wdTime);
+      currentWatchdog = new WatchdogAction(scc);
       theTimer.schedule(currentWatchdog, new Date(wdTime));
-      notifyTick();
+      scc.notifyTick();
     }
   }
   
   private class WatchdogAction extends TimerTask
   {
+    SimulationClockControl scc;
+    
+    WatchdogAction (SimulationClockControl scc)
+    {
+      super();
+      this.scc = scc;
+    }
+    
     /**
      * Checks for sim task completion by calling pauseMaybe on the
      * instance.
@@ -273,8 +348,8 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      //System.out.println("WatchdogAction.run() " + new Date().getTime());
-      instance.pauseMaybe();
+      System.out.println("WatchdogAction.run() " + new Date().getTime());
+      scc.delayMaybe();
       currentWatchdog = null;
     }
   }

@@ -20,6 +20,8 @@ import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.Customer
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.command.PauseRelease
+import org.powertac.common.command.PauseRequest
 import org.powertac.common.command.SimEnd
 import org.powertac.common.command.SimPause
 import org.powertac.common.command.SimResume
@@ -506,23 +508,41 @@ implements ApplicationContextAware, CompetitionControl
     brokerProxyService.broadcastMessage(msg)
   }
   
+  String pauseRequester
+  
   /**
    * Allows a broker to request a pause. It may or may not be allowed.
    * If allowed, then the pause will take effect when the current simulation
    * cycle has finished, or immediately if no simulation cycle is currently
    * in progress.
    */
-  void requestPause (Broker requester)
+  void receiveMessage (PauseRequest msg)
   {
-    
+    if (pauseRequester != null) {
+      log.info "Pause request by ${msg.broker.username} rejected; already paused by ${pauseRequester}"
+      return
+    }
+    pauseRequester = msg.broker.username
+    log.info "Pause request by ${msg.broker.username}"
+    clock.requestPause()
   }
   
   /**
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
    */
-  void releasePause (Broker requester)
+  void receiveMessage (PauseRelease msg)
   {
-    
+    if (pauseRequester == null) {
+      log.info "Release request by ${msg.broker.username}, but no pause currently requested"
+      return
+    }
+    if (pauseRequester != msg.broker.username) {
+      log.info "Release request by ${msg.broker.username}, but pause request was by ${pauseRequester}"
+      return
+    }
+    log.info "Pause released by ${msg.broker.username}"
+    clock.releasePause()
+    pauseRequester = null
   }
 }

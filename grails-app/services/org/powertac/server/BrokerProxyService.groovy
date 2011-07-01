@@ -20,6 +20,7 @@ import org.powertac.common.Broker
 import javax.jms.JMSException
 import org.powertac.common.*
 import org.powertac.common.msg.*
+import org.powertac.common.command.*
 import org.powertac.common.interfaces.BrokerProxy
 import org.powertac.common.interfaces.BrokerMessageListener
 
@@ -37,13 +38,15 @@ class BrokerProxyService
   def jmsService
   MessageConverter messageConverter = new MessageConverter()
 
-  def visualizationProxyService
+  def visualizationProxyService // autowire
+  def competitionControlService
 
   Set tariffRegistrations = []
   Set marketRegistrations = []
   Set tariffMessageTypes = 
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
+  Set simMessageTypes = [PauseRequest.class, PauseRelease.class] as Set
   
 /**
  * Send a message to a specific broker
@@ -132,13 +135,16 @@ class BrokerProxyService
   void routeMessage(Object thing)
   {
     // dispatch to visualizers
-    visualizationProxyService.forwardMessage(thing)
+    visualizationProxyService?.forwardMessage(thing)
 
     // dispatch to listeners
     if (tariffMessageTypes.contains(thing.class)) {
       tariffRegistrations.each { listener ->
         listener.receiveMessage(thing)
       }
+    }
+    else if (simMessageTypes.contains(thing.class)) {
+      competitionControlService?.receiveMessage(thing)
     }
     else {
       marketRegistrations.each { listener ->

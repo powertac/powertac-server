@@ -34,9 +34,14 @@ class SimulationClockControlTests extends GrailsUnitTestCase
   long modulo
 
   // mock CompetitionControl
+  boolean started = false
+  boolean paused = false
+  long updatedStart
   def ccs = [
-    'start': { },
-    'resume': { start -> }] as CompetitionControlService
+    'start': { started = true },
+    'resume': { start -> updatedStart = start},
+    'pause': { paused = true }
+  ] as CompetitionControlService
   
   protected void setUp ()
   {
@@ -49,6 +54,8 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     timeService.base = base
     timeService.rate = rate
     timeService.modulo = modulo
+    started = false
+    paused = false
   }
 
   protected void tearDown ()
@@ -113,8 +120,8 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     wakeup = new Date().getTime()
     assertEquals("correct time, tick 1", due, wakeup, 20)
     // long interval - wait 3 sec and finish
-    Thread.sleep(4000)
-    assertEquals("paused", SimulationClockControl.Status.PAUSED, scc.state)
+    Thread.sleep(3000)
+    assertEquals("paused", SimulationClockControl.Status.DELAYED, scc.state)
     scc.complete()
     
     // start should have moved back about 500 msec + post-pause delay
@@ -128,5 +135,66 @@ class SimulationClockControlTests extends GrailsUnitTestCase
     // stop the clock
     scc.stop()
     assertEquals("stopped", SimulationClockControl.Status.STOPPED, scc.state)
+  }
+  
+  void testPauseRequestDuringShortOp ()
+  {
+    SimulationClockControl scc = getInstance()
+    scc.setStart(start)
+    long interval = modulo / timeService.rate
+    assertEquals("clear", SimulationClockControl.Status.CLEAR, scc.state)
+    scc.scheduleTick()
+    scc.waitForTick(0)
+    assertFalse("not paused", paused)
+    assertEquals("clear", SimulationClockControl.Status.CLEAR, scc.state)
+    Thread.sleep(1000)
+    // now request a pause
+    scc.requestPause()
+    scc.complete()
+    assertEquals("complete", SimulationClockControl.Status.COMPLETE, scc.state)
+    assertFalse("pause() not yet called", paused)
+    // wait for watchdog to run
+    Thread.sleep(1350)
+    assertTrue("pause() called", paused)
+    paused = false
+    assertEquals("paused", SimulationClockControl.Status.PAUSED, scc.state)
+    Thread.sleep(600)
+    updatedStart = 0l
+    scc.releasePause()
+    assertEquals("complete", SimulationClockControl.Status.COMPLETE, scc.state)
+    assertEquals("start time updated", start + 400l, updatedStart, 20)
+  }
+  
+  void testPauseRequestDuringLongOp ()
+  {
+    SimulationClockControl scc = getInstance()
+    paused = false
+    scc.setStart(start)
+    long interval = modulo / timeService.rate
+    assertEquals("clear", SimulationClockControl.Status.CLEAR, scc.state)
+    scc.scheduleTick()
+    scc.waitForTick(0)
+    assertFalse("not paused", paused)
+    assertEquals("clear", SimulationClockControl.Status.CLEAR, scc.state)
+    Thread.sleep(3000)
+    assertTrue("pause() called", paused)
+    paused = false
+    assertEquals("delayed", SimulationClockControl.Status.DELAYED, scc.state)
+    // now request a pause
+    scc.requestPause()
+    // calling complete() here will change status to PAUSED
+    scc.complete()
+    assertFalse("pause() not called again", paused)
+    assertEquals("paused", SimulationClockControl.Status.PAUSED, scc.state)
+    // delay a bit, then release the pause
+    Thread.sleep(600)
+    updatedStart = 0l
+    scc.releasePause()
+    assertEquals("complete", SimulationClockControl.Status.COMPLETE, scc.state)
+    assertEquals("start time updated", start + 1600l, updatedStart, 20)
+    scc.waitForTick(1)
+    long wakeup = new Date().getTime()
+    assertEquals("correct time", start + 1600l + 2500l, wakeup, 20)
+    assertEquals("clear again", SimulationClockControl.Status.CLEAR, scc.state)
   }
 }
