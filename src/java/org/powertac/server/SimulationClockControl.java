@@ -123,7 +123,7 @@ public class SimulationClockControl
    */
   public void scheduleTick ()
   {
-    System.out.println("scheduleTick() " + new Date().getTime());
+    //System.out.println("scheduleTick() " + new Date().getTime());
     long nextTick = computeNextTickTime();
     boolean success = false;
     while (!success) {
@@ -132,7 +132,7 @@ public class SimulationClockControl
         success = true;
       }
       catch (IllegalStateException ise) {
-        System.out.println("Timer failure: " + ise.toString());
+        //System.out.println("Timer failure: " + ise.toString());
         // at this point there should be no outstanding timer tasks
         theTimer = new Timer();
       }
@@ -146,7 +146,7 @@ public class SimulationClockControl
    */
   public synchronized void complete ()
   {
-    System.out.println("complete() " + new Date().getTime());
+    //System.out.println("complete() " + new Date().getTime());
     if (state == Status.DELAYED) {
       if (pauseRequested) {
         // already paused, just change the state
@@ -181,7 +181,7 @@ public class SimulationClockControl
   public synchronized void waitForTick (int n)
   {
     // Can we guarantee this is called BEFORE the corresponding notifyTick()?
-    System.out.println("waitForTick() nextTick=" + nextTick + ", n=" + n);
+    //System.out.println("waitForTick() nextTick=" + nextTick + ", n=" + n);
     while (nextTick < n) {
       try {
         wait();
@@ -236,7 +236,7 @@ public class SimulationClockControl
    */
   private synchronized void delayMaybe ()
   {
-    System.out.println("delayMaybe() " + new Date().getTime());
+    //System.out.println("delayMaybe() " + new Date().getTime());
     if (state == Status.CLEAR) {
       // sim thread is not finished
       //System.out.println("delaying");
@@ -259,7 +259,7 @@ public class SimulationClockControl
   // the clock.
   private void resume ()
   {
-    System.out.println("resume()");
+    //System.out.println("resume()");
     long originalNextTick = computeNextTickTime();
     long actualNextTick = new Date().getTime() + postPauseDelay;
     start += actualNextTick - originalNextTick;
@@ -289,7 +289,7 @@ public class SimulationClockControl
     // not a valid test?
     if (current < start) {
       // first tick is special
-      System.out.println("first tick at " + start + "; current is " + current);
+      //System.out.println("first tick at " + start + "; current is " + current);
       return start;
     }
     else {
@@ -297,7 +297,7 @@ public class SimulationClockControl
       long simTime = timeService.getCurrentTime().getMillis();
       long nextSimTime = simTime + modulo;
       long nextTick = start + (nextSimTime - base) / rate; 
-      System.out.println("next tick: current " + current + "; next tick at " + nextTick);
+      //System.out.println("next tick: current " + current + "; next tick at " + nextTick);
       return nextTick;
     }
   }
@@ -320,11 +320,11 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      System.out.println("TickAction.run() " + new Date().getTime());
+      //System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
       scc.setState(Status.CLEAR);
       long wdTime = computeNextTickTime() - watchdogSlack;
-      System.out.println("watchdog set for " + wdTime);
+      //System.out.println("watchdog set for " + wdTime);
       currentWatchdog = new WatchdogAction(scc);
       theTimer.schedule(currentWatchdog, new Date(wdTime));
       scc.notifyTick();
@@ -348,7 +348,7 @@ public class SimulationClockControl
     @Override
     public void run ()
     {
-      System.out.println("WatchdogAction.run() " + new Date().getTime());
+      //System.out.println("WatchdogAction.run() " + new Date().getTime());
       scc.delayMaybe();
       currentWatchdog = null;
     }
