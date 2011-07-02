@@ -53,7 +53,12 @@ class BrokerProxyService
 /**
  * Send a message to a specific broker
  */
-  void sendMessage(Broker broker, Object messageObject) {
+  void sendMessage(Broker broker, Object messageObject) 
+  {
+    if (messageObject == null) {
+      log.info "null message for $broker"
+      return
+    }
     // dispatch to visualizers
     visualizationProxyService.forwardMessage(messageObject)
 
@@ -75,14 +80,24 @@ class BrokerProxyService
 /**
  * Send a list of messages to a specific broker
  */
-  void sendMessages(Broker broker, List<?> messageObjects) {
+  void sendMessages(Broker broker, List<?> messageObjects) 
+  {
+    if (messageObjects.size() == 0) {
+      log.info "empty list for $broker"
+      return
+    }
     sendMessage(broker, messageObjects)
   }
 
 /**
  * Send a message to all brokers
  */
-  void broadcastMessage(Object messageObject) {
+  void broadcastMessage(Object messageObject) 
+  {
+    if (messageObject == null) {
+      log.info "broadcast null object"
+      return
+    }
     // dispatch to visualizers
     visualizationProxyService.forwardMessage(messageObject)
 
@@ -95,7 +110,8 @@ class BrokerProxyService
     localBrokers*.receiveMessage(messageObject)
   }
 
-  void broadcastMessage(String text) {
+  void broadcastMessage(String text) 
+  {
     def brokerQueueNames = Broker.list().findAll { !(it.local) }?.collect { it.toQueueName() }
     def queueName = brokerQueueNames.join(",")
     log.info("Broadcast queue name is ${queueName}")
@@ -112,6 +128,10 @@ class BrokerProxyService
  */
   void broadcastMessages(List<?> messageObjects) 
   {
+    if (messageObject.size() == 0) {
+      log.info "broadcast empty list"
+      return
+    }
     broadcastMessage(messageObjects)
   }
 
@@ -155,7 +175,6 @@ class BrokerProxyService
         listener.receiveMessage(thing)
       }
     }
-
     //broadcastMessage("I got your message")
     //log.debug "receiveMessage - end"
   }
