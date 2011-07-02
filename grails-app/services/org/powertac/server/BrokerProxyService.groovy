@@ -128,7 +128,7 @@ class BrokerProxyService
  */
   void broadcastMessages(List<?> messageObjects) 
   {
-    if (messageObject.size() == 0) {
+    if (messageObjects.size() == 0) {
       log.info "broadcast empty list"
       return
     }
@@ -197,6 +197,6 @@ class BrokerProxyService
   
   void registerSimListener(CompetitionControl listener)
   {
-  	simRegistrations.add(listener)
+    simRegistrations.add(listener)
   }
 }
