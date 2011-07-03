@@ -26,6 +26,8 @@ import org.powertac.common.command.SimStart
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
+import org.powertac.common.msg.CustomerBootstrapData
+import org.powertac.common.msg.CustomerList
 import org.powertac.common.msg.PauseRelease
 import org.powertac.common.msg.PauseRequest
 import org.powertac.common.msg.TimeslotUpdate
@@ -316,16 +318,14 @@ implements ApplicationContextAware, CompetitionControl {
     msg.save()
     brokerProxyService.broadcastMessage(msg)
 
-    // publish customer info
-    List<CustomerInfo> customers = []
-    List<Map> bootstrapData = []
-    AbstractCustomer.list().each{ customer->
-      customers.add(customer.customerInfo)
-      bootstrapData.add(customer.getBootstrapData())
+    AbstractCustomer.list().each{ abstractCustomer->
+      CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer: abstractCustomer.customerInfo)
+      customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData())
+      brokerProxyService.broadcastMessage(customerBootstrapData)
     }
-    brokerProxyService.broadcastMessage(customers)
-    brokerProxyService.broadcastMessage(bootstrapData)
+
     return true
+
   }
 
   // set simulation time parameters, making sure that simulationStartTime
