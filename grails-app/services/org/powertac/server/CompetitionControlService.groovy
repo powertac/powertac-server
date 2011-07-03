@@ -19,6 +19,8 @@ import org.codehaus.groovy.grails.commons.ConfigurationHolder
 import org.hibernate.*
 import org.joda.time.Instant
 import org.powertac.common.*
+import org.powertac.common.command.CustomerBootstrapData;
+import org.powertac.common.command.CustomerList;
 import org.powertac.common.command.SimEnd
 import org.powertac.common.command.SimPause
 import org.powertac.common.command.SimResume
@@ -26,8 +28,6 @@ import org.powertac.common.command.SimStart
 import org.powertac.common.interfaces.CompetitionControl
 import org.powertac.common.interfaces.InitializationService
 import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.msg.CustomerBootstrapData
-import org.powertac.common.msg.CustomerList
 import org.powertac.common.msg.PauseRelease
 import org.powertac.common.msg.PauseRequest
 import org.powertac.common.msg.TimeslotUpdate
