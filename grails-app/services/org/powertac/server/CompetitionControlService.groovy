@@ -303,7 +303,8 @@ implements ApplicationContextAware, CompetitionControl
       log.warn "Competition ${competitionId} is detached"
       competition.attach()
     }
-    competition.brokers = Broker.list().collect { it.username }
+    //competition.brokers = Broker.list().collect { it.username }
+    competition.brokers = Broker.findAllByWholesale(false).collect { it.username }
     competition.save()
     brokerProxyService.broadcastMessage(competition)
 
