@@ -380,40 +380,43 @@ implements ApplicationContextAware, CompetitionControl
 
   void activateNextTimeslot ()
   {
+    TimeslotUpdate msg
     // first, deactivate the oldest active timeslot
-    Timeslot current = Timeslot.currentTimeslot()
-    if (current == null) {
-      log.error "current timeslot is null at ${timeService.currentTime} !"
-      return
-    }
-    int oldSerial = (current.serialNumber +
-		     competition.deactivateTimeslotsAhead)
-    Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
-    oldTs.enabled = false
-    oldTs.save()
-    log.info "Deactivated timeslot $oldSerial, start ${oldTs.startInstant}"
+    Timeslot.withTransaction { status ->
+      Timeslot current = Timeslot.currentTimeslot()
+      if (current == null) {
+        log.error "current timeslot is null at ${timeService.currentTime} !"
+        return
+      }
+      int oldSerial = (current.serialNumber +
+          competition.deactivateTimeslotsAhead)
+      Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
+      oldTs.enabled = false
+      oldTs.save()
+      log.info "Deactivated timeslot $oldSerial, start ${oldTs.startInstant}"
 
-    // then create if necessary and activate the newest timeslot
-    int newSerial = (current.serialNumber +
-		     competition.deactivateTimeslotsAhead +
-		     competition.timeslotsOpen)
-    Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
-    if (newTs == null) {
-      long start = (current.startInstant.millis +
-		    (newSerial - current.serialNumber) * timeslotMillis)
-      newTs = new Timeslot(serialNumber: newSerial,
-          enabled: true,
-          startInstant: new Instant(start),
-          endInstant: new Instant(start + timeslotMillis))
+      // then create if necessary and activate the newest timeslot
+      int newSerial = (current.serialNumber +
+          competition.deactivateTimeslotsAhead +
+          competition.timeslotsOpen)
+      Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
+      if (newTs == null) {
+        long start = (current.startInstant.millis +
+            (newSerial - current.serialNumber) * timeslotMillis)
+        newTs = new Timeslot(serialNumber: newSerial,
+            enabled: true,
+            startInstant: new Instant(start),
+            endInstant: new Instant(start + timeslotMillis))
+      }
+      else {
+        newTs.enabled = true
+      }
+      newTs.save()
+      log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
+      // Communicate timeslot updates to brokers
+      msg = new TimeslotUpdate(enabled: [newTs], disabled: [oldTs])
+      msg.save()
     }
-    else {
-      newTs.enabled = true
-    }
-    newTs.save()
-    log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
-    // Communicate timeslot updates to brokers
-    TimeslotUpdate msg = new TimeslotUpdate(enabled: [newTs], disabled: [oldTs])
-    msg.save()
     brokerProxyService.broadcastMessage(msg)
   }
 

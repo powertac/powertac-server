@@ -33,7 +33,7 @@ class BrokerProxyService
     implements BrokerProxy
 {
 
-  static transactional = true
+  static transactional = false
   static expose = ['jms']
 
   def jmsService
@@ -149,7 +149,7 @@ class BrokerProxyService
       log.warn("validation error on ${xmlMessage}: ${thing.errors.allErrors.collect {it.toString()}}")
     }
     else {
-      thing.save()
+      //thing.save()
       routeMessage(thing)
     }
   }
