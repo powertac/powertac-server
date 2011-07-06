@@ -26,6 +26,7 @@ import org.powertac.common.command.SimEnd;
 import org.powertac.common.command.SimPause;
 import org.powertac.common.command.SimResume;
 import org.powertac.common.command.SimStart;
+import org.powertac.common.command.CustomerBootstrapData
 import org.powertac.common.msg.TimeslotUpdate
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
@@ -325,12 +326,17 @@ implements ApplicationContextAware, CompetitionControl
     brokerProxyService.broadcastMessage(msg)
 
     // publish customer info
-    List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
-    brokerProxyService.broadcastMessage(customers)
+    //List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
+    //brokerProxyService.broadcastMessage(customers)
 
     // Publish Bootstrap Data Map
-    List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
-    brokerProxyService.broadcastMessage(bootstrapData)
+    //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
+    //brokerProxyService.broadcastMessage(bootstrapData)
+    AbstractCustomer.list().each{ abstractCustomer->
+      CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer: abstractCustomer.customerInfo)
+      customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData())
+      brokerProxyService.broadcastMessage(customerBootstrapData)
+    }
     return true
   }
 
