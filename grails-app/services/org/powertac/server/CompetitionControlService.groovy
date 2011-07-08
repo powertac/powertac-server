@@ -70,9 +70,9 @@ implements ApplicationContextAware, CompetitionControl
   def jmsManagementService
   def springSecurityService
   def brokerProxyService
-  def tariffMarketService
+  //def tariffMarketService // circular reference
   def randomSeedService
-  def abstractCustomerService
+  //def abstractCustomerService
   def logService
 
   def applicationContext
@@ -84,6 +84,9 @@ implements ApplicationContextAware, CompetitionControl
   int timeslotCount = 0
   long timeslotMillis
   Random randomGen
+  
+  Object simLock = new Object() // simulation sync lock
+  boolean simRunning = false
 
   String dumpFilePrefix = (ConfigurationHolder.config.powertac?.dumpFilePrefix) ?: "logs/PowerTAC-dump-"
 
@@ -128,10 +131,20 @@ implements ApplicationContextAware, CompetitionControl
   {
     // to enhance testability, initialization is split into a static phase
     // followed by starting the clock
+    synchronized (simLock) {
+      if (simRunning) {
+        log.warn "attempt to start sim on top of running sim"
+        return
+      }
+      simRunning = true
+    }
     competition = Competition.get(competitionId)
-    if (setup() == false)
+    if (!setup()) {
+      synchronized (simLock) {
+        simRunning = false
+      }
       return
-
+    }
     runSimulation((long) (competition.timeslotLength * TimeService.MINUTE /
 		  competition.simulationRate))
   }
@@ -182,11 +195,8 @@ implements ApplicationContextAware, CompetitionControl
         log.error "could not find hibernate session factory"
       }
       else {
-
-        // Set final paramaters
-        running = true
-
         // run the simulation
+        running = true
         int slot = 0
         clock.scheduleTick()
         while (running) {
@@ -202,12 +212,23 @@ implements ApplicationContextAware, CompetitionControl
             hibSession.flush()
           }
         }
-
-        // simulation is complete
-        log.info("Stop simulation")
-        clock.stop()
-        shutDown()
       }
+      synchronized(simLock) {
+        simRunning = false
+        simLock.notifyAll()
+      }
+    }
+    runAsync {
+      // this thead runs the next sim
+      while (simRunning) {
+        synchronized(simLock) {
+          simLock.wait()
+        }
+      }
+      // simulation is complete
+      log.info("Stop simulation")
+      clock.stop()
+      shutDown()
     }
   }
 
@@ -227,7 +248,7 @@ implements ApplicationContextAware, CompetitionControl
       log.info "Stopping simulation"
       // 
       running = false
-      shutDown()
+      //shutDown()
     }
     else {
       activateNextTimeslot()
@@ -283,12 +304,6 @@ implements ApplicationContextAware, CompetitionControl
     }
     timeService.currentTime = competition.simulationBaseTime
 
-    // configure plugins
-    if (!configurePlugins()) {
-      log.error "failed to configure plugins"
-      return false
-    }
-
     // set up random sequence for CCS
     long randomSeed = randomSeedService.nextSeed('CompetitionControlService',
                                                  competition.id, 'game-setup')
@@ -308,10 +323,16 @@ implements ApplicationContextAware, CompetitionControl
     competition.brokers = Broker.findAllByWholesale(false).collect { it.username }
     competition.save()
     brokerProxyService.broadcastMessage(competition)
+    
+    // configure plugins
+    if (!configurePlugins()) {
+      log.error "failed to configure plugins"
+      return false
+    }
 
     // Publish default tariffs - they should have been created above
     // in the call to configurePlugins()
-    tariffMarketService.publishTariffs()
+    //tariffMarketService.publishTariffs()
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
