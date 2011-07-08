@@ -132,7 +132,7 @@ implements ApplicationContextAware, CompetitionControl
     if (setup() == false)
       return
 
-    start((long) (competition.timeslotLength * TimeService.MINUTE /
+    runSimulation((long) (competition.timeslotLength * TimeService.MINUTE /
 		  competition.simulationRate))
   }
 
@@ -158,7 +158,7 @@ implements ApplicationContextAware, CompetitionControl
   /**
    * Starts the simulation.  
    */
-  void start (long scheduleMillis)
+  void runSimulation (long scheduleMillis)
   {
     logService.start()
     runAsync {
@@ -202,12 +202,12 @@ implements ApplicationContextAware, CompetitionControl
             hibSession.flush()
           }
         }
-      }
 
-      // simulation is complete
-      log.info("Stop simulation")
-      clock.stop()
-      shutDown()
+        // simulation is complete
+        log.info("Stop simulation")
+        clock.stop()
+        shutDown()
+      }
     }
   }
 
