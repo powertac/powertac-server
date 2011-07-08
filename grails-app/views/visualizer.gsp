@@ -1,1 +1,1 @@
-<g:render template="/layouts/main" plugin="powertac-visualizer"/>
+<g:render template="/layouts/visualizer" plugin="powertac-visualizer"/>
