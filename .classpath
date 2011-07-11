@@ -149,5 +149,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-default-broker"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-physical-environment"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/powertac-visualizer"/>
+	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
 	<classpathentry kind="output" path="web-app/WEB-INF/classes"/>
 </classpath>
