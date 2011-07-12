@@ -307,25 +307,26 @@ implements ApplicationContextAware, CompetitionControl
 
     setTimeParameters()
 
-    // Publish Competition object at right place - when exactly?
+    // Publish Competition object at right place - after plugins
+    // are initialized. This is necessary because some may need to
+    // see the broadcast after they are initialized (visualizer, for example)
     if (!competition.isAttached()) {
       log.warn "Competition ${competitionId} is detached"
       competition.attach()
     }
-    //competition.brokers = Broker.list().collect { it.username }
     competition.brokers = Broker.findAllByWholesale(false).collect { it.username }
     competition.save()
-    brokerProxyService.broadcastMessage(competition)
     
-    // configure plugins
+    // configure plugins, but don't allow them to broadcast to brokers
+    brokerProxyService.deferredBroadcast = true
     if (!configurePlugins()) {
       log.error "failed to configure plugins"
       return false
     }
-
-    // Publish default tariffs - they should have been created above
-    // in the call to configurePlugins()
-    //tariffMarketService.publishTariffs()
+    // send the Competition instance, then broadcast deferred messages
+    brokerProxyService.deferredBroadcast = false
+    brokerProxyService.broadcastMessage(competition)
+    brokerProxyService.broadcastDeferredMessages()
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE
