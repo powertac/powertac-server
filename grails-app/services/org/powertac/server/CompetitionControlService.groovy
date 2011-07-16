@@ -138,6 +138,9 @@ implements ApplicationContextAware, CompetitionControl
     }
     simRunning = true
     competition = Competition.get(competitionId)
+    if (competition == null) {
+      log.error("null competition instance for id $competitionId")
+    }
     if (!setup()) {
       simRunning = false
       return
@@ -352,6 +355,7 @@ implements ApplicationContextAware, CompetitionControl
     AbstractCustomer.list().each{ abstractCustomer->
       CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer: abstractCustomer.customerInfo)
       customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData())
+      brokerProxyService.broadcastMessage(customerBootstrapData.customer) // workaround for #341
       brokerProxyService.broadcastMessage(customerBootstrapData)
     }
     return true
