@@ -3,11 +3,11 @@
 class BootStrap {
 
   def competitionControlService
-  def participantManagementService
+//  def participantManagementService
 
   def init = { servletContext ->
     log.info("Server BootStrap")
-    participantManagementService.initialize()
+//    participantManagementService.initialize()
     competitionControlService.preGame()
   }
   

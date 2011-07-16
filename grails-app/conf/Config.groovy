@@ -117,8 +117,8 @@ powertac {
   jmx.broker.url = "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi"
   connector.url = "failover:(tcp://127.0.0.1:61616)"
   broker.url = 'tcp://localhost:61616'
-//  deployment.type = 'competition'
-//  participationList.filePath = 'file:///tmp/broker_game.txt'
+  //  deployment.type = 'competition'
+  //  participationList.filePath = 'file:///tmp/broker_game.txt'
 
   //jmx.broker.url = "service:jmx:rmi:///jndi/rmi://xlarge.rsm.nl:1099/jmxrmi"
   //connector.url = "failover:(tcp://xlarge.rsm.nl:61616)"
