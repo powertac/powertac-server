@@ -42,6 +42,7 @@ class BrokerProxyService
   def visualizationProxyService // autowire
   //def competitionControlService - circular dependency
 
+  // Routing data
   Set tariffRegistrations = []
   Set marketRegistrations = []
   Set simRegistrations = []
@@ -49,6 +50,10 @@ class BrokerProxyService
     [TariffSpecification.class, Rate.class, HourlyCharge.class, TariffUpdate.class,
      TariffExpire.class, TariffRevoke.class, VariableRateUpdate.class] as Set
   Set simMessageTypes = [PauseRequest.class, PauseRelease.class] as Set
+  
+  // Deferred messages during initialization
+  boolean deferredBroadcast = false
+  List deferredMessages = []
   
 /**
  * Send a message to a specific broker
@@ -98,6 +103,10 @@ class BrokerProxyService
       log.info "broadcast null object"
       return
     }
+    if (deferredBroadcast) {
+      deferredMessages << messageObject
+      return
+    }
     // dispatch to visualizers
     visualizationProxyService.forwardMessage(messageObject)
 
@@ -132,7 +141,18 @@ class BrokerProxyService
       log.info "broadcast empty list"
       return
     }
-    broadcastMessage(messageObjects)
+    messageObjects.each { msg -> broadcastMessage(msg) }
+  }
+  
+  /**
+   * Turns off broadcast deferral, broadcasts deferred messages
+   */
+  void broadcastDeferredMessages ()
+  {
+    deferredBroadcast = false
+    log.info "broadcasting ${deferredMessages.size()} deferred messages"
+    broadcastMessages(deferredMessages)
+    deferredMessages.clear()
   }
 
 /**

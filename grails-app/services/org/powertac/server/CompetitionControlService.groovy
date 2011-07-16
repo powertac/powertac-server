@@ -131,18 +131,14 @@ implements ApplicationContextAware, CompetitionControl
   {
     // to enhance testability, initialization is split into a static phase
     // followed by starting the clock
-    synchronized (simLock) {
-      if (simRunning) {
-        log.warn "attempt to start sim on top of running sim"
-        return
-      }
-      simRunning = true
+    if (simRunning) {
+      log.warn "attempt to start sim on top of running sim"
+      return
     }
+    simRunning = true
     competition = Competition.get(competitionId)
     if (!setup()) {
-      synchronized (simLock) {
-        simRunning = false
-      }
+      simRunning = false
       return
     }
     runSimulation((long) (competition.timeslotLength * TimeService.MINUTE /
@@ -202,33 +198,30 @@ implements ApplicationContextAware, CompetitionControl
         while (running) {
           log.info("Wait for tick $slot")
           clock.waitForTick(slot++)
-          step()
+          def stepFuture = callAsync {
+            // new hibernate session for each step
+            step()
+          }
+          stepFuture.get()
           clock.complete()
-          def hibSession = sessionFactory.getCurrentSession()
-          if (hibSession == null) {
-            log.error "null hibernate session"
-          }
-          else {
-            hibSession.flush()
-          }
-        }
-      }
-      synchronized(simLock) {
-        simRunning = false
-        simLock.notifyAll()
-      }
-    }
-    runAsync {
-      // this thead runs the next sim
-      while (simRunning) {
-        synchronized(simLock) {
-          simLock.wait()
+          //def hibSession = sessionFactory.getCurrentSession()
+          //if (hibSession == null) {
+          //  log.error "null hibernate session"
+          //}
+          //else {
+          //  hibSession.flush()
+          //}
         }
       }
       // simulation is complete
       log.info("Stop simulation")
       clock.stop()
-      shutDown()
+      def endFuture = callAsync {
+        // new hibernate session for shutDown
+        shutDown()
+      }
+      endFuture.get()
+      simRunning = false
     }
   }
 
@@ -314,25 +307,26 @@ implements ApplicationContextAware, CompetitionControl
 
     setTimeParameters()
 
-    // Publish Competition object at right place - when exactly?
+    // Publish Competition object at right place - after plugins
+    // are initialized. This is necessary because some may need to
+    // see the broadcast after they are initialized (visualizer, for example)
     if (!competition.isAttached()) {
       log.warn "Competition ${competitionId} is detached"
       competition.attach()
     }
-    //competition.brokers = Broker.list().collect { it.username }
     competition.brokers = Broker.findAllByWholesale(false).collect { it.username }
     competition.save()
-    brokerProxyService.broadcastMessage(competition)
     
-    // configure plugins
+    // configure plugins, but don't allow them to broadcast to brokers
+    brokerProxyService.deferredBroadcast = true
     if (!configurePlugins()) {
       log.error "failed to configure plugins"
       return false
     }
-
-    // Publish default tariffs - they should have been created above
-    // in the call to configurePlugins()
-    //tariffMarketService.publishTariffs()
+    // send the Competition instance, then broadcast deferred messages
+    brokerProxyService.deferredBroadcast = false
+    brokerProxyService.broadcastMessage(competition)
+    brokerProxyService.broadcastDeferredMessages()
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.timeslotLength * TimeService.MINUTE

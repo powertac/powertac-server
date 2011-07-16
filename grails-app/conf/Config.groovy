@@ -53,7 +53,8 @@ grails.spring.bean.packages = []
 // set per-environment serverURL stem for creating absolute links
 environments {
   production {
-    grails.serverURL = "http://ibwmarkets.iw.uni-karlsruhe.de/powertac"
+    //grails.serverURL = "http://xlarge.rsm.nl:8080/powertac"
+    grails.serverURL = "http://localhost:8080/powertac"
   }
   development {
     grails.serverURL = "http://localhost:8080/${appName}"
@@ -117,6 +118,9 @@ powertac {
   connector.url = "failover:(tcp://127.0.0.1:61616)"
   broker.url = 'tcp://localhost:61616'
   //deployment = 'competition'
+  //jmx.broker.url = "service:jmx:rmi:///jndi/rmi://xlarge.rsm.nl:1099/jmxrmi"
+  //connector.url = "failover:(tcp://xlarge.rsm.nl:61616)"
+  //broker.url = 'tcp://xlarge.rsm.nl:61616'
 }
 // Added by the powertac-common plugin:
 grails.validateable.packages = ['org.powertac.common.command']
