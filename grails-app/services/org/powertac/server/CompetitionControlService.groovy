@@ -98,8 +98,8 @@ implements ApplicationContextAware, CompetitionControl
   void preGame ()
   {
     log.info "pre-game initialization"
-	// add broker message registration
-	brokerProxyService.registerSimListener(this)
+    // add broker message registration
+    brokerProxyService.registerSimListener(this)
     // Create admin role
     def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
     assert adminRole.save()
