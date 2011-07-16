@@ -74,6 +74,7 @@ implements ApplicationContextAware, CompetitionControl
   def randomSeedService
   //def abstractCustomerService
   def logService
+//  def participantManagementService
 
   def applicationContext
   def grailsApplication
@@ -283,6 +284,7 @@ implements ApplicationContextAware, CompetitionControl
     sessionFactory.currentSession.clear()
 
     // reinit game
+//    participantManagementService.advanceToNewGame()
     preGame()
   }
 

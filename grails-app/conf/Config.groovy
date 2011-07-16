@@ -114,13 +114,20 @@ grails.gorm.default.mapping = {
 
 //PowerTAC specific settings
 powertac {
+
+  // comment out the localhost versions and replace with host-specific versions
+  // for network deployment
   jmx.broker.url = "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi"
   connector.url = "failover:(tcp://127.0.0.1:61616)"
   broker.url = 'tcp://localhost:61616'
-  //deployment = 'competition'
   //jmx.broker.url = "service:jmx:rmi:///jndi/rmi://xlarge.rsm.nl:1099/jmxrmi"
   //connector.url = "failover:(tcp://xlarge.rsm.nl:61616)"
   //broker.url = 'tcp://xlarge.rsm.nl:61616'
+
+  // uncomment to allow control of broker login. Broker lists/game are in the
+  // specified file. 
+  //deployment.type = 'competition'
+  //participationList.filePath = 'file:///tmp/broker_game.txt'
 }
 // Added by the powertac-common plugin:
 grails.validateable.packages = ['org.powertac.common.command']
