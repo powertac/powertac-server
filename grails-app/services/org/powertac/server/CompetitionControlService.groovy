@@ -123,6 +123,8 @@ implements ApplicationContextAware, CompetitionControl
     if (!competition.save()) {
       log.error("could not save competition with plugins")
     }
+
+    logService.start()
   }
 
   /**
@@ -170,7 +172,6 @@ implements ApplicationContextAware, CompetitionControl
    */
   void runSimulation (long scheduleMillis)
   {
-    logService.start()
     runAsync {
       SimulationClockControl.initialize(this, timeService)
       clock = SimulationClockControl.getInstance()
