@@ -10,6 +10,7 @@ grails.plugin.location.PowertacAccountingService = "../powertac-accounting-servi
 grails.plugin.location.PowertacAuctioneerPda = "../powertac-auctioneer-pda"
 grails.plugin.location.PowertacDistributionUtility = "../powertac-distribution-utility"
 grails.plugin.location.PowertacHouseholdCustomer = "../powertac-household-customer"
+grails.plugin.location.PowertacFactoredCustomer = "../powertac-factored-customer"
 grails.plugin.location.PowertacWebApp = "../powertac-web-app"
 grails.plugin.location.PowertacRandom = "../powertac-random"
 grails.plugin.location.PowertacGenco = "../powertac-genco"
