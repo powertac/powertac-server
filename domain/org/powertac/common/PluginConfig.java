@@ -72,7 +72,7 @@ public class PluginConfig
   }
 
   public String toString() {
-    return "PluginConfig " + roleName + "." + name;
+    return "PluginConfig:" + roleName + "." + name;
   }
 
 }
