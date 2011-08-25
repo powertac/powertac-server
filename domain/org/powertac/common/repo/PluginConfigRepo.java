@@ -37,13 +37,12 @@ public class PluginConfigRepo implements DomainRepo
     super();
     repo = new ArrayList<PluginConfig>();
   }
-  
-  /**
-   * Clears out the repository in preparation for a new sim run.
-   */
-  public void recycle ()
+
+  public PluginConfig makePluginConfig (String role, String name)
   {
-    repo.clear();
+    PluginConfig result = new PluginConfig(role, name);
+    repo.add(result);
+    return result;
   }
   
   /**
@@ -52,5 +51,13 @@ public class PluginConfigRepo implements DomainRepo
   public List<PluginConfig> list ()
   {
     return repo;
+  }
+  
+  /**
+   * Clears out the repository in preparation for a new sim run.
+   */
+  public void recycle ()
+  {
+    repo.clear();
   }
 }
