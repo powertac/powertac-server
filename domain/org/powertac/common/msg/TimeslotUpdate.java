@@ -16,6 +16,7 @@
 package org.powertac.common.msg;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.powertac.common.Timeslot;
 import com.thoughtworks.xstream.annotations.*;
@@ -31,19 +32,23 @@ public class TimeslotUpdate
   
   private ArrayList<Timeslot> disabled;
 
-  public TimeslotUpdate (ArrayList enabled, ArrayList disabled)
+  public TimeslotUpdate (List<Timeslot> enabled, List<Timeslot> disabled)
   {
     super();
-    this.enabled = enabled;
-    this.disabled = disabled;
+    this.enabled = new ArrayList<Timeslot>(enabled);
+    this.disabled = new ArrayList<Timeslot>(disabled);
   }
   
   public TimeslotUpdate (Timeslot enabled, Timeslot disabled)
   {
     super();
-    this.enabled = new ArrayList();
-    this.enabled.add(enabled);
-    this.disabled = new ArrayList();
-    this.disabled.add(disabled);
+    if (enabled != null) {
+      this.enabled = new ArrayList<Timeslot>();
+      this.enabled.add(enabled);
+    }
+    if (disabled != null) {
+      this.disabled = new ArrayList<Timeslot>();
+      this.disabled.add(disabled);
+    }
   }
 }

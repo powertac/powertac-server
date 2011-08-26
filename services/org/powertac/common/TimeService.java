@@ -139,6 +139,11 @@ public class TimeService
   {
     return base;
   }
+  
+  public void setBase (long value)
+  {
+    base = value;
+  }
 
   public long getStart ()
   {
@@ -154,10 +159,20 @@ public class TimeService
   {
     return rate;
   }
+  
+  public void setRate (long value)
+  {
+    rate = value;
+  }
 
   public long getModulo ()
   {
     return modulo;
+  }
+  
+  public void setModulo (long value)
+  {
+    modulo = value;
   }
 
   /**
@@ -184,7 +199,7 @@ public class TimeService
   /**
    * Sets current time to a specific value. Intended for testing purposes only.
    */
-  protected void setCurrentTime (Instant time)
+  public void setCurrentTime (Instant time)
   {
     currentTime = time;
     currentDateTime = new DateTime(time, DateTimeZone.UTC);

@@ -66,9 +66,14 @@ public class PluginConfig
     return configuration;
   }
   
-  public void addConfiguration (String name, String value)
+  /**
+   * Adds a config item to this PluginConfig. Returns the PluginConfig
+   * instance for convenience in stringing together config calls.
+   */
+  public PluginConfig addConfiguration (String name, String value)
   {
     configuration.put(name, value);
+    return this;
   }
 
   public String toString() {

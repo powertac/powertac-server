@@ -95,11 +95,26 @@ public class Competition //implements Serializable
   // singleton instance
   private static Competition theCompetition;
   
+  public static Competition newInstance (String name)
+  {
+    Competition result = new Competition(name);
+    theCompetition = result;
+    return result;
+  }
+
+  /**
+   * Returns the current Competition instance. There should always be either
+   * zero or one of these.
+   */
+  public static Competition currentCompetition() {
+    return theCompetition;
+  }
+  
   /**
    * Constructor replaces current competition instance. It is up to the
    * caller to ensure that this is done at the correct time.
    */
-  public Competition (String name)
+  private Competition (String name)
   {
     super();
     this.name = name;
@@ -173,14 +188,6 @@ public class Competition //implements Serializable
   public void addToPlugins (PluginConfig config)
   {
     pluginConfigs.add(config);
-  }
-
-  /**
-   * Returns the current Competition instance. There should always be either
-   * zero or one of these.
-   */
-  public static Competition currentCompetition() {
-    return theCompetition;
   }
 
   public String toString() 
