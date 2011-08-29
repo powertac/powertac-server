@@ -55,7 +55,7 @@ import org.springframework.stereotype.Service;
  * Note that all times are absolute times represented as UTC; timezone offset is 0, and there
  * is no "daylight-saving" time. If we want to represent the effects of DST, we'll have to have
  * our customers wake up earlier in the summertime.
- * @author jcollins
+ * @author John Collins
  */
 @Service
 public class TimeService 
@@ -82,6 +82,17 @@ public class TimeService
   private Instant currentTime;
   private DateTime currentDateTime;
   
+  /**
+   * Default constructor. You need to set base, rate, start, and modulo before using it.
+   */
+  public TimeService ()
+  {
+    super();
+  }
+  
+  /**
+   * Handy constructor for testing
+   */
   public TimeService (long base, long start, long rate, long modulo)
   {
     super();

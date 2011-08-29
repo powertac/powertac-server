@@ -180,6 +180,11 @@ public class Competition //implements Serializable
     return brokers;
   }
   
+  public void addBroker (String brokerUsername)
+  {
+    brokers.add(brokerUsername);
+  }
+  
   public List<PluginConfig> getPluginConfigs ()
   {
     return pluginConfigs;

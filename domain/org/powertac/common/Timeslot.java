@@ -17,25 +17,30 @@
 package org.powertac.common;
 
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+
 import com.thoughtworks.xstream.annotations.*;
 
  /**
- * A timeslot instance describes a duration in time (slot). Time slots are used (i) to
+ * A timeslot instance describes an interval of time (slot) for which power may be
+ * traded in the wholesale market. Time slots are used (i) to
  * correlate tradeable products (energy futures) and trades in the market with a future time
  * interval where settlement (i.e. delivery / consumption) has to take place, (ii) to
  * correlate meter readings with a duration in time, (iii) to  allow tariffs to define
  * different consumption / production prices for different times of a day. Timeslots are
  * represented in server-broker communications by serial number and start time.
+ * <p>
+ * This is an immutable type, so no state logging is needed. Creation events are logged
+ * by the repository.</p>
  *
  * @author Carsten Block
  * @version 1.0 - Feb,6,2011
  */
 @XStreamAlias("slot")
-public class Timeslot //implements Serializable 
-{  
-  @XStreamOmitField
-  private String id = IdGenerator.createId();
+public class Timeslot
+{
+  static private Logger log = Logger.getLogger(Timeslot.class.getName());
 
   /**
    * used to find succeeding / preceding timeslot instances
@@ -57,20 +62,40 @@ public class Timeslot //implements Serializable
   @XStreamOmitField
   private Instant endInstant;
   
+  /** previous and next timeslots */
+  @XStreamOmitField
+  private Timeslot previous;
+
+  @XStreamOmitField
+  private Timeslot next;
+  
   //@XStreamOmitField
   //List<Orderbook> orderbooks
-  
-  public Timeslot (int serial, Instant start, Instant end)
+
+  /** 
+   * Constructor is intended to be called by repository.
+   * Note that Timeslots are created in sequence, and are initially enabled. If you
+   * want to create a disabled timeslot, you have to call disable() after creating it.
+   */
+  public Timeslot (int serial, Instant start, Instant end, Timeslot previous)
   {
     super();
     serialNumber = serial;
     startInstant = start;
     endInstant = end;
-  }
-
-  public String getId ()
-  {
-    return id;
+    enabled = true;
+    if (previous != null) {
+      // special case for first timeslot - should never happen
+      if (!previous.endInstant.equals(start)) {
+        log.error("Timeslot " + serial + ": start:" + start.toString() +
+                  " != previous.end:" + previous.endInstant);
+        serialNumber = -1;
+      }
+      else {
+        this.previous = previous;
+        previous.next =  this;
+      }
+    }
   }
 
   public int getSerialNumber ()
@@ -81,6 +106,16 @@ public class Timeslot //implements Serializable
   public boolean isEnabled ()
   {
     return enabled;
+  }
+  
+  public void enable ()
+  {
+    enabled = true;
+  }
+  
+  public void disable ()
+  {
+    enabled = false;
   }
 
   public Instant getStartInstant ()
@@ -94,30 +129,16 @@ public class Timeslot //implements Serializable
   }
 
   public String toString() {
-    return "${serialNumber}: ${startInstant} - ${endInstant} (${enabled})";
+    return ("timeslot " + serialNumber + ":" + startInstant.toString() +
+            " - " + endInstant.toString() + "(" + 
+            (enabled ? "enabled" : "disabled") + ")");
   }
 
-  // TODO - all of this goes to the repository
-  /**
-   * Note that this scheme for finding the current timeslot relies on the
-   * time granularity reported by the timeService being the same as the length
-   * of a timeslot.
-   */
-//  public static Timeslot currentTimeslot () 
-//  {
-//    return Timeslot.findByStartInstant(timeService.currentTime)
-//  }
-//  
-//  public static List<Timeslot> enabledTimeslots ()
-//  {
-//    return Timeslot.findAllByEnabled(true)
-//  }
-//
-//  public Timeslot next() {
-//    return Timeslot.findBySerialNumber(this.serialNumber + 1)
-//  }
-//
-//  public Timeslot previous() {
-//    return Timeslot.findBySerialNumber(this.serialNumber - 1)
-//  }
+  public Timeslot getNext() {
+    return next;
+  }
+
+  public Timeslot getPrevious() {
+    return previous;
+  }
 }
