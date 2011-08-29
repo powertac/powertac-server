@@ -26,6 +26,7 @@ import javax.swing.text.html.HTMLDocument.Iterator;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
+import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.TimeService;
@@ -45,7 +46,9 @@ import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.beans.BeansException;
@@ -99,6 +102,12 @@ public class CompetitionControlService
   
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
+  
+  @Autowired
+  private BrokerRepo brokerRepo;
+  
+  @Autowired
+  private TimeslotRepo timeslotRepo;
   //def participantManagementService
 
   //def applicationContext
@@ -287,7 +296,7 @@ public class CompetitionControlService
     // Publish Competition object at right place - after plugins
     // are initialized. This is necessary because some may need to
     // see the broadcast after they are initialized (visualizer, for example)
-    for (Broker retailer : BrokerRepo.findRetailBrokerNames()) {
+    for (String retailer : brokerRepo.findRetailBrokerNames()) {
       competition.addBroker(retailer);
     }
     
@@ -320,13 +329,13 @@ public class CompetitionControlService
     // Publish Bootstrap Data Map
     //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
     //brokerProxyService.broadcastMessage(bootstrapData)
-    AbstractCustomer.list().each{ abstractCustomer->
-      CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer: abstractCustomer.customerInfo)
-      customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData())
-      brokerProxyService.broadcastMessage(customerBootstrapData.customer) // workaround for #341
-      brokerProxyService.broadcastMessage(customerBootstrapData)
-    }
-    return true
+    //for (AbstractCustomer abstractCustomer : AbstractCustomer.list()) {
+    //  CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(abstractCustomer.customerInfo);
+    //  customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData());
+    //  brokerProxyService.broadcastMessage(customerBootstrapData.getCustomer()); // workaround for #341
+    //  brokerProxyService.broadcastMessage(customerBootstrapData);
+    //}
+    return true;
   }
 
   // set simulation time parameters, making sure that simulationStartTime
@@ -356,18 +365,14 @@ public class CompetitionControlService
     long start = base.getMillis(); //- timeslotMillis
                              // first step happens before first clock update
     for (int i = 0; i < initialSlots; i++) {
-      Timeslot ts =
-        new Timeslot(serialNumber: i,
-          startInstant: new Instant(start + i * timeslotMillis),
-          endInstant: new Instant(start + (i + 1) * timeslotMillis));
+      Timeslot ts = timeslotRepo.makeTimeslot(new Instant(start + i * timeslotMillis),
+                                              new Instant(start + (i + 1) * timeslotMillis));
+      ts.disable();
       result.add(ts);
     }
     for (int i = initialSlots; i < (initialSlots + openSlots); i++) {
-      Timeslot ts =
-      new Timeslot(serialNumber: i,
-          enabled: true,
-          startInstant: new Instant(start + i * timeslotMillis),
-          endInstant: new Instant(start + (i + 1) * timeslotMillis));
+      Timeslot ts = timeslotRepo.makeTimeslot(new Instant(start + i * timeslotMillis),
+                                              new Instant(start + (i + 1) * timeslotMillis));
       result.add(ts);
     }
     return result;
@@ -375,44 +380,36 @@ public class CompetitionControlService
 
   void activateNextTimeslot ()
   {
-    TimeslotUpdate msg
+    TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
-    Timeslot.withTransaction { status ->
-      Timeslot current = Timeslot.currentTimeslot()
-      if (current == null) {
-        log.error "current timeslot is null at ${timeService.currentTime} !"
-        return
-      }
-      int oldSerial = (current.serialNumber +
-          competition.deactivateTimeslotsAhead)
-      Timeslot oldTs = Timeslot.findBySerialNumber(oldSerial)
-      oldTs.enabled = false
-      oldTs.save()
-      log.info "Deactivated timeslot $oldSerial, start ${oldTs.startInstant}"
-
-      // then create if necessary and activate the newest timeslot
-      int newSerial = (current.serialNumber +
-          competition.deactivateTimeslotsAhead +
-          competition.timeslotsOpen)
-      Timeslot newTs = Timeslot.findBySerialNumber(newSerial)
-      if (newTs == null) {
-        long start = (current.startInstant.millis +
-            (newSerial - current.serialNumber) * timeslotMillis)
-        newTs = new Timeslot(serialNumber: newSerial,
-            enabled: true,
-            startInstant: new Instant(start),
-            endInstant: new Instant(start + timeslotMillis))
-      }
-      else {
-        newTs.enabled = true
-      }
-      newTs.save()
-      log.info "Activated timeslot $newSerial, start ${newTs.startInstant}"
-      // Communicate timeslot updates to brokers
-      msg = new TimeslotUpdate(enabled: [newTs], disabled: [oldTs])
-      msg.save()
+    Timeslot current = timeslotRepo.currentTimeslot();
+    if (current == null) {
+      log.error("current timeslot is null at " + timeService.getCurrentTime());
+      return;
     }
-    brokerProxyService.broadcastMessage(msg)
+    int oldSerial = (current.getSerialNumber() +
+            competition.getDeactivateTimeslotsAhead());
+    Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
+    oldTs.disable();
+    log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
+
+    // then create if necessary and activate the newest timeslot
+    int newSerial = (current.getSerialNumber() +
+            competition.getDeactivateTimeslotsAhead() +
+            competition.getTimeslotsOpen());
+    Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
+    if (newTs == null) {
+      long start = (current.getStartInstant().getMillis() +
+              (newSerial - current.getSerialNumber()) * timeslotMillis);
+      newTs = timeslotRepo.makeTimeslot(new Instant(start), new Instant(start + timeslotMillis));
+    }
+    else {
+      newTs.enable();
+    }
+    log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
+    // Communicate timeslot updates to brokers
+    msg = new TimeslotUpdate(newTs, oldTs);
+    brokerProxyService.broadcastMessage(msg);
   }
 
   private int computeGameLength (int minLength, int expLength)
