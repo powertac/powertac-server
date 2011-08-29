@@ -16,48 +16,53 @@
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
-import org.powertac.common.PluginConfig;
+import org.powertac.common.Broker;
 import org.powertac.common.interfaces.DomainRepo;
 import org.springframework.stereotype.Repository;
 
 /**
- * Stores PluginConfig instances, allows access to the list.
+ * Repository for Brokers, including competitors and other market participants.
  * @author John Collins
  */
 @Repository
-public class PluginConfigRepo implements DomainRepo
+public class BrokerRepo implements DomainRepo
 {
-  // no need for ids here, just a list
-  private ArrayList<PluginConfig> storage;
-  
-  public PluginConfigRepo ()
+  private HashMap<String, Broker> storage;
+
+  public BrokerRepo ()
   {
     super();
-    storage = new ArrayList<PluginConfig>();
+    storage = new HashMap<String, Broker>();
   }
-
-  public PluginConfig makePluginConfig (String role, String name)
+  
+  public void add (Broker broker)
   {
-    PluginConfig result = new PluginConfig(role, name);
-    storage.add(result);
+    storage.put(broker.getUsername(), broker);
+  }
+  
+  public Collection<Broker> list ()
+  {
+    return storage.values();
+  }
+  
+  public List<String> findRetailBrokerNames ()
+  {
+    ArrayList<String> result = new ArrayList<String>();
+    for (Broker broker : storage.values()) {
+      if (!broker.isWholesale())
+        result.add(broker.getUsername());
+    }
     return result;
   }
   
-  /**
-   * Returns the list of instances in the repo.
-   */
-  public List<PluginConfig> list ()
-  {
-    return storage;
-  }
-  
-  /**
-   * Clears out the repository in preparation for a new sim run.
-   */
+  @Override
   public void recycle ()
   {
     storage.clear();
   }
+
 }

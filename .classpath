@@ -6,5 +6,11 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J2SE-1.5"/>
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/junit/junit/jars/junit-4.8.1.jar"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/log4j/log4j/jars/log4j-1.2.16.jar"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/org.springframework/org.springframework.core/jars/org.springframework.core-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/org.springframework/org.springframework.context/jars/org.springframework.context-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/org.springframework/org.springframework.beans/jars/org.springframework.beans-3.0.5.RELEASE.jar"/>
+	<classpathentry kind="lib" path="/home/jcollins/.ivy2/cache/joda-time/joda-time/jars/joda-time-1.6.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
