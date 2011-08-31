@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class CustomerInfo //implements Serializable 
 {
   @XStreamAsAttribute
-  String id = IdGenerator.createId();
+  int id;
 
   /** Name of the customer model */
   String name;
@@ -77,7 +77,7 @@ public class CustomerInfo //implements Serializable
     this.population = population;
   }
 
-  public String getId ()
+  public int getId ()
   {
     return id;
   }

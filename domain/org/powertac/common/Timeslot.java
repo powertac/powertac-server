@@ -41,6 +41,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class Timeslot
 {
   static private Logger log = Logger.getLogger(Timeslot.class.getName());
+  static private Logger stateLog = Logger.getLogger("State");
 
   /**
    * used to find succeeding / preceding timeslot instances
@@ -68,9 +69,6 @@ public class Timeslot
 
   @XStreamOmitField
   private Timeslot next;
-  
-  //@XStreamOmitField
-  //List<Orderbook> orderbooks
 
   /** 
    * Constructor is intended to be called by repository.
@@ -96,6 +94,8 @@ public class Timeslot
         previous.next =  this;
       }
     }
+    // state log entry
+    stateLog.info("Timeslot:" + serial + ":new:" + start.getMillis());
   }
 
   public int getSerialNumber ()
@@ -110,11 +110,13 @@ public class Timeslot
   
   public void enable ()
   {
+    stateLog.info("Timeslot:" + serialNumber + ":enable");
     enabled = true;
   }
   
   public void disable ()
   {
+    stateLog.info("Timeslot:" + serialNumber + ":disable");
     enabled = false;
   }
 

@@ -16,9 +16,7 @@
 
 package org.powertac.common;
 
-//import org.powertac.common.transformer.BrokerConverter
-//import org.codehaus.groovy.grails.commons.ApplicationHolder
-import java.math.BigDecimal;
+import org.apache.log4j.Logger;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -33,6 +31,11 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("cash")
 public class CashPosition //implements Serializable 
 {
+  static private Logger stateLog = Logger.getLogger("State");
+
+  @XStreamAsAttribute
+  private int id;
+  
   /** The broker who owns this cash account  */
   // JEC - back-reference not needed?
   //@XStreamConverter(BrokerConverter)
@@ -40,20 +43,27 @@ public class CashPosition //implements Serializable
 
   /** The new running total for the broker's cash account  */
   @XStreamAsAttribute
-  BigDecimal balance = new BigDecimal(0.0);
+  double balance = 0.0;
 
-  public CashPosition (BigDecimal initialBalance)
-  {
-    balance = initialBalance;
-  }
-  
   public CashPosition (double initialBalance)
   {
-    balance = new BigDecimal(initialBalance);
+    id = makeId();
+    balance = initialBalance;
+    stateLog.info("CashPosition:" + this.id + ":new:" + balance);
   }
   
+  public int getId ()
+  {
+    return id;
+  }
+
+  public double getBalance ()
+  {
+    return balance;
+  }
+
   public String toString() {
-    return balance.toString();
+    return "cash " + balance;
   }
   
   /**
@@ -61,9 +71,18 @@ public class CashPosition //implements Serializable
    * returns the resulting balance. A withdrawal is negative,
    * deposit is positive.
    */
-  public BigDecimal deposit (BigDecimal amount)
+  public double deposit (double amount)
   {
-    balance = balance.add(amount);
+    balance += amount;
     return balance;
   }
+  
+  // static ID management
+  private static int idValue = 0;
+  
+  private static synchronized int makeId ()
+  {
+    return idValue++;
+  }
+
 }

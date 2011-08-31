@@ -47,6 +47,26 @@ public class Broker
 
   //def testProxy = null // redirect incoming messages for testing
 
+  /**
+   * Constructor for username only.
+   */
+  public Broker (String username)
+  {
+    super();
+    this.username = username;
+  }
+  
+  /**
+   * Constructor to specify non-standard local/wholesale flags.
+   */
+  public Broker (String username, boolean local, boolean wholesale)
+  {
+    super();
+    this.username = username;
+    this.local = local;
+    this.wholesale = wholesale;
+  }
+  
   /** Broker's current cash position  */
   private CashPosition cashPosn;
 

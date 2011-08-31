@@ -15,7 +15,10 @@
  */
 package org.powertac.common;
 
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.xml.BrokerConverter;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -26,11 +29,14 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("bank-tx")
 public class BankTransaction
 {
+  static private Logger stateLog = Logger.getLogger("State");
+  
+  @XStreamAsAttribute
   private int id;
   
   /** The broker for this transactions */
-  @XStreamAsAttribute
-  private String brokerId;
+  @XStreamConverter(BrokerConverter.class)
+  private Broker broker;
   
   /** The amount of this transaction */
   @XStreamAsAttribute
@@ -42,24 +48,14 @@ public class BankTransaction
   /**
    * Constructs a new BankTransaction instance, giving it a new id.
    */
-  public BankTransaction (String brokerId, double amount, Instant time)
+  public BankTransaction (Broker broker, double amount, Instant time)
   {
     this.id = makeId();
-    this.brokerId = brokerId;
+    this.broker = broker;
     this.amount = amount;
     this.postedTime = time;
-  }
-
-  /**
-   * Reconstructs a BankTransaction instance from message or logfile.
-   * Do we need this???
-   */
-  public BankTransaction (int id, String brokerId, double amount, Instant time)
-  {
-    this.id = id;
-    this.brokerId = brokerId;
-    this.amount = amount;
-    this.postedTime = time;
+    stateLog.info("BankTransaction:" + this.id + ":new:" + time.getMillis() + ":" + broker.getUsername() +
+                  ":" + amount);
   }
 
   public int getId ()
@@ -67,9 +63,9 @@ public class BankTransaction
     return id;
   }
 
-  public String getBrokerId ()
+  public Broker getBroker ()
   {
-    return brokerId;
+    return broker;
   }
 
   public double getAmount ()

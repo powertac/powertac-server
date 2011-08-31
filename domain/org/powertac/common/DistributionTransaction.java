@@ -16,27 +16,23 @@
 
 package org.powertac.common;
 
-import java.math.BigDecimal;
-
-import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.xml.BrokerConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * A {@code BalanceTransaction} instance represents the final supply/demand
- * imbalance in the current timeslot, and the Distribution Utilities charge
- * for this imbalance.
+ * A {@code DistributionTransaction} instance represents the fee assessed
+ * by the Distribution Utility for transport of energy over its facilities
+ * during the current timeslot. The quantity is the total energy delivered,
+ * which is the sum of the positive net load of the broker's customers, and 
+ * the positive net export of energy through the wholesale market. Negative
+ * values are ignored.
  *
  * @author John Collins
  */
-@XStreamAlias("balance-tx")
-public class BalancingTransaction
+@XStreamAlias("distribution-tx")
+public class DistributionTransaction
 {
-  static private Logger stateLog = Logger.getLogger("State");
-  
-  static private int nextId = 0;
-
   @XStreamAsAttribute
   private int id;
   
@@ -47,30 +43,26 @@ public class BalancingTransaction
   /** The timeslot for which this meter reading is generated */
   private Instant postedTime;
 
-  /** The total size of the imbalance in kWH, positive for surplus and
-   * negative for deficit
+  /** The total positive amount of energy transported by the in kWH.
    */
   @XStreamAsAttribute
   private double quantity = 0.0;
   
-  /** The total charge imposed by the DU for this imbalance --
-   *  positive for credit to broker, negative for debit from broker */
+  /** The total charge imposed by the DU for this transport. Since this
+   * is a debit, it will always be negative. */
   @XStreamAsAttribute
   private double charge = 0.0;
-  
-  public BalancingTransaction (Instant when, Broker broker,
-                               double quantity, double charge)
+
+  public DistributionTransaction (Instant when, Broker broker,
+                                  double quantity, double charge)
   {
     super();
-    this.id = nextId++;
     this.postedTime = when;
     this.broker = broker;
     this.quantity = quantity;
     this.charge = charge;
-    stateLog.info("BalancingTransaction:" + this.id + ":new:" + when.getMillis() + ":" + broker.getUsername() +
-                  ":" + quantity + ":" + charge);
   }
-
+  
   public int getId ()
   {
     return id;
@@ -97,7 +89,7 @@ public class BalancingTransaction
   }
 
   public String toString() {
-    return ("Balance tx " + postedTime.getMillis()/TimeService.HOUR +
-            "-" + broker.getUsername() + "-" + quantity + "-" + charge);
+    return ("Distribution tx " + postedTime.getMillis()/TimeService.HOUR + 
+        "-" + quantity + "-" + charge);
   }
 }

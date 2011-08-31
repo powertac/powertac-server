@@ -49,7 +49,7 @@ public class PluginConfigTests
 
     XStream xstream = new XStream();
     xstream.processAnnotations(PluginConfig.class);
-    StringWriter serialized = new StringWriter ();
+    StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(uut));
     //System.out.println(serialized.toString());
     PluginConfig xuut = (PluginConfig)xstream.fromXML(serialized.toString());

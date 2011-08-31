@@ -2,12 +2,16 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.StringWriter;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.thoughtworks.xstream.XStream;
 
 public class TimeslotTests
 {
@@ -131,4 +135,21 @@ public class TimeslotTests
     assertNull("no next", ts2.getNext());    
   }
 
+  @Test
+  public void xmlSerializationTest ()
+  {
+    Timeslot ts1 = new Timeslot(1, 
+                                baseTime, 
+                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
+                                null);
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Timeslot.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(ts1));
+    //System.out.println(serialized.toString());
+    Timeslot xts1 = (Timeslot)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xts1);
+    assertEquals("correct serial", 1, xts1.getSerialNumber());
+    assertEquals("correct start", baseTime.getMillis(), xts1.getStartInstant().getMillis());
+  }
 }
