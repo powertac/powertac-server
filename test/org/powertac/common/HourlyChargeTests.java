@@ -55,7 +55,7 @@ public class HourlyChargeTests
     xstream.processAnnotations(HourlyCharge.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(hc));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     HourlyCharge xhc= (HourlyCharge)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xhc);
     assertEquals("correct time", now.getMillis(), xhc.getAtTime().getMillis());

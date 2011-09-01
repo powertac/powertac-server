@@ -40,7 +40,6 @@ public class BalancingTransactionTests
   {
     BalancingTransaction bt = new BalancingTransaction(baseTime, broker, 42.1, 3.22);
     assertNotNull("not null", bt);
-    assertEquals("first id", 0, bt.getId());
     assertEquals("correct time", baseTime, bt.getPostedTime());
     assertEquals("correct broker", broker, bt.getBroker());
     assertEquals("correct qty", 42.1, bt.getQuantity(), 1e-6);

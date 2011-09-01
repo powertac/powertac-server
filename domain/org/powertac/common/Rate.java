@@ -72,10 +72,9 @@ public class Rate //implements Serializable
    * Default constructor only. You create one of these with the
    * constructor and the builder-style setter methods.
    */
-  public Rate (boolean fixed)
+  public Rate ()
   {
     super();
-    isFixed = fixed;
     rateHistory = new TreeSet<HourlyCharge>();
   }
     
@@ -329,6 +328,12 @@ public class Rate //implements Serializable
     return id;
   }
 
+  public Rate setFixed (boolean fixed)
+  {
+    isFixed = fixed;
+    return this;
+  }
+  
   public boolean isFixed ()
   {
     return isFixed;
@@ -476,7 +481,7 @@ public class Rate //implements Serializable
   {
     String result = "Rate" + id + ":";
     if (isFixed)
-      result += (" Fixed " + getValue());
+      result += (" Fixed " + getMinValue());
     else
       result += " Variable";
     if (weeklyBegin >= 0) {
