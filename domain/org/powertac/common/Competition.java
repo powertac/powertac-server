@@ -37,7 +37,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class Competition //implements Serializable 
 {
   @XStreamAsAttribute
-  private String id = IdGenerator.createId();
+  private long id = IdGenerator.createId();
 
   /** The competition's name */
   @XStreamAsAttribute
@@ -120,7 +120,7 @@ public class Competition //implements Serializable
     this.name = name;
   }
   
-  public String getId ()
+  public long getId ()
   {
     return id;
   }

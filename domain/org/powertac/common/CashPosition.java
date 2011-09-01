@@ -34,7 +34,7 @@ public class CashPosition //implements Serializable
   static private Logger stateLog = Logger.getLogger("State");
 
   @XStreamAsAttribute
-  private int id;
+  private long id = IdGenerator.createId();
   
   /** The broker who owns this cash account  */
   // JEC - back-reference not needed?
@@ -47,12 +47,11 @@ public class CashPosition //implements Serializable
 
   public CashPosition (double initialBalance)
   {
-    id = makeId();
     balance = initialBalance;
     stateLog.info("CashPosition:" + this.id + ":new:" + balance);
   }
   
-  public int getId ()
+  public long getId ()
   {
     return id;
   }
@@ -76,13 +75,4 @@ public class CashPosition //implements Serializable
     balance += amount;
     return balance;
   }
-  
-  // static ID management
-  private static int idValue = 0;
-  
-  private static synchronized int makeId ()
-  {
-    return idValue++;
-  }
-
 }

@@ -32,7 +32,7 @@ public class BankTransaction
   static private Logger stateLog = Logger.getLogger("State");
   
   @XStreamAsAttribute
-  private int id;
+  private long id = IdGenerator.createId();
   
   /** The broker for this transactions */
   @XStreamConverter(BrokerConverter.class)
@@ -50,7 +50,6 @@ public class BankTransaction
    */
   public BankTransaction (Broker broker, double amount, Instant time)
   {
-    this.id = makeId();
     this.broker = broker;
     this.amount = amount;
     this.postedTime = time;
@@ -58,7 +57,7 @@ public class BankTransaction
                   ":" + amount);
   }
 
-  public int getId ()
+  public long getId ()
   {
     return id;
   }
@@ -76,13 +75,5 @@ public class BankTransaction
   public Instant getPostedTime ()
   {
     return postedTime;
-  }
-  
-  // static ID management
-  private static int idValue = 0;
-  
-  private static synchronized int makeId ()
-  {
-    return idValue++;
   }
 }

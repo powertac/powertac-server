@@ -34,11 +34,9 @@ import com.thoughtworks.xstream.annotations.*;
 public class BalancingTransaction
 {
   static private Logger stateLog = Logger.getLogger("State");
-  
-  static private int nextId = 0;
 
   @XStreamAsAttribute
-  private int id;
+  private long id = IdGenerator.createId();
   
   /** Whose transaction is this? */
   @XStreamConverter(BrokerConverter.class)
@@ -62,7 +60,6 @@ public class BalancingTransaction
                                double quantity, double charge)
   {
     super();
-    this.id = nextId++;
     this.postedTime = when;
     this.broker = broker;
     this.quantity = quantity;
@@ -71,7 +68,7 @@ public class BalancingTransaction
                   ":" + quantity + ":" + charge);
   }
 
-  public int getId ()
+  public long getId ()
   {
     return id;
   }

@@ -36,33 +36,34 @@ import com.thoughtworks.xstream.annotations.*;
 public class CustomerInfo //implements Serializable 
 {
   @XStreamAsAttribute
-  int id;
+  private long id = IdGenerator.createId();
 
   /** Name of the customer model */
-  String name;
+  private String name;
 
   /** gives a "rough" classification what type of customer to expect based on an enumeration, i.e. a fixed set of customer types */
   @XStreamAsAttribute
-  CustomerType customerType;
+  private CustomerType customerType;
   
   /** population represented by this model */
   @XStreamAsAttribute
-  Integer population = 1;
+  private Integer population = 1;
 
   /** gives the available power classifications of the customer */
-  ArrayList<PowerType> powerTypes = new ArrayList<PowerType>();
+  private ArrayList<PowerType> powerTypes;
   
   /** describes whether or not this customer engages in multiple contracts at the same time */
   @XStreamAsAttribute
-  Boolean multiContracting = false;
+  private Boolean multiContracting = false;
 
   /** describes whether or not this customer negotiates over contracts */
   @XStreamAsAttribute
-  Boolean canNegotiate = false;
+  private Boolean canNegotiate = false;
   
   public CustomerInfo ()
   {
     super();
+    powerTypes = new ArrayList<PowerType>();
     powerTypes.add(PowerType.CONSUMPTION);
     powerTypes.add(PowerType.PRODUCTION);
   }
@@ -77,7 +78,7 @@ public class CustomerInfo //implements Serializable
     this.population = population;
   }
 
-  public int getId ()
+  public long getId ()
   {
     return id;
   }

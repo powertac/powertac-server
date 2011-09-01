@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,26 @@ package org.powertac.common;
 import java.util.UUID;
 
 /**
- * Generates String UUIDs for all domain class object instances
- *
- * @author Carsten Block
- * @version 1.0, Date: 30.12.10
+ * Generates numeric ID values for domain types.
+ * @author John Collins
  */
-public class IdGenerator {
-
+public class IdGenerator 
+{
+  private static int prefix = 0; // invalid default value
+  private static int counter = 0;
+  private static int multiplier = 100000000;
+  
   /**
-   * Generates random String UUIDs using java util UUID generator
-   *
-   * @return string-based random UUID
+   * Generates a numeric ID as xA+B, where x is the multiplier, A is the
+   * prefix, and B is the value of a counter;
    */
-  public static String createId() {
-    UUID uuid = UUID.randomUUID();
-    return uuid.toString();
+  public static long createId() 
+  {
+    return multiplier * prefix + counter++;
+  }
+  
+  public static void setPrefix (int value)
+  {
+    prefix = value;
   }
 }

@@ -28,7 +28,7 @@ package org.powertac.common;
  */
 public class Broker 
 {
-  private String id = IdGenerator.createId();
+  private long id = IdGenerator.createId();
 
   /** the broker's login or user name     */
   private String username;
@@ -70,9 +70,14 @@ public class Broker
   /** Broker's current cash position  */
   private CashPosition cashPosn;
 
-  public String getApiKey() 
+  public long getId ()
   {
     return id;
+  }
+  
+  public String getApiKey() 
+  {
+    return Long.toString(id);
   }
 
   public CashPosition getCash() 
@@ -94,11 +99,6 @@ public class Broker
   //Set<Role> getAuthorities() {
   //  BrokerRole.findAllByBroker(this).collect { it.role } as Set
   //}
-
-  public String getId ()
-  {
-    return id;
-  }
 
   public String getUsername ()
   {

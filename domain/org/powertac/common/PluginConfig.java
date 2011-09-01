@@ -31,6 +31,9 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("plugin-config")
 public class PluginConfig 
 {
+  @XStreamAsAttribute
+  private long id = IdGenerator.createId();
+  
   /** Role name for this plugin. */
   @XStreamAsAttribute
   private String roleName;
@@ -49,6 +52,11 @@ public class PluginConfig
     this.roleName = role;
     this.name = name;
     configuration = new TreeMap<String, String>();
+  }
+  
+  public long getId ()
+  {
+    return id;
   }
   
   public String getRoleName ()

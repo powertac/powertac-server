@@ -34,7 +34,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class DistributionTransaction
 {
   @XStreamAsAttribute
-  private int id;
+  private long id = IdGenerator.createId();
   
   /** Whose transaction is this? */
   @XStreamConverter(BrokerConverter.class)
@@ -63,7 +63,7 @@ public class DistributionTransaction
     this.charge = charge;
   }
   
-  public int getId ()
+  public long getId ()
   {
     return id;
   }
