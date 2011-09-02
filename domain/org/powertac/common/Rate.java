@@ -66,6 +66,7 @@ public class Rate //implements Serializable
 
   // introduce dependency on TimeService
   @Autowired
+  @XStreamOmitField
   private TimeService timeService;
 
   /**
@@ -76,6 +77,7 @@ public class Rate //implements Serializable
   {
     super();
     rateHistory = new TreeSet<HourlyCharge>();
+    stateLog.info("Rate:" + id + ":new");
   }
     
 //    m?.each { k,v ->
@@ -106,6 +108,7 @@ public class Rate //implements Serializable
     if (begin != null) {
       weeklyBegin = begin.getDayOfWeek();
     }
+    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
@@ -117,6 +120,7 @@ public class Rate //implements Serializable
     if (begin != null) {
       weeklyBegin = begin.get(DateTimeFieldType.dayOfWeek());
     }
+    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
@@ -124,6 +128,7 @@ public class Rate //implements Serializable
   public Rate setWeeklyBegin (int begin)
   {
     weeklyBegin = begin;
+    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
@@ -140,6 +145,7 @@ public class Rate //implements Serializable
     if (end!= null) {
       weeklyEnd= end.getDayOfWeek();
     }
+    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
@@ -151,6 +157,7 @@ public class Rate //implements Serializable
     if (end!= null) {
       weeklyEnd= end.get(DateTimeFieldType.dayOfWeek());
     }
+    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
@@ -158,6 +165,7 @@ public class Rate //implements Serializable
   public Rate setWeeklyEnd (int end)
   {
     weeklyEnd = end;
+    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
@@ -174,6 +182,7 @@ public class Rate //implements Serializable
     if (begin != null) {
       dailyBegin = begin.getHourOfDay();
     }
+    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
@@ -185,6 +194,7 @@ public class Rate //implements Serializable
     if (begin != null) {
       dailyBegin = begin.get(DateTimeFieldType.hourOfDay());
     }
+    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
@@ -192,6 +202,7 @@ public class Rate //implements Serializable
   public Rate setDailyBegin (int begin)
   {
     dailyBegin = begin;
+    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
@@ -208,6 +219,7 @@ public class Rate //implements Serializable
     if (end != null) {
       dailyEnd = end.getHourOfDay();
     }
+    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
@@ -219,6 +231,7 @@ public class Rate //implements Serializable
     if (end != null) {
       dailyEnd = end.get(DateTimeFieldType.hourOfDay());
     }
+    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
@@ -226,6 +239,7 @@ public class Rate //implements Serializable
   public Rate setDailyEnd (int end)
   {
     dailyEnd = end;
+    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
@@ -241,6 +255,7 @@ public class Rate //implements Serializable
   {
     // we assume that integer division will do the Right Thing here
     noticeInterval = interval.getMillis() / TimeService.HOUR;
+    stateLog.info("Rate:" + id + ":setNoticeInterval:" + interval.getMillis());
     return this;
   }
 
@@ -278,11 +293,13 @@ public class Rate //implements Serializable
         SortedSet<HourlyCharge> head = rateHistory.headSet(probe);
         if (head != null && head.size() > 0) {
           HourlyCharge item = head.last();
-          if (item.getAtTime() == newCharge.getAtTime());
+          if (item.getAtTime() == newCharge.getAtTime()) {
+            log.debug("remove " + item.toString());
             rateHistory.remove(item);
+          }
         }
-        log.info("Adding " + newCharge + " to " + this.toString());
-        //println "Adding $newCharge to $this"
+        log.info("Adding " + newCharge + " at " + newCharge.getAtTime() + " to " + this.toString());
+        stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
         rateHistory.add(newCharge);
         result = true;
       }
@@ -298,6 +315,7 @@ public class Rate //implements Serializable
   public Rate setTierThreshold (double tierThreshold)
   {
     this.tierThreshold = tierThreshold;
+    stateLog.info("Rate:" + id + ":setTierThreshold:" + tierThreshold);
     return this;
   }
 
@@ -309,6 +327,7 @@ public class Rate //implements Serializable
   public Rate setMinValue (double minValue)
   {
     this.minValue = minValue;
+    stateLog.info("Rate:" + id + ":setMinValue:" + minValue);
     return this;
   }
 
@@ -320,6 +339,7 @@ public class Rate //implements Serializable
   public Rate setMaxValue (double maxValue)
   {
     this.maxValue = maxValue;
+    stateLog.info("Rate:" + id + ":setMaxValue:" + maxValue);
     return this;
   }
 
@@ -331,6 +351,7 @@ public class Rate //implements Serializable
   public Rate setFixed (boolean fixed)
   {
     isFixed = fixed;
+    stateLog.info("Rate:" + id + ":setFixed:" + fixed);
     return this;
   }
   
@@ -339,6 +360,13 @@ public class Rate //implements Serializable
     return isFixed;
   }
 
+  public Rate setExpectedMean (double value)
+  {
+    expectedMean = value;
+    stateLog.info("Rate:" + id + ":setExpectedMean:" + value);
+    return this;
+  }
+  
   public double getExpectedMean ()
   {
     return expectedMean;
@@ -428,6 +456,7 @@ public class Rate //implements Serializable
    */
   public Rate setValue(double value) {
     minValue = value;
+    stateLog.info("Rate:" + id + ":setValue:" + value);
     return this;
   }
 
@@ -460,15 +489,16 @@ public class Rate //implements Serializable
     else {
       Instant inst = new Instant(when);
       // if looking beyond the notification interval, return default
-      long horizon = inst.getMillis() - timeService.getCurrentTime().getMillis();
-      if (horizon / TimeService.HOUR > noticeInterval) {
-        //println "Horizon ${horizon / TimeService.HOUR} > notice interval ${noticeInterval}"
-        return expectedMean;
-      }
+      //long horizon = inst.getMillis() - timeService.getCurrentTime().getMillis();
+      //if (horizon / TimeService.HOUR > noticeInterval) {
+      //  log.info("Horizon " + (horizon / TimeService.HOUR) + " > notice interval " + noticeInterval);
+      //  return expectedMean;
+      //}
       // otherwise, return the most recent price announcement for the given time
       HourlyCharge probe = new HourlyCharge(inst.plus(1000l), 0);
       SortedSet<HourlyCharge> head = rateHistory.headSet(probe);
       if (head == null || head.size() == 0) {
+        log.info("No hourly charge found for " + when.getMillis() + ", returning default");
         return expectedMean; // default
       }
       else {
@@ -479,7 +509,7 @@ public class Rate //implements Serializable
 
   public String toString ()
   {
-    String result = "Rate" + id + ":";
+    String result = "Rate." + IdGenerator.getString(id) + ":";
     if (isFixed)
       result += (" Fixed " + getMinValue());
     else

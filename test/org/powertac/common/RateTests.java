@@ -20,13 +20,18 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.StringWriter;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import com.thoughtworks.xstream.XStream;
 
 public class RateTests
 {
@@ -194,5 +199,62 @@ public class RateTests
     assertFalse("Does not apply at 99", r.applies(99.0));
     assertTrue("Applies at 6:00, 100", r.applies(100.0, new DateTime(2012, 2, 2, 6, 0, 0, 0, DateTimeZone.UTC)));
     assertFalse("Does not apply at 7:00, 80", r.applies(80.0, new DateTime(2012, 3, 3, 7, 0, 0, 0, DateTimeZone.UTC)));
+  }
+
+  @Test
+  public void xmlSerializationTest ()
+  {
+    timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().setValue(0.121) 
+        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .setTierThreshold(100.0);
+
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Rate.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(r));
+    System.out.println(serialized.toString());
+    Rate xr= (Rate)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xr);
+    ReflectionTestUtils.setField(xr, "timeService", timeService);
+    assertEquals("correct value", 0.121, xr.getValue(), 1e-6);
+    assertEquals("correct tier threshold", 100.0, xr.getTierThreshold(), 1e-6);
+  }
+
+  @Test
+  public void xmlSerializationTestHc ()
+  {
+    timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().setFixed(false)
+        .setExpectedMean(0.10)
+        // applies from 6:00-8:00
+        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .setTierThreshold(100.0);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+    Instant now = timeService.getCurrentTime();
+    //rate tomorrow at 6:00 = 0.22
+    assertTrue("add rate", r.addHourlyCharge(new HourlyCharge(now.plus(TimeService.HOUR * 23), 0.22)));
+    //rate tomorrow at 7:00 = 0.18
+    assertTrue("add rate 2", r.addHourlyCharge(new HourlyCharge(now.plus(TimeService.HOUR * 24), 0.18)));
+
+    // check original rates
+    assertEquals("correct value now", 0.10, r.getValue(now), 1e-6);
+    //assertEquals("correct value tomorrow at 6:00", 0.22, r.getValue(now.plus(TimeService.HOUR * 23)), 1e-6);
+    //assertEquals("correct value tomorrow at 7:00", 0.18, r.getValue(now.plus(TimeService.HOUR * 24)), 1e-6);
+
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Rate.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(r));
+    System.out.println(serialized.toString());
+    Rate xr= (Rate)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xr);
+    ReflectionTestUtils.setField(xr, "timeService", timeService);
+    assertEquals("correct value", 0.10, xr.getValue(), 1e-6);
+    assertEquals("correct tier threshold", 100.0, xr.getTierThreshold(), 1e-6);
+    assertEquals("correct value tomorrow at 6:00", 0.22, xr.getValue(now.plus(TimeService.HOUR * 23)), 1e-6);
+    assertEquals("correct value tomorrow at 7:00", 0.18, xr.getValue(now.plus(TimeService.HOUR * 24)), 1e-6);
   }
 }

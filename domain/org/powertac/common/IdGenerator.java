@@ -19,7 +19,9 @@ package org.powertac.common;
 import java.util.UUID;
 
 /**
- * Generates numeric ID values for domain types.
+ * Generates numeric ID values for domain types. ID values are of the
+ * form xA+B, where x is the multiplier, A is a prefix, and B is the 
+ * value of a counter.
  * @author John Collins
  */
 public class IdGenerator 
@@ -29,16 +31,27 @@ public class IdGenerator
   private static int multiplier = 100000000;
   
   /**
-   * Generates a numeric ID as xA+B, where x is the multiplier, A is the
-   * prefix, and B is the value of a counter;
+   * Generates a numeric ID as xA+B.
    */
   public static long createId() 
   {
     return multiplier * prefix + counter++;
   }
   
+  /**
+   * Each entity living in a separate process must have a different prefix
+   * value. These values are presumably set by the competition control service.
+   */
   public static void setPrefix (int value)
   {
     prefix = value;
+  }
+  
+  /**
+   * Converts ID value to String as A.B.   
+   */
+  public static String getString (long id)
+  {
+    return Long.toString(id / multiplier) + "." + Long.toString(id % multiplier);
   }
 }
