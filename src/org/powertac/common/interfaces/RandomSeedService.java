@@ -21,5 +21,5 @@ package org.powertac.common.interfaces;
  */
 public interface RandomSeedService
 {
-  public long nextSeed (String requesterClass, String requesterId, String purpose);
+  public long nextSeed (String requesterClass, long requesterId, String purpose);
 }
