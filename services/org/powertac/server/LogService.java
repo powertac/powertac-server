@@ -85,7 +85,7 @@ public class LogService
     return Logger.getLogger("State");
   }
 
-  public void startLog (String id)
+  public void startLog (long id)
   {
     Logger root = Logger.getRootLogger();
     Logger state = getStateLogger();

@@ -21,11 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.swing.text.html.HTMLDocument.Iterator;
-
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
+
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
@@ -34,7 +33,7 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.Customer;
-import org.powertac.common.interfaces.DomainRepo;
+import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.RandomSeedService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
@@ -49,6 +48,7 @@ import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.beans.BeansException;
@@ -76,10 +76,12 @@ public class CompetitionControlService
   implements ApplicationContextAware, CompetitionControl
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class.getName());
+  static private Logger stateLog = Logger.getLogger("State");
+  
   private ApplicationContext applicationContext = null;
 
   private Competition competition; // convenience var, invalid across sessions
-  private String competitionId;
+  private long competitionId;
 
   private int timeslotPhaseCount = 3; // # of phases/timeslot
   private boolean running = false;
@@ -117,10 +119,8 @@ public class CompetitionControlService
   private long timeslotMillis;
   private Random randomGen;
   
-  private Object simLock = new Object(); // simulation sync lock
+  //private Object simLock = new Object(); // simulation sync lock
   private boolean simRunning = false;
-
-  //String dumpFilePrefix = (ConfigurationHolder.config.powertac?.dumpFilePrefix) ?: "logs/PowerTAC-dump-"
 
   /**
    * Pre-game server setup - creates the basic configuration elements
@@ -186,7 +186,11 @@ public class CompetitionControlService
     // run the simulation
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
 		  competition.getSimulationRate()));
-    
+
+    // wrap up
+    shutDown();
+    simRunning = false;
+
     // prepare for the next run
     preGame();
   }
@@ -588,8 +592,6 @@ public class CompetitionControlService
       // simulation is complete
       log.info("Stop simulation");
       clock.stop();
-      shutDown();
-      simRunning = false;
     }
   }
 }
