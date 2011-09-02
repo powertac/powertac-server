@@ -15,9 +15,6 @@
  */
 package org.powertac.common;
 
-//import org.powertac.common.Timeslot
-
-
 import static org.junit.Assert.*;
 
 import java.io.StringWriter;
@@ -36,7 +33,7 @@ import com.thoughtworks.xstream.XStream;
 public class RateTests
 {
 
-  TimeService timeService;
+  private TimeService timeService;
   
   @BeforeClass
   public static void setUpLog () throws Exception

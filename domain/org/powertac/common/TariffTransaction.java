@@ -14,15 +14,15 @@
  * governing permissions and limitations under the License.
  */
 
-package org.powertac.common
+package org.powertac.common;
 
-import org.joda.time.Instant
-import org.powertac.common.enumerations.TariffTransactionType
-import org.powertac.common.transformer.BrokerConverter
-import org.powertac.common.transformer.CustomerConverter
-import org.powertac.common.transformer.TariffConverter
+import org.joda.time.Instant;
+import org.powertac.common.enumerations.TariffTransactionType;
+import org.powertac.common.xml.BrokerConverter;
+import org.powertac.common.xml.CustomerConverter;
+import org.powertac.common.xml.TariffSpecificationConverter;
 
-import com.thoughtworks.xstream.annotations.*
+import com.thoughtworks.xstream.annotations.*;
 
 /**
  * A {@code TariffTransaction} instance represents the quantity of energy consumed
@@ -35,61 +35,57 @@ import com.thoughtworks.xstream.annotations.*
  * @author Carsten Block, John Collins
  */
 @XStreamAlias("tariff-tx")
-class TariffTransaction //implements Serializable
+public class TariffTransaction //implements Serializable
 {
   @XStreamAsAttribute
-  Integer id
+  private Long id = IdGenerator.createId();
 
   /** Whose transaction is this? */
-  @XStreamConverter(BrokerConverter)
-  Broker broker
+  @XStreamConverter(BrokerConverter.class)
+  private Broker broker;
 
   /** Purpose of this transaction */
   @XStreamAsAttribute
-  TariffTransactionType txType = TariffTransactionType.CONSUME
+  private TariffTransactionType txType = TariffTransactionType.CONSUME;
 
   /** The customerInfo or more precisely his meter that is being read */
-  @XStreamConverter(CustomerConverter)
-  CustomerInfo customerInfo
+  @XStreamConverter(CustomerConverter.class)
+  private CustomerInfo customerInfo;
 
   /** Number of individual customers involved */
   @XStreamAsAttribute
-  Integer customerCount = 0
+  private int customerCount = 0;
 
   /** The timeslot for which this meter reading is generated */
-  Instant postedTime
+  private Instant postedTime;
 
   /** The total quantity of energy consumed (> 0) or produced (< 0) in kWh.
    *  Note that this is not per-individual in a population model, but rather
    *  aggregate usage by customerCount individuals. */
   @XStreamAsAttribute
-  double quantity = 0.0
+  private double quantity = 0.0;
 
   /** The total charge for this reading, according to the tariff:
    *  positive for credit to broker, negative for debit from broker */
   @XStreamAsAttribute
-  double charge = 0.0
+  private double charge = 0.0;
 
-  @XStreamConverter(TariffConverter)
-  TariffSpecification tariffSpec
-
-  /** The Tariff that applies to this billing */
-  //static belongsTo = Tariff
-
-  static constraints = {
-    //id (nullable: false, unique: true)
-    broker(nullable: false)
-    customerInfo (nullable: true) // no customer for publication
-    tariffSpec (nullable: false)
-    postedTime (nullable: false)
-    quantity (scale: Constants.DECIMALS)
-    charge (scale: Constants.DECIMALS)
+  @XStreamConverter(TariffSpecificationConverter.class)
+  private TariffSpecification tariffSpec;
+  
+  public TariffTransaction (Broker broker, Instant when, 
+                            TariffTransactionType txType,
+                            TariffSpecification spec, 
+                            CustomerInfo customer,
+                            int customerCount,
+                            double quantity, double charge)
+  {
+    super();
   }
 
-  static mapping = { // id (generator: 'assigned')
-    tariff fetch: 'join' }
-
   public String toString() {
-    return "${customerInfo}-${postedTime.millis/TimeService.HOUR}-${txType}-${quantity}"
+    return("TariffTx-customer" + customerInfo.getId() + "-" +
+           postedTime.getMillis()/TimeService.HOUR + "-" +
+           txType + "-" + quantity + "-" + charge);
   }
 }

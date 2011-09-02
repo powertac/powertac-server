@@ -55,7 +55,7 @@ public class TariffSpecification //implements Serializable
 
   /** Minimum contract duration (in milliseconds) */
   @XStreamAsAttribute
-  private Long minDuration = 0l;
+  private long minDuration = 0l;
 
   /** Type of power covered by this tariff */
   @XStreamAsAttribute
@@ -89,6 +89,11 @@ public class TariffSpecification //implements Serializable
                   broker.getUsername() + ":" + powerType.toString());
   }
 
+  public PowerType getPowerType ()
+  {
+    return powerType;
+  }
+  
   public Instant getExpiration ()
   {
     return expiration;
@@ -102,12 +107,12 @@ public class TariffSpecification //implements Serializable
     return this;
   }
 
-  public Long getMinDuration ()
+  public long getMinDuration ()
   {
     return minDuration;
   }
 
-  public TariffSpecification setMinDuration (Long minDuration)
+  public TariffSpecification setMinDuration (long minDuration)
   {
     this.minDuration = minDuration;
     stateLog.info("TariffSpecification:" + id + ":setMinDuration:" +
