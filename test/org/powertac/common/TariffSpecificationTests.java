@@ -17,13 +17,19 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.StringWriter;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.repo.BrokerRepo;
+
+import com.thoughtworks.xstream.XStream;
 
 public class TariffSpecificationTests
 {
@@ -45,6 +51,8 @@ public class TariffSpecificationTests
     timeService.setCurrentTime(new DateTime());
     now = timeService.getCurrentTime();
     broker = new Broker("Jenny");
+    BrokerRepo repo = new BrokerRepo();
+    repo.add(broker);
   }
 
   @Test
@@ -125,4 +133,31 @@ public class TariffSpecificationTests
     assertEquals("correct first element", spec1.getId(), (long)spec2.getSupersedes().get(0));
   }
 
+  @Test
+  public void testXmlSerialization ()
+  {
+    Rate r = new Rate().setValue(0.121) 
+        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .setTierThreshold(100.0);
+    TariffSpecification spec = new TariffSpecification(broker,
+                                                       PowerType.CONSUMPTION)
+        .setMinDuration(20000l)
+        .setSignupPayment(-35.0)
+        .setPeriodicPayment(0.05)
+        .addRate(r);
+
+    XStream xstream = new XStream();
+    xstream.autodetectAnnotations(true);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(spec));
+    System.out.println(serialized.toString());
+    TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xspec);
+    assertEquals("correct signup", -35.0, xspec.getSignupPayment(), 1e-6);
+    Rate xr = (Rate)xspec.getRates().get(0);
+    assertNotNull("rate present", xr);
+    assertTrue("correct rate type", xr.isFixed());
+    assertEquals("correct rate value", 0.121, xr.getMinValue(), 1e-6);
+  }
 }
