@@ -35,6 +35,9 @@ public class HourlyCharge implements Comparable<HourlyCharge>
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
+
+  @XStreamAsAttribute
+  private long rateId = -1;
   
   @XStreamAsAttribute
   private double value;
@@ -44,14 +47,31 @@ public class HourlyCharge implements Comparable<HourlyCharge>
   public HourlyCharge (Instant when, double value)
   {
     super();
+    this.rateId = rateId;
     this.value = value;
     this.atTime = when;
-    stateLog.info("HourlyCharge:" + id + ":new:" + when.getMillis() + ":" + value);
   }
 
   public long getId ()
   {
     return id;
+  }
+
+  /**
+   * Set connection between rate and hourly charge. An instance with the
+   * default rateId is not considered complete, and will not appear in the
+   * state log. This method is intended to be called from Rate when the
+   * instance is added to the rate.
+   */
+  void setRateId (long rateId)
+  {
+    this.rateId = rateId;
+    stateLog.info("HourlyCharge:" + id + ":new:" + rateId + ":" + atTime.getMillis() + ":" + value);
+  }
+  
+  public long getRateId ()
+  {
+    return rateId;
   }
   
   public double getValue ()

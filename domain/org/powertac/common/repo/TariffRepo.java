@@ -18,6 +18,8 @@ package org.powertac.common.repo;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.springframework.stereotype.Repository;
 
@@ -30,12 +32,24 @@ public class TariffRepo implements DomainRepo
 {
   static private Logger log = Logger.getLogger(TariffRepo.class.getName());
 
-  private HashMap<Long,TariffSpecification> specs;
+  private HashMap<Long, TariffSpecification> specs;
+  private HashMap<Long, Tariff> tariffs;
+  private HashMap<Long, Rate> rates;
   
   public TariffRepo ()
   {
     super();
-    specs = new HashMap<Long,TariffSpecification>();
+    specs = new HashMap<Long, TariffSpecification>();
+    tariffs = new HashMap<Long, Tariff>();
+    rates = new HashMap<Long, Rate>();
+  }
+  
+  public void addSpecification (TariffSpecification spec)
+  {
+    specs.put(spec.getId(), spec);
+    for (Rate r : spec.getRates()) {
+      rates.put(r.getId(), r);
+    }
   }
   
   public TariffSpecification findSpecificationById (long id)
@@ -43,9 +57,26 @@ public class TariffRepo implements DomainRepo
     return specs.get(id);
   }
   
+  public void addTariff (Tariff tariff)
+  {
+    tariffs.put(tariff.getId(), tariff);
+  }
+  
+  public Tariff findTariffById (long id)
+  {
+    return tariffs.get(id);
+  }
+  
+  public Rate findRateById (long id)
+  {
+    return rates.get(id);
+  }
+  
   public void recycle ()
   {
     specs.clear();
+    tariffs.clear();
+    rates.clear();
   }
 
 }

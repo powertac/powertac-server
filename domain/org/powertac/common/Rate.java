@@ -254,8 +254,13 @@ public class Rate //implements Serializable
   public Rate setNoticeInterval (Duration interval)
   {
     // we assume that integer division will do the Right Thing here
-    noticeInterval = interval.getMillis() / TimeService.HOUR;
-    stateLog.info("Rate:" + id + ":setNoticeInterval:" + interval.getMillis());
+    return setNoticeInterval(interval.getMillis() / TimeService.HOUR);
+  }
+  
+  public Rate setNoticeInterval (long hours)
+  {
+    noticeInterval = hours;
+    stateLog.info("Rate:" + id + ":setNoticeInterval:" + noticeInterval);
     return this;
   }
 
@@ -296,10 +301,12 @@ public class Rate //implements Serializable
           if (item.getAtTime() == newCharge.getAtTime()) {
             log.debug("remove " + item.toString());
             rateHistory.remove(item);
+            stateLog.info("HourlyCharge:" + item.getId() + ":delete");
           }
         }
         log.info("Adding " + newCharge + " at " + newCharge.getAtTime() + " to " + this.toString());
         stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
+        newCharge.setRateId(id);
         rateHistory.add(newCharge);
         result = true;
       }
