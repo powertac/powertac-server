@@ -16,6 +16,7 @@
 package org.powertac.common;
 
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class Tariff
 {
-  static private Logger log = Logger.getLogger(TariffRepo.class.getName());
+  static private Logger log = Logger.getLogger(Tariff.class.getName());
 
   // ----------- State enumeration --------------
 
@@ -108,20 +109,33 @@ public class Tariff
    */
   public Tariff (TariffSpecification spec)
   {
+    tariffSpec = spec;
     specId = spec.getId();
     broker = (spec.getBroker());
-    offerDate = timeService.getCurrentTime();
-    for (long supId : spec.getSupersedes()) {
-      Tariff supersededTariff = tariffRepo.findTariffById(supId);
-      if (supersededTariff == null)
-        log.error("Superseded tariff " + supId + " not found");
-      else
-        supersededTariff.isSupersededBy = this;
+    tiers = new ArrayList<Double>();
+    if (spec.getSupersedes() != null) {
+      for (long supId : spec.getSupersedes()) {
+        Tariff supersededTariff = tariffRepo.findTariffById(supId);
+        if (supersededTariff == null)
+          log.error("Superseded tariff " + supId + " not found");
+        else
+          supersededTariff.isSupersededBy = this;
+      }
     }
-    analyze();
-    tariffRepo.addTariff(this);
   }
 
+  /**
+   * Initializes tariff by building the rate map. Must be called before
+   * usage charges can be computed. This is not in the constructor because
+   * of testability problems.
+   */
+  public void init ()
+  {
+    offerDate = timeService.getCurrentTime();
+    analyze();
+    tariffRepo.addTariff(this);    
+  }
+  
   public TariffSpecification getTariffSpecification ()
   {
     return tariffSpec;
@@ -229,9 +243,6 @@ public class Tariff
    */
   public double getUsageCharge (Instant when, double kwh, double cumulativeUsage)
   {
-    // start by retrieving the rate map
-    //def rateMap = tariffRateService.getRateMap(this)
-
     // first, get the time index
     DateTime dt = new DateTime(when, DateTimeZone.UTC);
     int di = dt.getHourOfDay();
@@ -245,7 +256,6 @@ public class Tariff
       return 0.0;
     }
     else if (tiers.size() == 1) {
-      //return kwh * rateMap[0][di].getValue(when)
       return kwh * rateValue(0, di, when);
     }
     else {

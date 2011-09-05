@@ -280,6 +280,15 @@ public class Rate //implements Serializable
    */
   public boolean addHourlyCharge (HourlyCharge newCharge)
   {
+    return addHourlyCharge (newCharge, false);
+  }
+  
+  /**
+   *  package-visible version that allows initial publication of HourlyCharge
+   *  instances within the notification interval.
+   */
+  boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
+  {
     boolean result = false;
     if (isFixed) {
       // cannot change this rate
@@ -288,7 +297,7 @@ public class Rate //implements Serializable
     else {
       Instant now = timeService.getCurrentTime();
       long warning = newCharge.getAtTime().getMillis() - now.getMillis();
-      if (warning < noticeInterval) {
+      if (warning < noticeInterval && !publish) {
         // too late
         log.error("Too late (" + now.getMillis() + ") to change rate for " + newCharge.getAtTime().getMillis());
       }
@@ -304,7 +313,7 @@ public class Rate //implements Serializable
             stateLog.info("HourlyCharge:" + item.getId() + ":delete");
           }
         }
-        log.info("Adding " + newCharge + " at " + newCharge.getAtTime() + " to " + this.toString());
+        log.info("Adding HourlyCharge " + newCharge.getId() + " at " + newCharge.getAtTime() + " to " + this.toString());
         stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
         newCharge.setRateId(id);
         rateHistory.add(newCharge);
@@ -509,7 +518,13 @@ public class Rate //implements Serializable
         return expectedMean; // default
       }
       else {
-        return head.last().getValue();
+        HourlyCharge candidate = head.last();
+        if (candidate.getAtTime().getMillis() == inst.getMillis()) {
+          return candidate.getValue();
+        }
+        else {
+          return expectedMean; // default
+        }
       }
     }
   }

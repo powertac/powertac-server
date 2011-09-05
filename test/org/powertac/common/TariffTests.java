@@ -27,18 +27,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
+import org.springframework.test.util.ReflectionTestUtils;
 
-class TariffTests
+public class TariffTests
 {
-  TimeService timeService; // dependency injection
+  private TimeService timeService; // dependency injection
   
-  TariffSpecification tariffSpec; // instance var
+  private TariffSpecification tariffSpec; // instance var
   
-  TariffRepo repo;
+  private TariffRepo repo;
 
-  Instant start;
-  Instant exp;
-  Broker broker;
+  private Instant start;
+  private Instant exp;
+  private Broker broker;
 
   @BeforeClass
   public static void setUpLog () throws Exception
@@ -47,12 +48,13 @@ class TariffTests
   }
 
   @Before
-  protected void setUp () 
+  public void setUp () 
   {
     timeService = new TimeService();
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
     broker = new Broker ("testBroker");
+    repo = new TariffRepo();
     exp = new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .setExpiration(exp)
@@ -66,6 +68,9 @@ class TariffTests
     Rate r1 = new Rate().setValue(0.121);
     tariffSpec.addRate(r1);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertNotNull("non-null result", te);
     assertEquals("correct TariffSpec", tariffSpec, te.getTariffSpecification());
     assertEquals("correct initial realized price", 0.0, te.getRealizedPrice(), 1e-6);
@@ -83,6 +88,9 @@ class TariffTests
     Rate r1 = new Rate().setValue(0.121);
     tariffSpec.addRate(r1);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     te.totalUsage = 501.2;
     te.totalCost = 99.8;
     assertEquals("Correct realized price", 99.8/501.2, te.getRealizedPrice(), 1.0e-6);
@@ -96,6 +104,9 @@ class TariffTests
     tariffSpec.addRate(r1);
     Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("correct charge, default case", 0.121, te.getUsageCharge(1.0, 0.0, false), 1e-6);
     assertEquals("correct charge, today", 1.21, te.getUsageCharge(10.0, 0.0, false), 1e-6);
     assertEquals("correct charge yesterday", 2.42, te.getUsageCharge(now.minus(TimeService.DAY), 20.0, 0.0), 1e-6);
@@ -113,8 +124,11 @@ class TariffTests
   {
     Rate r1 = new Rate().setValue(0.131);
     tariffSpec.addRate(r1);
-    Instant now = timeService.getCurrentTime();
+    //Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     te.getUsageCharge(20.0, 200.0, true);
     assertEquals("realized price 1", 0.131, te.getRealizedPrice(), 1e-6);
     te.getUsageCharge(10.0, 1000.0, true);
@@ -132,6 +146,9 @@ class TariffTests
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("noon price", 3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
     assertEquals("realized price", 0.15, te.getRealizedPrice(), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
@@ -155,6 +172,9 @@ class TariffTests
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertFalse("not covered", te.isCovered());
   }
 
@@ -171,6 +191,9 @@ class TariffTests
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("noon price Sat", 1.2, te.getUsageCharge(20.0, 200.0, true), 1e-6);
     assertEquals("realized price", 0.06, te.getRealizedPrice(), 1e-6);
     assertTrue("weekly map", te.isWeekly());
@@ -222,6 +245,9 @@ class TariffTests
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 23, 50, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("23:50 Sat", 0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
@@ -253,6 +279,9 @@ class TariffTests
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("noon price, below", 1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6);
     assertEquals("noon price, above", 2.0, te.getUsageCharge(10.0, 25.0, true), 1e-6);
     assertEquals("noon price, split", 1.75, te.getUsageCharge(10.0, 15.0, true), 1e-6);
@@ -275,6 +304,9 @@ class TariffTests
     tariffSpec.addRate(r3);
     tariffSpec.addRate(r4);
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("first tier", 0.14, te.getUsageCharge(2.0, 2.0, true), 1e-6);
     assertEquals("first-second tier", 0.41, te.getUsageCharge(5.0, 2.0, true), 1e-6);
     assertEquals("second tier", 0.2, te.getUsageCharge(2.0, 6.0, true), 1e-6);
@@ -292,13 +324,18 @@ class TariffTests
     Rate r1 = new Rate().setFixed(false).setMinValue(0.05).setMaxValue(0.50)
                         .setNoticeInterval(3).setExpectedMean(0.10).setDailyBegin(7).setDailyEnd(17);
     Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(6);
+    ReflectionTestUtils.setField(r1, "timeService", timeService);
+    ReflectionTestUtils.setField(r2, "timeService", timeService);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
-    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant(), 0.09));
+    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant(), 0.09), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), 0.11));
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), 0.13));
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), 0.14));
     Tariff te = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(te, "timeService", timeService);
+    ReflectionTestUtils.setField(te, "tariffRepo", repo);
+    te.init();
     assertEquals("current charge, noon Sunday", 0.9, te.getUsageCharge(10.0, 0.0, false), 1e-6);
     assertEquals("13:00 charge, noon Sunday", 1.1,
       te.getUsageCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);
