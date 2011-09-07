@@ -13,33 +13,37 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.powertac.tariffmarket
+package org.powertac.tariffmarket;
 
-import java.util.List
+import java.util.HashMap;
+import java.util.List;
 
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
-import org.joda.time.Instant
-import org.powertac.common.AbstractCustomer
-import org.powertac.common.Broker
-import org.powertac.common.PluginConfig
-import org.powertac.common.Tariff
-import org.powertac.common.TariffSpecification
-import org.powertac.common.TariffSubscription
-import org.powertac.common.TariffTransaction
-import org.powertac.common.TimeService
-import org.powertac.common.enumerations.PowerType
-import org.powertac.common.enumerations.TariffTransactionType
-import org.powertac.common.interfaces.Accounting
-import org.powertac.common.interfaces.BrokerProxy
-import org.powertac.common.interfaces.CompetitionControl
-import org.powertac.common.interfaces.NewTariffListener
-import org.powertac.common.interfaces.TimeslotPhaseProcessor
-import org.powertac.common.msg.TariffExpire
-import org.powertac.common.msg.TariffRevoke
-import org.powertac.common.msg.TariffStatus
-import org.powertac.common.msg.TariffUpdate
-import org.powertac.common.msg.VariableRateUpdate
+import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
+import org.powertac.accounting.AccountingService;
+import org.powertac.common.AbstractCustomer;
+import org.powertac.common.Broker;
+import org.powertac.common.PluginConfig;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TimeService;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.enumerations.TariffTransactionType;
+import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.TariffExpire;
+import org.powertac.common.msg.TariffRevoke;
+import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.msg.TariffUpdate;
+import org.powertac.common.msg.VariableRateUpdate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implements the Tariff Market abstraction. Incoming tariff-related
@@ -47,39 +51,46 @@ import org.powertac.common.msg.VariableRateUpdate
  * periodically, and subscriptions are processed on behalf of customers.
  * @author John Collins
  */
-class TariffMarketService
+public class TariffMarketService
   implements org.powertac.common.interfaces.TariffMarket,
   org.powertac.common.interfaces.BrokerMessageListener,
   org.powertac.common.interfaces.TimeslotPhaseProcessor 
 {
-  //static transactional = false
+  static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
 
-  def timeService
-  Accounting accountingService
-  CompetitionControl competitionControlService
-  BrokerProxy brokerProxyService
+  @Autowired
+  private TimeService timeService;
+  
+  @Autowired
+  private Accounting accountingService;
+  
+  @Autowired
+  private CompetitionControl competitionControlService;
+  
+  @Autowired
+  private BrokerProxy brokerProxyService;
 
   // maps power type to id of corresponding default tariff
-  Map defaultTariff = [:]
+  private HashMap<PowerType, Long> defaultTariff;
 
   // read this from plugin config
   //PluginConfig configuration
-  int simulationPhase = 2
-  double tariffPublicationFee = 0.0
-  double tariffRevocationFee = 0.0
-  int publicationInterval = 6
+  private int simulationPhase = 2;
+  private double tariffPublicationFee = 0.0;
+  private double tariffRevocationFee = 0.0;
+  private int publicationInterval = 6;
   
   // synchronized queue for incoming messages
-  List incoming = []
-  Object incomingLock = new Object()
+  private List incoming;
+  private Object incomingLock = new Object();
   
   /**
    * Sets up to receive incoming messages. This needs to be done before brokers
    * can log in.
    */
-  void setup ()
+  private void setup ()
   {
-    brokerProxyService?.registerBrokerTariffListener(this)
+    brokerProxyService.registerBrokerTariffListener(this);
   }
 
   /**
@@ -87,27 +98,27 @@ class TariffMarketService
    */
   void init (PluginConfig config)
   {
-    competitionControlService?.registerTimeslotPhase(this, simulationPhase)
-    double fee = config.configuration['tariffPublicationFee']?.toDouble()
-    if (fee == null) {
-      log.error "Tariff publication fee not specified. Default to ${tariffPublicationFee}"
+    competitionControlService.registerTimeslotPhase(this, simulationPhase);
+    String value = config.getConfigurationValue("tariffPublicationFee");
+    if (value == null) {
+      log.error("Tariff publication fee not specified. Default to " + tariffPublicationFee);
     }
     else {
-      tariffPublicationFee = fee
+      tariffPublicationFee = Double.parseDouble(value);
     }
-    fee = config.configuration['tariffRevocationFee']?.toDouble()
-    if (fee == null) {
-      log.error "Tariff revocation fee not specified. Default to ${tariffPublicationFee}"
-    }
-    else {
-      tariffRevocationFee = fee
-    }
-    Integer interval = config.configuration['publicationInterval']?.toInteger()
-    if (interval == null) {
-      log.error "Tariff publication interval not specified. Default to ${publicationInterval}"
+    value = config.getConfigurationValue("tariffRevocationFee");
+    if (value == null) {
+      log.error("Tariff revocation fee not specified. Default to " + tariffPublicationFee);
     }
     else {
-      publicationInterval = interval
+      tariffRevocationFee = Double.parseDouble(value);
+    }
+    value = config.getConfigurationValue("publicationInterval");
+    if (value == null) {
+      log.error("Tariff publication interval not specified. Default to " + publicationInterval);
+    }
+    else {
+      publicationInterval = Integer.parseInt(value);
     }
   }
 
@@ -116,11 +127,11 @@ class TariffMarketService
    * Receives and dispatches an incoming broker message
    */
   @Override
-  public void receiveMessage (msg)
+  public void receiveMessage (Object msg)
   {
     // queue incoming message
     synchronized(incomingLock) {
-      incoming << msg
+      incoming.add(msg);
     }
   }
 

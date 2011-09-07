@@ -13,49 +13,53 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.powertac.tariffmarket
+package org.powertac.tariffmarket;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
-import org.powertac.common.PluginConfig
-import org.powertac.common.interfaces.InitializationService
+import org.powertac.common.PluginConfig;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.repo.PluginConfigRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 
-class TariffMarketInitializationService 
+public class TariffMarketInitializationService 
     implements InitializationService
 {
-  static transactional = true
+  static private Logger log = Logger.getLogger(TariffMarketInitializationService.class.getName());
 
-  def tariffMarketService // autowire
-  def tariffRateService
+  @Autowired
+  private TariffMarketService tariffMarketService;
+  
+  @Autowired
+  private PluginConfigRepo pluginConfigRepo;
   
   @Override
   public void setDefaults ()
   {
-    tariffMarketService.setup()
-    PluginConfig tariffMarketConfig =
-        new PluginConfig(roleName: 'TariffMarket',
-                         configuration: [tariffPublicationFee: '-100.0',
-                                         tariffRevocationFee: '-100.0',
-                                         publicationInterval: '6'])
-    tariffMarketConfig.save()
+    tariffMarketService.setup();
+    pluginConfigRepo.makePluginConfig("TariffMarket", "")
+            .addConfiguration("tariffPublicationFee", "-100.0")
+            .addConfiguration("tariffRevocationFee", "-100.0")
+            .addConfiguration("publicationInterval", "6");
   }
   
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition, List completedInits)
   {
-    if (!completedInits.find{'AccountingService' == it}) {
-      return null
+    int index = completedInits.indexOf("AccountingService");
+    if (index == -1) {
+      return null;
     }
-    PluginConfig tariffMarketConfig = PluginConfig.findByRoleName('TariffMarket')
+    PluginConfig tariffMarketConfig = pluginConfigRepo.findByRoleName("TariffMarket");
     if (tariffMarketConfig == null) {
-      log.error "PluginConfig for TariffMarket does not exist"
+      log.error("PluginConfig for TariffMarket does not exist");
     }
     else {
-      tariffMarketService.init(tariffMarketConfig)
-      tariffRateService.init()
-      return 'TariffMarket'
+      tariffMarketService.init(tariffMarketConfig);
+      return "TariffMarket";
     }
-    return 'fail'
+    return "fail";
   }
 }

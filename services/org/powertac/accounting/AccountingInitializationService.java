@@ -39,19 +39,18 @@ public class AccountingInitializationService
   static private Logger log = Logger.getLogger(AccountingInitializationService.class.getName());
 
   @Autowired
-  AccountingService accountingService;
+  private AccountingService accountingService;
   
   @Autowired
-  PluginConfigRepo pluginConfigRepo;
+  private PluginConfigRepo pluginConfigRepo;
   
   @Autowired
-  RandomSeedService randomSeedService;
-  Random randomGen;
+  private RandomSeedService randomSeedService;
+  private Random randomGen;
   
-  double minInterest = 0.04;
-  double maxInterest = 0.12;
+  private double minInterest = 0.04;
+  private double maxInterest = 0.12;
   
-  @Override
   public void setDefaults ()
   {
     long randomSeed = randomSeedService.nextSeed("AccountingInitializationService",
@@ -68,7 +67,7 @@ public class AccountingInitializationService
   }
 
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition, List completedInits)
   {
     PluginConfig accountingConfig = pluginConfigRepo.findByRoleName("AccountingService");
     if (accountingConfig == null) {
