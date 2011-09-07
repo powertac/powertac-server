@@ -38,7 +38,7 @@ public class BalancingTransactionTests
   @Test
   public void testBalancingTransaction ()
   {
-    BalancingTransaction bt = new BalancingTransaction(baseTime, broker, 42.1, 3.22);
+    BalancingTransaction bt = new BalancingTransaction(broker, baseTime, 42.1, 3.22);
     assertNotNull("not null", bt);
     assertEquals("correct time", baseTime, bt.getPostedTime());
     assertEquals("correct broker", broker, bt.getBroker());
@@ -49,7 +49,7 @@ public class BalancingTransactionTests
   @Test
   public void testToString ()
   {
-    BalancingTransaction bt = new BalancingTransaction(baseTime, broker, 42.1, 3.22);
+    BalancingTransaction bt = new BalancingTransaction(broker, baseTime, 42.1, 3.22);
     String sut = bt.toString();
     //System.out.println(sut);
     assertTrue("match", sut.matches("Balance tx \\d+-Sally-42.1-3.22"));
@@ -58,7 +58,7 @@ public class BalancingTransactionTests
   @Test
   public void xmlSerializationTest ()
   {
-    BalancingTransaction bt = new BalancingTransaction(baseTime, broker, 42.1, 3.22);
+    BalancingTransaction bt = new BalancingTransaction(broker, baseTime, 42.1, 3.22);
     XStream xstream = new XStream();
     xstream.processAnnotations(BalancingTransaction.class);
     StringWriter serialized = new StringWriter();
