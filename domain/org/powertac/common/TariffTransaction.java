@@ -18,7 +18,6 @@ package org.powertac.common;
 
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.TariffTransactionType;
-import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
 
@@ -35,15 +34,8 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, John Collins
  */
 @XStreamAlias("tariff-tx")
-public class TariffTransaction //implements Serializable
+public class TariffTransaction extends BrokerTransaction
 {
-  @XStreamAsAttribute
-  private Long id = IdGenerator.createId();
-
-  /** Whose transaction is this? */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
-
   /** Purpose of this transaction */
   @XStreamAsAttribute
   private TariffTransactionType txType = TariffTransactionType.CONSUME;
@@ -55,9 +47,6 @@ public class TariffTransaction //implements Serializable
   /** Number of individual customers involved */
   @XStreamAsAttribute
   private int customerCount = 0;
-
-  /** The timeslot for which this meter reading is generated */
-  private Instant postedTime;
 
   /** The total quantity of energy consumed (> 0) or produced (< 0) in kWh.
    *  Note that this is not per-individual in a population model, but rather
@@ -80,7 +69,43 @@ public class TariffTransaction //implements Serializable
                             int customerCount,
                             double quantity, double charge)
   {
-    super();
+    super(when, broker);
+    this.txType = txType;
+    this.tariffSpec = spec;
+    this.customerInfo = customer;
+    this.customerCount = customerCount;
+    this.quantity = quantity;
+    this.charge = charge;
+  }
+
+  public TariffTransactionType getTxType ()
+  {
+    return txType;
+  }
+
+  public CustomerInfo getCustomerInfo ()
+  {
+    return customerInfo;
+  }
+
+  public int getCustomerCount ()
+  {
+    return customerCount;
+  }
+
+  public double getQuantity ()
+  {
+    return quantity;
+  }
+
+  public double getCharge ()
+  {
+    return charge;
+  }
+
+  public TariffSpecification getTariffSpec ()
+  {
+    return tariffSpec;
   }
 
   public String toString() {

@@ -17,7 +17,6 @@ package org.powertac.common;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -27,53 +26,27 @@ import com.thoughtworks.xstream.annotations.*;
  * @author John Collins
  */
 @XStreamAlias("bank-tx")
-public class BankTransaction
+public class BankTransaction extends BrokerTransaction
 {
   static private Logger stateLog = Logger.getLogger("State");
-  
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  
-  /** The broker for this transactions */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
   
   /** The amount of this transaction */
   @XStreamAsAttribute
   private double amount = 0.0;
-  
-  /** When this transaction occurred  */
-  private Instant postedTime;
 
   /**
    * Constructs a new BankTransaction instance, giving it a new id.
    */
   public BankTransaction (Broker broker, double amount, Instant time)
   {
-    this.broker = broker;
+    super(time, broker);
     this.amount = amount;
-    this.postedTime = time;
     stateLog.info("BankTransaction:" + this.id + ":new:" + time.getMillis() + ":" + broker.getUsername() +
                   ":" + amount);
-  }
-
-  public long getId ()
-  {
-    return id;
-  }
-
-  public Broker getBroker ()
-  {
-    return broker;
   }
 
   public double getAmount ()
   {
     return amount;
-  }
-
-  public Instant getPostedTime ()
-  {
-    return postedTime;
   }
 }

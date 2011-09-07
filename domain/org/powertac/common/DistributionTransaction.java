@@ -17,7 +17,6 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
-import org.powertac.common.xml.BrokerConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -31,18 +30,8 @@ import com.thoughtworks.xstream.annotations.*;
  * @author John Collins
  */
 @XStreamAlias("distribution-tx")
-public class DistributionTransaction
+public class DistributionTransaction extends BrokerTransaction
 {
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  
-  /** Whose transaction is this? */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
-
-  /** The timeslot for which this meter reading is generated */
-  private Instant postedTime;
-
   /** The total positive amount of energy transported by the in kWH.
    */
   @XStreamAsAttribute
@@ -53,29 +42,12 @@ public class DistributionTransaction
   @XStreamAsAttribute
   private double charge = 0.0;
 
-  public DistributionTransaction (Instant when, Broker broker,
+  public DistributionTransaction (Broker broker, Instant when, 
                                   double quantity, double charge)
   {
-    super();
-    this.postedTime = when;
-    this.broker = broker;
+    super(when, broker);
     this.quantity = quantity;
     this.charge = charge;
-  }
-  
-  public long getId ()
-  {
-    return id;
-  }
-
-  public Broker getBroker ()
-  {
-    return broker;
-  }
-
-  public Instant getPostedTime ()
-  {
-    return postedTime;
   }
 
   public double getQuantity ()

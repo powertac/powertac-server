@@ -53,6 +53,19 @@ public class PluginConfigRepo implements DomainRepo
   }
   
   /**
+   * Returns the first config with a matching role name, if any
+   */
+  public PluginConfig findByRoleName (String role)
+  {
+    for (PluginConfig config : storage) {
+      if (config.getRoleName().equals(role)) {
+        return config;
+      }
+    }
+    return null;
+  }
+  
+  /**
    * Clears out the repository in preparation for a new sim run.
    */
   public void recycle ()

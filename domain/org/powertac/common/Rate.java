@@ -313,10 +313,10 @@ public class Rate //implements Serializable
             stateLog.info("HourlyCharge:" + item.getId() + ":delete");
           }
         }
-        log.info("Adding HourlyCharge " + newCharge.getId() + " at " + newCharge.getAtTime() + " to " + this.toString());
-        stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
         newCharge.setRateId(id);
         rateHistory.add(newCharge);
+        log.info("Adding HourlyCharge " + newCharge.getId() + " at " + newCharge.getAtTime() + " to " + this.toString());
+        stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
         result = true;
       }
     }

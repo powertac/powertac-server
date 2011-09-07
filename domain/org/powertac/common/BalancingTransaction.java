@@ -16,11 +16,8 @@
 
 package org.powertac.common;
 
-import java.math.BigDecimal;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.xml.BrokerConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -31,19 +28,9 @@ import com.thoughtworks.xstream.annotations.*;
  * @author John Collins
  */
 @XStreamAlias("balance-tx")
-public class BalancingTransaction
+public class BalancingTransaction extends BrokerTransaction
 {
   static private Logger stateLog = Logger.getLogger("State");
-
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  
-  /** Whose transaction is this? */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
-
-  /** The timeslot for which this meter reading is generated */
-  private Instant postedTime;
 
   /** The total size of the imbalance in kWH, positive for surplus and
    * negative for deficit
@@ -56,31 +43,14 @@ public class BalancingTransaction
   @XStreamAsAttribute
   private double charge = 0.0;
   
-  public BalancingTransaction (Instant when, Broker broker,
+  public BalancingTransaction (Broker broker, Instant when, 
                                double quantity, double charge)
   {
-    super();
-    this.postedTime = when;
-    this.broker = broker;
+    super(when, broker);
     this.quantity = quantity;
     this.charge = charge;
     stateLog.info("BalancingTransaction:" + this.id + ":new:" + when.getMillis() + ":" + broker.getUsername() +
                   ":" + quantity + ":" + charge);
-  }
-
-  public long getId ()
-  {
-    return id;
-  }
-
-  public Broker getBroker ()
-  {
-    return broker;
-  }
-
-  public Instant getPostedTime ()
-  {
-    return postedTime;
   }
 
   public double getQuantity ()
