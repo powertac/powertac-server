@@ -63,8 +63,7 @@ public class AccountingInitializationService
 			(maxInterest - minInterest)));
 
     log.info("bank interest: " + interest);
-    PluginConfig accounting =
-      pluginConfigRepo.makePluginConfig("AccountingService", "init")
+    pluginConfigRepo.makePluginConfig("AccountingService", "init")
         .addConfiguration("bankInterest", Double.toString(interest));
   }
 

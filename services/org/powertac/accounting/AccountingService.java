@@ -14,134 +14,156 @@
  * governing permissions and limitations under the License.
  */
 
-package org.powertac.accountingservice
+package org.powertac.accounting;
 
-import groovy.transform.Synchronized
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
-import org.joda.time.Instant
-import org.powertac.common.*
-import org.powertac.common.enumerations.TariffTransactionType
-import org.powertac.common.exceptions.*
-import org.powertac.common.msg.*
+import org.apache.log4j.Logger;
+import org.joda.time.Instant;
+import org.powertac.common.*;
+import org.powertac.common.enumerations.TariffTransactionType;
+import org.powertac.common.exceptions.*;
+import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.msg.*;
+import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implementation of {@link org.powertac.common.interfaces.Accounting}
  *
  * @author John Collins
  */
-class AccountingService
+public class AccountingService
   implements org.powertac.common.interfaces.Accounting,
   org.powertac.common.interfaces.TimeslotPhaseProcessor 
 {
-  //static transactional = false
+  static private Logger log = Logger.getLogger(AccountingService.class.getName());
 
-  def timeService // autowire reference
-  def competitionControlService
-  def brokerProxyService
+  @Autowired
+  private TimeService timeService;
+  
+  @Autowired
+  private TariffRepo tariffRepo;
+  
+  @Autowired
+  private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private BrokerRepo brokerRepo;
 
-  def pendingTransactions = []
+  @Autowired
+  private CompetitionControl competitionControlService;
+
+  @Autowired
+  private BrokerProxy brokerProxyService;
+
+  private ArrayList<BrokerTransaction> pendingTransactions;
 
   // read this from plugin config
-  double bankInterest = 0.0
+  private double bankInterest = 0.0;
 
-  int simulationPhase = 3
+  private int simulationPhase = 3;
 
+  public AccountingService ()
+  {
+    super();
+    pendingTransactions = new ArrayList<BrokerTransaction>();
+  }
+  
   /**
    * Register for phase 3 activation, to drive tariff publication
    */
-  void init(PluginConfig config) 
+  public void init(PluginConfig config) 
   {
-    pendingTransactions.clear()
-    competitionControlService?.registerTimeslotPhase(this, simulationPhase)
-    double value = config.configuration['bankInterest']?.toDouble()
-    if (value != null) {
-      bankInterest = value
+    pendingTransactions.clear();
+    competitionControlService.registerTimeslotPhase(this, simulationPhase);
+    String interestSpec = config.getConfiguration().get("bankInterest");
+    if (interestSpec != null) {
+      bankInterest = Double.parseDouble(interestSpec);
     }
     else {
-      log.error "Bank interest not configured. Default to ${bankInterest}"
+      log.error("Bank interest not configured. Default to " + bankInterest);
     }
   }
 
-  @Synchronized
-  MarketTransaction addMarketTransaction(Broker broker,
-                                         Timeslot timeslot,
-                                         double price,
-                                         double quantity) 
+  public synchronized MarketTransaction 
+  addMarketTransaction(Broker broker,
+                       Timeslot timeslot,
+                       double price,
+                       double quantity) 
   {
-    MarketTransaction mtx = new MarketTransaction(broker: broker,
-        timeslot: timeslot,
-        price: price,
-        quantity: quantity,
-        postedTime: timeService.currentTime)
-    if (!mtx.validate()) {
-      mtx.errors.allErrors.each { log.info it.toString() }
-    }
-    assert mtx.save()
-    pendingTransactions.add(mtx)
-    return mtx
+    MarketTransaction mtx = new MarketTransaction(broker, timeService.getCurrentTime(),
+                                                  timeslot, price, quantity);
+    pendingTransactions.add(mtx);
+    return mtx;
   }
 
-  @Synchronized
-  public TariffTransaction addTariffTransaction(TariffTransactionType txType,
-                                                Tariff tariff,
-                                                CustomerInfo customer,
-                                                int customerCount,
-                                                double quantity,
-                                                double charge) 
+  public synchronized TariffTransaction 
+  addTariffTransaction(TariffTransactionType txType,
+                       Tariff tariff,
+                       CustomerInfo customer,
+                       int customerCount,
+                       double quantity,
+                       double charge) 
   {
     // Note that tariff may be stale
-    TariffTransaction ttx = new TariffTransaction(broker: Broker.get(tariff.broker.id),
-        postedTime: timeService.currentTime, txType: txType, 
-        tariffSpec: TariffSpecification.get(tariff.specId),
-        customerInfo: customer, customerCount: customerCount,
-        quantity: quantity, charge: charge)
-    ttx.save()
-    pendingTransactions.add(ttx)
-    return ttx
+    TariffTransaction ttx = new TariffTransaction(tariff.getBroker(),
+                                                  timeService.getCurrentTime(), txType, 
+                                                  tariffRepo.findSpecificationById(tariff.getSpecId()),
+                                                  customer, customerCount,
+                                                  quantity, charge);
+    pendingTransactions.add(ttx);
+    return ttx;
   }
 
-  @Synchronized
-  public DistributionTransaction addDistributionTransaction(Broker broker,
-                                                            BigDecimal quantity,
-                                                            BigDecimal charge) 
+  public synchronized DistributionTransaction 
+  addDistributionTransaction(Broker broker,
+                             double quantity,
+                             double charge) 
   {
-    DistributionTransaction dtx = new DistributionTransaction(broker: Broker.get(broker.id),
-        postedTime: timeService.currentTime, quantity: quantity, charge: charge)
-    dtx.save()
-    pendingTransactions.add(dtx)
-    return dtx
+    DistributionTransaction dtx = new DistributionTransaction(broker, 
+                                                              timeService.getCurrentTime(), 
+                                                              quantity, charge);
+    pendingTransactions.add(dtx);
+    return dtx;
   }
 
-  @Synchronized
-  public BalancingTransaction addBalancingTransaction(Broker broker,
-                                                      BigDecimal quantity,
-                                                      BigDecimal charge) 
+  public synchronized BalancingTransaction 
+  addBalancingTransaction(Broker broker,
+                          double quantity,
+                          double charge) 
   {
-    BalancingTransaction btx = new BalancingTransaction(broker: Broker.get(broker.id),
-        postedTime: timeService.currentTime, quantity: quantity, charge: charge)
-    btx.save()
-    pendingTransactions.add(btx)
-    return btx
+    BalancingTransaction btx = new BalancingTransaction(broker,
+                                                        timeService.getCurrentTime(),
+                                                        quantity, charge);
+    pendingTransactions.add(btx);
+    return btx;
   }
 
   // Gets the net load. Note that this only works BEFORE the day's transactions
   // have been processed.
-  @Synchronized
-  double getCurrentNetLoad(Broker broker) 
+  public synchronized double getCurrentNetLoad (Broker broker) 
   {
-    double netLoad = 0.0
-    pendingTransactions.each { oldtx ->
-      if (oldtx instanceof TariffTransaction) {
-        TariffTransaction tx = TariffTransaction.get(oldtx.id)
-        if (tx.broker.username == broker.username) {
-          if (tx.txType == TariffTransactionType.CONSUME ||
-              tx.txType == TariffTransactionType.PRODUCE) {
-            netLoad += tx.quantity
+    double netLoad = 0.0;
+    for (BrokerTransaction btx : pendingTransactions) {
+      if (btx instanceof TariffTransaction) {
+        TariffTransaction ttx = (TariffTransaction)btx;
+        if (ttx.getBroker().getUsername() == broker.getUsername()) {
+          if (ttx.getTxType() == TariffTransactionType.CONSUME ||
+              ttx.getTxType() == TariffTransactionType.PRODUCE) {
+            netLoad += ttx.getQuantity();
           }
         }
       }
     }
-    return netLoad
+    return netLoad;
   }
 
   /**
@@ -150,116 +172,98 @@ class AccountingService
    * can be no new market transactions for the current timeslot. This is the
    * normal case.
    */
-  @Synchronized
-  double getCurrentMarketPosition(Broker broker) 
+
+  public synchronized double getCurrentMarketPosition(Broker broker) 
   {
-    Timeslot current = Timeslot.currentTimeslot()
-    log.debug "current timeslot: ${current.serialNumber}"
+    Timeslot current = timeslotRepo.currentTimeslot();
+    log.debug("current timeslot: " + current.getSerialNumber());
     MarketPosition position =
-        MarketPosition.findByBrokerAndTimeslot(broker, current)
+        MarketPosition.findByBrokerAndTimeslot(broker, current);
     if (position == null) {
-      log.debug "null position for ts ${current.serialNumber}"
-      return 0.0
+      log.debug("null position for ts " + current.getSerialNumber());
+      return 0.0;
     }
-    return position.overallBalance
+    return position.getOverallBalance();
   }
 
   // keep in mind that this will likely be called in a different
   // session from the one in which the transaction was created, so
   // the transactions themselves may be stale.
-  @Synchronized
-  void activate(Instant time, int phaseNumber) 
+  public synchronized void activate(Instant time, int phaseNumber) 
   {
-    def brokerMsg = [:]
-    Broker.list().each { broker ->
-      // use username here rather than broker, because it seems that
-      // the broker instance in the transaction and the broker instance
-      // from the list are not necessarily the same object...
-      brokerMsg[broker.username] = [] as Set
+    HashMap<Broker, List<BrokerTransaction>> brokerMsg = new HashMap<Broker, List<BrokerTransaction>>();
+    for (Broker broker : brokerRepo.list()) {
+      brokerMsg.put(broker, new ArrayList<BrokerTransaction>());
     }
     // walk through the pending transactions and run the updates
-    pendingTransactions.each { oldtx ->
+    for (BrokerTransaction tx : pendingTransactions) {
       // need to refresh the transaction first
-      def tx = oldtx.class.get(oldtx.id)
-      if (tx.broker == null) {
-        log.error "${tx} has null broker"
+      if (tx.getBroker() == null) {
+        log.error("tx " + tx.getClass().getName() + ":" + tx.getId() + 
+                  " has null broker");
       }
-      if (brokerMsg[tx.broker.username] == null) {
-        log.error "broker ${tx.broker} not in database"
-      }
-      brokerMsg[tx.broker.username] << tx
-      processTransaction(tx, brokerMsg[tx.broker.username])
+      brokerMsg.get(tx.getBroker()).add(tx);
+      processTransaction(tx, brokerMsg.get(tx.getBroker()));
     }
-    pendingTransactions.clear()
+    pendingTransactions.clear();
     // for each broker, compute interest and send messages
-    double rate = bankInterest / 365.0
-    Broker.list().each { broker ->
+    double rate = bankInterest / 365.0;
+    for (Broker broker : brokerRepo.list()) {
       // run interest payments at midnight
-      if (timeService.hourOfDay == 0) {
-        def brokerRate = rate
-        CashPosition cash = broker.cash
-        if (cash.balance >= 0.0) {
+      if (timeService.getHourOfDay() == 0) {
+        double brokerRate = rate;
+        CashPosition cash = broker.getCash();
+        if (cash.getBalance() >= 0.0) {
           // rate on positive balance is 1/2 of negative
-          brokerRate /= 2.0
+          brokerRate /= 2.0;
         }
-        double interest = cash.balance * brokerRate
-        brokerMsg[broker.username] <<
-            new BankTransaction(broker: broker, amount: interest,
-                postedTime: timeService.currentTime)
-        cash.balance += interest
+        double interest = cash.getBalance() * brokerRate;
+        brokerMsg.get(broker).add(new BankTransaction(broker, interest,
+                                                      timeService.getCurrentTime()));
+        cash.deposit(interest);
       }
-      broker.save()
       // add the cash position to the list and send messages
-      brokerMsg[broker.username] << broker.cash
-      brokerProxyService.sendMessages(broker, brokerMsg[broker.username] as List)
+      //brokerMsg[broker.username] << broker.cash
+      brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
   }
 
   // process a tariff transaction
   private void processTransaction(TariffTransaction tx, Set messages) {
-    updateCash(tx.broker, tx.charge)
+    updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a balance transaction
   private void processTransaction(BalancingTransaction tx, Set messages) {
-    updateCash(tx.broker, tx.charge)
+    updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a DU fee transaction
   private void processTransaction(DistributionTransaction tx, Set messages) {
-    updateCash(tx.broker, tx.charge)
+    updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a market transaction
   private void processTransaction(MarketTransaction tx, Set messages) 
   {
-    Broker broker = tx.broker
-    updateCash(broker, -tx.price * Math.abs(tx.quantity))
+    Broker broker = tx.getBroker();
+    updateCash(broker, -tx.getPrice() * Math.abs(tx.getQuantity()));
     MarketPosition mkt =
-        MarketPosition.findByBrokerAndTimeslot(broker, tx.timeslot)
+        MarketPosition.findByBrokerAndTimeslot(broker, tx.getTimeslot());
     if (mkt == null) {
-      mkt = new MarketPosition(broker: broker, timeslot: tx.timeslot)
-      if (!mkt.validate()) {
-        mkt.errors.allErrors.each { log.info it.toString() }
-      }
-      assert mkt.save()
-      log.debug "New MarketPosition(${broker.username}, ${tx.timeslot.serialNumber}): ${mkt.id}"
-      broker.addToMarketPositions(mkt)
-      if (!broker.validate()) {
-        broker.errors.each { log.info it.toString() }
-      }
-      assert broker.save()
+      mkt = new MarketPosition(broker, tx.getTimeslot(), tx.getQuantity());
+      log.debug("New MarketPosition(" + broker.getUsername() + 
+                ", " + tx.getTimeslot().getSerialNumber() + "): " + 
+                mkt.getId());
+      //broker.addToMarketPositions(mkt);
     }
-    mkt.updateBalance(tx.quantity)
-    assert mkt.save()
-    messages << mkt
-    log.debug "MarketPosition count = ${MarketPosition.count()}"
+    messages.add(mkt);
+    //log.debug("MarketPosition count = " + MarketPosition.count());
   }
 
-  private void updateCash(Broker broker, BigDecimal amount) 
+  private void updateCash(Broker broker, double amount) 
   {
-    CashPosition cash = broker.cash
-    cash.deposit amount
-    cash.save()
+    CashPosition cash = broker.getCash();
+    cash.deposit(amount);
   }
 }
