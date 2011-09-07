@@ -13,59 +13,72 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.powertac.accountingservice
+package org.powertac.accounting;
 
 import java.util.List;
+import java.util.Random;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
-import org.powertac.common.PluginConfig
-import org.powertac.common.interfaces.InitializationService
+import org.powertac.common.PluginConfig;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.RandomSeedService;
+import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Pre-game initialization for the accounting service
  * @author John Collins
  */
-class AccountingInitializationService 
+@Service
+public class AccountingInitializationService 
     implements InitializationService
 {
-  static transactional = true
+  static private Logger log = Logger.getLogger(AccountingInitializationService.class.getName());
+
+  @Autowired
+  AccountingService accountingService;
   
-  def accountingService //autowire
-  def randomSeedService // autowire
-  Random randomGen
+  @Autowired
+  PluginConfigRepo pluginConfigRepo;
   
-  double minInterest = 0.04
-  double maxInterest = 0.12
+  @Autowired
+  RandomSeedService randomSeedService;
+  Random randomGen;
+  
+  double minInterest = 0.04;
+  double maxInterest = 0.12;
   
   @Override
   public void setDefaults ()
   {
-   long randomSeed = randomSeedService.nextSeed('AccountingInitializationService',
-                                                'init', 'interest')
-    randomGen = new Random(randomSeed)
+    long randomSeed = randomSeedService.nextSeed("AccountingInitializationService",
+                                                 0l, "interest");
+    randomGen = new Random(randomSeed);
 
     double interest = (minInterest + 
 		       (randomGen.nextDouble() *
-			(maxInterest - minInterest)))
+			(maxInterest - minInterest)));
 
-    log.info("bank interest: ${interest}")
+    log.info("bank interest: " + interest);
     PluginConfig accounting =
-    new PluginConfig(roleName:'AccountingService',
-                     configuration: [bankInterest: Double.toString(interest)])
-    accounting.save()
+      pluginConfigRepo.makePluginConfig("AccountingService", "init")
+        .addConfiguration("bankInterest", Double.toString(interest));
   }
 
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
-    PluginConfig accountingConfig = PluginConfig.findByRoleName('AccountingService')
+    PluginConfig accountingConfig = pluginConfigRepo.findByRoleName("AccountingService");
     if (accountingConfig == null) {
-      log.error "PluginConfig for AccountingService does not exist"
+      log.error("PluginConfig for AccountingService does not exist");
     }
     else {
-      accountingService.init(accountingConfig)
-      return 'AccountingService'
+      accountingService.init(accountingConfig);
+      return "AccountingService";
     }
-    return 'fail'
+    return "fail";
   }
 }
