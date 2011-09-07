@@ -15,7 +15,10 @@
  */
 package org.powertac.common;
 
+import java.util.List;
+
 import org.joda.time.Instant;
+import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -53,5 +56,13 @@ public class BrokerTransaction
   public Instant getPostedTime ()
   {
     return postedTime;
+  }
+  
+  /**
+   * Visitor style processing to get around Java dispatching weakness.
+   */
+  public void process (TransactionProcessor svc, List msgs)
+  {
+    svc.processTransaction(this, msgs);
   }
 }
