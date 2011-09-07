@@ -27,8 +27,11 @@ import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.exceptions.*;
+import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.msg.*;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -41,8 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author John Collins
  */
 public class AccountingService
-  implements org.powertac.common.interfaces.Accounting,
-  org.powertac.common.interfaces.TimeslotPhaseProcessor 
+  implements TransactionProcessor, Accounting, TimeslotPhaseProcessor 
 {
   static private Logger log = Logger.getLogger(AccountingService.class.getName());
 
@@ -178,7 +180,7 @@ public class AccountingService
     Timeslot current = timeslotRepo.currentTimeslot();
     log.debug("current timeslot: " + current.getSerialNumber());
     MarketPosition position =
-        MarketPosition.findByBrokerAndTimeslot(broker, current);
+        broker.findMarketPositionByTimeslot(current);
     if (position == null) {
       log.debug("null position for ts " + current.getSerialNumber());
       return 0.0;
@@ -203,7 +205,8 @@ public class AccountingService
                   " has null broker");
       }
       brokerMsg.get(tx.getBroker()).add(tx);
-      processTransaction(tx, brokerMsg.get(tx.getBroker()));
+      tx.process((TransactionProcessor)this, brokerMsg.get(tx.getBroker()));
+      //processTransaction(tx, brokerMsg.get(tx.getBroker()));
     }
     pendingTransactions.clear();
     // for each broker, compute interest and send messages
@@ -229,27 +232,27 @@ public class AccountingService
   }
 
   // process a tariff transaction
-  private void processTransaction(TariffTransaction tx, Set messages) {
+  public void processTransaction(TariffTransaction tx, List messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a balance transaction
-  private void processTransaction(BalancingTransaction tx, Set messages) {
+  public void processTransaction(BalancingTransaction tx, List messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a DU fee transaction
-  private void processTransaction(DistributionTransaction tx, Set messages) {
+  public void processTransaction(DistributionTransaction tx, List messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a market transaction
-  private void processTransaction(MarketTransaction tx, Set messages) 
+  public void processTransaction(MarketTransaction tx, List messages) 
   {
     Broker broker = tx.getBroker();
     updateCash(broker, -tx.getPrice() * Math.abs(tx.getQuantity()));
     MarketPosition mkt =
-        MarketPosition.findByBrokerAndTimeslot(broker, tx.getTimeslot());
+        broker.findMarketPositionByTimeslot(tx.getTimeslot());
     if (mkt == null) {
       mkt = new MarketPosition(broker, tx.getTimeslot(), tx.getQuantity());
       log.debug("New MarketPosition(" + broker.getUsername() + 
@@ -265,5 +268,11 @@ public class AccountingService
   {
     CashPosition cash = broker.getCash();
     cash.deposit(amount);
+  }
+
+  @Override
+  public void processTransaction (BrokerTransaction tx, List messages)
+  {
+    log.error("call to generic processTransaction - should not happen");   
   }
 }
