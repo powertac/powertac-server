@@ -78,9 +78,9 @@ public interface TariffMarket {
    * that from the TariffSubscription that represents the Tariff you want
    * to unsubscribe from.</p>
    */
-  TariffSubscription subscribeToTariff (Tariff tariff,
-                                        AbstractCustomer customer, 
-                                        int customerCount);
+  public TariffSubscription subscribeToTariff (Tariff tariff,
+                                               AbstractCustomer customer, 
+                                               int customerCount);
   
   /**
    * Returns the list of currently active tariffs for the given PowerType.
