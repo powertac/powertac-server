@@ -15,12 +15,15 @@
 */
 package org.powertac.common.repo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.enumerations.PowerType;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -65,6 +68,28 @@ public class TariffRepo implements DomainRepo
   public Tariff findTariffById (long id)
   {
     return tariffs.get(id);
+  }
+  
+  public List<Tariff> findTariffsByState (Tariff.State state)
+  {
+    ArrayList<Tariff> result = new ArrayList<Tariff>();
+    for (Tariff tariff : tariffs.values()) {
+      if (state == tariff.getState()) {
+        result.add(tariff);
+      }
+    }
+    return result;
+  }
+  
+  public List<Tariff> findActiveTariffs (PowerType type)
+  {
+    List<Tariff> result = new ArrayList<Tariff>();
+    for (Tariff tariff : tariffs.values()) {
+      if (tariff.getPowerType() == type && !tariff.isExpired() && !tariff.isRevoked()) {
+        result.add(tariff);
+      }
+    }
+    return result;
   }
   
   public Rate findRateById (long id)

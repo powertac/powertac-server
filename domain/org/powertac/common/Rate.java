@@ -43,6 +43,8 @@ public class Rate //implements Serializable
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   @XStreamAsAttribute
+  private long tariffId;
+  @XStreamAsAttribute
   private int weeklyBegin = -1; // weekly applicability
   @XStreamAsAttribute
   private int weeklyEnd = -1;
@@ -100,6 +102,22 @@ public class Rate //implements Serializable
 //    }
 //  }
 
+  public long getId ()
+  {
+    return id;
+  }
+
+  public long getTariffId ()
+  {
+    return tariffId;
+  }
+  
+  public Rate setTariffId (long id)
+  {
+    tariffId = id;
+    return this;
+  }
+  
   /**
    * Process weeklyBegin spec to extract dayOfWeek field
    */
@@ -357,11 +375,6 @@ public class Rate //implements Serializable
     this.maxValue = maxValue;
     stateLog.info("Rate:" + id + ":setMaxValue:" + maxValue);
     return this;
-  }
-
-  public long getId ()
-  {
-    return id;
   }
 
   public Rate setFixed (boolean fixed)

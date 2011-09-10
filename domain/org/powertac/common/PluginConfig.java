@@ -74,6 +74,11 @@ public class PluginConfig
     return configuration;
   }
   
+  public String getConfigurationValue (String key)
+  {
+    return configuration.get(key);
+  }
+  
   /**
    * Adds a config item to this PluginConfig. Returns the PluginConfig
    * instance for convenience in stringing together config calls.

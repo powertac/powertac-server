@@ -91,6 +91,9 @@ public class Tariff
 
   /** Records the date when the Tariff was first offered */
   private Instant offerDate;
+  
+  /** Tariff expiration date, possibly updated from original spec */
+  private Instant expiration;
 
   /** Maximum future interval over which price can be known */
   //private Duration maxHorizon; // TODO lazy instantiation?
@@ -111,7 +114,8 @@ public class Tariff
   {
     tariffSpec = spec;
     specId = spec.getId();
-    broker = (spec.getBroker());
+    broker = spec.getBroker();
+    expiration = spec.getExpiration();
     tiers = new ArrayList<Double>();
     if (spec.getSupersedes() != null) {
       for (long supId : spec.getSupersedes()) {
@@ -300,7 +304,7 @@ public class Tariff
 
   public Instant getExpiration ()
   {
-    return tariffSpec.getExpiration();
+    return expiration;
   }
   
   /**
@@ -315,6 +319,12 @@ public class Tariff
     else {
       return timeService.getCurrentTime().getMillis() >= getExpiration().getMillis();
     }
+  }
+  
+  public Tariff setExpiration (Instant newDate)
+  {
+    expiration = newDate;
+    return this;
   }
 
   public Instant getOfferDate ()
@@ -357,6 +367,12 @@ public class Tariff
   public State getState ()
   {
     return state;
+  }
+  
+  public Tariff setState(State newState)
+  {
+    state = newState;
+    return this;
   }
 
   public Tariff getIsSupersededBy ()

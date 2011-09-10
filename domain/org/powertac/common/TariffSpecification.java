@@ -38,17 +38,10 @@ import com.thoughtworks.xstream.annotations.*;
  * @author John Collins
  */
 @XStreamAlias("tariff-spec")
-public class TariffSpecification //implements Serializable
+public class TariffSpecification extends TariffMessage
 {
   static private Logger log = Logger.getLogger(Rate.class.getName());
   static private Logger stateLog = Logger.getLogger("State");
-
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-
-  /** The Broker who offers this Tariff */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
 
   /** Last date new subscriptions will be accepted */
   private Instant expiration;
@@ -81,7 +74,7 @@ public class TariffSpecification //implements Serializable
   
   public TariffSpecification (Broker broker, PowerType powerType)
   {
-    super();
+    super(broker);
     this.broker = broker;
     this.powerType = powerType;
     this.rates = new ArrayList<Rate>();
@@ -177,6 +170,7 @@ public class TariffSpecification //implements Serializable
   public TariffSpecification addRate (Rate rate)
   {
     rates.add(rate);
+    rate.setTariffId(id);
     stateLog.info("TariffSpecification:" + id + ":addRate:" +
                   rate.getId());
     return this;

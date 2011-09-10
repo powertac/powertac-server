@@ -30,34 +30,43 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BrokerRepo implements DomainRepo
 {
-  private HashMap<String, Broker> storage;
+  // indexed by username, and by id value
+  private HashMap<String, Broker> nameTable;
+  private HashMap<Long, Broker> idTable;
 
   public BrokerRepo ()
   {
     super();
-    storage = new HashMap<String, Broker>();
+    nameTable = new HashMap<String, Broker>();
+    idTable = new HashMap<Long, Broker>();
     instance = this; // testing support
   }
   
   public void add (Broker broker)
   {
-    storage.put(broker.getUsername(), broker);
+    nameTable.put(broker.getUsername(), broker);
+    idTable.put(broker.getId(), broker);
   }
   
   public Collection<Broker> list ()
   {
-    return storage.values();
+    return nameTable.values();
   }
   
   public Broker findByUsername (String username)
   {
-    return storage.get(username);
+    return nameTable.get(username);
+  }
+  
+  public Broker findById (long id)
+  {
+    return idTable.get(id);
   }
   
   public List<String> findRetailBrokerNames ()
   {
     ArrayList<String> result = new ArrayList<String>();
-    for (Broker broker : storage.values()) {
+    for (Broker broker : nameTable.values()) {
       if (!broker.isWholesale())
         result.add(broker.getUsername());
     }
@@ -66,7 +75,8 @@ public class BrokerRepo implements DomainRepo
   
   public void recycle ()
   {
-    storage.clear();
+    nameTable.clear();
+    idTable.clear();
   }
 
   // testing support - keep a singleton instance around for cases
