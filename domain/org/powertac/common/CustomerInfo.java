@@ -41,40 +41,38 @@ public class CustomerInfo //implements Serializable
   /** Name of the customer model */
   private String name;
 
-  /** gives a "rough" classification what type of customer to expect based on an enumeration, i.e. a fixed set of customer types */
+  /** gives a "rough" classification what type of customer to 
+   * expect based on an enumeration, i.e. a fixed set of 
+   * customer types. Defaults to CustomerHousehold. */
   @XStreamAsAttribute
-  private CustomerType customerType;
+  private CustomerType customerType = CustomerType.CustomerHousehold;
   
   /** population represented by this model */
   @XStreamAsAttribute
-  private Integer population = 1;
+  private int population;
 
   /** gives the available power classifications of the customer */
   private ArrayList<PowerType> powerTypes;
   
-  /** describes whether or not this customer engages in multiple contracts at the same time */
+  /** describes whether or not this customer engages in multiple contracts at the same time.
+   * Defaults to false. */
   @XStreamAsAttribute
-  private Boolean multiContracting = false;
+  private boolean multiContracting = false;
 
-  /** describes whether or not this customer negotiates over contracts */
+  /** describes whether or not this customer negotiates over contracts.
+   * Defaults to false. */
   @XStreamAsAttribute
-  private Boolean canNegotiate = false;
+  private boolean canNegotiate = false;
   
-  public CustomerInfo ()
+  /**
+   * Creates a new CustomerInfo, with no power types set. Chain calls
+   * to addPowerType() to add the correct power types.
+   */
+  public CustomerInfo (String name, int population)
   {
     super();
     powerTypes = new ArrayList<PowerType>();
-    powerTypes.add(PowerType.CONSUMPTION);
-    powerTypes.add(PowerType.PRODUCTION);
-  }
-
-  public Integer getPopulation ()
-  {
-    return population;
-  }
-
-  public void setPopulation (Integer population)
-  {
+    this.name = name;
     this.population = population;
   }
 
@@ -88,27 +86,62 @@ public class CustomerInfo //implements Serializable
     return name;
   }
 
+  public int getPopulation ()
+  {
+    return population;
+  }
+
+  public CustomerInfo setPopulation (Integer population)
+  {
+    this.population = population;
+    return this;
+  }
+
   public CustomerType getCustomerType ()
   {
     return customerType;
+  }
+  
+  public CustomerInfo setCustomerType (CustomerType type)
+  {
+    customerType = type;
+    return this;
   }
 
   public ArrayList<PowerType> getPowerTypes ()
   {
     return powerTypes;
   }
+  
+  public CustomerInfo addPowerType (PowerType type)
+  {
+    powerTypes.add(type);
+    return this;
+  }
 
-  public Boolean getMultiContracting ()
+  public boolean isMultiContracting ()
   {
     return multiContracting;
   }
+  
+  public CustomerInfo setMultiContracting (boolean value)
+  {
+    multiContracting = value;
+    return this;
+  }
 
-  public Boolean getCanNegotiate ()
+  public boolean isCanNegotiate ()
   {
     return canNegotiate;
   }
+  
+  public CustomerInfo setCanNegotiate (boolean value)
+  {
+    canNegotiate = value;
+    return this;
+  }
 
   public String toString() {
-    return name;
+    return "CustomerInfo(" + name + ")";
   }
 }
