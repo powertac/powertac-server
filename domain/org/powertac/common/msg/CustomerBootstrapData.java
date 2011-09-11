@@ -15,11 +15,9 @@
  */
 package org.powertac.common.msg;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.powertac.common.Constants;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.IdGenerator;
+import org.powertac.common.xml.CustomerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -29,43 +27,35 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Anthony Chrysopoulos
  */
 @XStreamAlias("customer-bootstrap-data")
-public class CustomerBootstrapData 
+public class CustomerBootstrapData
 {
-  private CustomerInfo customer;
-
-  // JEC - what's the point of the Map? Why not just store the array?
-  private HashMap<String, HashMap<String, Double> > bootstrapData = new HashMap<String, HashMap<String, Double> >();
-
-  public void fillBootstrapData(double[][] bootstrap) {
-    for (int i=0;i < bootstrap.length; i++) {
-      HashMap<String, Double> day = new HashMap<String, Double>();
-      for (int j = 0; j < bootstrap[i].length; j++) {
-        day.put("Hour " + j, bootstrap[i][j]);
-      }
-      bootstrapData.put("Day "+ i, day);
-    }
-  }
-
-  public double[][] getBootstrapData(){
-
-    double[][] bootstrap = new double[Constants.DAYS_OF_BOOTSTRAP][Constants.HOURS_OF_DAY];
-
-    for (int i = 0; i < Constants.DAYS_OF_BOOTSTRAP; i++) {
-      Map<String, Double> temp = bootstrapData.get("Day " +i);
-      for (int j = 0; j < Constants.HOURS_OF_DAY; j++) {
-        bootstrap[i][j] = temp.get("Hour " +j);
-      }
-    }
-    return bootstrap;
-  }
+  @XStreamAsAttribute
+  private long id = IdGenerator.createId();
   
+  @XStreamAsAttribute
+  @XStreamConverter(CustomerConverter.class)
+  private CustomerInfo customer;
+  
+  private double[][] bootstrapData;
+
+  public CustomerBootstrapData (double[][] bootstrap)
+  {
+    super();
+    this.bootstrapData = bootstrap;
+  }
+
+  public long getId ()
+  {
+    return id;
+  }
+
   public CustomerInfo getCustomer ()
   {
     return customer;
   }
 
-  public void setCustomer (CustomerInfo customer)
+  public double[][] getBootstrapData ()
   {
-    this.customer = customer;
+    return bootstrapData;
   }
 }

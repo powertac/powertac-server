@@ -91,6 +91,9 @@ public class Competition //implements Serializable
   
   @XStreamImplicit(itemFieldName = "plugin-config")
   private ArrayList<PluginConfig> pluginConfigs;
+  
+  @XStreamImplicit(itemFieldName = "customer")
+  private ArrayList<CustomerInfo> customers;
 
   // singleton instance
   private static Competition theCompetition;
@@ -190,9 +193,15 @@ public class Competition //implements Serializable
     return pluginConfigs;
   }
   
-  public void addToPlugins (PluginConfig config)
+  public Competition addToPlugins (PluginConfig config)
   {
     pluginConfigs.add(config);
+    return this;
+  }
+  
+  public List<CustomerInfo> getCustomers ()
+  {
+    return customers;
   }
 
   public String toString() 
