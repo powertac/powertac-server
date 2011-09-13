@@ -168,6 +168,8 @@ public class TariffSubscriptionTests
     assertEquals("correct customerCount arg", 33, (int)countArg.getValue());
     assertEquals("correct new sub", newSub, defaultSub);
   }
+  
+  // TODO - public void handleRevokedTariffSuperseded ()
 
   @Test
   public void testUsePower ()
@@ -213,6 +215,17 @@ public class TariffSubscriptionTests
     sub.subscribe(33);
     verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
-    // TODO - complete this
+    assertEquals("no expired customers", 0, sub.getExpiredCustomerCount());
+    // move forward 3 days and subscribe some more
+    Instant now = timeService.getCurrentTime();
+    timeService.setCurrentTime(now.plus(TimeService.DAY * 3));
+    assertEquals("still no expired customers", 0, sub.getExpiredCustomerCount());
+    sub.subscribe(22);
+    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+                                                tariff, info, 22, 0.0, 0.0);
+    assertEquals("55 subscriptions", 55, sub.getCustomersCommitted());
+    // move forward another three days, there should now be 33 expired
+    timeService.setCurrentTime(now.plus(TimeService.DAY * 6));
+    assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
   }
 }
