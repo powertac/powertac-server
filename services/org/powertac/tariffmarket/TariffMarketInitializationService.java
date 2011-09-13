@@ -38,7 +38,6 @@ public class TariffMarketInitializationService
   @Override
   public void setDefaults ()
   {
-    tariffMarketService.setup();
     pluginConfigRepo.makePluginConfig("TariffMarket", "")
             .addConfiguration("tariffPublicationFee", "-100.0")
             .addConfiguration("tariffRevocationFee", "-100.0")
