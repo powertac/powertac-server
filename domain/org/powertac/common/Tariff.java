@@ -23,15 +23,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.logging.Log;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.springframework.beans.BeansException;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Configurable;
+//import org.springframework.context.ApplicationContext;
+//import org.springframework.context.ApplicationContextAware;
 
 /**
  * Entity wrapper for TariffSpecification that supports Tariff evaluation 
@@ -53,7 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * to call it inside the constructor for some reason.</p>
  * @author John Collins
  */
+//@Configurable
 public class Tariff
+//implements ApplicationContextAware
 {
   static private Logger log = Logger.getLogger(Tariff.class.getName());
 
@@ -64,10 +69,10 @@ public class Tariff
     PENDING, OFFERED, ACTIVE, WITHDRAWN, KILLED, INACTIVE
   }
 
-  @Autowired
+  //@Autowired
   private TimeService timeService;
   
-  @Autowired
+  //@Autowired
   private TariffRepo tariffRepo;
 
   private long specId;
@@ -135,6 +140,10 @@ public class Tariff
    */
   public void init ()
   {
+    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
+    tariffRepo= (TariffRepo)SpringApplicationContext.getBean("tariffRepo");
+    if (timeService == null)
+      log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
     analyze();
     tariffRepo.addTariff(this);    
@@ -529,5 +538,13 @@ public class Tariff
     }
     return rate.getValue(when);
   }
+//
+//  public void setApplicationContext (ApplicationContext ctx)
+//  throws BeansException
+//  {
+//    System.out.println("tariff - set application context");
+//    timeService = ctx.getBean(TimeService.class);
+//    tariffRepo = ctx.getBean(TariffRepo.class);
+//  }
 
 }
