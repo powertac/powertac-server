@@ -29,14 +29,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -132,6 +129,8 @@ public class TariffSubscriptionTests
     assertEquals("25 committed", 25, sub.getCustomersCommitted());
   }
 
+  // TODO - test subscribe and unsubscribe with non-zero signup and withdraw payments
+  
   @Test
   public void testHandleRevokedTariffDefault ()
   {
@@ -173,12 +172,47 @@ public class TariffSubscriptionTests
   @Test
   public void testUsePower ()
   {
-    fail("Not yet implemented");
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(33);
+    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+                                                tariff, info, 33, 0.0, 0.0);
+    sub.usePower(330.0);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.CONSUME),
+                                                eq(tariff), eq(info), eq(33), eq(330.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
+    assertEquals("correct total", 10.0, sub.getTotalUsage(), 1e-6);
+  }
+
+  @Test
+  public void testUsePowerPeriodic ()
+  {
+    spec.setPeriodicPayment(1.0);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(33);
+    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+                                                tariff, info, 33, 0.0, 0.0);
+    sub.usePower(330.0);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.CONSUME),
+                                                eq(tariff), eq(info), eq(33), eq(330.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
+    assertEquals("correct total", 10.0, sub.getTotalUsage(), 1e-6);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.PERIODIC),
+                                                eq(tariff), eq(info), eq(33), eq(0.0), 
+                                                chargeArg.capture());
+    assertEquals("correct periodic charge", 33.0 / 24.0, chargeArg.getValue(), 1e-6);
   }
 
   @Test
   public void testGetExpiredCustomerCount ()
   {
-    fail("Not yet implemented");
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(33);
+    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+                                                tariff, info, 33, 0.0, 0.0);
+    // TODO - complete this
   }
 }
