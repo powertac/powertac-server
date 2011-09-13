@@ -24,6 +24,7 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,13 +42,13 @@ public class TariffSubscription
 
   long id = IdGenerator.createId();
   
-  @Autowired
+  //@Autowired
   private TimeService timeService;
   
-  @Autowired
+  //@Autowired
   private Accounting accountingService;
   
-  @Autowired
+  //@Autowired
   private TariffMarket tariffMarketService;
   
   /** The customer who has this Subscription */
@@ -79,6 +80,9 @@ public class TariffSubscription
     this.customer = customer;
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
+    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
+    accountingService = (Accounting)SpringApplicationContext.getBean("accountingService");
+    tariffMarketService = (TariffMarket)SpringApplicationContext.getBean("tariffMarketService");
   }
   
   public long getId ()
@@ -151,7 +155,7 @@ public class TariffSubscription
    * Removes customerCount customers (at most) from this subscription,
    * posts early-withdrawal fees if appropriate. 
    */
-  void unsubscribe (int customerCount)
+  public void unsubscribe (int customerCount)
   {
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
@@ -185,7 +189,7 @@ public class TariffSubscription
    * revoked. Returns the new subscription just in case the Tariff was
    * revoked, otherwise returns null.
    */
-  TariffSubscription handleRevokedTariff ()
+  public TariffSubscription handleRevokedTariff ()
   {
     // if the tariff is not revoked, then just return this subscription
     if (!tariff.isRevoked()) {
@@ -215,7 +219,7 @@ public class TariffSubscription
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
    */
-  void usePower (double quantity)
+  public void usePower (double quantity)
   {
     if (customer.getCustomerInfo() == null) {
       log.error("null customerInfo for customer " + customer.getId());
@@ -243,7 +247,7 @@ public class TariffSubscription
    * Returns the number of individual customers who may withdraw from this
    * subscription without penalty.
    */
-  int getExpiredCustomerCount ()
+  public int getExpiredCustomerCount ()
   {
     int cc = 0;
     Instant today = timeService.truncateInstant(timeService.getCurrentTime(), TimeService.DAY);

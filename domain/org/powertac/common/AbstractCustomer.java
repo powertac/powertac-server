@@ -70,7 +70,8 @@ public class AbstractCustomer
   public AbstractCustomer (CustomerInfo customer)
   {
     super();
-    this.custId = customerInfo.getId();
+    this.custId = customer.getId();
+    this.customerInfo = customer;
   }
   
   public String toString() 
