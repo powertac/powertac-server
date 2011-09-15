@@ -104,6 +104,14 @@ public class TariffMarketService
   private Object incomingLock = new Object();
   
   /**
+   * Default constructor
+   */
+  public TariffMarketService ()
+  {
+    super();
+  }
+  
+  /**
    * Sets up to receive incoming messages. This needs to be done before brokers
    * can log in.
    */
@@ -139,6 +147,34 @@ public class TariffMarketService
     else {
       publicationInterval = Integer.parseInt(value);
     }
+  }
+
+  // ----------------- Data access -------------------------
+
+  public double getTariffPublicationFee ()
+  {
+    return tariffPublicationFee;
+  }
+
+  public double getTariffRevocationFee ()
+  {
+    return tariffRevocationFee;
+  }
+
+  public int getPublicationInterval ()
+  {
+    return publicationInterval;
+  }  
+  
+  // default visibility for test support
+  int getSimulationPhase ()
+  {
+    return simulationPhase;
+  }
+
+  List<NewTariffListener> getRegistrations ()
+  {
+    return registrations;
   }
 
   // ----------------- Broker message API --------------------
