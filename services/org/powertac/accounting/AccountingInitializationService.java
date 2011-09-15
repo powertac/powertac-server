@@ -79,4 +79,26 @@ public class AccountingInitializationService
     }
     return "fail";
   }
+
+  public double getMinInterest ()
+  {
+    return minInterest;
+  }
+
+  public AccountingInitializationService setMinInterest (double minInterest)
+  {
+    this.minInterest = minInterest;
+    return this;
+  }
+
+  public double getMaxInterest ()
+  {
+    return maxInterest;
+  }
+
+  public AccountingInitializationService setMaxInterest (double maxInterest)
+  {
+    this.maxInterest = maxInterest;
+    return this;
+  }
 }

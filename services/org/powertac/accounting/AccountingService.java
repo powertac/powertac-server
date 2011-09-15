@@ -37,12 +37,14 @@ import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Implementation of {@link org.powertac.common.interfaces.Accounting}
  *
  * @author John Collins
  */
+@Service
 public class AccountingService
   implements TransactionProcessor, Accounting, TimeslotPhaseProcessor 
 {
@@ -61,10 +63,10 @@ public class AccountingService
   private BrokerRepo brokerRepo;
 
   @Autowired
-  private CompetitionControl competitionControlService;
+  private BrokerProxy brokerProxyService;
 
   @Autowired
-  private BrokerProxy brokerProxyService;
+  private CompetitionControl competitionControlService;
 
   private ArrayList<BrokerTransaction> pendingTransactions;
 
@@ -93,6 +95,11 @@ public class AccountingService
     else {
       log.error("Bank interest not configured. Default to " + bankInterest);
     }
+  }
+  
+  public double getBankInterest ()
+  {
+    return bankInterest;
   }
 
   public synchronized MarketTransaction 
@@ -193,9 +200,9 @@ public class AccountingService
   // the transactions themselves may be stale.
   public synchronized void activate(Instant time, int phaseNumber) 
   {
-    HashMap<Broker, List<BrokerTransaction>> brokerMsg = new HashMap<Broker, List<BrokerTransaction>>();
+    HashMap<Broker, List<Object>> brokerMsg = new HashMap<Broker, List<Object>>();
     for (Broker broker : brokerRepo.list()) {
-      brokerMsg.put(broker, new ArrayList<BrokerTransaction>());
+      brokerMsg.put(broker, new ArrayList<Object>());
     }
     // walk through the pending transactions and run the updates
     for (BrokerTransaction tx : pendingTransactions) {
@@ -205,8 +212,8 @@ public class AccountingService
                   " has null broker");
       }
       brokerMsg.get(tx.getBroker()).add(tx);
+      // process transactions using the Visitor scheme
       tx.process((TransactionProcessor)this, brokerMsg.get(tx.getBroker()));
-      //processTransaction(tx, brokerMsg.get(tx.getBroker()));
     }
     pendingTransactions.clear();
     // for each broker, compute interest and send messages
@@ -226,7 +233,8 @@ public class AccountingService
         cash.deposit(interest);
       }
       // add the cash position to the list and send messages
-      //brokerMsg[broker.username] << broker.cash
+      brokerMsg.get(broker).add(broker.getCash());
+      log.debug("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
   }
@@ -258,10 +266,12 @@ public class AccountingService
       log.debug("New MarketPosition(" + broker.getUsername() + 
                 ", " + tx.getTimeslot().getSerialNumber() + "): " + 
                 mkt.getId());
-      //broker.addToMarketPositions(mkt);
+      broker.addMarketPosition(mkt, tx.getTimeslot());
+      messages.add(mkt);
     }
-    messages.add(mkt);
-    //log.debug("MarketPosition count = " + MarketPosition.count());
+    else {
+      mkt.updateBalance(tx.getQuantity());
+    }
   }
 
   private void updateCash(Broker broker, double amount) 
@@ -271,8 +281,19 @@ public class AccountingService
   }
 
   @Override
-  public void processTransaction (BrokerTransaction tx, List messages)
+  public void processTransaction (BankTransaction tx, List messages)
   {
-    log.error("call to generic processTransaction - should not happen");   
+    log.error("tx " + tx.toString() + " calls processTransaction - should not happen");   
+  }
+  
+  // test-support code
+  List<BrokerTransaction> getPendingTransactions ()
+  {
+    return pendingTransactions;
+  }
+  
+  void setBankInterest (double value)
+  {
+    bankInterest = value;
   }
 }
