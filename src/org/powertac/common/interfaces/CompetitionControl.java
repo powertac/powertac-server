@@ -37,7 +37,7 @@ public interface CompetitionControl
   /**
    * Processes simulation pause messages
    */
-  void receiveMessage (PauseRequest msg);
+  public void receiveMessage (PauseRequest msg);
   
-  void receiveMessage (PauseRelease msg);
+  public void receiveMessage (PauseRelease msg);
 }
