@@ -24,7 +24,7 @@ import org.powertac.common.xml.BrokerConverter;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 
-public class BrokerTransaction
+public abstract class BrokerTransaction
 {
   @XStreamAsAttribute
   protected long id = IdGenerator.createId();
@@ -61,8 +61,5 @@ public class BrokerTransaction
   /**
    * Visitor style processing to get around Java dispatching weakness.
    */
-  public void process (TransactionProcessor svc, List msgs)
-  {
-    svc.processTransaction(this, msgs);
-  }
+  public abstract void process (TransactionProcessor svc, List msgs);
 }

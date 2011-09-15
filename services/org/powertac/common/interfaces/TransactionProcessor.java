@@ -17,7 +17,11 @@ package org.powertac.common.interfaces;
 
 import java.util.List;
 
-import org.powertac.common.BrokerTransaction;
+import org.powertac.common.BalancingTransaction;
+import org.powertac.common.BankTransaction;
+import org.powertac.common.DistributionTransaction;
+import org.powertac.common.MarketTransaction;
+import org.powertac.common.TariffTransaction;
 
 /**
  * Interface for a service that processes transactions. 
@@ -31,5 +35,9 @@ public interface TransactionProcessor
    * the transaction there is a message to be sent to the broker, then
    * that message shall be added to the messages list.
    */
-  public void processTransaction(BrokerTransaction tx, List messages);
+  public void processTransaction(BalancingTransaction tx, List messages);
+  public void processTransaction(BankTransaction tx, List messages);
+  public void processTransaction(DistributionTransaction tx, List messages);
+  public void processTransaction(MarketTransaction tx, List messages);
+  public void processTransaction(TariffTransaction tx, List messages);
 }

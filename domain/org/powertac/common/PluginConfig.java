@@ -18,6 +18,8 @@ package org.powertac.common;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -31,6 +33,9 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("plugin-config")
 public class PluginConfig 
 {
+  static private Logger log = Logger.getLogger(Rate.class.getName());
+  static private Logger stateLog = Logger.getLogger("State");
+
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   
@@ -52,6 +57,7 @@ public class PluginConfig
     this.roleName = role;
     this.name = name;
     configuration = new TreeMap<String, String>();
+    stateLog.info("PluginConfig:" + id + ":new:" + role + ":" + name);
   }
   
   public long getId ()
@@ -86,6 +92,7 @@ public class PluginConfig
   public PluginConfig addConfiguration (String name, String value)
   {
     configuration.put(name, value);
+    stateLog.info("PluginConfig:" + id + ":addConfiguration:" + name + ":" + value);
     return this;
   }
 

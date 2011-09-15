@@ -25,17 +25,25 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"file:test/test-config.xml"})
 public class TariffTests
 {
+  @Autowired
   private TimeService timeService; // dependency injection
   
-  private TariffSpecification tariffSpec; // instance var
-  
+  @Autowired
   private TariffRepo repo;
+  
+  private TariffSpecification tariffSpec; // instance var
 
   private Instant start;
   private Instant exp;
@@ -50,7 +58,6 @@ public class TariffTests
   @Before
   public void setUp () 
   {
-    timeService = new TimeService();
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
     broker = new Broker ("testBroker");

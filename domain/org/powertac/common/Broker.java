@@ -16,8 +16,7 @@
 
 package org.powertac.common;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 /**
  * A broker domain instance represents a competition participants, or more
@@ -48,7 +47,7 @@ public class Broker
   /** If true, broker is a wholesale market participant, but not a "real" broker */
   private boolean wholesale = false;
   
-  private List<MarketPosition> mktPositions;
+  private HashMap<Integer, MarketPosition> mktPositions;
 
   //def testProxy = null // redirect incoming messages for testing
 
@@ -59,7 +58,7 @@ public class Broker
   {
     super();
     this.username = username;
-    mktPositions = new ArrayList<MarketPosition>();
+    mktPositions = new HashMap<Integer, MarketPosition>();
   }
   
   /**
@@ -89,8 +88,7 @@ public class Broker
   public CashPosition getCash() 
   {
     if (cashPosn == null) {
-      cashPosn = new CashPosition(0.0);
-      //cashPosn.save()
+      cashPosn = new CashPosition(this, 0.0);
     }
     return cashPosn;
   }
@@ -102,7 +100,7 @@ public class Broker
   
   public Broker addMarketPosition (MarketPosition posn, Timeslot slot)
   {
-    mktPositions.add(slot.getSerialNumber(), posn);
+    mktPositions.put(slot.getSerialNumber(), posn);
     return this;
   }
   

@@ -15,8 +15,11 @@
  */
 package org.powertac.common;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.interfaces.TransactionProcessor;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -48,5 +51,10 @@ public class BankTransaction extends BrokerTransaction
   public double getAmount ()
   {
     return amount;
+  }
+
+  public void process (TransactionProcessor svc, List msgs)
+  {
+    svc.processTransaction(this, msgs);
   }
 }

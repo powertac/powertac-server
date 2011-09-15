@@ -17,6 +17,7 @@
 package org.powertac.common;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -37,23 +38,29 @@ public class CashPosition //implements Serializable
   private long id = IdGenerator.createId();
   
   /** The broker who owns this cash account  */
-  // JEC - back-reference not needed?
-  //@XStreamConverter(BrokerConverter)
-  //Broker broker;
+  @XStreamConverter(BrokerConverter.class)
+  private Broker broker;
 
   /** The new running total for the broker's cash account  */
   @XStreamAsAttribute
-  double balance = 0.0;
+  private double balance = 0.0;
 
-  public CashPosition (double initialBalance)
+  public CashPosition (Broker broker, double initialBalance)
   {
-    balance = initialBalance;
-    stateLog.info("CashPosition:" + this.id + ":new:" + balance);
+    super();
+    this.broker = broker;
+    this.balance = initialBalance;
+    stateLog.info("CashPosition:" + this.id + ":new:" + broker.getId() + ":" + balance);
   }
   
   public long getId ()
   {
     return id;
+  }
+  
+  public Broker getBroker ()
+  {
+    return broker;
   }
 
   public double getBalance ()
