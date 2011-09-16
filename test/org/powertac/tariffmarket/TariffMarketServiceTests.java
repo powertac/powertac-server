@@ -36,11 +36,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powertac.accounting.AccountingService;
 import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.AbstractCustomer;
@@ -49,6 +47,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
+import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
@@ -64,6 +63,7 @@ import org.powertac.common.msg.VariableRateUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.TimeService;
 import org.powertac.common.PluginConfig;
@@ -76,22 +76,26 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/tariff-test-config.xml"})class TariffMarketServiceTests
+@ContextConfiguration(locations = {"file:test/tariff-test-config.xml"})
+public class TariffMarketServiceTests
 {
   @Autowired
-  TimeService timeService;
+  private TimeService timeService;
 
   @Autowired
-  TariffMarketService tariffMarketService;
+  private TariffMarketService tariffMarketService;
   
   @Autowired
-  AccountingService accountingService;
+  private Accounting accountingService;
 
   @Autowired
-  TariffMarketInitializationService tariffMarketInitializationService;
+  private TariffMarketInitializationService tariffMarketInitializationService;
   
   @Autowired
   private TariffRepo tariffRepo;
+  
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
   
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -106,14 +110,14 @@ import org.springframework.test.util.ReflectionTestUtils;
   @Autowired
   private BrokerProxy mockProxy;
   
-  TariffSpecification tariffSpec; // instance var
+  private TariffSpecification tariffSpec; // instance var
 
-  Instant start;
-  Instant exp;
-  Broker broker;
-  List txs;
-  List msgs;
-  Competition comp;
+  private Instant start;
+  private Instant exp;
+  private Broker broker;
+  private List txs;
+  private List msgs;
+  private Competition comp;
   
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
@@ -187,7 +191,8 @@ import org.springframework.test.util.ReflectionTestUtils;
         .addRate(new Rate().setValue(0.121));
   }
   
-  void initializeService () {
+  @Test
+  public void initializeService () {
     tariffMarketInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
     config.getConfiguration().put("tariffPublicationFee", "42.0");
@@ -197,7 +202,8 @@ import org.springframework.test.util.ReflectionTestUtils;
     tariffMarketInitializationService.initialize(comp, inits);
   }
   
-  void testNormalInitialization ()
+  @Test
+  public void testNormalInitialization ()
   {
     tariffMarketInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
@@ -209,7 +215,8 @@ import org.springframework.test.util.ReflectionTestUtils;
     assertEquals("correct publication fee", -100.0, tariffMarketService.getTariffPublicationFee(), 1e-6);
   }
   
-  void testBogusInitialization ()
+  @Test
+  public void testBogusInitialization ()
   {
     PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
     assertNull("config not created", config);
@@ -223,7 +230,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
   
   // invalid tariffSpec
-  void testProcessTariffInvalid ()
+  @Test
+  public void testProcessTariffInvalid ()
   {
     initializeService();
     TariffSpecification bogus = new TariffSpecification(null, PowerType.CONSUMPTION)
@@ -244,7 +252,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
   
   // valid tariffSpec
-  void testProcessTariffSpec ()
+  @Test
+  public void testProcessTariffSpec ()
   {
     initializeService();
     tariffMarketService.receiveMessage(tariffSpec);
@@ -266,7 +275,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
 
   // bogus expiration
-  void testProcessTariffExpireBogus ()
+  @Test
+  public void testProcessTariffExpireBogus ()
   {
     initializeService();
     TariffStatus status = tariffMarketService.processTariff(tariffSpec);
@@ -286,7 +296,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
   
   // null exp time
-  void testProcessTariffExpireNull ()
+  @Test
+  public void testProcessTariffExpireNull ()
   {
     initializeService();
     TariffStatus status = tariffMarketService.processTariff(tariffSpec);
@@ -305,7 +316,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
 
   // normal expiration
-  void testProcessTariffExpire ()
+  @Test
+  public void testProcessTariffExpire ()
   {
     initializeService();
     TariffStatus status = tariffMarketService.processTariff(tariffSpec);
@@ -327,7 +339,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   // TODO - bogus revoke
   
   // normal revoke
-  void testProcessTariffRevoke ()
+  @Test
+  public void testProcessTariffRevoke ()
   {
     initializeService();
     TariffStatus status = tariffMarketService.processTariff(tariffSpec);
@@ -343,7 +356,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
 
   // variable rate update - nominal case, 2 tariffs
-  void testVariableRateUpdate ()
+  @Test
+  public void testVariableRateUpdate ()
   {
     initializeService();
     // what the broker does...
@@ -406,7 +420,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   // TODO - invalid variable-rate update
 
   // check evolution of active tariff list
-  void testGetActiveTariffList ()
+  @Test
+  public void testGetActiveTariffList ()
   {
     initializeService();
     // initially, there should be no active tariffs
@@ -467,7 +482,8 @@ import org.springframework.test.util.ReflectionTestUtils;
   }
   
   // test batch-publication of new tariffs
-  void testBatchPublication ()
+  @Test
+  public void testBatchPublication ()
   {
     // test competitionControl registration
     MockCC mockCC = new MockCC();
@@ -502,162 +518,156 @@ import org.springframework.test.util.ReflectionTestUtils;
     tariffMarketService.processTariff(tsc1a);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 13:00
-    tariffMarketService.activate(timeService.currentTime, 2)
-    assertEquals("no tariffs at 13:00", 0, publishedTariffs.size())
+    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+    assertEquals("no tariffs at 13:00", 0, publishedTariffs.size());
     
-    def tsc2 = new TariffSpecification(broker: broker,
-        expiration: new Instant(start.millis + TimeService.DAY * 2),
-        minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    tsc2.addToRates(r1)
-    tariffMarketService.processTariff(tsc2)
-    def tsc3 = new TariffSpecification(broker: broker,
-        expiration: new Instant(start.millis + TimeService.DAY * 3),
-        minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    tsc3.addToRates(r1)
-    tariffMarketService.processTariff(tsc3)
-    timeService.currentTime += TimeService.HOUR
+    TariffSpecification tsc2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+        .setExpiration(start.plus(TimeService.DAY * 2))
+        .setMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().setValue(0.222));
+    tariffMarketService.processTariff(tsc2);
+    TariffSpecification tsc3 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+        .setExpiration(start.plus(TimeService.DAY * 3))
+        .setMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().setValue(0.222));
+    tariffMarketService.processTariff(tsc3);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 14:00
-    tariffMarketService.activate(timeService.currentTime, 2)
-    assertEquals("no tariffs at 14:00", 0, publishedTariffs.size())
+    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+    assertEquals("no tariffs at 14:00", 0, publishedTariffs.size());
 
-    def tsp1 = new TariffSpecification(broker: broker,
-        expiration: new Instant(start.millis + TimeService.DAY),
-        minDuration: TimeService.WEEK * 8, powerType: PowerType.PRODUCTION)
-    def tsp2 = new TariffSpecification(broker: broker,
-        expiration: new Instant(start.millis + TimeService.DAY * 2),
-        minDuration: TimeService.WEEK * 8, powerType: PowerType.PRODUCTION)
-    Rate r2 = new Rate(value: 0.119)
-    tsp1.addToRates(r2)
-    tsp2.addToRates(r2)
-    tariffMarketService.processTariff(tsp1)
-    tariffMarketService.processTariff(tsp2)
-    assertEquals("six tariffs", 6, Tariff.count())
+    TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION)
+        .setExpiration(start.plus(TimeService.DAY))
+        .setMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().setValue(0.119));
+    TariffSpecification tsp2 = new TariffSpecification(broker, PowerType.PRODUCTION)
+        .setExpiration(start.plus(TimeService.DAY * 2))
+        .setMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().setValue(0.119));
+    tariffMarketService.processTariff(tsp1);
+    tariffMarketService.processTariff(tsp2);
+    assertEquals("six tariffs", 6, tariffRepo.findAllTariffs().size());
     
-    TariffRevoke tex = new TariffRevoke(tariffId: tsc1a.id, broker: tsc1a.broker)
-    tariffMarketService.processTariff(tex)
+    TariffRevoke tex = new TariffRevoke(tsc1a.getBroker(), tsc1a);
+    tariffMarketService.processTariff(tex);
 
-    timeService.currentTime += TimeService.HOUR
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 15:00 - time to publish
-    tariffMarketService.activate(timeService.currentTime, 2)
-    assertEquals("5 tariffs at 15:00", 5, publishedTariffs.size())
-    List pendingTariffs = Tariff.findAllByState(Tariff.State.PENDING)
-    assertEquals("newTariffs list is again empty", 0, pendingTariffs.size())
+    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+    assertEquals("5 tariffs at 15:00", 5, publishedTariffs.size());
+    List pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
+    assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
   }
 
   // create some subscriptions and then revoke a tariff
-  void testGetRevokedSubscriptionList ()
-  {    
-    initializeService()
+  @Test
+  public void testGetRevokedSubscriptionList ()
+  {
+    initializeService();
     // create some tariffs
-    def tsc1 = new TariffSpecification(broker: broker, 
-          expiration: new Instant(start.millis + TimeService.DAY * 5),
-          minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    def tsc2 = new TariffSpecification(broker: broker, 
-          expiration: new Instant(start.millis + TimeService.DAY * 7),
-          minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    def tsc3 = new TariffSpecification(broker: broker, 
-          expiration: new Instant(start.millis + TimeService.DAY * 9),
-          minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    Rate r1 = new Rate(value: 0.222)
-    tsc1.addToRates(r1)
-    tsc2.addToRates(r1)
-    tsc3.addToRates(r1)
-    tariffMarketService.processTariff(tsc1)
-    tariffMarketService.processTariff(tsc2)
-    tariffMarketService.processTariff(tsc3)
-    Tariff tc1 = Tariff.findBySpecId(tsc1.id)
-    assertNotNull("first tariff found", tc1)
-    Tariff tc2 = Tariff.findBySpecId(tsc2.id)
-    assertNotNull("second tariff found", tc2)
-    Tariff tc3 = Tariff.findBySpecId(tsc3.id)
-    assertNotNull("third tariff found", tc3)
+    TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+          .setExpiration(start.plus(TimeService.DAY * 5))
+          .setMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().setValue(0.222));
+    TariffSpecification tsc2 = new TariffSpecification(broker,  PowerType.CONSUMPTION)
+          .setExpiration(start.plus(TimeService.DAY * 7))
+          .setMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().setValue(0.222));
+    TariffSpecification tsc3 = new TariffSpecification(broker,  PowerType.CONSUMPTION)
+          .setExpiration(start.plus(TimeService.DAY * 9))
+          .setMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().setValue(0.222));
+    tariffMarketService.processTariff(tsc1);
+    tariffMarketService.processTariff(tsc2);
+    tariffMarketService.processTariff(tsc3);
+    Tariff tc1 = tariffRepo.findTariffById(tsc1.getId());
+    assertNotNull("first tariff found", tc1);
+    Tariff tc2 = tariffRepo.findTariffById(tsc2.getId());
+    assertNotNull("second tariff found", tc2);
+    Tariff tc3 = tariffRepo.findTariffById(tsc3.getId());
+    assertNotNull("third tariff found", tc3);
     
     // create two customers who can subscribe
-    def charleyInfo = new CustomerInfo(name:"Charley", customerType: CustomerType.CustomerHousehold)
-    def sallyInfo = new CustomerInfo(name:"Sally", customerType: CustomerType.CustomerHousehold)
-    assert charleyInfo.save()
-    assert sallyInfo.save()
-	
-	def charley = new AbstractCustomer(customerInfo: charleyInfo)
-	def sally = new AbstractCustomer(customerInfo: sallyInfo)
-    charley.init()
-	sally.init()
-	assert charley.save()
-	assert sally.save()
+    CustomerInfo charleyInfo = new CustomerInfo("Charley", 100);
+    AbstractCustomer charley = new AbstractCustomer(charleyInfo);
+    //charley.init();
+    CustomerInfo sallyInfo = new CustomerInfo("Sally", 100);
+    AbstractCustomer sally = new AbstractCustomer(sallyInfo);
+    //sally.init();
 	
     // make sure we have three active tariffs
-    def tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION)
-    assertEquals("3 consumption tariffs", 3, tclist.size())
-    assertEquals("three transaction", 3, TariffTransaction.count())
+    List<Tariff> tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    assertEquals("3 consumption tariffs", 3, tclist.size());
+    //assertEquals("three transaction", 3, TariffTransaction.count());
     
     // create some subscriptions
-    def cs1 = tariffMarketService.subscribeToTariff(tc1, charley, 3) 
-    def cs2 = tariffMarketService.subscribeToTariff(tc2, charley, 31) 
-    def cs3 = tariffMarketService.subscribeToTariff(tc3, charley, 13) 
-    def ss1 = tariffMarketService.subscribeToTariff(tc1, sally, 4) 
-    def ss2 = tariffMarketService.subscribeToTariff(tc2, sally, 24) 
-    def ss3 = tariffMarketService.subscribeToTariff(tc3, sally, 42)
-    assertEquals("3 customers for cs1", 3, cs1.customersCommitted)
-    assertEquals("42 customers for ss3", 42, ss3.customersCommitted)
-    assertEquals("Charley has 3 subscriptions", 3, TariffSubscription.findAllByCustomer(charley).size())
+    TariffSubscription cs1 = tariffMarketService.subscribeToTariff(tc1, charley, 3);
+    TariffSubscription cs2 = tariffMarketService.subscribeToTariff(tc2, charley, 31);
+    TariffSubscription cs3 = tariffMarketService.subscribeToTariff(tc3, charley, 13);
+    TariffSubscription ss1 = tariffMarketService.subscribeToTariff(tc1, sally, 4);
+    TariffSubscription ss2 = tariffMarketService.subscribeToTariff(tc2, sally, 24); 
+    TariffSubscription ss3 = tariffMarketService.subscribeToTariff(tc3, sally, 42);
+    assertEquals("3 customers for cs1", 3, cs1.getCustomersCommitted());
+    assertEquals("42 customers for ss3", 42, ss3.getCustomersCommitted());
+    assertEquals("Charley has 3 subscriptions", 3, tariffSubscriptionRepo.findSubscriptionsForCustomer(charley).size());
     
     // forward an hour, revoke the second tariff
-    timeService.currentTime = new Instant(timeService.currentTime.millis + TimeService.HOUR)
-    TariffRevoke tex = new TariffRevoke(tariffId: tsc2.id,
-                                        broker: tc2.broker)
-    def status = tariffMarketService.processTariff(tex)
-    assertNotNull("non-null status", status)
-    assertEquals("success", TariffStatus.Status.success, status.status)
-    assertTrue("tariff revoked", tc2.isRevoked())
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    TariffRevoke tex = new TariffRevoke(tc2.getBroker(), tsc2);
+    TariffStatus status = tariffMarketService.processTariff(tex);
+    assertNotNull("non-null status", status);
+    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    assertTrue("tariff revoked", tc2.isRevoked());
 
     // should now be just two active tariffs
-    tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION)
-    assertEquals("2 consumption tariffs", 2, tclist.size())
+    tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    assertEquals("2 consumption tariffs", 2, tclist.size());
 
     // retrieve Charley's revoked-subscription list
-    def revokedCharley = tariffMarketService.getRevokedSubscriptionList(charley)
-    assertEquals("one item in list", 1, revokedCharley.size())
-    assertEquals("it's cs2", cs2, revokedCharley[0])
+    List<TariffSubscription> revokedCharley = 
+      tariffMarketService.getRevokedSubscriptionList(charley);
+    assertEquals("one item in list", 1, revokedCharley.size());
+    assertEquals("it's cs2", cs2, revokedCharley.get(0));
 
     // find and check the transaction
-    assertEquals("one more transaction", 4, TariffTransaction.count())
-    TariffTransaction ttx = TariffTransaction.findByPostedTime(timeService.currentTime)
-    assertNotNull("found transaction", ttx)
-    assertEquals("correct tariff", tc2.tariffSpec, ttx.tariffSpec)
-    assertEquals("correct type", TariffTransactionType.REVOKE, ttx.txType)
-    assertEquals("correct amount", 420.0, ttx.charge, 1e-6)
+    // TODO - we would need to mock AccountingService to get at these objects
+    //assertEquals("one more transaction", 4, TariffTransaction.count());
+    //TariffTransaction ttx = TariffTransaction.findByPostedTime(timeService.getCurrentTime());
+    //assertNotNull("found transaction", ttx);
+    //assertEquals("correct tariff", tc2.getTariffSpec(), ttx.getTariffSpec());
+    //assertEquals("correct type", TariffTransactionType.REVOKE, ttx.getTxType());
+    //assertEquals("correct amount", 420.0, ttx.getCharge(), 1e-6);
   }
 
   // check default tariffs
-  void testGetDefaultTariff ()
+  @Test
+  public void testGetDefaultTariff ()
   {
-    initializeService()
+    initializeService();
     // set defaults for consumption and production
-    def tsc1 = new TariffSpecification(broker: broker, 
-          expiration: new Instant(start.millis + TimeService.WEEK),
-          minDuration: TimeService.WEEK * 8, powerType: PowerType.CONSUMPTION)
-    Rate r1 = new Rate(value: 0.222)
-    tsc1.addToRates(r1)
-    assertTrue("add consumption default", tariffMarketService.setDefaultTariff(tsc1))
-    def tsp1 = new TariffSpecification(broker: broker, 
-          expiration: new Instant(start.millis + TimeService.WEEK),
-          minDuration: TimeService.WEEK * 8, powerType: PowerType.PRODUCTION)
-    r1 = new Rate(value: 0.122)
-    tsp1.addToRates(r1)
-    assertTrue("add production default", tariffMarketService.setDefaultTariff(tsp1))
+    TariffSpecification tsc1 = new TariffSpecification(broker,PowerType.CONSUMPTION) 
+          .setExpiration(start.plus(TimeService.WEEK))
+          .setMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().setValue(0.222));
+    assertTrue("add consumption default", tariffMarketService.setDefaultTariff(tsc1));
+    TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION) 
+          .setExpiration(start.plus(TimeService.WEEK))
+          .setMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().setValue(0.122));
+    assertTrue("add production default", tariffMarketService.setDefaultTariff(tsp1));
     
     // find the resulting tariffs
-    Tariff tc1 = Tariff.findBySpecId(tsc1.id)
-    assertNotNull("consumption tariff found", tc1)
-    assertEquals("correct consumption tariff", tsc1.id, tc1.specId)
-    Tariff tp1 = Tariff.findBySpecId(tsp1.id)
-    assertNotNull("production tariff found", tp1)
-    assertEquals("correct production tariff", tsp1.id, tp1.specId)
+    Tariff tc1 = tariffRepo.findTariffById(tsc1.getId());
+    assertNotNull("consumption tariff found", tc1);
+    assertEquals("correct consumption tariff", tsc1.getId(), tc1.getSpecId());
+    Tariff tp1 = tariffRepo.findTariffById(tsp1.getId());
+    assertNotNull("production tariff found", tp1);
+    assertEquals("correct production tariff", tsp1.getId(), tp1.getSpecId());
 
     // retrieve and check the defaults
-    assertEquals("default consumption tariff", tc1, tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION))
-    assertEquals("default production tariff", tp1, tariffMarketService.getDefaultTariff(PowerType.PRODUCTION))
-    assertNull("no solar tariff", tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION))
+    assertEquals("default consumption tariff", tc1, tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION));
+    assertEquals("default production tariff", tp1, tariffMarketService.getDefaultTariff(PowerType.PRODUCTION));
+    assertNull("no solar tariff", tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION));
   }
   
   class MockCC implements CompetitionControl

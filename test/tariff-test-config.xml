@@ -16,12 +16,43 @@
   </bean>      
 
   <bean id="accountingService" class="org.mockito.Mockito" factory-method="mock">
-    <constructor-arg value="org.powertac.common.accounting.AccountingService" />
+    <constructor-arg value="org.powertac.common.interfaces.Accounting" />
   </bean>
 
+  <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+  </bean>      
+
   <context:annotation-config />
+  <!-- 
   <context:component-scan base-package="org.powertac" />
+  -->
 
   <bean id="springApplicationContext"
         class="org.powertac.common.spring.SpringApplicationContext" />
+
+  <bean id="timeService"
+        class="org.powertac.common.TimeService" />
+
+  <bean id="tariffMarketService"
+        class="org.powertac.tariffmarket.TariffMarketService" />
+  
+  <bean id="tariffMarketInitializationService"
+        class="org.powertac.tariffmarket.TariffMarketInitializationService" />
+  
+  <bean id="tariffRepo"
+        class="org.powertac.common.repo.TariffRepo" />
+  
+  <bean id="tariffSubscriptionRepo"
+        class="org.powertac.common.repo.TariffSubscriptionRepo" />
+  
+  <bean id="timeslotRepo"
+        class="org.powertac.common.repo.TimeslotRepo" />
+  
+  <bean id="pluginConfigRepo"
+        class="org.powertac.common.repo.PluginConfigRepo" />
+  
+  <bean id="brokerRepo"
+        class="org.powertac.common.repo.BrokerRepo" />
+
 </beans>
