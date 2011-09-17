@@ -336,7 +336,7 @@ public class Tariff
       return false;
     }
     else {
-      return timeService.getCurrentTime().getMillis() >= getExpiration().getMillis();
+      return !(timeService.getCurrentTime().isBefore(getExpiration()));
     }
   }
   
