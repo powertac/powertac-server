@@ -21,6 +21,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.TariffMessageProcessor;
+import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -43,8 +45,8 @@ public class TariffSpecification extends TariffMessage
   static private Logger log = Logger.getLogger(Rate.class.getName());
   static private Logger stateLog = Logger.getLogger("State");
 
-  /** Last date new subscriptions will be accepted */
-  private Instant expiration;
+  /** Last date new subscriptions will be accepted. Null means never expire. */
+  private Instant expiration = null;
 
   /** Minimum contract duration (in milliseconds) */
   @XStreamAsAttribute
@@ -189,5 +191,11 @@ public class TariffSpecification extends TariffMessage
     stateLog.info("TariffSpecification:" + id + ":addSupersedes:" +
                   specId);
     return this;
+  }
+
+  @Override
+  public TariffStatus process (TariffMessageProcessor svc)
+  {
+    return svc.processTariff(this);
   }
 }

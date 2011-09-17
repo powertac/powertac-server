@@ -33,7 +33,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(TariffRepo.class.getName());
+  //static private Logger log = Logger.getLogger(TariffRepo.class.getName());
 
   private HashMap<Long, TariffSpecification> specs;
   private HashMap<Long, Tariff> tariffs;
@@ -47,7 +47,7 @@ public class TariffRepo implements DomainRepo
     rates = new HashMap<Long, Rate>();
   }
   
-  public void addSpecification (TariffSpecification spec)
+  public synchronized void addSpecification (TariffSpecification spec)
   {
     specs.put(spec.getId(), spec);
     for (Rate r : spec.getRates()) {
@@ -55,22 +55,27 @@ public class TariffRepo implements DomainRepo
     }
   }
   
-  public TariffSpecification findSpecificationById (long id)
+  public synchronized TariffSpecification findSpecificationById (long id)
   {
     return specs.get(id);
   }
   
-  public void addTariff (Tariff tariff)
+  public synchronized void addTariff (Tariff tariff)
   {
     tariffs.put(tariff.getId(), tariff);
   }
   
-  public Tariff findTariffById (long id)
+  public synchronized Tariff findTariffById (long id)
   {
     return tariffs.get(id);
   }
   
-  public List<Tariff> findTariffsByState (Tariff.State state)
+  public synchronized List<Tariff> findAllTariffs ()
+  {
+    return new ArrayList<Tariff>(tariffs.values());
+  }
+
+  public synchronized List<Tariff> findTariffsByState (Tariff.State state)
   {
     ArrayList<Tariff> result = new ArrayList<Tariff>();
     for (Tariff tariff : tariffs.values()) {
@@ -81,7 +86,7 @@ public class TariffRepo implements DomainRepo
     return result;
   }
   
-  public List<Tariff> findActiveTariffs (PowerType type)
+  public synchronized List<Tariff> findActiveTariffs (PowerType type)
   {
     List<Tariff> result = new ArrayList<Tariff>();
     for (Tariff tariff : tariffs.values()) {
@@ -92,16 +97,15 @@ public class TariffRepo implements DomainRepo
     return result;
   }
   
-  public Rate findRateById (long id)
+  public synchronized Rate findRateById (long id)
   {
     return rates.get(id);
   }
   
-  public void recycle ()
+  public synchronized void recycle ()
   {
     specs.clear();
     tariffs.clear();
     rates.clear();
   }
-
 }

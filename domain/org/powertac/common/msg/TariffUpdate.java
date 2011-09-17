@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, John Collins
  */
 @XStreamAlias("tariff-up")
-public class TariffUpdate extends TariffMessage 
+public abstract class TariffUpdate extends TariffMessage 
 {
   @XStreamAsAttribute
   private long tariffId;

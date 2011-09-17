@@ -16,7 +16,11 @@
 package org.powertac.common.interfaces;
 
 import org.powertac.common.TariffMessage;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.msg.TariffExpire;
+import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.msg.VariableRateUpdate;
 
 /**
  * Interface for a service that processed tariff-related messages.
@@ -26,8 +30,11 @@ import org.powertac.common.msg.TariffStatus;
 public interface TariffMessageProcessor
 {
   /**
-   * Processes a tariff message. Presumably there will be a method
-   * for each subclass of TariffMessage.
+   * Processes a tariff message. To correctly support double-dispatch,
+   * we provide a method signature for each subclass of TariffMessage.
    */
-  public TariffStatus processTariff (TariffMessage message);
+  public TariffStatus processTariff (TariffSpecification message);
+  public TariffStatus processTariff (TariffExpire message);
+  public TariffStatus processTariff (TariffRevoke message);
+  public TariffStatus processTariff (VariableRateUpdate message);
 }

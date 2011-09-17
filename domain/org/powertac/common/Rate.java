@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.*;
 import org.joda.time.base.AbstractDateTime;
 import org.joda.time.base.AbstractInstant;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.powertac.common.spring.SpringApplicationContext;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -66,8 +66,7 @@ public class Rate //implements Serializable
   private double expectedMean = 0.0; // expected mean value for variable rate
   private TreeSet<HourlyCharge> rateHistory; // history of values for variable rate
 
-  // introduce dependency on TimeService
-  @Autowired
+  // depends on TimeService
   @XStreamOmitField
   private TimeService timeService;
 
@@ -78,6 +77,7 @@ public class Rate //implements Serializable
   public Rate ()
   {
     super();
+    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     rateHistory = new TreeSet<HourlyCharge>();
     stateLog.info("Rate:" + id + ":new");
   }
@@ -302,10 +302,9 @@ public class Rate //implements Serializable
   }
   
   /**
-   *  package-visible version that allows initial publication of HourlyCharge
-   *  instances within the notification interval.
+   *  allows initial publication of HourlyCharge instances within the notification interval.
    */
-  boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
+  public boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
   {
     boolean result = false;
     if (isFixed) {

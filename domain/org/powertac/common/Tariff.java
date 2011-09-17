@@ -106,6 +106,9 @@ public class Tariff
   /** True if the maps are keyed by hour-in-week rather than hour-in-day */
   private boolean isWeekly = false;
   private boolean analyzed = false;
+  
+  // local rate id map to support updates of hourly rates
+  private HashMap<Long, Rate> rateIdMap;
 
   // map is an array, indexed by tier-threshold and hour-in-day/week
   private List< Double > tiers;
@@ -121,6 +124,10 @@ public class Tariff
     specId = spec.getId();
     broker = spec.getBroker();
     expiration = spec.getExpiration();
+    rateIdMap = new HashMap<Long, Rate>();
+    for (Rate r : spec.getRates()) {
+      rateIdMap.put(r.getId(), r);
+    }
     tiers = new ArrayList<Double>();
     if (spec.getSupersedes() != null) {
       for (long supId : spec.getSupersedes()) {
@@ -146,7 +153,6 @@ public class Tariff
       log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
     analyze();
-    tariffRepo.addTariff(this);    
   }
   
   public TariffSpecification getTariffSpecification ()
@@ -173,7 +179,11 @@ public class Tariff
    */
   public boolean addHourlyCharge (HourlyCharge newCharge, long rateId)
   {
-    Rate theRate = tariffRepo.findRateById(rateId);
+    Rate theRate = rateIdMap.get(rateId);
+    if (theRate == null) {
+      log.error("addHourlyCharge - no rate " + rateId);
+      return false;
+    }
     return theRate.addHourlyCharge(newCharge);
   }
 

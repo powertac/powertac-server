@@ -18,6 +18,7 @@ package org.powertac.common.msg;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.interfaces.TariffMessageProcessor;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -43,5 +44,11 @@ public class TariffExpire extends TariffUpdate
   public Instant getNewExpiration ()
   {
     return newExpiration;
+  }
+
+  @Override
+  public TariffStatus process (TariffMessageProcessor svc)
+  {
+    return svc.processTariff(this);
   }
 }
