@@ -100,8 +100,9 @@ public class TariffMarketService
   private int publicationInterval = 6;
   
   // synchronized queue for incoming messages
-  private List<TariffMessage> incoming;
-  private Object incomingLock = new Object();
+  //private List<TariffMessage> incoming;
+  //private boolean running = false;
+  //private Thread incomingProcessor;
   
   /**
    * Default constructor
@@ -109,15 +110,7 @@ public class TariffMarketService
   public TariffMarketService ()
   {
     super();
-  }
-  
-  /**
-   * Sets up to receive incoming messages. This needs to be done before brokers
-   * can log in.
-   */
-  private void setup ()
-  {
-    brokerProxyService.registerBrokerTariffListener(this);
+    //incoming = new ArrayList<TariffMessage>();
   }
 
   /**
@@ -125,7 +118,14 @@ public class TariffMarketService
    */
   public void init (PluginConfig config)
   {
+    //incoming.clear();
+    //running = true;
+    //incomingProcessor = new Thread(new IncomingProcessor(this));
+    //incomingProcessor.start();
+    defaultTariff = new HashMap<PowerType, Long>();
+    brokerProxyService.registerBrokerTariffListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);
+
     String value = config.getConfigurationValue("tariffPublicationFee");
     if (value == null) {
       log.error("Tariff publication fee not specified. Default to " + tariffPublicationFee);
@@ -147,6 +147,15 @@ public class TariffMarketService
     else {
       publicationInterval = Integer.parseInt(value);
     }
+  }
+
+  /**
+   * Shuts down the message processing thread.
+   */
+  public void shutDown ()
+  {
+    //running = false;
+    //incomingProcessor.interrupt();
   }
 
   // ----------------- Data access -------------------------
@@ -179,16 +188,63 @@ public class TariffMarketService
 
   // ----------------- Broker message API --------------------
   /**
-   * Receives and dispatches an incoming broker message
+   * Receives and dispatches an incoming broker message. We do this
+   * synchronously with the incoming message traffic, rather than on
+   * the timeslot phase signal, to minimize latency for broker feedback.
    */
   @Override
   public void receiveMessage (Object msg)
   {
-    // queue incoming message
-    synchronized(incomingLock) {
-      incoming.add((TariffMessage)msg);
+    if (msg != null && msg instanceof TariffMessage) {
+      // dispatch incoming message
+      TariffStatus result = ((TariffMessage)msg).process(this);
+      // return non-null result as msg
+      if (result != null) {
+        brokerProxyService.sendMessage(result.getBroker(), result);
+      }
     }
+    // queue incoming message
+    //synchronized(incoming) {
+    //  incoming.add((TariffMessage)msg);
+    //  incoming.notifyAll();
+    //}
   }
+  
+//  private Object retrieveMsg ()
+//  {
+//    Object result = null;
+//    synchronized(incoming) {
+//      while (running && incoming.size() == 0) {
+//        try {
+//          incoming.wait();
+//        }
+//        catch (InterruptedException ie) {          
+//        }
+//      }
+//      if (running) {
+//        result = incoming.remove(0);
+//      }
+//    }
+//    return result;
+//  }
+//  
+//  /**
+//   * Test-support method to wait for the incoming message queue to
+//   * be empty.
+//   */
+//  boolean waitForMsgProcessing ()
+//  {
+//    synchronized(pendingCount) {
+//      while (running && pendingCount > 0) {
+//        try {
+//          pendingCount.wait();
+//        }
+//        catch (InterruptedException ie) {          
+//        }
+//      }
+//    }
+//    return running;
+//  }
 
   /**
    * Process a bogus null input.
@@ -206,9 +262,11 @@ public class TariffMarketService
   @Override
   public TariffStatus processTariff (TariffSpecification spec)
   {
+    tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
+    tariffRepo.addTariff(tariff);
     tariff.init();
-    log.info("new tariff ${spec.id}");
+    log.info("new tariff " + spec.getId());
     TariffTransaction pub =
       accountingService.addTariffTransaction(TariffTransactionType.PUBLISH,
                                              tariff, null, 0, 0.0, tariffPublicationFee);
@@ -226,12 +284,24 @@ public class TariffMarketService
     if (result.tariff == null)
       return result.message;
     else {
-      // update expiration date
-      result.tariff.setExpiration(update.getNewExpiration());
-      log.info("Tariff " + update.getTariffId() + 
-               "now expires at " + new DateTime(result.tariff.getExpiration(), DateTimeZone.UTC).toString());
+      Instant newExp = update.getNewExpiration();
+      if (newExp != null && newExp.isBefore(timeService.getCurrentTime())) {
+        // new expiration date in the past
+        log.warn("attempt to set expiration for tariff " +
+                 result.tariff.getId() + " in the past:" +
+                 newExp.toString());
+        return new TariffStatus(update.getBroker(), update.getTariffId(), update.getId(),
+                                TariffStatus.Status.invalidUpdate)
+            .setMessage("attempt to set expiration in the past");
+      }
+      else {
+        // update expiration date
+        result.tariff.setExpiration(newExp);
+        log.info("Tariff " + update.getTariffId() + 
+                 "now expires at " + new DateTime(result.tariff.getExpiration(), DateTimeZone.UTC).toString());
+        return success(update);
+      }
     }
-    return success(update);
   }
 
   /**
@@ -245,7 +315,7 @@ public class TariffMarketService
       return result.message;
     else {
       result.tariff.setState(Tariff.State.KILLED);
-      log.info("Revoke tariff ${update.tariffId}");
+      log.info("Revoke tariff " + update.getTariffId());
       // The actual revocation processing is delegated to the Customer,
       // who is obligated to call getRevokedSubscriptions periodically.
 
@@ -303,7 +373,7 @@ public class TariffMarketService
   // handle distribution of new tariffs to customers
   public void activate (Instant time, int phase)
   {
-    processIncoming();
+    //processIncoming();
     if (publicationInterval > 24) {
       log.error("tariff publication interval " + publicationInterval + " > 24 hr");
       publicationInterval = 24;
@@ -312,23 +382,6 @@ public class TariffMarketService
     if (msec % (publicationInterval * TimeService.HOUR) == 0) {
       // time to publish
       publishTariffs();
-    }
-  }
-  
-  private void processIncoming()
-  {
-    while (incoming.size() > 0) {
-      TariffMessage msg;
-      synchronized (incomingLock) {
-        msg = incoming.get(0);
-        incoming.remove(0);
-      }
-      // dispatch incoming message
-      TariffStatus result = processTariff(msg);
-      // return non-null result as msg
-      if (result != null) {
-        brokerProxyService.sendMessage(result.getBroker(), result);
-      }
     }
   }
 
@@ -405,15 +458,19 @@ public class TariffMarketService
   @Override
   public Tariff getDefaultTariff (PowerType type)
   {
-    long defaultId = defaultTariff.get(type);
+    Long defaultId = defaultTariff.get(type);
+    if (defaultId == null)
+      return null;
     return tariffRepo.findTariffById(defaultId);
   }
 
   @Override
   public boolean setDefaultTariff (TariffSpecification newSpec)
   {
+    tariffRepo.addSpecification(newSpec);
     Tariff tariff = new Tariff(newSpec);
     tariff.init();
+    tariffRepo.addTariff(tariff);
     defaultTariff.put(newSpec.getPowerType(), tariff.getId());
     return true;
   }
@@ -436,7 +493,8 @@ public class TariffMarketService
     Broker broker = update.getBroker();
     Tariff tariff = tariffRepo.findTariffById(update.getTariffId());
     if (tariff == null) {
-      log.error("update - no such tariff ${update.tariffId}, broker ${update.brokerId}");
+      log.error("update - no such tariff " + update.getTariffId() +
+                ", broker " + update.getBroker().getUsername());
       return new ValidationResult(null,
                                   new TariffStatus(broker, update.getTariffId(), update.getId(),
                                                    TariffStatus.Status.noSuchTariff));
@@ -444,12 +502,12 @@ public class TariffMarketService
     return new ValidationResult(tariff, null);
   }
 
-  @Override
-  public TariffStatus processTariff (TariffMessage message)
-  {
-    log.error("Call to generic processTariff - should not happen");
-    return new TariffStatus(null, -1l, -1l, TariffStatus.Status.illegalOperation);
-  }
+//  @Override
+//  public TariffStatus processTariff (TariffMessage message)
+//  {
+//    log.error("Call to generic processTariff - should not happen");
+//    return new TariffStatus(null, -1l, -1l, TariffStatus.Status.illegalOperation);
+//  }
 
   private class ValidationResult
   {
@@ -463,4 +521,27 @@ public class TariffMarketService
       this.message = msg;
     }
   }
+  
+//  private class IncomingProcessor implements Runnable
+//  {
+//    TariffMarketService parent;
+//    
+//    IncomingProcessor (TariffMarketService parent)
+//    {
+//      super();
+//      this.parent = parent;
+//    }
+//    
+//    @Override
+//    public void run ()
+//    {
+//      while (running) {
+//        Object msg = retrieveMsg();
+//        synchronized(pendingCount) {
+//          pendingCount -= 1;
+//          pendingCount.notifyAll();
+//        }
+//      }
+//    }
+//  }
 }

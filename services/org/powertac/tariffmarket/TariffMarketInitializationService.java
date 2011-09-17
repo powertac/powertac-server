@@ -61,4 +61,9 @@ public class TariffMarketInitializationService
     }
     return "fail";
   }
+  
+  public void shutDown ()
+  {
+    tariffMarketService.shutDown();
+  }
 }

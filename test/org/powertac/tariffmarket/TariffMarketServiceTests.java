@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -191,6 +192,12 @@ public class TariffMarketServiceTests
         .addRate(new Rate().setValue(0.121));
   }
   
+  @After
+  public void shutDown()
+  {
+    tariffMarketService.shutDown();
+  }
+  
   @Test
   public void initializeService () {
     tariffMarketInitializationService.setDefaults();
@@ -227,28 +234,6 @@ public class TariffMarketServiceTests
     result = tariffMarketInitializationService.initialize(comp, inits);
     assertEquals("failure return value", "fail", result);
     tariffMarketInitializationService.setDefaults();
-  }
-  
-  // invalid tariffSpec
-  @Test
-  public void testProcessTariffInvalid ()
-  {
-    initializeService();
-    TariffSpecification bogus = new TariffSpecification(null, PowerType.CONSUMPTION)
-        .addRate(new Rate().setValue(0.121));
-    tariffMarketService.receiveMessage(tariffSpec);
-    assertEquals("no broker, null status", 0, msgs.size());
-    
-//    tariffSpec.broker = broker;
-//    tariffSpec.minDuration = null;
-//    tariffMarketService.receiveMessage(tariffSpec);
-//    status = msgs[0];
-//    assertNotNull("bad spec, non-null status", status);
-//    assertEquals("correct broker", broker, status.broker);
-//    assertEquals("correct spec ID", tariffSpec.id, status.tariffId);
-//    assertEquals("correct status ID", tariffSpec.id, status.updateId);
-//    assertEquals("correct status", TariffStatus.Status.invalidTariff, status.status);
-//    println status.message;
   }
   
   // valid tariffSpec
@@ -295,24 +280,23 @@ public class TariffMarketServiceTests
     assertEquals("tariff not updated", exp, tf.getExpiration());
   }
   
-  // null exp time
+  // exp time in the past
   @Test
-  public void testProcessTariffExpireNull ()
+  public void testProcessTariffExpirePast ()
   {
     initializeService();
     TariffStatus status = tariffMarketService.processTariff(tariffSpec);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals("Correct expiration", exp, tf.getExpiration());
-    Instant newExp = new DateTime(2011, 3, 1, 8, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    timeService.setCurrentTime(newExp);
-    TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec,
-                                        null);
+    //Instant newExp = new DateTime(2011, 3, 1, 8, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //timeService.setCurrentTime(newExp);
+    Instant newExp = timeService.getCurrentTime().minus(TimeService.HOUR);
+    TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec, newExp);
     status = tariffMarketService.processTariff(tex);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("invalid", TariffStatus.Status.invalidUpdate, status.getStatus());
-    assertEquals("tariff not updated", exp, tf.getExpiration());
   }
 
   // normal expiration
@@ -375,7 +359,7 @@ public class TariffMarketServiceTests
         .setExpectedMean(0.10);
     ts2.addRate(r1);
     Instant lastHr = start.minus(TimeService.HOUR);
-    r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07));
+    r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07), true);
 
     // send to market
     TariffStatus status1 = tariffMarketService.processTariff(tariffSpec);
@@ -396,8 +380,10 @@ public class TariffMarketServiceTests
     assertEquals("two tariffs", 2, tariffRepo.findAllTariffs().size());
     Tariff tf1 = tariffRepo.findTariffById(tariffSpec.getId());
     Tariff tf2 = tariffRepo.findTariffById(ts2.getId());
-    assertNotNull("found tariff 1", tf1);
-    assertNotNull("found tariff 2", tf2);
+    assertEquals("found tariff 1", tariffSpec.getId(), tf1.getId());
+    assertEquals("found tariff 2", ts2.getId(), tf2.getId());
+    // make sure r1 is in the repo
+    assertEquals("found r1", r1, tariffRepo.findRateById(r1.getId()));
     
     // update the hourly rate on tariff 2
     HourlyCharge hc = new HourlyCharge(start, 0.09);
@@ -500,11 +486,11 @@ public class TariffMarketServiceTests
     ReflectionTestUtils.setField(tariffMarketService, "publicationInterval", 3);
     assertEquals("newTariffs list is empty", 0, tariffRepo.findTariffsByState(Tariff.State.PENDING).size());
     // register a NewTariffListener 
-    List<Tariff> publishedTariffs = new ArrayList<Tariff>();
+    //List<Tariff> publishedTariffs = new ArrayList<Tariff>();
     MockTariffListener listener = new MockTariffListener();
     tariffMarketService.registerNewTariffListener(listener);
     assertEquals("one registration", 1, tariffMarketService.getRegistrations().size());
-    assertEquals("no tariffs at 12:00", 0, publishedTariffs.size());
+    assertEquals("no tariffs at 12:00", 0, listener.publishedTariffs.size());
     // publish some tariffs over a period of three hours, check for publication
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .setExpiration(start.plus(TimeService.DAY))
@@ -519,7 +505,7 @@ public class TariffMarketServiceTests
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 13:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("no tariffs at 13:00", 0, publishedTariffs.size());
+    assertEquals("no tariffs at 13:00", 0, listener.publishedTariffs.size());
     
     TariffSpecification tsc2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .setExpiration(start.plus(TimeService.DAY * 2))
@@ -534,7 +520,7 @@ public class TariffMarketServiceTests
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 14:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("no tariffs at 14:00", 0, publishedTariffs.size());
+    assertEquals("no tariffs at 14:00", 0, listener.publishedTariffs.size());
 
     TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION)
         .setExpiration(start.plus(TimeService.DAY))
@@ -554,7 +540,7 @@ public class TariffMarketServiceTests
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 15:00 - time to publish
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("5 tariffs at 15:00", 5, publishedTariffs.size());
+    assertEquals("5 tariffs at 15:00", 5, listener.publishedTariffs.size());
     List pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
     assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
   }
@@ -695,7 +681,7 @@ public class TariffMarketServiceTests
   
   class MockTariffListener implements NewTariffListener
   {
-    List<Tariff> publishedTariffs;
+    List<Tariff> publishedTariffs = new ArrayList<Tariff>();
     
     @Override
     public void publishNewTariffs (List<Tariff> tariffs)
