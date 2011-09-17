@@ -67,14 +67,22 @@ public class TariffSubscriptionRepo implements DomainRepo
   public List<TariffSubscription> findSubscriptionsForTariff (Tariff tariff)
   {
     // new list allows caller to smash the return value
-    return new ArrayList<TariffSubscription>(tariffMap.get(tariff));
+    List<TariffSubscription> result = tariffMap.get(tariff);
+    if (result == null)
+      return new ArrayList<TariffSubscription>();
+    else
+      return new ArrayList<TariffSubscription>(result);
   }
   
   /** Returns the list of subscriptions for a given customer. */
   public List<TariffSubscription> findSubscriptionsForCustomer (AbstractCustomer customer)
   {
     // new list allows caller to smash the return value
-    return new ArrayList<TariffSubscription>(customerMap.get(customer));
+    List<TariffSubscription> result = customerMap.get(customer);
+    if (result == null)
+      return new ArrayList<TariffSubscription>();
+    else
+      return new ArrayList<TariffSubscription>(result);
   }
   
   /** Adds an existing subscription to the repo. */
@@ -100,6 +108,8 @@ public class TariffSubscriptionRepo implements DomainRepo
 
   private TariffSubscription findSubscriptionForCustomer (List<TariffSubscription> subs, AbstractCustomer customer)
   {
+    if (subs == null)
+      return null;
     for (TariffSubscription sub : subs) {
       if (sub.getCustomer() == customer)
         return sub;
