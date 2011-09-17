@@ -122,7 +122,6 @@ public class AccountingService
                        double quantity,
                        double charge) 
   {
-    // Note that tariff may be stale
     TariffTransaction ttx = new TariffTransaction(tariff.getBroker(),
                                                   timeService.getCurrentTime(), txType, 
                                                   tariffRepo.findSpecificationById(tariff.getSpecId()),
