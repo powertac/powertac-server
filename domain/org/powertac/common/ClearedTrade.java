@@ -19,6 +19,7 @@ package org.powertac.common;
 import com.thoughtworks.xstream.annotations.*;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.xml.TimeslotConverter;
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 
 /**
@@ -32,8 +33,10 @@ import org.joda.time.Instant;
  * @author Daniel Schnurr
  */
 @XStreamAlias("trade")
-public class ClearedTrade //implements Serializable 
+public class ClearedTrade
 {
+  static private Logger stateLog = Logger.getLogger("State");
+
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -75,6 +78,9 @@ public class ClearedTrade //implements Serializable
     this.executionQuantity = executionQuantity;
     this.transactionId = transactionId;
     this.dateExecuted = dateExecuted;
+    stateLog.info("ClearedTrade:" + id + ":new:" + timeslot.getSerialNumber() +
+                  ":" + product + ":" + executionPrice + ":" + executionQuantity +
+                  ":" + transactionId + ":" + dateExecuted.getMillis());
   }
 
   public long getId ()

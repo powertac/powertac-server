@@ -80,6 +80,7 @@ public class CashPosition //implements Serializable
   public double deposit (double amount)
   {
     balance += amount;
+    stateLog.info("CashPosition:" + this.id + ":deposit:" + amount);
     return balance;
   }
 }
