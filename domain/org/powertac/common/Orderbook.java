@@ -23,6 +23,9 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.ProductType;
 import com.thoughtworks.xstream.annotations.*;
 import com.thoughtworks.xstream.converters.collections.TreeSetConverter;
+
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.TimeslotConverter;
 
 /**
@@ -36,6 +39,7 @@ import org.powertac.common.xml.TimeslotConverter;
  * @author Daniel Schnurr
  * @version 1.2 , 05/02/2011
  */
+@Domain
 @XStreamAlias("orderbook")
 public class Orderbook 
 {
@@ -80,6 +84,7 @@ public class Orderbook
     return clearingPrice;
   }
 
+  @StateChange
   public Orderbook setClearingPrice (double clearingPrice)
   {
     this.clearingPrice = clearingPrice;
@@ -91,6 +96,7 @@ public class Orderbook
     return dateExecuted;
   }
 
+  @StateChange
   public Orderbook setDateExecuted (Instant dateExecuted)
   {
     this.dateExecuted = dateExecuted;
@@ -117,6 +123,7 @@ public class Orderbook
     return bids;
   }
   
+  @StateChange
   public Orderbook addBid (OrderbookBidAsk bid)
   {
     bids.add(bid);
@@ -128,6 +135,7 @@ public class Orderbook
     return asks;
   }
   
+  @StateChange
   public Orderbook addAsk (OrderbookBidAsk ask)
   {
     asks.add(ask);

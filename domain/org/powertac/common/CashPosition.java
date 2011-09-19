@@ -18,6 +18,8 @@ package org.powertac.common;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.xml.BrokerConverter;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -29,11 +31,10 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, David Dauer
  * @version 1.1 - 02/27/2011
  */
+@Domain
 @XStreamAlias("cash")
 public class CashPosition //implements Serializable 
 {
-  static private Logger stateLog = Logger.getLogger("State");
-
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   
@@ -50,7 +51,6 @@ public class CashPosition //implements Serializable
     super();
     this.broker = broker;
     this.balance = initialBalance;
-    stateLog.info("CashPosition:" + this.id + ":new:" + broker.getId() + ":" + balance);
   }
   
   public long getId ()
@@ -77,10 +77,10 @@ public class CashPosition //implements Serializable
    * returns the resulting balance. A withdrawal is negative,
    * deposit is positive.
    */
+  @StateChange
   public double deposit (double amount)
   {
     balance += amount;
-    stateLog.info("CashPosition:" + this.id + ":deposit:" + amount);
     return balance;
   }
 }

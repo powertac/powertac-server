@@ -17,6 +17,9 @@ package org.powertac.common;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -28,10 +31,11 @@ import com.thoughtworks.xstream.annotations.*;
  * 
  * @author jcollins
  */
+@Domain
 @XStreamAlias("charge")
 public class HourlyCharge implements Comparable<HourlyCharge>
 {
-  static private Logger stateLog = Logger.getLogger("State");
+  static private Logger stateLog = Logger.getLogger("StateChange");
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();

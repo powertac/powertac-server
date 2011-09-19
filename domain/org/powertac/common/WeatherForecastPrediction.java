@@ -17,6 +17,7 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -27,6 +28,7 @@ import com.thoughtworks.xstream.annotations.*;
 *
 * @version 1.0 - 03/Jun/2011
 */
+@Domain
 @XStreamAlias("weather-prediction")
 public class WeatherForecastPrediction
 {

@@ -23,6 +23,8 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMessageProcessor;
 import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -39,11 +41,11 @@ import com.thoughtworks.xstream.annotations.*;
  * associated HourlyCharge instances.</p>
  * @author John Collins
  */
+@Domain
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
   static private Logger log = Logger.getLogger(Rate.class.getName());
-  static private Logger stateLog = Logger.getLogger("State");
 
   /** Last date new subscriptions will be accepted. Null means never expire. */
   private Instant expiration = null;
@@ -80,8 +82,6 @@ public class TariffSpecification extends TariffMessage
     this.broker = broker;
     this.powerType = powerType;
     this.rates = new ArrayList<Rate>();
-    stateLog.info("TariffSpecification:" + id + ":new:" +
-                  broker.getUsername() + ":" + powerType.toString());
   }
 
   public PowerType getPowerType ()
@@ -94,11 +94,10 @@ public class TariffSpecification extends TariffMessage
     return expiration;
   }
 
+  @StateChange
   public TariffSpecification setExpiration (Instant expiration)
   {
     this.expiration = expiration;
-    stateLog.info("TariffSpecification:" + id + ":setExpiration:" +
-                  expiration.getMillis());
     return this;
   }
 
@@ -107,11 +106,10 @@ public class TariffSpecification extends TariffMessage
     return minDuration;
   }
 
+  @StateChange
   public TariffSpecification setMinDuration (long minDuration)
   {
     this.minDuration = minDuration;
-    stateLog.info("TariffSpecification:" + id + ":setMinDuration:" +
-                  minDuration);
     return this;
   }
 
@@ -120,11 +118,10 @@ public class TariffSpecification extends TariffMessage
     return signupPayment;
   }
 
+  @StateChange
   public TariffSpecification setSignupPayment (double signupPayment)
   {
     this.signupPayment = signupPayment;
-    stateLog.info("TariffSpecification:" + id + ":setSignupPayment:" +
-                  signupPayment);
     return this;
   }
 
@@ -133,11 +130,10 @@ public class TariffSpecification extends TariffMessage
     return earlyWithdrawPayment;
   }
 
+  @StateChange
   public TariffSpecification setEarlyWithdrawPayment (double earlyWithdrawPayment)
   {
     this.earlyWithdrawPayment = earlyWithdrawPayment;
-    stateLog.info("TariffSpecification:" + id + ":setEarlyWithdrawPayment:" +
-                  earlyWithdrawPayment);
     return this;
   }
 
@@ -146,11 +142,10 @@ public class TariffSpecification extends TariffMessage
     return periodicPayment;
   }
 
+  @StateChange
   public TariffSpecification setPeriodicPayment (double periodicPayment)
   {
     this.periodicPayment = periodicPayment;
-    stateLog.info("TariffSpecification:" + id + ":setPeriodicPayment:" +
-                  periodicPayment);
     return this;
   }
 
@@ -169,12 +164,11 @@ public class TariffSpecification extends TariffMessage
     return rates;
   }
 
+  @StateChange
   public TariffSpecification addRate (Rate rate)
   {
     rates.add(rate);
     rate.setTariffId(id);
-    stateLog.info("TariffSpecification:" + id + ":addRate:" +
-                  rate.getId());
     return this;
   }
 
@@ -183,13 +177,12 @@ public class TariffSpecification extends TariffMessage
     return supersedes;
   }
   
+  @StateChange
   public TariffSpecification addSupersedes (long specId)
   {
     if (supersedes == null)
       supersedes = new ArrayList<Long>();
     supersedes.add(specId);
-    stateLog.info("TariffSpecification:" + id + ":addSupersedes:" +
-                  specId);
     return this;
   }
 

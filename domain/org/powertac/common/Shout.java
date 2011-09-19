@@ -21,6 +21,8 @@ import org.powertac.common.enumerations.BuySellIndicator;
 //import org.powertac.common.enumerations.ModReasonCode;
 import org.powertac.common.enumerations.OrderType;
 import org.powertac.common.enumerations.ProductType;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +47,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block
  */
+@Domain
 @XStreamAlias("shout")
 public class Shout //implements Serializable 
 {
@@ -132,7 +135,6 @@ public class Shout //implements Serializable
   //  this.modReasonCode = newModReasonCode
   //  return this
   //}
-  
   public Shout (Broker broker, Timeslot timeslot, 
                 BuySellIndicator buySellIndicator,
                 double quantity, double limitPrice)
@@ -150,6 +152,7 @@ public class Shout //implements Serializable
     return product;
   }
 
+  @StateChange
   public Shout setProduct (ProductType product)
   {
     this.product = product;
@@ -161,6 +164,7 @@ public class Shout //implements Serializable
     return executionQuantity;
   }
 
+  @StateChange
   public Shout setExecutionQuantity (double executionQuantity)
   {
     this.executionQuantity = executionQuantity;
@@ -172,6 +176,7 @@ public class Shout //implements Serializable
     return executionPrice;
   }
 
+  @StateChange
   public Shout setExecutionPrice (double executionPrice)
   {
     this.executionPrice = executionPrice;
@@ -183,6 +188,7 @@ public class Shout //implements Serializable
     return dateMod;
   }
 
+  @StateChange
   public Shout setDateMod (Instant dateMod)
   {
     this.dateMod = dateMod;
@@ -194,6 +200,7 @@ public class Shout //implements Serializable
     return transactionId;
   }
 
+  @StateChange
   public Shout setTransactionId (long transactionId)
   {
     this.transactionId = transactionId;
@@ -205,6 +212,7 @@ public class Shout //implements Serializable
     return comment;
   }
 
+  @StateChange
   public Shout setComment (String comment)
   {
     this.comment = comment;

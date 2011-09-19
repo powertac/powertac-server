@@ -20,6 +20,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.interfaces.TransactionProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -28,11 +29,10 @@ import com.thoughtworks.xstream.annotations.*;
  * AccountingService once/day.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("bank-tx")
 public class BankTransaction extends BrokerTransaction
-{
-  static private Logger stateLog = Logger.getLogger("State");
-  
+{  
   /** The amount of this transaction */
   @XStreamAsAttribute
   private double amount = 0.0;
@@ -44,8 +44,6 @@ public class BankTransaction extends BrokerTransaction
   {
     super(time, broker);
     this.amount = amount;
-    stateLog.info("BankTransaction:" + this.id + ":new:" + time.getMillis() + ":" + broker.getUsername() +
-                  ":" + amount);
   }
 
   public double getAmount ()

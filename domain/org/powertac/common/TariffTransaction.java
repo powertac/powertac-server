@@ -21,6 +21,7 @@ import java.util.List;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.TransactionProcessor;
+import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
 
@@ -36,6 +37,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, John Collins
  */
+@Domain
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {

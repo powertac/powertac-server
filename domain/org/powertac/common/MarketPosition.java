@@ -21,6 +21,9 @@ package org.powertac.common;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -32,6 +35,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, David Dauer, John Collins
  */
+@Domain
 @XStreamAlias("market-posn")
 public class MarketPosition //implements Serializable 
 {
@@ -108,6 +112,7 @@ public class MarketPosition //implements Serializable
    * purchased power, negative numbers signify sold power. Returns the
    * resulting total balance
    */
+  @StateChange
   public double updateBalance (double quantity)
   {
     overallBalance += quantity;

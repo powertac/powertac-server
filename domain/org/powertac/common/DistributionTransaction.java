@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.joda.time.Instant;
 import org.powertac.common.interfaces.TransactionProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -33,6 +34,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author John Collins
  */
+@Domain
 @XStreamAlias("distribution-tx")
 public class DistributionTransaction extends BrokerTransaction
 {

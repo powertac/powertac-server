@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import java.util.List;
 
+import org.powertac.common.state.Domain;
 import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
 
@@ -26,6 +27,7 @@ import com.thoughtworks.xstream.annotations.*;
 *
 * @author Erik Onarheim and Josh Edeen
 */
+@Domain
 @XStreamAlias("weather-forecast")
 public class WeatherForecast 
 {

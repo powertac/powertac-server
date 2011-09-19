@@ -19,6 +19,8 @@ package org.powertac.common;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 /**
  * A broker domain instance represents a competition participants, or more
@@ -30,10 +32,9 @@ import org.apache.log4j.Logger;
  * @author Carsten Block, David Dauer
  * @version 1.1 , 03/22/2011
  */
+@Domain
 public class Broker 
 {
-  static private Logger stateLog = Logger.getLogger("State");
-
   private long id = IdGenerator.createId();
 
   /** the broker's login or user name     */
@@ -62,7 +63,6 @@ public class Broker
   {
     super();
     this.username = username;
-    stateLog.info("Broker:" + this.id + ":new:" + username);
     mktPositions = new HashMap<Integer, MarketPosition>();
   }
   
@@ -76,8 +76,6 @@ public class Broker
     mktPositions = new HashMap<Integer, MarketPosition>();
     this.local = local;
     this.wholesale = wholesale;
-    stateLog.info("Broker:" + this.id + ":new:" + username +
-                  ":" + this.local + ":" + this.wholesale);
   }
   
   /** Broker's current cash position  */
@@ -101,16 +99,16 @@ public class Broker
     return cashPosn;
   }
 
+  @StateChange
   public void setCash(CashPosition thing) 
   {
     cashPosn = thing;
-    stateLog.info("Broker:" + this.id + ":setCash:" + thing.getId());
   }
-  
+
+  @StateChange
   public Broker addMarketPosition (MarketPosition posn, Timeslot slot)
   {
     mktPositions.put(slot.getSerialNumber(), posn);
-    stateLog.info("Broker:" + this.id + ":addMarketPosition:" + slot.getSerialNumber());
     return this;
   }
   

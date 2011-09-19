@@ -23,6 +23,9 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.powertac.common.state.StateChange;
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -34,11 +37,10 @@ import com.thoughtworks.xstream.annotations.*;
  * communicated to brokers at the beginning of a game scenario.
  * @author Carsten Block, KIT; John Collins, U of Minnesota
  */
+@Domain
 @XStreamAlias("competition")
 public class Competition //implements Serializable 
 {
-  static private Logger stateLog = Logger.getLogger("State");
-
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -124,7 +126,9 @@ public class Competition //implements Serializable
   {
     super();
     this.name = name;
-    stateLog.info("Competition:" + id + ":new:" + name);
+    brokers = new ArrayList<String>();
+    pluginConfigs = new ArrayList<PluginConfig>();
+    customers = new ArrayList<CustomerInfo>();
   }
 
   public long getId ()
@@ -142,10 +146,10 @@ public class Competition //implements Serializable
     return description;
   }
   
+  @StateChange
   public Competition setDescription (String description)
   {
     this.description = description;
-    stateLog.info("Competition:" + id + ":setDescription:" + description);
     return this;
   }
 
@@ -154,10 +158,10 @@ public class Competition //implements Serializable
     return timeslotLength;
   }
 
+  @StateChange
   public Competition setTimeslotLength (int timeslotLength)
   {
     this.timeslotLength = timeslotLength;
-    stateLog.info("Competition:" + id + ":setTimeslotLength:" + timeslotLength);
     return this;
   }
 
@@ -166,10 +170,10 @@ public class Competition //implements Serializable
     return minimumTimeslotCount;
   }
 
+  @StateChange
   public Competition setMinimumTimeslotCount (int minimumTimeslotCount)
   {
     this.minimumTimeslotCount = minimumTimeslotCount;
-    stateLog.info("Competition:" + id + ":setMinimumTimeslotCount:" + minimumTimeslotCount);
     return this;
   }
 
@@ -178,6 +182,7 @@ public class Competition //implements Serializable
     return expectedTimeslotCount;
   }
 
+  @StateChange
   public Competition setExpectedTimeslotCount (int expectedTimeslotCount)
   {
     this.expectedTimeslotCount = expectedTimeslotCount;
@@ -189,6 +194,7 @@ public class Competition //implements Serializable
     return timeslotsOpen;
   }
 
+  @StateChange
   public Competition setTimeslotsOpen (int timeslotsOpen)
   {
     this.timeslotsOpen = timeslotsOpen;
@@ -200,6 +206,7 @@ public class Competition //implements Serializable
     return deactivateTimeslotsAhead;
   }
 
+  @StateChange
   public Competition setDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
   {
     this.deactivateTimeslotsAhead = deactivateTimeslotsAhead;
@@ -211,6 +218,7 @@ public class Competition //implements Serializable
     return simulationBaseTime;
   }
 
+  @StateChange
   public Competition setSimulationBaseTime (Instant simulationBaseTime)
   {
     this.simulationBaseTime = simulationBaseTime;
@@ -222,6 +230,7 @@ public class Competition //implements Serializable
     return simulationRate;
   }
 
+  @StateChange
   public Competition setSimulationRate (long simulationRate)
   {
     this.simulationRate = simulationRate;
@@ -233,6 +242,7 @@ public class Competition //implements Serializable
     return simulationModulo;
   }
 
+  @StateChange
   public Competition setSimulationModulo (long simulationModulo)
   {
     this.simulationModulo = simulationModulo;
@@ -244,6 +254,7 @@ public class Competition //implements Serializable
     return brokers;
   }
   
+  @StateChange
   public Competition addBroker (String brokerUsername)
   {
     brokers.add(brokerUsername);
@@ -255,7 +266,8 @@ public class Competition //implements Serializable
     return pluginConfigs;
   }
   
-  public Competition addPlugin (PluginConfig config)
+  @StateChange
+  public Competition addPluginConfig (PluginConfig config)
   {
     pluginConfigs.add(config);
     return this;
@@ -266,6 +278,7 @@ public class Competition //implements Serializable
     return customers;
   }
   
+  @StateChange
   public Competition addCustomer (CustomerInfo customer)
   {
     customers.add(customer);

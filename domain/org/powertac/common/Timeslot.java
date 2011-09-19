@@ -19,6 +19,8 @@ package org.powertac.common;
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -37,11 +39,11 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block
  * @version 1.0 - Feb,6,2011
  */
+@Domain
 @XStreamAlias("slot")
 public class Timeslot
 {
   static private Logger log = Logger.getLogger(Timeslot.class.getName());
-  static private Logger stateLog = Logger.getLogger("State");
 
   /**
    * used to find succeeding / preceding timeslot instances
@@ -94,8 +96,6 @@ public class Timeslot
         previous.next =  this;
       }
     }
-    // state log entry
-    stateLog.info("Timeslot:" + serial + ":new:" + start.getMillis());
   }
 
   public int getSerialNumber ()
@@ -108,15 +108,15 @@ public class Timeslot
     return enabled;
   }
   
+  @StateChange
   public void enable ()
   {
-    stateLog.info("Timeslot:" + serialNumber + ":enable");
     enabled = true;
   }
   
+  @StateChange
   public void disable ()
   {
-    stateLog.info("Timeslot:" + serialNumber + ":disable");
     enabled = false;
   }
 

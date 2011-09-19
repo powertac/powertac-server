@@ -20,6 +20,8 @@ import java.util.ArrayList;
 
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -32,6 +34,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, KIT; John Collins, U of Minnesota
  */
+@Domain
 @XStreamAlias("cust-info")
 public class CustomerInfo //implements Serializable 
 {

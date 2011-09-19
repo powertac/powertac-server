@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.interfaces.TransactionProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -31,11 +32,10 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author John Collins
  */
+@Domain
 @XStreamAlias("balance-tx")
 public class BalancingTransaction extends BrokerTransaction
 {
-  static private Logger stateLog = Logger.getLogger("State");
-
   /** The total size of the imbalance in kWH, positive for surplus and
    * negative for deficit
    */
@@ -53,8 +53,6 @@ public class BalancingTransaction extends BrokerTransaction
     super(when, broker);
     this.quantity = quantity;
     this.charge = charge;
-    stateLog.info("BalancingTransaction:" + this.id + ":new:" + when.getMillis() + ":" + broker.getUsername() +
-                  ":" + quantity + ":" + charge);
   }
 
   public double getQuantity ()

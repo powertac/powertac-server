@@ -30,6 +30,8 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.springframework.beans.BeansException;
 //import org.springframework.beans.factory.annotation.Autowired;
 //import org.springframework.beans.factory.annotation.Configurable;
@@ -56,9 +58,8 @@ import org.springframework.beans.BeansException;
  * to call it inside the constructor for some reason.</p>
  * @author John Collins
  */
-//@Configurable
+@Domain
 public class Tariff
-//implements ApplicationContextAware
 {
   static private Logger log = Logger.getLogger(Tariff.class.getName());
 
@@ -177,6 +178,7 @@ public class Tariff
    * Adds a new HourlyCharge to its Rate. Returns true just
    * in case the operation was successful.
    */
+  @StateChange
   public boolean addHourlyCharge (HourlyCharge newCharge, long rateId)
   {
     Rate theRate = rateIdMap.get(rateId);
@@ -231,6 +233,7 @@ public class Tariff
   /**
    * Adds periodic payments to the total cost, so realized price includes it.
    */
+  @StateChange
   public void addPeriodicPayment ()
   {
     totalCost += getPeriodicPayment();
@@ -340,6 +343,7 @@ public class Tariff
     }
   }
   
+  @StateChange
   public Tariff setExpiration (Instant newDate)
   {
     expiration = newDate;
@@ -388,6 +392,7 @@ public class Tariff
     return state;
   }
   
+  @StateChange
   public Tariff setState(State newState)
   {
     state = newState;

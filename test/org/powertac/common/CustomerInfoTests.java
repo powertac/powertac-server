@@ -2,13 +2,21 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 
 public class CustomerInfoTests
 {
+
+  @BeforeClass
+  public static void setUpBeforeClass () throws Exception
+  {
+    PropertyConfigurator.configure("test/log.config");
+  }
 
   @Before
   public void setUp () throws Exception

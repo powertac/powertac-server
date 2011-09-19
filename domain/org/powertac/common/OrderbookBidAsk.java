@@ -16,12 +16,15 @@
 package org.powertac.common;
 
 import org.powertac.common.enumerations.BuySellIndicator;
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
  * Each instance is an individual entry within an Orderbook.
  * @author Daniel Schnurr
  */
+@Domain
 @XStreamAlias("orderbook-bid")
 public class OrderbookBidAsk implements Comparable 
 {

@@ -23,6 +23,8 @@ import org.joda.time.*;
 import org.joda.time.base.AbstractDateTime;
 import org.joda.time.base.AbstractInstant;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -34,11 +36,11 @@ import com.thoughtworks.xstream.annotations.*;
  * are communicated to Customers and to Brokers when tariffs are published.
  * @author jcollins
  */
+@Domain
 @XStreamAlias("rate")
 public class Rate //implements Serializable
 {
   static private Logger log = Logger.getLogger(Rate.class.getName());
-  static private Logger stateLog = Logger.getLogger("State");
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
@@ -79,7 +81,6 @@ public class Rate //implements Serializable
     super();
     timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     rateHistory = new TreeSet<HourlyCharge>();
-    stateLog.info("Rate:" + id + ":new");
   }
     
 //    m?.each { k,v ->
@@ -112,6 +113,7 @@ public class Rate //implements Serializable
     return tariffId;
   }
   
+  @StateChange
   public Rate setTariffId (long id)
   {
     tariffId = id;
@@ -124,9 +126,8 @@ public class Rate //implements Serializable
   public Rate setWeeklyBegin (AbstractDateTime begin)
   {
     if (begin != null) {
-      weeklyBegin = begin.getDayOfWeek();
+      return setWeeklyBegin(begin.getDayOfWeek());
     }
-    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
@@ -136,17 +137,16 @@ public class Rate //implements Serializable
   public Rate setWeeklyBegin (ReadablePartial begin)
   {
     if (begin != null) {
-      weeklyBegin = begin.get(DateTimeFieldType.dayOfWeek());
+      return setWeeklyBegin(begin.get(DateTimeFieldType.dayOfWeek()));
     }
-    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
   // normal setter also, for Hibernate
+  @StateChange
   public Rate setWeeklyBegin (int begin)
   {
     weeklyBegin = begin;
-    stateLog.info("Rate:" + id + ":setWeeklyBegin:" + weeklyBegin);
     return this;
   }
 
@@ -161,9 +161,8 @@ public class Rate //implements Serializable
   public Rate setWeeklyEnd (AbstractDateTime end)
   {
     if (end!= null) {
-      weeklyEnd= end.getDayOfWeek();
+      return setWeeklyEnd(end.getDayOfWeek());
     }
-    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
@@ -173,17 +172,16 @@ public class Rate //implements Serializable
   public Rate setWeeklyEnd (ReadablePartial end)
   {
     if (end!= null) {
-      weeklyEnd= end.get(DateTimeFieldType.dayOfWeek());
+      return setWeeklyEnd(end.get(DateTimeFieldType.dayOfWeek()));
     }
-    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
   // normal setter also
+  @StateChange
   public Rate setWeeklyEnd (int end)
   {
     weeklyEnd = end;
-    stateLog.info("Rate:" + id + ":setWeeklyEnd:" + weeklyEnd);
     return this;
   }
 
@@ -198,9 +196,8 @@ public class Rate //implements Serializable
   public Rate setDailyBegin (AbstractDateTime begin)
   {
     if (begin != null) {
-      dailyBegin = begin.getHourOfDay();
+      return setDailyBegin(begin.getHourOfDay());
     }
-    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
@@ -210,17 +207,16 @@ public class Rate //implements Serializable
   public Rate setDailyBegin (ReadablePartial begin)
   {
     if (begin != null) {
-      dailyBegin = begin.get(DateTimeFieldType.hourOfDay());
+      return setDailyBegin(begin.get(DateTimeFieldType.hourOfDay()));
     }
-    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
   // normal setter also
+  @StateChange
   public Rate setDailyBegin (int begin)
   {
     dailyBegin = begin;
-    stateLog.info("Rate:" + id + ":setDailyBegin:" + dailyBegin);
     return this;
   }
 
@@ -235,9 +231,8 @@ public class Rate //implements Serializable
   public Rate setDailyEnd (AbstractDateTime end)
   {
     if (end != null) {
-      dailyEnd = end.getHourOfDay();
+      return setDailyEnd(end.getHourOfDay());
     }
-    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
@@ -247,17 +242,16 @@ public class Rate //implements Serializable
   public Rate setDailyEnd (ReadablePartial end)
   {
     if (end != null) {
-      dailyEnd = end.get(DateTimeFieldType.hourOfDay());
+      return setDailyEnd(end.get(DateTimeFieldType.hourOfDay()));
     }
-    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
   // normal setter also
+  @StateChange
   public Rate setDailyEnd (int end)
   {
     dailyEnd = end;
-    stateLog.info("Rate:" + id + ":setDailyEnd:" + dailyEnd);
     return this;
   }
 
@@ -274,11 +268,11 @@ public class Rate //implements Serializable
     // we assume that integer division will do the Right Thing here
     return setNoticeInterval(interval.getMillis() / TimeService.HOUR);
   }
-  
+
+  @StateChange
   public Rate setNoticeInterval (long hours)
   {
     noticeInterval = hours;
-    stateLog.info("Rate:" + id + ":setNoticeInterval:" + noticeInterval);
     return this;
   }
 
@@ -304,6 +298,7 @@ public class Rate //implements Serializable
   /**
    *  allows initial publication of HourlyCharge instances within the notification interval.
    */
+  @StateChange
   public boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
   {
     boolean result = false;
@@ -327,13 +322,11 @@ public class Rate //implements Serializable
           if (item.getAtTime() == newCharge.getAtTime()) {
             log.debug("remove " + item.toString());
             rateHistory.remove(item);
-            stateLog.info("HourlyCharge:" + item.getId() + ":delete");
           }
         }
         newCharge.setRateId(id);
         rateHistory.add(newCharge);
         log.info("Adding HourlyCharge " + newCharge.getId() + " at " + newCharge.getAtTime() + " to " + this.toString());
-        stateLog.info("Rate:" + id + ":addHourlyCharge:" + newCharge.getId());
         result = true;
       }
     }
@@ -345,10 +338,10 @@ public class Rate //implements Serializable
     return tierThreshold;
   }
 
+  @StateChange
   public Rate setTierThreshold (double tierThreshold)
   {
     this.tierThreshold = tierThreshold;
-    stateLog.info("Rate:" + id + ":setTierThreshold:" + tierThreshold);
     return this;
   }
 
@@ -357,10 +350,10 @@ public class Rate //implements Serializable
     return minValue;
   }
 
+  @StateChange
   public Rate setMinValue (double minValue)
   {
     this.minValue = minValue;
-    stateLog.info("Rate:" + id + ":setMinValue:" + minValue);
     return this;
   }
 
@@ -369,17 +362,10 @@ public class Rate //implements Serializable
     return maxValue;
   }
 
+  @StateChange
   public Rate setMaxValue (double maxValue)
   {
     this.maxValue = maxValue;
-    stateLog.info("Rate:" + id + ":setMaxValue:" + maxValue);
-    return this;
-  }
-
-  public Rate setFixed (boolean fixed)
-  {
-    isFixed = fixed;
-    stateLog.info("Rate:" + id + ":setFixed:" + fixed);
     return this;
   }
   
@@ -388,16 +374,23 @@ public class Rate //implements Serializable
     return isFixed;
   }
 
-  public Rate setExpectedMean (double value)
+  @StateChange
+  public Rate setFixed (boolean fixed)
   {
-    expectedMean = value;
-    stateLog.info("Rate:" + id + ":setExpectedMean:" + value);
+    isFixed = fixed;
     return this;
   }
   
   public double getExpectedMean ()
   {
     return expectedMean;
+  }
+
+  @StateChange
+  public Rate setExpectedMean (double value)
+  {
+    expectedMean = value;
+    return this;
   }
 
   public TreeSet<HourlyCharge> getRateHistory ()
@@ -482,9 +475,9 @@ public class Rate //implements Serializable
   /**
    * Allows Hibernate to set the value
    */
+  @StateChange
   public Rate setValue(double value) {
     minValue = value;
-    stateLog.info("Rate:" + id + ":setValue:" + value);
     return this;
   }
 

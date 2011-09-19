@@ -25,6 +25,7 @@ import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
+import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -47,6 +48,7 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, John Collins
  */
+@Domain
 @XStreamAlias("market-tx")
 public class MarketTransaction extends BrokerTransaction
 {
