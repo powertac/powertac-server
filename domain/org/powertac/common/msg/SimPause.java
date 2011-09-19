@@ -15,6 +15,8 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -24,6 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
  * before the clock re-starts.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("sim-pause")
 public class SimPause 
 {

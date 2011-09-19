@@ -15,6 +15,8 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -22,6 +24,7 @@ import com.thoughtworks.xstream.annotations.*;
  * to be sent as the only message in timeslot n+1 for a simulation of n timeslots.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("sim-end")
 public class SimEnd 
 {

@@ -45,6 +45,9 @@ public class Timeslot
 {
   static private Logger log = Logger.getLogger(Timeslot.class.getName());
 
+  @XStreamAsAttribute
+  private long id = IdGenerator.createId();
+
   /**
    * used to find succeeding / preceding timeslot instances
    * @see {@code Timeslot.next()} {@code Timeslot.previous()}
@@ -101,6 +104,11 @@ public class Timeslot
   public int getSerialNumber ()
   {
     return serialNumber;
+  }
+  
+  public long getId()
+  {
+    return id;
   }
 
   public boolean isEnabled ()

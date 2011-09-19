@@ -17,6 +17,7 @@ package org.powertac.common.msg;
 
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -26,6 +27,7 @@ import com.thoughtworks.xstream.annotations.*;
  * in order to see what kind of customers they are.
  * @author Anthony Chrysopoulos
  */
+@Domain
 @XStreamAlias("customer-bootstrap-data")
 public class CustomerBootstrapData
 {

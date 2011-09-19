@@ -46,6 +46,8 @@ public aspect StateLogging
       Long argId = findId(arg);
       if (argId != null)
         buf.append(argId.toString());
+      else if (arg == null)
+        buf.append("null");
       else
         buf.append(arg.toString());
     }

@@ -19,12 +19,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.powertac.common.Timeslot;
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
  * Message used to communicate enable and disable events on timeslots.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("timeslot-update")
 public class TimeslotUpdate 
 {  

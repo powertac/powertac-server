@@ -16,6 +16,7 @@
 package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
+import org.powertac.common.state.Domain;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.IdGenerator;
 import com.thoughtworks.xstream.annotations.*;
@@ -25,6 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
  * of a tariff.
  * @author jcollins
  */
+@Domain
 @XStreamAlias("tariff-status")
 public class TariffStatus //implements Serializable
 {

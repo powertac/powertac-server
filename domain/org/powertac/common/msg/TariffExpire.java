@@ -19,6 +19,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.interfaces.TariffMessageProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -28,6 +29,7 @@ import com.thoughtworks.xstream.annotations.*;
  * have retroactive effect. Created by brokers.
  * @author jcollins
  */
+@Domain
 @XStreamAlias("tariff-exp")
 public class TariffExpire extends TariffUpdate
 {

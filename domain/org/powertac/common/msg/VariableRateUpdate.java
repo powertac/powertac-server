@@ -19,6 +19,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
 import org.powertac.common.interfaces.TariffMessageProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -28,6 +29,7 @@ import com.thoughtworks.xstream.annotations.*;
  * needs to be added to its Rate.
  * @author jcollins
  */
+@Domain
 @XStreamAlias("tariff-vru")
 public class VariableRateUpdate extends TariffUpdate
 {

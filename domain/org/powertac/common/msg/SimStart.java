@@ -16,6 +16,8 @@
 package org.powertac.common.msg;
 
 import org.joda.time.Instant;
+import org.powertac.common.state.Domain;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -24,6 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
  * allows all parties to start their sim clocks at the same time.
  * @author John Collins
  */
+@Domain
 @XStreamAlias("sim-start")
 public class SimStart 
 {

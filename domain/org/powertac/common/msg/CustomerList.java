@@ -25,6 +25,7 @@ import org.powertac.common.CustomerInfo;
  * customers and some of their information.
  * @author Anthony Chrysopoulos
  */
+@Deprecated // This information is now in Competition
 @XStreamAlias("customer-list")
 public class CustomerList 
 {

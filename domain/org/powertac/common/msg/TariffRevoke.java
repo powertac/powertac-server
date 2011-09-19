@@ -18,6 +18,7 @@ package org.powertac.common.msg;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.interfaces.TariffMessageProcessor;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -25,6 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
  * Message created by a broker to request revocation of an existing tariff.
  * @author jcollins
  */
+@Domain
 @XStreamAlias("tariff-rev")
 public class TariffRevoke extends TariffUpdate
 {

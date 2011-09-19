@@ -26,13 +26,19 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.thoughtworks.xstream.XStream;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"file:test/test-config.xml"})
 public class RateTests
 {
-
+  @Autowired
   private TimeService timeService;
   
   @BeforeClass
@@ -44,7 +50,7 @@ public class RateTests
   @Before
   public void setUp() 
   {
-    timeService = new TimeService();
+    //timeService = new TimeService();
     timeService.setCurrentTime(new DateTime());
   }
   
