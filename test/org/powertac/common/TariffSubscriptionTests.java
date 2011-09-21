@@ -81,9 +81,9 @@ public class TariffSubscriptionTests
     info = new CustomerInfo("Podunk", 23).addPowerType(PowerType.CONSUMPTION);
     customer = new AbstractCustomer(info);
     spec = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .setExpiration(baseTime.plus(TimeService.DAY * 10))
-        .setMinDuration(TimeService.DAY * 5)
-        .addRate(new Rate().setValue(0.11));
+        .withExpiration(baseTime.plus(TimeService.DAY * 10))
+        .withMinDuration(TimeService.DAY * 5)
+        .addRate(new Rate().withValue(0.11));
     tariff = new Tariff(spec);
     tariff.init();
   }
@@ -136,7 +136,7 @@ public class TariffSubscriptionTests
   {
     // set up default tariff, install in tariff market
     TariffSpecification defaultSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .addRate(new Rate().setValue(0.21));
+        .addRate(new Rate().withValue(0.21));
     Tariff defaultTariff = new Tariff(defaultSpec);
     defaultTariff.init();
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(defaultTariff);
@@ -190,7 +190,7 @@ public class TariffSubscriptionTests
   @Test
   public void testUsePowerPeriodic ()
   {
-    spec.setPeriodicPayment(1.0);
+    spec.withPeriodicPayment(1.0);
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
     verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
