@@ -159,7 +159,7 @@ public class CompetitionControlService
     // configure competition instance
     for (PluginConfig config : pluginConfigRepo.list()) {
       log.info("adding plugin " + config.toString());
-      competition.addToPlugins(config);
+      competition.addPluginConfig(config);
     }
   }
 
@@ -333,9 +333,9 @@ public class CompetitionControlService
     // Publish Bootstrap Data Map
     //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
     //brokerProxyService.broadcastMessage(bootstrapData)
-    //for (AbstractCustomer abstractCustomer : AbstractCustomer.list()) {
-    //  CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(abstractCustomer.customerInfo);
-    //  customerBootstrapData.fillBootstrapData(abstractCustomer.getBootstrapData());
+    //for (AbstractCustomer customer : AbstractCustomer.list()) {
+    //  CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer.customerInfo);
+    //  customerBootstrapData.fillBootstrapData(customer.getBootstrapData());
     //  brokerProxyService.broadcastMessage(customerBootstrapData.getCustomer()); // workaround for #341
     //  brokerProxyService.broadcastMessage(customerBootstrapData);
     //}
@@ -382,7 +382,7 @@ public class CompetitionControlService
     return result;
   }
 
-  void activateNextTimeslot ()
+  private void activateNextTimeslot ()
   {
     TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
@@ -428,7 +428,7 @@ public class CompetitionControlService
     return length;
   }
 
-  boolean configurePlugins ()
+  private boolean configurePlugins ()
   {
     Map<String, InitializationService> initializers =
       applicationContext.getBeansOfType(InitializationService.class);
