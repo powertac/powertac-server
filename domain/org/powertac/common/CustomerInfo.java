@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -94,10 +95,10 @@ public class CustomerInfo //implements Serializable
     return population;
   }
 
-  public CustomerInfo setPopulation (Integer population)
+  @StateChange
+  public void setPopulation (Integer population)
   {
     this.population = population;
-    return this;
   }
 
   public CustomerType getCustomerType ()
@@ -105,7 +106,8 @@ public class CustomerInfo //implements Serializable
     return customerType;
   }
   
-  public CustomerInfo setCustomerType (CustomerType type)
+  @StateChange
+  public CustomerInfo withCustomerType (CustomerType type)
   {
     customerType = type;
     return this;
@@ -116,6 +118,7 @@ public class CustomerInfo //implements Serializable
     return powerTypes;
   }
   
+  @StateChange
   public CustomerInfo addPowerType (PowerType type)
   {
     powerTypes.add(type);
@@ -127,7 +130,8 @@ public class CustomerInfo //implements Serializable
     return multiContracting;
   }
   
-  public CustomerInfo setMultiContracting (boolean value)
+  @StateChange
+  public CustomerInfo withMultiContracting (boolean value)
   {
     multiContracting = value;
     return this;
@@ -138,7 +142,8 @@ public class CustomerInfo //implements Serializable
     return canNegotiate;
   }
   
-  public CustomerInfo setCanNegotiate (boolean value)
+  @StateChange
+  public CustomerInfo withCanNegotiate (boolean value)
   {
     canNegotiate = value;
     return this;

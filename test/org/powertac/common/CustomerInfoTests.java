@@ -40,8 +40,7 @@ public class CustomerInfoTests
   public void testSetPopulation ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.setPopulation(42);
-    assertEquals("correct return", info, result);
+    info.setPopulation(42);
     assertEquals("correct population", 42, info.getPopulation());
   }
 
@@ -49,7 +48,7 @@ public class CustomerInfoTests
   public void testSetCustomerType ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.setCustomerType(CustomerType.CustomerFactory);
+    CustomerInfo result = info.withCustomerType(CustomerType.CustomerFactory);
     assertEquals("correct return", info, result);
     assertEquals("customerType", CustomerType.CustomerFactory, info.getCustomerType());
   }
@@ -68,7 +67,7 @@ public class CustomerInfoTests
   public void testSetMultiContracting ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.setMultiContracting(true);
+    CustomerInfo result = info.withMultiContracting(true);
     assertEquals("correct return", info, result);
     assertTrue("multi-contracting", info.isMultiContracting());
   }
@@ -77,7 +76,7 @@ public class CustomerInfoTests
   public void testSetCanNegotiate ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.setCanNegotiate(true);
+    CustomerInfo result = info.withCanNegotiate(true);
     assertEquals("correct return", info, result);
     assertTrue("can negotiate", info.isCanNegotiate());
   }

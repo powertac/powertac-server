@@ -41,7 +41,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("empty description", "", c1.getDescription());
-    Competition cx = c1.setDescription("test version");
+    Competition cx = c1.withDescription("test version");
     assertEquals("correct return", c1, cx);
     assertEquals("description", "test version", Competition.currentCompetition().getDescription());
   }
@@ -51,7 +51,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default length", 60, c1.getTimeslotLength());
-    Competition cx = c1.setTimeslotLength(30);
+    Competition cx = c1.withTimeslotLength(30);
     assertEquals("correct return", c1, cx);
     assertEquals("new length", 30, c1.getTimeslotLength());
   }
@@ -61,7 +61,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default count", 240, c1.getMinimumTimeslotCount());
-    Competition cx = c1.setMinimumTimeslotCount(300);
+    Competition cx = c1.withMinimumTimeslotCount(300);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 300, c1.getMinimumTimeslotCount());
   }
@@ -71,7 +71,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default count", 288, c1.getExpectedTimeslotCount());
-    Competition cx = c1.setExpectedTimeslotCount(360);
+    Competition cx = c1.withExpectedTimeslotCount(360);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 360, c1.getExpectedTimeslotCount());
   }
@@ -81,7 +81,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default count", 23, c1.getTimeslotsOpen());
-    Competition cx = c1.setTimeslotsOpen(13);
+    Competition cx = c1.withTimeslotsOpen(13);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 13, c1.getTimeslotsOpen());
   }
@@ -91,7 +91,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default count", 1, c1.getDeactivateTimeslotsAhead());
-    Competition cx = c1.setDeactivateTimeslotsAhead(3);
+    Competition cx = c1.withDeactivateTimeslotsAhead(3);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 3, c1.getDeactivateTimeslotsAhead());
   }
@@ -103,7 +103,7 @@ public class CompetitionTests
     Instant base = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
     assertEquals("default base", base, c1.getSimulationBaseTime());
     Instant newBase = base.plus(TimeService.DAY);
-    Competition cx = c1.setSimulationBaseTime(newBase);
+    Competition cx = c1.withSimulationBaseTime(newBase);
     assertEquals("correct return", c1, cx);
     assertEquals("new base", newBase, c1.getSimulationBaseTime());
   }
@@ -113,7 +113,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default rate", 720l, c1.getSimulationRate());
-    Competition cx = c1.setSimulationRate(300l);
+    Competition cx = c1.withSimulationRate(300l);
     assertEquals("correct return", c1, cx);
     assertEquals("new rate", 300l, c1.getSimulationRate());
   }
@@ -123,7 +123,7 @@ public class CompetitionTests
   {
     Competition c1 = Competition.newInstance("c1");
     assertEquals("default mod", 60*60*1000, c1.getSimulationModulo());
-    Competition cx = c1.setSimulationModulo(30*60000);
+    Competition cx = c1.withSimulationModulo(30*60000);
     assertEquals("correct return", c1, cx);
     assertEquals("new mod", 30*60000, c1.getSimulationModulo());
   }

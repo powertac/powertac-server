@@ -17,6 +17,7 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.IdGenerator;
 import com.thoughtworks.xstream.annotations.*;
@@ -65,7 +66,8 @@ public class TariffStatus //implements Serializable
     return message;
   }
 
-  public TariffStatus setMessage (String message)
+  @StateChange
+  public TariffStatus withMessage (String message)
   {
     this.message = message;
     return this;

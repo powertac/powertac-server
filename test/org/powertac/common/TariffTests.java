@@ -64,15 +64,15 @@ public class TariffTests
     repo = new TariffRepo();
     exp = new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
-        .setExpiration(exp)
-        .setMinDuration(TimeService.WEEK * 8);
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8);
   }
 
   // create a Tariff and inspect it
   @Test
   public void testCreate () 
   {
-    Rate r1 = new Rate().setValue(0.121);
+    Rate r1 = new Rate().withValue(0.121);
     tariffSpec.addRate(r1);
     Tariff te = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(te, "timeService", timeService);
@@ -92,7 +92,7 @@ public class TariffTests
   @Test
   public void testRealizedPrice ()
   {
-    Rate r1 = new Rate().setValue(0.121);
+    Rate r1 = new Rate().withValue(0.121);
     tariffSpec.addRate(r1);
     Tariff te = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(te, "timeService", timeService);
@@ -107,7 +107,7 @@ public class TariffTests
   @Test
   public void testSimpleRate ()
   {
-    Rate r1 = new Rate().setValue(0.121);
+    Rate r1 = new Rate().withValue(0.121);
     tariffSpec.addRate(r1);
     Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(tariffSpec);
@@ -129,7 +129,7 @@ public class TariffTests
   @Test
   public void testSimpleRateRealizedPrice ()
   {
-    Rate r1 = new Rate().setValue(0.131);
+    Rate r1 = new Rate().withValue(0.131);
     tariffSpec.addRate(r1);
     //Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(tariffSpec);
@@ -148,8 +148,8 @@ public class TariffTests
   @Test
   public void testTimeOfUseDaily ()
   {
-    Rate r1 = new Rate().setValue(0.15).setDailyBegin(7).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(6);
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(6);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
@@ -174,8 +174,8 @@ public class TariffTests
   @Test
   public void testTimeOfUseDailyGap ()
   {
-    Rate r1 = new Rate().setValue(0.15).setDailyBegin(7).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(19).setDailyEnd(6);
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(19).withDailyEnd(6);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     Tariff te = new Tariff(tariffSpec);
@@ -191,9 +191,9 @@ public class TariffTests
   @Test
   public void testTimeOfUseWeekly ()
   {
-    Rate r1 = new Rate().setValue(0.15).setDailyBegin(7).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(6);
-    Rate r3 = new Rate().setValue(0.06).setWeeklyBegin(6).setWeeklyEnd(7);
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(6);
+    Rate r3 = new Rate().withValue(0.06).withWeeklyBegin(6).withWeeklyEnd(7);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
@@ -245,9 +245,9 @@ public class TariffTests
   @Test
   public void testTimeOfUseWeeklyWrap ()
   {
-    Rate r1 = new Rate().setValue(0.15).setDailyBegin(6).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(5);
-    Rate r3 = new Rate().setValue(0.06).setWeeklyBegin(7).setWeeklyEnd(2); // Sun-Tue
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(6).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(5);
+    Rate r3 = new Rate().withValue(0.06).withWeeklyBegin(7).withWeeklyEnd(2); // Sun-Tue
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
@@ -279,9 +279,9 @@ public class TariffTests
   @Test
   public void testTimeOfUseTier ()
   {
-    Rate r1 = new Rate().setValue(0.15).setDailyBegin(7).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(6);
-    Rate r3 = new Rate().setValue(0.2).setTierThreshold(20);
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(6);
+    Rate r3 = new Rate().withValue(0.2).withTierThreshold(20);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
@@ -302,10 +302,10 @@ public class TariffTests
   @Test
   public void testMultiTiers ()
   {
-    Rate r1 = new Rate().setValue(0.15).setTierThreshold(10);
-    Rate r2 = new Rate().setValue(0.1).setTierThreshold(5);
-    Rate r3 = new Rate().setValue(0.2).setTierThreshold(20);
-    Rate r4 = new Rate().setValue(0.07);
+    Rate r1 = new Rate().withValue(0.15).withTierThreshold(10);
+    Rate r2 = new Rate().withValue(0.1).withTierThreshold(5);
+    Rate r3 = new Rate().withValue(0.2).withTierThreshold(20);
+    Rate r4 = new Rate().withValue(0.07);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariffSpec.addRate(r3);
@@ -328,9 +328,9 @@ public class TariffTests
   @Test
   public void testVarRate ()
   {
-    Rate r1 = new Rate().setFixed(false).setMinValue(0.05).setMaxValue(0.50)
-                        .setNoticeInterval(3).setExpectedMean(0.10).setDailyBegin(7).setDailyEnd(17);
-    Rate r2 = new Rate().setValue(0.08).setDailyBegin(18).setDailyEnd(6);
+    Rate r1 = new Rate().withFixed(false).withMinValue(0.05).withMaxValue(0.50)
+                        .withNoticeInterval(3).withExpectedMean(0.10).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(6);
     ReflectionTestUtils.setField(r1, "timeService", timeService);
     ReflectionTestUtils.setField(r2, "timeService", timeService);
     tariffSpec.addRate(r1);

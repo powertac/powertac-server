@@ -344,10 +344,9 @@ public class Tariff
   }
   
   @StateChange
-  public Tariff setExpiration (Instant newDate)
+  public void setExpiration (Instant newDate)
   {
     expiration = newDate;
-    return this;
   }
 
   public Instant getOfferDate ()
@@ -393,10 +392,9 @@ public class Tariff
   }
   
   @StateChange
-  public Tariff setState(State newState)
+  public void setState(State newState)
   {
     state = newState;
-    return this;
   }
 
   public Tariff getIsSupersededBy ()

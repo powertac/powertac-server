@@ -58,7 +58,7 @@ public class RateTests
   public void testFixedRate() 
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,0,0,0,0,DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121);
+    Rate r = new Rate().withValue(0.121);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     
     assertNotNull("Rate not null", r);
@@ -72,9 +72,9 @@ public class RateTests
   public void testDailyRate()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,5,0, 0, 0, DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121)
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -90,9 +90,9 @@ public class RateTests
   public void testDailyRateOverMidnight()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,21,0,0,0,DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121) 
-        .setDailyBegin(new DateTime(2011, 1, 1, 22, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 2, 5, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121) 
+        .withDailyBegin(new DateTime(2011, 1, 1, 22, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 2, 5, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -107,9 +107,9 @@ public class RateTests
   @Test
   public void testWeeklyRateWeekend()
   {
-    Rate r = new Rate().setValue(0.121)
-        .setWeeklyBegin(new DateTime(2011, 1, 15, 22, 0, 0, 0, DateTimeZone.UTC))
-        .setWeeklyEnd(new DateTime(2011, 1, 16, 5, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withWeeklyBegin(new DateTime(2011, 1, 15, 22, 0, 0, 0, DateTimeZone.UTC))
+        .withWeeklyEnd(new DateTime(2011, 1, 16, 5, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -123,8 +123,8 @@ public class RateTests
   @Test
   public void testWeeklyRateSun()
   {
-    Rate r = new Rate().setValue(0.121)
-        .setWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -138,9 +138,9 @@ public class RateTests
   @Test
   public void testWeeklyRateSunMon()
   {
-    Rate r = new Rate().setValue(0.121)
-        .setWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC))
-        .setWeeklyEnd(new DateTime(2011, 1, 17, 5, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withWeeklyBegin(new DateTime(2011, 1, 16, 22, 0, 0, 0, DateTimeZone.UTC))
+        .withWeeklyEnd(new DateTime(2011, 1, 17, 5, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Rate is fixed", r.isFixed());
@@ -154,11 +154,11 @@ public class RateTests
   @Test
   public void testWeekdayRate()
   {
-    Rate r = new Rate().setValue(0.121)
-        .setWeeklyBegin(new DateTime(2011, 1, 10, 2, 0, 0, 0, DateTimeZone.UTC)) //Monday
-        .setWeeklyEnd(new DateTime(2011, 1, 14, 5, 0, 0, 0, DateTimeZone.UTC))   //Friday
-        .setDailyBegin(new DateTime(2011, 1, 14, 8, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 14, 17, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121)
+        .withWeeklyBegin(new DateTime(2011, 1, 10, 2, 0, 0, 0, DateTimeZone.UTC)) //Monday
+        .withWeeklyEnd(new DateTime(2011, 1, 14, 5, 0, 0, 0, DateTimeZone.UTC))   //Friday
+        .withDailyBegin(new DateTime(2011, 1, 14, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 14, 17, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertFalse("Does not apply on Saturday", r.applies(new DateTime(2011, 1, 22, 12, 0, 0, 0, DateTimeZone.UTC)));
@@ -176,9 +176,9 @@ public class RateTests
   public void testDailyRateT0()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121) 
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
+    Rate r = new Rate().withValue(0.121) 
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC));
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertTrue("Applies now", r.applies(200.0));
@@ -193,10 +193,10 @@ public class RateTests
   public void testDailyRateT1()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121) 
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .setTierThreshold(100.0);
+    Rate r = new Rate().withValue(0.121) 
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withTierThreshold(100.0);
     ReflectionTestUtils.setField(r, "timeService", timeService);
 
     assertFalse("Does not apply at 99", r.applies(99.0));
@@ -208,10 +208,10 @@ public class RateTests
   public void xmlSerializationTest ()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
-    Rate r = new Rate().setValue(0.121) 
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .setTierThreshold(100.0);
+    Rate r = new Rate().withValue(0.121) 
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withTierThreshold(100.0);
 
     XStream xstream = new XStream();
     xstream.processAnnotations(Rate.class);
@@ -229,12 +229,12 @@ public class RateTests
   public void xmlSerializationTestHc ()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,7,0, 0, 0, DateTimeZone.UTC));
-    Rate r = new Rate().setFixed(false)
-        .setExpectedMean(0.10)
+    Rate r = new Rate().withFixed(false)
+        .withExpectedMean(0.10)
         // applies from 6:00-8:00
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .setTierThreshold(100.0);
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withTierThreshold(100.0);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     Instant now = timeService.getCurrentTime();
     //rate tomorrow at 6:00 = 0.22

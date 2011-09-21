@@ -95,7 +95,7 @@ public class TariffSpecification extends TariffMessage
   }
 
   @StateChange
-  public TariffSpecification setExpiration (Instant expiration)
+  public TariffSpecification withExpiration (Instant expiration)
   {
     this.expiration = expiration;
     return this;
@@ -107,7 +107,7 @@ public class TariffSpecification extends TariffMessage
   }
 
   @StateChange
-  public TariffSpecification setMinDuration (long minDuration)
+  public TariffSpecification withMinDuration (long minDuration)
   {
     this.minDuration = minDuration;
     return this;
@@ -119,7 +119,7 @@ public class TariffSpecification extends TariffMessage
   }
 
   @StateChange
-  public TariffSpecification setSignupPayment (double signupPayment)
+  public TariffSpecification withSignupPayment (double signupPayment)
   {
     this.signupPayment = signupPayment;
     return this;
@@ -131,7 +131,7 @@ public class TariffSpecification extends TariffMessage
   }
 
   @StateChange
-  public TariffSpecification setEarlyWithdrawPayment (double earlyWithdrawPayment)
+  public TariffSpecification withEarlyWithdrawPayment (double earlyWithdrawPayment)
   {
     this.earlyWithdrawPayment = earlyWithdrawPayment;
     return this;
@@ -143,7 +143,7 @@ public class TariffSpecification extends TariffMessage
   }
 
   @StateChange
-  public TariffSpecification setPeriodicPayment (double periodicPayment)
+  public TariffSpecification withPeriodicPayment (double periodicPayment)
   {
     this.periodicPayment = periodicPayment;
     return this;

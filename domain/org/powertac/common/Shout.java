@@ -96,12 +96,15 @@ public class Shout //implements Serializable
 
   /** the simulation time when the original shout instance was first created.
    * Defaults to current time. */
+  // JEC - do we need this?
   private Instant dateCreated = timeService.getCurrentTime();
 
   /** the latest modification time of the shout. Defaults to dateCreated. */
+  // JEC - do we need this?
   private Instant dateMod = this.dateCreated;
 
   /** the reason for the latest modifcation to the shout instance */
+  // JEC - removed - do we need this?
   //@XStreamAsAttribute
   //ModReasonCode modReasonCode = ModReasonCode.INSERT;
 
@@ -152,8 +155,9 @@ public class Shout //implements Serializable
     return product;
   }
 
+  /** Fluent-style setter */
   @StateChange
-  public Shout setProduct (ProductType product)
+  public Shout withProduct (ProductType product)
   {
     this.product = product;
     return this;
@@ -165,7 +169,7 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout setExecutionQuantity (double executionQuantity)
+  public Shout withExecutionQuantity (double executionQuantity)
   {
     this.executionQuantity = executionQuantity;
     return this;
@@ -177,7 +181,7 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout setExecutionPrice (double executionPrice)
+  public Shout withExecutionPrice (double executionPrice)
   {
     this.executionPrice = executionPrice;
     return this;
@@ -189,7 +193,7 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout setDateMod (Instant dateMod)
+  public Shout withDateMod (Instant dateMod)
   {
     this.dateMod = dateMod;
     return this;
@@ -201,7 +205,7 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout setTransactionId (long transactionId)
+  public Shout withTransactionId (long transactionId)
   {
     this.transactionId = transactionId;
     return this;
@@ -213,7 +217,7 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout setComment (String comment)
+  public Shout withComment (String comment)
   {
     this.comment = comment;
     return this;

@@ -85,7 +85,7 @@ public class Orderbook
   }
 
   @StateChange
-  public Orderbook setClearingPrice (double clearingPrice)
+  public Orderbook withClearingPr (double clearingPrice)
   {
     this.clearingPrice = clearingPrice;
     return this;
@@ -97,7 +97,7 @@ public class Orderbook
   }
 
   @StateChange
-  public Orderbook setDateExecuted (Instant dateExecuted)
+  public Orderbook withDateExecuted (Instant dateExecuted)
   {
     this.dateExecuted = dateExecuted;
     return this;

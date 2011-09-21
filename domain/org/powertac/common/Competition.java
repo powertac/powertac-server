@@ -147,7 +147,7 @@ public class Competition //implements Serializable
   }
   
   @StateChange
-  public Competition setDescription (String description)
+  public Competition withDescription (String description)
   {
     this.description = description;
     return this;
@@ -159,7 +159,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setTimeslotLength (int timeslotLength)
+  public Competition withTimeslotLength (int timeslotLength)
   {
     this.timeslotLength = timeslotLength;
     return this;
@@ -171,7 +171,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setMinimumTimeslotCount (int minimumTimeslotCount)
+  public Competition withMinimumTimeslotCount (int minimumTimeslotCount)
   {
     this.minimumTimeslotCount = minimumTimeslotCount;
     return this;
@@ -183,7 +183,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setExpectedTimeslotCount (int expectedTimeslotCount)
+  public Competition withExpectedTimeslotCount (int expectedTimeslotCount)
   {
     this.expectedTimeslotCount = expectedTimeslotCount;
     return this;
@@ -195,7 +195,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setTimeslotsOpen (int timeslotsOpen)
+  public Competition withTimeslotsOpen (int timeslotsOpen)
   {
     this.timeslotsOpen = timeslotsOpen;
     return this;
@@ -207,7 +207,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
+  public Competition withDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
   {
     this.deactivateTimeslotsAhead = deactivateTimeslotsAhead;
     return this;
@@ -219,7 +219,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setSimulationBaseTime (Instant simulationBaseTime)
+  public Competition withSimulationBaseTime (Instant simulationBaseTime)
   {
     this.simulationBaseTime = simulationBaseTime;
     return this;
@@ -231,7 +231,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setSimulationRate (long simulationRate)
+  public Competition withSimulationRate (long simulationRate)
   {
     this.simulationRate = simulationRate;
     return this;
@@ -243,7 +243,7 @@ public class Competition //implements Serializable
   }
 
   @StateChange
-  public Competition setSimulationModulo (long simulationModulo)
+  public Competition withSimulationModulo (long simulationModulo)
   {
     this.simulationModulo = simulationModulo;
     return this;

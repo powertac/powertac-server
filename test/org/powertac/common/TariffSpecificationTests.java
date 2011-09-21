@@ -76,7 +76,7 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
     Instant exp = now.plus(TimeService.HOUR * 24);
-    assertEquals("correct return", spec, spec.setExpiration(exp));
+    assertEquals("correct return", spec, spec.withExpiration(exp));
     assertEquals("correct value", exp, spec.getExpiration());
   }
 
@@ -84,7 +84,7 @@ public class TariffSpecificationTests
   public void testSetMinDuration ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
-    assertEquals("correct return", spec, spec.setMinDuration(10000l));
+    assertEquals("correct return", spec, spec.withMinDuration(10000l));
     assertEquals("correct value", 10000l, spec.getMinDuration());
   }
 
@@ -93,7 +93,7 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
     assertEquals("correct power type", PowerType.PRODUCTION, spec.getPowerType());
-    assertEquals("correct return", spec, spec.setSignupPayment(-10.00));
+    assertEquals("correct return", spec, spec.withSignupPayment(-10.00));
     assertEquals("correct value", -10.00, spec.getSignupPayment(), 1e-6);
   }
 
@@ -101,7 +101,7 @@ public class TariffSpecificationTests
   public void testSetEarlyWithdrawPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.setEarlyWithdrawPayment(20.00));
+    assertEquals("correct return", spec, spec.withEarlyWithdrawPayment(20.00));
     assertEquals("correct value", 20.00, spec.getEarlyWithdrawPayment(), 1e-6);
   }
 
@@ -109,7 +109,7 @@ public class TariffSpecificationTests
   public void testSetPeriodicPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.setPeriodicPayment(0.01));
+    assertEquals("correct return", spec, spec.withPeriodicPayment(0.01));
     assertEquals("correct value", 0.01, spec.getPeriodicPayment(), 1e-6);
   }
 
@@ -117,7 +117,7 @@ public class TariffSpecificationTests
   public void testAddRate ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    Rate r = new Rate().setValue(0.121);
+    Rate r = new Rate().withValue(0.121);
     assertEquals("correct return", spec, spec.addRate(r));
     assertEquals("correct length", 1, spec.getRates().size());
     assertEquals("correct rate", r, spec.getRates().get(0));
@@ -136,15 +136,15 @@ public class TariffSpecificationTests
   @Test
   public void testXmlSerialization ()
   {
-    Rate r = new Rate().setValue(0.121) 
-        .setDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .setDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .setTierThreshold(100.0);
+    Rate r = new Rate().withValue(0.121) 
+        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
+        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withTierThreshold(100.0);
     TariffSpecification spec = new TariffSpecification(broker,
                                                        PowerType.CONSUMPTION)
-        .setMinDuration(20000l)
-        .setSignupPayment(-35.0)
-        .setPeriodicPayment(0.05)
+        .withMinDuration(20000l)
+        .withSignupPayment(-35.0)
+        .withPeriodicPayment(0.05)
         .addRate(r);
 
     XStream xstream = new XStream();

@@ -113,20 +113,23 @@ public class Rate //implements Serializable
     return tariffId;
   }
   
+  /**
+   * Sets the backpointer to the tariff. This is a non-fluent (and non-public)
+   * setter, intended to be called by Tariff.
+   */
   @StateChange
-  public Rate setTariffId (long id)
+  void setTariffId (long id)
   {
     tariffId = id;
-    return this;
   }
   
   /**
    * Process weeklyBegin spec to extract dayOfWeek field
    */
-  public Rate setWeeklyBegin (AbstractDateTime begin)
+  public Rate withWeeklyBegin (AbstractDateTime begin)
   {
     if (begin != null) {
-      return setWeeklyBegin(begin.getDayOfWeek());
+      return withWeeklyBegin(begin.getDayOfWeek());
     }
     return this;
   }
@@ -134,17 +137,17 @@ public class Rate //implements Serializable
   /**
    * Process weeklyBegin spec to extract dayOfWeek field
    */
-  public Rate setWeeklyBegin (ReadablePartial begin)
+  public Rate withWeeklyBegin (ReadablePartial begin)
   {
     if (begin != null) {
-      return setWeeklyBegin(begin.get(DateTimeFieldType.dayOfWeek()));
+      return withWeeklyBegin(begin.get(DateTimeFieldType.dayOfWeek()));
     }
     return this;
   }
 
-  // normal setter also, for Hibernate
+  /** Fluent setter */
   @StateChange
-  public Rate setWeeklyBegin (int begin)
+  public Rate withWeeklyBegin (int begin)
   {
     weeklyBegin = begin;
     return this;
@@ -158,10 +161,10 @@ public class Rate //implements Serializable
   /**
    * Process weeklyEnd spec to extract dayOfWeek field
    */
-  public Rate setWeeklyEnd (AbstractDateTime end)
+  public Rate withWeeklyEnd (AbstractDateTime end)
   {
     if (end!= null) {
-      return setWeeklyEnd(end.getDayOfWeek());
+      return withWeeklyEnd(end.getDayOfWeek());
     }
     return this;
   }
@@ -169,17 +172,17 @@ public class Rate //implements Serializable
   /**
    * Process weeklyEnd spec to extract dayOfWeek field
    */
-  public Rate setWeeklyEnd (ReadablePartial end)
+  public Rate withWeeklyEnd (ReadablePartial end)
   {
     if (end!= null) {
-      return setWeeklyEnd(end.get(DateTimeFieldType.dayOfWeek()));
+      return withWeeklyEnd(end.get(DateTimeFieldType.dayOfWeek()));
     }
     return this;
   }
 
   // normal setter also
   @StateChange
-  public Rate setWeeklyEnd (int end)
+  public Rate withWeeklyEnd (int end)
   {
     weeklyEnd = end;
     return this;
@@ -193,10 +196,10 @@ public class Rate //implements Serializable
   /**
    * Process dailyBegin specification to extract hourOfDay field
    */
-  public Rate setDailyBegin (AbstractDateTime begin)
+  public Rate withDailyBegin (AbstractDateTime begin)
   {
     if (begin != null) {
-      return setDailyBegin(begin.getHourOfDay());
+      return withDailyBegin(begin.getHourOfDay());
     }
     return this;
   }
@@ -204,17 +207,17 @@ public class Rate //implements Serializable
   /**
    * Process dailyBegin specification to extract hourOfDay field
    */
-  public Rate setDailyBegin (ReadablePartial begin)
+  public Rate withDailyBegin (ReadablePartial begin)
   {
     if (begin != null) {
-      return setDailyBegin(begin.get(DateTimeFieldType.hourOfDay()));
+      return withDailyBegin(begin.get(DateTimeFieldType.hourOfDay()));
     }
     return this;
   }
 
   // normal setter also
   @StateChange
-  public Rate setDailyBegin (int begin)
+  public Rate withDailyBegin (int begin)
   {
     dailyBegin = begin;
     return this;
@@ -228,10 +231,10 @@ public class Rate //implements Serializable
   /**
    * Process dailyEnd specification to extract hourOfDay field
    */
-  public Rate setDailyEnd (AbstractDateTime end)
+  public Rate withDailyEnd (AbstractDateTime end)
   {
     if (end != null) {
-      return setDailyEnd(end.getHourOfDay());
+      return withDailyEnd(end.getHourOfDay());
     }
     return this;
   }
@@ -239,17 +242,17 @@ public class Rate //implements Serializable
   /**
    * Process dailyEnd specification to extract hourOfDay field
    */
-  public Rate setDailyEnd (ReadablePartial end)
+  public Rate withDailyEnd (ReadablePartial end)
   {
     if (end != null) {
-      return setDailyEnd(end.get(DateTimeFieldType.hourOfDay()));
+      return withDailyEnd(end.get(DateTimeFieldType.hourOfDay()));
     }
     return this;
   }
 
   // normal setter also
   @StateChange
-  public Rate setDailyEnd (int end)
+  public Rate withDailyEnd (int end)
   {
     dailyEnd = end;
     return this;
@@ -263,14 +266,14 @@ public class Rate //implements Serializable
   /**
    * Truncate noticeInterval field to integer hours
    */
-  public Rate setNoticeInterval (Duration interval)
+  public Rate withNoticeInterval (Duration interval)
   {
     // we assume that integer division will do the Right Thing here
-    return setNoticeInterval(interval.getMillis() / TimeService.HOUR);
+    return withNoticeInterval(interval.getMillis() / TimeService.HOUR);
   }
 
   @StateChange
-  public Rate setNoticeInterval (long hours)
+  public Rate withNoticeInterval (long hours)
   {
     noticeInterval = hours;
     return this;
@@ -339,7 +342,7 @@ public class Rate //implements Serializable
   }
 
   @StateChange
-  public Rate setTierThreshold (double tierThreshold)
+  public Rate withTierThreshold (double tierThreshold)
   {
     this.tierThreshold = tierThreshold;
     return this;
@@ -351,7 +354,7 @@ public class Rate //implements Serializable
   }
 
   @StateChange
-  public Rate setMinValue (double minValue)
+  public Rate withMinValue (double minValue)
   {
     this.minValue = minValue;
     return this;
@@ -363,7 +366,7 @@ public class Rate //implements Serializable
   }
 
   @StateChange
-  public Rate setMaxValue (double maxValue)
+  public Rate withMaxValue (double maxValue)
   {
     this.maxValue = maxValue;
     return this;
@@ -375,7 +378,7 @@ public class Rate //implements Serializable
   }
 
   @StateChange
-  public Rate setFixed (boolean fixed)
+  public Rate withFixed (boolean fixed)
   {
     isFixed = fixed;
     return this;
@@ -387,7 +390,7 @@ public class Rate //implements Serializable
   }
 
   @StateChange
-  public Rate setExpectedMean (double value)
+  public Rate withExpectedMean (double value)
   {
     expectedMean = value;
     return this;
@@ -476,7 +479,7 @@ public class Rate //implements Serializable
    * Allows Hibernate to set the value
    */
   @StateChange
-  public Rate setValue(double value) {
+  public Rate withValue(double value) {
     minValue = value;
     return this;
   }
