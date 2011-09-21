@@ -292,7 +292,7 @@ public class TariffMarketService
                  newExp.toString());
         return new TariffStatus(update.getBroker(), update.getTariffId(), update.getId(),
                                 TariffStatus.Status.invalidUpdate)
-            .setMessage("attempt to set expiration in the past");
+            .withMessage("attempt to set expiration in the past");
       }
       else {
         // update expiration date
@@ -355,7 +355,7 @@ public class TariffMarketService
       // failed to add hourly charge
       return new TariffStatus(update.getBroker(), update.getTariffId(), update.getId(),
                               TariffStatus.Status.invalidUpdate)
-          .setMessage("update: could not add hourly charge");
+          .withMessage("update: could not add hourly charge");
     }
   }
 

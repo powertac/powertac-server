@@ -35,6 +35,21 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powertac.common.BankTransaction;
+import org.powertac.common.Broker;
+import org.powertac.common.BrokerTransaction;
+import org.powertac.common.CashPosition;
+import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.MarketPosition;
+import org.powertac.common.MarketTransaction;
+import org.powertac.common.PluginConfig;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.enumerations.TariffTransactionType;
@@ -45,7 +60,7 @@ import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.*;
+//import org.powertac.common.*;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -127,40 +142,40 @@ public class AccountingServiceTests
     brokerRepo.add(jim);
 
     customerInfo1 = new CustomerInfo("downtown", 42)
-        .setCustomerType(CustomerType.CustomerHousehold)
+        .withCustomerType(CustomerType.CustomerHousehold)
         .addPowerType(PowerType.CONSUMPTION);
     customerInfo2 = new CustomerInfo("suburbs", 21)
-        .setCustomerType(CustomerType.CustomerHousehold)
+        .withCustomerType(CustomerType.CustomerHousehold)
         .addPowerType(PowerType.CONSUMPTION);
     customerInfo3 = new CustomerInfo("exburbs", 11)
-         .setCustomerType(CustomerType.CustomerHousehold)
+         .withCustomerType(CustomerType.CustomerHousehold)
          .addPowerType(PowerType.CONSUMPTION);
 
     // set up tariffs - tariff1 for consumption, tariff2 for production
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec = new TariffSpecification(bob, PowerType.CONSUMPTION)
-        .setExpiration(exp)
-        .setMinDuration(TimeService.WEEK * 8)
-        .setPeriodicPayment(0.02)
-        .addRate(new Rate().setValue(0.121));
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .withPeriodicPayment(0.02)
+        .addRate(new Rate().withValue(0.121));
     tariffRepo.addSpecification(tariffSpec);
     tariffB1 = new Tariff(tariffSpec);
     tariffB1.init();
     tariffRepo.addTariff(tariffB1);
 
     tariffSpec = new TariffSpecification(bob, PowerType.CONSUMPTION)
-        .setMinDuration(TimeService.WEEK * 8)
-        .setExpiration(exp)
-        .addRate(new Rate().setValue(0.09));
+        .withMinDuration(TimeService.WEEK * 8)
+        .withExpiration(exp)
+        .addRate(new Rate().withValue(0.09));
     tariffRepo.addSpecification(tariffSpec);
     tariffB2 = new Tariff(tariffSpec);
     tariffB2.init();
     tariffRepo.addTariff(tariffB2);
     tariffSpec = new TariffSpecification(jim, PowerType.CONSUMPTION)
-        .setMinDuration(TimeService.WEEK * 8)
-        .setExpiration(exp)
-        .setPeriodicPayment(0.01)
-        .addRate(new Rate().setValue(0.123));
+        .withMinDuration(TimeService.WEEK * 8)
+        .withExpiration(exp)
+        .withPeriodicPayment(0.01)
+        .addRate(new Rate().withValue(0.123));
     tariffRepo.addSpecification(tariffSpec);
     tariffJ1 = new Tariff(tariffSpec);
     tariffJ1.init();

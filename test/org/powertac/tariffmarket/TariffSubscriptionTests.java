@@ -82,9 +82,9 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
-          .setExpiration(exp)
-          .setMinDuration(TimeService.WEEK * 8)
-          .addRate(new Rate().setValue(0.121));
+          .withExpiration(exp)
+          .withMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().withValue(0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
     customerInfo = new CustomerInfo("Charley", 100);
@@ -111,10 +111,10 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
-            .setExpiration(exp)
-            .setMinDuration(TimeService.WEEK * 4)
-            .setSignupPayment(-33.2)
-            .addRate(new Rate().setValue(0.121));
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(-33.2)
+            .addRate(new Rate().withValue(0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -134,11 +134,11 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
-            .setExpiration(exp)
-            .setMinDuration(TimeService.WEEK * 4)
-            .setSignupPayment(-33.2)
-            .setEarlyWithdrawPayment(42.1)
-            .addRate(new Rate().setValue(0.121));
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(-33.2)
+            .withEarlyWithdrawPayment(42.1)
+            .addRate(new Rate().withValue(0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
     TariffSubscription tsub =
@@ -184,10 +184,10 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
-            .setExpiration(exp)
-            .setMinDuration(TimeService.WEEK * 4)
-            .setSignupPayment(-33.2)
-            .addRate(new Rate().setValue(0.121));
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(-33.2)
+            .addRate(new Rate().withValue(0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -230,11 +230,11 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
-            .setExpiration(exp)
-            .setMinDuration(TimeService.WEEK * 4)
-            .setSignupPayment(-31.2)
-            .setPeriodicPayment(1.3)
-            .addRate(new Rate().setValue(0.112));
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(-31.2)
+            .withPeriodicPayment(1.3)
+            .addRate(new Rate().withValue(0.112));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -266,11 +266,11 @@ public class TariffSubscriptionTests
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.PRODUCTION)
-            .setExpiration(exp)
-            .setMinDuration(TimeService.WEEK * 4)
-            .setSignupPayment(-34.2)
-            .setEarlyWithdrawPayment(35.0)
-            .addRate(new Rate().setValue(0.102));
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(-34.2)
+            .withEarlyWithdrawPayment(35.0)
+            .addRate(new Rate().withValue(0.102));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
