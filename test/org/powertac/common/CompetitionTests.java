@@ -2,6 +2,8 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.StringWriter;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -9,6 +11,8 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.thoughtworks.xstream.XStream;
 
 public class CompetitionTests
 {
@@ -163,4 +167,19 @@ public class CompetitionTests
     assertEquals("correct customer", info, c1.getCustomers().get(0));
   }
 
+  @Test
+  public void serializationTest ()
+  {
+    Competition c1 = Competition.newInstance("c1")
+        .withDescription("serialization test");
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Competition.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(c1));
+    //System.out.println(serialized.toString());
+    Competition xc1 = (Competition)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xc1);
+    assertEquals("correct id", c1.getId(), xc1.getId());
+    assertEquals("correct name", "c1", c1.getName());
+  }
 }
