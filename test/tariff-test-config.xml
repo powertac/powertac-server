@@ -54,5 +54,8 @@
   
   <bean id="brokerRepo"
         class="org.powertac.common.repo.BrokerRepo" />
+        
+  <bean id="randomSeedRepo"
+        class="org.powertac.common.repo.RandomSeedRepo" />
 
 </beans>

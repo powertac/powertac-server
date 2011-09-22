@@ -21,9 +21,10 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.RandomSeedService;
 import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,17 +46,17 @@ public class AccountingInitializationService
   private PluginConfigRepo pluginConfigRepo;
   
   @Autowired
-  private RandomSeedService randomSeedService;
-  private Random randomGen;
+  private RandomSeedRepo randomSeedService;
+  private RandomSeed randomGen;
   
   private double minInterest = 0.04;
   private double maxInterest = 0.12;
   
   public void setDefaults ()
   {
-    long randomSeed = randomSeedService.nextSeed("AccountingInitializationService",
+    randomGen = randomSeedService.getRandomSeed("AccountingInitializationService",
                                                  0l, "interest");
-    randomGen = new Random(randomSeed);
+    //randomGen = new Random(randomSeed);
 
     double interest = (minInterest + 
 		       (randomGen.nextDouble() *

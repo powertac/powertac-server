@@ -55,7 +55,7 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.RandomSeedService;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -98,8 +98,8 @@ public class AccountingServiceTests
   @Autowired
   private CompetitionControl mockCompetitionControl;
   
-  @Autowired
-  private RandomSeedService mockRandom;
+  //@Autowired
+  //private RandomSeedRepo mockRandom;
 
   private Competition comp;
   private CustomerInfo customerInfo1;
