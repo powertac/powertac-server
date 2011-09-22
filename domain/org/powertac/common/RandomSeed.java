@@ -16,19 +16,29 @@
 package org.powertac.common;
 
 import java.util.Random;
-import java.util.UUID;
+
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 /**
  * RandomSeed is used to store generated random seed in the database in
  * order to be able to "replay" PowerTAC competitions later on with
  * exactly the same random seed settings as originally used.
+ * <p>
+ * <b>Note</b> that server code is not intended to create instances of
+ * RandomSeed directly. Instead, please request seeds through 
+ * RandomSeedRepo.getRandomSeed(). This way, your code will work the same
+ * whether using new seeds or replaying a previous simulation.</p>
  *
- * @author Carsten Block
+ * @author Carsten Block, John Collins
  * @version 1.0 - January 01, 2011
  */
-public class RandomSeed 
+public class RandomSeed extends java.util.Random
 {
-  UUID id = UUID.randomUUID();
+  // needed because Random is serializable
+  private static final long serialVersionUID = 1L;
+  
+  long id = IdGenerator.createId();
   String requesterClass;
   long requesterId;
   String purpose = "unspecified";
@@ -36,33 +46,39 @@ public class RandomSeed
   
   /**
    * Constructor that creates a new seed with a random value.
+   * To keep the logfile simple, constructors are not logged in this
+   * class; only the init() method is logged.
    */
-  public RandomSeed (String classname, long id, String purpose)
+  public RandomSeed (String classname, long requesterId, String purpose)
   {
     super();
-    this.requesterClass = classname;
-    this.requesterId = id;
-    if (purpose != null)
-      this.purpose = purpose;
-    Random random = new Random();
-    this.value = random.nextLong();
+    this.value = this.nextLong();
+    init(classname, requesterId, purpose, value);
   }
   
   /**
    * Constructor to re-create a random seed with a given value.
    */
-  public RandomSeed (UUID seedId, String classname, long requesterId,
+  public RandomSeed (String classname, long requesterId,
                      String purpose, long value)
   {
     super();
-    this.id = seedId;
+    init(classname, requesterId, purpose, value);
+  }
+  
+  @StateChange
+  private void init (String classname, long requesterId,
+                     String purpose, long value)
+  {
     this.requesterClass = classname;
     this.requesterId = requesterId;
-    this.purpose = purpose;
+    if (purpose != null)
+      this.purpose = purpose;
     this.value = value;
+    this.setSeed(this.value);    
   }
 
-  public UUID getId ()
+  public long getId ()
   {
     return id;
   }
