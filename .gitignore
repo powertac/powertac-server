@@ -8,6 +8,7 @@
 target/
 activemq-data/
 logs/
+log/
 .settings/
 
 # OS generated files

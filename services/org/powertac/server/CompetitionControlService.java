@@ -27,7 +27,9 @@ import org.joda.time.Instant;
 
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -35,7 +37,6 @@ import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.Customer;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.RandomSeedService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.PauseRelease;
@@ -47,6 +48,7 @@ import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 
 import org.springframework.context.ApplicationContext;
@@ -76,7 +78,6 @@ public class CompetitionControlService
   implements ApplicationContextAware, CompetitionControl
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class.getName());
-  static private Logger stateLog = Logger.getLogger("State");
   
   private ApplicationContext applicationContext = null;
 
@@ -97,7 +98,7 @@ public class CompetitionControlService
   private BrokerProxy brokerProxyService;
 
   @Autowired
-  private RandomSeedService randomSeedService;
+  private RandomSeedRepo randomSeedRepo;
 
   @Autowired
   private LogService logService;
@@ -117,7 +118,7 @@ public class CompetitionControlService
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private long timeslotMillis;
-  private Random randomGen;
+  private RandomSeed randomGen;
   
   //private Object simLock = new Object(); // simulation sync lock
   private boolean simRunning = false;
@@ -273,7 +274,7 @@ public class CompetitionControlService
 
     // reinit game
     //participantManagementService.advanceToNewGame();
-    //preGame()
+    preGame();
   }
 
   //--------- local methods -------------
@@ -288,9 +289,8 @@ public class CompetitionControlService
     timeService.setCurrentTime(competition.getSimulationBaseTime());
 
     // set up random sequence for CCS
-    long randomSeed = randomSeedService.nextSeed("CompetitionControlService",
-                                                 competition.getId(), "game-setup");
-    randomGen = new Random(randomSeed);
+    randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
+                                                         competition.getId(), "game-setup");
 
     // TODO set up broker queues (are they logged in already?)
     //jmsManagementService.createQueues()
@@ -331,7 +331,7 @@ public class CompetitionControlService
     //brokerProxyService.broadcastMessage(customers)
 
     // Publish Bootstrap Data Map
-    //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData()
+    //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData();
     //brokerProxyService.broadcastMessage(bootstrapData)
     //for (AbstractCustomer customer : AbstractCustomer.list()) {
     //  CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer.customerInfo);
