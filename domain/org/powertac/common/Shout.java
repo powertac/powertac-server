@@ -84,11 +84,11 @@ public class Shout //implements Serializable
 
   /** the last executed quantity (if equal to {@code quantity} the shout is fully executed otherwise it is partially executed */
   @XStreamAsAttribute
-  private double executionQuantity;
+  private double executionQuantity = 0.0;
 
   /** the last execution price */
   @XStreamAsAttribute
-  private double executionPrice;
+  private double executionPrice = 0.0;
 
   /** either MARKET or LIMIT order */
   // not needed - presence of limit price indicates limit order
@@ -103,7 +103,7 @@ public class Shout //implements Serializable
   // JEC - do we need this?
   private Instant dateMod = this.dateCreated;
 
-  /** the reason for the latest modifcation to the shout instance */
+  /** the reason for the latest modification to the shout instance */
   // JEC - removed - do we need this?
   //@XStreamAsAttribute
   //ModReasonCode modReasonCode = ModReasonCode.INSERT;
@@ -169,10 +169,9 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout withExecutionQuantity (double executionQuantity)
+  public void setExecutionQuantity (double executionQuantity)
   {
     this.executionQuantity = executionQuantity;
-    return this;
   }
 
   public double getExecutionPrice ()
@@ -181,10 +180,9 @@ public class Shout //implements Serializable
   }
 
   @StateChange
-  public Shout withExecutionPrice (double executionPrice)
+  public void setExecutionPrice (double executionPrice)
   {
     this.executionPrice = executionPrice;
-    return this;
   }
 
   public Instant getDateMod ()
