@@ -79,8 +79,8 @@ public class TariffMarketService
   @Autowired
   private BrokerProxy brokerProxyService;
   
-  @Autowired
-  private BrokerRepo brokerRepo;
+  //@Autowired
+  //private BrokerRepo brokerRepo;
   
   @Autowired
   private TariffRepo tariffRepo;
@@ -103,7 +103,6 @@ public class TariffMarketService
   public TariffMarketService ()
   {
     super();
-    //incoming = new ArrayList<TariffMessage>();
   }
 
   /**

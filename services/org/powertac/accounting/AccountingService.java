@@ -16,6 +16,7 @@
 
 package org.powertac.accounting;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +32,6 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.msg.*;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AccountingService
-  implements TransactionProcessor, Accounting, TimeslotPhaseProcessor 
+  implements Accounting, TimeslotPhaseProcessor 
 {
   static private Logger log = Logger.getLogger(AccountingService.class.getName());
 
@@ -211,8 +211,21 @@ public class AccountingService
                   " has null broker");
       }
       brokerMsg.get(tx.getBroker()).add(tx);
-      // process transactions using the Visitor scheme
-      tx.process((TransactionProcessor)this, brokerMsg.get(tx.getBroker()));
+      // process transactions by method lookup
+      try {
+        Method target = this.getClass().getDeclaredMethod("processTransaction",
+                                                          tx.getClass(),
+                                                          List.class);
+        target.invoke(this, tx, brokerMsg.get(tx.getBroker()));
+      }
+      catch (NoSuchMethodException nsm) {
+        log.error("Could not find processor for transaction of type " +
+                  tx.getClass().getName());        
+      }
+      catch (Exception ex) {
+        log.error("Exception calling transaction processor: " + ex.toString());
+      }
+      //tx.process((TransactionProcessor)this, brokerMsg.get(tx.getBroker()));
     }
     pendingTransactions.clear();
     // for each broker, compute interest and send messages
@@ -279,7 +292,6 @@ public class AccountingService
     cash.deposit(amount);
   }
 
-  @Override
   public void processTransaction (BankTransaction tx, List messages)
   {
     log.error("tx " + tx.toString() + " calls processTransaction - should not happen");   
