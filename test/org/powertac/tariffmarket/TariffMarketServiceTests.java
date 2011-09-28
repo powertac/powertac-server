@@ -195,7 +195,7 @@ public class TariffMarketServiceTests
   @After
   public void shutDown()
   {
-    tariffMarketService.shutDown();
+    //tariffMarketService.shutDown();
   }
   
   @Test

@@ -64,6 +64,6 @@ public class TariffMarketInitializationService
   
   public void shutDown ()
   {
-    tariffMarketService.shutDown();
+    //tariffMarketService.shutDown();
   }
 }

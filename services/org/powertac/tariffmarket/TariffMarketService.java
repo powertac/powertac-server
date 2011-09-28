@@ -15,6 +15,7 @@
  */
 package org.powertac.tariffmarket;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,7 +25,6 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.powertac.accounting.AccountingService;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.Broker;
 import org.powertac.common.PluginConfig;
@@ -42,7 +42,6 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.interfaces.TariffMessageProcessor;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
@@ -64,7 +63,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TariffMarketService
   implements TariffMarket, BrokerMessageListener,
-    TimeslotPhaseProcessor, TariffMessageProcessor 
+    TimeslotPhaseProcessor 
 {
   static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
 
@@ -93,16 +92,10 @@ public class TariffMarketService
   private HashMap<PowerType, Long> defaultTariff;
 
   // read this from plugin config
-  //PluginConfig configuration
   private int simulationPhase = 2;
   private double tariffPublicationFee = 0.0;
   private double tariffRevocationFee = 0.0;
   private int publicationInterval = 6;
-  
-  // synchronized queue for incoming messages
-  //private List<TariffMessage> incoming;
-  //private boolean running = false;
-  //private Thread incomingProcessor;
   
   /**
    * Default constructor
@@ -118,10 +111,6 @@ public class TariffMarketService
    */
   public void init (PluginConfig config)
   {
-    //incoming.clear();
-    //running = true;
-    //incomingProcessor = new Thread(new IncomingProcessor(this));
-    //incomingProcessor.start();
     defaultTariff = new HashMap<PowerType, Long>();
     brokerProxyService.registerBrokerTariffListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);
@@ -147,15 +136,6 @@ public class TariffMarketService
     else {
       publicationInterval = Integer.parseInt(value);
     }
-  }
-
-  /**
-   * Shuts down the message processing thread.
-   */
-  public void shutDown ()
-  {
-    //running = false;
-    //incomingProcessor.interrupt();
   }
 
   // ----------------- Data access -------------------------
@@ -196,65 +176,30 @@ public class TariffMarketService
   public void receiveMessage (Object msg)
   {
     if (msg != null && msg instanceof TariffMessage) {
-      // dispatch incoming message
-      TariffStatus result = ((TariffMessage)msg).process(this);
-      // return non-null result as msg
+      // dispatch incoming message, using reflection to keep the 
+      // message types clean.
+      TariffMessage message = (TariffMessage)msg;
+      TariffStatus result = null;
+      try {
+        Method target = this.getClass().getDeclaredMethod("processTariff",
+                                                          msg.getClass());
+        result = (TariffStatus)target.invoke(this, message);
+      }
+      catch (NoSuchMethodException nsm) {
+        log.error("Could not find processor for incoming message of type " +
+                  message.getClass().getName());
+        result = new TariffStatus(message.getBroker(), 
+                                  0l, message.getId(),
+                                  TariffStatus.Status.illegalOperation);        
+      }
+      catch (Exception ex) {
+        log.error("Exception calling message processor: " + ex.toString());
+      }
       if (result != null) {
         brokerProxyService.sendMessage(result.getBroker(), result);
       }
     }
-    // queue incoming message
-    //synchronized(incoming) {
-    //  incoming.add((TariffMessage)msg);
-    //  incoming.notifyAll();
-    //}
-  }
-  
-//  private Object retrieveMsg ()
-//  {
-//    Object result = null;
-//    synchronized(incoming) {
-//      while (running && incoming.size() == 0) {
-//        try {
-//          incoming.wait();
-//        }
-//        catch (InterruptedException ie) {          
-//        }
-//      }
-//      if (running) {
-//        result = incoming.remove(0);
-//      }
-//    }
-//    return result;
-//  }
-//  
-//  /**
-//   * Test-support method to wait for the incoming message queue to
-//   * be empty.
-//   */
-//  boolean waitForMsgProcessing ()
-//  {
-//    synchronized(pendingCount) {
-//      while (running && pendingCount > 0) {
-//        try {
-//          pendingCount.wait();
-//        }
-//        catch (InterruptedException ie) {          
-//        }
-//      }
-//    }
-//    return running;
-//  }
-
-  /**
-   * Process a bogus null input.
-   */
-  //@Override
-  //public TariffStatus processTariff (Object junk)
-  //{
-  //  log.error("bogus tariff input ${junk}");
-  //  return null;
-  //}
+  }  
 
   /**
    * Processes a newly-published tariff.
@@ -373,7 +318,6 @@ public class TariffMarketService
   // handle distribution of new tariffs to customers
   public void activate (Instant time, int phase)
   {
-    //processIncoming();
     if (publicationInterval > 24) {
       log.error("tariff publication interval " + publicationInterval + " > 24 hr");
       publicationInterval = 24;
@@ -475,12 +419,6 @@ public class TariffMarketService
     return true;
   }
 
-//  @Override
-//  public List<TariffTransaction> getTransactions ()
-//  {
-//    return null;
-//  }
-
   private TariffStatus success (TariffUpdate update)
   {
     Broker broker = update.getBroker();
@@ -502,13 +440,6 @@ public class TariffMarketService
     return new ValidationResult(tariff, null);
   }
 
-//  @Override
-//  public TariffStatus processTariff (TariffMessage message)
-//  {
-//    log.error("Call to generic processTariff - should not happen");
-//    return new TariffStatus(null, -1l, -1l, TariffStatus.Status.illegalOperation);
-//  }
-
   private class ValidationResult
   {
     Tariff tariff;
@@ -521,27 +452,4 @@ public class TariffMarketService
       this.message = msg;
     }
   }
-  
-//  private class IncomingProcessor implements Runnable
-//  {
-//    TariffMarketService parent;
-//    
-//    IncomingProcessor (TariffMarketService parent)
-//    {
-//      super();
-//      this.parent = parent;
-//    }
-//    
-//    @Override
-//    public void run ()
-//    {
-//      while (running) {
-//        Object msg = retrieveMsg();
-//        synchronized(pendingCount) {
-//          pendingCount -= 1;
-//          pendingCount.notifyAll();
-//        }
-//      }
-//    }
-//  }
 }
