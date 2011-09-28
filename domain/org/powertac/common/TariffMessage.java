@@ -15,8 +15,6 @@
  */
 package org.powertac.common;
 
-import org.powertac.common.interfaces.TariffMessageProcessor;
-import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -51,9 +49,4 @@ public abstract class TariffMessage
   {
     return broker;
   }
-
-  /**
-   * Visitor style processing to get around Java dispatching weakness.
-   */
-  public abstract TariffStatus process (TariffMessageProcessor svc);
 }

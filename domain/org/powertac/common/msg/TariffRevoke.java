@@ -17,7 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.interfaces.TariffMessageProcessor;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -33,11 +32,5 @@ public class TariffRevoke extends TariffUpdate
   public TariffRevoke (Broker broker, TariffSpecification tariff)
   {
     super(broker, tariff);
-  }
-
-  @Override
-  public TariffStatus process (TariffMessageProcessor svc)
-  {
-    return svc.processTariff(this);
   }
 }

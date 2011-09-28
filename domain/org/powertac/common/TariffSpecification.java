@@ -21,11 +21,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.TariffMessageProcessor;
-import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -184,11 +181,5 @@ public class TariffSpecification extends TariffMessage
       supersedes = new ArrayList<Long>();
     supersedes.add(specId);
     return this;
-  }
-
-  @Override
-  public TariffStatus process (TariffMessageProcessor svc)
-  {
-    return svc.processTariff(this);
   }
 }

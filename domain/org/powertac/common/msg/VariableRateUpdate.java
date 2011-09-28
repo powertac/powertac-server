@@ -18,7 +18,6 @@ package org.powertac.common.msg;
 import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
-import org.powertac.common.interfaces.TariffMessageProcessor;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -53,11 +52,5 @@ public class VariableRateUpdate extends TariffUpdate
   public long getRateId ()
   {
     return rateId;
-  }
-
-  @Override
-  public TariffStatus process (TariffMessageProcessor svc)
-  {
-    return svc.processTariff(this);
   }
 }
