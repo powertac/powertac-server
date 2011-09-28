@@ -22,7 +22,6 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.enumerations.MarketTransactionType;
 import org.powertac.common.enumerations.ProductType;
-import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
@@ -101,10 +100,5 @@ public class MarketTransaction extends BrokerTransaction
   public String toString() {
     return ("MktTx-" + timeslot.getSerialNumber() + "-" +
             quantity + "-" + price);
-  }
-
-  public void process (TransactionProcessor svc, List msgs)
-  {
-    svc.processTransaction(this, msgs);
   }
 }

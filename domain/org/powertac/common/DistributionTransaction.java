@@ -19,7 +19,6 @@ package org.powertac.common;
 import java.util.List;
 
 import org.joda.time.Instant;
-import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -69,10 +68,5 @@ public class DistributionTransaction extends BrokerTransaction
   public String toString() {
     return ("Distribution tx " + postedTime.getMillis()/TimeService.HOUR + 
         "-" + quantity + "-" + charge);
-  }
-
-  public void process (TransactionProcessor svc, List msgs)
-  {
-    svc.processTransaction(this, msgs);
   }
 }

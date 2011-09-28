@@ -20,7 +20,6 @@ import java.util.List;
 
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.TariffTransactionType;
-import org.powertac.common.interfaces.TransactionProcessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
@@ -117,10 +116,5 @@ public class TariffTransaction extends BrokerTransaction
     return("TariffTx-customer" + customerInfo.getId() + "-" +
            postedTime.getMillis()/TimeService.HOUR + "-" +
            txType + "-" + quantity + "-" + charge);
-  }
-
-  public void process (TransactionProcessor svc, List msgs)
-  {
-    svc.processTransaction(this, msgs);
   }
 }

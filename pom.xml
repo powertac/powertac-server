@@ -18,11 +18,6 @@
     	<scope>compile</scope>
     </dependency>
     <dependency>
-    	<groupId>com.thoughtworks.xstream</groupId>
-    	<artifactId>xstream</artifactId>
-    	<version>1.4.1</version>
-    </dependency>
-    <dependency>
     	<groupId>org.springframework</groupId>
     	<artifactId>spring-test</artifactId>
     	<version>3.0.5.RELEASE</version>
@@ -56,13 +51,6 @@
     <dependency>
     	<groupId>org.springframework</groupId>
     	<artifactId>spring-core</artifactId>
-    	<version>3.0.6.RELEASE</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.springframework</groupId>
-    	<artifactId>spring-aspects</artifactId>
     	<version>3.0.6.RELEASE</version>
     	<type>jar</type>
     	<scope>compile</scope>
