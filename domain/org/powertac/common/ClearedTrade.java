@@ -52,8 +52,8 @@ public class ClearedTrade
    * relates corresponding domain instances that were created or changed during
    * this transaction. Like this the clearedTradeInstance with transactionId=1
    * can be correlated to shout instances with transactionId=1 in ex-post analysis  */
-  @XStreamAsAttribute
-  private long transactionId;
+  //@XStreamAsAttribute
+  //private long transactionId;
 
   /** clearing price of the trade */
   @XStreamAsAttribute
@@ -69,14 +69,14 @@ public class ClearedTrade
   
   public ClearedTrade (Timeslot timeslot, ProductType product,
                        double executionPrice, double executionQuantity,
-                       long transactionId, Instant dateExecuted)
+                       Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
     this.product = product;
     this.executionPrice = executionPrice;
     this.executionQuantity = executionQuantity;
-    this.transactionId = transactionId;
+    //this.transactionId = transactionId;
     this.dateExecuted = dateExecuted;
   }
 
@@ -95,10 +95,10 @@ public class ClearedTrade
     return product;
   }
 
-  public long getTransactionId ()
-  {
-    return transactionId;
-  }
+  //public long getTransactionId ()
+  //{
+  //  return transactionId;
+  //}
 
   public double getExecutionPrice ()
   {

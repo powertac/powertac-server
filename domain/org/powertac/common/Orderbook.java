@@ -50,8 +50,8 @@ public class Orderbook
    * marks all domain instances in all domain classes that were created or changed
    * during this transaction. Like this the orderbookInstance with transactionId=1
    * can be correlated to shout instances with transactionId=1 in ex-post analysis  */
-  @XStreamAsAttribute
-  private long transactionId;
+  //@XStreamAsAttribute
+  //private long transactionId;
 
   /** the product this orderbook is generated for  */
   @XStreamAsAttribute
@@ -63,7 +63,7 @@ public class Orderbook
 
   /** last clearing price; if there is no last clearing price the min ask (max bid) will be returned*/
   @XStreamAsAttribute
-  private double clearingPrice;
+  private Double clearingPrice;
 
 
   /** sorted set of OrderbookEntries with buySellIndicator = buy (descending)*/
@@ -72,23 +72,20 @@ public class Orderbook
   /** sorted set of OrderbookEntries with buySellIndicator = sell (ascending)*/
   private SortedSet<OrderbookBidAsk> asks = new TreeSet<OrderbookBidAsk>();
 
-  public Orderbook (Timeslot timeslot, long transactionId)
+  public Orderbook (Timeslot timeslot, ProductType product,
+                    Double clearingPrice, Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
-    this.transactionId = transactionId;
+    this.product = product;
+    this.clearingPrice = clearingPrice;
+    this.dateExecuted = dateExecuted;
+    //this.transactionId = transactionId;
   }
   
-  public double getClearingPrice ()
+  public Double getClearingPrice ()
   {
     return clearingPrice;
-  }
-
-  @StateChange
-  public Orderbook withClearingPr (double clearingPrice)
-  {
-    this.clearingPrice = clearingPrice;
-    return this;
   }
 
   public Instant getDateExecuted ()
@@ -96,17 +93,10 @@ public class Orderbook
     return dateExecuted;
   }
 
-  @StateChange
-  public Orderbook withDateExecuted (Instant dateExecuted)
-  {
-    this.dateExecuted = dateExecuted;
-    return this;
-  }
-
-  public long getTransactionId ()
-  {
-    return transactionId;
-  }
+  //public long getTransactionId ()
+  //{
+  //  return transactionId;
+  //}
 
   public ProductType getProduct ()
   {
@@ -140,23 +130,5 @@ public class Orderbook
   {
     asks.add(ask);
     return this;
-  }
-
-  public double determineClearingPrice()
-  {
-    if (this.clearingPrice != 0.0) {
-      return this.clearingPrice;
-    } else {
-      OrderbookBidAsk bestBid = null;
-      OrderbookBidAsk bestAsk = null;
-      if (bids.size() != 0)
-        bestBid = this.bids.first();
-      if (asks.size() != 0)
-        bestAsk = this.asks.first();
-      if (bestBid != null && bestAsk == null) return bestBid.getLimitPrice();
-      if (bestAsk != null && bestBid == null) return bestAsk.getLimitPrice();
-      // what if neither? then who cares?
-      return 0.0;
-    }
   }
 }

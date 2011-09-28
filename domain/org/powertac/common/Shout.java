@@ -51,7 +51,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("shout")
 public class Shout //implements Serializable 
 {
-  @Autowired
+  //@Autowired
   private TimeService timeService;
 
   @XStreamAsAttribute
@@ -80,67 +80,16 @@ public class Shout //implements Serializable
 
   /** the limit price, i.e. the max. acceptable buy or min acceptable sell price */
   @XStreamAsAttribute
-  private double limitPrice;
-
-  /** the last executed quantity (if equal to {@code quantity} the shout is fully executed otherwise it is partially executed */
-  @XStreamAsAttribute
-  private double executionQuantity = 0.0;
-
-  /** the last execution price */
-  @XStreamAsAttribute
-  private double executionPrice = 0.0;
-
-  /** either MARKET or LIMIT order */
-  // not needed - presence of limit price indicates limit order
-  //OrderType orderType = OrderType.MARKET
-
-  /** the simulation time when the original shout instance was first created.
-   * Defaults to current time. */
-  // JEC - do we need this?
-  private Instant dateCreated = timeService.getCurrentTime();
-
-  /** the latest modification time of the shout. Defaults to dateCreated. */
-  // JEC - do we need this?
-  private Instant dateMod = this.dateCreated;
-
-  /** the reason for the latest modification to the shout instance */
-  // JEC - removed - do we need this?
-  //@XStreamAsAttribute
-  //ModReasonCode modReasonCode = ModReasonCode.INSERT;
-
-  /** A transactionId is generated during the execution of the shout 
-   * and marks all domain instances in all domain classes that were 
-   * created or changed during this single transaction 
-   * (e.g. corresponding transactionLog, CashUpdate, or 
-   * MarketPosition instances). Later on this id allows for 
-   * correlation of the different domain class instances during 
-   * ex post analysis*/
-  private long transactionId;
+  private Double limitPrice;
 
   /** optional comment that can be used for example to further 
    * describe why a shout was deleted by system (e.g. during 
    * deactivaton of a timeslot) */
   private String comment;
 
-  // JEC -- do we need this at all?
-  /**
-   * Updates shout instance:
-   * 1) updates the modReasonCode field in the cloned instance to the value provided as method param
-   * 2) keeps the 'dateCreated' property in the cloned instance unchanged
-   * 3) sets 'dateMod' property in the cloned instance to *now* (in simulation time)
-   * 4) (does not) sets 'transactionId' property in the cloned instance to null
-   *
-   * @param newModReasonCode new modReasonCode to use in the cloned shout instance
-   * @return cloned shout instance where the cloned instance is changed as described above
-   */
-  //public Shout initModification(ModReasonCode newModReasonCode) {
-  //  this.dateMod = timeService.currentTime
-  //  this.modReasonCode = newModReasonCode
-  //  return this
-  //}
   public Shout (Broker broker, Timeslot timeslot, 
                 BuySellIndicator buySellIndicator,
-                double quantity, double limitPrice)
+                double quantity, Double limitPrice)
   {
     super();
     this.broker = broker;
@@ -160,52 +109,6 @@ public class Shout //implements Serializable
   public Shout withProduct (ProductType product)
   {
     this.product = product;
-    return this;
-  }
-
-  public double getExecutionQuantity ()
-  {
-    return executionQuantity;
-  }
-
-  @StateChange
-  public void setExecutionQuantity (double executionQuantity)
-  {
-    this.executionQuantity = executionQuantity;
-  }
-
-  public double getExecutionPrice ()
-  {
-    return executionPrice;
-  }
-
-  @StateChange
-  public void setExecutionPrice (double executionPrice)
-  {
-    this.executionPrice = executionPrice;
-  }
-
-  public Instant getDateMod ()
-  {
-    return dateMod;
-  }
-
-  @StateChange
-  public Shout withDateMod (Instant dateMod)
-  {
-    this.dateMod = dateMod;
-    return this;
-  }
-
-  public long getTransactionId ()
-  {
-    return transactionId;
-  }
-
-  @StateChange
-  public Shout withTransactionId (long transactionId)
-  {
-    this.transactionId = transactionId;
     return this;
   }
 
@@ -251,8 +154,8 @@ public class Shout //implements Serializable
     return limitPrice;
   }
 
-  public Instant getDateCreated ()
-  {
-    return dateCreated;
-  }
+  //public Instant getDateCreated ()
+  //{
+  //  return dateCreated;
+  //}
 }
