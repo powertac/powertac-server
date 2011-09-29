@@ -30,7 +30,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +109,7 @@ public class TariffSubscriptionTests
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(3);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 3, 0.0, 0.0);
     assertEquals("3 committed", 3, sub.getCustomersCommitted());
   }
@@ -120,11 +119,11 @@ public class TariffSubscriptionTests
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
     assertEquals("33 committed", 33, sub.getCustomersCommitted());
     sub.unsubscribe(8);
-    verify(mockAccounting, never()).addTariffTransaction(TariffTransactionType.WITHDRAW, 
+    verify(mockAccounting, never()).addTariffTransaction(TariffTransaction.Type.WITHDRAW, 
                                                          tariff, info, 8, 0.0, 0.0);
     assertEquals("25 committed", 25, sub.getCustomersCommitted());
   }
@@ -153,7 +152,7 @@ public class TariffSubscriptionTests
     // subscribe some customers to the original tariff
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
 
     // revoke the original subscription
@@ -176,11 +175,11 @@ public class TariffSubscriptionTests
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
     sub.usePower(330.0);
     ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.CONSUME),
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
                                                 eq(tariff), eq(info), eq(33), eq(330.0), 
                                                 chargeArg.capture());
     assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
@@ -193,16 +192,16 @@ public class TariffSubscriptionTests
     spec.withPeriodicPayment(1.0);
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
     sub.usePower(330.0);
     ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.CONSUME),
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
                                                 eq(tariff), eq(info), eq(33), eq(330.0), 
                                                 chargeArg.capture());
     assertEquals("correct charge", 330.0 * 0.11, chargeArg.getValue(), 1e-6);
     assertEquals("correct total", 10.0, sub.getTotalUsage(), 1e-6);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransactionType.PERIODIC),
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.PERIODIC),
                                                 eq(tariff), eq(info), eq(33), eq(0.0), 
                                                 chargeArg.capture());
     assertEquals("correct periodic charge", 33.0 / 24.0, chargeArg.getValue(), 1e-6);
@@ -213,7 +212,7 @@ public class TariffSubscriptionTests
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 33, 0.0, 0.0);
     assertEquals("no expired customers", 0, sub.getExpiredCustomerCount());
     // move forward 3 days and subscribe some more
@@ -221,7 +220,7 @@ public class TariffSubscriptionTests
     timeService.setCurrentTime(now.plus(TimeService.DAY * 3));
     assertEquals("still no expired customers", 0, sub.getExpiredCustomerCount());
     sub.subscribe(22);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, info, 22, 0.0, 0.0);
     assertEquals("55 subscriptions", 55, sub.getCustomersCommitted());
     // move forward another three days, there should now be 33 expired

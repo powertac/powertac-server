@@ -21,7 +21,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -145,7 +144,7 @@ public class TariffSubscription
       log.debug("signup bonus: " + customerCount + 
                 " customers, total = " + customerCount * tariff.getSignupPayment());
     }
-    accountingService.addTariffTransaction(TariffTransactionType.SIGNUP,
+    accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                            tariff, customer.getCustomerInfo(), 
                                            customerCount, 0.0,
                                            customerCount * tariff.getSignupPayment());
@@ -178,7 +177,7 @@ public class TariffSubscription
     customersCommitted -= customerCount;
     // Post early-withdrawal penalties
     if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
-      accountingService.addTariffTransaction(TariffTransactionType.WITHDRAW,
+      accountingService.addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer.getCustomerInfo(), customerCount, 0.0,
           penaltyCount * tariff.getEarlyWithdrawPayment());
     }
@@ -225,7 +224,7 @@ public class TariffSubscription
       log.error("null customerInfo for customer " + customer.getId());
     }
     // generate the usage transaction
-    TariffTransactionType txType = kWh < 0 ? TariffTransactionType.PRODUCE: TariffTransactionType.CONSUME;
+    TariffTransaction.Type txType = kWh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     accountingService.addTariffTransaction(txType, tariff,
         customer.getCustomerInfo(), customersCommitted, kWh,
         customersCommitted * tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
@@ -237,7 +236,7 @@ public class TariffSubscription
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
       tariff.addPeriodicPayment();
-      accountingService.addTariffTransaction(TariffTransactionType.PERIODIC,
+      accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
           tariff, customer.getCustomerInfo(), customersCommitted, 0.0,
           customersCommitted * tariff.getPeriodicPayment() / 24.0);
     }

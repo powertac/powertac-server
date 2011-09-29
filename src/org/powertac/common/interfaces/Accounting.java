@@ -17,7 +17,6 @@ import org.powertac.common.MarketTransaction;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.TariffTransactionType;
 
 /**
  * Common interface for the PowerTAC accounting service. The accouting service
@@ -46,7 +45,7 @@ public interface Accounting
   /**
    * Adds a tariff transaction to the current-day transaction list.
    */
-  TariffTransaction addTariffTransaction(TariffTransactionType txType,
+  TariffTransaction addTariffTransaction(TariffTransaction.Type txType,
       Tariff tariff, CustomerInfo customer, int customerCount, double kWh,
       double charge);
 
