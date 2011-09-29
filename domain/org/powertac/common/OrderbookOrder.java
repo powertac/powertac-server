@@ -20,12 +20,12 @@ import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * Each instance is an individual entry within an Orderbook.
+ * Each instance is an individual un-cleared entry (a Bid or an Ask) within an Orderbook.
  * @author Daniel Schnurr
  */
 @Domain
 @XStreamAlias("orderbook-bid")
-public class OrderbookBidAsk implements Comparable 
+public class OrderbookOrder implements Comparable 
 {
 
   @XStreamAsAttribute
@@ -34,20 +34,29 @@ public class OrderbookBidAsk implements Comparable
   @XStreamAsAttribute
   private double mWh;
   
-  public OrderbookBidAsk (double limitPrice, double mWh)
+  @XStreamAsAttribute
+  private Shout.OrderType orderType;
+  
+  public OrderbookOrder (Shout.OrderType orderType, double limitPrice, double mWh)
   {
     super();
+    this.orderType = orderType;
     this.limitPrice = limitPrice;
     this.mWh = mWh;
   }
 
   public int compareTo(Object o) {
-    if (!(o instanceof OrderbookBidAsk)) 
+    if (!(o instanceof OrderbookOrder)) 
       return 1;
-    OrderbookBidAsk other = (OrderbookBidAsk) o;
+    OrderbookOrder other = (OrderbookOrder) o;
     return (this.limitPrice == (other.limitPrice) ? 0 : (this.limitPrice < other.limitPrice ? 1 : -1));
   }
 
+  public Shout.OrderType getOrderType ()
+  {
+    return orderType;
+  }
+  
   public double getLimitPrice ()
   {
     return limitPrice;

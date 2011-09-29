@@ -67,10 +67,10 @@ public class Orderbook
 
 
   /** sorted set of OrderbookEntries with buySellIndicator = buy (descending)*/
-  private SortedSet<OrderbookBidAsk> bids = new TreeSet<OrderbookBidAsk>();
+  private SortedSet<OrderbookOrder> bids = new TreeSet<OrderbookOrder>();
 
   /** sorted set of OrderbookEntries with buySellIndicator = sell (ascending)*/
-  private SortedSet<OrderbookBidAsk> asks = new TreeSet<OrderbookBidAsk>();
+  private SortedSet<OrderbookOrder> asks = new TreeSet<OrderbookOrder>();
 
   public Orderbook (Timeslot timeslot, ProductType product,
                     Double clearingPrice, Instant dateExecuted)
@@ -108,25 +108,25 @@ public class Orderbook
     return timeslot;
   }
 
-  public SortedSet<OrderbookBidAsk> getBids ()
+  public SortedSet<OrderbookOrder> getBids ()
   {
     return bids;
   }
   
   @StateChange
-  public Orderbook addBid (OrderbookBidAsk bid)
+  public Orderbook addBid (OrderbookOrder bid)
   {
     bids.add(bid);
     return this;
   }
 
-  public SortedSet<OrderbookBidAsk> getAsks ()
+  public SortedSet<OrderbookOrder> getAsks ()
   {
     return asks;
   }
   
   @StateChange
-  public Orderbook addAsk (OrderbookBidAsk ask)
+  public Orderbook addAsk (OrderbookOrder ask)
   {
     asks.add(ask);
     return this;
