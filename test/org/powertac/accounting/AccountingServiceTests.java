@@ -55,12 +55,10 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
-//import org.powertac.common.*;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -267,7 +265,7 @@ public class AccountingServiceTests
     assertEquals("one signup", 1, consumes.size());
     ttx = (TariffTransaction)consumes.get(0);
     assertNotNull("second ttx not null", ttx);
-    assertEquals("correct amount id 1", 77.0, ttx.getQuantity(), 1e-6);
+    assertEquals("correct amount id 1", 77.0, ttx.getKWh(), 1e-6);
   }
   
   @Test
@@ -311,7 +309,7 @@ public class AccountingServiceTests
     assertEquals("same broker", b1, b2);
     mtx = (MarketTransaction)pending.get(1);
     assertNotNull("second mtx not null", mtx);
-    assertEquals("correct quantity id 1", 0.7, mtx.getQuantity(), 1e-6);
+    assertEquals("correct quantity id 1", 0.7, mtx.getMWh(), 1e-6);
   }
   
   // simple activation
@@ -360,7 +358,7 @@ public class AccountingServiceTests
     });
     MarketTransaction mtx1 = (MarketTransaction)obj;
     assertNotNull("found 1st tx", mtx1);
-    assertEquals("correct quantity", 0.5, mtx1.getQuantity(), 1e-6);
+    assertEquals("correct quantity", 0.5, mtx1.getMWh(), 1e-6);
 
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
