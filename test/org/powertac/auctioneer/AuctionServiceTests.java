@@ -220,7 +220,7 @@ public class AuctionServiceTests
     assertTrue("second is clearedTrade", brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts1, ct.getTimeslot());
-    assertEquals("correct quantity", 1.0, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct quantity", 1.0, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 21.0, ct.getExecutionPrice(), 1e-6);
   }
 
@@ -245,11 +245,15 @@ public class AuctionServiceTests
                  ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
+    assertEquals("correct order type", Shout.OrderType.SELL,
+                 ob.getAsks().first().getOrderType());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
                  ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
+    assertEquals("correct order type", Shout.OrderType.BUY,
+                 ob.getBids().first().getOrderType());
   }
 
   // one ask, one bid, equal qty, different timeslots

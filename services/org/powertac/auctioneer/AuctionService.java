@@ -27,7 +27,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Orderbook;
-import org.powertac.common.OrderbookBidAsk;
+import org.powertac.common.OrderbookOrder;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Shout;
 import org.powertac.common.TimeService;
@@ -253,13 +253,13 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
                                           timeService.getCurrentTime());
       if (bids != null) {
         for (ShoutWrapper shout : bids) {
-          orderbook.addBid(new OrderbookBidAsk(shout.getLimitPrice(),
+          orderbook.addBid(new OrderbookOrder(shout.getOrderType(), shout.getLimitPrice(),
                                                shout.getQuantity() - shout.executionQuantity));
         }
       }
       if (asks != null) {
         for (ShoutWrapper shout : asks) {
-          orderbook.addAsk(new OrderbookBidAsk(shout.getLimitPrice(),
+          orderbook.addAsk(new OrderbookOrder(shout.getOrderType(), shout.getLimitPrice(),
                                                shout.getQuantity() - shout.executionQuantity));
         }
       }
