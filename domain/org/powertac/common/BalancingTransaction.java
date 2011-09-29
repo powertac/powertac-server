@@ -39,7 +39,7 @@ public class BalancingTransaction extends BrokerTransaction
    * negative for deficit
    */
   @XStreamAsAttribute
-  private double quantity = 0.0;
+  private double kWh = 0.0;
   
   /** The total charge imposed by the DU for this imbalance --
    *  positive for credit to broker, negative for debit from broker */
@@ -47,16 +47,22 @@ public class BalancingTransaction extends BrokerTransaction
   private double charge = 0.0;
   
   public BalancingTransaction (Broker broker, Instant when, 
-                               double quantity, double charge)
+                               double kWh, double charge)
   {
     super(when, broker);
-    this.quantity = quantity;
+    this.kWh = kWh;
     this.charge = charge;
   }
 
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return kWh;
+  }
+  
+  public double getKWh ()
+  {
+    return kWh;
   }
 
   public double getCharge ()
@@ -66,6 +72,6 @@ public class BalancingTransaction extends BrokerTransaction
 
   public String toString() {
     return ("Balance tx " + postedTime.getMillis()/TimeService.HOUR +
-            "-" + broker.getUsername() + "-" + quantity + "-" + charge);
+            "-" + broker.getUsername() + "-" + kWh + "-" + charge);
   }
 }

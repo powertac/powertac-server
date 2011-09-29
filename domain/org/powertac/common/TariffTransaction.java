@@ -27,8 +27,8 @@ import org.powertac.common.xml.TariffSpecificationConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * A {@code TariffTransaction} instance represents the quantity of energy consumed
- * ({@code quantity < 0}) or produced {@code quantity > 0} by some members of a 
+ * A {@code TariffTransaction} instance represents the kWh of energy consumed
+ * ({@code kWh < 0}) or produced {@code kWh > 0} by some members of a 
  * specific customer model, in a specific timeslot, under a particular tariff.
  * Note that this is an immutable type, and therefore is not auditable. Instances
  * are created by the TariffMarket and communicated to brokers to represent customer
@@ -52,11 +52,11 @@ public class TariffTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private int customerCount = 0;
 
-  /** The total quantity of energy consumed (> 0) or produced (< 0) in kWh.
+  /** The total kWh of energy consumed (> 0) or produced (< 0) in kWh.
    *  Note that this is not per-individual in a population model, but rather
    *  aggregate usage by customerCount individuals. */
   @XStreamAsAttribute
-  private double quantity = 0.0;
+  private double kWh = 0.0;
 
   /** The total charge for this reading, according to the tariff:
    *  positive for credit to broker, negative for debit from broker */
@@ -71,14 +71,14 @@ public class TariffTransaction extends BrokerTransaction
                             TariffSpecification spec, 
                             CustomerInfo customer,
                             int customerCount,
-                            double quantity, double charge)
+                            double kWh, double charge)
   {
     super(when, broker);
     this.txType = txType;
     this.tariffSpec = spec;
     this.customerInfo = customer;
     this.customerCount = customerCount;
-    this.quantity = quantity;
+    this.kWh = kWh;
     this.charge = charge;
   }
 
@@ -97,9 +97,15 @@ public class TariffTransaction extends BrokerTransaction
     return customerCount;
   }
 
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return kWh;
+  }
+
+  public double getKWh ()
+  {
+    return kWh;
   }
 
   public double getCharge ()
@@ -115,6 +121,6 @@ public class TariffTransaction extends BrokerTransaction
   public String toString() {
     return("TariffTx-customer" + customerInfo.getId() + "-" +
            postedTime.getMillis()/TimeService.HOUR + "-" +
-           txType + "-" + quantity + "-" + charge);
+           txType + "-" + kWh + "-" + charge);
   }
 }

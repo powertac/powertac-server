@@ -74,9 +74,9 @@ public class Shout //implements Serializable
   @XStreamAsAttribute
   private BuySellIndicator buySellIndicator;
 
-  /** the product quantity to buy or sell */
+  /** the product quantity in mWh to buy or sell */
   @XStreamAsAttribute
-  private double quantity;
+  private double mWh;
 
   /** the limit price, i.e. the max. acceptable buy or min acceptable sell price */
   @XStreamAsAttribute
@@ -89,13 +89,13 @@ public class Shout //implements Serializable
 
   public Shout (Broker broker, Timeslot timeslot, 
                 BuySellIndicator buySellIndicator,
-                double quantity, Double limitPrice)
+                double mWh, Double limitPrice)
   {
     super();
     this.broker = broker;
     this.timeslot = timeslot;
     this.buySellIndicator = buySellIndicator;
-    this.quantity = quantity;
+    this.mWh = mWh;
     this.limitPrice = limitPrice;
   }
 
@@ -144,18 +144,19 @@ public class Shout //implements Serializable
     return buySellIndicator;
   }
 
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return mWh;
+  }
+
+  public double getMWh ()
+  {
+    return mWh;
   }
 
   public double getLimitPrice ()
   {
     return limitPrice;
   }
-
-  //public Instant getDateCreated ()
-  //{
-  //  return dateCreated;
-  //}
 }

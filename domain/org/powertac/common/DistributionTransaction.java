@@ -26,7 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
 /**
  * A {@code DistributionTransaction} instance represents the fee assessed
  * by the Distribution Utility for transport of energy over its facilities
- * during the current timeslot. The quantity is the total energy delivered,
+ * during the current timeslot. The kWh is the total energy delivered,
  * which is the sum of the positive net load of the broker's customers, and 
  * the positive net export of energy through the wholesale market. Negative
  * values are ignored.
@@ -37,10 +37,10 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("distribution-tx")
 public class DistributionTransaction extends BrokerTransaction
 {
-  /** The total positive amount of energy transported by the in kWH.
+  /** The total positive amount of energy transported in kWh.
    */
   @XStreamAsAttribute
-  private double quantity = 0.0;
+  private double kWh = 0.0;
   
   /** The total charge imposed by the DU for this transport. Since this
    * is a debit, it will always be negative. */
@@ -48,16 +48,22 @@ public class DistributionTransaction extends BrokerTransaction
   private double charge = 0.0;
 
   public DistributionTransaction (Broker broker, Instant when, 
-                                  double quantity, double charge)
+                                  double kwh, double charge)
   {
     super(when, broker);
-    this.quantity = quantity;
+    this.kWh = kwh;
     this.charge = charge;
   }
-
+  
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return kWh;
+  }
+
+  public double getKWh ()
+  {
+    return kWh;
   }
 
   public double getCharge ()
@@ -67,6 +73,6 @@ public class DistributionTransaction extends BrokerTransaction
 
   public String toString() {
     return ("Distribution tx " + postedTime.getMillis()/TimeService.HOUR + 
-        "-" + quantity + "-" + charge);
+        "-" + kWh + "-" + charge);
   }
 }

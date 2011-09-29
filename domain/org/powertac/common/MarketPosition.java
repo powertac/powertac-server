@@ -51,8 +51,8 @@ public class MarketPosition //implements Serializable
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
   
-  /** The running total position the broker owns (> 0) / owes (< 0) of the specified
-   *  product in the specified timeslot */
+  /** The running total position in mWh the broker owns (> 0) / owes (< 0)
+   * of the specified product in the specified timeslot */
   @XStreamAlias("bal")
   @XStreamAsAttribute
   double overallBalance = 0.0;

@@ -16,13 +16,8 @@
 
 package org.powertac.common;
 
-import java.util.List;
-
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.BuySellIndicator;
-import org.powertac.common.enumerations.MarketTransactionType;
 import org.powertac.common.enumerations.ProductType;
-import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
@@ -31,9 +26,9 @@ import com.thoughtworks.xstream.annotations.*;
  * A MarketTransaction instance represents data commonly
  * referred to as trade and quote data (TAQ) in financial markets (stock exchanges).
  * One domain instance can (i) represent a trade that happened on the market
- * (price, quantity tuple and - in case of CDA markets - buyer and seller) or (ii)
+ * (price, mWh tuple and - in case of CDA markets - buyer and seller) or (ii)
  * a quote (which occurs if an order was entered into the system that changed the best
- * bid and/or best ask price / quantity but did not causing a clearing / trade). These
+ * bid and/or best ask price / mWh but did not causing a clearing / trade). These
  * are created by the market, used by Accounting to update broker accounts, and then
  * forwarded to brokers.
  *<p>
@@ -59,9 +54,9 @@ public class MarketTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private double price;
 
-  /** quantity of trade in mWh, positive for buy, negative for sell */
+  /** mWh of trade in mWh, positive for buy, negative for sell */
   @XStreamAsAttribute
-  private double quantity;
+  private double mWh;
   
   /** the timeslot for which this trade or quote information is created */
   @XStreamAsAttribute
@@ -69,12 +64,12 @@ public class MarketTransaction extends BrokerTransaction
   private Timeslot timeslot;
   
   public MarketTransaction (Broker broker, Instant when, 
-                            Timeslot timeslot, double price, double quantity)
+                            Timeslot timeslot, double price, double mWh)
   {
     super(when, broker);
     this.timeslot = timeslot;
     this.price = price;
-    this.quantity = quantity;
+    this.mWh = mWh;
   }
 
   public ProductType getProduct ()
@@ -87,9 +82,15 @@ public class MarketTransaction extends BrokerTransaction
     return price;
   }
 
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return mWh;
+  }
+
+  public double getMWh ()
+  {
+    return mWh;
   }
 
   public Timeslot getTimeslot ()
@@ -99,6 +100,6 @@ public class MarketTransaction extends BrokerTransaction
 
   public String toString() {
     return ("MktTx-" + timeslot.getSerialNumber() + "-" +
-            quantity + "-" + price);
+            mWh + "-" + price);
   }
 }

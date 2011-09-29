@@ -59,23 +59,23 @@ public class ClearedTrade
   @XStreamAsAttribute
   private double executionPrice;
 
-  /** traded quantity of the specified product */
+  /** traded quantity in mWh of the specified product */
   @XStreamAsAttribute
-  private double executionQuantity;
+  private double executionMWh;
 
   /** point in time when cleared Trade object was created */
   @XStreamAsAttribute
   private Instant dateExecuted;
   
   public ClearedTrade (Timeslot timeslot, ProductType product,
-                       double executionPrice, double executionQuantity,
+                       double executionPrice, double executionMWh,
                        Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
     this.product = product;
     this.executionPrice = executionPrice;
-    this.executionQuantity = executionQuantity;
+    this.executionMWh = executionMWh;
     //this.transactionId = transactionId;
     this.dateExecuted = dateExecuted;
   }
@@ -105,9 +105,15 @@ public class ClearedTrade
     return executionPrice;
   }
 
+  @Deprecated
   public double getExecutionQuantity ()
   {
-    return executionQuantity;
+    return executionMWh;
+  }
+
+  public double getExecutionMWh ()
+  {
+    return executionMWh;
   }
 
   public Instant getDateExecuted ()

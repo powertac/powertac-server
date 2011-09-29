@@ -33,13 +33,13 @@ public class OrderbookBidAsk implements Comparable
   private double limitPrice;
 
   @XStreamAsAttribute
-  private double quantity;
+  private double mWh;
   
-  public OrderbookBidAsk (double limitPrice, double quantity)
+  public OrderbookBidAsk (double limitPrice, double mWh)
   {
     super();
     this.limitPrice = limitPrice;
-    this.quantity = quantity;
+    this.mWh = mWh;
   }
 
   public int compareTo(Object o) {
@@ -54,8 +54,14 @@ public class OrderbookBidAsk implements Comparable
     return limitPrice;
   }
 
+  @Deprecated
   public double getQuantity ()
   {
-    return quantity;
+    return mWh;
+  }
+
+  public double getMWh ()
+  {
+    return mWh;
   }
 }
