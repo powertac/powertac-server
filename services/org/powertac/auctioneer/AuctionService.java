@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * This is the wholesale day-ahead market. Energy is traded in future timeslots by
  * submitting Shouts representing bids and asks. Each specifies a price (minimum price
- * for asks, maximum price for bids) and a quantity. Once during each timeslot, the
+ * for asks, maximum price for bids) and a quantity in mWh. Once during each timeslot, the
  * market is cleared by matching bids with asks such that the bid price is no lower than
  * the ask price, and allocating quantities, until no matching bids or asks are
  * available. In general, the last matched bid will have a higher price than the last
@@ -211,7 +211,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
       // we have bids and/or asks to match up
       double bidPrice = 0.0;
       double askPrice = 0.0;
-      double totalQty = 0.0;
+      double totalMWh = 0.0;
       ArrayList<PendingTrade> pendingTrades = new ArrayList<PendingTrade>();
       while (bids != null && bids.size() > 0 && 
              asks != null && asks.size() > 0 &&
@@ -222,30 +222,30 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
         ShoutWrapper ask = asks.first();
         askPrice = ask.getLimitPrice();
         // amount to transfer is minimum of remaining bid qty and remaining ask qty
-        log.debug("ask: " + ask.executionQuantity + " used out of " + ask.getQuantity() +
-                  "; bid: " + bid.executionQuantity + " used out of " + bid.getQuantity());
-        double transfer = Math.min(bid.getQuantity() - bid.executionQuantity,
-                                   ask.getQuantity() - ask.executionQuantity);
+        log.debug("ask: " + ask.executionMWh + " used out of " + ask.getMWh() +
+                  "; bid: " + bid.executionMWh + " used out of " + bid.getMWh());
+        double transfer = Math.min(bid.getMWh() - bid.executionMWh,
+                                   ask.getMWh() - ask.executionMWh);
         if (transfer > 0.0) {
           log.debug("transfer " + transfer + " from " + 
                     ask.getBroker().getUsername() + " at " + askPrice + " to " +
                     bid.getBroker().getUsername() + " at " + bidPrice);
-          totalQty += transfer;
+          totalMWh += transfer;
           pendingTrades.add(new PendingTrade(ask.getBroker(), bid.getBroker(), transfer));
-          bid.executionQuantity += transfer;
-          ask.executionQuantity += transfer;
+          bid.executionMWh += transfer;
+          ask.executionMWh += transfer;
         }
-        if (bid.getQuantity() - bid.executionQuantity <= 0.0)
+        if (bid.getMWh() - bid.executionMWh <= 0.0)
           bids.remove(bid);
-        if (ask.getQuantity() - ask.executionQuantity <= 0.0)
+        if (ask.getMWh() - ask.executionMWh <= 0.0)
           asks.remove(ask);
       }
       double clearingPrice = askPrice + sellerSurplusRatio * (bidPrice - askPrice);
       for (PendingTrade trade : pendingTrades) {
         accountingService.addMarketTransaction(trade.from, timeslot,
-                                               clearingPrice, trade.quantity);
+                                               clearingPrice, trade.mWh);
         accountingService.addMarketTransaction(trade.to, timeslot,
-                                               clearingPrice, trade.quantity);
+                                               clearingPrice, trade.mWh);
       }
       // create the orderbook and cleared-trade, send to brokers
       Orderbook orderbook = new Orderbook(timeslot, ProductType.Future,
@@ -255,19 +255,19 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
       if (bids != null) {
         for (ShoutWrapper shout : bids) {
           orderbook.addBid(new OrderbookBidAsk(shout.getLimitPrice(),
-                                               shout.getQuantity() - shout.executionQuantity));
+                                               shout.getMWh() - shout.executionMWh));
         }
       }
       if (asks != null) {
         for (ShoutWrapper shout : asks) {
           orderbook.addAsk(new OrderbookBidAsk(shout.getLimitPrice(),
-                                               shout.getQuantity() - shout.executionQuantity));
+                                               shout.getMWh() - shout.executionMWh));
         }
       }
       brokerProxyService.broadcastMessage(orderbook);
-      if (totalQty > 0.0) {
+      if (totalMWh > 0.0) {
         ClearedTrade trade = new ClearedTrade(timeslot, ProductType.Future,
-                                              clearingPrice, totalQty,
+                                              clearingPrice, totalMWh,
                                               timeService.getCurrentTime());
         brokerProxyService.broadcastMessage(trade);
       }
@@ -296,21 +296,21 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   {
     Broker from;
     Broker to;
-    double quantity;
+    double mWh;
     
-    PendingTrade (Broker from, Broker to, double quantity)
+    PendingTrade (Broker from, Broker to, double mWh)
     {
       super();
       this.from = from;
       this.to = to;
-      this.quantity = quantity;
+      this.mWh = mWh;
     }
   }
   
   class ShoutWrapper
   {
     Shout shout;
-    double executionQuantity = 0.0;
+    double executionMWh = 0.0;
     
     ShoutWrapper(Shout shout)
     {
@@ -329,9 +329,9 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
       return shout.getLimitPrice();
     }
     
-    double getQuantity ()
+    double getMWh ()
     {
-      return shout.getQuantity();
+      return shout.getMWh();
     }
     
     Timeslot getTimeslot ()

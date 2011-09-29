@@ -29,13 +29,11 @@ import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
@@ -204,12 +202,12 @@ public class AuctionServiceTests
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 21.0, (Double)args[2], 1e-6);
-    assertEquals("quantity", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
     args = accountingArgs.get(1);
     assertEquals("b1", b1, args[0]);
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 21.0, (Double)args[2], 1e-6);
-    assertEquals("quantity", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
     assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
@@ -221,7 +219,7 @@ public class AuctionServiceTests
     assertTrue("second is clearedTrade", brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts1, ct.getTimeslot());
-    assertEquals("correct quantity", 1.0, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct mWh", 1.0, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 21.0, ct.getExecutionPrice(), 1e-6);
   }
 
@@ -243,12 +241,12 @@ public class AuctionServiceTests
     assertNull("null clearing price", ob.getClearingPrice());
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
   }
@@ -273,7 +271,7 @@ public class AuctionServiceTests
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("no uncleared bids", 0, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
 
@@ -284,7 +282,7 @@ public class AuctionServiceTests
     assertEquals("no uncleared asks", 0, ob.getAsks().size());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
   }
@@ -307,25 +305,25 @@ public class AuctionServiceTests
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(1);
     assertEquals("b2", b2, args[0]); // b2 had the higher bid price
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(2);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.4, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.4, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(3);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts1", ts1, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.4, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.4, (Double)args[3], 1e-6);
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
     assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
@@ -333,7 +331,7 @@ public class AuctionServiceTests
     assertEquals("no uncleared asks", 0, ob.getAsks().size());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 0.2,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
     assertEquals("correct timeslot", ts1, ob.getTimeslot());
@@ -343,7 +341,7 @@ public class AuctionServiceTests
                brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts1, ct.getTimeslot());
-    assertEquals("correct quantity", 1.0, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct mWh", 1.0, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 20.5, ct.getExecutionPrice(), 1e-6);
   }
   
@@ -369,37 +367,37 @@ public class AuctionServiceTests
     assertEquals("s1", s1, args[0]);
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(1);
     assertEquals("b2", b2, args[0]); // b2 had the higher bid price
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(2);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.3, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.3, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(3);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 0.3, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.3, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(4);
     assertEquals("s2", s2, args[0]);
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(5);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts2", ts2, args[1]);
     assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("quantity", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
 
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
@@ -409,12 +407,12 @@ public class AuctionServiceTests
     assertEquals("correct clearing", 20.5, ob.getClearingPrice(), 1e-6);
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.5,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 0.1,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
 
@@ -422,7 +420,7 @@ public class AuctionServiceTests
                brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts2, ct.getTimeslot());
-    assertEquals("correct quantity", 1.9, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct mWh", 1.9, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 20.5, ct.getExecutionPrice(), 1e-6);
   }
 }
