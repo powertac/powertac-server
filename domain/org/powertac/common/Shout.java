@@ -16,16 +16,12 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.enumerations.BuySellIndicator;
-//import org.powertac.common.enumerations.ModReasonCode;
-import org.powertac.common.enumerations.OrderType;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -51,9 +47,6 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("shout")
 public class Shout //implements Serializable 
 {
-  //@Autowired
-  private TimeService timeService;
-
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 

@@ -16,10 +16,8 @@
 
 package org.powertac.common;
 
-import java.util.List;
 
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
@@ -40,9 +38,11 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {
+  public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE }
+  
   /** Purpose of this transaction */
   @XStreamAsAttribute
-  private TariffTransactionType txType = TariffTransactionType.CONSUME;
+  private Type txType = Type.CONSUME;
 
   /** The customerInfo or more precisely his meter that is being read */
   @XStreamConverter(CustomerConverter.class)
@@ -67,7 +67,7 @@ public class TariffTransaction extends BrokerTransaction
   private TariffSpecification tariffSpec;
   
   public TariffTransaction (Broker broker, Instant when, 
-                            TariffTransactionType txType,
+                            Type txType,
                             TariffSpecification spec, 
                             CustomerInfo customer,
                             int customerCount,
@@ -82,7 +82,7 @@ public class TariffTransaction extends BrokerTransaction
     this.charge = charge;
   }
 
-  public TariffTransactionType getTxType ()
+  public Type getTxType ()
   {
     return txType;
   }
