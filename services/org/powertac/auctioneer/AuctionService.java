@@ -32,7 +32,6 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.Shout;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
@@ -191,7 +190,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
     sortedAsks = new HashMap<Timeslot, TreeSet<ShoutWrapper>>();
     sortedBids = new HashMap<Timeslot, TreeSet<ShoutWrapper>>();
     for (ShoutWrapper sw : shouts) {
-      if (sw.shout.getBuySellIndicator() == BuySellIndicator.BUY)
+      if (sw.shout.getOrderType() == Shout.OrderType.BUY)
         addBid(sw);
       else
         addAsk(sw);
@@ -339,9 +338,9 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
       return shout.getTimeslot();
     }
     
-    BuySellIndicator getBuySellIndicator ()
+    Shout.OrderType getOrderType()
     {
-      return shout.getBuySellIndicator();
+      return shout.getOrderType();
     }
   }
   
@@ -351,7 +350,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
     
     public int compare (ShoutWrapper shout0, ShoutWrapper shout1)
     {
-      if (shout0.getBuySellIndicator() == BuySellIndicator.BUY)
+      if (shout0.getOrderType() == Shout.OrderType.BUY)
         return (int)(mult * (shout1.getLimitPrice() - shout0.getLimitPrice()));
       else
         return (int)(mult * (shout0.getLimitPrice() - shout1.getLimitPrice()));

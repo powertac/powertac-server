@@ -25,7 +25,6 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.Shout;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
@@ -172,7 +171,7 @@ public class AuctionServiceTests
     svc.receiveMessage(bogus);
     assertEquals("nothing received", 0, svc.getIncoming().size());
     // try a good one
-    Shout good = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout good = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(good);
     assertEquals("one shout received", 1, svc.getIncoming().size());
   }
@@ -180,10 +179,10 @@ public class AuctionServiceTests
   @Test
   public void testValidateShout ()
   {
-    Shout bogus= new Shout(b1, ts0, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout bogus= new Shout(b1, ts0, Shout.OrderType.BUY, 1.0, 22.0);
     assertFalse("ts0 not enabled", ts0.isEnabled());
     assertFalse("current timeslot not valid", svc.validateShout(bogus));
-    Shout good = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout good = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     assertTrue("ts1 enabled", ts1.isEnabled());
     assertTrue("next timeslot valid", svc.validateShout(good));
   }
@@ -192,8 +191,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1 ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout buy = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout buy = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -229,8 +228,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_no ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 23.0);
-    Shout buy = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 23.0);
+    Shout buy = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -243,12 +242,12 @@ public class AuctionServiceTests
     assertNull("null clearing price", ob.getClearingPrice());
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
   }
@@ -257,8 +256,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_ts ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 23.0);
-    Shout buy = new Shout(b1, ts2, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 23.0);
+    Shout buy = new Shout(b1, ts2, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -273,7 +272,7 @@ public class AuctionServiceTests
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("no uncleared bids", 0, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
 
@@ -284,7 +283,7 @@ public class AuctionServiceTests
     assertEquals("no uncleared asks", 0, ob.getAsks().size());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
   }
@@ -293,9 +292,9 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_2_tradeable ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout buy1 = new Shout(b1, ts1, BuySellIndicator.BUY, 0.6, 21.0);
-    Shout buy2 = new Shout(b2, ts1, BuySellIndicator.BUY, 0.6, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout buy1 = new Shout(b1, ts1, Shout.OrderType.BUY, 0.6, 21.0);
+    Shout buy2 = new Shout(b2, ts1, Shout.OrderType.BUY, 0.6, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy1);
     svc.receiveMessage(buy2);
@@ -333,7 +332,7 @@ public class AuctionServiceTests
     assertEquals("no uncleared asks", 0, ob.getAsks().size());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 0.2,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
     assertEquals("correct timeslot", ts1, ob.getTimeslot());
@@ -343,7 +342,7 @@ public class AuctionServiceTests
                brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts1, ct.getTimeslot());
-    assertEquals("correct quantity", 1.0, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct quantity", 1.0, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 20.5, ct.getExecutionPrice(), 1e-6);
   }
   
@@ -351,11 +350,11 @@ public class AuctionServiceTests
   @Test
   public void testActivate2_2_tradeable ()
   {
-    Shout sell1 = new Shout(s1, ts2, BuySellIndicator.SELL, 0.9, 18.0);
-    Shout sell2 = new Shout(s2, ts2, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout sell3 = new Shout(s2, ts2, BuySellIndicator.SELL, 1.0, 21.5);
-    Shout buy1 = new Shout(b1, ts2, BuySellIndicator.BUY, 1.4, 21.0);
-    Shout buy2 = new Shout(b2, ts2, BuySellIndicator.BUY, 0.6, 22.0);
+    Shout sell1 = new Shout(s1, ts2, Shout.OrderType.SELL, 0.9, 18.0);
+    Shout sell2 = new Shout(s2, ts2, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout sell3 = new Shout(s2, ts2, Shout.OrderType.SELL, 1.0, 21.5);
+    Shout buy1 = new Shout(b1, ts2, Shout.OrderType.BUY, 1.4, 21.0);
+    Shout buy2 = new Shout(b2, ts2, Shout.OrderType.BUY, 0.6, 22.0);
     svc.receiveMessage(sell1);
     svc.receiveMessage(sell2);
     svc.receiveMessage(sell3);
@@ -409,12 +408,12 @@ public class AuctionServiceTests
     assertEquals("correct clearing", 20.5, ob.getClearingPrice(), 1e-6);
     assertEquals("one uncleared ask", 1, ob.getAsks().size());
     assertEquals("correct qty", 1.0,
-                 ob.getAsks().first().getQuantity(), 1e-6);
+                 ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.5,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 0.1,
-                 ob.getBids().first().getQuantity(), 1e-6);
+                 ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 21.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
 
@@ -422,7 +421,7 @@ public class AuctionServiceTests
                brokerMsgs.get(1) instanceof ClearedTrade);
     ClearedTrade ct = (ClearedTrade)brokerMsgs.get(1);
     assertEquals("correct timeslot", ts2, ct.getTimeslot());
-    assertEquals("correct quantity", 1.9, ct.getExecutionQuantity(), 1e-6);
+    assertEquals("correct quantity", 1.9, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 20.5, ct.getExecutionPrice(), 1e-6);
   }
 }
