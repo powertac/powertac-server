@@ -20,19 +20,15 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.enumerations.TariffTransactionType;
-import org.powertac.common.exceptions.*;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.*;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -119,38 +115,38 @@ public class AccountingService
                        Tariff tariff,
                        CustomerInfo customer,
                        int customerCount,
-                       double quantity,
+                       double kWh,
                        double charge) 
   {
     TariffTransaction ttx = new TariffTransaction(tariff.getBroker(),
                                                   timeService.getCurrentTime(), txType, 
                                                   tariffRepo.findSpecificationById(tariff.getSpecId()),
                                                   customer, customerCount,
-                                                  quantity, charge);
+                                                  kWh, charge);
     pendingTransactions.add(ttx);
     return ttx;
   }
 
   public synchronized DistributionTransaction 
   addDistributionTransaction(Broker broker,
-                             double quantity,
+                             double kWh,
                              double charge) 
   {
     DistributionTransaction dtx = new DistributionTransaction(broker, 
                                                               timeService.getCurrentTime(), 
-                                                              quantity, charge);
+                                                              kWh, charge);
     pendingTransactions.add(dtx);
     return dtx;
   }
 
   public synchronized BalancingTransaction 
   addBalancingTransaction(Broker broker,
-                          double quantity,
+                          double kWh,
                           double charge) 
   {
     BalancingTransaction btx = new BalancingTransaction(broker,
                                                         timeService.getCurrentTime(),
-                                                        quantity, charge);
+                                                        kWh, charge);
     pendingTransactions.add(btx);
     return btx;
   }
@@ -166,7 +162,7 @@ public class AccountingService
         if (ttx.getBroker().getUsername() == broker.getUsername()) {
           if (ttx.getTxType() == TariffTransactionType.CONSUME ||
               ttx.getTxType() == TariffTransactionType.PRODUCE) {
-            netLoad += ttx.getQuantity();
+            netLoad += ttx.getKWh();
           }
         }
       }
