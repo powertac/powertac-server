@@ -41,13 +41,13 @@ public interface Accounting
    * commitment for a specific timeslot.
    */
   MarketTransaction addMarketTransaction(Broker broker, Timeslot timeslot,
-      double price, double quantity);
+      double price, double mWh);
 
   /**
    * Adds a tariff transaction to the current-day transaction list.
    */
   TariffTransaction addTariffTransaction(TariffTransactionType txType,
-      Tariff tariff, CustomerInfo customer, int customerCount, double amount,
+      Tariff tariff, CustomerInfo customer, int customerCount, double kWh,
       double charge);
 
   /**

@@ -219,21 +219,21 @@ public class TariffSubscription
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
    */
-  public void usePower (double quantity)
+  public void usePower (double kWh)
   {
     if (customer.getCustomerInfo() == null) {
       log.error("null customerInfo for customer " + customer.getId());
     }
     // generate the usage transaction
-    TariffTransactionType txType = quantity < 0 ? TariffTransactionType.PRODUCE: TariffTransactionType.CONSUME;
+    TariffTransactionType txType = kWh < 0 ? TariffTransactionType.PRODUCE: TariffTransactionType.CONSUME;
     accountingService.addTariffTransaction(txType, tariff,
-        customer.getCustomerInfo(), customersCommitted, quantity,
-        customersCommitted * tariff.getUsageCharge(quantity / customersCommitted, totalUsage, true));
+        customer.getCustomerInfo(), customersCommitted, kWh,
+        customersCommitted * tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
     if (timeService.getHourOfDay() == 0) {
       //reset the daily usage counter
       totalUsage = 0.0;
     }
-    totalUsage += quantity / customersCommitted;
+    totalUsage += kWh / customersCommitted;
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
       tariff.addPeriodicPayment();
