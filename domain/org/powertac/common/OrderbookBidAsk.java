@@ -15,7 +15,6 @@
  */
 package org.powertac.common;
 
-import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -54,6 +53,9 @@ public class OrderbookBidAsk implements Comparable
     return limitPrice;
   }
 
+  /**
+   * @deprecated Use {@link getMWh()} instead.
+   */
   @Deprecated
   public double getQuantity ()
   {
