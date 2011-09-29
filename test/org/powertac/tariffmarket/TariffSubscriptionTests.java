@@ -39,9 +39,7 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
-import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -122,7 +120,7 @@ public class TariffSubscriptionTests
       tariffMarketService.subscribeToTariff(tariff, customer, 5);
     assertNotNull("non-null subscription", tsub);
     assertEquals("five customers committed", 5, tsub.getCustomersCommitted());
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.SIGNUP,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer.getCustomerInfo(),
                                                 5, 0.0, -33.2 * 5);
   }
@@ -148,7 +146,7 @@ public class TariffSubscriptionTests
     Instant wk2 = now.plus(TimeService.WEEK * 2);
     timeService.setCurrentTime(wk2);
     tsub.unsubscribe(2);
-    verify(mockAccounting).addTariffTransaction(TariffTransactionType.WITHDRAW,
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.WITHDRAW,
                                                 tariff, customer.getCustomerInfo(),
                                                 2, 0.0, 42.1*2);
     //def txs = TariffTransaction.findAllByPostedTime(wk2)

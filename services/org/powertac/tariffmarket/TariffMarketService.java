@@ -35,7 +35,6 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -212,7 +211,7 @@ public class TariffMarketService
     tariff.init();
     log.info("new tariff " + spec.getId());
     TariffTransaction pub =
-      accountingService.addTariffTransaction(TariffTransactionType.PUBLISH,
+      accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
                                              tariff, null, 0, 0.0, tariffPublicationFee);
     return new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.success);
@@ -275,7 +274,7 @@ public class TariffMarketService
       // check whether there are any remaining active subscriptions
       if (activeSubscriptions.size() > 0) {
         log.info("Revoked tariff has " + activeSubscriptions.size() + " active subscriptions");
-        accountingService.addTariffTransaction(TariffTransactionType.REVOKE,
+        accountingService.addTariffTransaction(TariffTransaction.Type.REVOKE,
                                                result.tariff, null, 0, 0.0,
                                                tariffRevocationFee);
       }

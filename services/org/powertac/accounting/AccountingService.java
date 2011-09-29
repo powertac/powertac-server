@@ -24,7 +24,6 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.*;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
@@ -111,7 +110,7 @@ public class AccountingService
   }
 
   public synchronized TariffTransaction 
-  addTariffTransaction(TariffTransactionType txType,
+  addTariffTransaction(TariffTransaction.Type txType,
                        Tariff tariff,
                        CustomerInfo customer,
                        int customerCount,
@@ -160,8 +159,8 @@ public class AccountingService
       if (btx instanceof TariffTransaction) {
         TariffTransaction ttx = (TariffTransaction)btx;
         if (ttx.getBroker().getUsername() == broker.getUsername()) {
-          if (ttx.getTxType() == TariffTransactionType.CONSUME ||
-              ttx.getTxType() == TariffTransactionType.PRODUCE) {
+          if (ttx.getTxType() == TariffTransaction.Type.CONSUME ||
+              ttx.getTxType() == TariffTransaction.Type.PRODUCE) {
             netLoad += ttx.getKWh();
           }
         }

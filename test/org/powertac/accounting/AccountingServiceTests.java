@@ -52,7 +52,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.repo.BrokerRepo;
@@ -235,9 +234,9 @@ public class AccountingServiceTests
   public void testTariffTransaction ()
   {
     initializeService();
-    accountingService.addTariffTransaction(TariffTransactionType.SIGNUP,
+    accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
       tariffB1, customerInfo1, 2, 0.0, 42.1);
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffB1, customerInfo2, 7, 77.0, 7.7);
     assertEquals("correct number in list", 2, accountingService.getPendingTransactions().size());
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
@@ -245,7 +244,7 @@ public class AccountingServiceTests
                                              new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
         return (tx instanceof TariffTransaction &&
-            ((TariffTransaction)tx).getTxType() == TariffTransactionType.SIGNUP);
+            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.SIGNUP);
       }
     });
     assertEquals("one signup", 1, signups.size());
@@ -259,7 +258,7 @@ public class AccountingServiceTests
                                               new Predicate<BrokerTransaction>() {
       public boolean apply (BrokerTransaction tx) {
         return (tx instanceof TariffTransaction &&
-            ((TariffTransaction)tx).getTxType() == TariffTransactionType.CONSUME);
+            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.CONSUME);
       }
     });
     assertEquals("one signup", 1, consumes.size());
@@ -273,14 +272,14 @@ public class AccountingServiceTests
   {
     initializeService();
     // some usage for Bob
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffB1, customerInfo1, 7, 77.0, 7.7);
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffB1, customerInfo2, 6, 83.0, 8.0);
-    accountingService.addTariffTransaction(TariffTransactionType.PRODUCE,
+    accountingService.addTariffTransaction(TariffTransaction.Type.PRODUCE,
       tariffB2, customerInfo3, 3, -55.0, -4.5);
     // some usage for Jim
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffJ1, customerInfo2, 12, 120.0, 8.4);
     assertEquals("correct net load for Bob", (77.0 + 83.0 - 55.0),
                   accountingService.getCurrentNetLoad(bob), 1e-6);
@@ -398,13 +397,13 @@ public class AccountingServiceTests
     accountingService.addMarketTransaction(jim,
         timeslotRepo.findBySerialNumber(2), -20.0, -0.2);
     // tariff transactions
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffB1, customerInfo1, 7, 77.0, 7.7);
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffB1, customerInfo2, 6, 83.0, 8.0);
-    accountingService.addTariffTransaction(TariffTransactionType.PRODUCE,
+    accountingService.addTariffTransaction(TariffTransaction.Type.PRODUCE,
         tariffB2, customerInfo3, 3, -55.0, -4.5);
-    accountingService.addTariffTransaction(TariffTransactionType.CONSUME,
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffJ1, customerInfo2, 12, 120.0, 8.4);
     assertEquals("correct number in list", 9, accountingService.getPendingTransactions().size());
     

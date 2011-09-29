@@ -40,7 +40,6 @@ import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.enumerations.TariffTransactionType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.BrokerTransaction;
@@ -255,7 +254,7 @@ public class TariffMarketServiceTests
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertNotNull("found a tariff", tf);
     // find and check the transaction
-    verify(accountingService).addTariffTransaction(TariffTransactionType.PUBLISH,
+    verify(accountingService).addTariffTransaction(TariffTransaction.Type.PUBLISH,
                                                    tf, null, 0, 0.0, 42.0);
   }
 
