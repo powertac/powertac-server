@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -47,6 +46,8 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("shout")
 public class Shout //implements Serializable 
 {
+  public enum OrderType { BUY, SELL }
+  
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -65,7 +66,7 @@ public class Shout //implements Serializable
 
   /** flag that indicates if this shout is a buy or sell order */
   @XStreamAsAttribute
-  private BuySellIndicator buySellIndicator;
+  private OrderType orderType;
 
   /** the product quantity in mWh to buy or sell */
   @XStreamAsAttribute
@@ -81,13 +82,13 @@ public class Shout //implements Serializable
   private String comment;
 
   public Shout (Broker broker, Timeslot timeslot, 
-                BuySellIndicator buySellIndicator,
+                OrderType orderType,
                 double mWh, Double limitPrice)
   {
     super();
     this.broker = broker;
     this.timeslot = timeslot;
-    this.buySellIndicator = buySellIndicator;
+    this.orderType = orderType;
     this.mWh = mWh;
     this.limitPrice = limitPrice;
   }
@@ -132,11 +133,23 @@ public class Shout //implements Serializable
     return timeslot;
   }
 
-  public BuySellIndicator getBuySellIndicator ()
+  /**
+   * @deprecated - use {@link getOrderType} instead.
+   */
+  @Deprecated
+  public OrderType getBuySellIndicator ()
   {
-    return buySellIndicator;
+    return orderType;
   }
 
+  public OrderType getOrderType ()
+  {
+    return orderType;
+  }
+
+  /**
+   * @deprecated - use {@link getMWh} instead.
+   */
   @Deprecated
   public double getQuantity ()
   {
