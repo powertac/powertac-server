@@ -113,9 +113,9 @@ public class MarketPosition //implements Serializable
    * resulting total balance
    */
   @StateChange
-  public double updateBalance (double quantity)
+  public double updateBalance (double mWh)
   {
-    overallBalance += quantity;
+    overallBalance += mWh;
     return overallBalance;
   }
 }
