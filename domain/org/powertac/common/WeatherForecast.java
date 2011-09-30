@@ -42,27 +42,16 @@ public class WeatherForecast
   @XStreamImplicit(itemFieldName = "prediction")
   private List<WeatherForecastPrediction> predictions;
   
-  public WeatherForecast (Timeslot timeslot)
+  public WeatherForecast (Timeslot timeslot, List<WeatherForecastPrediction> predictions)
   {
     super();
+    this.predictions = predictions;
     this.currentTimeslot = timeslot;
   }
 
   public List<WeatherForecastPrediction> getPredictions ()
   {
     return predictions;
-  }
-
-  public WeatherForecast setPredictions (List<WeatherForecastPrediction> predictions)
-  {
-    this.predictions = predictions;
-    return this;
-  }
-  
-  public WeatherForecast addPrediction (WeatherForecastPrediction prediction)
-  {
-    this.predictions.add(prediction);
-    return this;
   }
 
   public long getId ()
