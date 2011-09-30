@@ -106,7 +106,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
       }
       setSellerSurplusRatio(number);
     }
-    brokerProxyService.registerBrokerTariffListener(this);
+    brokerProxyService.registerBrokerMarketListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);  
   }
 
