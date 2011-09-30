@@ -25,7 +25,6 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.Shout;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.BuySellIndicator;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
@@ -158,7 +157,7 @@ public class AuctionServiceTests
   @Test
   public void testInit ()
   {
-    verify(mockProxy).registerBrokerTariffListener(svc);
+    verify(mockProxy).registerBrokerMarketListener(svc);
     verify(mockControl).registerTimeslotPhase(svc, 2);
   }
 
@@ -170,7 +169,7 @@ public class AuctionServiceTests
     svc.receiveMessage(bogus);
     assertEquals("nothing received", 0, svc.getIncoming().size());
     // try a good one
-    Shout good = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout good = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(good);
     assertEquals("one shout received", 1, svc.getIncoming().size());
   }
@@ -178,10 +177,10 @@ public class AuctionServiceTests
   @Test
   public void testValidateShout ()
   {
-    Shout bogus= new Shout(b1, ts0, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout bogus= new Shout(b1, ts0, Shout.OrderType.BUY, 1.0, 22.0);
     assertFalse("ts0 not enabled", ts0.isEnabled());
     assertFalse("current timeslot not valid", svc.validateShout(bogus));
-    Shout good = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout good = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     assertTrue("ts1 enabled", ts1.isEnabled());
     assertTrue("next timeslot valid", svc.validateShout(good));
   }
@@ -190,8 +189,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1 ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout buy = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout buy = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -227,8 +226,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_no ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 23.0);
-    Shout buy = new Shout(b1, ts1, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 23.0);
+    Shout buy = new Shout(b1, ts1, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -244,19 +243,23 @@ public class AuctionServiceTests
                  ob.getAsks().first().getMWh(), 1e-6);
     assertEquals("correct price", 23.0,
                  ob.getAsks().first().getLimitPrice(), 1e-6);
+    assertEquals("correct order type", Shout.OrderType.SELL,
+                 ob.getAsks().first().getOrderType());
     assertEquals("one uncleared bid", 1, ob.getBids().size());
     assertEquals("correct qty", 1.0,
                  ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", 22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
+    assertEquals("correct order type", Shout.OrderType.BUY,
+                 ob.getBids().first().getOrderType());
   }
 
   // one ask, one bid, equal qty, different timeslots
   @Test
   public void testActivate1_ts ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 23.0);
-    Shout buy = new Shout(b1, ts2, BuySellIndicator.BUY, 1.0, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 23.0);
+    Shout buy = new Shout(b1, ts2, Shout.OrderType.BUY, 1.0, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy);
     assertEquals("two shouts received", 2, svc.getIncoming().size());
@@ -291,9 +294,9 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_2_tradeable ()
   {
-    Shout sell = new Shout(s1, ts1, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout buy1 = new Shout(b1, ts1, BuySellIndicator.BUY, 0.6, 21.0);
-    Shout buy2 = new Shout(b2, ts1, BuySellIndicator.BUY, 0.6, 22.0);
+    Shout sell = new Shout(s1, ts1, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout buy1 = new Shout(b1, ts1, Shout.OrderType.BUY, 0.6, 21.0);
+    Shout buy2 = new Shout(b2, ts1, Shout.OrderType.BUY, 0.6, 22.0);
     svc.receiveMessage(sell);
     svc.receiveMessage(buy1);
     svc.receiveMessage(buy2);
@@ -349,11 +352,11 @@ public class AuctionServiceTests
   @Test
   public void testActivate2_2_tradeable ()
   {
-    Shout sell1 = new Shout(s1, ts2, BuySellIndicator.SELL, 0.9, 18.0);
-    Shout sell2 = new Shout(s2, ts2, BuySellIndicator.SELL, 1.0, 20.0);
-    Shout sell3 = new Shout(s2, ts2, BuySellIndicator.SELL, 1.0, 21.5);
-    Shout buy1 = new Shout(b1, ts2, BuySellIndicator.BUY, 1.4, 21.0);
-    Shout buy2 = new Shout(b2, ts2, BuySellIndicator.BUY, 0.6, 22.0);
+    Shout sell1 = new Shout(s1, ts2, Shout.OrderType.SELL, 0.9, 18.0);
+    Shout sell2 = new Shout(s2, ts2, Shout.OrderType.SELL, 1.0, 20.0);
+    Shout sell3 = new Shout(s2, ts2, Shout.OrderType.SELL, 1.0, 21.5);
+    Shout buy1 = new Shout(b1, ts2, Shout.OrderType.BUY, 1.4, 21.0);
+    Shout buy2 = new Shout(b2, ts2, Shout.OrderType.BUY, 0.6, 22.0);
     svc.receiveMessage(sell1);
     svc.receiveMessage(sell2);
     svc.receiveMessage(sell3);
