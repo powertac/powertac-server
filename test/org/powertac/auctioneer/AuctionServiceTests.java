@@ -159,7 +159,7 @@ public class AuctionServiceTests
   @Test
   public void testInit ()
   {
-    verify(mockProxy).registerBrokerTariffListener(svc);
+    verify(mockProxy).registerBrokerMarketListener(svc);
     verify(mockControl).registerTimeslotPhase(svc, 2);
   }
 
