@@ -98,14 +98,8 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   public void init (PluginConfig config)
   {
     incoming.clear();
-    String value = config.getConfigurationValue("sellerSurplus");
-    if (value != null) {
-      Double number = Double.parseDouble(value);
-      if (number == null) {
-        number = defaultSellerSurplus;
-      }
-      setSellerSurplusRatio(number);
-    }
+    setSellerSurplusRatio(config.getDoubleValue("sellerSurplus",
+                                                defaultSellerSurplus));
     brokerProxyService.registerBrokerMarketListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);  
   }
