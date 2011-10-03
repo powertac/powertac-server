@@ -31,27 +31,35 @@ public class MessageDispatcher
    * Dispatches a call to methodName inside target based on the type of message.
    * Allows polymorphic method dispatch without the use of visitor or double
    * dispatch schemes, which produce nasty couplings with domain types.
+   * <p>
+   * Note that this scheme finds only exact matches between types of arguments
+   * and declared types of formal parameters for declared or inherited methods.
+   * So it will not call a method with formal parameter types of 
+   * (Transaction, List) if the actual arguments are (Transaction, ArrayList).
+   * </p>
    */
   static public Object dispatch (Object target, 
                                  String methodName, 
                                  Object... args)
   {
+    Logger log = Logger.getLogger(target.getClass().getName());
     Object result = null;
     Object message = args[0];
-    Logger log = Logger.getLogger(target.getClass().getName());
+    log.debug("Dispatch: " + args.length + 
+              " args, message class=" + message.getClass().getName());
     try {
-      Class[] classes = new Class[args.length];
+      Class<?>[] classes = new Class[args.length];
       for (int index = 0; index < args.length; index++) {
+        log.debug("arg class: " + args[index].getClass().getName());
         classes[index] = (args[index].getClass());
       }
-      Method method = target.getClass().getDeclaredMethod(methodName,
-                                                          classes);
+      // see if we can find the method directly
+      Method method = target.getClass().getMethod(methodName, classes);
       log.debug("found method " + method);
       result = method.invoke(target, args);
     }
     catch (NoSuchMethodException nsm) {
-      log.error("Could not find processor for incoming message of type " +
-                              message.getClass().getName());
+      log.debug("Could not find exact match: " + nsm.toString());
     }
     catch (Exception ex) {
       log.error("Exception calling message processor: " + ex.toString());
