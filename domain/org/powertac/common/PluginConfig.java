@@ -100,4 +100,34 @@ public class PluginConfig
   public String toString() {
     return "PluginConfig:" + roleName + "." + name;
   }
+
+  public Integer getIntegerValue (String name, Integer defaultValue)
+  {
+    String value = getConfigurationValue(name);
+    // error check
+    Integer number = null;
+    if (value != null) {
+      number = Integer.parseInt(value);
+    }
+    if (value == null || number == null) {
+      log.warn("parameter " + name + " not given in config");
+      return defaultValue;
+    }
+    return number;
+  }
+
+  public Double getDoubleValue (String name, Double defaultValue)
+  {
+    String value = getConfigurationValue(name);
+    // error check
+    Double number = null;
+    if (value != null) {
+      number = Double.parseDouble(value);
+    }
+    if (value == null || number == null) {
+      log.warn("parameter " + name + " not given in config");
+      return defaultValue;
+    }
+    return number;
+  }
 }

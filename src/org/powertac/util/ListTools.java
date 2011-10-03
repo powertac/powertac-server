@@ -20,11 +20,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A collection of static methods intended to simplify various programming
- * tasks. Much of the content is modeled on various web resources.
+ * A collection of static methods intended to simplify list processing
+ * tasks. Much of the content is modeled on web resources.
  * @author John Collins
  */
-public class Tools
+public class ListTools
 {
   /**
    * Filters a Collection using a Predicate, returning a List.

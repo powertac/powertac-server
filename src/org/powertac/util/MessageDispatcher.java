@@ -1,0 +1,61 @@
+/*
+ * Copyright 2011 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an
+ * "AS IS" BASIS,  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package org.powertac.util;
+
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+
+/**
+ * Static resource for dispatching messages. Helps avoid visitor or 
+ * double-dispatch intrusions into domain types.
+ * @author John Collins
+ */
+public class MessageDispatcher
+{
+  /**
+   * Dispatches a call to methodName inside target based on the type of message.
+   * Allows polymorphic method dispatch without the use of visitor or double
+   * dispatch schemes, which produce nasty couplings with domain types.
+   */
+  static public Object dispatch (Object target, 
+                                 String methodName, 
+                                 Object... args)
+  {
+    Object result = null;
+    Object message = args[0];
+    Logger log = Logger.getLogger(target.getClass().getName());
+    try {
+      Class[] classes = new Class[args.length];
+      for (int index = 0; index < args.length; index++) {
+        classes[index] = (args[index].getClass());
+      }
+      Method method = target.getClass().getDeclaredMethod(methodName,
+                                                          classes);
+      log.debug("found method " + method);
+      result = method.invoke(target, args);
+    }
+    catch (NoSuchMethodException nsm) {
+      log.error("Could not find processor for incoming message of type " +
+                              message.getClass().getName());
+    }
+    catch (Exception ex) {
+      log.error("Exception calling message processor: " + ex.toString());
+    }
+    return result;
+  }
+}
