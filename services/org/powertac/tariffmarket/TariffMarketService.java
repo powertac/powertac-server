@@ -15,6 +15,8 @@
  */
 package org.powertac.tariffmarket;
 
+import static org.powertac.util.MessageDispatcher.dispatch;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -177,22 +179,15 @@ public class TariffMarketService
       // dispatch incoming message, using reflection to keep the 
       // message types clean.
       TariffMessage message = (TariffMessage)msg;
-      TariffStatus result = null;
-      try {
-        Method target = this.getClass().getDeclaredMethod("processTariff",
-                                                          msg.getClass());
-        result = (TariffStatus)target.invoke(this, message);
-      }
-      catch (NoSuchMethodException nsm) {
-        log.error("Could not find processor for incoming message of type " +
-                  message.getClass().getName());
+      TariffStatus result = 
+        (TariffStatus)dispatch(this, "processTariff", new Object[]{message});
+      // Check result, send error message if we know who the broker was
+      if (result == null) {
         result = new TariffStatus(message.getBroker(), 
                                   0l, message.getId(),
-                                  TariffStatus.Status.illegalOperation);        
+                                  TariffStatus.Status.illegalOperation);
       }
-      catch (Exception ex) {
-        log.error("Exception calling message processor: " + ex.toString());
-      }
+      // if we have something to send back to the broker, then send it
       if (result != null) {
         brokerProxyService.sendMessage(result.getBroker(), result);
       }

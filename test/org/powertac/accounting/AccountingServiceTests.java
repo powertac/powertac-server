@@ -17,7 +17,7 @@
 package org.powertac.accounting;
 
 import static org.junit.Assert.*;
-import static org.powertac.util.Tools.*;
+import static org.powertac.util.ListTools.*;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;

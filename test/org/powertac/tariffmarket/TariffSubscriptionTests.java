@@ -16,7 +16,7 @@
 package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
-import static org.powertac.util.Tools.*;
+import static org.powertac.util.ListTools.*;
 import static org.mockito.Mockito.*;
 
 import org.apache.log4j.PropertyConfigurator;

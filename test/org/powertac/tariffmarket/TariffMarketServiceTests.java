@@ -17,7 +17,7 @@
 package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
-import static org.powertac.util.Tools.*;
+import static org.powertac.util.ListTools.*;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
@@ -47,6 +47,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffMessage;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -233,6 +234,15 @@ public class TariffMarketServiceTests
     result = tariffMarketInitializationService.initialize(comp, inits);
     assertEquals("failure return value", "fail", result);
     tariffMarketInitializationService.setDefaults();
+  }
+  
+  // bogus message, not an instance of TariffMessage
+  @Test
+  public void testBogusMessage1 ()
+  {
+    initializeService();
+    tariffMarketService.receiveMessage(broker);
+    assertEquals("no messages sent", 0, msgs.size());
   }
   
   // valid tariffSpec

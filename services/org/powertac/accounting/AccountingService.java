@@ -16,6 +16,8 @@
 
 package org.powertac.accounting;
 
+import static org.powertac.util.MessageDispatcher.dispatch;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -207,20 +209,8 @@ public class AccountingService
       }
       brokerMsg.get(tx.getBroker()).add(tx);
       // process transactions by method lookup
-      try {
-        Method target = this.getClass().getDeclaredMethod("processTransaction",
-                                                          tx.getClass(),
-                                                          List.class);
-        target.invoke(this, tx, brokerMsg.get(tx.getBroker()));
-      }
-      catch (NoSuchMethodException nsm) {
-        log.error("Could not find processor for transaction of type " +
-                  tx.getClass().getName());        
-      }
-      catch (Exception ex) {
-        log.error("Exception calling transaction processor: " + ex.toString());
-      }
-      //tx.process((TransactionProcessor)this, brokerMsg.get(tx.getBroker()));
+      dispatch(this, "processTransaction", 
+               new Object[]{tx, brokerMsg.get(tx.getBroker())});
     }
     pendingTransactions.clear();
     // for each broker, compute interest and send messages
