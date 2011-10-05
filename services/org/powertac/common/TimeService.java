@@ -146,11 +146,27 @@ public class TimeService
     return new Instant(ms - ms % mod);
   }
 
+  /**
+   * Sets base, rate, and modulo clock parameters with a single call. We
+   * do not set start at this point, because it is changed whenever the clock
+   * is paused and therefore needs to be treated separately.
+   */
+  public void setClockParameters(long base, long rate, long modulo)
+  {
+    this.base = base;
+    this.rate = rate;
+    this.modulo = modulo;
+  }
+  
   public long getBase ()
   {
     return base;
   }
-  
+
+  /**
+   * @deprecated  use {@link setClockParameters} instead
+   */
+  @Deprecated
   public void setBase (long value)
   {
     base = value;
@@ -171,6 +187,10 @@ public class TimeService
     return rate;
   }
   
+  /**
+   * @deprecated  use {@link setClockParameters} instead
+   */
+  @Deprecated
   public void setRate (long value)
   {
     rate = value;
@@ -181,6 +201,10 @@ public class TimeService
     return modulo;
   }
   
+  /**
+   * @deprecated  use {@link setClockParameters} instead
+   */
+  @Deprecated
   public void setModulo (long value)
   {
     modulo = value;
