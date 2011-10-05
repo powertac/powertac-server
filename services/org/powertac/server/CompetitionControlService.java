@@ -19,10 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.joda.time.Instant;
 
 import org.powertac.common.Broker;
@@ -286,7 +284,8 @@ public class CompetitionControlService
     if (timeService == null) {
       log.error("autowire failure: timeService");
     }
-    timeService.setCurrentTime(competition.getSimulationBaseTime());
+    setTimeParameters();
+    //timeService.setCurrentTime(competition.getSimulationBaseTime());
 
     // set up random sequence for CCS
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
@@ -294,8 +293,6 @@ public class CompetitionControlService
 
     // TODO set up broker queues (are they logged in already?)
     //jmsManagementService.createQueues()
-
-    setTimeParameters();
 
     // Publish Competition object at right place - after plugins
     // are initialized. This is necessary because some may need to
@@ -346,8 +343,6 @@ public class CompetitionControlService
   // is still sufficiently in the future.
   private void setTimeParameters()
   {
-    timeService.setBase(competition.getSimulationBaseTime().getMillis());
-    timeService.setCurrentTime(competition.getSimulationBaseTime());
     long rate = competition.getSimulationRate();
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
@@ -357,8 +352,13 @@ public class CompetitionControlService
                "; adjust to " + (mult + 1) * competition.getTimeslotLength());
       rate = (mult + 1) * competition.getTimeslotLength();
     }
-    timeService.setRate(rate);
-    timeService.setModulo(competition.getTimeslotLength() * TimeService.MINUTE);
+    timeService.setClockParameters(competition.getSimulationBaseTime().getMillis(),
+                                   rate,
+                                   competition.getTimeslotLength() * TimeService.MINUTE);
+    //timeService.setBase(competition.getSimulationBaseTime().getMillis());
+    timeService.setCurrentTime(competition.getSimulationBaseTime());
+    //timeService.setRate(rate);
+    //timeService.setModulo(competition.getTimeslotLength() * TimeService.MINUTE);
   }
 
   private List<Timeslot> createInitialTimeslots (Instant base,
