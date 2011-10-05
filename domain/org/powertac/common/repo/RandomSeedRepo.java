@@ -84,7 +84,7 @@ public class RandomSeedRepo implements DomainRepo
       String line;
       while ((line = input.readLine()) != null) {
         log.debug("line: " + line);
-        String[] fields = line.split(":");
+        String[] fields = line.split("::");
         if (seedClass.equals(fields[1])) {
           if (fields.length != 8) {
             log.error("Bad seed spec: " + line);
