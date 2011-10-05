@@ -15,8 +15,10 @@
  */
 package org.powertac.common.msg;
 
+import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 
@@ -38,11 +40,22 @@ public class CustomerBootstrapData
   @XStreamConverter(CustomerConverter.class)
   private CustomerInfo customer;
   
-  private double[][] bootstrapData;
+  @XStreamAsAttribute
+  private PowerType powerType;
+  
+  private Instant startTime;
+  
+  private double[] bootstrapData;
 
-  public CustomerBootstrapData (double[][] bootstrap)
+  public CustomerBootstrapData (CustomerInfo customer,
+                                PowerType powerType,
+                                Instant startTime,
+                                double[] bootstrap)
   {
     super();
+    this.customer = customer;
+    this.powerType = powerType;
+    this.startTime = startTime;
     this.bootstrapData = bootstrap;
   }
 
@@ -56,7 +69,17 @@ public class CustomerBootstrapData
     return customer;
   }
 
-  public double[][] getBootstrapData ()
+  public PowerType getPowerType ()
+  {
+    return powerType;
+  }
+
+  public Instant getStartTime ()
+  {
+    return startTime;
+  }
+
+  public double[] getBootstrapData ()
   {
     return bootstrapData;
   }

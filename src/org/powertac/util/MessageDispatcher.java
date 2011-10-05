@@ -45,12 +45,10 @@ public class MessageDispatcher
     Logger log = Logger.getLogger(target.getClass().getName());
     Object result = null;
     Object message = args[0];
-    log.debug("Dispatch: " + args.length + 
-              " args, message class=" + message.getClass().getName());
     try {
       Class<?>[] classes = new Class[args.length];
       for (int index = 0; index < args.length; index++) {
-        log.debug("arg class: " + args[index].getClass().getName());
+        //log.debug("arg class: " + args[index].getClass().getName());
         classes[index] = (args[index].getClass());
       }
       // see if we can find the method directly
@@ -59,7 +57,7 @@ public class MessageDispatcher
       result = method.invoke(target, args);
     }
     catch (NoSuchMethodException nsm) {
-      log.debug("Could not find exact match: " + nsm.toString());
+      log.warn("Could not find exact match: " + nsm.toString());
     }
     catch (Exception ex) {
       log.error("Exception calling message processor: " + ex.toString());

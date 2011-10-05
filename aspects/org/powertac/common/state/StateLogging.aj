@@ -1,5 +1,6 @@
 package org.powertac.common.state;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.apache.log4j.Logger;
@@ -38,20 +39,37 @@ public aspect StateLogging
                          String methodName, Object[] args)
   {
     StringBuffer buf = new StringBuffer();
-    buf.append(className).append(":");
-    buf.append((id == null) ? "null" : id.toString()).append(":");
+    buf.append(className).append("::");
+    buf.append((id == null) ? "null" : id.toString()).append("::");
     buf.append(methodName);
     for (Object arg : args) {
-      buf.append(":");
-      Long argId = findId(arg);
-      if (argId != null)
-        buf.append(argId.toString());
-      else if (arg == null)
-        buf.append("null");
-      else
-        buf.append(arg.toString());
+      buf.append("::");
+      writeArg(buf, arg);
     }
     stateLog.info(buf.toString());
+  }
+
+  private void writeArg (StringBuffer buf, Object arg)
+  {
+    Long argId = findId(arg);
+    if (argId != null)
+      buf.append(argId.toString());
+    else if (arg == null)
+      buf.append("null");
+    else if (arg.getClass().isArray()) {
+      buf.append("[");
+      int length = Array.getLength(arg);
+      for (int index = 0; index < length; index++) {
+        writeArg(buf, Array.get(arg, index));
+        if (index < length - 1) {
+          buf.append(",");
+        }
+      }
+      buf.append("]");
+    }
+    else {
+      buf.append(arg.toString());
+    }
   }
   
   Long findId (Object thing)

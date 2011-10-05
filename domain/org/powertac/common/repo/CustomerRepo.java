@@ -38,6 +38,13 @@ public class CustomerRepo implements DomainRepo
     customers = new HashMap<Long,CustomerInfo>();
   }
   
+  public CustomerInfo createCustomerInfo (String name, int population)
+  {
+    CustomerInfo result = new CustomerInfo(name, population);
+    customers.put(result.getId(), result);
+    return result;
+  }
+  
   public CustomerInfo findById (long id)
   {
     return customers.get(id);
