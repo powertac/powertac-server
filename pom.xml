@@ -82,6 +82,9 @@
 			<resource>
 				<directory>${project.basedir}/src</directory>
 			</resource>
+			<resource>
+				<directory>${project.basedir}/aspects</directory>
+			</resource>
 		</resources>
 		<testResources>
 			<testResource>
