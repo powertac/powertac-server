@@ -67,7 +67,6 @@ public class AccountingInitializationService
         .addConfiguration("bankInterest", Double.toString(interest));
   }
 
-  @Override
   public String initialize (Competition competition, List completedInits)
   {
     PluginConfig accountingConfig = pluginConfigRepo.findByRoleName("AccountingService");

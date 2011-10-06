@@ -670,19 +670,16 @@ public class TariffMarketServiceTests
     TimeslotPhaseProcessor processor;
     int timeslotPhase;
 
-    @Override
     public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
     {
       processor = thing;
       timeslotPhase = phase;
     }
 
-    @Override
     public void receiveMessage (PauseRequest msg)
     {
     }
 
-    @Override
     public void receiveMessage (PauseRelease msg)
     {
     }
@@ -692,7 +689,6 @@ public class TariffMarketServiceTests
   {
     List<Tariff> publishedTariffs = new ArrayList<Tariff>();
     
-    @Override
     public void publishNewTariffs (List<Tariff> tariffs)
     {
       publishedTariffs = tariffs;

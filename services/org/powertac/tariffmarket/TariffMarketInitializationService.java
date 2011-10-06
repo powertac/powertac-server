@@ -35,7 +35,6 @@ public class TariffMarketInitializationService
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
   
-  @Override
   public void setDefaults ()
   {
     pluginConfigRepo.makePluginConfig("TariffMarket", "")
@@ -44,7 +43,6 @@ public class TariffMarketInitializationService
             .addConfiguration("publicationInterval", "6");
   }
   
-  @Override
   public String initialize (Competition competition, List completedInits)
   {
     int index = completedInits.indexOf("AccountingService");

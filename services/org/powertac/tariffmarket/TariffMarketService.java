@@ -172,7 +172,6 @@ public class TariffMarketService
    * synchronously with the incoming message traffic, rather than on
    * the timeslot phase signal, to minimize latency for broker feedback.
    */
-  @Override
   public void receiveMessage (Object msg)
   {
     if (msg != null && msg instanceof TariffMessage) {
@@ -197,7 +196,6 @@ public class TariffMarketService
   /**
    * Processes a newly-published tariff.
    */
-  @Override
   public TariffStatus processTariff (TariffSpecification spec)
   {
     tariffRepo.addSpecification(spec);
@@ -215,7 +213,6 @@ public class TariffMarketService
   /**
    * Handles changes in tariff expiration date.
    */
-  @Override
   public TariffStatus processTariff (TariffExpire update)
   {
     ValidationResult result = validateUpdate(update);
@@ -245,7 +242,6 @@ public class TariffMarketService
   /**
    * Handles tariff revocation.
    */
-  @Override
   public TariffStatus processTariff (TariffRevoke update)
   {
     ValidationResult result = validateUpdate(update);
@@ -280,7 +276,6 @@ public class TariffMarketService
   /**
    * Applies a new HourlyCharge to an existing Tariff with a variable Rate.
    */
-  @Override
   public TariffStatus processTariff (VariableRateUpdate update)
   {
     ValidationResult result = validateUpdate(update);
@@ -301,7 +296,6 @@ public class TariffMarketService
 
   private List<NewTariffListener> registrations = new ArrayList<NewTariffListener>();
 
-  @Override
   public void registerNewTariffListener (NewTariffListener listener)
   {
     registrations.add(listener);
@@ -356,7 +350,6 @@ public class TariffMarketService
    * that from the TariffSubscription that represents the Tariff you want
    * to unsubscribe from.</p>
    */
-  @Override
   public TariffSubscription subscribeToTariff (Tariff tariff,
                                                AbstractCustomer customer,
                                                int customerCount)
@@ -377,7 +370,6 @@ public class TariffMarketService
    * Returns the list of subscriptions for this customer that have been
    * revoked and have non-zero committed customers.
    */
-  @Override
   public List<TariffSubscription> getRevokedSubscriptionList (AbstractCustomer customer)
   {
     List<TariffSubscription> result = new ArrayList<TariffSubscription>();
@@ -392,7 +384,6 @@ public class TariffMarketService
   /**
    * Returns the default tariff
    */
-  @Override
   public Tariff getDefaultTariff (PowerType type)
   {
     Long defaultId = defaultTariff.get(type);
@@ -401,7 +392,6 @@ public class TariffMarketService
     return tariffRepo.findTariffById(defaultId);
   }
 
-  @Override
   public boolean setDefaultTariff (TariffSpecification newSpec)
   {
     tariffRepo.addSpecification(newSpec);
