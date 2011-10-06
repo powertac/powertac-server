@@ -58,13 +58,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework</groupId>
-			<artifactId>spring-aspects</artifactId>
-			<version>3.0.6.RELEASE</version>
-			<type>jar</type>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
 			<version>3.0.6.RELEASE</version>
 			<type>jar</type>
@@ -82,6 +75,12 @@
 		<resources>
 			<resource>
 				<directory>${project.basedir}/services</directory>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/domain</directory>
+			</resource>
+			<resource>
+				<directory>${project.basedir}/src</directory>
 			</resource>
 		</resources>
 		<testResources>
