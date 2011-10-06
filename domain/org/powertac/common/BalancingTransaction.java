@@ -35,9 +35,6 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("balance-tx")
 public class BalancingTransaction extends BrokerTransaction
 {
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  
   /** The total size of the imbalance in kWH, positive for surplus and
    * negative for deficit
    */
