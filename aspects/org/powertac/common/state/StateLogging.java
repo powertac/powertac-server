@@ -25,6 +25,22 @@ import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 
+/**
+ * Implement uniform state-logging using aspects. This scheme depends on two
+ * annotations: @Domain labels a class for which calls to the constructor are
+ * logged. @StateChange labels a method that must be logged (with its arguments)
+ * when it is called. Log output is a single text line consisting of the
+ * following fields, separated by double colon :: strings 
+ * (assuming the log4j config puts out the msec data):
+ * <ol>
+ *  <li>milliseconds from start of log</li>
+ *  <li>class name</li>
+ *  <li>instance id value</li>
+ *  <li>method name ("new" for constructor)</li>
+ *  <li>method arguments, separated by ::</li>
+ * </ol>
+ * @author John Collins
+ */
 @Aspect
 public class StateLogging
 {
