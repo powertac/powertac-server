@@ -1,36 +1,61 @@
+/*
+ * Copyright (c) 2011 by the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.powertac.common.state;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
 import org.apache.log4j.Logger;
-//import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 
-public aspect StateLogging
+@Aspect
+public class StateLogging
 {
   private Logger stateLog = Logger.getLogger("State");
 
   // state-change methods
-  public pointcut setState() :
-    execution (@StateChange * * (..));
+  //public pointcut setState() :
+  //  execution (@StateChange * * (..));
+  @Pointcut ("execution (@StateChange * * (..))")
+  public void setState () {}
   
-  public pointcut newState() :
-    execution ((@Domain *).new (..));
+  //public pointcut newState() :
+  //  execution ((@Domain *).new (..));
+  @Pointcut ("execution ((@Domain *).new (..))")
+  public void newState () {}
   
-  after() returning : setState()
+  @AfterReturning ("setState()")
+  public void setstate (JoinPoint jp)
   {
-    Object thing = thisJoinPoint.getTarget();
-    Object[] args = thisJoinPoint.getArgs();
-    Signature sig = thisJoinPoint.getSignature();
+    Object thing = jp.getTarget();
+    Object[] args = jp.getArgs();
+    Signature sig = jp.getSignature();
     Long id = findId(thing);
     writeLog(thing.getClass().getName(), id, sig.getName(), args);
   }
   
-  after() returning : newState()
+  @AfterReturning ("newState()")
+  public void newstate (JoinPoint jp)
   {
-    Object thing = thisJoinPoint.getTarget();
-    Object[] args = thisJoinPoint.getArgs();
+    Object thing = jp.getTarget();
+    Object[] args = jp.getArgs();
     Long id = findId(thing);
     writeLog(thing.getClass().getName(), id, "new", args);
   }
@@ -81,7 +106,6 @@ public aspect StateLogging
     }
     catch (Exception ex) {
     }
-    return id;
-    
+    return id;    
   }
 }
