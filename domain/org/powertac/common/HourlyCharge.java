@@ -35,8 +35,6 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("charge")
 public class HourlyCharge implements Comparable<HourlyCharge>
 {
-  static private Logger stateLog = Logger.getLogger("StateChange");
-
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -51,7 +49,6 @@ public class HourlyCharge implements Comparable<HourlyCharge>
   public HourlyCharge (Instant when, double value)
   {
     super();
-    this.rateId = rateId;
     this.value = value;
     this.atTime = when;
   }
@@ -67,10 +64,10 @@ public class HourlyCharge implements Comparable<HourlyCharge>
    * state log. This method is intended to be called from Rate when the
    * instance is added to the rate.
    */
+  @StateChange
   void setRateId (long rateId)
   {
     this.rateId = rateId;
-    stateLog.info("HourlyCharge:" + id + ":new:" + rateId + ":" + atTime.getMillis() + ":" + value);
   }
   
   public long getRateId ()

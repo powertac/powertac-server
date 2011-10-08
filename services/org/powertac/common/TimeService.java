@@ -18,10 +18,14 @@ package org.powertac.common;
 
 import java.util.TreeSet;
 
+import org.powertac.common.state.StateChange;
+
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.base.AbstractDateTime;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
  /**
@@ -57,9 +61,12 @@ import org.springframework.stereotype.Service;
  * our customers wake up earlier in the summertime.
  * @author John Collins
  */
+@Scope("singleton")
 @Service
 public class TimeService 
 {
+  static private Logger log = Logger.getLogger(TimeService.class.getName());
+
   public static final long SECOND = 1000l;
   public static final long MINUTE = SECOND * 60;
   public static final long HOUR = MINUTE * 60;
@@ -82,12 +89,17 @@ public class TimeService
   private Instant currentTime;
   private DateTime currentDateTime;
   
+  // debug code -- keep track of TimeService instances
+  private static int index = 0;
+  private int id;
+  
   /**
    * Default constructor. You need to set base, rate, start, and modulo before using it.
    */
   public TimeService ()
   {
     super();
+    id = index++;
   }
   
   /**
@@ -100,6 +112,7 @@ public class TimeService
     this.start = start;
     this.rate = rate;
     this.modulo = modulo;
+    id = index++;
   }
 
   /**
@@ -129,9 +142,11 @@ public class TimeService
     long systemTime = new Instant().getMillis();
     if (systemTime >= start) { 
       long raw = base + (systemTime - start) * rate;
-      currentTime = new Instant(raw - raw % modulo);
-      currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
-      //log.info "updateTime: sys=${systemTime}, simTime=${currentTime}";
+      //currentTime = new Instant(raw - raw % modulo);
+      //currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
+      log.debug("ts" + id + " updateTime: sys=" + systemTime +
+                ", simTime=" + currentTime);
+      setCurrentTime(new Instant(raw - raw % modulo));
       runActions();
     }
     busy = false;
@@ -234,8 +249,10 @@ public class TimeService
   /**
    * Sets current time to a specific value. Intended for testing purposes only.
    */
+  @StateChange
   public void setCurrentTime (Instant time)
   {
+    log.debug("ts" + id + " setCurrentTime to " + time.toString());
     currentTime = time;
     currentDateTime = new DateTime(time, DateTimeZone.UTC);
   }
@@ -243,8 +260,10 @@ public class TimeService
   /**
    * Sets current time to a specific value. Intended for testing purposes only.
    */
+  @StateChange
   protected void setCurrentTime (AbstractDateTime time)
   {
+    log.debug("ts" + id + " setCurrentTime to " + time.toString());
     currentTime = new Instant(time);
     currentDateTime = new DateTime(time, DateTimeZone.UTC);
   }

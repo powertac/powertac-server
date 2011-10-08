@@ -314,7 +314,7 @@ public class Rate //implements Serializable
       long warning = newCharge.getAtTime().getMillis() - now.getMillis();
       if (warning < noticeInterval && !publish) {
         // too late
-        log.error("Too late (" + now.getMillis() + ") to change rate for " + newCharge.getAtTime().getMillis());
+        log.error("Too late (" + now.toString() + ") to change rate for " + newCharge.getAtTime().toString());
       }
       else {
         // first, remove the existing charge for the specified time
