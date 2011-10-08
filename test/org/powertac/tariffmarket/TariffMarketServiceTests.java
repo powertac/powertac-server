@@ -30,7 +30,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,7 +46,6 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
-import org.powertac.common.TariffMessage;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -116,8 +114,8 @@ public class TariffMarketServiceTests
   private Instant start;
   private Instant exp;
   private Broker broker;
-  private List txs;
-  private List msgs;
+  //private List<Object> txs;
+  private List<Object> msgs;
   private Competition comp;
   
   @BeforeClass
@@ -135,12 +133,13 @@ public class TariffMarketServiceTests
     brokerRepo.recycle();
     pluginConfigRepo.recycle();
     reset(mockProxy);
+    reset(accountingService);
 
-    txs = new ArrayList<BrokerTransaction>();
+    //txs = new ArrayList<BrokerTransaction>();
     msgs = new ArrayList<Object>();
     
     // create a Competition, needed for initialization
-    comp = Competition.newInstance("accounting-test");
+    comp = Competition.newInstance("tariff-market-test");
 
     // mock the brokerProxyService, capturing the messages sent out
     doAnswer(new Answer() {
@@ -368,7 +367,7 @@ public class TariffMarketServiceTests
         .withExpectedMean(0.10);
     ts2.addRate(r1);
     Instant lastHr = start.minus(TimeService.HOUR);
-    r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07), true);
+    r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07), true);    
 
     // send to market
     TariffStatus status1 = tariffMarketService.processTariff(tariffSpec);
@@ -397,9 +396,15 @@ public class TariffMarketServiceTests
     // update the hourly rate on tariff 2
     HourlyCharge hc = new HourlyCharge(start, 0.09);
     VariableRateUpdate vru = new VariableRateUpdate(broker, r1, hc);
+
+    // check for correct times
+    assertEquals("correct hc start", start, hc.getAtTime());
+    assertEquals("correct current time", start, timeService.getCurrentTime());
+    
     TariffStatus vrs = tariffMarketService.processTariff(vru);
     assertNotNull("non-null vru status", vrs);
     assertEquals("success vru", TariffStatus.Status.success, vrs.getStatus());
+    assertEquals("correct current time", start, timeService.getCurrentTime());
     
     assertEquals("Correct rate at 11:00", 0.07, tf2.getUsageCharge(lastHr, 1.0, 0.0), 1e-6);
     assertEquals("Correct rate at 12:00", 0.09, tf2.getUsageCharge(start, 1.0, 0.0), 1e-6);
