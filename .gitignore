@@ -17,6 +17,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.log
+.springBeans
 
 # Compiled source
 *.class

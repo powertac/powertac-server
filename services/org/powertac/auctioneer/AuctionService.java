@@ -154,6 +154,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   
   public boolean validateShout (Shout shout)
   {
+    // TODO - give feedback to broker if possible.
     if (!shout.getTimeslot().isEnabled()) {
       log.error("Shout submitted for disabled timeslot");
       return false;
