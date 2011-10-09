@@ -149,31 +149,34 @@ public class AbstractCustomer
   }
 
   /** Subscribing certain subscription */
-  void subscribe(Tariff tariff, int customerCount){
-    this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this, customerCount));
+  void subscribe(Tariff tariff, int customerCount)
+  {
+    tariffMarketService.subscribeToTariff(tariff, this, customerCount);
+    //this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this, customerCount));
     log.info(this.toString() + " was subscribed to tariff " + 
              tariff.getId() + " successfully.");
   }
 
   /** Unsubscribing certain subscription */
-  void unsubscribe(TariffSubscription subscription, int customerCount) {
+  void unsubscribe(TariffSubscription subscription, int customerCount) 
+  {
     subscription.unsubscribe(customerCount);
     log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
-    if (subscription.getCustomersCommitted() == 0)
-      removeSubscription(subscription);
+    //if (subscription.getCustomersCommitted() == 0)
+    //  removeSubscription(subscription);
   }
 
   /** Subscribing certain subscription */
-  void addSubscription(TariffSubscription ts)
-  {
-    tariffSubscriptionRepo.add(ts);
-  }
+//  void addSubscription(TariffSubscription ts)
+//  {
+//    tariffSubscriptionRepo.add(ts);
+//  }
 
   /** Unsubscribing certain subscription */
-  void removeSubscription(TariffSubscription ts)
-  {
-    tariffSubscriptionRepo.remove(ts);
-  }
+//  void removeSubscription(TariffSubscription ts)
+//  {
+//    tariffSubscriptionRepo.remove(ts);
+//  }
 
   //============================= CONSUMPTION - PRODUCTION =================================================
 
@@ -259,8 +262,8 @@ public class AbstractCustomer
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(this);
     for (TariffSubscription revokedSubscription : revoked) {
       TariffSubscription ts = revokedSubscription.handleRevokedTariff();
-      removeSubscription(revokedSubscription);
-      addSubscription(ts);
+      //removeSubscription(revokedSubscription);
+      //addSubscription(ts);
     }
   }
 
