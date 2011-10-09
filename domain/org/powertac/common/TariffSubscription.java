@@ -51,7 +51,8 @@ public class TariffSubscription
   private TariffMarket tariffMarketService;
   
   /** The customer who has this Subscription */
-  private AbstractCustomer customer;
+  //private AbstractCustomer customer;
+  private CustomerInfo customer;
   
   /** The tariff for which this subscription applies */
   private Tariff tariff;
@@ -73,7 +74,7 @@ public class TariffSubscription
    *  tiered rates. */
   private double totalUsage = 0.0;
   
-  public TariffSubscription (AbstractCustomer customer, Tariff tariff)
+  public TariffSubscription (CustomerInfo customer, Tariff tariff)
   {
     super();
     this.customer = customer;
@@ -89,7 +90,7 @@ public class TariffSubscription
     return id;
   }
 
-  public AbstractCustomer getCustomer ()
+  public CustomerInfo getCustomer ()
   {
     return customer;
   }
@@ -145,7 +146,7 @@ public class TariffSubscription
                 " customers, total = " + customerCount * tariff.getSignupPayment());
     }
     accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
-                                           tariff, customer.getCustomerInfo(), 
+                                           tariff, customer, 
                                            customerCount, 0.0,
                                            customerCount * tariff.getSignupPayment());
   }
@@ -178,7 +179,7 @@ public class TariffSubscription
     // Post early-withdrawal penalties
     if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
       accountingService.addTariffTransaction(TariffTransaction.Type.WITHDRAW,
-          tariff, customer.getCustomerInfo(), customerCount, 0.0,
+          tariff, customer, customerCount, 0.0,
           penaltyCount * tariff.getEarlyWithdrawPayment());
     }
   }
@@ -220,13 +221,13 @@ public class TariffSubscription
    */
   public void usePower (double kWh)
   {
-    if (customer.getCustomerInfo() == null) {
+    if (customer == null) {
       log.error("null customerInfo for customer " + customer.getId());
     }
     // generate the usage transaction
     TariffTransaction.Type txType = kWh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     accountingService.addTariffTransaction(txType, tariff,
-        customer.getCustomerInfo(), customersCommitted, kWh,
+        customer, customersCommitted, kWh,
         customersCommitted * tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
     if (timeService.getHourOfDay() == 0) {
       //reset the daily usage counter
@@ -237,7 +238,7 @@ public class TariffSubscription
     if (tariff.getPeriodicPayment() != 0.0) {
       tariff.addPeriodicPayment();
       accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
-          tariff, customer.getCustomerInfo(), customersCommitted, 0.0,
+          tariff, customer, customersCommitted, 0.0,
           customersCommitted * tariff.getPeriodicPayment() / 24.0);
     }
   }

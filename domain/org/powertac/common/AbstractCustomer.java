@@ -142,7 +142,8 @@ public class AbstractCustomer
                  this.toString() + " to subscribe to.");
       }
       else {
-        tariffSubscriptionRepo.add(tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), this, getPopulation()));
+        tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation());
+        //tariffSubscriptionRepo.add(tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation()));
         log.info(this.toString() + " was subscribed to the default broker successfully.");
       }
     }
@@ -151,7 +152,7 @@ public class AbstractCustomer
   /** Subscribing certain subscription */
   void subscribe(Tariff tariff, int customerCount)
   {
-    tariffMarketService.subscribeToTariff(tariff, this, customerCount);
+    tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
     //this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this, customerCount));
     log.info(this.toString() + " was subscribed to tariff " + 
              tariff.getId() + " successfully.");
@@ -200,7 +201,7 @@ public class AbstractCustomer
    */
   void changeSubscription(Tariff tariff)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(this, tariff);
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
 
@@ -215,7 +216,7 @@ public class AbstractCustomer
    */
   void changeSubscription(Tariff tariff, Tariff newTariff)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(this, tariff);
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
     subscribe(newTariff,populationCount);
@@ -229,7 +230,7 @@ public class AbstractCustomer
    */
   void changeSubscription(Tariff tariff, Tariff newTariff, int populationCount)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(this, tariff);
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     unsubscribe(ts, populationCount);
     subscribe(newTariff,populationCount);
   }
@@ -259,7 +260,7 @@ public class AbstractCustomer
   /** The first implementation of the checking for revoked subscriptions function.*/
   void checkRevokedSubscriptions(){
 
-    List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(this);
+    List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
       TariffSubscription ts = revokedSubscription.handleRevokedTariff();
       //removeSubscription(revokedSubscription);

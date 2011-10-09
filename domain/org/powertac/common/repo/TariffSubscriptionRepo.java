@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import org.powertac.common.AbstractCustomer;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 
@@ -38,20 +38,20 @@ public class TariffSubscriptionRepo implements DomainRepo
   static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
 
   private HashMap<Tariff, List<TariffSubscription>> tariffMap;
-  private HashMap<AbstractCustomer, List<TariffSubscription>> customerMap;
+  private HashMap<CustomerInfo, List<TariffSubscription>> customerMap;
   
   public TariffSubscriptionRepo ()
   {
     super();
     tariffMap = new HashMap<Tariff, List<TariffSubscription>>();
-    customerMap = new HashMap<AbstractCustomer, List<TariffSubscription>>();
+    customerMap = new HashMap<CustomerInfo, List<TariffSubscription>>();
   }
 
   /**
    * Returns the TariffSubscription for the given Tariff/Customer pair,
    * creating it if necessary.
    */
-  public TariffSubscription getSubscription (AbstractCustomer customer,
+  public TariffSubscription getSubscription (CustomerInfo customer,
                                              Tariff tariff)
   {
     TariffSubscription result = findSubscriptionForCustomer(tariffMap.get(tariff), customer);
@@ -75,7 +75,7 @@ public class TariffSubscriptionRepo implements DomainRepo
   }
   
   /** Returns the list of subscriptions for a given customer. */
-  public List<TariffSubscription> findSubscriptionsForCustomer (AbstractCustomer customer)
+  public List<TariffSubscription> findSubscriptionsForCustomer (CustomerInfo customer)
   {
     // new list allows caller to smash the return value
     List<TariffSubscription> result = customerMap.get(customer);
@@ -106,7 +106,8 @@ public class TariffSubscriptionRepo implements DomainRepo
     customerMap.clear();
   }
 
-  private TariffSubscription findSubscriptionForCustomer (List<TariffSubscription> subs, AbstractCustomer customer)
+  private TariffSubscription findSubscriptionForCustomer (List<TariffSubscription> subs,
+                                                          CustomerInfo customer)
   {
     if (subs == null)
       return null;
@@ -118,7 +119,7 @@ public class TariffSubscriptionRepo implements DomainRepo
   }
 
   private void storeSubscription (TariffSubscription subscription,
-                                  AbstractCustomer customer, Tariff tariff)
+                                  CustomerInfo customer, Tariff tariff)
   {
     if (tariffMap.get(tariff) == null)
       tariffMap.put(tariff, new ArrayList<TariffSubscription>());
