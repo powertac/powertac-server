@@ -48,8 +48,6 @@ implements InitializationService
   @Autowired
   private BrokerRepo brokerRepo;
   
-  private Broker defaultBroker;
-  
   /**
    * Creates the default broker instance, and a PluginConfig instance that
    * includes rates for standard default tariffs.
@@ -57,8 +55,7 @@ implements InitializationService
   public void setDefaults ()
   {
     // create the default broker instance, register it with the repo
-    defaultBroker = new Broker("defaultBroker");
-    brokerRepo.add(defaultBroker);
+    brokerRepo.add(defaultBrokerService.createBroker("Default broker"));
     // set default tariff parameters
     pluginConfigRepo.makePluginConfig("Default broker", "init")
       .addConfiguration("consumptionRate", Double.toString(0.5))
@@ -75,7 +72,7 @@ implements InitializationService
       log.error("PluginConfig for Generic does not exist.");
       return "fail";
     }
-    defaultBrokerService.init(config, defaultBroker);
+    defaultBrokerService.init(config);
     return "DefaultBroker";
   }
 }
