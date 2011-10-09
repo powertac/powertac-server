@@ -142,10 +142,24 @@ public class Broker
   {
     return local;
   }
+  
+  /** Allows subclasses to set themselves as local brokers */
+  @StateChange
+  protected void setLocal (boolean value)
+  {
+    local = value;
+  }
 
   public boolean isWholesale ()
   {
     return wholesale;
+  }
+  
+  /** Allows subclasses to make themselves wholesale brokers */
+  @StateChange
+  protected void setWholesale (boolean value)
+  {
+    wholesale = value;
   }
 
   public String toString() 
