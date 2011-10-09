@@ -40,7 +40,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.AbstractCustomer;
+//import org.powertac.common.AbstractCustomer;
 import org.powertac.common.BrokerTransaction;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -588,11 +588,11 @@ public class TariffMarketServiceTests
     assertNotNull("third tariff found", tc3);
     
     // create two customers who can subscribe
-    CustomerInfo charleyInfo = new CustomerInfo("Charley", 100);
-    AbstractCustomer charley = new AbstractCustomer(charleyInfo);
+    CustomerInfo charley = new CustomerInfo("Charley", 100);
+    //AbstractCustomer charley = new AbstractCustomer(charleyInfo);
     //charley.init();
-    CustomerInfo sallyInfo = new CustomerInfo("Sally", 100);
-    AbstractCustomer sally = new AbstractCustomer(sallyInfo);
+    CustomerInfo sally = new CustomerInfo("Sally", 100);
+    //AbstractCustomer sally = new AbstractCustomer(sallyInfo);
     //sally.init();
 	
     // make sure we have three active tariffs

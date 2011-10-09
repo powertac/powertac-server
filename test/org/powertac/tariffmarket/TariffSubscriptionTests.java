@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.powertac.common.Broker;
-import org.powertac.common.AbstractCustomer;
+//import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.Rate;
@@ -60,8 +60,8 @@ public class TariffSubscriptionTests
   
   private Tariff tariff;
   private Broker broker;
-  private CustomerInfo customerInfo;
-  private AbstractCustomer customer;
+  private CustomerInfo customer;
+  //private AbstractCustomer customer;
   private Instant now;
   private int idCount = 0;
   
@@ -85,8 +85,8 @@ public class TariffSubscriptionTests
           .addRate(new Rate().withValue(0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
-    customerInfo = new CustomerInfo("Charley", 100);
-    customer = new AbstractCustomer(customerInfo);
+    customer = new CustomerInfo("Charley", 100);
+    //customer = new AbstractCustomer(customerInfo);
     reset(mockAccounting);
   }
 
@@ -121,7 +121,7 @@ public class TariffSubscriptionTests
     assertNotNull("non-null subscription", tsub);
     assertEquals("five customers committed", 5, tsub.getCustomersCommitted());
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
-                                                tariff, customer.getCustomerInfo(),
+                                                tariff, customer,
                                                 5, 0.0, -33.2 * 5);
   }
   
@@ -147,7 +147,7 @@ public class TariffSubscriptionTests
     timeService.setCurrentTime(wk2);
     tsub.unsubscribe(2);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.WITHDRAW,
-                                                tariff, customer.getCustomerInfo(),
+                                                tariff, customer,
                                                 2, 0.0, 42.1*2);
     //def txs = TariffTransaction.findAllByPostedTime(wk2)
     //assertEquals("one transaction", 1, txs.size())

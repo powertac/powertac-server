@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.powertac.common.AbstractCustomer;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.Broker;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Tariff;
@@ -351,7 +351,7 @@ public class TariffMarketService
    * to unsubscribe from.</p>
    */
   public TariffSubscription subscribeToTariff (Tariff tariff,
-                                               AbstractCustomer customer,
+                                               CustomerInfo customer,
                                                int customerCount)
   {
     if (tariff.isExpired())
@@ -370,7 +370,7 @@ public class TariffMarketService
    * Returns the list of subscriptions for this customer that have been
    * revoked and have non-zero committed customers.
    */
-  public List<TariffSubscription> getRevokedSubscriptionList (AbstractCustomer customer)
+  public List<TariffSubscription> getRevokedSubscriptionList (CustomerInfo customer)
   {
     List<TariffSubscription> result = new ArrayList<TariffSubscription>();
     for (TariffSubscription sub : tariffSubscriptionRepo.findSubscriptionsForCustomer(customer)) {
