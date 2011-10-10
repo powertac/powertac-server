@@ -58,8 +58,10 @@ implements InitializationService
     brokerRepo.add(defaultBrokerService.createBroker("Default broker"));
     // set default tariff parameters
     pluginConfigRepo.makePluginConfig("Default broker", "init")
-      .addConfiguration("consumptionRate", Double.toString(0.5))
-      .addConfiguration("productionRate", Double.toString(-0.02));
+      .addConfiguration("consumptionRate", "0.5")
+      .addConfiguration("productionRate", "-0.02")
+      .addConfiguration("initialBidKWh", "1000.0")
+      .addConfiguration("limitPrice", "100.0");
   }
 
   /**

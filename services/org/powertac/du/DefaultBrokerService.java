@@ -17,7 +17,6 @@ package org.powertac.du;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -28,59 +27,60 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
-import org.powertac.common.Tariff;
+import org.powertac.common.Shout;
+import org.powertac.common.Shout.OrderType;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.BrokerMessageListener;
-import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.common.state.StateChange;
+import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * Default broker implementation. We do the implementation in a service, because
  * the default broker is a singleton and it's convenient. The actual Broker
- * instance is implemented in an inner class.
+ * instance is implemented in an inner class. Note that this is not a type of
+ * TimeslotPhaseProcessor. It's a broker, and so it runs after the last message
+ * of the timeslot goes out, the TimeslotUpdate message. As implemented, it runs
+ * in the message-sending thread. If this turns out to cause problems with real
+ * brokers, it could run in its own thread.
  * @author John Collins
  */
 @Service
 public class DefaultBrokerService 
-implements TimeslotPhaseProcessor
 {
   static private Logger log = Logger.getLogger(DefaultBrokerService.class.getName());
-
-  @Autowired
-  private CompetitionControl competitionControlService;
   
-  @Autowired
+  @Autowired // routing of outgoing messages
+  private BrokerProxy brokerProxyService;
+  
+  @Autowired // tariff publication
   private TariffMarket tariffMarketService;
   
   @Autowired
-  private TimeService timeService;
+  private TimeslotRepo timeslotRepo;
   
   private LocalBroker face;
   
   /** parameters */
   private double defaultConsumptionRate = 1.0;
   private double defaultProductionRate = -0.01;
-  
-  /** when to invoke this service in per-timeslot processing -- we use
-   * phase 1, which is after both the market and accounting run in the
-   * previous timeslot, and bids/asks are cleared in the current timeslot. */
-  private int simulationPhase = 3;
+  private double initialBidKWh = 500.0;
+  private double limitPrice = 200.0;
+  private int usageRecordLength = 7 * 24; // one week
   
   // local state
   private TariffSpecification defaultConsumption;
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
-    
+  private HashMap<Timeslot, MarketPosition> marketPositions;
+
   /**
    * Default constructor, called once when the server starts, before
    * any application-specific initialization has been done.
@@ -100,7 +100,8 @@ implements TimeslotPhaseProcessor
     // set up local state
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
-    
+    marketPositions = new HashMap<Timeslot, MarketPosition>();
+
     // create and publish default tariffs
     double consumption = (config.getDoubleValue("consumptionRate",
                                                 defaultConsumptionRate));
@@ -118,8 +119,9 @@ implements TimeslotPhaseProcessor
     customerSubscriptions.put(defaultProduction,
                               new HashMap<CustomerInfo, CustomerRecord>());
     
-    // register for activation
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
+    // Other setup parameters
+    initialBidKWh = config.getDoubleValue("initialBidKWh", initialBidKWh);
+    limitPrice = config.getDoubleValue("limitPrice", limitPrice);
   }
   
   /**
@@ -140,9 +142,89 @@ implements TimeslotPhaseProcessor
    * In each timeslot, we must trade in the wholesale market to satisfy the
    * predicted load of our current customer base.
    */
-  public void activate (Instant time, int phaseNumber)
+  public void activate ()
   {
-    // TODO Implement per-timeslot behavior
+    Timeslot current = timeslotRepo.currentTimeslot();
+    
+    // In the first timeslot, we buy a fixed amount because we have no
+    // usage record.
+    if (current.getSerialNumber() == 0) {
+      for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+        submitShout(initialBidKWh, timeslot);
+      }
+    }
+    
+    // In the second through 24th timeslot, we buy enough to meet what was
+    // used in the previous timeslot. Note that this is called after the server
+    // disables current+1 and enables current+24.
+    else if (current.getSerialNumber() < 24) {
+      // we already have usage data for the current timeslot.
+      double currentKWh = collectUsage(current.getSerialNumber());
+      double neededKWh = 0.0;
+      for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+        // use data already collected if we have it, otherwise use data from
+        // the current timeslot.
+        int index = timeslot.getSerialNumber() % 24;
+        double historicalKWh = collectUsage(index);
+        if (historicalKWh != 0.0)
+          neededKWh = historicalKWh;
+        else
+          neededKWh = currentKWh;
+        // subtract out the current market position, and we know what to
+        // buy or sell
+        submitShout(neededKWh, timeslot);
+      }
+    }
+    
+    // Once we have 24 hours of records, assume we need enough to meet 
+    // what we used 24 hours earlier
+    else if (current.getSerialNumber() < usageRecordLength) {
+      double neededKWh = 0.0;
+      for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+        int index = timeslot.getSerialNumber() % 24;
+        neededKWh = collectUsage(index);
+        submitShout(neededKWh, timeslot);
+      }      
+    }
+    
+    // Finally, once we have a full week of records, we use the data for
+    // the hour and day-of-week.
+    else {
+      double neededKWh = 0.0;
+      for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+        int index = timeslot.getSerialNumber() % usageRecordLength;
+        neededKWh = collectUsage(index);
+        submitShout(neededKWh, timeslot);
+      }      
+    }
+  }
+
+  private double collectUsage (int index)
+  {
+    double result = 0.0;
+    for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
+      for (CustomerRecord record : customerMap.values()) {
+        result += record.getUsage(index);
+      }
+    }
+    return result;
+  }
+
+  private void submitShout (double neededKWh, Timeslot timeslot)
+  {
+    double neededMWh = neededKWh / 1000.0;
+    MarketPosition posn = marketPositions.get(timeslot);
+    if (posn != null)
+      neededMWh -= posn.getOverallBalance();
+    OrderType buySell = OrderType.BUY;
+    if (neededMWh < 0.0) {
+      buySell = OrderType.SELL;
+      neededMWh = -neededMWh;
+    }
+    log.info("new " + buySell + " order for " + neededMWh +
+             " in timeslot " + timeslot.getSerialNumber());
+    brokerProxyService.routeMessage(new Shout(face, timeslot, buySell,
+                                              neededMWh, limitPrice));
   }
 
   // ------------ process incoming messages -------------
@@ -150,14 +232,13 @@ implements TimeslotPhaseProcessor
    * Incoming messages for brokers include:
    * <ul>
    * <li>Competition, containing a list of Customers and their attributes</li>
-   * <li>CustomerBootstrapData that tells us how much power the various
-   *   customer groups can be expected to use</li>
    * <li>Orderbooks and ClearedTrades that tell us the state of the
    *   wholesale market</li>
    * <li>TariffTransactions that tell us about customer subscription
    *   activity and power usage</li>
-   * <li>MarketTransactions that tell us how much power we have bought
-   *   or sold</li>
+   * <li>MarketPositions that tell us how much power we have bought
+   *   or sold in a given timeslot</li>
+   * <li>TimeslotUpdate that tell us it's time to send in our bids/asks</li>
    * </ul>
    */
   public void receiveBrokerMessage (Object msg)
@@ -220,6 +301,28 @@ implements TimeslotPhaseProcessor
   }
 
   /**
+   * Receives a new MarketPosition for a given timeslot and stores it
+   */
+  @SuppressWarnings("unused")
+  private void handleMessage (MarketPosition posn)
+  {
+    marketPositions.put(posn.getTimeslot(), posn);
+  }
+
+  /**
+   * TimeslotUpdate is sent by the server after all the "phase processing".
+   * This is normally when any broker would submit its bids, so that's when
+   * the DefaultBroker will do it. Any earlier, and we will find ourselves
+   * unable to trade in the furthest slot, because it will not yet have 
+   * been enabled.
+   */
+  @SuppressWarnings("unused")
+  private void handleMessage (TimeslotUpdate tsu)
+  {
+    this.activate();
+  }
+
+  /**
    * Here's the actual "default broker". This is needed to intercept messages
    * sent to the broker.
    */
@@ -248,7 +351,7 @@ implements TimeslotPhaseProcessor
   {
     CustomerInfo customer;
     int subscribedPopulation = 0;
-    double[] usage = new double[7*24];
+    double[] usage = new double[usageRecordLength];
     Instant base = null;
     double alpha = 0.3;
     
@@ -286,6 +389,18 @@ implements TimeslotPhaseProcessor
         usage[index] = alpha * kwh / (double)subscribedPopulation
                        + (1.0 - alpha) * oldUsage;
       }
+    }
+    
+    double getUsage (int index)
+    {
+      if (index < 0) {
+        log.warn("usage requested for negative index " + index);
+        index = 0;
+      }
+      else if (index > usage.length) {
+        index = index % usage.length;
+      }
+      return usage[index];
     }
     
     private int getIndex (Instant when)
