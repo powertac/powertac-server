@@ -21,36 +21,42 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.powertac.common.spring.SpringApplicationContext;
 
 /**
  * Abstract customer implementation
  * @author Antonios Chrysopoulos
  */
-public class AbstractCustomer 
+public class AbstractCustomer
 {
   static private Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
-  //@Autowired
-  //private TimeService timeService;
-  
-  @Autowired
+  private TimeService timeService;
+
   private TariffMarket tariffMarketService;
-  
-  @Autowired
+
   private TariffSubscriptionRepo tariffSubscriptionRepo;
+
+  private CustomerRepo customerRepo;
 
   /** The id of the Abstract Customer */
   private long custId;
 
-  /** The Customer specifications*/
+  /** The Customer specifications */
   private CustomerInfo customerInfo;
 
-  /** >0: max power consumption (think consumer with fuse limit); <0: min power production (think nuclear power plant with min output) */
+  /**
+   * >0: max power consumption (think consumer with fuse limit); <0: min power production (think
+   * nuclear power plant with min output)
+   */
   private double upperPowerCap = 100.0;
 
-  /** >0: min power consumption (think refrigerator); <0: max power production (think power plant with max capacity) */
+  /**
+   * >0: min power consumption (think refrigerator); <0: max power production (think power plant
+   * with max capacity)
+   */
   private double lowerPowerCap = 0.0;
 
   /** >=0 - gram CO2 per kW/h */
@@ -65,21 +71,28 @@ public class AbstractCustomer
   /** measures how sun intensity changes translate into load /generation changes of the customer */
   private double sunToPowerConversion = 0.0;
 
-  //private ArrayList<TariffSubscription> subscriptions;
+  // private ArrayList<TariffSubscription> subscriptions;
 
   public AbstractCustomer (CustomerInfo customer)
   {
     super();
+
+    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
+    tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
+    tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
     this.custId = customer.getId();
     this.customerInfo = customer;
+
+    customerRepo.add(customer);
   }
-  
-  public String toString() 
+
+  public String toString ()
   {
     return customerInfo.getName();
   }
 
-  public int getPopulation () 
+  public int getPopulation ()
   {
     return customerInfo.getPopulation();
   }
@@ -90,7 +103,7 @@ public class AbstractCustomer
   }
 
   /** Synonym for getCustId() */
-  public long getId()
+  public long getId ()
   {
     return custId;
   }
@@ -130,151 +143,161 @@ public class AbstractCustomer
     return sunToPowerConversion;
   }
 
-  //============================= SUBSCRIPTION =================================================
+  // =============================SUBSCRIPTION=================================================
 
   /** Function utilized at the beginning in order to subscribe to the default tariff */
-  public void subscribeDefault() 
+  public void subscribeDefault ()
   {
     for (PowerType type : customerInfo.getPowerTypes()) {
       if (tariffMarketService.getDefaultTariff(type) == null) {
-        log.info("No default Subscription for type " + 
-                 type.toString() + " for " + 
-                 this.toString() + " to subscribe to.");
-      }
-      else {
+        log.info("No default Subscription for type " + type.toString() + " for " + this.toString() + " to subscribe to.");
+      } else {
         tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation());
-        //tariffSubscriptionRepo.add(tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation()));
+        // tariffSubscriptionRepo.add(tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type),
+        // customerInfo, getPopulation()));
         log.info(this.toString() + " was subscribed to the default broker successfully.");
       }
     }
   }
 
   /** Subscribing certain subscription */
-  void subscribe(Tariff tariff, int customerCount)
+  void subscribe (Tariff tariff,
+                  int customerCount)
   {
     tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
-    //this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this, customerCount));
-    log.info(this.toString() + " was subscribed to tariff " + 
-             tariff.getId() + " successfully.");
+    // this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this,
+    // customerCount));
+    log.info(this.toString() + " was subscribed to tariff " + tariff.getId() + " successfully.");
   }
 
   /** Unsubscribing certain subscription */
-  void unsubscribe(TariffSubscription subscription, int customerCount) 
+  void unsubscribe (TariffSubscription subscription,
+                    int customerCount)
   {
     subscription.unsubscribe(customerCount);
     log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
-    //if (subscription.getCustomersCommitted() == 0)
-    //  removeSubscription(subscription);
+    // if (subscription.getCustomersCommitted() == 0)
+    // removeSubscription(subscription);
   }
 
   /** Subscribing certain subscription */
-//  void addSubscription(TariffSubscription ts)
-//  {
-//    tariffSubscriptionRepo.add(ts);
-//  }
+  // void addSubscription(TariffSubscription ts)
+  // {
+  // tariffSubscriptionRepo.add(ts);
+  // }
 
   /** Unsubscribing certain subscription */
-//  void removeSubscription(TariffSubscription ts)
-//  {
-//    tariffSubscriptionRepo.remove(ts);
-//  }
+  // void removeSubscription(TariffSubscription ts)
+  // {
+  // tariffSubscriptionRepo.remove(ts);
+  // }
 
-  //============================= CONSUMPTION - PRODUCTION =================================================
+  // =============================CONSUMPTION-PRODUCTION=================================================
 
-  /** The first implementation of the power consumption function.
-   *  I utilized the mean consumption of a neighborhood of households with a random variable */
-  void consumePower(){ }
+  /**
+   * The first implementation of the power consumption function. I utilized the mean consumption of
+   * a neighborhood of households with a random variable
+   */
+  void consumePower ()
+  {
+  }
 
+  /**
+   * The first implementation of the power consumption function. I utilized the mean consumption of
+   * a neighborhood of households with a random variable
+   */
+  void producePower ()
+  {
+  }
 
+  // =============================TARIFF_SELECTION_PROCESS=================================================
 
-  /** The first implementation of the power consumption function.
-   *  I utilized the mean consumption of a neighborhood of households with a random variable */
-  void producePower(){}
-
-
-  //============================= TARIFF SELECTION PROCESS =================================================
-
-  /** The first implementation of the changing subscription function.
-   *  Here we just put the tariff we want to change and the whole population 
-   * is moved to another random tariff.
+  /**
+   * The first implementation of the changing subscription function. Here we just put the tariff we
+   * want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  void changeSubscription(Tariff tariff)
+  void changeSubscription (Tariff tariff)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
 
     Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
-    subscribe(newTariff,populationCount);
+    subscribe(newTariff, populationCount);
   }
 
-  /** In this overloaded implementation of the changing subscription function,
-   *  Here we just put the tariff we want to change and the whole population 
-   * is moved to another random tariff.
+  /**
+   * In this overloaded implementation of the changing subscription function, Here we just put the
+   * tariff we want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  void changeSubscription(Tariff tariff, Tariff newTariff)
+  void changeSubscription (Tariff tariff,
+                           Tariff newTariff)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
-    subscribe(newTariff,populationCount);
+    subscribe(newTariff, populationCount);
   }
 
-
-  /** In this overloaded implementation of the changing subscription function,
-   * Here we just put the tariff we want to change and amount of the population 
-   * we want to move to the new tariff.
+  /**
+   * In this overloaded implementation of the changing subscription function, Here we just put the
+   * tariff we want to change and amount of the population we want to move to the new tariff.
    * @param tariff
    */
-  void changeSubscription(Tariff tariff, Tariff newTariff, int populationCount)
+  void changeSubscription (Tariff tariff,
+                           Tariff newTariff,
+                           int populationCount)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     unsubscribe(ts, populationCount);
-    subscribe(newTariff,populationCount);
+    subscribe(newTariff, populationCount);
   }
 
-
-  /** The first implementation of the tariff selection function.
-   * This is a random chooser of the available tariffs, totally insensitive.*/
-  Tariff selectTariff(PowerType powerType) 
+  /**
+   * The first implementation of the tariff selection function. This is a random chooser of the
+   * available tariffs, totally insensitive.
+   */
+  Tariff selectTariff (PowerType powerType)
   {
     Tariff result;
     List<Tariff> available = new ArrayList<Tariff>();
     int ran, index;
     available = tariffMarketService.getActiveTariffList(powerType);
-    //log.info("Available Tariffs for " + powerType + ": " ${available.toString()} "
+    // log.info("Available Tariffs for " + powerType + ": "
+    // ${available.toString()} "
     index = available.indexOf(tariffMarketService.getDefaultTariff(powerType));
     log.info("Index of Default Tariff: " + index);
-
+    // System.out.println(index);
     ran = index;
-    while ( ran == index) {
-      ran = (int)Math.round(available.size() * Math.random());
+    while (ran == index) {
+      ran = (int) (available.size() * Math.random());
     }
+    // System.out.println(ran);
     result = available.get(ran);
     return result;
   }
 
-
-  /** The first implementation of the checking for revoked subscriptions function.*/
-  void checkRevokedSubscriptions(){
+  /** The first implementation of the checking for revoked subscriptions function. */
+  void checkRevokedSubscriptions ()
+  {
 
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
       revokedSubscription.handleRevokedTariff();
-      //removeSubscription(revokedSubscription);
-      //addSubscription(ts);
+      // removeSubscription(revokedSubscription);
+      // addSubscription(ts);
     }
   }
 
-
-  /** This function returns the bootstrap data of the certain customer in the correct form
-   * 
+  /**
+   * This function returns the bootstrap data of the certain customer in the correct form
    * @return
    */
-   //getBootstrapData(){}
+  // getBootstrapData(){}
 
-
-  void step(){ }
+  void step ()
+  {
+  }
 }
