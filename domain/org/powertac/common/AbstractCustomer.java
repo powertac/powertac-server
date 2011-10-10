@@ -32,8 +32,8 @@ public class AbstractCustomer
 {
   static private Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
-  @Autowired
-  private TimeService timeService;
+  //@Autowired
+  //private TimeService timeService;
   
   @Autowired
   private TariffMarket tariffMarketService;
@@ -262,7 +262,7 @@ public class AbstractCustomer
 
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
-      TariffSubscription ts = revokedSubscription.handleRevokedTariff();
+      revokedSubscription.handleRevokedTariff();
       //removeSubscription(revokedSubscription);
       //addSubscription(ts);
     }

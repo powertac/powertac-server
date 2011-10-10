@@ -24,7 +24,6 @@ import org.joda.time.Instant;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A TariffSubscription is an entity representing an association between a Customer
@@ -41,13 +40,10 @@ public class TariffSubscription
 
   long id = IdGenerator.createId();
   
-  //@Autowired
   private TimeService timeService;
   
-  //@Autowired
   private Accounting accountingService;
   
-  //@Autowired
   private TariffMarket tariffMarketService;
   
   /** The customer who has this Subscription */

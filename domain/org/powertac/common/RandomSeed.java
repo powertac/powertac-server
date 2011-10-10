@@ -15,9 +15,6 @@
  */
 package org.powertac.common;
 
-import java.util.Random;
-
-import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
 /**

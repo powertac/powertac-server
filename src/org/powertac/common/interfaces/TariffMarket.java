@@ -22,7 +22,6 @@ import org.powertac.common.Tariff;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TariffTransaction;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
