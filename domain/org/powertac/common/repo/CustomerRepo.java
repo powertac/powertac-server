@@ -15,6 +15,7 @@
 */
 package org.powertac.common.repo;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -43,6 +44,16 @@ public class CustomerRepo implements DomainRepo
     CustomerInfo result = new CustomerInfo(name, population);
     customers.put(result.getId(), result);
     return result;
+  }
+  
+  public void add (CustomerInfo customer)
+  {
+    customers.put(customer.getId(), customer);
+  }
+  
+  public Collection<CustomerInfo> list ()
+  {
+    return customers.values();
   }
   
   public CustomerInfo findById (long id)

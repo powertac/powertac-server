@@ -70,10 +70,8 @@ public class Tariff
     PENDING, OFFERED, ACTIVE, WITHDRAWN, KILLED, INACTIVE
   }
 
-  //@Autowired
   private TimeService timeService;
   
-  //@Autowired
   private TariffRepo tariffRepo;
 
   private long specId;
@@ -153,6 +151,7 @@ public class Tariff
     if (timeService == null)
       log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
+    tariffRepo.addTariff(this);
     analyze();
   }
   
