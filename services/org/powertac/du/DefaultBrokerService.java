@@ -71,7 +71,8 @@ public class DefaultBrokerService
   private double defaultConsumptionRate = 1.0;
   private double defaultProductionRate = -0.01;
   private double initialBidKWh = 500.0;
-  private double limitPrice = 200.0;
+  private double buyLimitPrice = 200.0;
+  private double sellLimitPrice = 0.0;
   private int usageRecordLength = 7 * 24; // one week
   
   // local state
@@ -121,7 +122,8 @@ public class DefaultBrokerService
     
     // Other setup parameters
     initialBidKWh = config.getDoubleValue("initialBidKWh", initialBidKWh);
-    limitPrice = config.getDoubleValue("limitPrice", limitPrice);
+    buyLimitPrice = config.getDoubleValue("buyLimitPrice", buyLimitPrice);
+    sellLimitPrice = config.getDoubleValue("sellLimitPrice", sellLimitPrice);
   }
   
   /**
@@ -213,6 +215,7 @@ public class DefaultBrokerService
   private void submitShout (double neededKWh, Timeslot timeslot)
   {
     double neededMWh = neededKWh / 1000.0;
+    double limitPrice = buyLimitPrice;
     MarketPosition posn = marketPositions.get(timeslot);
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
@@ -220,6 +223,7 @@ public class DefaultBrokerService
     if (neededMWh < 0.0) {
       buySell = OrderType.SELL;
       neededMWh = -neededMWh;
+      limitPrice = sellLimitPrice;
     }
     log.info("new " + buySell + " order for " + neededMWh +
              " in timeslot " + timeslot.getSerialNumber());

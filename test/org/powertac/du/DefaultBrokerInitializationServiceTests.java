@@ -30,12 +30,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.du.DefaultBrokerInitializationService;
 import org.powertac.du.DefaultBrokerService;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class GenericInitializationServiceTests
+public class DefaultBrokerInitializationServiceTests
 {
   PluginConfigRepo pluginConfigRepo;
   DefaultBrokerInitializationService serviceUnderTest;
@@ -65,11 +66,28 @@ public class GenericInitializationServiceTests
   @Test
   public void testSetDefaults ()
   {
+    // mock and inject the service and the brokerRepo
+    DefaultBrokerService service = mock(DefaultBrokerService.class);
+    ReflectionTestUtils.setField(serviceUnderTest, "defaultBrokerService", service);
+    BrokerRepo repo = mock(BrokerRepo.class);
+    ReflectionTestUtils.setField(serviceUnderTest, "brokerRepo", repo);
+
     serviceUnderTest.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("Generic");
+    verify(service).createBroker("Default broker");
+    verify(repo).add(null);
+    
+    PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
     assertNotNull("found config", config);
-    assertEquals("correct parameter", "42",
-                 config.getConfigurationValue("parameter"));
+    assertEquals("correct consumption rate", "0.5",
+                 config.getConfigurationValue("consumptionRate"));
+    assertEquals("correct productionRate", "-0.02",
+                 config.getConfigurationValue("productionRate"));
+    assertEquals("correct bid kwh", "1000.0",
+                 config.getConfigurationValue("initialBidKWh"));
+    assertEquals("correct buy limit price", "100.0",
+                 config.getConfigurationValue("buyLimitPrice"));
+    assertEquals("correct sell limit price", "0.1",
+                 config.getConfigurationValue("sellLimitPrice"));
   }
 
   /**
@@ -81,39 +99,20 @@ public class GenericInitializationServiceTests
   {
     // mock the service and the competition instance
     DefaultBrokerService service = mock(DefaultBrokerService.class);
+    BrokerRepo repo = mock(BrokerRepo.class);
     Competition competition = mock(Competition.class);
     // dependency injection
-    ReflectionTestUtils.setField(serviceUnderTest, "genericService", service);
+    ReflectionTestUtils.setField(serviceUnderTest, "defaultBrokerService", service);
+    ReflectionTestUtils.setField(serviceUnderTest, "brokerRepo", repo);
+
     // set defaults
     serviceUnderTest.setDefaults();
     // run the initialize method, confirm it makes the correct calls
     List<String> completedInits = new ArrayList<String>();
-    completedInits.add("Other");
     String result = serviceUnderTest.initialize(competition, completedInits);
-    assertEquals("correct result", "Generic", result);
-    PluginConfig config = pluginConfigRepo.findByRoleName("Generic");
+    assertEquals("correct result", "DefaultBroker", result);
+    PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
     verify(service).init(config);
-  }
-  
-  /**
-   * Confirms correct deferred initialization behavior.
-   */
-  @Test
-  public void testInitializeNull ()
-  {
-    // mock the service and the competition instance
-    DefaultBrokerService service = mock(DefaultBrokerService.class);
-    Competition competition = mock(Competition.class);
-    // dependency injection
-    ReflectionTestUtils.setField(serviceUnderTest, "genericService", service);
-    // set defaults
-    serviceUnderTest.setDefaults();
-    // run the initialize method, make sure it makes the correct calls
-    List<String> completedInits = new ArrayList<String>();
-    //completedInits.add("Other");
-    String result = serviceUnderTest.initialize(competition, completedInits);
-    assertNull("null result", result);
-    verify(service, never()).init((PluginConfig) anyObject());
   }
   
   /**
@@ -126,11 +125,10 @@ public class GenericInitializationServiceTests
     DefaultBrokerService service = mock(DefaultBrokerService.class);
     Competition competition = mock(Competition.class);
     // dependency injection
-    ReflectionTestUtils.setField(serviceUnderTest, "genericService", service);
+    ReflectionTestUtils.setField(serviceUnderTest, "defaultBrokerService", service);
     // Do not set defaults
     // run the initialize method, make sure it fails correctly
     List<String> completedInits = new ArrayList<String>();
-    completedInits.add("Other");
     String result = serviceUnderTest.initialize(competition, completedInits);
     assertEquals("failure result", "fail", result);
     verify(service, never()).init((PluginConfig) anyObject());
