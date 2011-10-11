@@ -139,6 +139,11 @@ public class DefaultBrokerService
     return face;
   }
 
+  public LocalBroker getFace ()
+  {
+    return face;
+  }
+
   // ----------- per-timeslot activation -------------
   /**
    * In each timeslot, we must trade in the wholesale market to satisfy the
@@ -201,7 +206,8 @@ public class DefaultBrokerService
     }
   }
 
-  private double collectUsage (int index)
+  // default visibility for testing
+  double collectUsage (int index)
   {
     double result = 0.0;
     for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
@@ -230,20 +236,32 @@ public class DefaultBrokerService
     brokerProxyService.routeMessage(new Shout(face, timeslot, buySell,
                                               neededMWh, limitPrice));
   }
+  
+  // test-support method
+  HashMap<String, Integer> getCustomerCounts()
+  {
+    HashMap<String, Integer> result = new HashMap<String, Integer>();
+    for (TariffSpecification spec : customerSubscriptions.keySet()) {
+      HashMap<CustomerInfo, CustomerRecord> customerMap = customerSubscriptions.get(spec);
+      for (CustomerRecord record : customerMap.values()) {
+        result.put(record.customer.getName() + spec.getPowerType(), 
+                    record.subscribedPopulation);
+      }
+    }
+    return result;
+  }
 
   // ------------ process incoming messages -------------
   /**
    * Incoming messages for brokers include:
    * <ul>
-   * <li>Competition, containing a list of Customers and their attributes</li>
-   * <li>Orderbooks and ClearedTrades that tell us the state of the
-   *   wholesale market</li>
-   * <li>TariffTransactions that tell us about customer subscription
-   *   activity and power usage</li>
-   * <li>MarketPositions that tell us how much power we have bought
-   *   or sold in a given timeslot</li>
+   * <li>TariffTransaction tells us about customer subscription
+   *   activity and power usage,</li>
+   * <li>MarketPosition tells us how much power we have bought
+   *   or sold in a given timeslot,</li>
    * <li>TimeslotUpdate that tell us it's time to send in our bids/asks</li>
    * </ul>
+   * along with a number of other message types that we can safely ignore.
    */
   public void receiveBrokerMessage (Object msg)
   {
@@ -258,7 +276,7 @@ public class DefaultBrokerService
    * CONSUME, SIGNUP, and WITHDRAW.
    */
   @SuppressWarnings("unused")
-  private void handleMessage(TariffTransaction ttx)
+  public void handleMessage(TariffTransaction ttx)
   {
     TariffTransaction.Type txType = ttx.getTxType();
     CustomerInfo customer = ttx.getCustomerInfo();
@@ -308,7 +326,7 @@ public class DefaultBrokerService
    * Receives a new MarketPosition for a given timeslot and stores it
    */
   @SuppressWarnings("unused")
-  private void handleMessage (MarketPosition posn)
+  public void handleMessage (MarketPosition posn)
   {
     marketPositions.put(posn.getTimeslot(), posn);
   }
@@ -321,7 +339,7 @@ public class DefaultBrokerService
    * been enabled.
    */
   @SuppressWarnings("unused")
-  private void handleMessage (TimeslotUpdate tsu)
+  public void handleMessage (TimeslotUpdate tsu)
   {
     this.activate();
   }
@@ -383,15 +401,15 @@ public class DefaultBrokerService
     void produceConsume (double kwh, Instant when)
     {
       int index = getIndex(when);
+      double kwhPerCustomer = kwh / (double)subscribedPopulation;
       double oldUsage = usage[index];
       if (oldUsage == 0.0) {
         // assume this is the first time
-        usage[index] = kwh;
+        usage[index] = kwhPerCustomer;
       }
       else {
         // exponential smoothing
-        usage[index] = alpha * kwh / (double)subscribedPopulation
-                       + (1.0 - alpha) * oldUsage;
+        usage[index] = alpha * kwhPerCustomer + (1.0 - alpha) * oldUsage;
       }
     }
     
@@ -404,7 +422,7 @@ public class DefaultBrokerService
       else if (index > usage.length) {
         index = index % usage.length;
       }
-      return usage[index];
+      return (usage[index] * (double)subscribedPopulation);
     }
     
     private int getIndex (Instant when)

@@ -55,7 +55,7 @@ implements InitializationService
   public void setDefaults ()
   {
     // create the default broker instance, register it with the repo
-    brokerRepo.add(defaultBrokerService.createBroker("Default broker"));
+    brokerRepo.add(defaultBrokerService.createBroker("default broker"));
     // set default tariff parameters
     pluginConfigRepo.makePluginConfig("defaultBroker", "init")
       .addConfiguration("consumptionRate", "0.5") // 0.50/kwh
