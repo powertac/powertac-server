@@ -73,7 +73,7 @@ public class DefaultBrokerInitializationServiceTests
     ReflectionTestUtils.setField(serviceUnderTest, "brokerRepo", repo);
 
     serviceUnderTest.setDefaults();
-    verify(service).createBroker("Default broker");
+    verify(service).createBroker("default broker");
     verify(repo).add(null);
     
     PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
