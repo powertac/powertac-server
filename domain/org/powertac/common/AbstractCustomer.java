@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 
@@ -40,6 +41,8 @@ public class AbstractCustomer
   protected TariffSubscriptionRepo tariffSubscriptionRepo;
 
   protected CustomerRepo customerRepo;
+
+  protected RandomSeedRepo randomSeedRepo;
 
   /** The id of the Abstract Customer */
   protected long custId;
@@ -71,18 +74,21 @@ public class AbstractCustomer
   /** measures how sun intensity changes translate into load /generation changes of the customer */
   protected double sunToPowerConversion = 0.0;
 
+  /** Random Number Generator */
+  protected RandomSeed rs1;
+
   // protected ArrayList<TariffSubscription> subscriptions;
 
   public AbstractCustomer (CustomerInfo customer)
   {
     super();
-
+    randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
     customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
     tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
     tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
     this.custId = customer.getId();
     this.customerInfo = customer;
-
+    rs1 = randomSeedRepo.getRandomSeed("AbstractCustomer", getCustId(), "TariffChooser");
     customerRepo.add(customer);
   }
 
@@ -271,7 +277,7 @@ public class AbstractCustomer
     // System.out.println(index);
     ran = index;
     while (ran == index) {
-      ran = (int) (available.size() * Math.random());
+      ran = (int) (available.size() * rs1.nextDouble());
     }
     // System.out.println(ran);
     result = available.get(ran);
