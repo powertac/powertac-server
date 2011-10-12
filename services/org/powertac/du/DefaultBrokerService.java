@@ -236,20 +236,6 @@ public class DefaultBrokerService
     brokerProxyService.routeMessage(new Shout(face, timeslot, buySell,
                                               neededMWh, limitPrice));
   }
-  
-  // test-support method
-  HashMap<String, Integer> getCustomerCounts()
-  {
-    HashMap<String, Integer> result = new HashMap<String, Integer>();
-    for (TariffSpecification spec : customerSubscriptions.keySet()) {
-      HashMap<CustomerInfo, CustomerRecord> customerMap = customerSubscriptions.get(spec);
-      for (CustomerRecord record : customerMap.values()) {
-        result.put(record.customer.getName() + spec.getPowerType(), 
-                    record.subscribedPopulation);
-      }
-    }
-    return result;
-  }
 
   // ------------ process incoming messages -------------
   /**
@@ -275,7 +261,6 @@ public class DefaultBrokerService
    * Handles a TariffTransaction. We only care about certain types: PRODUCE,
    * CONSUME, SIGNUP, and WITHDRAW.
    */
-  @SuppressWarnings("unused")
   public void handleMessage(TariffTransaction ttx)
   {
     TariffTransaction.Type txType = ttx.getTxType();
@@ -325,7 +310,6 @@ public class DefaultBrokerService
   /**
    * Receives a new MarketPosition for a given timeslot and stores it
    */
-  @SuppressWarnings("unused")
   public void handleMessage (MarketPosition posn)
   {
     marketPositions.put(posn.getTimeslot(), posn);
@@ -338,7 +322,6 @@ public class DefaultBrokerService
    * unable to trade in the furthest slot, because it will not yet have 
    * been enabled.
    */
-  @SuppressWarnings("unused")
   public void handleMessage (TimeslotUpdate tsu)
   {
     this.activate();
@@ -367,7 +350,10 @@ public class DefaultBrokerService
   }
   
   /**
-   * Keeps track of customer status
+   * Keeps track of customer status and usage. Usage is stored
+   * per-customer-unit, but reported as the product of the per-customer
+   * quantity and the subscribed population. This allows the broker to use
+   * historical usage data as the subscribed population shifts.
    */
   class CustomerRecord
   {
@@ -425,6 +411,8 @@ public class DefaultBrokerService
       return (usage[index] * (double)subscribedPopulation);
     }
     
+    // we assume here that timeslot index always matches the number of
+    // timeslots that have passed since the beginning of the simulation.
     private int getIndex (Instant when)
     {
       if (base == null)
@@ -436,5 +424,28 @@ public class DefaultBrokerService
       log.debug("index=" + result + " at time " + when.toString());
       return result;
     }
+  }
+  
+  // test-support method
+  HashMap<String, Integer> getCustomerCounts()
+  {
+    HashMap<String, Integer> result = new HashMap<String, Integer>();
+    for (TariffSpecification spec : customerSubscriptions.keySet()) {
+      HashMap<CustomerInfo, CustomerRecord> customerMap = customerSubscriptions.get(spec);
+      for (CustomerRecord record : customerMap.values()) {
+        result.put(record.customer.getName() + spec.getPowerType(), 
+                    record.subscribedPopulation);
+      }
+    }
+    return result;
+  }
+  
+  // test-support method
+  double getUsageForCustomer (CustomerInfo customer,
+                              TariffSpecification tariffSpec,
+                              int index)
+  {
+    CustomerRecord record = customerSubscriptions.get(tariffSpec).get(customer);
+    return record.getUsage(index);
   }
 }

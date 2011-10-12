@@ -37,10 +37,13 @@ import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
+import org.powertac.common.Shout;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.Auctioneer;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.BrokerRepo;
@@ -119,6 +122,8 @@ public class DefaultBrokerServiceTests
                                  pluginConfigRepo);
     mockMarket = mock(TariffMarket.class);
     ReflectionTestUtils.setField(service, "tariffMarketService", mockMarket);
+    ReflectionTestUtils.setField(service, "brokerProxyService", mockProxy);
+    ReflectionTestUtils.setField(service, "timeslotRepo", timeslotRepo);
 
     
     competition = Competition.newInstance("broker-test");
@@ -218,4 +223,157 @@ public class DefaultBrokerServiceTests
     assertEquals("1000 individuals", 1000, count);
   }
 
+  @Test
+  public void testReceiveWithdrawMessage ()
+  {
+    final HashMap<PowerType, TariffSpecification> specs = 
+      new HashMap<PowerType, TariffSpecification>();
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        TariffSpecification spec =(TariffSpecification)args[0];
+        specs.put(spec.getPowerType(), spec);
+        return null;
+      }
+    }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
+
+    Broker face = init();
+    HashMap<String, Integer> customerCounts = service.getCustomerCounts();
+    assertEquals("no customers yet", 0, customerCounts.size());
+    
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              specs.get(PowerType.CONSUMPTION),
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              0.0, 4.2));
+    // now one customer, population=1000
+    customerCounts = service.getCustomerCounts();
+    assertEquals("one customer", 1, customerCounts.size());
+    int count = customerCounts.get(customer1.getName() + PowerType.CONSUMPTION);
+    assertEquals("1000 individuals", 1000, count);
+    
+    // add another customer, then withdraw some from the first
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              specs.get(PowerType.PRODUCTION),
+                                              customer2, 
+                                              42, // population
+                                              0.0, 4.2));
+    customerCounts = service.getCustomerCounts();
+    assertEquals("two customers", 2, customerCounts.size());
+    count = customerCounts.get(customer1.getName() + PowerType.CONSUMPTION);
+    assertEquals("still 1000 individuals", 1000, count);
+    count = customerCounts.get(customer2.getName() + PowerType.PRODUCTION);
+    assertEquals("42 individuals", 42, count);
+    
+    // now withdraw some from customer1
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.WITHDRAW, 
+                                              specs.get(PowerType.CONSUMPTION),
+                                              customer1, 
+                                              400,
+                                              0.0, 4.2));
+    customerCounts = service.getCustomerCounts();
+    assertEquals("still two customers", 2, customerCounts.size());
+    count = customerCounts.get(customer1.getName() + PowerType.CONSUMPTION);
+    assertEquals("600 individuals remain", 600, count);
+    count = customerCounts.get(customer2.getName() + PowerType.PRODUCTION);
+    assertEquals("still 42 individuals", 42, count);
+  }
+
+  @Test
+  public void testReceiveConsumeMessage ()
+  {
+    final HashMap<PowerType, TariffSpecification> specs = 
+      new HashMap<PowerType, TariffSpecification>();
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        TariffSpecification spec =(TariffSpecification)args[0];
+        specs.put(spec.getPowerType(), spec);
+        return null;
+      }
+    }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
+
+    Broker face = init();
+    HashMap<String, Integer> customerCounts = service.getCustomerCounts();
+    assertEquals("no customers yet", 0, customerCounts.size());
+    TariffSpecification spec = specs.get(PowerType.CONSUMPTION);
+    
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              spec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              0.0, 4.2));
+    // now one customer, population=1000. Consume some power.
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              spec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              500.0, 4.2));
+    // check usage in current timeslot
+    double usage = service.getUsageForCustomer(customer1, spec, 0);
+    assertEquals("500 kwh", 500.0, usage, 1e-6);
+    // check usage in next timeslot
+    usage = service.getUsageForCustomer(customer1, spec, 1);
+    assertEquals("no usage", 0.0, usage, 1e-6);
+    
+    // move the clock ahead and use some more power
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              spec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              450.0, 4.2));
+    usage = service.getUsageForCustomer(customer1, spec, 0);
+    assertEquals("500 kwh", 500.0, usage, 1e-6);
+    // check usage in next two timeslots
+    usage = service.getUsageForCustomer(customer1, spec, 1);
+    assertEquals("no usage", 450.0, usage, 1e-6);
+    usage = service.getUsageForCustomer(customer1, spec, 2);
+    assertEquals("no usage", 0.0, usage, 1e-6);
+    
+  }
+  
+  // set up some timeslots
+  private void createTimeslots()
+  {
+    Instant now = timeService.getCurrentTime();
+    Timeslot ts = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
+    ts.disable();
+    for (int i = 1; i < 24; i++) {
+      timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i),
+                                now.plus(TimeService.HOUR * (i + 1)));
+    }
+  }
+  
+  @Test
+  public void testShoutTS0 ()
+  {
+    Broker face = init();
+    createTimeslots();
+    Timeslot current = timeslotRepo.currentTimeslot(); 
+    assertEquals("current timeslot has serial 0", 0, current.getSerialNumber());
+    final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        shoutList.add((Shout)args[0]);
+        return null;
+      }
+    }).when(mockProxy).routeMessage(isA(Shout.class));
+    
+    service.activate();
+    assertEquals("23 shouts", 23, shoutList.size());
+  }
 }
