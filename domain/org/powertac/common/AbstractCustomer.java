@@ -197,7 +197,7 @@ public class AbstractCustomer
    * The first implementation of the power consumption function. I utilized the mean consumption of
    * a neighborhood of households with a random variable
    */
-  void consumePower ()
+  protected void consumePower ()
   {
   }
 
@@ -205,7 +205,7 @@ public class AbstractCustomer
    * The first implementation of the power consumption function. I utilized the mean consumption of
    * a neighborhood of households with a random variable
    */
-  void producePower ()
+  protected void producePower ()
   {
   }
 
@@ -216,7 +216,7 @@ public class AbstractCustomer
    * want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  void changeSubscription (Tariff tariff)
+  protected void changeSubscription (Tariff tariff)
   {
     TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
     int populationCount = ts.getCustomersCommitted();
@@ -231,8 +231,8 @@ public class AbstractCustomer
    * tariff we want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  void changeSubscription (Tariff tariff,
-                           Tariff newTariff)
+  protected void changeSubscription (Tariff tariff,
+                                     Tariff newTariff)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
@@ -245,9 +245,9 @@ public class AbstractCustomer
    * tariff we want to change and amount of the population we want to move to the new tariff.
    * @param tariff
    */
-  void changeSubscription (Tariff tariff,
-                           Tariff newTariff,
-                           int populationCount)
+  protected void changeSubscription (Tariff tariff,
+                                     Tariff newTariff,
+                                     int populationCount)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     unsubscribe(ts, populationCount);
@@ -258,7 +258,7 @@ public class AbstractCustomer
    * The first implementation of the tariff selection function. This is a random chooser of the
    * available tariffs, totally insensitive.
    */
-  Tariff selectTariff (PowerType powerType)
+  protected Tariff selectTariff (PowerType powerType)
   {
     Tariff result;
     List<Tariff> available = new ArrayList<Tariff>();
@@ -279,7 +279,7 @@ public class AbstractCustomer
   }
 
   /** The first implementation of the checking for revoked subscriptions function. */
-  void checkRevokedSubscriptions ()
+  protected void checkRevokedSubscriptions ()
   {
 
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
@@ -296,7 +296,7 @@ public class AbstractCustomer
    */
   // getBootstrapData(){}
 
-  void step ()
+  protected void step ()
   {
   }
 }
