@@ -43,11 +43,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Test cases for AbstractCustomer. Uses a Spring application context to access
- * autowired components.
- * 
- * Need to mock: TariffMarket
- * 
+ * Test cases for AbstractCustomer. Uses a Spring application context to access autowired
+ * components. Need to mock: TariffMarket
  * @author Antonios Chrysopoulos
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -136,7 +133,8 @@ public class AbstractCustomerTests
     customer.subscribeDefault();
 
     assertEquals("one subscription for our customer", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-    assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
+    assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)),
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
   }
 
   @Test
@@ -158,8 +156,10 @@ public class AbstractCustomerTests
     Rate r2 = new Rate().withValue(0.222);
 
     TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
@@ -170,27 +170,31 @@ public class AbstractCustomerTests
 
     assertEquals("Four tariffs", 4, tariffRepo.findAllTariffs().size());
 
+    // Changing from default to another tariff
     TariffSubscription sub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff1);
     when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
     when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tariffRepo.findAllTariffs());
 
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+    assertFalse("Changed from default tariff",
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
-    // System.out.println(tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff().toString());
-    // System.out.println(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)).toString());
-    assertFalse("Changed from default tariff", tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
-
+    // Changing back from the new tariff to the default one in order to check every
+    // changeSubscription Method
     Tariff lastTariff = tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff();
 
     when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
     customer.changeSubscription(lastTariff, mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
-    assertTrue("Changed from default tariff", tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+    assertTrue("Changed from default tariff",
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
+    // Last changeSubscription Method checked
     when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), lastTariff, 5);
 
-    assertFalse("Changed from default tariff", tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+    assertFalse("Changed from default tariff",
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
   }
 
@@ -216,8 +220,10 @@ public class AbstractCustomerTests
     Rate r2 = new Rate().withValue(0.222);
 
     TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();

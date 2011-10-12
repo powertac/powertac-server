@@ -34,8 +34,6 @@ public class AbstractCustomer
 {
   static protected Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
-  // protected TimeService timeService;
-
   protected TariffMarket tariffMarketService;
 
   protected TariffSubscriptionRepo tariffSubscriptionRepo;
@@ -77,8 +75,12 @@ public class AbstractCustomer
   /** Random Number Generator */
   protected RandomSeed rs1;
 
-  // protected ArrayList<TariffSubscription> subscriptions;
-
+  /**
+   * Abstract Customer constructor. It takes the customerInfo as an input. It creates the autowiring
+   * required using the Spring Application Context, it creates the new Abstract Customer based on
+   * the customerInfo given, creates a new random number generator and adds the newly created
+   * customer in the CustomerRepo.
+   */
   public AbstractCustomer (CustomerInfo customer)
   {
     super();
@@ -86,8 +88,9 @@ public class AbstractCustomer
     customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
     tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
     tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
-    this.custId = customer.getId();
-    this.customerInfo = customer;
+
+    custId = customer.getId();
+    customerInfo = customer;
     rs1 = randomSeedRepo.getRandomSeed("AbstractCustomer", getCustId(), "TariffChooser");
     customerRepo.add(customer);
   }
@@ -158,44 +161,26 @@ public class AbstractCustomer
         log.info("No default Subscription for type " + type.toString() + " for " + this.toString() + " to subscribe to.");
       } else {
         tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation());
-        // tariffSubscriptionRepo.add(tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type),
-        // customerInfo, getPopulation()));
         log.info(this.toString() + " was subscribed to the default broker successfully.");
       }
     }
   }
 
-  /** Subscribing certain subscription */
+  /** Subscribing a certain population amount to a certain subscription */
   void subscribe (Tariff tariff,
                   int customerCount)
   {
     tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
-    // this.addSubscription(tariffMarketService.subscribeToTariff(tariff, this,
-    // customerCount));
     log.info(this.toString() + " was subscribed to tariff " + tariff.getId() + " successfully.");
   }
 
-  /** Unsubscribing certain subscription */
+  /** Unsubscribing a certain population amount from a certain subscription */
   void unsubscribe (TariffSubscription subscription,
                     int customerCount)
   {
     subscription.unsubscribe(customerCount);
     log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
-    // if (subscription.getCustomersCommitted() == 0)
-    // removeSubscription(subscription);
   }
-
-  /** Subscribing certain subscription */
-  // void addSubscription(TariffSubscription ts)
-  // {
-  // tariffSubscriptionRepo.add(ts);
-  // }
-
-  /** Unsubscribing certain subscription */
-  // void removeSubscription(TariffSubscription ts)
-  // {
-  // tariffSubscriptionRepo.remove(ts);
-  // }
 
   // =============================CONSUMPTION-PRODUCTION=================================================
 
@@ -270,16 +255,13 @@ public class AbstractCustomer
     List<Tariff> available = new ArrayList<Tariff>();
     int ran, index;
     available = tariffMarketService.getActiveTariffList(powerType);
-    // log.info("Available Tariffs for " + powerType + ": "
-    // ${available.toString()} "
+    // log.info("Available Tariffs for " + powerType + ": " available.toString()");
     index = available.indexOf(tariffMarketService.getDefaultTariff(powerType));
     log.info("Index of Default Tariff: " + index);
-    // System.out.println(index);
     ran = index;
     while (ran == index) {
       ran = (int) (available.size() * rs1.nextDouble());
     }
-    // System.out.println(ran);
     result = available.get(ran);
     return result;
   }
@@ -291,16 +273,8 @@ public class AbstractCustomer
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
       revokedSubscription.handleRevokedTariff();
-      // removeSubscription(revokedSubscription);
-      // addSubscription(ts);
     }
   }
-
-  /**
-   * This function returns the bootstrap data of the certain customer in the correct form
-   * @return
-   */
-  // getBootstrapData(){}
 
   protected void step ()
   {
