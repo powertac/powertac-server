@@ -31,53 +31,52 @@ import org.powertac.common.spring.SpringApplicationContext;
  */
 public class AbstractCustomer
 {
-  static private Logger log = Logger.getLogger(AbstractCustomer.class.getName());
+  static protected Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
-  private TimeService timeService;
+  // protected TimeService timeService;
 
-  private TariffMarket tariffMarketService;
+  protected TariffMarket tariffMarketService;
 
-  private TariffSubscriptionRepo tariffSubscriptionRepo;
+  protected TariffSubscriptionRepo tariffSubscriptionRepo;
 
-  private CustomerRepo customerRepo;
+  protected CustomerRepo customerRepo;
 
   /** The id of the Abstract Customer */
-  private long custId;
+  protected long custId;
 
   /** The Customer specifications */
-  private CustomerInfo customerInfo;
+  protected CustomerInfo customerInfo;
 
   /**
    * >0: max power consumption (think consumer with fuse limit); <0: min power production (think
    * nuclear power plant with min output)
    */
-  private double upperPowerCap = 100.0;
+  protected double upperPowerCap = 100.0;
 
   /**
    * >0: min power consumption (think refrigerator); <0: max power production (think power plant
    * with max capacity)
    */
-  private double lowerPowerCap = 0.0;
+  protected double lowerPowerCap = 0.0;
 
   /** >=0 - gram CO2 per kW/h */
-  private double carbonEmissionRate = 0.0;
+  protected double carbonEmissionRate = 0.0;
 
   /** measures how wind changes translate into load / generation changes of the customer */
-  private double windToPowerConversion = 0.0;
+  protected double windToPowerConversion = 0.0;
 
   /** measures how temperature changes translate into load / generation changes of the customer */
-  private double tempToPowerConversion = 0.0;
+  protected double tempToPowerConversion = 0.0;
 
   /** measures how sun intensity changes translate into load /generation changes of the customer */
-  private double sunToPowerConversion = 0.0;
+  protected double sunToPowerConversion = 0.0;
 
-  // private ArrayList<TariffSubscription> subscriptions;
+  // protected ArrayList<TariffSubscription> subscriptions;
 
   public AbstractCustomer (CustomerInfo customer)
   {
     super();
 
-    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
     tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
     tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
