@@ -46,6 +46,7 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Auctioneer;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -373,7 +374,22 @@ public class DefaultBrokerServiceTests
       }
     }).when(mockProxy).routeMessage(isA(Shout.class));
     
-    service.activate();
+    // activate the trading function by sending a timeslot update msg
+    ArrayList<Timeslot> disabled = new ArrayList<Timeslot>();
+    disabled.add(timeslotRepo.currentTimeslot());
+    face.receiveMessage(new TimeslotUpdate(timeslotRepo.enabledTimeslots(),
+                                           disabled));
+    //service.activate();
     assertEquals("23 shouts", 23, shoutList.size());
+    Shout firstShout = shoutList.get(0);
+    assertNotNull("first shout not null", firstShout);
+    assertEquals("bid flag", Shout.OrderType.BUY, firstShout.getOrderType());
+    assertEquals("correct mwh", 1.0, firstShout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, firstShout.getLimitPrice(), 1e-6);
+    Shout lastShout = shoutList.get(22);
+    assertNotNull("last shout not null", lastShout);
+    assertEquals("bid flag", Shout.OrderType.BUY, lastShout.getOrderType());
+    assertEquals("correct mwh", 1.0, lastShout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, lastShout.getLimitPrice(), 1e-6);
   }
 }
