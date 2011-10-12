@@ -167,16 +167,16 @@ public class AbstractCustomer
   }
 
   /** Subscribing a certain population amount to a certain subscription */
-  void subscribe (Tariff tariff,
-                  int customerCount)
+  protected void subscribe (Tariff tariff,
+                            int customerCount)
   {
     tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
     log.info(this.toString() + " was subscribed to tariff " + tariff.getId() + " successfully.");
   }
 
   /** Unsubscribing a certain population amount from a certain subscription */
-  void unsubscribe (TariffSubscription subscription,
-                    int customerCount)
+  protected void unsubscribe (TariffSubscription subscription,
+                              int customerCount)
   {
     subscription.unsubscribe(customerCount);
     log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
