@@ -103,7 +103,10 @@ public class TimeslotRepo implements DomainRepo
    */
   public Timeslot findBySerialNumber (int serialNumber)
   {
-    return indexedTimeslots.get(serialNumber);
+    if (serialNumber >= indexedTimeslots.size())
+      return null;
+    else
+      return indexedTimeslots.get(serialNumber);
   }
 
   /**

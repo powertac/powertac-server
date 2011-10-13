@@ -54,4 +54,14 @@ public class TimeslotUpdate
       this.disabled.add(disabled);
     }
   }
+
+  public ArrayList<Timeslot> getEnabled ()
+  {
+    return enabled;
+  }
+
+  public ArrayList<Timeslot> getDisabled ()
+  {
+    return disabled;
+  }
 }
