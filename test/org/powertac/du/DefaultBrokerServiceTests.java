@@ -345,24 +345,12 @@ public class DefaultBrokerServiceTests
     assertEquals("no usage", 0.0, usage, 1e-6);
     
   }
-  
-  // set up some timeslots
-  private void createTimeslots()
-  {
-    Instant now = timeService.getCurrentTime();
-    Timeslot ts = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
-    ts.disable();
-    for (int i = 1; i < 24; i++) {
-      timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i),
-                                now.plus(TimeService.HOUR * (i + 1)));
-    }
-  }
-  
+
   @Test
   public void testShoutTS0 ()
   {
     Broker face = init();
-    createTimeslots();
+    TimeslotUpdate tsu = createTimeslots();
     Timeslot current = timeslotRepo.currentTimeslot(); 
     assertEquals("current timeslot has serial 0", 0, current.getSerialNumber());
     final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
@@ -375,11 +363,8 @@ public class DefaultBrokerServiceTests
     }).when(mockProxy).routeMessage(isA(Shout.class));
     
     // activate the trading function by sending a timeslot update msg
-    ArrayList<Timeslot> disabled = new ArrayList<Timeslot>();
-    disabled.add(timeslotRepo.currentTimeslot());
-    face.receiveMessage(new TimeslotUpdate(timeslotRepo.enabledTimeslots(),
-                                           disabled));
-    //service.activate();
+    face.receiveMessage(tsu);
+    
     assertEquals("23 shouts", 23, shoutList.size());
     Shout firstShout = shoutList.get(0);
     assertNotNull("first shout not null", firstShout);
@@ -391,5 +376,196 @@ public class DefaultBrokerServiceTests
     assertEquals("bid flag", Shout.OrderType.BUY, lastShout.getOrderType());
     assertEquals("correct mwh", 1.0, lastShout.getMWh(), 1e-6);
     assertEquals("correct price", 100.0, lastShout.getLimitPrice(), 1e-6);
+  }
+  
+  // in timeslot 3, we should have 3 days of records on which to base the last
+  // three bids
+  @Test
+  public void testShoutTS4 ()
+  {
+    // collect the tariff specs
+    final HashMap<PowerType, TariffSpecification> specs = 
+      new HashMap<PowerType, TariffSpecification>();
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        TariffSpecification spec =(TariffSpecification)args[0];
+        specs.put(spec.getPowerType(), spec);
+        return null;
+      }
+    }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
+    
+    // collect shouts when they are submitted
+    final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        shoutList.add((Shout)args[0]);
+        return null;
+      }
+    }).when(mockProxy).routeMessage(isA(Shout.class));
+
+    // initialize the default broker
+    Broker face = init();
+    TimeslotUpdate tsu = createTimeslots(); // 0-22 enabled
+    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
+    assertTrue("ts1 enabled", timeslotRepo.findBySerialNumber(1).isEnabled());
+    assertTrue("ts23 enabled", timeslotRepo.findBySerialNumber(23).isEnabled());
+    assertNull("ts24 null", timeslotRepo.findBySerialNumber(24));
+    face.receiveMessage(tsu); // timeslot -1
+
+    // ---- timeslot 0 ----
+    // now we need some subscriptions
+    TariffSpecification cspec = specs.get(PowerType.CONSUMPTION);
+    TariffSpecification pspec = specs.get(PowerType.PRODUCTION);
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              0.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              0.0, 4.2));
+    
+    // Then we use power for four cycles
+    // usage = 500 in ts0
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              500.0, 4.2));
+    // market clears for ts 1-23
+    assertEquals("23 shouts", 23, shoutList.size());
+    shoutList.clear();
+    // TODO - add market positions
+
+    tsu = nextTimeslot(); // end of ts0: 1 disabled, 24 enabled
+    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
+    assertFalse("ts1 disabled", timeslotRepo.findBySerialNumber(1).isEnabled());
+    assertTrue("ts2 enabled", timeslotRepo.findBySerialNumber(2).isEnabled());
+    assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
+    assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
+    
+    assertEquals("correct usage index 0", 500.0,
+                 service.getUsageForCustomer(customer1, cspec, 0), 1e-6);
+    assertEquals("correct usage index 1", 0.0,
+                 service.getUsageForCustomer(customer1, cspec, 1), 1e-6);
+    
+    face.receiveMessage(tsu);
+    
+    // enable next timeslot, usage = 420 in ts1
+    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              450.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.PRODUCE, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              -30.0, -0.15));
+    // market clears in ts1
+    assertEquals("23 shouts ts1", 23, shoutList.size());
+    Shout shout = shoutList.get(0);
+    assertNotNull("first shout not null", shout);
+    assertEquals("ts2 is first", 
+                 timeslotRepo.findBySerialNumber(2),
+                 shout.getTimeslot());
+    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
+    assertEquals("correct mwh", 1.0, shout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
+    shout = shoutList.get(22);
+    assertNotNull("last shout not null", shout);
+    assertEquals("ts24 is last", 
+                 timeslotRepo.findBySerialNumber(24),
+                 shout.getTimeslot());
+    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
+    assertEquals("correct mwh", 1.0, shout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
+    shoutList.clear();
+
+    tsu = nextTimeslot();
+    face.receiveMessage(tsu);
+    
+    // usage 510 in ts2
+    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              550.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.PRODUCE, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              -40.0, -0.15));
+    // market clears ts2
+    assertEquals("23 shouts ts2", 23, shoutList.size());
+    shout = shoutList.get(0);
+    assertNotNull("first shout not null", shout);
+    assertEquals("ts3 is first", 
+                 timeslotRepo.findBySerialNumber(3),
+                 shout.getTimeslot());
+    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
+    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
+    shout = shoutList.get(20);
+    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
+    shout = shoutList.get(21);
+    assertEquals("correct mwh", 0.5, shout.getMWh(), 1e-6);
+    shout = shoutList.get(22);
+    assertNotNull("last shout not null", shout);
+    assertEquals("ts25 is last", 
+                 timeslotRepo.findBySerialNumber(25),
+                 shout.getTimeslot());
+    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
+    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
+    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
+    shoutList.clear();
+  }
+  
+  // set up some timeslots
+  private TimeslotUpdate createTimeslots()
+  {
+    ArrayList<Timeslot> oldTs = new ArrayList<Timeslot>();
+    ArrayList<Timeslot> newTs = new ArrayList<Timeslot>();
+    Instant now = timeService.getCurrentTime();
+    Timeslot ts = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
+    ts.disable();
+    oldTs.add(ts);
+    for (int i = 1; i < 24; i++) {
+      ts = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i),
+                                              now.plus(TimeService.HOUR * (i + 1)));
+      newTs.add(ts);
+    }
+    return new TimeslotUpdate(newTs, oldTs);
+  }
+
+  private TimeslotUpdate nextTimeslot ()
+  {
+    Timeslot current = timeslotRepo.currentTimeslot();
+    Timeslot oldTs = timeslotRepo.findBySerialNumber(current.getSerialNumber() + 1);
+    oldTs.disable();
+    Instant start = oldTs.getStartInstant().plus(TimeService.HOUR * 23);
+    Timeslot newTs = timeslotRepo.makeTimeslot(start, start.plus(TimeService.HOUR));
+    newTs.enable();
+    return new TimeslotUpdate(newTs, oldTs);
   }
 }

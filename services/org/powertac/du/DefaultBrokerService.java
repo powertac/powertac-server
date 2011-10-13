@@ -154,7 +154,9 @@ public class DefaultBrokerService
     Timeslot current = timeslotRepo.currentTimeslot();
     
     // In the first timeslot, we buy a fixed amount because we have no
-    // usage record.
+    // usage record. Note that this gets called after a timeslot update, but
+    // before the sim clock is updated. However the "current timeslot" is
+    // the one in which the most recent energy usage was recorded.
     if (current.getSerialNumber() == 0) {
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
         submitShout(initialBidKWh, timeslot);
@@ -166,12 +168,12 @@ public class DefaultBrokerService
     // disables current+1 and enables current+24.
     else if (current.getSerialNumber() < 24) {
       // we already have usage data for the current timeslot.
-      double currentKWh = collectUsage(current.getSerialNumber());
+      double currentKWh = collectUsage(current.getSerialNumber() - 1);
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
         // use data already collected if we have it, otherwise use data from
         // the current timeslot.
-        int index = timeslot.getSerialNumber() % 24;
+        int index = (timeslot.getSerialNumber() - 1) % 24;
         double historicalKWh = collectUsage(index);
         if (historicalKWh != 0.0)
           neededKWh = historicalKWh;
@@ -185,10 +187,10 @@ public class DefaultBrokerService
     
     // Once we have 24 hours of records, assume we need enough to meet 
     // what we used 24 hours earlier
-    else if (current.getSerialNumber() < usageRecordLength) {
+    else if (current.getSerialNumber() <= usageRecordLength) {
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-        int index = timeslot.getSerialNumber() % 24;
+        int index = (timeslot.getSerialNumber() - 1) % 24;
         neededKWh = collectUsage(index);
         submitShout(neededKWh, timeslot);
       }      
@@ -199,7 +201,7 @@ public class DefaultBrokerService
     else {
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-        int index = timeslot.getSerialNumber() % usageRecordLength;
+        int index = (timeslot.getSerialNumber() - 1) % usageRecordLength;
         neededKWh = collectUsage(index);
         submitShout(neededKWh, timeslot);
       }      
@@ -320,7 +322,11 @@ public class DefaultBrokerService
    * This is normally when any broker would submit its bids, so that's when
    * the DefaultBroker will do it. Any earlier, and we will find ourselves
    * unable to trade in the furthest slot, because it will not yet have 
-   * been enabled.
+   * been enabled. Note that there are two forms of the TimeslotUpdate message.
+   * The first is sent before the sim starts, enabling an initial set of 
+   * timeslots. The second disables the first and creates and enables a new
+   * one at the end of the sequence. The market DOES NOT clear between these
+   * two, so we should only activate on the second one.
    */
   public void handleMessage (TimeslotUpdate tsu)
   {
