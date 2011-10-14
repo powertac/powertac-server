@@ -111,6 +111,8 @@ public class TariffMarketService
    */
   public void init (PluginConfig config)
   {
+    registrations.clear();
+
     defaultTariff = new HashMap<PowerType, Long>();
     brokerProxyService.registerBrokerTariffListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);
