@@ -167,16 +167,16 @@ public class AbstractCustomer
   }
 
   /** Subscribing a certain population amount to a certain subscription */
-  protected void subscribe (Tariff tariff,
-                            int customerCount)
+  public void subscribe (Tariff tariff,
+                         int customerCount)
   {
     tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
     log.info(this.toString() + " was subscribed to tariff " + tariff.getId() + " successfully.");
   }
 
   /** Unsubscribing a certain population amount from a certain subscription */
-  protected void unsubscribe (TariffSubscription subscription,
-                              int customerCount)
+  public void unsubscribe (TariffSubscription subscription,
+                           int customerCount)
   {
     subscription.unsubscribe(customerCount);
     log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
@@ -188,7 +188,7 @@ public class AbstractCustomer
    * The first implementation of the power consumption function. I utilized the mean consumption of
    * a neighborhood of households with a random variable
    */
-  protected void consumePower ()
+  public void consumePower ()
   {
   }
 
@@ -196,7 +196,7 @@ public class AbstractCustomer
    * The first implementation of the power consumption function. I utilized the mean consumption of
    * a neighborhood of households with a random variable
    */
-  protected void producePower ()
+  public void producePower ()
   {
   }
 
@@ -207,7 +207,7 @@ public class AbstractCustomer
    * want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  protected void changeSubscription (Tariff tariff)
+  public void changeSubscription (Tariff tariff)
   {
     TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
     int populationCount = ts.getCustomersCommitted();
@@ -222,8 +222,8 @@ public class AbstractCustomer
    * tariff we want to change and the whole population is moved to another random tariff.
    * @param tariff
    */
-  protected void changeSubscription (Tariff tariff,
-                                     Tariff newTariff)
+  public void changeSubscription (Tariff tariff,
+                                  Tariff newTariff)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
@@ -236,9 +236,9 @@ public class AbstractCustomer
    * tariff we want to change and amount of the population we want to move to the new tariff.
    * @param tariff
    */
-  protected void changeSubscription (Tariff tariff,
-                                     Tariff newTariff,
-                                     int populationCount)
+  public void changeSubscription (Tariff tariff,
+                                  Tariff newTariff,
+                                  int populationCount)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     unsubscribe(ts, populationCount);
@@ -249,7 +249,7 @@ public class AbstractCustomer
    * The first implementation of the tariff selection function. This is a random chooser of the
    * available tariffs, totally insensitive.
    */
-  protected Tariff selectTariff (PowerType powerType)
+  public Tariff selectTariff (PowerType powerType)
   {
     Tariff result;
     List<Tariff> available = new ArrayList<Tariff>();
@@ -267,16 +267,15 @@ public class AbstractCustomer
   }
 
   /** The first implementation of the checking for revoked subscriptions function. */
-  protected void checkRevokedSubscriptions ()
+  public void checkRevokedSubscriptions ()
   {
-
     List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
       revokedSubscription.handleRevokedTariff();
     }
   }
 
-  protected void step ()
+  public void step ()
   {
   }
 }
