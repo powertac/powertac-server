@@ -1,18 +1,18 @@
 /*
-* Copyright (c) 2011 by the original author
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (c) 2011 by the original author
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
@@ -28,15 +28,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- * Repository for Timeslots and their Orderbooks
+ * Repository for Timeslots. Timeslots are created with makeTimeslot(). Several
+ * query methods are supported, including currentTimeslot(), enabledTimeslots(),
+ * and findBySerialNumber(). The implementation makes a strong assumption that
+ * timeslots are created in sequence, and that each timeslot starts when the
+ * previous timeslots ends.
  * @author John Collins
  */
 @Repository
 public class TimeslotRepo implements DomainRepo
 {
   static private Logger log = Logger.getLogger(TimeslotRepo.class.getName());
-  static private Logger stateLog = Logger.getLogger("State");
 
+  // local state
   private int timeslotIndex = 0;
   private Timeslot first;
   private Timeslot last;
@@ -45,7 +49,7 @@ public class TimeslotRepo implements DomainRepo
   private ArrayList<Timeslot> indexedTimeslots;
 
   @Autowired
-  TimeService timeService;
+  private TimeService timeService;
   
   /** standard constructor */
   public TimeslotRepo ()
@@ -57,7 +61,8 @@ public class TimeslotRepo implements DomainRepo
   /** 
    * Creates a timeslot with the given start time. It is assumed that timeslots are
    * created in sequence; therefore  the sequence number of the new timeslot is simply the 
-   * count of timeslots already created, and an error will be logged if the start time of 
+   * count of timeslots already created, and an error will be logged (and null
+   * returned) if the start time of 
    * a new timeslot is not equal to the end time of the last timeslot in the list.
    */
   public Timeslot makeTimeslot (Instant startTime, Instant endTime)

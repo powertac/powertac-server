@@ -11,6 +11,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class TimeslotRepoTests
 {
@@ -31,7 +32,7 @@ public class TimeslotRepoTests
     baseTime = new Instant();
     timeService.setCurrentTime(baseTime);
     repo = new TimeslotRepo();
-    repo.timeService = timeService;
+    ReflectionTestUtils.setField(repo, "timeService", timeService);
   }
 
   @Test
