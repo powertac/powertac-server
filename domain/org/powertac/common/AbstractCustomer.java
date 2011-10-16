@@ -269,7 +269,7 @@ public class AbstractCustomer
   /** The first implementation of the checking for revoked subscriptions function. */
   public void checkRevokedSubscriptions ()
   {
-    List<TariffSubscription> revoked = tariffMarketService.getRevokedSubscriptionList(customerInfo);
+    List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription revokedSubscription : revoked) {
       revokedSubscription.handleRevokedTariff();
     }
