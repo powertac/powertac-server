@@ -92,7 +92,8 @@ public interface TariffMarket {
    * active subscriptions. Customers are obligated to process this
    * list by calling handleRevokedTariff() on each such subscription.
    */
-  public List<TariffSubscription> getRevokedSubscriptionList(CustomerInfo customer);
+  //public List<TariffSubscription> getRevokedSubscriptionList(CustomerInfo customer);
+  // see Issue #384
   
   /**
    * Returns the default tariff.

@@ -98,13 +98,6 @@ public class TariffSubscriptionRepo implements DomainRepo
     customerMap.get(subscription.getCustomer()).remove(subscription);
   }
 
-  /** Clears out the repo in preparation for another simulation. */
-  public void recycle ()
-  {
-    tariffMap.clear();
-    customerMap.clear();
-  }
-
   private TariffSubscription findSubscriptionForCustomer (List<TariffSubscription> subs,
                                                           CustomerInfo customer)
   {
@@ -128,6 +121,28 @@ public class TariffSubscriptionRepo implements DomainRepo
         return sub;
     }
     return null;
+  }
+
+  /**
+   * Returns the list of subscriptions for this customer that have been
+   * revoked and have non-zero committed customers.
+   */
+  public List<TariffSubscription> getRevokedSubscriptionList (CustomerInfo customer)
+  {
+    List<TariffSubscription> result = new ArrayList<TariffSubscription>();
+    for (TariffSubscription sub : findSubscriptionsForCustomer(customer)) {
+      if (sub.getTariff().getState() == Tariff.State.KILLED && sub.getCustomersCommitted() > 0) {
+        result.add(sub);
+      }
+    }
+    return result;
+  }
+
+  /** Clears out the repo in preparation for another simulation. */
+  public void recycle ()
+  {
+    tariffMap.clear();
+    customerMap.clear();
   }
 
   private void storeSubscription (TariffSubscription subscription,
