@@ -625,7 +625,7 @@ public class TariffMarketServiceTests
 
     // retrieve Charley's revoked-subscription list
     List<TariffSubscription> revokedCharley = 
-      tariffMarketService.getRevokedSubscriptionList(charley);
+      tariffSubscriptionRepo.getRevokedSubscriptionList(charley);
     assertEquals("one item in list", 1, revokedCharley.size());
     assertEquals("it's cs2", cs2, revokedCharley.get(0));
 

@@ -369,21 +369,6 @@ public class TariffMarketService
   }
 
   /**
-   * Returns the list of subscriptions for this customer that have been
-   * revoked and have non-zero committed customers.
-   */
-  public List<TariffSubscription> getRevokedSubscriptionList (CustomerInfo customer)
-  {
-    List<TariffSubscription> result = new ArrayList<TariffSubscription>();
-    for (TariffSubscription sub : tariffSubscriptionRepo.findSubscriptionsForCustomer(customer)) {
-      if (sub.getTariff().getState() == Tariff.State.KILLED && sub.getCustomersCommitted() > 0) {
-        result.add(sub);
-      }
-    }
-    return result;
-  }
-
-  /**
    * Returns the default tariff
    */
   public Tariff getDefaultTariff (PowerType type)
