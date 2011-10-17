@@ -18,50 +18,63 @@ package org.powertac.common.msg;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.joda.time.Instant;
+import org.powertac.common.IdGenerator;
 import org.powertac.common.Timeslot;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * Message used to communicate enable and disable events on timeslots.
+ * Message type that communicates to brokers the set of timeslots that are
+ * "open" for trading. These are the timeslots that will be considered in the
+ * next market clearing. Shouts for other timeslots will be silently
+ * discarded.
  * @author John Collins
  */
 @Domain
 @XStreamAlias("timeslot-update")
 public class TimeslotUpdate 
-{  
+{
+  @XStreamAsAttribute
+  private long id = IdGenerator.createId();
+
+  @XStreamImplicit(itemFieldName="timeslot")
   private ArrayList<Timeslot> enabled;
   
-  private ArrayList<Timeslot> disabled;
+  @XStreamAsAttribute
+  private Instant postedTime;
 
-  public TimeslotUpdate (List<Timeslot> enabled, List<Timeslot> disabled)
+  public TimeslotUpdate (Instant postedTime, List<Timeslot> enabled)
   {
     super();
+    this.postedTime = postedTime;
     this.enabled = new ArrayList<Timeslot>(enabled);
-    this.disabled = new ArrayList<Timeslot>(disabled);
-  }
-  
-  public TimeslotUpdate (Timeslot enabled, Timeslot disabled)
-  {
-    super();
-    if (enabled != null) {
-      this.enabled = new ArrayList<Timeslot>();
-      this.enabled.add(enabled);
-    }
-    if (disabled != null) {
-      this.disabled = new ArrayList<Timeslot>();
-      this.disabled.add(disabled);
-    }
   }
 
+  public long getId ()
+  {
+    return id;
+  }
+
+  public Instant getPostedTime ()
+  {
+    return postedTime;
+  }
+
+  /**
+   * Returns the list of timeslots that are enabled for the coming
+   */
   public ArrayList<Timeslot> getEnabled ()
   {
     return enabled;
   }
-
-  public ArrayList<Timeslot> getDisabled ()
+  
+  /**
+   * Returns the number of enabled timeslots.
+   */
+  public int size ()
   {
-    return disabled;
+    return enabled.size();
   }
 }
