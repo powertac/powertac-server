@@ -227,6 +227,7 @@ public class CompetitionControlService
   private void step ()
   {
     Instant time = timeService.getCurrentTime();
+    activateNextTimeslot();
     log.info("step at " + time.toString());
     for (int index = 0; index < phaseRegistrations.size(); index++) {
       log.info("activate phase " + (index + 1));
@@ -237,9 +238,6 @@ public class CompetitionControlService
     if (--timeslotCount <= 0) {
       log.info("Stopping simulation");
       stop();
-    }
-    else {
-      activateNextTimeslot();
     }
   }
 
