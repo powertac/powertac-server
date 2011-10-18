@@ -22,6 +22,7 @@ import java.util.HashMap;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
+import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketPosition;
@@ -152,28 +153,30 @@ public class DefaultBrokerService
   public void activate ()
   {
     Timeslot current = timeslotRepo.currentTimeslot();
+    log.info("activate: timeslot " + current.getSerialNumber());
     
     // In the first timeslot, we buy a fixed amount because we have no
     // usage record. Note that this gets called after a timeslot update, but
     // before the sim clock is updated. However the "current timeslot" is
     // the one in which the most recent energy usage was recorded.
-    if (current.getSerialNumber() == 0) {
-      for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-        submitShout(initialBidKWh, timeslot);
-      }
-    }
+    //if (current.getSerialNumber() == 0) {
+    //  for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+    //    submitShout(initialBidKWh, timeslot);
+    //  }
+    //}
     
-    // In the second through 24th timeslot, we buy enough to meet what was
-    // used in the previous timeslot. Note that this is called after the server
-    // disables current+1 and enables current+24.
-    else if (current.getSerialNumber() < 24) {
+    // In the first through 23rd timeslot, we buy enough to meet what was
+    // used in the previous timeslot. Note that this is called after the
+    // customer model has run in the current timeslot, for a market clearing
+    // at the beginning of the following timeslot.
+    if (current.getSerialNumber() < 24) {
       // we already have usage data for the current timeslot.
-      double currentKWh = collectUsage(current.getSerialNumber() - 1);
+      double currentKWh = collectUsage(current.getSerialNumber());
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
         // use data already collected if we have it, otherwise use data from
         // the current timeslot.
-        int index = (timeslot.getSerialNumber() - 1) % 24;
+        int index = (timeslot.getSerialNumber()) % 24;
         double historicalKWh = collectUsage(index);
         if (historicalKWh != 0.0)
           neededKWh = historicalKWh;
@@ -190,7 +193,7 @@ public class DefaultBrokerService
     else if (current.getSerialNumber() <= usageRecordLength) {
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-        int index = (timeslot.getSerialNumber() - 1) % 24;
+        int index = (timeslot.getSerialNumber()) % 24;
         neededKWh = collectUsage(index);
         submitShout(neededKWh, timeslot);
       }      
@@ -201,7 +204,7 @@ public class DefaultBrokerService
     else {
       double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-        int index = (timeslot.getSerialNumber() - 1) % usageRecordLength;
+        int index = (timeslot.getSerialNumber()) % usageRecordLength;
         neededKWh = collectUsage(index);
         submitShout(neededKWh, timeslot);
       }      
@@ -328,7 +331,7 @@ public class DefaultBrokerService
    * one at the end of the sequence. The market DOES NOT clear between these
    * two, so we should only activate on the second one.
    */
-  public void handleMessage (TimeslotUpdate tsu)
+  public void handleMessage (CashPosition cp)
   {
     this.activate();
   }
@@ -374,6 +377,7 @@ public class DefaultBrokerService
       super();
       this.customer = customer;
       this.subscribedPopulation = population;
+      base = timeslotRepo.findBySerialNumber(0).getStartInstant();
     }
     
     // Adds new individuals to the count
@@ -403,6 +407,8 @@ public class DefaultBrokerService
         // exponential smoothing
         usage[index] = alpha * kwhPerCustomer + (1.0 - alpha) * oldUsage;
       }
+      log.debug("consume " + kwh + " at " + index +
+                ", customer " + customer.getName());
     }
     
     double getUsage (int index)
@@ -421,8 +427,6 @@ public class DefaultBrokerService
     // timeslots that have passed since the beginning of the simulation.
     private int getIndex (Instant when)
     {
-      if (base == null)
-        base = when;
       int result = (int)((when.getMillis() - base.getMillis()) /
                          (Competition.currentCompetition().getTimeslotLength() * 
                           TimeService.MINUTE));
