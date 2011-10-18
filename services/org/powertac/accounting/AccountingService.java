@@ -230,22 +230,26 @@ public class AccountingService
   }
 
   // process a tariff transaction
-  public void processTransaction(TariffTransaction tx, ArrayList messages) {
+  public void processTransaction(TariffTransaction tx,
+                                 ArrayList<Object> messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a balance transaction
-  public void processTransaction(BalancingTransaction tx, ArrayList messages) {
+  public void processTransaction(BalancingTransaction tx,
+                                 ArrayList<Object> messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a DU fee transaction
-  public void processTransaction(DistributionTransaction tx, ArrayList messages) {
+  public void processTransaction(DistributionTransaction tx,
+                                 ArrayList<Object> messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
   // process a market transaction
-  public void processTransaction(MarketTransaction tx, ArrayList messages) 
+  public void processTransaction(MarketTransaction tx,
+                                 ArrayList<Object> messages) 
   {
     Broker broker = tx.getBroker();
     updateCash(broker, -tx.getPrice() * Math.abs(tx.getMWh()));
@@ -270,7 +274,8 @@ public class AccountingService
     cash.deposit(amount);
   }
 
-  public void processTransaction (BankTransaction tx, ArrayList messages)
+  public void processTransaction (BankTransaction tx,
+                                  ArrayList<Object> messages)
   {
     log.error("tx " + tx.toString() + " calls processTransaction - should not happen");   
   }

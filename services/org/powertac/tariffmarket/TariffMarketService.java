@@ -17,7 +17,6 @@ package org.powertac.tariffmarket;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -49,7 +48,6 @@ import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.VariableRateUpdate;
-import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -192,9 +190,8 @@ public class TariffMarketService
     tariffRepo.addTariff(tariff);
     tariff.init();
     log.info("new tariff " + spec.getId());
-    TariffTransaction pub =
-      accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
-                                             tariff, null, 0, 0.0, tariffPublicationFee);
+    accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
+                                           tariff, null, 0, 0.0, tariffPublicationFee);
     return new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.success);
   }

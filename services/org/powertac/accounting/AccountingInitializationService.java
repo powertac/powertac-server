@@ -16,7 +16,6 @@
 package org.powertac.accounting;
 
 import java.util.List;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
@@ -25,7 +24,6 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.repo.TariffRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,7 +70,7 @@ public class AccountingInitializationService
                           Integer.toString(defaultSimulationPhase));
   }
 
-  public String initialize (Competition competition, List completedInits)
+  public String initialize (Competition competition, List<String> completedInits)
   {
     PluginConfig accountingConfig = pluginConfigRepo.findByRoleName("AccountingService");
     if (accountingConfig == null) {

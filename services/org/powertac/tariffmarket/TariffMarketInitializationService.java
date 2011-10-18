@@ -47,7 +47,7 @@ public class TariffMarketInitializationService
                               Integer.toString(defaultSimulationPhase));
   }
   
-  public String initialize (Competition competition, List completedInits)
+  public String initialize (Competition competition, List<String> completedInits)
   {
     int index = completedInits.indexOf("AccountingService");
     if (index == -1) {
