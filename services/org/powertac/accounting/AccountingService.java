@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2010-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.powertac.accounting;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +37,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * Implementation of {@link org.powertac.common.interfaces.Accounting}
- *
  * @author John Collins
  */
 @Service
@@ -79,19 +77,14 @@ public class AccountingService
   }
   
   /**
-   * Register for phase 3 activation, to drive tariff publication
+   * Sets parameters, registers for timeslot phase activation.
    */
   public void init(PluginConfig config) 
   {
     pendingTransactions.clear();
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
-    String interestSpec = config.getConfiguration().get("bankInterest");
-    if (interestSpec != null) {
-      bankInterest = Double.parseDouble(interestSpec);
-    }
-    else {
-      log.error("Bank interest not configured. Default to " + bankInterest);
-    }
+    bankInterest = config.getDoubleValue("bankInterest", bankInterest);
+    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
+    competitionControlService.registerTimeslotPhase(this, getSimulationPhase());
   }
   
   public double getBankInterest ()
@@ -286,6 +279,11 @@ public class AccountingService
   List<BrokerTransaction> getPendingTransactions ()
   {
     return pendingTransactions;
+  }
+  
+  int getSimulationPhase ()
+  {
+    return simulationPhase;
   }
   
   void setBankInterest (double value)

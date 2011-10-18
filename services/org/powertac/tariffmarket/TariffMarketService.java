@@ -93,7 +93,7 @@ public class TariffMarketService
   private HashMap<PowerType, Long> defaultTariff;
 
   // read this from plugin config
-  private int simulationPhase = 2;
+  private int simulationPhase = 3;
   private double tariffPublicationFee = 0.0;
   private double tariffRevocationFee = 0.0;
   private int publicationInterval = 6;
@@ -107,7 +107,7 @@ public class TariffMarketService
   }
 
   /**
-   * Registers for phase 2 activation, to drive tariff publication
+   * Reads configuration parameters, registers for timeslot phase activation.
    */
   public void init (PluginConfig config)
   {
@@ -115,29 +115,16 @@ public class TariffMarketService
 
     defaultTariff = new HashMap<PowerType, Long>();
     brokerProxyService.registerBrokerTariffListener(this);
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
 
-    String value = config.getConfigurationValue("tariffPublicationFee");
-    if (value == null) {
-      log.error("Tariff publication fee not specified. Default to " + tariffPublicationFee);
-    }
-    else {
-      tariffPublicationFee = Double.parseDouble(value);
-    }
-    value = config.getConfigurationValue("tariffRevocationFee");
-    if (value == null) {
-      log.error("Tariff revocation fee not specified. Default to " + tariffPublicationFee);
-    }
-    else {
-      tariffRevocationFee = Double.parseDouble(value);
-    }
-    value = config.getConfigurationValue("publicationInterval");
-    if (value == null) {
-      log.error("Tariff publication interval not specified. Default to " + publicationInterval);
-    }
-    else {
-      publicationInterval = Integer.parseInt(value);
-    }
+    tariffPublicationFee = config.getDoubleValue("tariffPublicationFee",
+                                                 tariffPublicationFee);
+    tariffRevocationFee = config.getDoubleValue("tariffRevocationFee", 
+                                                tariffRevocationFee);
+    publicationInterval = config.getIntegerValue("publicationInterval",
+                                                 publicationInterval);
+    simulationPhase = config.getIntegerValue("simulationPhase",
+                                             simulationPhase);
+    competitionControlService.registerTimeslotPhase(this, simulationPhase);
   }
 
   // ----------------- Data access -------------------------

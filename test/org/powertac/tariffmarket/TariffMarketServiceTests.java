@@ -218,7 +218,10 @@ public class TariffMarketServiceTests
     inits.add("AccountingService");
     String result = tariffMarketInitializationService.initialize(comp, inits);
     assertEquals("correct return value", "TariffMarket", result);
-    assertEquals("correct publication fee", -100.0, tariffMarketService.getTariffPublicationFee(), 1e-6);
+    assertEquals("correct publication fee", -100.0, 
+                 tariffMarketService.getTariffPublicationFee(), 1e-6);
+    assertEquals("correct activation sequence", 3, 
+                 tariffMarketService.getSimulationPhase());
   }
   
   @Test

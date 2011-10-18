@@ -35,12 +35,16 @@ public class TariffMarketInitializationService
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
   
+  private int defaultSimulationPhase = 3;
+  
   public void setDefaults ()
   {
     pluginConfigRepo.makePluginConfig("TariffMarket", "")
             .addConfiguration("tariffPublicationFee", "-100.0")
             .addConfiguration("tariffRevocationFee", "-100.0")
-            .addConfiguration("publicationInterval", "6");
+            .addConfiguration("publicationInterval", "6")
+            .addConfiguration("simulationPhase",
+                              Integer.toString(defaultSimulationPhase));
   }
   
   public String initialize (Competition competition, List completedInits)
