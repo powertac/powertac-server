@@ -36,11 +36,14 @@ public class AuctionInitializationService implements InitializationService
   @Autowired
   private AuctionService auctionService;
   
+  private int defaultSimulationPhase = 1;
+  
   public void setDefaults ()
   {
     double sellerSurplusRatio = 0.5;
     pluginConfigRepo.makePluginConfig("Auctioneer", "init")
-      .addConfiguration("sellerSurplus", Double.toString(sellerSurplusRatio));
+      .addConfiguration("sellerSurplus", Double.toString(sellerSurplusRatio))
+      .addConfiguration("simulationPhase", Integer.toString(defaultSimulationPhase));
   }
 
   public String initialize (Competition competition, List<String> completedInits)

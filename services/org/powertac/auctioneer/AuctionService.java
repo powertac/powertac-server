@@ -79,7 +79,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   private double defaultSellerSurplus = 0.5;
   private double sellerSurplusRatio;
   
-  int simulationPhase = 2;
+  int simulationPhase = 1;
 
   private List<Shout> incoming;
   
@@ -100,6 +100,7 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
     incoming.clear();
     setSellerSurplusRatio(config.getDoubleValue("sellerSurplus",
                                                 defaultSellerSurplus));
+    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
     brokerProxyService.registerBrokerMarketListener(this);
     competitionControlService.registerTimeslotPhase(this, simulationPhase);  
   }
