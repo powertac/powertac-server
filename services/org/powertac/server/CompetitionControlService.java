@@ -32,11 +32,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.Customer;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
 import org.powertac.common.msg.SimEnd;
@@ -82,7 +80,7 @@ public class CompetitionControlService
   private Competition competition; // convenience var, invalid across sessions
   private long competitionId;
 
-  private int timeslotPhaseCount = 3; // # of phases/timeslot
+  private int timeslotPhaseCount = 5; // # of phases/timeslot
   private boolean running = false;
 
   private SimulationClockControl clock;
@@ -109,16 +107,12 @@ public class CompetitionControlService
   
   @Autowired
   private TimeslotRepo timeslotRepo;
-  //def participantManagementService
-
-  //def applicationContext
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private long timeslotMillis;
   private RandomSeed randomGen;
   
-  //private Object simLock = new Object(); // simulation sync lock
   private boolean simRunning = false;
 
   /**
@@ -136,7 +130,6 @@ public class CompetitionControlService
     log.info("pre-game initialization");
     // Create admin role
     //def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
-    //assert adminRole.save()
 
     phaseRegistrations = null;
 
@@ -234,6 +227,7 @@ public class CompetitionControlService
   private void step ()
   {
     Instant time = timeService.getCurrentTime();
+    activateNextTimeslot();
     log.info("step at " + time.toString());
     for (int index = 0; index < phaseRegistrations.size(); index++) {
       log.info("activate phase " + (index + 1));
@@ -244,9 +238,6 @@ public class CompetitionControlService
     if (--timeslotCount <= 0) {
       log.info("Stopping simulation");
       stop();
-    }
-    else {
-      activateNextTimeslot();
     }
   }
 
@@ -316,26 +307,18 @@ public class CompetitionControlService
     timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
     timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
                                       competition.getExpectedTimeslotCount());
-    List<Timeslot> slots =
-        createInitialTimeslots(competition.getSimulationBaseTime(),
-                               competition.getDeactivateTimeslotsAhead(),
-                               competition.getTimeslotsOpen());
-    TimeslotUpdate msg = new TimeslotUpdate(slots, null);
+    createInitialTimeslots(competition.getSimulationBaseTime(),
+                           competition.getDeactivateTimeslotsAhead(),
+                           competition.getTimeslotsOpen());
+    TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
+                                            timeslotRepo.enabledTimeslots());
     brokerProxyService.broadcastMessage(msg);
 
-    // publish customer info
+    // TODO publish customer info
     //List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
     //brokerProxyService.broadcastMessage(customers)
 
-    // Publish Bootstrap Data Map
-    //List<Map> bootstrapData = abstractCustomerService.generateBootstrapData();
-    //brokerProxyService.broadcastMessage(bootstrapData)
-    //for (AbstractCustomer customer : AbstractCustomer.list()) {
-    //  CustomerBootstrapData customerBootstrapData = new CustomerBootstrapData(customer.customerInfo);
-    //  customerBootstrapData.fillBootstrapData(customer.getBootstrapData());
-    //  brokerProxyService.broadcastMessage(customerBootstrapData.getCustomer()); // workaround for #341
-    //  brokerProxyService.broadcastMessage(customerBootstrapData);
-    //}
+    // TODO Publish Bootstrap Data Map
     return true;
   }
 
@@ -355,31 +338,23 @@ public class CompetitionControlService
     timeService.setClockParameters(competition.getSimulationBaseTime().getMillis(),
                                    rate,
                                    competition.getTimeslotLength() * TimeService.MINUTE);
-    //timeService.setBase(competition.getSimulationBaseTime().getMillis());
     timeService.setCurrentTime(competition.getSimulationBaseTime());
-    //timeService.setRate(rate);
-    //timeService.setModulo(competition.getTimeslotLength() * TimeService.MINUTE);
   }
 
-  private List<Timeslot> createInitialTimeslots (Instant base,
+  // Creates the initial complement of timeslots
+  private void createInitialTimeslots (Instant base,
                                                  int initialSlots,
                                                  int openSlots)
   {
-    List<Timeslot> result = new ArrayList<Timeslot>();
-    long start = base.getMillis(); //- timeslotMillis
-                             // first step happens before first clock update
-    for (int i = 0; i < initialSlots; i++) {
-      Timeslot ts = timeslotRepo.makeTimeslot(new Instant(start + i * timeslotMillis),
-                                              new Instant(start + (i + 1) * timeslotMillis));
+    for (int i = 0; i < initialSlots - 1; i++) {
+      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
+                                              base.plus((i + 1) * timeslotMillis));
       ts.disable();
-      result.add(ts);
     }
-    for (int i = initialSlots; i < (initialSlots + openSlots); i++) {
-      Timeslot ts = timeslotRepo.makeTimeslot(new Instant(start + i * timeslotMillis),
-                                              new Instant(start + (i + 1) * timeslotMillis));
-      result.add(ts);
+    for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
+      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
+                                              base.plus((i + 1) * timeslotMillis));
     }
-    return result;
   }
 
   private void activateNextTimeslot ()
@@ -412,7 +387,8 @@ public class CompetitionControlService
     }
     log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
     // Communicate timeslot updates to brokers
-    msg = new TimeslotUpdate(newTs, oldTs);
+    msg = new TimeslotUpdate(timeService.getCurrentTime(),
+                             timeslotRepo.enabledTimeslots());
     brokerProxyService.broadcastMessage(msg);
   }
 
@@ -584,7 +560,7 @@ public class CompetitionControlService
       int slot = 0;
       clock.scheduleTick();
       while (running) {
-        log.info("Wait for tick $slot");
+        log.info("Wait for tick " + slot);
         clock.waitForTick(slot++);
         step();
         clock.complete();
