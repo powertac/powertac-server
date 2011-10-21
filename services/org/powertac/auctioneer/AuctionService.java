@@ -54,7 +54,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  * which is a parameter set in the initialization process. 
  * @author John Collins
  */
-public class AuctionService implements BrokerMessageListener, TimeslotPhaseProcessor
+public class AuctionService
+  extends TimeslotPhaseProcessor
+  implements BrokerMessageListener
 {
   static private Logger log = Logger.getLogger(AuctionService.class.getName());
 
@@ -63,9 +65,6 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   
   @Autowired
   private Accounting accountingService;
-  
-  @Autowired
-  private CompetitionControl competitionControlService;
   
   @Autowired
   private BrokerProxy brokerProxyService;
@@ -78,8 +77,6 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   
   private double defaultSellerSurplus = 0.5;
   private double sellerSurplusRatio;
-  
-  int simulationPhase = 1;
 
   private List<Shout> incoming;
   
@@ -100,9 +97,8 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
     incoming.clear();
     setSellerSurplusRatio(config.getDoubleValue("sellerSurplus",
                                                 defaultSellerSurplus));
-    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
     brokerProxyService.registerBrokerMarketListener(this);
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);  
+    super.init();
   }
 
   public double getDefaultSellerSurplus ()
@@ -124,11 +120,6 @@ public class AuctionService implements BrokerMessageListener, TimeslotPhaseProce
   private void setSellerSurplusRatio (Double number)
   {
     sellerSurplusRatio = number;
-  }
-
-  int getSimulationPhase ()
-  {
-    return simulationPhase;
   }
 
   List<Shout> getIncoming ()

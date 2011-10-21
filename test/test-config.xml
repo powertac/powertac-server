@@ -25,6 +25,9 @@
 
   <bean id="auctionService"
         class="org.powertac.auctioneer.AuctionService">
+        <property name="timeslotPhase">
+                <value>1</value>
+        </property>
   </bean>
 
   <bean id="auctionInitializationService"
