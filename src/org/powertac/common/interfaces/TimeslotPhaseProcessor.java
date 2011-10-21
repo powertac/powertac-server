@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,48 @@
 package org.powertac.common.interfaces;
 
 import org.joda.time.Instant;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Plugins must implement this interface to be invoked during timeslot
- * processing by the CompetitionControl. Processing will take place in 
+ * Plugins must extend this class in order to be invoked during timeslot
+ * processing by the CompetitionControl. Each subclass must implement the
+ * activate() method to do its thing during a timeslot, and must call its
+ * superclass init() method during per-game initialization.
+ * 
+ * Per-timeslot processing takes place in 
  * phases. See https://github.com/powertac/powertac-server/wiki/Competition-controller-timeslot-process
  * for a summary of this process.
  * 
  * @author John Collins
  */
-public interface TimeslotPhaseProcessor
+public abstract class TimeslotPhaseProcessor
 {
+  @Autowired
+  private CompetitionControl competitionControlService;
+  
+  private int timeslotPhase = 0;
+  
+  public TimeslotPhaseProcessor ()
+  {
+    super();
+  }
+  
+  /** This method must be called in the per-game initialization code in each 
+   * implementing class. This is where the timeslot phase registration gets
+   * done.
+   */
+  protected void init ()
+  {
+    competitionControlService.registerTimeslotPhase(this, timeslotPhase);
+  }
+  
+  /**
+   * This is the Spring-accessible setter for the phase number
+   */
+  public void setTimeslotPhase (int newValue)
+  {
+    timeslotPhase = newValue;
+  }
   
   /**
    * This method gets called once during each timeslot. To get called, the
@@ -34,5 +65,5 @@ public interface TimeslotPhaseProcessor
    * The call will give the current simulation time and phase number in the
    * arguments.
    */
-  public void activate (Instant time, int phaseNumber);
+  public abstract void activate (Instant time, int phaseNumber);
 }
