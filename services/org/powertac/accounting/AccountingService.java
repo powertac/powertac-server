@@ -41,7 +41,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class AccountingService
-  implements Accounting, TimeslotPhaseProcessor 
+  extends TimeslotPhaseProcessor 
+  implements Accounting
 {
   static private Logger log = Logger.getLogger(AccountingService.class.getName());
 
@@ -59,9 +60,6 @@ public class AccountingService
 
   @Autowired
   private BrokerProxy brokerProxyService;
-
-  @Autowired
-  private CompetitionControl competitionControlService;
 
   private ArrayList<BrokerTransaction> pendingTransactions;
 
@@ -83,8 +81,7 @@ public class AccountingService
   {
     pendingTransactions.clear();
     bankInterest = config.getDoubleValue("bankInterest", bankInterest);
-    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
-    competitionControlService.registerTimeslotPhase(this, getSimulationPhase());
+    super.init();
   }
   
   public double getBankInterest ()
@@ -145,8 +142,11 @@ public class AccountingService
     return btx;
   }
 
-  // Gets the net load. Note that this only works BEFORE the day's transactions
-  // have been processed.
+  /**
+   * Returns the net load for the given broker in the current timeslot.
+   * Note that this only works AFTER the customer models have run, and
+   * BEFORE the day's transactions have been processed.
+   */
   public synchronized double getCurrentNetLoad (Broker broker) 
   {
     double netLoad = 0.0;
@@ -187,14 +187,14 @@ public class AccountingService
   // keep in mind that this will likely be called in a different
   // session from the one in which the transaction was created, so
   // the transactions themselves may be stale.
-  public synchronized void activate(Instant time, int phaseNumber) 
+  public void activate(Instant time, int phaseNumber) 
   {
     HashMap<Broker, List<Object>> brokerMsg = new HashMap<Broker, List<Object>>();
     for (Broker broker : brokerRepo.list()) {
       brokerMsg.put(broker, new ArrayList<Object>());
     }
     // walk through the pending transactions and run the updates
-    for (BrokerTransaction tx : pendingTransactions) {
+    for (BrokerTransaction tx : getPendingTransactionList()) {
       // need to refresh the transaction first
       if (tx.getBroker() == null) {
         log.error("tx " + tx.getClass().getName() + ":" + tx.getId() + 
@@ -205,7 +205,6 @@ public class AccountingService
       dispatch(this, "processTransaction", 
                tx, brokerMsg.get(tx.getBroker()));
     }
-    pendingTransactions.clear();
     // for each broker, compute interest and send messages
     double rate = bankInterest / 365.0;
     for (Broker broker : brokerRepo.list()) {
@@ -227,6 +226,18 @@ public class AccountingService
       log.debug("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
+  }
+  
+  /**
+   * Copies out the pending transaction list with concurrency protection,
+   * clears the pending transaction list, and returns the copy.
+   */
+  private synchronized List<BrokerTransaction> getPendingTransactionList ()
+  {
+    ArrayList<BrokerTransaction> result = 
+      new ArrayList<BrokerTransaction>(pendingTransactions);
+    pendingTransactions.clear();
+    return result;
   }
 
   // process a tariff transaction

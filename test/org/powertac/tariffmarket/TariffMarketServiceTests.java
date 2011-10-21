@@ -220,8 +220,6 @@ public class TariffMarketServiceTests
     assertEquals("correct return value", "TariffMarket", result);
     assertEquals("correct publication fee", -100.0, 
                  tariffMarketService.getTariffPublicationFee(), 1e-6);
-    assertEquals("correct activation sequence", 3, 
-                 tariffMarketService.getSimulationPhase());
   }
   
   @Test
@@ -495,9 +493,7 @@ public class TariffMarketServiceTests
                                  mockCC);
     initializeService();
     assertEquals("correct thing", tariffMarketService, mockCC.processor);
-    assertEquals("correct phase",
-                 tariffMarketService.getSimulationPhase(),
-                 mockCC.timeslotPhase);
+    assertEquals("correct phase", 3, mockCC.timeslotPhase);
         
     // current time is noon. Set pub interval to 3 hours.
     ReflectionTestUtils.setField(tariffMarketService, "publicationInterval", 3);

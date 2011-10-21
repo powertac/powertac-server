@@ -35,7 +35,11 @@
         class="org.powertac.common.TimeService" />
 
   <bean id="tariffMarketService"
-        class="org.powertac.tariffmarket.TariffMarketService" />
+        class="org.powertac.tariffmarket.TariffMarketService" >
+        <property name="timeslotPhase">
+                <value>3</value>
+        </property>
+  </bean>
   
   <bean id="tariffMarketInitializationService"
         class="org.powertac.tariffmarket.TariffMarketInitializationService" />

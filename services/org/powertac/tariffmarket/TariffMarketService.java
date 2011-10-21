@@ -61,8 +61,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TariffMarketService
-  implements TariffMarket, BrokerMessageListener,
-    TimeslotPhaseProcessor 
+  extends TimeslotPhaseProcessor 
+  implements TariffMarket, BrokerMessageListener
 {
   static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
 
@@ -73,13 +73,7 @@ public class TariffMarketService
   private Accounting accountingService;
   
   @Autowired
-  private CompetitionControl competitionControlService;
-  
-  @Autowired
   private BrokerProxy brokerProxyService;
-  
-  //@Autowired
-  //private BrokerRepo brokerRepo;
   
   @Autowired
   private TariffRepo tariffRepo;
@@ -91,7 +85,6 @@ public class TariffMarketService
   private HashMap<PowerType, Long> defaultTariff;
 
   // read this from plugin config
-  private int simulationPhase = 3;
   private double tariffPublicationFee = 0.0;
   private double tariffRevocationFee = 0.0;
   private int publicationInterval = 6;
@@ -120,9 +113,7 @@ public class TariffMarketService
                                                 tariffRevocationFee);
     publicationInterval = config.getIntegerValue("publicationInterval",
                                                  publicationInterval);
-    simulationPhase = config.getIntegerValue("simulationPhase",
-                                             simulationPhase);
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
+    super.init();
   }
 
   // ----------------- Data access -------------------------
@@ -141,12 +132,6 @@ public class TariffMarketService
   {
     return publicationInterval;
   }  
-  
-  // default visibility for test support
-  int getSimulationPhase ()
-  {
-    return simulationPhase;
-  }
 
   List<NewTariffListener> getRegistrations ()
   {

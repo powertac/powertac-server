@@ -50,8 +50,6 @@ public class AccountingInitializationService
   private double minInterest = 0.04;
   private double maxInterest = 0.12;
   
-  private int defaultSimulationPhase = 4;
-  
   public void setDefaults ()
   {
     randomGen = randomSeedService.getRandomSeed("AccountingInitializationService",
@@ -65,9 +63,7 @@ public class AccountingInitializationService
     log.info("bank interest: " + interest);
     pluginConfigRepo.makePluginConfig("AccountingService", "init")
         .addConfiguration("bankInterest",
-                          Double.toString(interest))
-        .addConfiguration("simulationPhase",
-                          Integer.toString(defaultSimulationPhase));
+                          Double.toString(interest));
   }
 
   public String initialize (Competition competition, List<String> completedInits)
