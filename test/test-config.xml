@@ -56,19 +56,31 @@
   </bean>
   
   <bean id="tariffMarketService"
-        class="org.powertac.tariffmarket.TariffMarketService" />
+        class="org.powertac.tariffmarket.TariffMarketService" >
+        <property name="timeslotPhase">
+                <value>3</value>
+        </property>
+  </bean>
   
   <bean id="tariffMarketInitializationService"
         class="org.powertac.tariffmarket.TariffMarketInitializationService" />
         
   <bean id="genericConsumerService"
-        class="org.powertac.genericcustomer.GenericConsumerService" />
+        class="org.powertac.genericcustomer.GenericConsumerService">
+        <property name="timeslotPhase">
+                <value>2</value>
+        </property> 
+  </bean>
   
   <bean id="genericConsumerInitializationService"
         class="org.powertac.genericcustomer.GenericConsumerInitializationService" />  
         
   <bean id="genericProducerService"
-        class="org.powertac.genericcustomer.GenericProducerService" />
+        class="org.powertac.genericcustomer.GenericProducerService">
+        <property name="timeslotPhase">
+                <value>2</value>
+        </property> 
+  </bean>
   
   <bean id="genericProducerInitializationService"
         class="org.powertac.genericcustomer.GenericProducerInitializationService" />     

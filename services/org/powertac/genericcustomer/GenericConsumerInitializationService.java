@@ -41,8 +41,6 @@ public class GenericConsumerInitializationService implements InitializationServi
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
 
-  private int defaultSimulationPhase = 1;
-
   /**
    * This method is called during pre-game to set defaults. In this example the default value of the
    * parameter is hard-coded, but in general it would make sense to take it from a config file. The
@@ -51,17 +49,14 @@ public class GenericConsumerInitializationService implements InitializationServi
    */
   public void setDefaults ()
   {
-    pluginConfigRepo.makePluginConfig("GenericConsumer", "").addConfiguration("population", "100").addConfiguration("numberOfConsumers", "2")
-        .addConfiguration("simulationPhase", Integer.toString(defaultSimulationPhase));
-    ;
+    pluginConfigRepo.makePluginConfig("GenericConsumer", "").addConfiguration("population", "100").addConfiguration("numberOfConsumers", "2");
   }
 
   /**
    * Called during game startup to set initial conditions for Generic Customer Service. In order to
    * begin this Service the Default Broker must be initialized first.
    */
-  public String initialize (Competition competition,
-                            List<String> completedInits)
+  public String initialize (Competition competition, List<String> completedInits)
   {
     if (!completedInits.contains("DefaultBroker")) {
       log.debug("waiting for DefaultBroker to initialize");

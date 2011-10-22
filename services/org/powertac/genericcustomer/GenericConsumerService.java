@@ -26,7 +26,6 @@ import org.powertac.common.Tariff;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerMessageListener;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
@@ -41,7 +40,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 // allows this service to be autowired into other services
-public class GenericConsumerService implements TimeslotPhaseProcessor, BrokerMessageListener, NewTariffListener
+public class GenericConsumerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
@@ -51,9 +50,6 @@ public class GenericConsumerService implements TimeslotPhaseProcessor, BrokerMes
 
   @Autowired
   private TariffMarket tariffMarketService;
-
-  @Autowired
-  private CompetitionControl competitionControlService;
 
   // read this from plugin config
   private int simulationPhase = 1;
@@ -83,13 +79,10 @@ public class GenericConsumerService implements TimeslotPhaseProcessor, BrokerMes
   {
     genericConsumersList.clear();
 
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
     tariffMarketService.registerNewTariffListener(this);
-
     numberOfConsumers = config.getIntegerValue("numberOfConsumers", numberOfConsumers);
     population = config.getIntegerValue("population", population);
-    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
-
+    super.init();
     for (int i = 1; i < numberOfConsumers + 1; i++) {
       CustomerInfo genericConsumerInfo = new CustomerInfo("GenericConsumer " + i, population).withCustomerType(CustomerType.CustomerHousehold).addPowerType(PowerType.CONSUMPTION);
       GenericConsumer genericConsumer = new GenericConsumer(genericConsumerInfo);
@@ -140,8 +133,7 @@ public class GenericConsumerService implements TimeslotPhaseProcessor, BrokerMes
   }
 
   @Override
-  public void activate (Instant time,
-                        int phaseNumber)
+  public void activate (Instant time, int phaseNumber)
   {
     log.info("Activate");
     if (genericConsumersList.size() > 0) {

@@ -382,13 +382,11 @@ public class GenericProducerServiceTests
   @Test
   public void testTariffPublication ()
   {
-    String temp = ReflectionTestUtils.getField(tariffMarketService, "simulationPhase").toString();
-    int simulationPhase = Integer.parseInt(temp);
+
     // test competitionControl registration
-    MockCC mockCC = new MockCC(tariffMarketService, simulationPhase);
-    ReflectionTestUtils.setField(tariffMarketService, "competitionControlService", mockCC);
+    MockCC mockCC = new MockCC(tariffMarketService, 2);
     assertEquals("correct thing", tariffMarketService, mockCC.processor);
-    assertEquals("correct phase", simulationPhase, mockCC.timeslotPhase);
+    assertEquals("correct phase", 2, mockCC.timeslotPhase);
 
     Instant start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     initializeService();
@@ -488,8 +486,7 @@ public class GenericProducerServiceTests
     TimeslotPhaseProcessor processor;
     int timeslotPhase;
 
-    public void registerTimeslotPhase (TimeslotPhaseProcessor thing,
-                                       int phase)
+    public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
     {
       processor = thing;
       timeslotPhase = phase;

@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 // allows this service to be autowired into other services
-public class GenericProducerService implements TimeslotPhaseProcessor, BrokerMessageListener, NewTariffListener
+public class GenericProducerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
@@ -56,7 +56,6 @@ public class GenericProducerService implements TimeslotPhaseProcessor, BrokerMes
   private CompetitionControl competitionControlService;
 
   // read this from plugin config
-  private int simulationPhase = 1;
   private int population = 100;
   private int numberOfProducers = 0;
 
@@ -82,13 +81,12 @@ public class GenericProducerService implements TimeslotPhaseProcessor, BrokerMes
   void init (PluginConfig config)
   {
     genericProducersList.clear();
-
-    competitionControlService.registerTimeslotPhase(this, simulationPhase);
     tariffMarketService.registerNewTariffListener(this);
 
     numberOfProducers = config.getIntegerValue("numberOfProducers", numberOfProducers);
     population = config.getIntegerValue("population", population);
-    simulationPhase = config.getIntegerValue("simulationPhase", simulationPhase);
+
+    super.init();
 
     for (int i = 1; i < numberOfProducers + 1; i++) {
       CustomerInfo genericProducerInfo = new CustomerInfo("GenericProducer " + i, population).withCustomerType(CustomerType.CustomerHousehold).addPowerType(PowerType.PRODUCTION);
@@ -140,8 +138,7 @@ public class GenericProducerService implements TimeslotPhaseProcessor, BrokerMes
   }
 
   @Override
-  public void activate (Instant time,
-                        int phaseNumber)
+  public void activate (Instant time, int phaseNumber)
   {
     log.info("Activate");
     if (genericProducersList.size() > 0) {
