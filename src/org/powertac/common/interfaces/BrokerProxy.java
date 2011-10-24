@@ -67,7 +67,7 @@ public interface BrokerProxy {
   /**
    * Sets up a dispatch listener for simulator messages
    */
-  public void registerSimListener (CompetitionControl listener);
+  public void registerSimListener (BrokerMessageListener listener);
 
   /**
    * Holds up message transmission when true
