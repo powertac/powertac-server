@@ -15,10 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
-import org.powertac.common.xml.CustomerConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -28,29 +26,20 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Anthony Chrysopoulos, John Collins
  */
 @Domain
-@XStreamAlias("customer-bootstrap-data")
-public class CustomerBootstrapData
+@XStreamAlias("market-bootstrap-data")
+public class MarketBootstrapData
 {
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   
-  @XStreamAsAttribute
-  @XStreamConverter(CustomerConverter.class)
-  private CustomerInfo customer;
-  
-  //@XStreamAsAttribute
-  //private PowerType powerType;
-  
-  //private Instant startTime;
-  
-  private double[] netUsage;
+  private double[] mwh;
+  private double[] marketPrice;
 
-  public CustomerBootstrapData (CustomerInfo customer,
-                                double[] netUsage)
+  public MarketBootstrapData (double[] mwh, double[] price)
   {
     super();
-    this.customer = customer;
-    this.netUsage = netUsage;
+    this.mwh = mwh;
+    this.marketPrice = price;
   }
 
   public long getId ()
@@ -58,13 +47,13 @@ public class CustomerBootstrapData
     return id;
   }
 
-  public CustomerInfo getCustomer ()
+  public double[] getMwh ()
   {
-    return customer;
+    return mwh;
   }
-
-  public double[] getNetUsage ()
+  
+  public double[] getMarketPrice ()
   {
-    return netUsage;
+    return marketPrice;
   }
 }

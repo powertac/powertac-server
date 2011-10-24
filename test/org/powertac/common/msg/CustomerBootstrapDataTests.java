@@ -78,8 +78,8 @@ public class CustomerBootstrapDataTests
     assertEquals("correct customer", customer, cbd.getCustomer());
     assertEquals("correct power type", PowerType.PRODUCTION, cbd.getPowerType());
     assertEquals("correct start time", start, cbd.getStartTime());
-    assertEquals("correct array size", 24, cbd.getBootstrapData().length);
-    assertEquals("correct second element", 1.4, cbd.getBootstrapData()[1], 1e-6);
+    assertEquals("correct array size", 24, cbd.getNetUsage().length);
+    assertEquals("correct second element", 1.4, cbd.getNetUsage()[1], 1e-6);
   }
 
   @Test

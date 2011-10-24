@@ -53,6 +53,14 @@ public class PluginConfig
   /** Attribute-value pairs representing the configuration settings. */
   private TreeMap<String, String> configuration;
   
+  /**
+   * Creates a new PluginConfig. Attributes can be added with the fluent-style
+   * addConfiguration() method. The role should be the classname of the type
+   * that is being configured (not the name of the type creating the
+   * PluginConfig, unless it's the same type). The name can be left blank
+   * as long as the role is a singleton; otherwise it should distinguish the
+   * instances of the role from each other.
+   */
   public PluginConfig (String role, String name)
   {
     super();

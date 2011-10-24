@@ -54,13 +54,20 @@ public class Competition //implements Serializable
   /** length of a timeslot in simulation minutes    */
   @XStreamAsAttribute
   private int timeslotLength = 60;
+  
+  /** Number of timeslots in initialization data dump */
+  @XStreamAsAttribute
+  private int bootstrapTimeslotCount = 336; // 14 days
+  
+  @XStreamAsAttribute
+  private boolean initialized = false;
 
   /** Minimum number of timeslots, aka competition length    */
   @XStreamAsAttribute
-  private int minimumTimeslotCount = 240;
+  private int minimumTimeslotCount = 480;
   
   @XStreamAsAttribute
-  private int expectedTimeslotCount = 288;
+  private int expectedTimeslotCount = 600;
 
   /** concurrently open timeslots, i.e. time window in which broker actions like trading are allowed   */
   @XStreamAsAttribute
@@ -177,6 +184,18 @@ public class Competition //implements Serializable
     return this;
   }
 
+  public int getBootstrapTimeslotCount ()
+  {
+    return bootstrapTimeslotCount;
+  }
+
+  @StateChange
+  public Competition withBootstrapTimeslotCount (int bootstrapTimeslotCount)
+  {
+    this.bootstrapTimeslotCount = bootstrapTimeslotCount;
+    return this;
+  }
+  
   public int getExpectedTimeslotCount ()
   {
     return expectedTimeslotCount;
