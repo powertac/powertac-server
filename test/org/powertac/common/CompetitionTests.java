@@ -64,7 +64,7 @@ public class CompetitionTests
   public void testSetMinimumTimeslotCount ()
   {
     Competition c1 = Competition.newInstance("c1");
-    assertEquals("default count", 240, c1.getMinimumTimeslotCount());
+    assertEquals("default count", 480, c1.getMinimumTimeslotCount());
     Competition cx = c1.withMinimumTimeslotCount(300);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 300, c1.getMinimumTimeslotCount());
@@ -74,7 +74,7 @@ public class CompetitionTests
   public void testSetExpectedTimeslotCount ()
   {
     Competition c1 = Competition.newInstance("c1");
-    assertEquals("default count", 288, c1.getExpectedTimeslotCount());
+    assertEquals("default count", 600, c1.getExpectedTimeslotCount());
     Competition cx = c1.withExpectedTimeslotCount(360);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 360, c1.getExpectedTimeslotCount());
