@@ -15,6 +15,8 @@
  */
 package org.powertac.common.spring;
 
+import java.util.Collection;
+
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -34,5 +36,16 @@ public class SpringApplicationContext implements ApplicationContextAware
   public static Object getBean (String beanName)
   {
     return context.getBean(beanName);
+  }
+  
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public static Object getBeanByType (Class type) {
+    Object bean = null;
+    Collection beans = context.getBeansOfType(type).values();
+    if (beans.size() > 0) {
+      bean = beans.toArray()[0];
+    }
+      
+    return bean;
   }
 }
