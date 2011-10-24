@@ -17,7 +17,9 @@ package org.powertac.du;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -26,6 +28,7 @@ import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketPosition;
+import org.powertac.common.MarketTransaction;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
 import org.powertac.common.Shout;
@@ -34,9 +37,13 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.msg.CustomerBootstrapData;
+import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +67,9 @@ public class DefaultBrokerService
   @Autowired // routing of outgoing messages
   private BrokerProxy brokerProxyService;
   
+  @Autowired // needed to discover sim mode
+  private CompetitionControl competitionControlService;
+  
   @Autowired // tariff publication
   private TariffMarket tariffMarketService;
   
@@ -75,6 +85,14 @@ public class DefaultBrokerService
   private double buyLimitPrice = 200.0;
   private double sellLimitPrice = 0.0;
   private int usageRecordLength = 7 * 24; // one week
+  
+  // bootstrap-mode data - uninitialized for normal sim mode
+  private boolean bootstrapMode = false;
+  private HashMap<CustomerInfo, ArrayList<Double>> netUsageMap;
+  private HashMap<Timeslot, ArrayList<MarketTransaction>> marketTxMap;
+  private ArrayList<Double> marketMWh;
+  private ArrayList<Double> marketPrice;
+  private ArrayList<WeatherReport> weather;
   
   // local state
   private TariffSpecification defaultConsumption;
@@ -100,9 +118,20 @@ public class DefaultBrokerService
   void init (PluginConfig config)
   {
     // set up local state
+    bootstrapMode = competitionControlService.isBootstrapMode();
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
     marketPositions = new HashMap<Timeslot, MarketPosition>();
+    
+    // if we are in bootstrap mode, we need to set up the dataset
+    if (bootstrapMode)
+    {
+      netUsageMap = new HashMap<CustomerInfo, ArrayList<Double>>();
+      marketTxMap = new HashMap<Timeslot, ArrayList<MarketTransaction>>();
+      marketMWh = new ArrayList<Double>();
+      marketPrice = new ArrayList<Double>();
+      weather = new ArrayList<WeatherReport>();
+    }
 
     // create and publish default tariffs
     double consumption = (config.getDoubleValue("consumptionRate",
@@ -319,23 +348,159 @@ public class DefaultBrokerService
   {
     marketPositions.put(posn.getTimeslot(), posn);
   }
+  
+  /**
+   * Receives a new WeatherReport. We only care about this if in bootstrap
+   * mode, in which case we simply store it in the bootstrap dataset.
+   */
+  public void handleMessage (WeatherReport report)
+  {
+    // only in bootstrap mode
+    if (bootstrapMode) {
+      weather.add(report);
+    }
+  }
+  
+  /**
+   * Receives a new MarketTransaction. In bootstrapMode, we need to record
+   * these as they arrive in order to be able to compute delivered price of
+   * power purchased in the wholesale market. Note that this computation will
+   * ignore balancing cost. This is intentional.
+   */
+  public void handleMessage (MarketTransaction tx)
+  {
+    // only in bootstrapMode
+    if (bootstrapMode) {
+      ArrayList<MarketTransaction> txs = marketTxMap.get(tx.getTimeslot());
+      if (txs == null) {
+        txs = new ArrayList<MarketTransaction>();
+        marketTxMap.put(tx.getTimeslot(), txs);
+      }
+      txs.add(tx);
+    }
+  }
 
   /**
-   * TimeslotUpdate is sent by the server after all the "phase processing".
+   * CashPosition is the last message sent by Accounting.
    * This is normally when any broker would submit its bids, so that's when
    * the DefaultBroker will do it. Any earlier, and we will find ourselves
    * unable to trade in the furthest slot, because it will not yet have 
-   * been enabled. Note that there are two forms of the TimeslotUpdate message.
-   * The first is sent before the sim starts, enabling an initial set of 
-   * timeslots. The second disables the first and creates and enables a new
-   * one at the end of the sequence. The market DOES NOT clear between these
-   * two, so we should only activate on the second one.
+   * been enabled. In bootstrapMode, this is when we collect customer
+   * usage data.
    */
   public void handleMessage (CashPosition cp)
   {
+    // collect usage and price data
+    if (bootstrapMode) {
+      // at this point, we have all the net usage data by customer collected
+      // in the customer record for the current timeslot.
+      recordNetUsage();
+      // the wholesale market transactions can be mined for the net cost of
+      // purchased power in the current timeslot.
+      recordDeliveredPrice();
+    }
     this.activate();
   }
 
+  /**
+   * Records the net power usage for each customer in the current timeslot.
+   * Obviously, this must be run after each customer model has reported its
+   * consumption and production.
+   */
+  private void recordNetUsage ()
+  {
+    Instant now = timeslotRepo.currentTimeslot().getStartInstant();
+    for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
+      for (CustomerRecord record : customerMap.values()) {
+        ArrayList<Double> usage = netUsageMap.get(record.getCustomerInfo());
+        if (usage == null) {
+          usage = new ArrayList<Double>();
+          netUsageMap.put(record.getCustomerInfo(), usage);
+        }
+        usage.add(record.getUsage(record.getIndex(now)));
+      }
+    }
+  }
+  
+  /**
+   * Records the delivered price of purchased power in the current timeslot.
+   */
+  private void recordDeliveredPrice ()
+  {
+    Timeslot current = timeslotRepo.currentTimeslot();
+    ArrayList<MarketTransaction> txList = marketTxMap.get(current);
+    double totalMWh = 0.0;
+    double totalCost = 0.0;
+    for (MarketTransaction tx : txList) {
+      totalMWh += tx.getMWh();
+      totalCost += tx.getPrice();
+    }
+    marketMWh.add(totalMWh);
+    if (totalMWh == 0.0) {
+      marketPrice.add(0.0);
+    }
+    else {
+      marketPrice.add(totalCost / totalMWh);
+    }
+  }
+  
+  // -------------------- Bootstrap data queries --------------------------
+  /**
+   * Returns a list of CustomerBootstrapData instances. Note that this only
+   * makes sense at the end of a bootstrap sim run.
+   */
+  public List<CustomerBootstrapData> getCustomerBootstrapData ()
+  {
+    if (netUsageMap == null) {
+      // nothing to report
+      return null;
+    }
+    ArrayList<CustomerBootstrapData> result = 
+      new ArrayList<CustomerBootstrapData>(); 
+    for (CustomerInfo customer : netUsageMap.keySet()) {
+      ArrayList<Double> usageList = netUsageMap.get(customer);
+      double[] usage = new double[usageList.size()];
+      result.add(new CustomerBootstrapData(customer, usage));
+    }
+    return result;
+  }
+  
+  /**
+   * Returns a single MarketBootstrapData instances representing the quantities
+   * and prices paid by the default broker for the power it purchased over 
+   * the bootstrap period.
+   */
+  public MarketBootstrapData getMarketBootstrapData ()
+  {
+    if (marketMWh.size() != marketPrice.size()) {
+      // should not happen
+      log.error("marketMWh.size()=" + marketMWh.size() + " != " +
+                "marketPrice.size()=" + marketPrice.size());
+    }
+    // ARRRGH - autoboxing does not work for arrays...
+    double[] mwh = new double[marketMWh.size()];
+    int i = 0;
+    for (double amt : marketMWh) {
+      mwh[i++] = amt;
+    }
+    double[] price = new double[marketPrice.size()];
+    i = 0;
+    for (double cost : marketPrice) {
+      price[i++] = cost;
+    }
+    
+    return new MarketBootstrapData(mwh, price);
+  }
+  
+  /**
+   * Returns the accumulated list of WeatherReport instances
+   */
+  public List<WeatherReport> getWeatherReports ()
+  {
+    return weather;
+  }
+
+  // ------------------- LocalBroker implementation -----------------------
   /**
    * Here's the actual "default broker". This is needed to intercept messages
    * sent to the broker.
@@ -358,6 +523,7 @@ public class DefaultBrokerService
     }
   }
   
+  //-------------------- Customer-model recording ---------------------
   /**
    * Keeps track of customer status and usage. Usage is stored
    * per-customer-unit, but reported as the product of the per-customer
@@ -378,6 +544,12 @@ public class DefaultBrokerService
       this.customer = customer;
       this.subscribedPopulation = population;
       base = timeslotRepo.findBySerialNumber(0).getStartInstant();
+    }
+    
+    // Returns the CustomerInfo for this record
+    CustomerInfo getCustomerInfo ()
+    {
+      return customer;
     }
     
     // Adds new individuals to the count
