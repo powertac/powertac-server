@@ -30,6 +30,7 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.repo.DomainRepo;
@@ -71,7 +72,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CompetitionControlService
-  implements ApplicationContextAware, CompetitionControl
+  implements ApplicationContextAware, CompetitionControl, BrokerMessageListener
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class.getName());
   
@@ -146,7 +147,7 @@ public class CompetitionControlService
     }
 
     // add broker message registration
-    brokerProxyService.registerSimListener((CompetitionControl)this);
+    brokerProxyService.registerSimListener(this);
 
     // configure competition instance
     for (PluginConfig config : pluginConfigRepo.list()) {
@@ -568,6 +569,20 @@ public class CompetitionControlService
       // simulation is complete
       log.info("Stop simulation");
       clock.stop();
+    }
+  }
+
+  /* (non-Javadoc)
+   * @see org.powertac.common.interfaces.BrokerMessageListener#receiveMessage(java.lang.Object)
+   */
+  public void receiveMessage(Object msg)
+  {
+    if (msg instanceof PauseRelease) {
+      receiveMessage((PauseRelease)msg);
+    } else if (msg instanceof PauseRequest) {
+      receiveMessage((PauseRequest)msg);
+    } else {
+      log.error("receiveMessage - unexpected message:" + msg);
     }
   }
 }
