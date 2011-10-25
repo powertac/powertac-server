@@ -29,6 +29,12 @@ import org.powertac.common.msg.PauseRequest;
 public interface CompetitionControl
 {
   /**
+   * True just in case the sim is running in bootstrap mode - generating
+   * bootstrap data.
+   */
+  public boolean isBootstrapMode ();
+  
+  /**
    * Registers the caller to be activated during each timeslot in the
    * proper phase sequence.
    */
