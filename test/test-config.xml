@@ -21,6 +21,12 @@
     <constructor-arg value="org.powertac.common.interfaces.Auctioneer" />
   </bean>
 
+  <bean id="competitionControlService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+  </bean>
+
   <context:annotation-config />
 
   <bean id="timeService"

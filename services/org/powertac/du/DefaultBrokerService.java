@@ -119,6 +119,7 @@ public class DefaultBrokerService
   {
     // set up local state
     bootstrapMode = competitionControlService.isBootstrapMode();
+    log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
     marketPositions = new HashMap<Timeslot, MarketPosition>();
@@ -429,6 +430,10 @@ public class DefaultBrokerService
   {
     Timeslot current = timeslotRepo.currentTimeslot();
     ArrayList<MarketTransaction> txList = marketTxMap.get(current);
+    if (txList == null) {
+      txList = new ArrayList<MarketTransaction>();
+      marketTxMap.put(current, txList);
+    }
     double totalMWh = 0.0;
     double totalCost = 0.0;
     for (MarketTransaction tx : txList) {
@@ -622,12 +627,17 @@ public class DefaultBrokerService
     return result;
   }
   
-  // test-support method
+  // test-support methods
   double getUsageForCustomer (CustomerInfo customer,
                               TariffSpecification tariffSpec,
                               int index)
   {
     CustomerRecord record = customerSubscriptions.get(tariffSpec).get(customer);
     return record.getUsage(index);
+  }
+  
+  boolean isBootstrapMode ()
+  {
+    return bootstrapMode;
   }
 }

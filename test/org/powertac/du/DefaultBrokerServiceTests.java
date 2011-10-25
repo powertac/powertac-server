@@ -46,7 +46,9 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Auctioneer;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -71,6 +73,9 @@ public class DefaultBrokerServiceTests
 {
   @Autowired
   private TimeService timeService;
+  
+  @Autowired 
+  private CompetitionControl mockCompetitionControl;
   
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
@@ -106,6 +111,7 @@ public class DefaultBrokerServiceTests
     pluginConfigRepo.recycle();
     timeslotRepo.recycle();
     reset(mockProxy);
+    reset(mockCompetitionControl);
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
     customer1 = new CustomerInfo("town", 1000);
@@ -123,6 +129,9 @@ public class DefaultBrokerServiceTests
                                  "pluginConfigRepo",
                                  pluginConfigRepo);
     mockMarket = mock(TariffMarket.class);
+    ReflectionTestUtils.setField(service,
+                                 "competitionControlService", 
+                                 mockCompetitionControl);
     ReflectionTestUtils.setField(service, "tariffMarketService", mockMarket);
     ReflectionTestUtils.setField(service, "brokerProxyService", mockProxy);
     ReflectionTestUtils.setField(service, "timeslotRepo", timeslotRepo);
@@ -145,6 +154,7 @@ public class DefaultBrokerServiceTests
     Broker face = init();
     assertNotNull("found face", face);
     assertEquals("correct face", face, service.getFace());
+    assertFalse("not bootstrap mode", service.isBootstrapMode());
   }
   
   @SuppressWarnings("rawtypes")
@@ -382,7 +392,7 @@ public class DefaultBrokerServiceTests
   // in timeslot 3, we should have 3 days of records on which to base the last
   // three bids
   @Test
-  public void testShoutTS4 ()
+  public void testShoutTS3 ()
   {
     // collect the tariff specs
     final HashMap<PowerType, TariffSpecification> specs = 
@@ -573,6 +583,117 @@ public class DefaultBrokerServiceTests
     assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
     assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
     shoutList.clear();
+  }
+  
+  // Generate three days of bootstrap data
+  @Test
+  public void testShoutTS3Bootstrap ()
+  {
+    // collect the tariff specs
+    final HashMap<PowerType, TariffSpecification> specs = 
+      new HashMap<PowerType, TariffSpecification>();
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        TariffSpecification spec =(TariffSpecification)args[0];
+        specs.put(spec.getPowerType(), spec);
+        return null;
+      }
+    }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
+    
+    // set bootstrap mode
+    when(mockCompetitionControl.isBootstrapMode())
+      .thenReturn(true);
+
+    // initialize the default broker
+    Broker face = init();
+    TariffSpecification cspec = specs.get(PowerType.CONSUMPTION);
+    TariffSpecification pspec = specs.get(PowerType.PRODUCTION);
+
+    TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(), 
+                                            timeslotRepo.enabledTimeslots()); // 0-22 enabled
+
+    // ---- timeslot 0 ----
+    face.receiveMessage(tsu);
+    // market clears for ts 0-22, but broker has not yet submitted bids
+    // customer model runs, generating subscriptions and production/consumption
+    // accounting runs, generating transactions
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              0.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.SIGNUP, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              0.0, 4.2));
+    // usage = 500 in ts0
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              500.0, 4.2));
+    CashPosition cp = new CashPosition(face, 0.0);
+    face.receiveMessage(cp); // last message in ts0
+
+    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    face.receiveMessage(nextTimeslot()); // end of ts0: 1 disabled, 24 enabled
+    
+    // market clears ts1
+    // customer model runs, usage = 420 in ts1
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              450.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.PRODUCE, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              -30.0, -0.15));
+    // accounting runs ts1
+    face.receiveMessage(cp);
+    // broker sends bids for ts2...ts24
+
+    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    face.receiveMessage(nextTimeslot()); // ts2 disabled, ts25 enabled
+    // market clears ts2
+    // customer model runs, usage 510 in ts2
+    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.CONSUME, 
+                                              cspec,
+                                              customer1, 
+                                              customer1.getPopulation(),
+                                              550.0, 4.2));
+    face.receiveMessage(new TariffTransaction(face,
+                                              timeService.getCurrentTime(),
+                                              TariffTransaction.Type.PRODUCE, 
+                                              pspec,
+                                              customer2, 
+                                              customer2.getPopulation(),
+                                              -40.0, -0.15));
+    // accounting runs ts2
+    face.receiveMessage(cp);
+    // broker sends bids for ts3...ts25
+    
+    // check the customer bootstrap data
+    List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData();
+    assertEquals("Two entries in cbd", 2, cbd.size());
+    CustomerBootstrapData first = cbd.get(0);
+    assertEquals("Three usage records", 3, first.getNetUsage().length);
   }
   
   // set up some timeslots - ts0 is disabled, then 23 enabled slots
