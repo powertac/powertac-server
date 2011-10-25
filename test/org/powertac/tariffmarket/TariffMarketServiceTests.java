@@ -687,6 +687,11 @@ public class TariffMarketServiceTests
     public void receiveMessage (PauseRelease msg)
     {
     }
+
+    public boolean isBootstrapMode ()
+    {
+      return false;
+    }
   }
   
   class MockTariffListener implements NewTariffListener
