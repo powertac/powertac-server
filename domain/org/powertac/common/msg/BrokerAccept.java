@@ -31,6 +31,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class BrokerAccept
 {
   private int prefix;
+  
+  public BrokerAccept(int prefix) {
+    this.prefix = prefix;
+  }
 
   /**
    * @return the prefix

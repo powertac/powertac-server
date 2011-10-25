@@ -24,7 +24,8 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Represents a Tariff offered by a Broker to customers. A Tariff specifies
@@ -42,6 +43,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
+  @SuppressWarnings("unused")
   static private Logger log = Logger.getLogger(Rate.class.getName());
 
   /** Last date new subscriptions will be accepted. Null means never expire. */

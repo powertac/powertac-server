@@ -19,14 +19,15 @@ package org.powertac.common;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.powertac.common.state.StateChange;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
  * A competition instance represents a single PowerTAC competition and
@@ -302,6 +303,22 @@ public class Competition //implements Serializable
   {
     customers.add(customer);
     return this;
+  }
+
+  /**
+   * @return the initialized
+   */
+  public boolean isInitialized ()
+  {
+    return initialized;
+  }
+
+  /**
+   * @param initialized the initialized to set
+   */
+  public void setInitialized (boolean initialized)
+  {
+    this.initialized = initialized;
   }
 
   public String toString() 

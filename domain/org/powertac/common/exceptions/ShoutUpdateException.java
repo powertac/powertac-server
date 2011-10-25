@@ -7,6 +7,9 @@ package org.powertac.common.exceptions;
  * @version 1.0, Date: 10.01.11
  */
 public class ShoutUpdateException extends PowerTacException {
+
+  private static final long serialVersionUID = 2692046525449061353L;
+
   public ShoutUpdateException() {
   }
 

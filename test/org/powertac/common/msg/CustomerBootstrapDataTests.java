@@ -15,7 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.StringWriter;
 
@@ -26,9 +27,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,6 +47,7 @@ public class CustomerBootstrapDataTests
   private CustomerRepo customerRepo;
   
   private CustomerInfo customer;
+  @SuppressWarnings("unused")
   private Instant start;
   private double[] data;
   

@@ -15,12 +15,12 @@
  */
 package org.powertac.common;
 
-import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Represents the cost of power during a specific timeslot in a variable

@@ -16,12 +16,11 @@
 
 package org.powertac.common;
 
-import java.util.List;
-
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * A {@code DistributionTransaction} instance represents the fee assessed

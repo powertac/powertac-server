@@ -17,7 +17,8 @@ package org.powertac.common;
 
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Each instance is an individual un-cleared entry (a Bid or an Ask) within an Orderbook.
@@ -25,7 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
  */
 @Domain
 @XStreamAlias("orderbook-bid")
-public class OrderbookOrder implements Comparable 
+public class OrderbookOrder implements Comparable<Object> 
 {
 
   @XStreamAsAttribute

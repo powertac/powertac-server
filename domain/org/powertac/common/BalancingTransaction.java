@@ -16,13 +16,11 @@
 
 package org.powertac.common;
 
-import java.util.List;
-
-import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * A {@code BalanceTransaction} instance represents the final supply/demand

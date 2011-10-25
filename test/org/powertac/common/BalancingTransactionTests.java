@@ -15,7 +15,9 @@
  */
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 
@@ -68,7 +70,7 @@ public class BalancingTransactionTests
     assertNotNull("not null", bt);
     assertEquals("correct time", baseTime, bt.getPostedTime());
     assertEquals("correct broker", broker, bt.getBroker());
-    assertEquals("correct qty", 42.1, bt.getQuantity(), 1e-6);
+    assertEquals("correct qty", 42.1, bt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, bt.getCharge(), 1e-6);
   }
 
@@ -93,7 +95,7 @@ public class BalancingTransactionTests
     BalancingTransaction xbt = (BalancingTransaction)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xbt);
     assertEquals("correct time", baseTime.getMillis(), xbt.getPostedTime().getMillis());
-    assertEquals("correct qty", 42.1, xbt.getQuantity(), 1e-6);
+    assertEquals("correct qty", 42.1, xbt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, xbt.getCharge(), 1e-6);
   }
 }

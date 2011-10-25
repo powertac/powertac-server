@@ -17,7 +17,6 @@ package org.powertac.util;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
@@ -45,7 +44,6 @@ public class MessageDispatcher
   {
     Logger log = Logger.getLogger(target.getClass().getName());
     Object result = null;
-    Object message = args[0];
     try {
       Class<?>[] classes = new Class[args.length];
       for (int index = 0; index < args.length; index++) {

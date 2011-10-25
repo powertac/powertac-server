@@ -29,6 +29,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class CustomerRepo implements DomainRepo
 {
+  @SuppressWarnings("unused")
   static private Logger log = Logger.getLogger(CustomerRepo.class.getName());
 
   private HashMap<Long,CustomerInfo> customers;

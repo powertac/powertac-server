@@ -16,12 +16,13 @@
 
 package org.powertac.common;
 
-import org.apache.log4j.Logger;
-import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.xml.BrokerConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A {@code CashPosition} domain instance represents the current state of

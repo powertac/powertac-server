@@ -10,6 +10,7 @@ public class TariffSpecificationConverter implements SingleValueConverter
   @Autowired
   private TariffRepo tariffRepo;
   
+  @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return TariffSpecification.class.isAssignableFrom(type);

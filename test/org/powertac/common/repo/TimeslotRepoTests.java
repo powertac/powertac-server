@@ -1,6 +1,8 @@
 package org.powertac.common.repo;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.List;
 
@@ -105,6 +107,7 @@ public class TimeslotRepoTests
     assertEquals("sn 2", ts2, repo.findBySerialNumber(2));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots0 ()
   {
@@ -114,11 +117,12 @@ public class TimeslotRepoTests
     Timeslot ts2 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR * 2), 
                                      new Instant(baseTime.getMillis() + TimeService.HOUR * 3));
     assertEquals("correct count", 3, repo.count());
-    List enabled = repo.enabledTimeslots();
+    List<Timeslot> enabled = repo.enabledTimeslots();
     assertEquals("3 enabled", 3, enabled.size());
     assertEquals("first is ts0", ts0, enabled.get(0));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots1 ()
   {
@@ -134,6 +138,7 @@ public class TimeslotRepoTests
     assertEquals("first is ts1", ts1, enabled.get(0));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRecycle ()
   {

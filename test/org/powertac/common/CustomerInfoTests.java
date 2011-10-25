@@ -1,6 +1,9 @@
 package org.powertac.common;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 
@@ -10,7 +13,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.msg.CustomerBootstrapData;
 
 import com.thoughtworks.xstream.XStream;
 
