@@ -11,6 +11,7 @@ public class TimeslotConverter implements SingleValueConverter
   @Autowired
   private TimeslotRepo timeslotRepo;
   
+  @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return Timeslot.class.isAssignableFrom(type);

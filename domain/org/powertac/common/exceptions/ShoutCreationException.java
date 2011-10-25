@@ -7,6 +7,7 @@ package org.powertac.common.exceptions;
  * @version 1.0, Date: 10.01.11
  */
 public class ShoutCreationException extends PowerTacException {
+  private static final long serialVersionUID = 7930920770847617021L;
 
   //TODO: Add property that is able to hold spring validation errors
 

@@ -15,12 +15,11 @@
  */
 package org.powertac.common.xml;
 
-import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 public class CustomerConverter implements SingleValueConverter
 {
@@ -32,6 +31,7 @@ public class CustomerConverter implements SingleValueConverter
     customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
   }
   
+  @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return CustomerInfo.class.isAssignableFrom(type);

@@ -16,10 +16,12 @@
 
 package org.powertac.common.msg;
 
-import org.joda.time.Instant;
-import org.powertac.common.*;
-import org.powertac.common.xml.BrokerConverter;
-import com.thoughtworks.xstream.annotations.*;
+import org.powertac.common.Broker;
+import org.powertac.common.TariffMessage;
+import org.powertac.common.TariffSpecification;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
  /**
  * Command object that represents a broker's request to update a tariff, either

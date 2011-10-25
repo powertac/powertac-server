@@ -15,7 +15,6 @@
  */
 package org.powertac.common;
 
-//import org.codehaus.groovy.grails.commons.ApplicationHolder
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,11 +31,7 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.springframework.beans.BeansException;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Configurable;
-//import org.springframework.context.ApplicationContext;
-//import org.springframework.context.ApplicationContextAware;
+
 
 /**
  * Entity wrapper for TariffSpecification that supports Tariff evaluation 
@@ -540,7 +535,7 @@ public class Tariff
     }
     analyzed = true;
   }
-  
+    
   private double rateValue (int tierIndex, int timeIndex, Instant when)
   {
     Rate rate = rateMap[tierIndex][timeIndex];
@@ -559,4 +554,11 @@ public class Tariff
 //    tariffRepo = ctx.getBean(TariffRepo.class);
 //  }
 
+  /**
+   * @return the analyzed
+   */
+  public boolean isAnalyzed ()
+  {
+    return analyzed;
+  }
 }

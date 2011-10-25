@@ -15,7 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.StringWriter;
 import java.util.List;
@@ -25,7 +26,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
-import org.powertac.common.HourlyCharge;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.TimeslotRepo;

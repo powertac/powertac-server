@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import java.util.UUID;
 
 /**
  * Generates numeric ID values for domain types. ID values are of the

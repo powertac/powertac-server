@@ -21,12 +21,13 @@ import java.util.TreeSet;
 
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.ProductType;
-import com.thoughtworks.xstream.annotations.*;
-import com.thoughtworks.xstream.converters.collections.TreeSetConverter;
-
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.TimeslotConverter;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * An orderbook instance captures a snapshot of the PowerTAC wholesale market's orderbook

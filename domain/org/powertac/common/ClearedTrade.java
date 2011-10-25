@@ -16,12 +16,14 @@
 
 package org.powertac.common;
 
-import com.thoughtworks.xstream.annotations.*;
+import org.joda.time.Instant;
 import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.TimeslotConverter;
-import org.apache.log4j.Logger;
-import org.joda.time.Instant;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A clearedTrade instance reports public trade information, i.e. the execution price and quantity.

@@ -15,15 +15,12 @@
  */
 package org.powertac.common.xml;
 
-import com.thoughtworks.xstream.converters.SingleValueConverter;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+
+import com.thoughtworks.xstream.converters.SingleValueConverter;
 
 public class BrokerConverter implements SingleValueConverter
 {
@@ -37,6 +34,7 @@ public class BrokerConverter implements SingleValueConverter
     brokerRepo = (BrokerRepo) SpringApplicationContext.getBean("brokerRepo");
   }
   
+  @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     if (Broker.class.isAssignableFrom(type)) {

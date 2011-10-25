@@ -18,7 +18,6 @@ package org.powertac.common;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -39,12 +38,9 @@ public class Broker
 
   /** the broker's login or user name     */
   private String username;
-  /* Spring Security-related generated fields */
+
   private String password;
   private boolean enabled;
-  private boolean accountExpired;
-  private boolean accountLocked;
-  private boolean passwordExpired;
 
   /** If true, the broker is local to the server and does not receive messages  */
   private boolean local = false;
@@ -136,6 +132,11 @@ public class Broker
   public boolean isEnabled ()
   {
     return enabled;
+  }
+  
+  public void setEnabled(boolean enabled) 
+  {
+    this.enabled = enabled;
   }
 
   public boolean isLocal ()
