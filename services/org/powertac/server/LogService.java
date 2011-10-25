@@ -23,7 +23,6 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
-import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.stereotype.Service;
 
 /**
@@ -113,6 +112,7 @@ public class LogService
     stopLogger(Logger.getLogger("State"));
   }
   
+  @SuppressWarnings("unchecked")
   private void stopLogger (Logger logger)
   {
     for (Enumeration<Appender> apps = logger.getAllAppenders(); apps.hasMoreElements(); ) {

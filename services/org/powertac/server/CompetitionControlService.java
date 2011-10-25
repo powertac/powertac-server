@@ -22,10 +22,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-
-import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
@@ -33,7 +30,6 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.PauseRelease;
@@ -44,14 +40,14 @@ import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 /**
