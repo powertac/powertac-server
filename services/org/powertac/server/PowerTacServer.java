@@ -15,6 +15,7 @@
  */
 package org.powertac.server;
 
+import org.powertac.common.interfaces.CompetitionControl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -33,11 +34,26 @@ public class PowerTacServer
   public static void main (String[] args)
   {
     ApplicationContext context =
-      new ClassPathXmlApplicationContext("config/powertac.xml");
-    cc = (CompetitionControlService)context.getBean("competitionControl");
+      new ClassPathXmlApplicationContext("development.xml");
+    
+    String[] allBeanNames = context.getBeanNamesForType(Object.class);
+    if (allBeanNames != null) {
+      for (String beanName : allBeanNames) {
+        System.out.println(beanName);
+      }
+    }
 
+    cc = (CompetitionControlService)context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
     System.out.println("Server BootStrap");
     //participantManagementService.initialize();
     cc.preGame();
+    
+    while(true) {
+      try {
+        Thread.sleep(5000);
+      } catch (InterruptedException e) {
+
+      }
+    }
   }
 }
