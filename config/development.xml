@@ -1,38 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:p="http://www.springframework.org/schema/p"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:jms="http://www.springframework.org/schema/jms"
-       xmlns:amq="http://activemq.apache.org/schema/core"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans 
-                           http://www.springframework.org/schema/beans/spring-beans.xsd
-                           http://www.springframework.org/schema/context 
-                           http://www.springframework.org/schema/context/spring-context.xsd
-                           http://www.springframework.org/schema/jms 
-                           http://www.springframework.org/schema/jms/spring-jms.xsd
-                           http://activemq.apache.org/schema/core 
-                           http://activemq.apache.org/schema/core/activemq-core.xsd">
-  
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jms="http://www.springframework.org/schema/jms" xmlns:amq="http://activemq.apache.org/schema/core"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	                    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	                    http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd
+	                    http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
+
 	<context:annotation-config />
 	<context:component-scan base-package="org.powertac" />
- 	
-	<!--  Embedded ActiveMQ Broker -->
+
+	<bean id="propertiesUtil" class="org.powertac.util.PropertiesUtil">
+		<property name="ignoreUnresolvablePlaceholders" value="true" />
+		<property name="searchSystemEnvironment" value="true" />
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="locations">
+			<list>
+				<value>classpath:*.properties</value>
+				<!-- this happens to override previous properties due to the implementation... -->
+				<value>file:/${config.dir}/*.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Embedded ActiveMQ Broker -->
 	<amq:broker id="broker" useJmx="false" persistent="false">
-	    <amq:transportConnectors>
-	        <amq:transportConnector uri="tcp://localhost:61616" />
-	    </amq:transportConnectors>
+		<amq:transportConnectors>
+			<amq:transportConnector uri="tcp://localhost:61616" />
+		</amq:transportConnectors>
 	</amq:broker>
-		
-	<!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+
+	<!-- JMS ConnectionFactory to use, configuring the embedded broker using 
+		XML -->
 	<amq:connectionFactory id="jmsFactory" brokerURL="vm://localhost:61616" />
-	
+
 	<!-- JMS Producer Configuration -->
-	<bean id="jmsConnectionFactory" 
-	      class="org.springframework.jms.connection.SingleConnectionFactory"
-	      depends-on="broker"
-	      p:targetConnectionFactory-ref="jmsFactory" />
-	
+	<bean id="jmsConnectionFactory"
+		class="org.springframework.jms.connection.SingleConnectionFactory"
+		depends-on="broker" p:targetConnectionFactory-ref="jmsFactory" />
+
 	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate"
-	      p:connectionFactory-ref="jmsConnectionFactory" />
+		p:connectionFactory-ref="jmsConnectionFactory" />
 </beans>

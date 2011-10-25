@@ -23,6 +23,7 @@ import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.interfaces.BrokerMessageListener;
+import org.powertac.common.msg.BrokerAuthentication;
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
 import org.powertac.common.msg.TariffExpire;
@@ -45,7 +46,8 @@ public class MessageRouter
       TariffRevoke.class, VariableRateUpdate.class));
   
   @SuppressWarnings({ "unchecked", "rawtypes" })
-  Set<?> simMessageTypes = new HashSet<Class>(Arrays.asList(PauseRequest.class, PauseRelease.class));
+  Set<?> simMessageTypes = new HashSet<Class>(Arrays.asList(PauseRequest.class, 
+      PauseRelease.class, BrokerAuthentication.class));
 
   public void route(Object message) {
     if (tariffMessageTypes.contains(message.getClass())) {
