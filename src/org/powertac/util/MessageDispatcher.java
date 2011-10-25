@@ -15,6 +15,7 @@
  */
 package org.powertac.util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
@@ -58,6 +59,16 @@ public class MessageDispatcher
     }
     catch (NoSuchMethodException nsm) {
       log.warn("Could not find exact match: " + nsm.toString());
+    }
+    catch (InvocationTargetException ite) {
+      Throwable thr = ite.getTargetException();
+      log.error("Cannot call " + methodName
+                   + ": " + thr + "\n  ..at "
+                   + thr.getStackTrace()[0] + "\n  ..at "
+                   + thr.getStackTrace()[1] + "\n  ..at "
+                   + thr.getStackTrace()[2] + "\n  ..at "
+                   + thr.getStackTrace()[3] + "\n  ..at "
+                   );      
     }
     catch (Exception ex) {
       log.error("Exception calling message processor: " + ex.toString());
