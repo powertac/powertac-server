@@ -17,13 +17,13 @@ package org.powertac.common.msg;
 
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
+import org.powertac.common.xml.DoubleArrayConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * This message encapsulates net power usage by timeslot for a customer
- * instance over the bootstrap period.
- * @author Anthony Chrysopoulos, John Collins
+ * Encapsulates market prices and quantities over the bootstrap period.
+ * @author John Collins
  */
 @Domain
 @XStreamAlias("market-bootstrap-data")
@@ -31,8 +31,11 @@ public class MarketBootstrapData
 {
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
-  
+
+  @XStreamConverter(DoubleArrayConverter.class)
   private double[] mwh;
+
+  @XStreamConverter(DoubleArrayConverter.class)
   private double[] marketPrice;
 
   public MarketBootstrapData (double[] mwh, double[] price)

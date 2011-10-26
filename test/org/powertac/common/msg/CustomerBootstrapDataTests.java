@@ -21,7 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import java.io.StringWriter;
 
 import org.apache.log4j.PropertyConfigurator;
-import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -47,8 +46,7 @@ public class CustomerBootstrapDataTests
   private CustomerRepo customerRepo;
   
   private CustomerInfo customer;
-  @SuppressWarnings("unused")
-  private Instant start;
+
   private double[] data;
   
   @BeforeClass
@@ -61,7 +59,6 @@ public class CustomerBootstrapDataTests
   public void setUp () throws Exception
   {
     customer = customerRepo.createCustomerInfo("Population", 42);
-    start = new Instant();
     data = new double[] {1.3,1.4,1.5,1.6,1.7,1.8,1.9,2.0,2.1,2.2,2.3,2.4,
                          2.5,2.6,2.7,2.8,2.9,3.0,3.1,3.2,3.3,3.4,3.5,3.6};
   }
@@ -84,11 +81,12 @@ public class CustomerBootstrapDataTests
     xstream.processAnnotations(CustomerBootstrapData.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(cbd));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     CustomerBootstrapData xcbd = 
       (CustomerBootstrapData)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xcbd);
     assertEquals("correct id", cbd.getId(), xcbd.getId());
+    assertEquals("correct 5th element", 1.7, xcbd.getNetUsage()[4], 1e-6);
   }
 
 }
