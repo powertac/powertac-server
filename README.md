@@ -1,12 +1,13 @@
-# Power TAC server generic component
+# Power TAC Household Customers
 
-This package is intended to be forked to create new components for the Power TAC server. It contains the basic structure and dependencies for
-most components, including domain types, services, and unit/integration tests.
+This plugin contains a simple autonomous model of household customer. The model has aggregated capabilities. 
+It begins with simple persons and appliances, then goes up to households and then villages, cities etc.
 
-After forking, you will need to follow approximately the following process to start a new component:
+Included in this plugin are:
 
-* Change the package names from org.powertac.generic to whatever package name makes sense.
-* Change class names to make them clearly descriptive of what they do.
-* Fill in header comments and @author tags - this is needed to match up with the copyright notice.
-* Implement data representation and behaviors as needed.
-* Write tests.
+* The initialization service that is used to initiate the Household Customer Plugin.
+* The service that is used for the behaviors of all the according models for each tick
+  of the competition clock.
+* The Domain types of Persons, Appliances, aggragated Households and Villages with the mathematic tariff selection
+  procedure that is described in the PowerTAC White Paper.
+* The tests that are verifying the correct function of the plugin.
