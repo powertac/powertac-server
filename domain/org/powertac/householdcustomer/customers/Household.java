@@ -175,23 +175,19 @@ public class Household
       weeklyControllableLoadInHours.add(dailyControllableLoadInHours);
     }
 
-    for (week = 1; week < HouseholdConstants.WEEKS_OF_COMPETITION; week++) {
+    for (week = 1; week < HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP; week++) {
       refresh(conf, gen);
     }
 
     for (Appliance appliance : appliances) {
       appliance.setOperationDays();
     }
-
-    /* System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
-     * System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
-     * System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
-     * System.out.println(this.toString() + "  " + weeklyControllableLoadInHours.size());
-     * 
-     * for (Person member : members) { System.out.println(member.getWeeklyRoutine().toString()); }
-     * 
-     * for (Appliance appliance : appliances) {
-     * System.out.println(appliance.getWeeklyLoadVector().toString()); } */
+    /*
+        System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
+        System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
+        System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
+        System.out.println(this.toString() + "  " + weeklyControllableLoadInHours.size());
+    */
   }
 
   /**
