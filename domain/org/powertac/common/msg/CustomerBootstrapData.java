@@ -19,6 +19,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
+import org.powertac.common.xml.DoubleArrayConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -38,11 +39,7 @@ public class CustomerBootstrapData
   @XStreamConverter(CustomerConverter.class)
   private CustomerInfo customer;
   
-  //@XStreamAsAttribute
-  //private PowerType powerType;
-  
-  //private Instant startTime;
-  
+  @XStreamConverter(DoubleArrayConverter.class)
   private double[] netUsage;
 
   public CustomerBootstrapData (CustomerInfo customer,
