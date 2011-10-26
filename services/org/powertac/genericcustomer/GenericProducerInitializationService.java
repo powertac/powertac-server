@@ -33,6 +33,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class GenericProducerInitializationService implements InitializationService
 {
+
+  /**
+   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
+   * log.debug() for output you want to see in testing or debugging.
+   */
   static private Logger log = Logger.getLogger(GenericProducerInitializationService.class.getName());
 
   @Autowired

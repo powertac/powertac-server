@@ -44,6 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class GenericConsumer extends AbstractCustomer
 {
 
+  /**
+   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
+   * log.debug() for output you want to see in testing or debugging.
+   */
   static protected Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
   @Autowired
@@ -52,6 +56,7 @@ public class GenericConsumer extends AbstractCustomer
   @Autowired
   TimeslotRepo timeslotRepo;
 
+  /** This is the constructor initializing Generic Consumer */
   public GenericConsumer (CustomerInfo customerInfo)
   {
     super(customerInfo);
@@ -130,6 +135,10 @@ public class GenericConsumer extends AbstractCustomer
     return summary;
   }
 
+  /**
+   * This is the basic evaluation function, taking into consideration the minimum cost without
+   * shifting the appliances' load and taking the optimal tariff.
+   */
   void simpleEvaluationNewTariffs (List<Tariff> newTariffs)
   {
 
@@ -178,6 +187,11 @@ public class GenericConsumer extends AbstractCustomer
     }
   }
 
+  /**
+   * This is the basic evaluation function, taking into consideration the minimum cost without
+   * shifting the appliances' load but the tariff chosen is picked up randomly by using a
+   * possibility pattern. The better tariffs have more chances to be chosen.
+   */
   void possibilityEvaluationNewTariffs (List<Tariff> newTariffs)
   {
 
@@ -219,6 +233,10 @@ public class GenericConsumer extends AbstractCustomer
     }
   }
 
+  /**
+   * This function estimates the overall cost, taking into consideration the fixed payments as well
+   * as the variable that are depending on the tariff rates
+   */
   double costEstimation (Tariff tariff)
   {
     double costVariable = estimateVariableTariffPayment(tariff);
@@ -226,6 +244,10 @@ public class GenericConsumer extends AbstractCustomer
     return (costVariable + costFixed) / GenericConstants.MILLION;
   }
 
+  /**
+   * This function estimates the fixed cost, comprised by fees, bonuses and penalties that are the
+   * same no matter how much you consume
+   */
   double estimateFixedTariffPayments (Tariff tariff)
   {
     double lifecyclePayment = (double) tariff.getEarlyWithdrawPayment() + (double) tariff.getSignupPayment();
@@ -242,6 +264,9 @@ public class GenericConsumer extends AbstractCustomer
     return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
   }
 
+  /**
+   * This function estimates the variable cost, depending only to the load quantity you consume
+   */
   double estimateVariableTariffPayment (Tariff tariff)
   {
 
@@ -265,6 +290,10 @@ public class GenericConsumer extends AbstractCustomer
     return costSummary;
   }
 
+  /**
+   * This is the function that realizes the mathematical possibility formula for the choice of
+   * tariff.
+   */
   int logitPossibilityEstimation (Vector<Double> estimation)
   {
 
@@ -299,6 +328,7 @@ public class GenericConsumer extends AbstractCustomer
     return ("GenericCustomer " + custId);
   }
 
+  @Override
   public void step ()
   {
     this.checkRevokedSubscriptions();

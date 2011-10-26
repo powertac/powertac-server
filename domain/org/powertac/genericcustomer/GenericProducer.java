@@ -44,7 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 // causes calls to the constructor to be logged
 public class GenericProducer extends AbstractCustomer
 {
-
+  /**
+   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
+   * log.debug() for output you want to see in testing or debugging.
+   */
   static protected Logger log = Logger.getLogger(AbstractCustomer.class.getName());
 
   @Autowired
@@ -53,6 +56,7 @@ public class GenericProducer extends AbstractCustomer
   @Autowired
   TimeslotRepo timeslotRepo;
 
+  /** This is the constructor initializing Generic Producer */
   public GenericProducer (CustomerInfo customerInfo)
   {
     super(customerInfo);
@@ -151,6 +155,10 @@ public class GenericProducer extends AbstractCustomer
     return 100 * rs1.nextFloat();
   }
 
+  /**
+   * This is the basic evaluation function, taking into consideration the maximum payment without
+   * shifting the appliances' load and taking the optimal tariff.
+   */
   void simpleEvaluationNewTariffs (List<Tariff> newTariffs)
   {
 
@@ -199,6 +207,11 @@ public class GenericProducer extends AbstractCustomer
     }
   }
 
+  /**
+   * This is the basic evaluation function, taking into consideration the maximum payment without
+   * shifting the appliances' load but the tariff chosen is picked up randomly by using a
+   * possibility pattern. The better tariffs have more chances to be chosen.
+   */
   void possibilityEvaluationNewTariffs (List<Tariff> newTariffs)
   {
 
@@ -240,6 +253,10 @@ public class GenericProducer extends AbstractCustomer
     }
   }
 
+  /**
+   * This function estimates the overall payment, taking into consideration the fixed payments as
+   * well as the variable that are depending on the tariff rates
+   */
   double paymentEstimation (Tariff tariff)
   {
     double costVariable = estimateVariableTariffPayment(tariff);
@@ -247,6 +264,10 @@ public class GenericProducer extends AbstractCustomer
     return (costVariable + costFixed) / GenericConstants.MILLION;
   }
 
+  /**
+   * This function estimates the fixed payments, comprised by fees, bonuses and penalties that are
+   * the same no matter how much you produce
+   */
   double estimateFixedTariffPayments (Tariff tariff)
   {
     double lifecyclePayment = (double) tariff.getEarlyWithdrawPayment() + (double) tariff.getSignupPayment();
@@ -263,6 +284,9 @@ public class GenericProducer extends AbstractCustomer
     return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
   }
 
+  /**
+   * This function estimates the variable payment, depending only to the load quantity you produce
+   */
   double estimateVariableTariffPayment (Tariff tariff)
   {
 
@@ -286,6 +310,10 @@ public class GenericProducer extends AbstractCustomer
     return paymentSummary;
   }
 
+  /**
+   * This is the function that realizes the mathematical possibility formula for the choice of
+   * tariff.
+   */
   int logitPossibilityEstimation (Vector<Double> estimation)
   {
 
@@ -321,6 +349,7 @@ public class GenericProducer extends AbstractCustomer
     return ("GenericProducer " + custId);
   }
 
+  @Override
   public void step ()
   {
     this.checkRevokedSubscriptions();
