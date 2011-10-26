@@ -492,6 +492,11 @@ public class GenericProducerServiceTests
       timeslotPhase = phase;
     }
 
+    public boolean isBootstrapMode ()
+    {
+      return false;
+    }
+
     public void receiveMessage (PauseRequest msg)
     {
     }

@@ -484,6 +484,11 @@ public class GenericConsumerServiceTests
     TimeslotPhaseProcessor processor;
     int timeslotPhase;
 
+    public boolean isBootstrapMode ()
+    {
+      return false;
+    }
+
     public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
     {
       processor = thing;

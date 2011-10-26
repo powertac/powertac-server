@@ -68,7 +68,7 @@
   <bean id="genericConsumerService"
         class="org.powertac.genericcustomer.GenericConsumerService">
         <property name="timeslotPhase">
-                <value>2</value>
+                <value>1</value>
         </property> 
   </bean>
   
@@ -78,7 +78,7 @@
   <bean id="genericProducerService"
         class="org.powertac.genericcustomer.GenericProducerService">
         <property name="timeslotPhase">
-                <value>2</value>
+                <value>1</value>
         </property> 
   </bean>
   
