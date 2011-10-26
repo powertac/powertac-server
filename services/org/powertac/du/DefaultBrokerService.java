@@ -39,6 +39,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
@@ -60,7 +61,8 @@ import org.springframework.stereotype.Service;
  * @author John Collins
  */
 @Service
-public class DefaultBrokerService 
+public class DefaultBrokerService
+  implements BootstrapDataCollector
 {
   static private Logger log = Logger.getLogger(DefaultBrokerService.class.getName());
   
@@ -450,11 +452,30 @@ public class DefaultBrokerService
   }
   
   // -------------------- Bootstrap data queries --------------------------
+
+  /**
+   * Collects and returns a list of messages representing collected customer
+   * demand, market price, and weather records for the bootstrap period. Note
+   * that the customer and weather info is flattened.
+   */
+  public List<Object> collectBootstrapData ()
+  {
+    ArrayList<Object> result = new ArrayList<Object>();
+    for (Object item : getCustomerBootstrapData()) {
+      result.add(item);
+    }
+    result.add(getMarketBootstrapData());
+    for (Object item : getWeatherReports()) {
+      result.add(item);
+    }
+    return result;
+  }
+
   /**
    * Returns a list of CustomerBootstrapData instances. Note that this only
    * makes sense at the end of a bootstrap sim run.
    */
-  public List<CustomerBootstrapData> getCustomerBootstrapData ()
+  List<CustomerBootstrapData> getCustomerBootstrapData ()
   {
     if (netUsageMap == null) {
       // nothing to report
@@ -475,7 +496,7 @@ public class DefaultBrokerService
    * and prices paid by the default broker for the power it purchased over 
    * the bootstrap period.
    */
-  public MarketBootstrapData getMarketBootstrapData ()
+  MarketBootstrapData getMarketBootstrapData ()
   {
     if (marketMWh.size() != marketPrice.size()) {
       // should not happen
@@ -500,7 +521,7 @@ public class DefaultBrokerService
   /**
    * Returns the accumulated list of WeatherReport instances
    */
-  public List<WeatherReport> getWeatherReports ()
+  List<WeatherReport> getWeatherReports ()
   {
     return weather;
   }
