@@ -205,28 +205,28 @@ public class Village extends AbstractCustomer
   {
 
     if (portion.equals("NotShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * HouseholdConstants.WEEKS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadNS.add(fillAggDailyBaseLoad(i, portion));
         aggDailyControllableLoadNS.add(fillAggDailyControllableLoad(i, portion));
         aggDailyBaseLoadInHoursNS.add(fillAggDailyBaseLoadInHours(i, portion));
         aggDailyControllableLoadInHoursNS.add(fillAggDailyControllableLoadInHours(i, portion));
       }
     } else if (portion.equals("RandomlyShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * HouseholdConstants.WEEKS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadRaS.add(fillAggDailyBaseLoad(i, portion));
         aggDailyControllableLoadRaS.add(fillAggDailyControllableLoad(i, portion));
         aggDailyBaseLoadInHoursRaS.add(fillAggDailyBaseLoadInHours(i, portion));
         aggDailyControllableLoadInHoursRaS.add(fillAggDailyControllableLoadInHours(i, portion));
       }
     } else if (portion.equals("RegularlyShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * HouseholdConstants.WEEKS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadReS.add(fillAggDailyBaseLoad(i, portion));
         aggDailyControllableLoadReS.add(fillAggDailyControllableLoad(i, portion));
         aggDailyBaseLoadInHoursReS.add(fillAggDailyBaseLoadInHours(i, portion));
         aggDailyControllableLoadInHoursReS.add(fillAggDailyControllableLoadInHours(i, portion));
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * HouseholdConstants.WEEKS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadSS.add(fillAggDailyBaseLoad(i, portion));
         aggDailyControllableLoadSS.add(fillAggDailyControllableLoad(i, portion));
         aggDailyBaseLoadInHoursSS.add(fillAggDailyBaseLoadInHours(i, portion));
@@ -246,28 +246,28 @@ public class Village extends AbstractCustomer
     log.info("Portion " + portion + " Weekly Aggregated Load");
 
     if (portion.equals("NotShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
           log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j));
         }
       }
     } else if (portion.equals("RandomlyShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
           log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j));
         }
       }
     } else if (portion.equals("RegularlyShifting")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
           log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j));
         }
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
           log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j));
@@ -881,7 +881,7 @@ public class Village extends AbstractCustomer
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION);
+      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -907,7 +907,7 @@ public class Village extends AbstractCustomer
   {
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION);
+      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = daysList.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
