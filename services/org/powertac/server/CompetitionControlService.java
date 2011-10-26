@@ -15,6 +15,10 @@
  */
 package org.powertac.server;
 
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +31,8 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.XMLMessageConverter;
+import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
@@ -116,6 +122,12 @@ public class CompetitionControlService
   
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private BootstrapDataCollector defaultBroker;
+  
+  @Autowired
+  private XMLMessageConverter messageConverter;
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
@@ -168,13 +180,33 @@ public class CompetitionControlService
       competition.addPluginConfig(config);
     }
   }
+  
+  /**
+   * Sets up the simulator, with config overrides provided in a file
+   * containing a sequence of PluginConfig instances. Errors are logged
+   * if one or more PluginConfig instances cannot be used in the current
+   * server setup.
+   */
+  public void preGame (FileReader config)
+  {
+    // TODO -- implement this
+    log.error("Cannot handle pre-game config file");
+  }
 
   /**
    * Runs the initialization process, starts the simulation thread, waits
    * for it to complete, then shuts down and prepares for the next simulation
-   * run.
+   * run. This is probably only useful for a web-interface controller.
    */
   public void init ()
+  {
+    runOnce();
+    // prepare for the next run
+    logService.stopLog();
+    preGame();
+  }
+  
+  public void runOnce ()
   {
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
@@ -199,22 +231,41 @@ public class CompetitionControlService
     // wrap up
     shutDown();
     simRunning = false;
-
-    // prepare for the next run
-    preGame();
   }
   
   /**
    * Loads a bootstrap dataset, starts a simulation
    */
-  public void init (String filename)
+  public void runOnce (FileReader datasetReader)
   {
     // load the dataset
     // verify dataset against current server setup
     
     // turn off bootstrap mode and start the sim
     bootstrapMode = false;
-    init();
+    runOnce();
+  }
+  
+  /**
+   * Runs a bootstrap sim, saves the bootstrap dataset in a file
+   */
+  public void runOnce (FileWriter datasetWriter)
+  {
+    bootstrapMode = true;
+    runOnce();
+    // save the dataset
+    BufferedWriter output = new BufferedWriter(datasetWriter);
+    List<Object> data = defaultBroker.collectBootstrapData();
+    try {
+      for (Object item : data) {
+        String xml = messageConverter.toXML(item);
+        output.write(xml);
+      }
+      output.close();
+    }
+    catch (IOException ioe) {
+      log.error("Error writing bootstrap file: " + ioe.toString());
+    }
   }
 
   /**
@@ -290,8 +341,6 @@ public class CompetitionControlService
 
     SimEnd endMsg = new SimEnd();
     brokerProxyService.broadcastMessage(endMsg);
-
-    logService.stopLog();
   }
 
   /** True just in case the sim is running in bootstrap mode */
