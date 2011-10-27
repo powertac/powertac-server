@@ -11,7 +11,6 @@ import javax.jms.Queue;
 import javax.jms.Session;
 
 import org.apache.log4j.Logger;
-import org.powertac.auctioneer.AuctionInitializationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JmsManagementService {
-  static private Logger log = Logger.getLogger(AuctionInitializationService.class.getName());
+  static private Logger log = Logger.getLogger(JmsManagementService.class.getName());
 
   @Autowired 
   private ConnectionFactory connectionFactory;
