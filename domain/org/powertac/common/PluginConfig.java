@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("plugin-config")
 public class PluginConfig 
 {
-  static private Logger log = Logger.getLogger(Rate.class.getName());
+  static private Logger log = Logger.getLogger(PluginConfig.class.getName());
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
