@@ -44,16 +44,16 @@ public class BrokerManagementService
     Broker broker = brokerRepo.findByUsername(authentication.getUsername());
     boolean authenticated = false;
     if (propertiesUtil.getProperty("server.mode", "research").equals("tournament")) { 
+      // tournament mode
       if (broker != null && authentication.getGameToken().equals(broker.getApiKey())) {
         authenticated = true;         
       }
     } else {
-      if (broker == null) {
-        brokerRepo.add(new Broker(authentication.getUsername(), false, false));
+      // research mode
+      if (broker != null) {
+        authenticated = true;
       }
-      authenticated = true;               
     }
- 
   
     if (authenticated) {
       broker.setEnabled(true);
