@@ -17,13 +17,14 @@ package org.powertac.server;
 
 import java.io.BufferedWriter;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
@@ -152,6 +153,7 @@ public class CompetitionControlService
     competition = Competition.newInstance("defaultCompetition");
     competitionId = competition.getId();
     logService.startLog(competitionId);
+    log.setLevel(Level.DEBUG);
 
     // Set up all the plugin configurations
     log.info("pre-game initialization");
@@ -162,11 +164,13 @@ public class CompetitionControlService
     // then creating the PluginConfig instances
     Map<String, DomainRepo> repos =
       applicationContext.getBeansOfType(DomainRepo.class);
+    log.debug("found " + repos.size() + " repos");
     for (DomainRepo repo : repos.values()) {
       repo.recycle();
     }
     Map<String, InitializationService> initializers =
       applicationContext.getBeansOfType(InitializationService.class);
+    log.debug("found " + initializers.size() + " initializers");
     for (InitializationService init : initializers.values()) {
       init.setDefaults();
     }
@@ -249,18 +253,47 @@ public class CompetitionControlService
   /**
    * Runs a bootstrap sim, saves the bootstrap dataset in a file
    */
-  public void runOnce (FileWriter datasetWriter)
+  public void runOnce (Writer datasetWriter)
   {
     bootstrapMode = true;
     runOnce();
     // save the dataset
+    saveBootstrapData(datasetWriter);
+  }
+
+  // method broken out to simplify testing
+  void saveBootstrapData (Writer datasetWriter)
+  {
     BufferedWriter output = new BufferedWriter(datasetWriter);
     List<Object> data = defaultBroker.collectBootstrapData();
     try {
+      // write the config data
+      output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      output.newLine();
+      output.write("<powertac-bootstrap-data>");
+      output.newLine();
+      output.write("<config>");
+      output.newLine();
+      for (PluginConfig pic : pluginConfigRepo.list()) {
+        String xml = messageConverter.toXML(pic);
+        output.write(xml);
+        output.newLine();
+      }
+      output.write("</config>");
+      output.newLine();
+      
+      // write the bootstrap data
+      output.write("<bootstrap>");
+      output.newLine();
       for (Object item : data) {
         String xml = messageConverter.toXML(item);
         output.write(xml);
+        output.newLine();
       }
+      output.write("</bootstrap>");
+      output.newLine();
+      output.write("</powertac-bootstrap-data>");
+      output.newLine();
       output.close();
     }
     catch (IOException ioe) {
