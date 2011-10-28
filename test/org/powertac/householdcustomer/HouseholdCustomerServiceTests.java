@@ -475,6 +475,8 @@ public class HouseholdCustomerServiceTests
   public void testDailyShifting ()
   {
     initializeService();
+    // for (int i = 0; i < 10; i++) {
+
     Rate r0 = new Rate().withValue(Math.random()).withDailyBegin(0).withDailyEnd(0);
     Rate r1 = new Rate().withValue(Math.random()).withDailyBegin(1).withDailyEnd(1);
     Rate r2 = new Rate().withValue(Math.random()).withDailyBegin(2).withDailyEnd(2);
@@ -535,6 +537,7 @@ public class HouseholdCustomerServiceTests
     for (Village customer : householdCustomerService.getVillageList()) {
       customer.possibilityEvaluationNewTariffs(tclist);
     }
+    // }
     timeService.setBase(now.getMillis());
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);

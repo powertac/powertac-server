@@ -187,12 +187,12 @@ public class Village extends AbstractCustomer
     fillAggWeeklyLoad("RandomlyShifting");
     fillAggWeeklyLoad("RegularlyShifting");
     fillAggWeeklyLoad("SmartShifting");
-
-    showAggLoad("NotShifting");
-    showAggLoad("RandomlyShifting");
-    showAggLoad("RegularlyShifting");
-    showAggLoad("SmartShifting");
-
+    /*
+        showAggLoad("NotShifting");
+        showAggLoad("RandomlyShifting");
+        showAggLoad("RegularlyShifting");
+        showAggLoad("SmartShifting");
+    */
   }
 
   /**
@@ -249,28 +249,28 @@ public class Village extends AbstractCustomer
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j));
+          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j));
         }
       }
     } else if (portion.equals("RandomlyShifting")) {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j));
+          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j));
         }
       }
     } else if (portion.equals("RegularlyShifting")) {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j));
+          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j));
         }
       }
     } else {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.info("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + 1 + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j));
+          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j));
         }
       }
     }
@@ -317,7 +317,8 @@ public class Village extends AbstractCustomer
   long getBaseConsumptions (int day, int hour)
   {
 
-    long summaryBase = aggDailyBaseLoadNS.get(day).get(hour) + aggDailyBaseLoadRaS.get(day).get(hour) + aggDailyBaseLoadReS.get(day).get(hour) + aggDailyBaseLoadSS.get(day).get(hour);
+    long summaryBase = aggDailyBaseLoadInHoursNS.get(day).get(hour) + aggDailyBaseLoadInHoursRaS.get(day).get(hour) + aggDailyBaseLoadInHoursReS.get(day).get(hour)
+        + aggDailyBaseLoadInHoursSS.get(day).get(hour);
 
     log.info("Base Load " + summaryBase);
     return summaryBase;
@@ -347,8 +348,8 @@ public class Village extends AbstractCustomer
    */
   long getControllableConsumptions (int day, int hour)
   {
-    long summaryControllable = aggDailyControllableLoadNS.get(day).get(hour) + aggDailyControllableLoadRaS.get(day).get(hour) + aggDailyControllableLoadReS.get(day).get(hour)
-        + aggDailyControllableLoadSS.get(day).get(hour);
+    long summaryControllable = aggDailyControllableLoadInHoursNS.get(day).get(hour) + aggDailyControllableLoadInHoursRaS.get(day).get(hour) + aggDailyControllableLoadInHoursReS.get(day).get(hour)
+        + aggDailyControllableLoadInHoursSS.get(day).get(hour);
     log.info("Controllable Load " + summaryControllable);
     return summaryControllable;
   }
@@ -724,7 +725,7 @@ public class Village extends AbstractCustomer
   int logitPossibilityEstimation (Vector<Double> estimation)
   {
 
-    double lamda = 2500; // 0 the random - 10 the logic
+    double lamda = 10; // 0 the random - 10 the logic
     double summedEstimations = 0;
     Vector<Integer> randomizer = new Vector<Integer>();
     Vector<Integer> possibilities = new Vector<Integer>();
