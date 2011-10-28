@@ -15,24 +15,28 @@
  */
 package org.powertac.server;
 
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-
-import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.XMLMessageConverter;
+import org.powertac.common.interfaces.BootstrapDataCollector;
+import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.PauseRelease;
@@ -43,35 +47,47 @@ import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 /**
  * This is the competition controller. It has three major roles in the
  * server:
  * <ol>
- * <li>At server startup, it sets up the environment and manages the
+ * <li>At server startup, the <code>preGame()</code> method must be called to
+ * set up the environment and allow configuration of the next game, through
+ * a web (or REST) interface.</li>
+ * <li>Once the game is configured, the <code>init()</code> method must be
+ * called. There are two versions of this method; the <code>init()</code>
+ * version runs a "bootstrap" simulation that runs the customer models and
+ * the wholesale market for a limited period of time to collect an initial
+ * dataset from which brokers can bootstrap their internal models. During
+ * a bootstrap simulation, external brokers cannot log in; only the default
+ * broker is active. The <code>init(filename)</code> version loads bootstrap
+ * data from the named file, validates it, and then opens up the
  * broker login process, most of which is delegated to the BrokerProxy.</li>
- * <li>Once the simulation starts, it is awakened every 
- * <code>timeslotLength</code> seconds and runs through
+ * <li>Once the simulation starts, the <code>step() method is called every 
+ * <code>timeslotLength</code> seconds. This runs through
  * <code>timeslotPhaseCount</code> phases, calling the <code>activate()</code>
  * methods on registered components. Phases start at 1; by default there
- * are 3 phases.</li>
+ * are four phases.</li>
  * <li>When the number of timeslots equals <code>timeslotCount</code>, the
- * simulation is ended and the database is dumped.</li>
+ * simulation is ended.</li>
  * </ol>
+ * <p>
+ * 
  * @author John Collins
  */
 @Service
 public class CompetitionControlService
-  implements ApplicationContextAware, CompetitionControl
+  implements ApplicationContextAware, CompetitionControl, BrokerMessageListener
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class.getName());
   
@@ -80,7 +96,7 @@ public class CompetitionControlService
   private Competition competition; // convenience var, invalid across sessions
   private long competitionId;
 
-  private int timeslotPhaseCount = 5; // # of phases/timeslot
+  private int timeslotPhaseCount = 4; // # of phases/timeslot
   private boolean running = false;
 
   private SimulationClockControl clock;
@@ -107,17 +123,29 @@ public class CompetitionControlService
   
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private BootstrapDataCollector defaultBroker;
+  
+  @Autowired
+  private XMLMessageConverter messageConverter;
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private long timeslotMillis;
   private RandomSeed randomGen;
   
+  // if we don't have a bootstrap dataset, we are in bootstrap mode.
+  private boolean bootstrapMode = true;
+  
   private boolean simRunning = false;
 
   /**
    * Pre-game server setup - creates the basic configuration elements
    * to make them accessible to the web-based game-setup functions.
+   * This method must be called when the server is started, and again at
+   * the completion of each simulation. The actual simulation is started
+   * with a call to init().
    */
   public void preGame ()
   {
@@ -125,28 +153,30 @@ public class CompetitionControlService
     competition = Competition.newInstance("defaultCompetition");
     competitionId = competition.getId();
     logService.startLog(competitionId);
+    log.setLevel(Level.DEBUG);
 
     // Set up all the plugin configurations
     log.info("pre-game initialization");
-    // Create admin role
-    //def adminRole = Role.findByAuthority('ROLE_ADMIN') ?: new Role(authority: 'ROLE_ADMIN')
 
     phaseRegistrations = null;
 
-    //handle initializations
+    // Handle pre-game initializations by clearing out the repos,
+    // then creating the PluginConfig instances
     Map<String, DomainRepo> repos =
       applicationContext.getBeansOfType(DomainRepo.class);
+    log.debug("found " + repos.size() + " repos");
     for (DomainRepo repo : repos.values()) {
       repo.recycle();
     }
     Map<String, InitializationService> initializers =
       applicationContext.getBeansOfType(InitializationService.class);
+    log.debug("found " + initializers.size() + " initializers");
     for (InitializationService init : initializers.values()) {
       init.setDefaults();
     }
 
     // add broker message registration
-    brokerProxyService.registerSimListener((CompetitionControl)this);
+    brokerProxyService.registerSimListener(this);
 
     // configure competition instance
     for (PluginConfig config : pluginConfigRepo.list()) {
@@ -154,18 +184,41 @@ public class CompetitionControlService
       competition.addPluginConfig(config);
     }
   }
+  
+  /**
+   * Sets up the simulator, with config overrides provided in a file
+   * containing a sequence of PluginConfig instances. Errors are logged
+   * if one or more PluginConfig instances cannot be used in the current
+   * server setup.
+   */
+  public void preGame (FileReader config)
+  {
+    // TODO -- implement this
+    log.error("Cannot handle pre-game config file");
+  }
 
   /**
-   * Runs the initialization process and starts the simulation.
+   * Runs the initialization process, starts the simulation thread, waits
+   * for it to complete, then shuts down and prepares for the next simulation
+   * run. This is probably only useful for a web-interface controller.
    */
   public void init ()
   {
-    // to enhance testability, initialization is split into a static phase
-    // followed by starting the clock
+    runOnce();
+    // prepare for the next run
+    logService.stopLog();
+    preGame();
+  }
+  
+  public void runOnce ()
+  {
+    // to enhance testability, initialization is split into a static setup()
+    // phase, followed by calling runSimulation() to start the sim thread.
     if (simRunning) {
       log.warn("attempt to start sim on top of running sim");
       return;
     }
+    // -- note small race condition here --
     simRunning = true;
     if (competition == null) {
       log.error("null competition instance for id $competitionId");
@@ -175,34 +228,76 @@ public class CompetitionControlService
       return;
     }
     
-    // run the simulation
+    // run the simulation, wait for completion
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
 		  competition.getSimulationRate()));
 
     // wrap up
     shutDown();
     simRunning = false;
-
-    // prepare for the next run
-    preGame();
+  }
+  
+  /**
+   * Loads a bootstrap dataset, starts a simulation
+   */
+  public void runOnce (FileReader datasetReader)
+  {
+    // load the dataset
+    // verify dataset against current server setup
+    
+    // turn off bootstrap mode and start the sim
+    bootstrapMode = false;
+    runOnce();
+  }
+  
+  /**
+   * Runs a bootstrap sim, saves the bootstrap dataset in a file
+   */
+  public void runOnce (Writer datasetWriter)
+  {
+    bootstrapMode = true;
+    runOnce();
+    // save the dataset
+    saveBootstrapData(datasetWriter);
   }
 
-  /**
-   * Sign up for notifications
-   */
-  public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
+  // method broken out to simplify testing
+  void saveBootstrapData (Writer datasetWriter)
   {
-    if (phase <= 0 || phase > timeslotPhaseCount) {
-      log.error("phase ${phase} out of range (1..${timeslotPhaseCount})");
-    }
-    else {
-      if (phaseRegistrations == null) {
-        phaseRegistrations = new ArrayList<List<TimeslotPhaseProcessor>>();
-        for (int index = 0; index < timeslotPhaseCount; index++) {
-          phaseRegistrations.add(new ArrayList<TimeslotPhaseProcessor>());
-        }
+    BufferedWriter output = new BufferedWriter(datasetWriter);
+    List<Object> data = defaultBroker.collectBootstrapData();
+    try {
+      // write the config data
+      output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      output.newLine();
+      output.write("<powertac-bootstrap-data>");
+      output.newLine();
+      output.write("<config>");
+      output.newLine();
+      for (PluginConfig pic : pluginConfigRepo.list()) {
+        String xml = messageConverter.toXML(pic);
+        output.write(xml);
+        output.newLine();
       }
-      phaseRegistrations.get(phase - 1).add(thing);
+      output.write("</config>");
+      output.newLine();
+      
+      // write the bootstrap data
+      output.write("<bootstrap>");
+      output.newLine();
+      for (Object item : data) {
+        String xml = messageConverter.toXML(item);
+        output.write(xml);
+        output.newLine();
+      }
+      output.write("</bootstrap>");
+      output.newLine();
+      output.write("</powertac-bootstrap-data>");
+      output.newLine();
+      output.close();
+    }
+    catch (IOException ioe) {
+      log.error("Error writing bootstrap file: " + ioe.toString());
     }
   }
 
@@ -242,7 +337,28 @@ public class CompetitionControlService
   }
 
   /**
-   * Stops the simulation.
+   * Allows instances of TimeslotPhaseProcessor to register themselves
+   * to be activated during one of the processing phases in each timeslot.
+   */
+  public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
+  {
+    if (phase <= 0 || phase > timeslotPhaseCount) {
+      log.error("phase ${phase} out of range (1..${timeslotPhaseCount})");
+    }
+    else {
+      if (phaseRegistrations == null) {
+        phaseRegistrations = new ArrayList<List<TimeslotPhaseProcessor>>();
+        for (int index = 0; index < timeslotPhaseCount; index++) {
+          phaseRegistrations.add(new ArrayList<TimeslotPhaseProcessor>());
+        }
+      }
+      phaseRegistrations.get(phase - 1).add(thing);
+    }
+  }
+
+  /**
+   * Signals the simulation thread to stop after processing is completed in
+   * the current timeslot.
    */
   public void stop ()
   {
@@ -250,7 +366,7 @@ public class CompetitionControlService
   }
 
   /**
-   * Shuts down the simulation and cleans up
+   * Shuts down the simulation and cleans up.
    */
   private void shutDown ()
   {
@@ -258,31 +374,89 @@ public class CompetitionControlService
 
     SimEnd endMsg = new SimEnd();
     brokerProxyService.broadcastMessage(endMsg);
+  }
 
-    logService.stopLog();
-
-    // reinit game
-    //participantManagementService.advanceToNewGame();
-    preGame();
+  /** True just in case the sim is running in bootstrap mode */
+  public boolean isBootstrapMode ()
+  {
+    return bootstrapMode;
+  }
+  
+  // ------- pause-mode broker communication -------
+  /**
+   * Signals that the clock is paused due to server overrun. The pause
+   * must be communicated to brokers.
+   */
+  public void pause ()
+  {
+    log.info("pause");
+    // create and post the pause message
+    SimPause msg = new SimPause();
+    brokerProxyService.broadcastMessage(msg);
+  }
+  
+  /**
+   * Signals that the clock is resumed. Brokers must be informed of the new
+   * start time in order to sync their own clocks.
+   */
+  public void resume (long newStart)
+  {
+    log.info("resume");
+    // create and post the resume message
+    SimResume msg = new SimResume(new Instant(newStart));
+    brokerProxyService.broadcastMessage(msg);
+  }
+  
+  String pauseRequester;
+  
+  /**
+   * Allows a broker to request a pause. It may or may not be allowed.
+   * If allowed, then the pause will take effect when the current simulation
+   * cycle has finished, or immediately if no simulation cycle is currently
+   * in progress.
+   */
+  public void receiveMessage (PauseRequest msg)
+  {
+    if (pauseRequester != null) {
+      log.info("Pause request by ${msg.broker.username} rejected; already paused by ${pauseRequester}");
+      return;
+    }
+    pauseRequester = msg.getBroker().getUsername();
+    log.info("Pause request by ${msg.broker.username}");
+    clock.requestPause();
+  }
+  
+  /**
+   * Releases a broker-initiated pause. After the clock is re-started, the
+   * resume() method will be called to communicate a new start time.
+   */
+  public void receiveMessage (PauseRelease msg)
+  {
+    if (pauseRequester == null) {
+      log.info("Release request by ${msg.broker.username}, but no pause currently requested");
+      return;
+    }
+    if (pauseRequester != msg.getBroker().getUsername()) {
+      log.info("Release request by ${msg.broker.username}, but pause request was by ${pauseRequester}");
+      return;
+    }
+    log.info("Pause released by ${msg.broker.username}");
+    clock.releasePause();
+    pauseRequester = null;
   }
 
   //--------- local methods -------------
 
   private boolean setup ()
   {
-    // set the clock before configuring plugins - some of them need to
-    // know the time.
-    if (timeService == null) {
-      log.error("autowire failure: timeService");
-    }
     setTimeParameters();
-    //timeService.setCurrentTime(competition.getSimulationBaseTime());
 
     // set up random sequence for CCS
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
-                                                         competition.getId(), "game-setup");
+                                             competition.getId(),
+                                             "game-setup");
 
-    // TODO set up broker queues (are they logged in already?)
+    // TODO set up broker queues -- they should be logged in already
     //jmsManagementService.createQueues()
 
     // Publish Competition object at right place - after plugins
@@ -301,24 +475,29 @@ public class CompetitionControlService
     // send the Competition instance, then broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
+    if (!bootstrapMode) {
+      broadcastBootstrapDataset();
+    }
     brokerProxyService.broadcastDeferredMessages();
+
+    // sim length for bootstrap mode comes from the competition instance;
+    // for non-bootstrap mode, it is computed from competition parameters.
+    if (!bootstrapMode) {
+      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
+                                        competition.getExpectedTimeslotCount());
+    }
+    else {
+      timeslotCount = competition.getBootstrapTimeslotCount();
+    }
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
     timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
-    timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
-                                      competition.getExpectedTimeslotCount());
     createInitialTimeslots(competition.getSimulationBaseTime(),
                            competition.getDeactivateTimeslotsAhead(),
                            competition.getTimeslotsOpen());
     TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
                                             timeslotRepo.enabledTimeslots());
     brokerProxyService.broadcastMessage(msg);
-
-    // TODO publish customer info
-    //List<CustomerInfo> customers = abstractCustomerService.generateCustomerInfoList()
-    //brokerProxyService.broadcastMessage(customers)
-
-    // TODO Publish Bootstrap Data Map
     return true;
   }
 
@@ -341,6 +520,12 @@ public class CompetitionControlService
     timeService.setCurrentTime(competition.getSimulationBaseTime());
   }
 
+  //
+  private void broadcastBootstrapDataset ()
+  {
+    
+  }
+  
   // Creates the initial complement of timeslots
   private void createInitialTimeslots (Instant base,
                                                  int initialSlots,
@@ -455,81 +640,16 @@ public class CompetitionControlService
     return true;
   }
 
-  //def getObjectsForInterface (iface)
-  //{
-  //  def classMap = applicationContext.getBeansOfType(iface)
-  //  classMap.collect { it.value } // return only the object, which is
-				  // the maps' value
-  //}
-  
-  // ------- pause-mode broker communication -------
-  /**
-   * Signals that the clock is paused due to server overrun. The pause
-   * must be communicated to brokers.
-   */
-  public void pause ()
-  {
-    log.info("pause");
-    // create and post the pause message
-    SimPause msg = new SimPause();
-    brokerProxyService.broadcastMessage(msg);
-  }
-  
-  /**
-   * Signals that the clock is resumed. Brokers must be informed of the new
-   * start time in order to sync their own clocks.
-   */
-  public void resume (long newStart)
-  {
-    log.info("resume");
-    // create and post the resume message
-    SimResume msg = new SimResume(new Instant(newStart));
-    brokerProxyService.broadcastMessage(msg);
-  }
-  
-  String pauseRequester;
-  
-  /**
-   * Allows a broker to request a pause. It may or may not be allowed.
-   * If allowed, then the pause will take effect when the current simulation
-   * cycle has finished, or immediately if no simulation cycle is currently
-   * in progress.
-   */
-  public void receiveMessage (PauseRequest msg)
-  {
-    if (pauseRequester != null) {
-      log.info("Pause request by ${msg.broker.username} rejected; already paused by ${pauseRequester}");
-      return;
-    }
-    pauseRequester = msg.getBroker().getUsername();
-    log.info("Pause request by ${msg.broker.username}");
-    clock.requestPause();
-  }
-  
-  /**
-   * Releases a broker-initiated pause. After the clock is re-started, the
-   * resume() method will be called to communicate a new start time.
-   */
-  public void receiveMessage (PauseRelease msg)
-  {
-    if (pauseRequester == null) {
-      log.info("Release request by ${msg.broker.username}, but no pause currently requested");
-      return;
-    }
-    if (pauseRequester != msg.getBroker().getUsername()) {
-      log.info("Release request by ${msg.broker.username}, but pause request was by ${pauseRequester}");
-      return;
-    }
-    log.info("Pause released by ${msg.broker.username}");
-    clock.releasePause();
-    pauseRequester = null;
-  }
-
   public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException
   {
     this.applicationContext = applicationContext;
   }
   
+  /**
+   * This is the simulation thread. It sets up the clock, waits for ticks,
+   * and runs the processing steps. The thread can be stopped in an orderly
+   * way simply by setting the running flag to false.
+   */
   class SimRunner extends Thread
   {
     CompetitionControlService parent;
@@ -568,6 +688,20 @@ public class CompetitionControlService
       // simulation is complete
       log.info("Stop simulation");
       clock.stop();
+    }
+  }
+
+  /* (non-Javadoc)
+   * @see org.powertac.common.interfaces.BrokerMessageListener#receiveMessage(java.lang.Object)
+   */
+  public void receiveMessage(Object msg)
+  {
+    if (msg instanceof PauseRelease) {
+      receiveMessage((PauseRelease)msg);
+    } else if (msg instanceof PauseRequest) {
+      receiveMessage((PauseRequest)msg);
+    } else {
+      log.error("receiveMessage - unexpected message:" + msg);
     }
   }
 }
