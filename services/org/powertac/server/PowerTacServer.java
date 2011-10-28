@@ -100,6 +100,15 @@ public class PowerTacServer
               cc.runOnce(bootWriter);
             }
           }
+          else if ("sim".equals(tokens[0])) {
+            // sim mode, dataset fn is tokens[1]
+            if (tokens.length != 2) {
+              System.out.println("Bad input " + input);
+            }
+            else {
+              
+            }
+          }
         }
       }
       catch (FileNotFoundException fnf) {
