@@ -101,7 +101,7 @@ public class DefaultBrokerService
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
-  private HashMap<Timeslot, MarketPosition> marketPositions;
+  //private HashMap<Timeslot, MarketPosition> marketPositions;
 
   /**
    * Default constructor, called once when the server starts, before
@@ -124,7 +124,7 @@ public class DefaultBrokerService
     log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
-    marketPositions = new HashMap<Timeslot, MarketPosition>();
+    //marketPositions = new HashMap<Timeslot, MarketPosition>();
     
     // if we are in bootstrap mode, we need to set up the dataset
     if (bootstrapMode)
@@ -259,7 +259,7 @@ public class DefaultBrokerService
   {
     double neededMWh = neededKWh / 1000.0;
     double limitPrice = buyLimitPrice;
-    MarketPosition posn = marketPositions.get(timeslot);
+    MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
     OrderType buySell = OrderType.BUY;
@@ -349,7 +349,7 @@ public class DefaultBrokerService
    */
   public void handleMessage (MarketPosition posn)
   {
-    marketPositions.put(posn.getTimeslot(), posn);
+    face.addMarketPosition(posn, posn.getTimeslot());
   }
   
   /**
