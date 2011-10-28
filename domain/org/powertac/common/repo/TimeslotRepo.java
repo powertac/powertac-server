@@ -64,6 +64,7 @@ public class TimeslotRepo implements DomainRepo
    * count of timeslots already created, and an error will be logged (and null
    * returned) if the start time of 
    * a new timeslot is not equal to the end time of the last timeslot in the list.
+   * Note that new timeslots are always created in the "enabled" state.
    */
   public Timeslot makeTimeslot (Instant startTime, Instant endTime)
   {

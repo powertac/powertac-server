@@ -22,14 +22,24 @@ import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
 /**
- * A broker domain instance represents a competition participants, or more
- * precisely the competition participant's agent. Every incoming request
- * from a broker agent is authenticated against the credentials stored in this class.
+ * A broker instance represents a competition participant.
  * Broker instances are not communicated to other brokers; only usernames are 
- * considered public information and get communicated.
+ * considered public information and get communicated. Every entity that needs
+ * to trade in the wholesale market or post TariffSpecifications must be a
+ * broker.
+ * <p>
+ * Brokers may be local or non-local (remote), and they may be wholesale or
+ * non-wholesale (retail) brokers. Remote brokers receive messages through
+ * JMS, while local brokers are assumed to reside in the server's process space
+ * where they receive messages by calls to their receiveMessage() methods. Local
+ * brokers must override receiveMessage() to see these messages, otherwise they
+ * will be dropped on the floor. Local brokers can send messages by calling
+ * BrokerProxy.routeMessage();</p>
+ * <p>
+ * Wholesale brokers are not permitted to offer tariffs, but may trade in the
+ * wholesale market, and they are not included in the balancing process.</p>
  *
- * @author Carsten Block, David Dauer
- * @version 1.1 , 03/22/2011
+ * @author Carsten Block, David Dauer, John Collins
  */
 @Domain
 public class Broker 
