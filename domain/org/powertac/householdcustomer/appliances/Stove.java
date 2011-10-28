@@ -101,7 +101,7 @@ public class Stove extends SemiShiftingAppliance
             loadVector.add(power);
             dailyOperation.add(true);
             counter--;
-            i = dailyOperation.size() - 1;
+            // i = dailyOperation.size() - 1;
             if (counter < 0)
               flag = false;
           } else {
@@ -163,7 +163,7 @@ public class Stove extends SemiShiftingAppliance
         if (functionMatrix[i])
           possibleHours.add(i);
       }
-      log.debug("Stove Bag Size: " + possibleHours.size());
+      // log.debug("Stove Bag Size: " + possibleHours.size());
       if (possibleHours.size() > 0)
         minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
     }

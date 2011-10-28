@@ -673,18 +673,18 @@ public class Household
         long[] temp = appliance.dailyShifting(tariff, now, day, gen);
         Vector<Long> tempVector = new Vector<Long>();
         Vector<Long> controllableVector = new Vector<Long>();
-        log.info("Appliance " + appliance.toString());
-        log.info("Load: " + appliance.getWeeklyLoadVector().get(day).toString());
+        // log.info("Appliance " + appliance.toString());
+        // log.info("Load: " + appliance.getWeeklyLoadVector().get(day).toString());
 
         for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++)
           tempVector.add(temp[i]);
-        log.info("Temp: " + tempVector.toString());
+        // log.info("Temp: " + tempVector.toString());
 
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
           newControllableLoad[j] += temp[j];
           controllableVector.add(newControllableLoad[j]);
         }
-        log.info("New Load: " + controllableVector.toString());
+        // log.info("New Load: " + controllableVector.toString());
       }
     }
     return newControllableLoad;
