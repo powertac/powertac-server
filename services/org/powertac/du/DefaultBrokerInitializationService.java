@@ -70,6 +70,10 @@ implements InitializationService
    */
   public String initialize (Competition competition, List<String> completedInits)
   {
+    int index = completedInits.indexOf("TariffMarket");
+    if (index == -1) {
+      return null;
+    }
     PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
     if (config == null) {
       log.error("PluginConfig for Generic does not exist.");
