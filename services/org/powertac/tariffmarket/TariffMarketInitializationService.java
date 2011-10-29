@@ -23,7 +23,9 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TariffMarketInitializationService 
     implements InitializationService
 {
