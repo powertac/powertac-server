@@ -41,6 +41,7 @@ import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.StateChange;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * This is the wholesale day-ahead market. Energy is traded in future timeslots by
@@ -54,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * which is a parameter set in the initialization process. 
  * @author John Collins
  */
+@Service
 public class AuctionService
   extends TimeslotPhaseProcessor
   implements BrokerMessageListener
