@@ -28,6 +28,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 
 // Import common
@@ -37,6 +38,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.interfaces.InitializationService;
@@ -52,6 +54,13 @@ import org.springframework.stereotype.Service;
 //TODO: Create issue Asynchronous and Blocking modes that expose the flags
 //TODO: Create log messages in weatherService
 //TODO: Implement WeatherTests with some default data
+//TODO: XML serialization test for WeatherReport and WeatherForecast WeatherForecastPrediction, see org.powertac.common.msg tests (JUnit4 tests)
+//TODO: Repo tests copy those
+//TODO: WeatherService Tests BEEANS!!
+//TODO: Pull request Tests, WeatherService, Repos
+//TODO: Basic JSF MVC application
+//XTODO: Switch implements to extends in timeslotphaseprocessor
+//XTODO: Plugin Config object for weatherServers indicating location and date range, place in PluginConfigRepo
 
 @Service
 public class WeatherService extends TimeslotPhaseProcessor implements
@@ -63,7 +72,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 	private int weatherReqInterval = 12;
 	private int daysOut = 1;
 	private int currentWeatherId = 1;
-	private String serverUrl = "http://tac05.cs.umn.edu:8080/powertac-weather-server/weatherSet/weatherRequest?id=1&setname=default&weather_day=1&weather_id";
+	private String serverUrl = "http://tac06.cs.umn.edu:8080/powertac-weather-server/weatherSet/weatherRequest?id=0&setname=default&weather_days=1&weather_id=";
 	private boolean requestFailed = false;
 
 	@Autowired
@@ -84,9 +93,9 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 	@Autowired
 	private WeatherForecastRepo weatherForecastRepo;
 
-	public WeatherService() {
-		super();
-	}
+	// public WeatherService() {
+	// super();
+	// }
 
 	public void init(PluginConfig config) {
 		super.init();
@@ -100,9 +109,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			weatherReqInterval = 24;
 		}
 
-		long msec = timeService.getCurrentTime().getMillis();
+		long msec = time.getMillis();// timeService.getCurrentTime().getMillis();
 
 		if (msec % (weatherReqInterval * TimeService.HOUR) == 0) {
+			System.out.println("Grabbing weather data"); // TODO
 
 			// time to publish
 			// log.info "Requesting Weather from " + serverUrl + "=" +
@@ -124,86 +134,119 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 				requestFailed = true;
 
 			}
+		} else {
+			System.out.println("Not grabbing weather: " + msec + " % "
+					+ (weatherReqInterval * TimeService.HOUR)); // TODO
 		}
 
 	}
 
 	// Forecasts are random and must be repeatable from the same seed
 	private boolean webRequest(Timeslot time, int randomSeed) {
-		int currentTime = 0;
+		Timeslot currentTime = time;
 		boolean readingForecast = false;
+
+		List<String[]> reportValues = new ArrayList<String[]>();
+		List<String[]> forecastValues = new ArrayList<String[]>();
 
 		try {
 			// Create a URLConnection object for a URL and send request
-			URL url = new URL(serverUrl + "=" + currentWeatherId); // TODO:
-																	// Needs to
-																	// be fixed
-																	// for tac06
+			URL url = new URL(serverUrl + currentWeatherId);
+
 			URLConnection conn = url.openConnection();
 
 			// Get the response
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					conn.getInputStream()));
+
 			String tmpLine;
 			while ((tmpLine = input.readLine()) != null) {
-				// Parse weather reports here
-				if (tmpLine == "---Forecast Data---") {
-					readingForecast = true;
-				}
-
-				// Remove brackets from response
-				tmpLine.replace("[", "");
-				tmpLine.replace("]", "");
+				System.out.println(tmpLine);
 
 				String[] weatherValue;
+				// Parse weather reports here
+				if (tmpLine.trim().compareTo("---Forecast Data---") == 0) {
+					// Set mode to reading forecast
+					readingForecast = true;
+				} else {
+					// Remove brackets from response
+					tmpLine.replace("[", "");
+					tmpLine.replace("]", "");
 
-				if (!readingForecast) {
-					// Reading report values
-
+					// Reading values
 					weatherValue = tmpLine.split(", ");
 					for (int i = 0; i < weatherValue.length; i++) {
+						// System.out.println("Parsing: " + weatherValue[i]);
 						weatherValue[i] = weatherValue[i].split(":")[1].trim();
 					}
-
-					// TODO Access weatherReport Repo Here and write in current
-					// report
-					WeatherReport newReport = new WeatherReport(time,// Timeslot
-																		// timeslot,
-							Double.parseDouble(weatherValue[0]),// double
-																// temperature,
-							Double.parseDouble(weatherValue[1]),// double
-																// windSpeed,
-							Double.parseDouble(weatherValue[2]),// double
-																// windDirection,
-							Double.parseDouble(weatherValue[3]));// double
-																	// cloudCover
-					weatherReportRepo.add(newReport);
-
-				} else {
-					// TODO Reading forecast values
-
-					// TODO Access weatherForecast Repo Here and write current
-					// forcast
-
+					if (!readingForecast) {
+						reportValues.add(weatherValue.clone());
+					} else {
+						forecastValues.add(weatherValue.clone());
+					}
 				}
 			}
-
 			input.close();
-			return true;
-
 		} catch (Exception e) {
+			log.error("Exception Raised during newtork call: " + e.toString());
+			System.out.println("Exception Raised: " + e.toString());
 			return false;
 		}
+		System.out.println("About to add to repo");
+		for (String[] v : reportValues) {
+			WeatherReport newReport = new WeatherReport(currentTime,
+					Double.parseDouble(v[0]),// temperature,
+					Double.parseDouble(v[1]),// windSpeed,
+					Double.parseDouble(v[2]),// windDirection,
+					Double.parseDouble(v[3]));// cloudCover
+
+			// Add a report to the repo, increment to the next timeslot
+			weatherReportRepo.add(newReport);
+			System.out.println("Report num: " + v[0]);
+			if(currentTime == null){
+				System.out.println("Null timeslot");
+			}
+			currentTime = currentTime.getNext();
+			
+		}
+		System.out.println("Read all reports...");
+		//Reset time for corresponding forecasts
+		currentTime = time;
+
+		List<WeatherForecastPrediction> currentPredictions;
+		String[] currentPred;
+		for (int i = 1; i <= 2 * weatherReqInterval; i++) {
+			currentPredictions = new ArrayList<WeatherForecastPrediction>();
+			for (int j = 1; j < 47; j++) {
+				currentPred = forecastValues.get(i + j);
+				currentPredictions.add(new WeatherForecastPrediction(j, Double
+						.parseDouble(currentPred[0]),// temperature,
+						Double.parseDouble(currentPred[1]),// windSpeed,
+						Double.parseDouble(currentPred[2]),// windDirection,
+						Double.parseDouble(currentPred[3])));// cloudCover
+				System.out.println("Read prediction: " + i + ", " + j);
+			}
+			WeatherForecast newForecast = new WeatherForecast(currentTime,
+					currentPredictions);
+			//Add a forecast to the repo, increment to the next timeslot
+			weatherForecastRepo.add(newForecast);
+			currentTime = currentTime.getNext();
+		}
+
+		return true;
 	}
 
 	public void setDefaults() {
-		// None
+		pluginConfigRepo.makePluginConfig("weatherService", "init")
+				.addConfiguration("location", "Minneapolis")
+				.addConfiguration("dateRangeStart", "10-10-2009")
+				.addConfiguration("dateRangeEnd", "12-10-2009");
 	}
 
 	public String initialize(Competition competition,
 			List<String> completedInits) {
 		PluginConfig weatherServiceConfig = pluginConfigRepo
-				.findByRoleName("AccountingService");
+				.findByRoleName("weatherService");
 		if (weatherServiceConfig == null) {
 			log.error("PluginConfig for WeatherService does not exist");
 		} else {
