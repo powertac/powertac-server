@@ -56,7 +56,7 @@ import org.springframework.stereotype.Service;
 //TODO: Implement WeatherTests with some default data
 //TODO: XML serialization test for WeatherReport and WeatherForecast WeatherForecastPrediction, see org.powertac.common.msg tests (JUnit4 tests)
 //TODO: Repo tests copy those
-//TODO: WeatherService Tests BEEANS!!
+//XTODO: WeatherService Tests BEEANS!!
 //TODO: Pull request Tests, WeatherService, Repos
 //TODO: Basic JSF MVC application
 //XTODO: Switch implements to extends in timeslotphaseprocessor
@@ -72,8 +72,13 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 	private int weatherReqInterval = 12;
 	private int daysOut = 1;
 	private int currentWeatherId = 1;
-	private String serverUrl = "http://tac06.cs.umn.edu:8080/powertac-weather-server/weatherSet/weatherRequest?id=0&setname=default&weather_days=1&weather_id=";
+	private String serverUrl = "http://tac06.cs.umn.edu:8080/"+
+	"powertac-weather-server/weatherSet/weatherRequest?"+
+	"id=0&setname=default&weather_days=1&weather_id=";
 	private boolean requestFailed = false;
+	
+	// If network requests should be made asynchronously or not.
+	private boolean blocking = true;
 
 	@Autowired
 	private TimeService timeService;
@@ -112,7 +117,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 		long msec = time.getMillis();// timeService.getCurrentTime().getMillis();
 
 		if (msec % (weatherReqInterval * TimeService.HOUR) == 0) {
-			System.out.println("Grabbing weather data"); // TODO
+			log.info("WeatherService reports time to make network request for weather data in blocking = " + blocking + " mode." );
 
 			// time to publish
 			// log.info "Requesting Weather from " + serverUrl + "=" +
@@ -135,8 +140,9 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 			}
 		} else {
-			System.out.println("Not grabbing weather: " + msec + " % "
-					+ (weatherReqInterval * TimeService.HOUR)); // TODO
+			log.info("WeatherService reports not time to grab weather data.");
+			//System.out.println("Not grabbing weather: " + msec + " % "
+			//		+ (weatherReqInterval * TimeService.HOUR)); // TODO
 		}
 
 	}
@@ -189,10 +195,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			input.close();
 		} catch (Exception e) {
 			log.error("Exception Raised during newtork call: " + e.toString());
-			System.out.println("Exception Raised: " + e.toString());
+			//System.out.println("Exception Raised: " + e.toString());
 			return false;
 		}
-		System.out.println("About to add to repo");
+		
 		for (String[] v : reportValues) {
 			WeatherReport newReport = new WeatherReport(currentTime,
 					Double.parseDouble(v[0]),// temperature,
@@ -202,14 +208,14 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 			// Add a report to the repo, increment to the next timeslot
 			weatherReportRepo.add(newReport);
-			System.out.println("Report num: " + v[0]);
 			if(currentTime == null){
-				System.out.println("Null timeslot");
-			}
-			currentTime = currentTime.getNext();
-			
+				log.error("Null timeslot when adding reports to weatherReportRepo");
+			}else{
+				currentTime = currentTime.getNext();
+			}		
 		}
-		System.out.println("Read all reports...");
+		log.info(reportValues.size() + " WeatherReports fetched.");
+		
 		//Reset time for corresponding forecasts
 		currentTime = time;
 
@@ -230,17 +236,22 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 					currentPredictions);
 			//Add a forecast to the repo, increment to the next timeslot
 			weatherForecastRepo.add(newForecast);
-			currentTime = currentTime.getNext();
+			if(currentTime == null){
+				log.error("Null timeslot when adding forecasts to weatherForecastRepo");
+			}else{
+				currentTime = currentTime.getNext();
+			}
 		}
+		log.info(forecastValues.size() + "WeatherForecasts fetched.");
 
 		return true;
 	}
 
 	public void setDefaults() {
 		pluginConfigRepo.makePluginConfig("weatherService", "init")
+				.addConfiguration("server", "url")
 				.addConfiguration("location", "Minneapolis")
-				.addConfiguration("dateRangeStart", "10-10-2009")
-				.addConfiguration("dateRangeEnd", "12-10-2009");
+				.addConfiguration("dateRange", "10-10-2009::10-12-2009");
 	}
 
 	public String initialize(Competition competition,
