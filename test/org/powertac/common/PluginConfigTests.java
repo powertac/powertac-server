@@ -46,7 +46,7 @@ public class PluginConfigTests
   public void testToString ()
   {
     PluginConfig uut = new PluginConfig("test-role", "test");
-    assertEquals("correct string", "PluginConfig:test-role.test", uut.toString());
+    assertEquals("correct string", "PluginConfig:test-role:test[]", uut.toString());
   }
 
   @Test
