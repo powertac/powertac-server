@@ -21,9 +21,17 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.powertac.common.interfaces.CompetitionControl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  * This is the top level of the Power TAC server.
@@ -84,6 +92,7 @@ public class PowerTacServer
         while ((input = config.readLine()) != null) {
           String[] tokens = input.split("\\s+");
           if ("bootstrap".equals(tokens[0])) {
+            
             // bootstrap mode - dataset fn is tokens[1], config fn is tokens[2]
             if (tokens.length < 2) {
               System.out.println("Bad input " + input);
@@ -92,7 +101,7 @@ public class PowerTacServer
               FileWriter bootWriter = new FileWriter(tokens[1]);
               if (tokens.length > 2) {
                 FileReader configReader = new FileReader(tokens[2]);
-                cc.preGame(configReader);
+                //cc.preGame(configReader);
               }
               else {
                 cc.preGame();
@@ -101,12 +110,16 @@ public class PowerTacServer
             }
           }
           else if ("sim".equals(tokens[0])) {
+            
             // sim mode, dataset fn is tokens[1]
             if (tokens.length != 2) {
               System.out.println("Bad input " + input);
             }
             else {
-              
+              FileReader bootReader = new FileReader(tokens[1]);
+              if (cc.preGame(bootReader)) {
+                cc.runOnce(bootReader);
+              }
             }
           }
         }
