@@ -82,6 +82,10 @@
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
   </bean>
+  
+  <bean id="weatherService"
+  		class="org.powertac.server.WeatherService">
+  </bean>
 
   <bean id="springApplicationContext"
         class="org.powertac.common.spring.SpringApplicationContext" />

@@ -25,8 +25,8 @@ public class WeatherServiceTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		//PropertyConfigurator.configure("test/logger.config");
-	    //Logger.getRootLogger().setLevel(Level.DEBUG);
+		PropertyConfigurator.configure("test/logger.config");
+	    Logger.getRootLogger().setLevel(Level.DEBUG);
 	}
 
 	@Before
