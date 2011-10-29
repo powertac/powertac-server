@@ -36,7 +36,6 @@ import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.StateChange;
