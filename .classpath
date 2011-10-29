@@ -7,5 +7,10 @@
 	<classpathentry kind="con" path="org.maven.ide.eclipse.MAVEN2_CLASSPATH_CONTAINER"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/server-interface"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/accounting"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/auctioneer"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/default-broker"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/genco"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/household-customer"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
