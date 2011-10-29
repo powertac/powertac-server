@@ -95,6 +95,29 @@ public class PluginConfig
   }
   
   /**
+   * Updates the configuration from a matching PluginConfig (presumably this
+   * was read from a file or received as a message). This only works if the
+   * roleName and name match. If successful, returns true; otherwise false.
+   */
+  public boolean updateConfig (PluginConfig replacement)
+  {
+    if (!roleName.equals(replacement.getRoleName()) ||
+        !name.equals(replacement.getName())) {
+      log.error("replacement match failed: ours=[" + roleName + "," + name +
+                "], theirs=[" + replacement.getRoleName() + "," +
+                replacement.getName() + "]");
+      return false;
+    }
+    // we could just replace the configuration, but that would not generate
+    // state-change entries
+    Map<String, String> rmap = replacement.getConfiguration();
+    for (String key : rmap.keySet()) {
+      addConfiguration(key, rmap.get(key));
+    }
+    return true;
+  }
+  
+  /**
    * Adds a config item to this PluginConfig. Returns the PluginConfig
    * instance for convenience in stringing together config calls.
    */
@@ -106,7 +129,16 @@ public class PluginConfig
   }
 
   public String toString() {
-    return "PluginConfig:" + roleName + "." + name;
+    StringBuffer sb = new StringBuffer();
+    sb.append("PluginConfig:").append(roleName).append(":");
+    sb.append(name).append("[");
+    String delimiter = "";
+    for (String key : configuration.keySet()) {
+      sb.append(delimiter).append(key).append(":").append(configuration.get(key));
+      delimiter = ", ";
+    }
+    sb.append("]");
+    return sb.toString();
   }
 
   public Integer getIntegerValue (String name, Integer defaultValue)
