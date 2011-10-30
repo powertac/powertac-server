@@ -44,6 +44,8 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 @XStreamAlias("orderbook")
 public class Orderbook 
 {
+  private long id = IdGenerator.createId();
+
   //@XStreamAsAttribute
   private Instant dateExecuted;
 
@@ -82,6 +84,11 @@ public class Orderbook
     this.clearingPrice = clearingPrice;
     this.dateExecuted = dateExecuted;
     //this.transactionId = transactionId;
+  }
+  
+  public long getId ()
+  {
+    return id;
   }
   
   public Double getClearingPrice ()

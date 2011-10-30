@@ -28,6 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("orderbook-bid")
 public class OrderbookOrder implements Comparable<Object> 
 {
+  private long id = IdGenerator.createId();
 
   @XStreamAsAttribute
   private double limitPrice;
@@ -44,6 +45,11 @@ public class OrderbookOrder implements Comparable<Object>
     this.orderType = orderType;
     this.limitPrice = limitPrice;
     this.mWh = mWh;
+  }
+  
+  public long getId ()
+  {
+    return id;
   }
 
   public int compareTo(Object o) {
