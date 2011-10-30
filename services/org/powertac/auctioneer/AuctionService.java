@@ -182,8 +182,6 @@ public class AuctionService
         addBid(sw);
       else
         addAsk(sw);
-      log.info("Clearing " + sortedAsks.size() + " asks and " +
-               sortedBids.size() + " bids");
     }
     
     // Iterate through the enabled timeslots, and clear each one individually
@@ -198,6 +196,10 @@ public class AuctionService
     SortedSet<ShoutWrapper> asks = sortedAsks.get(timeslot);
     if (bids != null || asks != null) {
       // we have bids and/or asks to match up
+      if (bids != null && asks != null)
+        log.info("Timeslot " + timeslot.getSerialNumber() + 
+                 ": Clearing " + asks.size() + " asks and " +
+                 bids.size() + " bids");
       double bidPrice = 0.0;
       double askPrice = 0.0;
       double totalMWh = 0.0;
@@ -258,6 +260,7 @@ public class AuctionService
         ClearedTrade trade = new ClearedTrade(timeslot, ProductType.Future,
                                               clearingPrice, totalMWh,
                                               timeService.getCurrentTime());
+        log.info(trade.toString());
         brokerProxyService.broadcastMessage(trade);
       }
     }
