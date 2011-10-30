@@ -76,7 +76,7 @@ public class HouseholdCustomerInitializationService implements InitializationSer
     try {
       householdCustomerService.init(config);
     } catch (IOException e) {
-      log.info("Error with configuration file");
+      log.error("Error with configuration file");
     }
     return "HouseholdCustomer";
   }
