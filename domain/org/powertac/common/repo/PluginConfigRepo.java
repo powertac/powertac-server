@@ -79,6 +79,15 @@ public class PluginConfigRepo implements DomainRepo
     return result;
   }
   
+  public PluginConfig findMatching (PluginConfig match)
+  {
+    for (PluginConfig pic : findAllByRoleName(match.getRoleName())) {
+      if (match.getName().equals(pic.getName()))
+        return pic;
+    }
+    return null;
+  }
+  
   /**
    * Clears out the repository in preparation for a new sim run.
    */
