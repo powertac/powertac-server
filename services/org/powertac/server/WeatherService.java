@@ -58,7 +58,7 @@ import org.springframework.stereotype.Service;
 //TODO: Repo tests copy those
 //XTODO: WeatherService Tests BEEANS!!
 //TODO: Pull request Tests, WeatherService, Repos
-//TODO: Basic JSF MVC application
+//xTODO: Basic JSF MVC application
 //XTODO: Switch implements to extends in timeslotphaseprocessor
 //XTODO: Plugin Config object for weatherServers indicating location and date range, place in PluginConfigRepo
 
@@ -98,10 +98,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 	@Autowired
 	private WeatherForecastRepo weatherForecastRepo;
 
-	// public WeatherService() {
-	// super();
-	// }
 
+	//TODO Actually load configuration
 	public void init(PluginConfig config) {
 		super.init();
 	}
@@ -129,9 +127,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 				// currentWeatherId+=(2*weatherRequestInterval) // 2 weather
 				// reports per hour
-				webRequest(timeslotRepo.currentTimeslot(), 1); // TODO: Should
-																// be fixed to
-																// int
+				webRequest(timeslotRepo.currentTimeslot(), 1); 
 				requestFailed = false;
 
 			} catch (Throwable e) {
@@ -141,8 +137,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			}
 		} else {
 			log.info("WeatherService reports not time to grab weather data.");
-			//System.out.println("Not grabbing weather: " + msec + " % "
-			//		+ (weatherReqInterval * TimeService.HOUR)); // TODO
 		}
 
 	}
@@ -167,7 +161,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 			String tmpLine;
 			while ((tmpLine = input.readLine()) != null) {
-				System.out.println(tmpLine);
+				//System.out.println(tmpLine);
 
 				String[] weatherValue;
 				// Parse weather reports here
@@ -176,15 +170,17 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 					readingForecast = true;
 				} else {
 					// Remove brackets from response
-					tmpLine.replace("[", "");
-					tmpLine.replace("]", "");
+					tmpLine = tmpLine.replace("[", "");
+					tmpLine = tmpLine.replace("]", "");
 
 					// Reading values
 					weatherValue = tmpLine.split(", ");
+					
 					for (int i = 0; i < weatherValue.length; i++) {
-						// System.out.println("Parsing: " + weatherValue[i]);
+						//System.out.println("Parsing: "+ i + " " + weatherValue[i]);
 						weatherValue[i] = weatherValue[i].split(":")[1].trim();
 					}
+					//System.out.println("FIF: "+ weatherValue[4]);
 					if (!readingForecast) {
 						reportValues.add(weatherValue.clone());
 					} else {
@@ -201,10 +197,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 		
 		for (String[] v : reportValues) {
 			WeatherReport newReport = new WeatherReport(currentTime,
-					Double.parseDouble(v[0]),// temperature,
-					Double.parseDouble(v[1]),// windSpeed,
-					Double.parseDouble(v[2]),// windDirection,
-					Double.parseDouble(v[3]));// cloudCover
+					Double.parseDouble(v[1]),// temperature,
+					Double.parseDouble(v[2]),// windSpeed,
+					Double.parseDouble(v[3]),// windDirection,
+					Double.parseDouble(v[4]));// cloudCover
 
 			// Add a report to the repo, increment to the next timeslot
 			weatherReportRepo.add(newReport);
@@ -226,11 +222,11 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			for (int j = 1; j < 47; j++) {
 				currentPred = forecastValues.get(i + j);
 				currentPredictions.add(new WeatherForecastPrediction(j, Double
-						.parseDouble(currentPred[0]),// temperature,
-						Double.parseDouble(currentPred[1]),// windSpeed,
-						Double.parseDouble(currentPred[2]),// windDirection,
-						Double.parseDouble(currentPred[3])));// cloudCover
-				System.out.println("Read prediction: " + i + ", " + j);
+						.parseDouble(currentPred[1]),// temperature,
+						Double.parseDouble(currentPred[2]),// windSpeed,
+						Double.parseDouble(currentPred[3]),// windDirection,
+						Double.parseDouble(currentPred[4])));// cloudCover
+				//System.out.println("Read prediction: " + i + ", " + j);
 			}
 			WeatherForecast newForecast = new WeatherForecast(currentTime,
 					currentPredictions);
