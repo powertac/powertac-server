@@ -217,6 +217,7 @@ public class TariffSubscription
    */
   public void usePower (double kWh)
   {
+    log.info("usePower " + kWh + ", customer=" + customer.getName());
     if (customer == null) {
       log.error("null customerInfo for customer " + customer.getId());
     }
