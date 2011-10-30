@@ -84,6 +84,7 @@ public class PowerTacServer
         while ((input = config.readLine()) != null) {
           String[] tokens = input.split("\\s+");
           if ("bootstrap".equals(tokens[0])) {
+            
             // bootstrap mode - dataset fn is tokens[1], config fn is tokens[2]
             if (tokens.length < 2) {
               System.out.println("Bad input " + input);
@@ -101,12 +102,16 @@ public class PowerTacServer
             }
           }
           else if ("sim".equals(tokens[0])) {
+            
             // sim mode, dataset fn is tokens[1]
             if (tokens.length != 2) {
               System.out.println("Bad input " + input);
             }
             else {
-              
+              FileReader bootReader = new FileReader(tokens[1]);
+              if (cc.preGame(bootReader)) {
+                cc.runOnce(bootReader);
+              }
             }
           }
         }

@@ -24,6 +24,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -56,6 +62,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  * This is the competition controller. It has three major roles in the
@@ -191,10 +200,38 @@ public class CompetitionControlService
    * if one or more PluginConfig instances cannot be used in the current
    * server setup.
    */
-  public void preGame (FileReader config)
+  public boolean preGame (FileReader bootReader)
   {
-    // TODO -- implement this
-    log.error("Cannot handle pre-game config file");
+    // run the basic pre-game setup first,
+    preGame();
+    
+    // read the config info from the bootReader - 
+    // it's just a set of PluginConfig instances
+    InputSource source = new InputSource(bootReader);
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath xPath = factory.newXPath();
+    try {
+      XPathExpression exp =
+          xPath.compile("/powertac-bootstrap-data/config/plugin-config");
+      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      // Each node is a plugin-config
+      ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Node node = nodes.item(i);
+        String xml = node.toString();
+        PluginConfig pic = (PluginConfig)messageConverter.fromXML(xml);
+        configList.add(pic);
+      }
+    }
+    catch (XPathExpressionException xee) {
+      log.error("Error reading config file: " + xee.toString());
+      return false;
+    }
+    
+    // update the existing config, and make sure the bootReader has the
+    // same set of PluginConfig instances as the running server
+    
+    return true;
   }
 
   /**
@@ -206,7 +243,6 @@ public class CompetitionControlService
   {
     runOnce();
     // prepare for the next run
-    logService.stopLog();
     preGame();
   }
   
@@ -235,6 +271,7 @@ public class CompetitionControlService
     // wrap up
     shutDown();
     simRunning = false;
+    logService.stopLog();
   }
   
   /**
@@ -343,7 +380,8 @@ public class CompetitionControlService
   public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
   {
     if (phase <= 0 || phase > timeslotPhaseCount) {
-      log.error("phase ${phase} out of range (1..${timeslotPhaseCount})");
+      log.error("phase " + phase + " out of range (1.." +
+                timeslotPhaseCount + ")");
     }
     else {
       if (phaseRegistrations == null) {
@@ -552,14 +590,14 @@ public class CompetitionControlService
       return;
     }
     int oldSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead());
+            competition.getDeactivateTimeslotsAhead() - 1);
     Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
     oldTs.disable();
     log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
 
     // then create if necessary and activate the newest timeslot
     int newSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead() +
+            competition.getDeactivateTimeslotsAhead() - 1 +
             competition.getTimeslotsOpen());
     Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
     if (newTs == null) {
@@ -597,6 +635,7 @@ public class CompetitionControlService
     ArrayList<String> completedPlugins = new ArrayList<String>();
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
     for (InitializationService initializer : initializers.values()) {
+      log.info("attempt to initialize " + initializer.toString());
       String success = initializer.initialize(competition, completedPlugins);
       if (success == null) {
         // defer this one
@@ -616,6 +655,7 @@ public class CompetitionControlService
     List<InitializationService> remaining = deferredInitializers;
     while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining.get(0);
+      log.info("additional attempt to initialize " + initializer.toString());
       if (remaining.size() > 1) {
         remaining.remove(0);
       }

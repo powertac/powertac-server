@@ -83,16 +83,16 @@
         class="org.powertac.server.CompetitionControlService">
   </bean>
   
-  <bean id="weatherService"
-  		class="org.powertac.server.WeatherService">
-  </bean>
-  
   <bean id="weatherReportRepo"
         class="org.powertac.common.repo.WeatherReportRepo">
   </bean>
   
   <bean id="weatherForecastRepo"
         class="org.powertac.common.repo.WeatherForecastRepo">
+  </bean>
+  
+  <bean id="weatherService"
+  		class="org.powertac.server.WeatherService">
   </bean>
 
   <bean id="springApplicationContext"
