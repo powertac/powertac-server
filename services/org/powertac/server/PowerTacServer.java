@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import org.powertac.common.interfaces.CompetitionControl;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
@@ -61,8 +62,9 @@ public class PowerTacServer
    */
   public static void main (String[] args)
   {
-    ApplicationContext context =
+    AbstractApplicationContext context =
       new ClassPathXmlApplicationContext("development.xml");
+    context.registerShutdownHook();
     
     // TODO - temp debug code?
     String[] allBeanNames = context.getBeanNamesForType(Object.class);
@@ -138,5 +140,6 @@ public class PowerTacServer
         }
       }
     }
+    // if we get here, it's time to exit
   }
 }
