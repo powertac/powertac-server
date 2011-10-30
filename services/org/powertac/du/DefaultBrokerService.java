@@ -257,6 +257,10 @@ public class DefaultBrokerService
 
   private void submitShout (double neededKWh, Timeslot timeslot)
   {
+    if (neededKWh == 0.0) {
+      log.info("no power required in timeslot " + timeslot.getSerialNumber());
+      return;
+    }
     double neededMWh = neededKWh / 1000.0;
     double limitPrice = buyLimitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
