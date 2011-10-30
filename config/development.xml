@@ -72,5 +72,10 @@
         class="org.powertac.tariffmarket.TariffMarketService">
     <property name="timeslotPhase" value="3" />
   </bean>
+  
+  <bean id="weatherService" 
+        class="org.powertac.server.WeatherService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
 
 </beans>

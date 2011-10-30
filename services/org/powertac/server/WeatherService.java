@@ -26,7 +26,6 @@ package org.powertac.server;
 // Import network java
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +67,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 	static private Logger log = Logger
 			.getLogger(WeatherService.class.getName());
-	private int simulationPhase = 1;
+	//private int simulationPhase = 1;
 	private int weatherReqInterval = 12;
 	private int daysOut = 1;
 	private int currentWeatherId = 1;
