@@ -584,6 +584,8 @@ public class CompetitionControlService
   {
     TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
+    // remember that this runs at the beginning of a timeslot, so the current
+    // timeslot is the first one we consider.
     Timeslot current = timeslotRepo.currentTimeslot();
     if (current == null) {
       log.error("current timeslot is null at " + timeService.getCurrentTime());
