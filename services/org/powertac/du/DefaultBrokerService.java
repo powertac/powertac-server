@@ -257,10 +257,6 @@ public class DefaultBrokerService
 
   private void submitShout (double neededKWh, Timeslot timeslot)
   {
-    if (neededKWh == 0.0) {
-      log.info("no power required in timeslot " + timeslot.getSerialNumber());
-      return;
-    }
     double neededMWh = neededKWh / 1000.0;
     double limitPrice = buyLimitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
@@ -271,6 +267,10 @@ public class DefaultBrokerService
       buySell = OrderType.SELL;
       neededMWh = -neededMWh;
       limitPrice = sellLimitPrice;
+    }
+    if (neededMWh == 0.0) {
+      log.info("no power required in timeslot " + timeslot.getSerialNumber());
+      return;
     }
     log.info("new " + buySell + " order for " + neededMWh +
              " in timeslot " + timeslot.getSerialNumber());
@@ -482,7 +482,7 @@ public class DefaultBrokerService
   List<CustomerBootstrapData> getCustomerBootstrapData ()
   {
     if (netUsageMap == null) {
-      // nothing to report
+      log.warn("net usage map is null");
       return null;
     }
     ArrayList<CustomerBootstrapData> result = 
@@ -490,6 +490,8 @@ public class DefaultBrokerService
     for (CustomerInfo customer : netUsageMap.keySet()) {
       ArrayList<Double> usageList = netUsageMap.get(customer);
       double[] usage = new double[usageList.size()];
+      for (int i = 0; i < usage.length; i++)
+        usage[i] = usageList.get(i);
       result.add(new CustomerBootstrapData(customer, usage));
     }
     return result;
