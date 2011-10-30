@@ -35,8 +35,9 @@ public class WeatherForecastPrediction
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   
-  /** the time from which the weather is predicted */
-  private Instant forecastTime;
+  /** the offset from the forecast timeslot for which the weather is predicted */
+  @XStreamAsAttribute
+  private int forecastTime;
   
   /** the current timeslot's temperature*/
   @XStreamAsAttribute
@@ -54,7 +55,7 @@ public class WeatherForecastPrediction
   @XStreamAsAttribute
   private double cloudCover;
 
-  public WeatherForecastPrediction (Instant time, double temperature,
+  public WeatherForecastPrediction (int time, double temperature,
                                     double windSpeed, double windDirection,
                                     double cloudCover)
   {
@@ -71,7 +72,7 @@ public class WeatherForecastPrediction
     return id;
   }
 
-  public Instant getForecastTime ()
+  public int getForecastTime ()
   {
     return forecastTime;
   }
