@@ -380,7 +380,8 @@ public class CompetitionControlService
   public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
   {
     if (phase <= 0 || phase > timeslotPhaseCount) {
-      log.error("phase ${phase} out of range (1..${timeslotPhaseCount})");
+      log.error("phase " + phase + " out of range (1.." +
+                timeslotPhaseCount + ")");
     }
     else {
       if (phaseRegistrations == null) {
@@ -589,14 +590,14 @@ public class CompetitionControlService
       return;
     }
     int oldSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead());
+            competition.getDeactivateTimeslotsAhead() - 1);
     Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
     oldTs.disable();
     log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
 
     // then create if necessary and activate the newest timeslot
     int newSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead() +
+            competition.getDeactivateTimeslotsAhead() - 1 +
             competition.getTimeslotsOpen());
     Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
     if (newTs == null) {
@@ -634,6 +635,7 @@ public class CompetitionControlService
     ArrayList<String> completedPlugins = new ArrayList<String>();
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
     for (InitializationService initializer : initializers.values()) {
+      log.info("attempt to initialize " + initializer.toString());
       String success = initializer.initialize(competition, completedPlugins);
       if (success == null) {
         // defer this one
@@ -653,6 +655,7 @@ public class CompetitionControlService
     List<InitializationService> remaining = deferredInitializers;
     while (remaining.size() > 0 && tryCounter > 0) {
       InitializationService initializer = remaining.get(0);
+      log.info("additional attempt to initialize " + initializer.toString());
       if (remaining.size() > 1) {
         remaining.remove(0);
       }
