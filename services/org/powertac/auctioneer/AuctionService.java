@@ -182,6 +182,8 @@ public class AuctionService
         addBid(sw);
       else
         addAsk(sw);
+      log.info("Clearing " + sortedAsks.size() + " asks and " +
+               sortedBids.size() + " bids");
     }
     
     // Iterate through the enabled timeslots, and clear each one individually
