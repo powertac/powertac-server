@@ -23,7 +23,6 @@ import org.powertac.common.Broker;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Shout;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -70,7 +69,7 @@ public class Genco
   private RandomSeed seed;
 
   // configured parameters  
-  private String name;
+  //private String name;
   private double nominalCapacity = 100.0;
   private double cost = 1.0;
   private int commitmentLeadtime = 1;
@@ -83,6 +82,7 @@ public class Genco
   
   public void init (BrokerProxy proxy, RandomSeedRepo randomSeedRepo)
   {
+    log.info("init " + getUsername());
     this.brokerProxyService = proxy;
     this.seed = randomSeedRepo.getRandomSeed(Genco.class.getName(), id, "update");
   }
@@ -120,7 +120,7 @@ public class Genco
    */
   public void updateModel (Instant currentTime)
   {
-    log.info("Update " + name);
+    log.info("Update " + getUsername());
     updateCapacity(seed.nextDouble());
     updateInOperation(seed.nextDouble());
   }
@@ -135,7 +135,7 @@ public class Genco
       log.info("not in operation - no shouts");
       return;
     }
-    log.info("Generate shouts for " + name);
+    log.info("Generate shouts for " + getUsername());
     for (Timeslot slot : openSlots) {
       double availableCapacity = currentCapacity;
       // do we receive these?
@@ -201,7 +201,6 @@ public class Genco
   void configure (PluginConfig config)
   {
     //this.config = config
-    name = config.getConfigurationValue("name");
     nominalCapacity = config.getDoubleValue("nominalCapacity", nominalCapacity);
     currentCapacity = nominalCapacity;
     variability = config.getDoubleValue("variability", variability);

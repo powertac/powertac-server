@@ -20,19 +20,28 @@ import java.util.List;
 
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+@Service
 class GencoInitializationService 
     implements InitializationService
 {  
-  
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
 
   @Autowired
   private SimpleGencoService simpleGencoService;
+  
+  @Autowired
+  private BrokerProxy brokerProxyService;
+  
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
 
   public void setDefaults ()
   {
@@ -49,6 +58,8 @@ class GencoInitializationService
     for (PluginConfig config : pluginConfigRepo.findAllByRoleName("genco")) {
       Genco genco = new Genco(config.getName());
       genco.configure(config);
+      genco.init(brokerProxyService, randomSeedRepo);
+      gencos.add(genco);
     }
     simpleGencoService.init(gencos);
     return "Genco";

@@ -54,6 +54,7 @@ class SimpleGencoService
   public void init(List<Genco> gencos)
   {
     this.gencos = gencos;
+    super.init();
   }
   
   public void activate(Instant now, int phase)
