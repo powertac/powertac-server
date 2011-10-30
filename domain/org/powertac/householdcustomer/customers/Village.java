@@ -285,6 +285,7 @@ public class Village extends AbstractCustomer
 
     for (TariffSubscription sub : subscriptions) {
       if (ts == null) {
+        log.error("Current timeslot is null");
         int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
         summary = getConsumptionByTimeslot(serial);
       } else {

@@ -165,20 +165,10 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   {
     log.info("Activate");
     if (villageList.size() > 0) {
-      if (phaseNumber == 1) {
-        log.info("Phase 1");
-        for (Village village : villageList) {
-          village.step();
-        }
-      } else {
-        // should never get here
-        log.info("Phase 2");
-        for (Village village : villageList) {
-          village.toString();
-        }
+      for (Village village : villageList) {
+        village.step();
       }
     }
-
   }
 
   public void receiveMessage (Object msg)
