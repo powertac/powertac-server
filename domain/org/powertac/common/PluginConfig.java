@@ -99,7 +99,7 @@ public class PluginConfig
    * was read from a file or received as a message). This only works if the
    * roleName and name match. If successful, returns true; otherwise false.
    */
-  public boolean updateConfig (PluginConfig replacement)
+  public boolean update (PluginConfig replacement)
   {
     if (!roleName.equals(replacement.getRoleName()) ||
         !name.equals(replacement.getName())) {

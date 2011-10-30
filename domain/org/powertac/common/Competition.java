@@ -59,9 +59,6 @@ public class Competition //implements Serializable
   /** Number of timeslots in initialization data dump */
   @XStreamAsAttribute
   private int bootstrapTimeslotCount = 336; // 14 days
-  
-  @XStreamAsAttribute
-  private boolean initialized = false;
 
   /** Minimum number of timeslots, aka competition length    */
   @XStreamAsAttribute
@@ -306,21 +303,20 @@ public class Competition //implements Serializable
   }
 
   /**
-   * @return the initialized
+   * Updates selected fields of this Competition from a template. This is
+   * designed to be used to copy attributes from a bootstrap run into a
+   * normal sim run.
    */
-  public boolean isInitialized ()
+  public void update (Competition template)
   {
-    return initialized;
+    withBootstrapTimeslotCount(template.getBootstrapTimeslotCount());
+    withDeactivateTimeslotsAhead(template.getDeactivateTimeslotsAhead());
+    withSimulationBaseTime(template.getSimulationBaseTime());
+    withSimulationModulo(template.getSimulationModulo());
+    withTimeslotLength(template.getTimeslotLength());
+    withTimeslotsOpen(template.getTimeslotsOpen());
   }
-
-  /**
-   * @param initialized the initialized to set
-   */
-  public void setInitialized (boolean initialized)
-  {
-    this.initialized = initialized;
-  }
-
+  
   public String toString() 
   {
     return name;
