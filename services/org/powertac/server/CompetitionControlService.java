@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -146,6 +147,7 @@ public class CompetitionControlService
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
+  private List<Object> bootstrapDataset = null;
   
   private boolean simRunning = false;
 
@@ -206,31 +208,57 @@ public class CompetitionControlService
     preGame();
     
     // read the config info from the bootReader - 
-    // it's just a set of PluginConfig instances
+    // We need to find a Competition and a set of PluginConfig instances
+    Competition bootstrapCompetition = null;
+    ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
     InputSource source = new InputSource(bootReader);
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
+      // first, pull out the Competition
       XPathExpression exp =
-          xPath.compile("/powertac-bootstrap-data/config/plugin-config");
+          xPath.compile("/powertac-bootstrap-data/config/competition");
       NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      String xml = nodes.item(0).toString();
+      bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
+      // then get the configs
+      exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
+      nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
       // Each node is a plugin-config
-      ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
       for (int i = 0; i < nodes.getLength(); i++) {
         Node node = nodes.item(i);
-        String xml = node.toString();
+        xml = node.toString();
         PluginConfig pic = (PluginConfig)messageConverter.fromXML(xml);
         configList.add(pic);
       }
     }
     catch (XPathExpressionException xee) {
       log.error("Error reading config file: " + xee.toString());
+      System.out.println("Error reading config file: " + xee.toString());
       return false;
     }
+    // update the existing Competition - should be the current competition
+    Competition.currentCompetition().update(bootstrapCompetition);
     
     // update the existing config, and make sure the bootReader has the
     // same set of PluginConfig instances as the running server
-    
+    for (Iterator<PluginConfig> pics = configList.iterator(); pics.hasNext(); ) {
+      // find the matching one in the server and update it, then remove
+      // the current element from the configList
+      PluginConfig next = pics.next();
+      PluginConfig match = pluginConfigRepo.findMatching(next);
+      if (match == null) {
+        // there's a pic in the file that's not in the server
+        log.error("no matching PluginConfig found for " + next.toString());
+        System.out.println("no matching PluginConfig found for " + next.toString());
+        return false;
+      }
+      // if we found it, then we need to update it.
+      match.update(next);
+    }
+    // we currently ignore cases where there's a config in the server that's
+    // not in the file; there might be use cases for which this would
+    // be useful.
     return true;
   }
 
@@ -257,7 +285,7 @@ public class CompetitionControlService
     // -- note small race condition here --
     simRunning = true;
     if (competition == null) {
-      log.error("null competition instance for id $competitionId");
+      log.error("null competition instance");
     }
     if (!setup()) {
       simRunning = false;
@@ -279,11 +307,28 @@ public class CompetitionControlService
    */
   public void runOnce (FileReader datasetReader)
   {
-    // load the dataset
-    // verify dataset against current server setup
-    
-    // turn off bootstrap mode and start the sim
+    // turn off bootstrap mode, load the bootstrap dataset, and start the sim
     bootstrapMode = false;
+    bootstrapDataset = new ArrayList<Object>();
+    InputSource source = new InputSource(datasetReader);
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath xPath = factory.newXPath();
+    try {
+      // we want all the children of the bootstrap node
+      XPathExpression exp =
+          xPath.compile("/powertac-bootstrap-data/bootstrap/*");
+      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      // Each node is a bootstrap data item
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Node node = nodes.item(i);
+        String xml = node.toString();
+        Object msg = messageConverter.fromXML(xml);
+        bootstrapDataset.add(msg);
+      }
+    }
+    catch (XPathExpressionException xee) {
+      log.error("Error reading config file: " + xee.toString());
+    }
     runOnce();
   }
   
@@ -311,20 +356,21 @@ public class CompetitionControlService
       output.newLine();
       output.write("<config>");
       output.newLine();
+      // current competition first
+      output.write(messageConverter.toXML(competition));
+      output.newLine();
+      // next the PluginConfig instances
       for (PluginConfig pic : pluginConfigRepo.list()) {
-        String xml = messageConverter.toXML(pic);
-        output.write(xml);
+        output.write(messageConverter.toXML(pic));
         output.newLine();
       }
       output.write("</config>");
       output.newLine();
-      
-      // write the bootstrap data
+      // finally the bootstrap data
       output.write("<bootstrap>");
       output.newLine();
       for (Object item : data) {
-        String xml = messageConverter.toXML(item);
-        output.write(xml);
+        output.write(messageConverter.toXML(item));
         output.newLine();
       }
       output.write("</bootstrap>");
@@ -514,7 +560,7 @@ public class CompetitionControlService
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
     if (!bootstrapMode) {
-      broadcastBootstrapDataset();
+      brokerProxyService.broadcastMessages(bootstrapDataset);
     }
     brokerProxyService.broadcastDeferredMessages();
 
@@ -543,6 +589,14 @@ public class CompetitionControlService
   // is still sufficiently in the future.
   private void setTimeParameters()
   {
+    Instant base = competition.getSimulationBaseTime();
+    // if we are not in bootstrap mode, we have to add the bootstrap interval
+    // to the base
+    if (!bootstrapMode) {
+      base = base.plus(competition.getBootstrapTimeslotCount() * 
+                       competition.getTimeslotLength() * 
+                       TimeService.MINUTE);
+    }
     long rate = competition.getSimulationRate();
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
@@ -552,16 +606,9 @@ public class CompetitionControlService
                "; adjust to " + (mult + 1) * competition.getTimeslotLength());
       rate = (mult + 1) * competition.getTimeslotLength();
     }
-    timeService.setClockParameters(competition.getSimulationBaseTime().getMillis(),
-                                   rate,
+    timeService.setClockParameters(base.getMillis(), rate,
                                    competition.getTimeslotLength() * TimeService.MINUTE);
     timeService.setCurrentTime(competition.getSimulationBaseTime());
-  }
-
-  //
-  private void broadcastBootstrapDataset ()
-  {
-    
   }
   
   // Creates the initial complement of timeslots

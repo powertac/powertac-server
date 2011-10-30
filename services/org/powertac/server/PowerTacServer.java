@@ -141,5 +141,6 @@ public class PowerTacServer
       }
     }
     // if we get here, it's time to exit
+    System.exit(0);
   }
 }
