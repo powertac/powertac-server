@@ -29,7 +29,7 @@ public class WeatherForecastPredictionTest {
 	
 	@Test
 	public void timeslotTest(){
-		WeatherForecastPrediction wr = new WeatherForecastPrediction(1, 1, 2, 3, 4);
+		WeatherForecastPrediction wr = new WeatherForecastPrediction(1, 1.0, 2.0, 3.0, 4.0);
 		assertEquals(1,wr.getForecastTime());
 	}
 	
