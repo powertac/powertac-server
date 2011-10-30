@@ -24,7 +24,6 @@ import org.joda.time.Instant;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
-import org.powertac.common.WeatherForecast;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -43,8 +42,6 @@ public class WeatherForecastRepo implements DomainRepo{
 
 	  @Autowired
 	  private TimeslotRepo timeslotRepo;
-	  @Autowired
-	  private TimeService timeService;
 	  
 	  /** standard constructor */
 	  public WeatherForecastRepo ()
@@ -75,14 +72,17 @@ public class WeatherForecastRepo implements DomainRepo{
 	   */
 	  public List<WeatherForecast> allWeatherForecasts ()
 	  {
+		  Timeslot current = timeslotRepo.currentTimeslot();
 		  // Some weather forecasts exist in the repo for the future 
 		  // but have not been issued for the current timeslot.
 		  ArrayList<WeatherForecast> issuedReports = new ArrayList<WeatherForecast>();
 		  for ( WeatherForecast w : indexedWeatherForecasts.values()){
-			  if(w.getCurrentTimeslot().getStartInstant().isBeforeNow()){
+			  if(w.getCurrentTimeslot().getStartInstant().isBefore(current.getStartInstant())){
 				  issuedReports.add(w);
 			  }
 		  }
+
+		  issuedReports.add(this.currentWeatherForecast());
 		  
 		  return (List<WeatherForecast>) issuedReports;
 	  }

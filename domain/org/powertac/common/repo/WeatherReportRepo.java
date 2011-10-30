@@ -73,14 +73,16 @@ public class WeatherReportRepo implements DomainRepo{
 	   */
 	  public List<WeatherReport> allWeatherReports ()
 	  {
+		  Timeslot current = timeslotRepo.currentTimeslot();
 		  // Some weather reports exist in the repo for the future 
 		  // but have not been issued for the current timeslot.
 		  ArrayList<WeatherReport> issuedReports = new ArrayList<WeatherReport>();
 		  for ( WeatherReport w : indexedWeatherReports.values()){
-			  if(w.getCurrentTimeslot().getStartInstant().isBeforeNow()){
+			  if(w.getCurrentTimeslot().getStartInstant().isBefore(current.getStartInstant())){
 				  issuedReports.add(w);
 			  }
 		  }
+		  issuedReports.add(this.currentWeatherReport());
 		  
 		  return (List<WeatherReport>) issuedReports;
 	  }
