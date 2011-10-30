@@ -184,11 +184,13 @@ public class AccountingService
     return position.getOverallBalance();
   }
 
-  // keep in mind that this will likely be called in a different
-  // session from the one in which the transaction was created, so
-  // the transactions themselves may be stale.
+  /**
+   * Processes the pending transaction list, computes interest, sends 
+   * updates to brokers
+   */
   public void activate(Instant time, int phaseNumber) 
   {
+    log.info("Activate: " + pendingTransactions.size() + " messages");
     HashMap<Broker, List<Object>> brokerMsg = new HashMap<Broker, List<Object>>();
     for (Broker broker : brokerRepo.list()) {
       brokerMsg.put(broker, new ArrayList<Object>());
@@ -199,6 +201,10 @@ public class AccountingService
       if (tx.getBroker() == null) {
         log.error("tx " + tx.getClass().getName() + ":" + tx.getId() + 
                   " has null broker");
+      }
+      if (brokerMsg.get(tx.getBroker()) == null) {
+        log.error("tx " + tx.getClass().getName() + ":" + tx.getId() + 
+                  " has unknown broker " + tx.getBroker().getUsername());
       }
       brokerMsg.get(tx.getBroker()).add(tx);
       // process transactions by method lookup
@@ -223,7 +229,7 @@ public class AccountingService
       }
       // add the cash position to the list and send messages
       brokerMsg.get(broker).add(broker.getCash());
-      log.debug("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
+      log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
   }
@@ -243,6 +249,7 @@ public class AccountingService
   // process a tariff transaction
   public void processTransaction(TariffTransaction tx,
                                  ArrayList<Object> messages) {
+    //log.info("processing tariff tx " + tx.toString());
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
