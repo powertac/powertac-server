@@ -122,4 +122,9 @@ public class ClearedTrade
   {
     return dateExecuted;
   }
+  
+  public String toString()
+  {
+    return "ClearedTrade-" + executionMWh + "-at-" + executionPrice;
+  }
 }
