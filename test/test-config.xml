@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mockito="http://www.mockito.org/spring/mockito"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	       http://www.springframework.org/schema/beans/spring-beans.xsd
+	       http://www.springframework.org/schema/context 
+	       http://www.springframework.org/schema/context/spring-context-3.0.xsd
+	       http://www.mockito.org/spring/mockito 
+	       http://www.mockito.org/spring/mockito.xsd">
+
+	<bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
+		<constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
+	</bean>
+
+	<bean id="competitionControl" class="org.mockito.Mockito"
+		factory-method="mock">
+		<constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+	</bean>
+
+	<context:annotation-config />
+	<context:component-scan base-package="org.powertac" />
+
+	<bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext" />
+
+	<bean id="accountingService" class="org.powertac.accounting.AccountingService">
+	</bean>
+
+	<bean id="brokerRepo" class="org.powertac.common.repo.BrokerRepo">
+	</bean>
+	
+	<bean id="distributionUtilityInitializationService" class="org.powertac.distributionutility.DistributionUtilityInitializationService">
+	</bean>
+
+	<bean id="orderbookRepo" class="org.powertac.common.repo.OrderbookRepo">
+	</bean>
+
+	<bean id="randomSeedRepo" class="org.powertac.common.repo.RandomSeedRepo">
+	</bean>
+
+	<bean id="timeService" class="org.powertac.common.TimeService">
+	</bean>
+
+	<bean id="timeslotRepo" class="org.powertac.common.repo.TimeslotRepo">
+	</bean>
+
+	<bean id="pluginConfigRepo" class="org.powertac.common.repo.PluginConfigRepo">
+	</bean>
+</beans>
