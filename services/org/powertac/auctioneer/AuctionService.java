@@ -37,6 +37,7 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.StateChange;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ public class AuctionService
   
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private OrderbookRepo orderbookRepo;
   
   private double defaultSellerSurplus = 0.5;
   private double sellerSurplusRatio;
@@ -239,10 +243,10 @@ public class AuctionService
                                                clearingPrice, trade.mWh);
       }
       // create the orderbook and cleared-trade, send to brokers
-      Orderbook orderbook = new Orderbook(timeslot, ProductType.Future,
-                                          (pendingTrades.size() > 0
-                                              ? clearingPrice : null),
-                                          timeService.getCurrentTime());
+      Orderbook orderbook = 
+          orderbookRepo.makeOrderbook(timeslot,
+                                      (pendingTrades.size() > 0
+                                          ? clearingPrice : null));
       if (bids != null) {
         for (ShoutWrapper shout : bids) {
           orderbook.addBid(new OrderbookOrder(shout.getOrderType(), shout.getLimitPrice(),
