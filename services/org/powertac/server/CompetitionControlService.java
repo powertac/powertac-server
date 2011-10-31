@@ -16,8 +16,10 @@
 package org.powertac.server;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
@@ -25,6 +27,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
@@ -142,7 +150,7 @@ public class CompetitionControlService
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
-  private long timeslotMillis;
+  //private long timeslotMillis;
   private RandomSeed randomGen;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
@@ -202,40 +210,46 @@ public class CompetitionControlService
    * if one or more PluginConfig instances cannot be used in the current
    * server setup.
    */
-  public boolean preGame (FileReader bootReader)
+  public boolean preGame (File bootFile)
   {
-    // run the basic pre-game setup first,
+    // turn off bootstrap mode, and run the basic pre-game setup
+    bootstrapMode = false;
     preGame();
     
     // read the config info from the bootReader - 
     // We need to find a Competition and a set of PluginConfig instances
     Competition bootstrapCompetition = null;
     ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
-    InputSource source = new InputSource(bootReader);
+    //InputSource source = new InputSource(bootReader);
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
       // first, pull out the Competition
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/config/competition");
-      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-      String xml = nodes.item(0).toString();
+      NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+                                              XPathConstants.NODESET);
+      String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
       // then get the configs
       exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
-      nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+                                     XPathConstants.NODESET);
       // Each node is a plugin-config
       for (int i = 0; i < nodes.getLength(); i++) {
         Node node = nodes.item(i);
-        xml = node.toString();
+        xml = nodeToString(node);
         PluginConfig pic = (PluginConfig)messageConverter.fromXML(xml);
         configList.add(pic);
       }
     }
     catch (XPathExpressionException xee) {
-      log.error("Error reading config file: " + xee.toString());
+      log.error("preGame: Error reading config file: " + xee.toString());
       System.out.println("Error reading config file: " + xee.toString());
       return false;
+    }
+    catch (IOException ioe) {
+      log.error("preGame: Error in stream reset: " + ioe.toString());
     }
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
@@ -256,6 +270,12 @@ public class CompetitionControlService
       // if we found it, then we need to update it.
       match.update(next);
     }
+    
+    // Create the timeslots from the bootstrap period - they will be needed to 
+    // instantiate weather reports.
+    createInitialTimeslots(competition.getSimulationBaseTime(),
+                           competition.getBootstrapTimeslotCount() + 1, 0);
+    
     // we currently ignore cases where there's a config in the server that's
     // not in the file; there might be use cases for which this would
     // be useful.
@@ -305,29 +325,31 @@ public class CompetitionControlService
   /**
    * Loads a bootstrap dataset, starts a simulation
    */
-  public void runOnce (FileReader datasetReader)
+  public void runOnce (File datasetFile)
   {
-    // turn off bootstrap mode, load the bootstrap dataset, and start the sim
-    bootstrapMode = false;
+    // load the bootstrap dataset, and start the sim
     bootstrapDataset = new ArrayList<Object>();
-    InputSource source = new InputSource(datasetReader);
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
+      InputSource source = new InputSource(new FileReader(datasetFile));
       // we want all the children of the bootstrap node
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/bootstrap/*");
       NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      log.info("Found " + nodes.getLength() + " bootstrap nodes");
       // Each node is a bootstrap data item
       for (int i = 0; i < nodes.getLength(); i++) {
-        Node node = nodes.item(i);
-        String xml = node.toString();
+        String xml = nodeToString(nodes.item(i));
         Object msg = messageConverter.fromXML(xml);
         bootstrapDataset.add(msg);
       }
     }
     catch (XPathExpressionException xee) {
-      log.error("Error reading config file: " + xee.toString());
+      log.error("runOnce: Error reading config file: " + xee.toString());
+    }
+    catch (IOException ioe) {
+      log.error("runOnce: reset fault: " + ioe.toString());
     }
     runOnce();
   }
@@ -575,8 +597,7 @@ public class CompetitionControlService
     }
 
     // grab setup parameters, set up initial timeslots, including zero timeslot
-    timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
-    createInitialTimeslots(competition.getSimulationBaseTime(),
+    createInitialTimeslots(timeService.getCurrentTime(),
                            competition.getDeactivateTimeslotsAhead(),
                            competition.getTimeslotsOpen());
     TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
@@ -608,14 +629,19 @@ public class CompetitionControlService
     }
     timeService.setClockParameters(base.getMillis(), rate,
                                    competition.getTimeslotLength() * TimeService.MINUTE);
-    timeService.setCurrentTime(competition.getSimulationBaseTime());
+    timeService.setCurrentTime(base);
   }
   
   // Creates the initial complement of timeslots
   private void createInitialTimeslots (Instant base,
-                                                 int initialSlots,
-                                                 int openSlots)
+                                       int initialSlots,
+                                       int openSlots)
   {
+    long timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
+    // set timeslot index according to bootstrap mode
+//    if (!bootstrapMode) {
+//      timeslotRepo.setIndexOffset(competition.getBootstrapTimeslotCount());
+//    }
     for (int i = 0; i < initialSlots - 1; i++) {
       Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
                                               base.plus((i + 1) * timeslotMillis));
@@ -623,12 +649,13 @@ public class CompetitionControlService
     }
     for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
       timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
-                                              base.plus((i + 1) * timeslotMillis));
+                                base.plus((i + 1) * timeslotMillis));
     }
   }
 
   private void activateNextTimeslot ()
   {
+    long timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
     TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
     // remember that this runs at the beginning of a timeslot, so the current
@@ -727,6 +754,22 @@ public class CompetitionControlService
       log.error("Failed to initialize " + initializer.toString());
     }
     return true;
+  }
+
+  private String nodeToString(Node node) {
+    StringWriter sw = new StringWriter();
+    try {
+      Transformer t = TransformerFactory.newInstance().newTransformer();
+      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      t.setOutputProperty(OutputKeys.INDENT, "no");
+      t.transform(new DOMSource(node), new StreamResult(sw));
+    }
+    catch (TransformerException te) {
+      log.error("nodeToString Transformer Exception " + te.toString());
+    }
+    String result = sw.toString();
+    //log.info("xml node: " + result);
+    return result;
   }
 
   public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException
