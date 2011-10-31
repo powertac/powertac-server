@@ -46,6 +46,7 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -77,6 +78,9 @@ public class DefaultBrokerService
   
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private CustomerRepo customerRepo;
   
   private LocalBroker face;
   
@@ -313,8 +317,8 @@ public class DefaultBrokerService
     if (TariffTransaction.Type.SIGNUP == txType) {
       // keep track of customer counts
       if (record == null) {
-        customerMap.put(customer, 
-                        new CustomerRecord(customer, ttx.getCustomerCount()));
+        record = new CustomerRecord(customer, ttx.getCustomerCount());
+        customerMap.put(customer, record);
       }
       else {
         record.signup(ttx.getCustomerCount());
@@ -384,6 +388,25 @@ public class DefaultBrokerService
         marketTxMap.put(tx.getTimeslot(), txs);
       }
       txs.add(tx);
+    }
+  }
+  
+  /**
+   * Handles CustomerBootstrapData by populating the customer models so the
+   * broker can get a running start.
+   */
+  public void handleMessage (CustomerBootstrapData cbd)
+  {
+    CustomerInfo customer = customerRepo.findByName(cbd.getCustomerName());
+    HashMap<CustomerInfo, CustomerRecord> customerMap = 
+      customerSubscriptions.get(defaultConsumption);
+    CustomerRecord record = customerMap.get(customer);
+    if (record == null) {
+      record = new CustomerRecord(customer, customer.getPopulation());
+      customerMap.put(customer, record);
+    }
+    for (int i = 0; i < cbd.getNetUsage().length; i++) {
+      record.produceConsume(cbd.getNetUsage()[i], i);
     }
   }
 
@@ -601,6 +624,13 @@ public class DefaultBrokerService
     void produceConsume (double kwh, Instant when)
     {
       int index = getIndex(when);
+      produceConsume(kwh, index);
+    }
+    
+    // store profile data at the given index
+    void produceConsume (double kwh, int rawIndex)
+    {
+      int index = getIndex(rawIndex);
       double kwhPerCustomer = kwh / (double)subscribedPopulation;
       double oldUsage = usage[index];
       if (oldUsage == 0.0) {
@@ -634,9 +664,12 @@ public class DefaultBrokerService
       int result = (int)((when.getMillis() - base.getMillis()) /
                          (Competition.currentCompetition().getTimeslotLength() * 
                           TimeService.MINUTE));
-      result = result % usage.length;
-      log.debug("index=" + result + " at time " + when.toString());
-      return result;
+      return getIndex(result);
+    }
+    
+    private int getIndex (int rawIndex)
+    {
+      return rawIndex % usage.length;
     }
   }
   
