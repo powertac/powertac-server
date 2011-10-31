@@ -127,6 +127,19 @@ public class TimeslotRepo implements DomainRepo
     else
       return indexedTimeslots.get(index);
   }
+  
+  /**
+   * Returns the timeslot (if any) corresponding to a particular Instant.
+   */
+  public Timeslot findByInstant (Instant time)
+  {
+    long offset = time.getMillis() - first.getStartInstant().getMillis();
+    long duration = first.getEndInstant().getMillis() - first.getStartInstant().getMillis();
+    // truncate to timeslot boundary
+    offset -= offset % duration;
+    int index = (int)(offset / duration);
+    return findBySerialNumber(index);
+  }
 
   /**
    * Returns the list of enabled timeslots, starting with the first by serial number.

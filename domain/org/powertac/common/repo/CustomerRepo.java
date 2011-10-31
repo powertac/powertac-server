@@ -62,6 +62,17 @@ public class CustomerRepo implements DomainRepo
     return customers.get(id);
   }
   
+  public CustomerInfo findByName (String name)
+  {
+    CustomerInfo result = null;
+    for (CustomerInfo customer : customers.values()) {
+      if (name.equals(customer.getName())) {
+        return customer;
+      }
+    }
+    return result;
+  }
+  
   public void recycle ()
   {
     customers.clear();

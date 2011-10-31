@@ -177,6 +177,11 @@ public class TimeService
   {
     return base;
   }
+  
+  public Instant getBaseInstant ()
+  {
+    return new Instant(base);
+  }
 
   /**
    * @deprecated  use {@link setClockParameters} instead

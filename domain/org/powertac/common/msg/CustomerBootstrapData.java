@@ -18,7 +18,6 @@ package org.powertac.common.msg;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
-import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.DoubleArrayConverter;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -35,9 +34,10 @@ public class CustomerBootstrapData
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
   
+  // cannot use Customer here, because identity (and id value) is not
+  // preserved across process boundaries
   @XStreamAsAttribute
-  @XStreamConverter(CustomerConverter.class)
-  private CustomerInfo customer;
+  private String customerName;
   
   @XStreamConverter(DoubleArrayConverter.class)
   private double[] netUsage;
@@ -46,7 +46,7 @@ public class CustomerBootstrapData
                                 double[] netUsage)
   {
     super();
-    this.customer = customer;
+    this.customerName = customer.getName();
     this.netUsage = netUsage;
   }
 
@@ -55,9 +55,9 @@ public class CustomerBootstrapData
     return id;
   }
 
-  public CustomerInfo getCustomer ()
+  public String getCustomerName ()
   {
-    return customer;
+    return customerName;
   }
 
   public double[] getNetUsage ()

@@ -68,7 +68,7 @@ public class CustomerBootstrapDataTests
   {
     CustomerBootstrapData cbd = new CustomerBootstrapData(customer, data);
     assertNotNull("object created", cbd);
-    assertEquals("correct customer", customer, cbd.getCustomer());
+    assertEquals("correct customer name", customer.getName(), cbd.getCustomerName());
     assertEquals("correct array size", 24, cbd.getNetUsage().length);
     assertEquals("correct second element", 1.4, cbd.getNetUsage()[1], 1e-6);
   }
