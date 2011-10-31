@@ -178,7 +178,7 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "src/org/powertac/common/configurations/Household.properties");
+    config.getConfiguration().put("cofigFile", "../household-customer/src/org/powertac/common/configurations/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerInitializationService.initialize(comp, inits);
@@ -189,12 +189,12 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "src/org/powertac/common/configurations/Household.properties");
+    config.getConfiguration().put("cofigFile", "../household-customer/src/org/powertac/common/configurations/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerInitializationService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "src/org/powertac/common/configurations/Household.properties", householdCustomerService.getConfigFile());
+    assertEquals("correct configuration file", "../household-customer/src/org/powertac/common/configurations/Household.properties", householdCustomerService.getConfigFile());
   }
 
   @Test

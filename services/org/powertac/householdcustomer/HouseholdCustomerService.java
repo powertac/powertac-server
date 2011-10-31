@@ -65,7 +65,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private RandomSeed rs1;
 
   // read this normally from plugin config
-  private String configFile = "src/org/powertac/common/configurations/Household.properties";
+  private String configFile = "../household-customer/src/org/powertac/common/configurations/Household.properties";
 
   /**
    * This is the configuration file that will be utilized to pass the parameters that can be
