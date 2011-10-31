@@ -33,19 +33,22 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OrderbookRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(TimeslotRepo.class.getName());
+  static private Logger log = Logger.getLogger(OrderbookRepo.class.getName());
 
   @Autowired
   private TimeService timeService;
   
-  // local state
+  // local state - keep track of the current orderbook, as well as the
+  // most recent one for a given timeslot with a non-empty clearing price
   private HashMap<Timeslot, Orderbook> timeslotIndex;
+  private HashMap<Timeslot, Orderbook> spotIndex;
   
   /** Standard constructor */
   public OrderbookRepo ()
   {
     super();
     timeslotIndex = new HashMap<Timeslot, Orderbook>();
+    spotIndex = new HashMap<Timeslot, Orderbook>();
   }
   
   /**
@@ -59,8 +62,10 @@ public class OrderbookRepo implements DomainRepo
                                      clearingPrice,
                                      timeService.getCurrentTime());
     timeslotIndex.put(timeslot, result);
-    log.info("Created new Orderbook ts=" + timeslot.getSerialNumber() +
-             ", clearingPrice=" + clearingPrice);
+    if (clearingPrice != null)
+      spotIndex.put(timeslot, result);
+    log.debug("Created new Orderbook ts=" + timeslot.getSerialNumber() +
+              ", clearingPrice=" + clearingPrice);
     return result;
   }
   
@@ -71,6 +76,15 @@ public class OrderbookRepo implements DomainRepo
   public Orderbook findByTimeslot (Timeslot timeslot)
   {
     return timeslotIndex.get(timeslot);
+  }
+  
+  /**
+   * Returns the most recent orderbook with a non-null clearing price.
+   * Note that this can return null if this timeslot has never cleared.
+   */
+  public Orderbook findSpotByTimeslot (Timeslot timeslot)
+  {
+    return spotIndex.get(timeslot);
   }
   
   /**
@@ -85,7 +99,7 @@ public class OrderbookRepo implements DomainRepo
   public void recycle ()
   {
     timeslotIndex.clear();
-
+    spotIndex.clear();
   }
 
 }

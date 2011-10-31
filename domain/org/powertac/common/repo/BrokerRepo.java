@@ -73,6 +73,16 @@ public class BrokerRepo implements DomainRepo
     return result;
   }
   
+  public List<Broker> findRetailBrokers ()
+  {
+    ArrayList<Broker> result = new ArrayList<Broker>();
+    for (Broker broker : nameTable.values()) {
+      if (!broker.isWholesale())
+        result.add(broker);
+    }
+    return result;
+  }
+  
   public List<Broker> findWholesaleBrokers ()
   {
     ArrayList<Broker> result = new ArrayList<Broker>();
