@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powertac.accounting.AccountingService;
+import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -31,7 +31,7 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.distributionutility.DistributionUtilityService.ChargeInfo;
-import org.powertac.tariffmarket.TariffMarketService;
+import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,7 +53,7 @@ public class DistributionUtilityServiceTests {
 	private OrderbookRepo orderbookRepo;
 
 	@Autowired
-	private TariffMarketService tariffMarketService;
+	private TariffMarket tariffMarketService;
 
 	@Autowired
 	private DistributionUtilityService distributionUtilityService;
@@ -61,7 +61,7 @@ public class DistributionUtilityServiceTests {
 	@Autowired
 	private DistributionUtilityInitializationService distributionUtilityInitializationService;
 
-	private AccountingService accountingService;
+	private Accounting accountingService;
 	private TariffRepo tariffRepo;
 	private Competition comp;
 	private List<Broker> brokerList = new ArrayList<Broker>();
@@ -103,7 +103,7 @@ public class DistributionUtilityServiceTests {
 	@After
 	public void tearDown() {
 		// clear pending transactions list
-		accountingService = (AccountingService)SpringApplicationContext.getBean("accountingService");
+		accountingService = (Accounting)SpringApplicationContext.getBean("accountingService");
 		accountingService.activate(new Instant(), 1); 
 		
 		// clear all repos

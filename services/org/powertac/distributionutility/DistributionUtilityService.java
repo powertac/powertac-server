@@ -25,7 +25,7 @@ import org.ojalgo.matrix.BasicMatrix;
 import org.ojalgo.matrix.BigMatrix;
 import org.ojalgo.optimisation.quadratic.QuadraticSolver;
 import org.ojalgo.type.StandardType;
-import org.powertac.accounting.AccountingService;
+import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.Broker;
 import org.powertac.common.Orderbook;
 import org.powertac.common.PluginConfig;
@@ -41,7 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DistributionUtilityService extends TimeslotPhaseProcessor {
+public class DistributionUtilityService
+  extends TimeslotPhaseProcessor
+{
 	public class ChargeInfo {
 		public String itsBrokerName = "";
 		public double itsNetLoadKWh = 0.0;
@@ -67,7 +69,7 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor {
 	private OrderbookRepo orderbookRepo;
 
 	@Autowired
-	private AccountingService accountingService;
+	private Accounting accountingService;
 
 	@Autowired
 	private CompetitionControl competitionControlService;
