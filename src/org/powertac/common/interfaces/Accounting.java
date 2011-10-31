@@ -11,8 +11,11 @@
 
 package org.powertac.common.interfaces;
 
+import org.joda.time.Instant;
+import org.powertac.common.BalancingTransaction;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.DistributionTransaction;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffTransaction;
@@ -39,25 +42,44 @@ public interface Accounting
    * Adds a market transaction that includes both a cash component and a product
    * commitment for a specific timeslot.
    */
-  MarketTransaction addMarketTransaction(Broker broker, Timeslot timeslot,
+  public MarketTransaction addMarketTransaction (Broker broker, Timeslot timeslot,
       double price, double mWh);
 
   /**
    * Adds a tariff transaction to the current-day transaction list.
    */
-  TariffTransaction addTariffTransaction(TariffTransaction.Type txType,
+  public TariffTransaction addTariffTransaction (TariffTransaction.Type txType,
       Tariff tariff, CustomerInfo customer, int customerCount, double kWh,
       double charge);
+  
+  /**
+   * Adds a distribution transaction to represent charges for carrying power
+   */
+  public DistributionTransaction addDistributionTransaction (Broker broker,
+                                                      double load,
+                                                      double fee);
+  
+  /**
+   * Adds a balancing transaction to represent the cost of imbalance
+   */
+  public BalancingTransaction addBalancingTransaction (Broker broker,
+                                                double imbalance,
+                                                double charge);
 
   /**
    * Returns the current net load represented by unprocessed TariffTransactions
    * for a specific Broker. This is needed to run the balancing process.
    */
-  double getCurrentNetLoad(Broker broker);
+  public double getCurrentNetLoad (Broker broker);
 
   /**
    * Returns the market position for the current timeslot for a given broker.
    * Needed to run the balancing process.
    */
-  double getCurrentMarketPosition(Broker broker);
+  public double getCurrentMarketPosition (Broker broker);
+  
+  /**
+   * Runs the accounting process. This needs to be here to support some tests
+   */
+  public void activate(Instant time, int phase);
 }
