@@ -55,7 +55,7 @@ public class HouseholdCustomerInitializationService implements InitializationSer
    */
   public void setDefaults ()
   {
-    pluginConfigRepo.makePluginConfig("HouseholdCustomer", "").addConfiguration("configFile", "src/org/powertac/common/configurations/Household.properties");
+    pluginConfigRepo.makePluginConfig("HouseholdCustomer", "").addConfiguration("configFile", "../household-customer/src/org/powertac/common/configurations/Household.properties");
   }
 
   /**
