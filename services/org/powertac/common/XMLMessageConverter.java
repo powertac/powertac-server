@@ -69,6 +69,7 @@ public class XMLMessageConverter
     try {
       List<Class> classes = findMyTypes("org.powertac.common");
       for (Class clazz : classes) {
+        log.info("processing class " + clazz.getName());
         xstream.processAnnotations(clazz);
       }
     } catch (IOException e) {

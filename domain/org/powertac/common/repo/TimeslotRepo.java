@@ -42,6 +42,7 @@ public class TimeslotRepo implements DomainRepo
 
   // local state
   private int timeslotIndex = 0;
+  private int indexOffset = 0; // set to non-zero for non-bootstrap case
   private Timeslot first;
   private Timeslot last;
   private Timeslot firstEnabled;
@@ -58,6 +59,16 @@ public class TimeslotRepo implements DomainRepo
     indexedTimeslots = new ArrayList<Timeslot>();
   }
   
+//  /**
+//   * Offsets timeslot index to be correct after bootstrap period. The offset
+//   * value should be equal to the number of timeslots in the bootstrap
+//   * period.
+//   */
+//  public void setIndexOffset (int offset)
+//  {
+//    indexOffset = offset;
+//  }
+  
   /** 
    * Creates a timeslot with the given start time. It is assumed that timeslots are
    * created in sequence; therefore  the sequence number of the new timeslot is simply the 
@@ -73,7 +84,8 @@ public class TimeslotRepo implements DomainRepo
                 " != previous.end:" + last.getEndInstant());
       return null;
     }
-    Timeslot result = new Timeslot(timeslotIndex, startTime, endTime, last);
+    Timeslot result = new Timeslot(timeslotIndex + indexOffset, 
+                                   startTime, endTime, last);
     if (result.getSerialNumber() == -1) // big trouble
       return null;
     if (first == null)
@@ -109,10 +121,11 @@ public class TimeslotRepo implements DomainRepo
    */
   public Timeslot findBySerialNumber (int serialNumber)
   {
-    if (serialNumber >= indexedTimeslots.size())
+    int index = serialNumber - indexOffset;
+    if (index >= indexedTimeslots.size())
       return null;
     else
-      return indexedTimeslots.get(serialNumber);
+      return indexedTimeslots.get(index);
   }
 
   /**

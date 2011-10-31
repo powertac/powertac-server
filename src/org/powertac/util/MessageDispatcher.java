@@ -56,7 +56,7 @@ public class MessageDispatcher
       result = method.invoke(target, args);
     }
     catch (NoSuchMethodException nsm) {
-      log.warn("Could not find exact match: " + nsm.toString());
+      log.debug("Could not find exact match: " + nsm.toString());
     }
     catch (InvocationTargetException ite) {
       Throwable thr = ite.getTargetException();
