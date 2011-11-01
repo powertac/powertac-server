@@ -117,7 +117,7 @@ public class WeatherService
     // request weather data periodically
     long msec = time.getMillis();// timeService.getCurrentTime().getMillis();
     if (msec % (weatherReqInterval * TimeService.HOUR) == 0) {
-      log.info("WeatherService reports time to make network request for weather data in blocking = "
+      log.info("Timeslot " + timeslotRepo.currentTimeslot().getId() + " WeatherService reports time to make network request for weather data in blocking = "
                + blocking + " mode.");
 
       // time to publish
@@ -256,7 +256,7 @@ public class WeatherService
         currentTime = currentTime.getNext();
       }
     }
-    log.info(forecastValues.size() + "WeatherForecasts fetched.");
+    log.info(forecastValues.size() + " WeatherForecasts fetched.");
 
     return true;
   }
