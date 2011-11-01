@@ -45,6 +45,10 @@
   <bean id="pluginConfigRepo"
         class="org.powertac.common.repo.PluginConfigRepo">
   </bean>
+  
+  <bean id="orderbookRepo"
+        class="org.powertac.common.repo.OrderbookRepo">
+  </bean>
 
   <bean id="springApplicationContext"
         class="org.powertac.common.spring.SpringApplicationContext" />

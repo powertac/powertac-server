@@ -74,8 +74,8 @@ public class AuctionServiceTests
   private Timeslot ts0;
   private Timeslot ts1;
   private Timeslot ts2;
-  private Timeslot ts3;
-  private Timeslot ts4;
+  //private Timeslot ts3;
+  //private Timeslot ts4;
   
   private List<Object[]> accountingArgs;
   private List<Object> brokerMsgs;
@@ -86,6 +86,7 @@ public class AuctionServiceTests
     PropertyConfigurator.configure("test/log.config");
   }
 
+  @SuppressWarnings("rawtypes")
   @Before
   public void setUp () throws Exception
   {
@@ -120,10 +121,10 @@ public class AuctionServiceTests
                                     now.plus(TimeService.HOUR * 2));
     ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2), 
                                     now.plus(TimeService.HOUR * 3));
-    ts3 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3), 
-                                    now.plus(TimeService.HOUR * 4));
-    ts4 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4), 
-                                    now.plus(TimeService.HOUR * 5));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3), 
+                              now.plus(TimeService.HOUR * 4));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4), 
+                              now.plus(TimeService.HOUR * 5));
     
     // mock the AccountingService, capture args
     doAnswer(new Answer() {
