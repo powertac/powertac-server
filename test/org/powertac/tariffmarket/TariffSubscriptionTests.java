@@ -16,13 +16,11 @@
 package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
-import static org.powertac.util.ListTools.*;
 import static org.mockito.Mockito.*;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Duration;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -32,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.powertac.common.Broker;
 //import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.MarketTransaction;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
@@ -63,7 +60,6 @@ public class TariffSubscriptionTests
   private CustomerInfo customer;
   //private AbstractCustomer customer;
   private Instant now;
-  private int idCount = 0;
   
   @BeforeClass
   public static void setUpBeforeClass () throws Exception

@@ -27,7 +27,6 @@ import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;

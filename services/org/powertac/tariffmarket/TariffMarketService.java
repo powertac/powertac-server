@@ -39,7 +39,6 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;

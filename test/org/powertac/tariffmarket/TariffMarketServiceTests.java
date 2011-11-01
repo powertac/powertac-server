@@ -17,7 +17,7 @@
 package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
-import static org.powertac.util.ListTools.*;
+//import static org.powertac.util.ListTools.*;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
@@ -40,8 +40,6 @@ import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
-//import org.powertac.common.AbstractCustomer;
-import org.powertac.common.BrokerTransaction;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
@@ -124,6 +122,7 @@ public class TariffMarketServiceTests
     PropertyConfigurator.configure("test/log.config");
   }
 
+  @SuppressWarnings("rawtypes")
   @Before
   public void setUp ()
   {
@@ -554,7 +553,7 @@ public class TariffMarketServiceTests
     // it's 15:00 - time to publish
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals("5 tariffs at 15:00", 5, listener.publishedTariffs.size());
-    List pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
+    List<Tariff> pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
     assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
   }
 

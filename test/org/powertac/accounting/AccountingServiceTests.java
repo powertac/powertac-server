@@ -53,7 +53,6 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -92,8 +91,8 @@ public class AccountingServiceTests
   @Autowired
   private BrokerProxy mockProxy;
   
-  @Autowired
-  private CompetitionControl mockCompetitionControl;
+  //@Autowired
+  //private CompetitionControl mockCompetitionControl;
   
   //@Autowired
   //private RandomSeedRepo mockRandom;
@@ -179,15 +178,15 @@ public class AccountingServiceTests
     tariffRepo.addTariff(tariffJ1);
     
     // set up some timeslots
-    Timeslot ts = timeslotRepo.makeTimeslot(now.minus(TimeService.HOUR), now);
-    ts = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
-    ts = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR), now.plus(TimeService.HOUR * 2));
-    ts = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2), now.plus(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(now.minus(TimeService.HOUR), now);
+    timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR), now.plus(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2), now.plus(TimeService.HOUR * 3));
   }
   
   private void initializeService () {
     accountingInitializationService.setDefaults();
-    accountingInitializationService.initialize(comp, new ArrayList());
+    accountingInitializationService.initialize(comp, new ArrayList<String>());
   }
 
   @Test
@@ -203,7 +202,7 @@ public class AccountingServiceTests
     accountingInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("AccountingService");
     assertNotNull("config created correctly", config);
-    String result = accountingInitializationService.initialize(comp, new ArrayList());
+    String result = accountingInitializationService.initialize(comp, new ArrayList<String>());
     assertEquals("correct return value", "AccountingService", result);
     assertTrue("correct bank interest",
        accountingInitializationService.getMinInterest() <= accountingService.getBankInterest());
@@ -216,7 +215,7 @@ public class AccountingServiceTests
   {
     PluginConfig config = pluginConfigRepo.findByRoleName("AccountingService");
     assertNull("config not created", config);
-    String result = accountingInitializationService.initialize(comp, new ArrayList());
+    String result = accountingInitializationService.initialize(comp, new ArrayList<String>());
     assertEquals("failure return value", "fail", result);
   }
 
@@ -312,6 +311,7 @@ public class AccountingServiceTests
   }
   
   // simple activation
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Test
   public void testSimpleActivate ()
   {
@@ -381,6 +381,7 @@ public class AccountingServiceTests
   }
 
   // test activation
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Test
   public void testActivate ()
   {
@@ -499,6 +500,7 @@ public class AccountingServiceTests
   }
   
   // interest should be paid/charged at midnight activation
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Test
   public void testInterestPayment ()
   {
