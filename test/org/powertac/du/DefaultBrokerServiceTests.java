@@ -44,7 +44,6 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.Auctioneer;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
@@ -143,7 +142,9 @@ public class DefaultBrokerServiceTests
   private Broker init ()
   {
     initializer.setDefaults();
-    initializer.initialize(competition, new ArrayList<String>());
+    List<String> completedInits = new ArrayList<String>();
+    completedInits.add("TariffMarket");
+    initializer.initialize(competition, completedInits);
     Broker face = brokerRepo.findByUsername("default broker");
     return face;
   }
@@ -235,6 +236,7 @@ public class DefaultBrokerServiceTests
     assertEquals("1000 individuals", 1000, count);
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testReceiveWithdrawMessage ()
   {
@@ -297,6 +299,7 @@ public class DefaultBrokerServiceTests
     assertEquals("still 42 individuals", 42, count);
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testReceiveConsumeMessage ()
   {
@@ -357,6 +360,7 @@ public class DefaultBrokerServiceTests
     
   }
 
+  @SuppressWarnings("rawtypes")
   @Test
   public void testShoutTS0 ()
   {
@@ -375,21 +379,23 @@ public class DefaultBrokerServiceTests
     // activate the trading function by sending a cash position msg
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // timeslot -1
-    
-    assertEquals("23 shouts", 23, shoutList.size());
-    Shout firstShout = shoutList.get(0);
-    assertNotNull("first shout not null", firstShout);
-    assertEquals("bid flag", Shout.OrderType.BUY, firstShout.getOrderType());
-    assertEquals("correct mwh", 0.0, firstShout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, firstShout.getLimitPrice(), 1e-6);
-    Shout lastShout = shoutList.get(22);
-    assertNotNull("last shout not null", lastShout);
-    assertEquals("bid flag", Shout.OrderType.BUY, lastShout.getOrderType());
-    assertEquals("correct mwh", 0.0, lastShout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, lastShout.getLimitPrice(), 1e-6);
+
+    // without any subscriptions or consumption, we don't expect any shouts
+    assertEquals("0 shouts", 0, shoutList.size());
+//    Shout firstShout = shoutList.get(0);
+//    assertNotNull("first shout not null", firstShout);
+//    assertEquals("bid flag", Shout.OrderType.BUY, firstShout.getOrderType());
+//    assertEquals("correct mwh", 0.0, firstShout.getMWh(), 1e-6);
+//    assertEquals("correct price", 100.0, firstShout.getLimitPrice(), 1e-6);
+//    Shout lastShout = shoutList.get(22);
+//    assertNotNull("last shout not null", lastShout);
+//    assertEquals("bid flag", Shout.OrderType.BUY, lastShout.getOrderType());
+//    assertEquals("correct mwh", 0.0, lastShout.getMWh(), 1e-6);
+//    assertEquals("correct price", 100.0, lastShout.getLimitPrice(), 1e-6);
   }
   
   // in timeslot 3, we should have 3 days of records on which to base the last
+  @SuppressWarnings("rawtypes")
   // three bids
   @Test
   public void testShoutTS3 ()
@@ -586,6 +592,7 @@ public class DefaultBrokerServiceTests
   }
   
   // Generate three days of bootstrap data
+  @SuppressWarnings("rawtypes")
   @Test
   public void testShoutTS3Bootstrap ()
   {

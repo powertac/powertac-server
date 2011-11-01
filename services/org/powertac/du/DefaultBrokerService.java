@@ -45,7 +45,6 @@ import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
-import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;

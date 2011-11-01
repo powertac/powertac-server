@@ -109,6 +109,7 @@ public class DefaultBrokerInitializationServiceTests
     serviceUnderTest.setDefaults();
     // run the initialize method, confirm it makes the correct calls
     List<String> completedInits = new ArrayList<String>();
+    completedInits.add("TariffMarket");
     String result = serviceUnderTest.initialize(competition, completedInits);
     assertEquals("correct result", "DefaultBroker", result);
     PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
@@ -129,6 +130,7 @@ public class DefaultBrokerInitializationServiceTests
     // Do not set defaults
     // run the initialize method, make sure it fails correctly
     List<String> completedInits = new ArrayList<String>();
+    completedInits.add("TariffMarket");
     String result = serviceUnderTest.initialize(competition, completedInits);
     assertEquals("failure result", "fail", result);
     verify(service, never()).init((PluginConfig) anyObject());

@@ -18,7 +18,6 @@ package org.powertac.du;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.interfaces.InitializationService;
