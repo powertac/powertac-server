@@ -48,13 +48,13 @@
   </bean>
   
   <!-- need explicit list of beans that have properties to set -->
-  <bean id="accountingService"
-        class="org.powertac.accounting.AccountingService">
-    <property name="timeslotPhase" value="4" />
-  </bean>
-  
   <bean id="auctionService" 
         class="org.powertac.auctioneer.AuctionService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
+  
+  <bean id="weatherService" 
+        class="org.powertac.server.WeatherService">
     <property name="timeslotPhase" value="1" />
   </bean>
   
@@ -63,19 +63,24 @@
     <property name="timeslotPhase" value="2" />
   </bean>
   
-  <bean id="simpleGencoService"
-        class="org.powertac.genco.SimpleGencoService">
-    <property name="timeslotPhase" value="4" />
-  </bean>
-  
   <bean id="tariffMarketService"
         class="org.powertac.tariffmarket.TariffMarketService">
     <property name="timeslotPhase" value="3" />
   </bean>
   
-  <bean id="weatherService" 
-        class="org.powertac.server.WeatherService">
-    <property name="timeslotPhase" value="1" />
+  <bean id="distributionUtilityService"
+        class="org.powertac.distributionutility.DistributionUtilityService">
+    <property name="timeslotPhase" value="3" />
+  </bean>
+  
+  <bean id="simpleGencoService"
+        class="org.powertac.genco.SimpleGencoService">
+    <property name="timeslotPhase" value="4" />
+  </bean>
+  
+  <bean id="accountingService"
+        class="org.powertac.accounting.AccountingService">
+    <property name="timeslotPhase" value="4" />
   </bean>
 
 </beans>

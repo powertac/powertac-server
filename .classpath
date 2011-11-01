@@ -12,5 +12,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/genco"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/household-customer"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/server-interface"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/distribution-utility"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
