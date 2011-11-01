@@ -73,13 +73,13 @@ public class PowerTacServer
       new ClassPathXmlApplicationContext("development.xml");
     context.registerShutdownHook();
     
-    // TODO - temp debug code?
-    String[] allBeanNames = context.getBeanNamesForType(Object.class);
-    if (allBeanNames != null) {
-      for (String beanName : allBeanNames) {
-        System.out.println(beanName);
-      }
-    }
+    // debug code -
+//    String[] allBeanNames = context.getBeanNamesForType(Object.class);
+//    if (allBeanNames != null) {
+//      for (String beanName : allBeanNames) {
+//        System.out.println(beanName);
+//      }
+//    }
     
     // find the CompetitionControl bean
     cc = (CompetitionControlService)context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
@@ -119,6 +119,7 @@ public class PowerTacServer
             else {
               File bootFile = new File(tokens[1]);
               if (cc.preGame(bootFile)) {
+                // TODO: wait for broker login
                 cc.runOnce(bootFile);
               }
             }
