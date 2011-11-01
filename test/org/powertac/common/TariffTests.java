@@ -20,10 +20,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -55,6 +58,15 @@ public class TariffTests
   public static void setUpLog () throws Exception
   {
     PropertyConfigurator.configure("test/log.config");
+  }
+  
+  @AfterClass
+  public static void saveLogs () throws Exception
+  {
+    File state = new File("log/test.state");
+    state.renameTo(new File("log/TariffTests.state"));
+    File trace = new File("log/test.trace");
+    trace.renameTo(new File("log/TariffTests.trace"));
   }
 
   @Before
