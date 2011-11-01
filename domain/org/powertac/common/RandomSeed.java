@@ -72,7 +72,7 @@ public class RandomSeed extends java.util.Random
     if (purpose != null)
       this.purpose = purpose;
     this.value = value;
-    this.setSeed(this.value);    
+    this.setSeed(this.value);
   }
 
   public long getId ()

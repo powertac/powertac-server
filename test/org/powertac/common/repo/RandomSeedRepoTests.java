@@ -2,7 +2,11 @@ package org.powertac.common.repo;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
@@ -70,7 +74,32 @@ public class RandomSeedRepoTests
                  randomSeedRepo.getRandomSeed("Bar", 42, "more test"));
     assertEquals("still two entries", 2, randomSeedRepo.size());    
   }
+  
+  @Test
+  public void checkLogfile ()
+  {
+    // at this point, the file log/test.state should contain two lines from
+    // the two preceding tests, assuming the tests are run in order.
+    try {
+      BufferedReader input = new BufferedReader(new FileReader("log/test.state"));
+      String seedClass = RandomSeed.class.getName();
+      ArrayList<String> lines = new ArrayList<String>();
+      String line;
+      while ((line = input.readLine()) != null) {
+        lines.add(line);
+      }
+      assertEquals("two lines", 2, lines.size());
+      for (String entry : lines) {
+        String[] fields = entry.split("::");
+        assertEquals("correct classname", seedClass, fields[1]);
+      }
+    }
+    catch (IOException ioe) {
+      fail("IOException reading seedfile:" + ioe.toString());
+    }
+  }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRecycle ()
   {
@@ -82,6 +111,7 @@ public class RandomSeedRepoTests
     assertEquals("empty again", 0, randomSeedRepo.size());    
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testLoadRepo ()
   {
