@@ -666,25 +666,23 @@ public class CompetitionControlService
                                        int initialSlots,
                                        int openSlots)
   {
-    long timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
+    long timeslotMillis = competition.getTimeslotDuration();
     // set timeslot index according to bootstrap mode
 //    if (!bootstrapMode) {
 //      timeslotRepo.setIndexOffset(competition.getBootstrapTimeslotCount());
 //    }
     for (int i = 0; i < initialSlots - 1; i++) {
-      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
-                                              base.plus((i + 1) * timeslotMillis));
+      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
       ts.disable();
     }
     for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
-      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis),
-                                base.plus((i + 1) * timeslotMillis));
+      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
     }
   }
 
   private void activateNextTimeslot ()
   {
-    long timeslotMillis = competition.getTimeslotLength() * TimeService.MINUTE;
+    long timeslotMillis = competition.getTimeslotDuration();
     TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
     // remember that this runs at the beginning of a timeslot, so the current
@@ -708,7 +706,7 @@ public class CompetitionControlService
     if (newTs == null) {
       long start = (current.getStartInstant().getMillis() +
               (newSerial - current.getSerialNumber()) * timeslotMillis);
-      newTs = timeslotRepo.makeTimeslot(new Instant(start), new Instant(start + timeslotMillis));
+      newTs = timeslotRepo.makeTimeslot(new Instant(start));
     }
     else {
       newTs.enable();

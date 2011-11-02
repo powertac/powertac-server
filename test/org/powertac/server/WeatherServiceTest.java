@@ -7,11 +7,14 @@ import static org.mockito.Mockito.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecastPrediction;
@@ -43,26 +46,28 @@ public class WeatherServiceTest {
 	private WeatherForecastRepo weatherForecastRepo;
 	
 	
-	Instant i1;
+	Instant start;
 	Instant next;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		PropertyConfigurator.configure("test/logger.config");
-	    Logger.getRootLogger().setLevel(Level.DEBUG);
+	  PropertyConfigurator.configure("test/logger.config");
+	  Logger.getRootLogger().setLevel(Level.DEBUG);
 	}
 
 	@Before
-	public void setUp() throws Exception {
-		//Set the current instant to a time when we are requesting data
-		i1 = (new Instant()).withMillis(0);
-		next = i1.withMillis(1);
-		
-		timeService.setCurrentTime(i1);
-		for(int i = 0; i < 24; i++){
-			timeslotRepo.makeTimeslot((new Instant().withMillis(i)), (new Instant()).withMillis(i+1));
-			
-		}
+	public void setUp() throws Exception
+	{
+	  //Set the current instant to a time when we are requesting data
+	  Competition comp = Competition.newInstance("WeatherService test");
+	  start = new DateTime(2009, 4, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+	  next = start.plus(comp.getTimeslotDuration());
+	  timeService.setCurrentTime(start);
+	  if (timeslotRepo.currentTimeslot() == null) {
+	    for(int i = 0; i < 24; i++) {
+	      timeslotRepo.makeTimeslot(start.plus(comp.getTimeslotDuration() * i));
+	    }
+	  }
 	}
 	
 	@Test
@@ -79,7 +84,7 @@ public class WeatherServiceTest {
 		assertEquals(24, timeslotRepo.enabledTimeslots().size());
 				
 		
-		weatherService.activate(i1, 1);
+		weatherService.activate(start, 1);
 		
 		// Check that 24 weather reports entered the repo
 		assertEquals(24, weatherReportRepo.count());
@@ -94,7 +99,7 @@ public class WeatherServiceTest {
 		assertEquals(24, weatherReportRepo.count());
 		
 		//Check to see that the weatherReportRepo only gives the current timeslot weather report
-		assertEquals(i1, weatherReportRepo.currentWeatherReport().getCurrentTimeslot().getStartInstant());
+		assertEquals(start, weatherReportRepo.currentWeatherReport().getCurrentTimeslot().getStartInstant());
 		assertEquals(timeslotRepo.currentTimeslot(), weatherReportRepo.currentWeatherReport().getCurrentTimeslot());
 		
 		//Check to see that the next timeslot is as expected
@@ -120,7 +125,7 @@ public class WeatherServiceTest {
 	
 	@Test
 	public void testReportValues(){
-		timeService.setCurrentTime(i1);
+		timeService.setCurrentTime(start);
 		assertEquals(17.2, weatherReportRepo.currentWeatherReport().getTemperature(),.0001);
 		assertEquals(4.6, weatherReportRepo.currentWeatherReport().getWindSpeed(),.0001);
 		assertEquals(150, weatherReportRepo.currentWeatherReport().getWindDirection(),.0001);
@@ -130,7 +135,7 @@ public class WeatherServiceTest {
 	
 	@Test
 	public void testForecastValues(){
-		timeService.setCurrentTime(i1);
+		timeService.setCurrentTime(start);
 		// There should be 46 predictions in the forecast
 		assertEquals(46, weatherForecastRepo.currentWeatherForecast().getPredictions().size());
 		
