@@ -707,11 +707,10 @@ public class DefaultBrokerServiceTests
   private TimeslotUpdate createTimeslots()
   {
     Instant now = timeService.getCurrentTime();
-    Timeslot ts = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
+    Timeslot ts = timeslotRepo.makeTimeslot(now);
     ts.disable();
     for (int i = 1; i < 24; i++) {
-      timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i),
-                                now.plus(TimeService.HOUR * (i + 1)));
+      timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i));
     }
     return new TimeslotUpdate(timeService.getCurrentTime(), 
                               timeslotRepo.enabledTimeslots());
@@ -724,7 +723,7 @@ public class DefaultBrokerServiceTests
     Timeslot oldTs = timeslotRepo.findBySerialNumber(current.getSerialNumber());
     oldTs.disable();
     Instant start = oldTs.getStartInstant().plus(TimeService.HOUR * 23);
-    Timeslot newTs = timeslotRepo.makeTimeslot(start, start.plus(TimeService.HOUR));
+    Timeslot newTs = timeslotRepo.makeTimeslot(start);
     newTs.enable();
     return new TimeslotUpdate(timeService.getCurrentTime(), 
                               timeslotRepo.enabledTimeslots());
