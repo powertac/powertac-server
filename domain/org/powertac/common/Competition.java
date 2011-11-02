@@ -99,8 +99,8 @@ public class Competition //implements Serializable
   @XStreamImplicit(itemFieldName = "broker")
   private ArrayList<String> brokers;
   
-  @XStreamImplicit(itemFieldName = "plugin-config")
-  private ArrayList<PluginConfig> pluginConfigs;
+  //@XStreamImplicit(itemFieldName = "plugin-config")
+  //private ArrayList<PluginConfig> pluginConfigs;
   
   @XStreamImplicit(itemFieldName = "customer")
   private ArrayList<CustomerInfo> customers;
@@ -132,7 +132,7 @@ public class Competition //implements Serializable
     super();
     this.name = name;
     brokers = new ArrayList<String>();
-    pluginConfigs = new ArrayList<PluginConfig>();
+    //pluginConfigs = new ArrayList<PluginConfig>();
     customers = new ArrayList<CustomerInfo>();
   }
 
@@ -281,17 +281,17 @@ public class Competition //implements Serializable
     return this;
   }
   
-  public List<PluginConfig> getPluginConfigs ()
-  {
-    return pluginConfigs;
-  }
-  
-  @StateChange
-  public Competition addPluginConfig (PluginConfig config)
-  {
-    pluginConfigs.add(config);
-    return this;
-  }
+//  public List<PluginConfig> getPluginConfigs ()
+//  {
+//    return pluginConfigs;
+//  }
+//  
+//  @StateChange
+//  public Competition addPluginConfig (PluginConfig config)
+//  {
+//    pluginConfigs.add(config);
+//    return this;
+//  }
   
   public List<CustomerInfo> getCustomers ()
   {
