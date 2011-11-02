@@ -3,6 +3,7 @@
  */
 package org.powertac.server;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
@@ -43,6 +45,19 @@ public class BrokerProxyService implements BrokerProxy
 
   @Autowired
   private MessageListenerRegistrar registrar;
+  
+  @Autowired
+  private VisualizerProxy visualizerProxyService;
+
+  // Deferred messages during initialization
+  boolean deferredBroadcast = false;
+  ArrayList<Object> deferredMessages;
+  
+  public BrokerProxyService ()
+  {
+    super();
+    deferredMessages = new ArrayList<Object>();
+  }
 
   /*
    * (non-Javadoc)
@@ -53,9 +68,14 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void sendMessage (Broker broker, Object messageObject)
   {
+    // dispatch to visualizers
+    visualizerProxyService.forwardMessage(messageObject);
+    
+    // route to local brokers
     if (broker.isLocal()) {
       broker.receiveMessage(messageObject);
-    } else {
+    } 
+    else {
       final String text = converter.toXML(messageObject);
       final String queueName = broker.toQueueName();
 
@@ -92,6 +112,14 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void broadcastMessage (Object messageObject)
   {
+    if (deferredBroadcast) {
+      deferredMessages.add(messageObject);
+      return;
+    }
+
+    // dispatch to visualizers
+    visualizerProxyService.forwardMessage(messageObject);
+
     Collection<Broker> brokers = brokerRepo.list();
     for (Broker broker : brokers) {
       // let's be JMS provider neutral and not take advance of special queues in
@@ -124,6 +152,9 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void routeMessage (Object message)
   {
+    // dispatch to visualizers
+    visualizerProxyService.forwardMessage(message);
+
     router.route(message);
   }
 
@@ -171,8 +202,7 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void setDeferredBroadcast (boolean b)
   {
-    // TODO Auto-generated method stub
-
+    deferredBroadcast = b;
   }
 
   /*
@@ -182,7 +212,9 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void broadcastDeferredMessages ()
   {
-    // TODO Auto-generated method stub
-
+    deferredBroadcast = false;
+    log.info("broadcasting " + deferredMessages.size() + " deferred messages");
+    broadcastMessages(deferredMessages);
+    deferredMessages.clear();
   }
 }
