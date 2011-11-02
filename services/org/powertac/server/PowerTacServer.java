@@ -120,7 +120,7 @@ public class PowerTacServer
               File bootFile = new File(tokens[1]);
               if (cc.preGame(bootFile)) {
                 // TODO: wait for broker login
-                cc.runOnce(bootFile);
+                cc.runOnce();
               }
             }
           }

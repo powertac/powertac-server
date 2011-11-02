@@ -50,7 +50,7 @@
   <!-- need explicit list of beans that have properties to set -->
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
-    <property name="bootstrapTimeslotMillis", value="1000" />
+    <property name="bootstrapTimeslotMillis" value="1000" />
   </bean>
   
   <bean id="auctionService" 
