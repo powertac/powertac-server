@@ -22,6 +22,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -40,6 +41,7 @@ public class OrderbookRepoTests
   @Before
   public void setUp () throws Exception
   {
+    Competition.newInstance("test");
     repo = new OrderbookRepo();
     timeslotRepo = new TimeslotRepo();
     timeService = new TimeService();
@@ -58,8 +60,7 @@ public class OrderbookRepoTests
   @Test
   public void testMakeOrderbook ()
   {
-    Timeslot timeslot = timeslotRepo.makeTimeslot(start, 
-                                                  start.plus(TimeService.HOUR));
+    Timeslot timeslot = timeslotRepo.makeTimeslot(start);
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
     assertNotNull("created orderbook", ob);
     assertEquals("correct timeslot", timeslot, ob.getTimeslot());
@@ -71,13 +72,11 @@ public class OrderbookRepoTests
   @Test
   public void testFindByTimeslot ()
   {
-    Timeslot timeslot = timeslotRepo.makeTimeslot(start, 
-                                                  start.plus(TimeService.HOUR));
+    Timeslot timeslot = timeslotRepo.makeTimeslot(start);
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
     assertEquals("size 1", 1, repo.size());
     assertEquals("found this one", ob, repo.findByTimeslot(timeslot));
-    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR), 
-                                                   start.plus(TimeService.HOUR * 2));
+    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     assertNull("no orderbook yet", repo.findByTimeslot(timeslot2));
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
     assertEquals("size 2", 2, repo.size());
@@ -90,10 +89,8 @@ public class OrderbookRepoTests
   @Test
   public void testRecycle ()
   {
-    Timeslot timeslot = timeslotRepo.makeTimeslot(start, 
-                                                  start.plus(TimeService.HOUR));
-    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR), 
-                                                   start.plus(TimeService.HOUR * 2));
+    Timeslot timeslot = timeslotRepo.makeTimeslot(start);
+    Timeslot timeslot2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     Orderbook ob1 = repo.makeOrderbook(timeslot, 22.0);
     Orderbook ob2 = repo.makeOrderbook(timeslot2, 23.0);
     assertEquals("found this one", ob1, repo.findByTimeslot(timeslot));

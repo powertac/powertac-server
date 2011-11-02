@@ -165,6 +165,14 @@ public class Competition //implements Serializable
   {
     return timeslotLength;
   }
+  
+  /**
+   * Returns the duration of a timeslot in milliseconds real-time.
+   */
+  public long getTimeslotDuration ()
+  {
+    return timeslotLength * TimeService.MINUTE;
+  }
 
   @StateChange
   public Competition withTimeslotLength (int timeslotLength)
@@ -280,18 +288,6 @@ public class Competition //implements Serializable
     brokers.add(brokerUsername);
     return this;
   }
-  
-//  public List<PluginConfig> getPluginConfigs ()
-//  {
-//    return pluginConfigs;
-//  }
-//  
-//  @StateChange
-//  public Competition addPluginConfig (PluginConfig config)
-//  {
-//    pluginConfigs.add(config);
-//    return this;
-//  }
   
   public List<CustomerInfo> getCustomers ()
   {

@@ -65,8 +65,8 @@ public class Timeslot
   private Instant startInstant;
 
   /** end date and time of the timeslot */
-  @XStreamOmitField
-  private Instant endInstant;
+  //@XStreamOmitField
+  //private Instant endInstant;
   
   /** previous and next timeslots */
   @XStreamOmitField
@@ -80,24 +80,24 @@ public class Timeslot
    * Note that Timeslots are created in sequence, and are initially enabled. If you
    * want to create a disabled timeslot, you have to call disable() after creating it.
    */
-  public Timeslot (int serial, Instant start, Instant end, Timeslot previous)
+  public Timeslot (int serial, Instant start, Timeslot previous)
   {
     super();
     serialNumber = serial;
     startInstant = start;
-    endInstant = end;
+    //endInstant = end;
     enabled = true;
     if (previous != null) {
-      // special case for first timeslot - should never happen
-      if (!previous.endInstant.equals(start)) {
-        log.error("Timeslot " + serial + ": start:" + start.toString() +
-                  " != previous.end:" + previous.endInstant);
-        serialNumber = -1;
-      }
-      else {
+//      // special case for first timeslot - should never happen
+//      if (!previous.endInstant.equals(start)) {
+//        log.error("Timeslot " + serial + ": start:" + start.toString() +
+//                  " != previous.end:" + previous.endInstant);
+//        serialNumber = -1;
+//      }
+//      else {
         this.previous = previous;
         previous.next =  this;
-      }
+//      }
     }
   }
 
@@ -135,12 +135,11 @@ public class Timeslot
 
   public Instant getEndInstant ()
   {
-    return endInstant;
+    return startInstant.plus(Competition.currentCompetition().getTimeslotDuration());
   }
 
   public String toString() {
-    return ("timeslot " + serialNumber + ":" + startInstant.toString() +
-            " - " + endInstant.toString() + "(" + 
+    return ("timeslot " + serialNumber + ":" + startInstant.toString() + "(" + 
             (enabled ? "enabled" : "disabled") + ")");
   }
 

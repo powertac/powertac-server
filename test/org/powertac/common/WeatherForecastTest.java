@@ -26,15 +26,18 @@ public class WeatherForecastTest {
 	Timeslot ts1;
 	List<WeatherForecastPrediction> tlist;
 	@BeforeClass
-	public static void setupLog() {
+	public static void setupLog()
+	{
 		PropertyConfigurator.configure("test/log.config");
 	}
 
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() throws Exception
+	{
+	    Competition.newInstance("test");
 		Instant baseTime = new DateTime().toInstant();
 		tlist = new ArrayList<WeatherForecastPrediction>();
-		ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+		ts1 = new Timeslot(1, baseTime, null);
 		tlist.add(new WeatherForecastPrediction(0, 0, 0, 0, 0));
 	}
 	

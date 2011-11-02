@@ -21,6 +21,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 
+import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 
@@ -77,15 +78,18 @@ public class TimeslotRepo implements DomainRepo
    * a new timeslot is not equal to the end time of the last timeslot in the list.
    * Note that new timeslots are always created in the "enabled" state.
    */
-  public Timeslot makeTimeslot (Instant startTime, Instant endTime)
+  public Timeslot makeTimeslot (Instant startTime)
   {
-    if (last != null && !last.getEndInstant().isEqual(startTime)) {
+    long duration = Competition.currentCompetition().getTimeslotDuration();
+    log.debug("Duration=" + duration);
+    Instant lastStart = startTime.minus(duration);
+    if (last != null && !last.getStartInstant().isEqual(lastStart)) {
       log.error("Timeslot " + (timeslotIndex + 1) + ": start:" + startTime.toString() +
-                " != previous.end:" + last.getEndInstant());
+                " != previous.end:" + lastStart.plus(duration));
       return null;
     }
     Timeslot result = new Timeslot(timeslotIndex + indexOffset, 
-                                   startTime, endTime, last);
+                                   startTime, last);
     if (result.getSerialNumber() == -1) // big trouble
       return null;
     if (first == null)
@@ -108,11 +112,7 @@ public class TimeslotRepo implements DomainRepo
     if (current != null && current.getStartInstant().isEqual(time)) {
       return current;
     }
-    Timeslot test = first;
-    while (test != null && test.getStartInstant().isBefore(time)) {
-      test = test.getNext();
-    }
-    current = test;
+    current = findByInstant(time);
     return current;
   }
 
@@ -134,7 +134,7 @@ public class TimeslotRepo implements DomainRepo
   public Timeslot findByInstant (Instant time)
   {
     long offset = time.getMillis() - first.getStartInstant().getMillis();
-    long duration = first.getEndInstant().getMillis() - first.getStartInstant().getMillis();
+    long duration = Competition.currentCompetition().getTimeslotDuration();
     // truncate to timeslot boundary
     offset -= offset % duration;
     int index = (int)(offset / duration);

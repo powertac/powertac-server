@@ -26,13 +26,14 @@ public class TimeslotTests
   @Before
   public void setUp () throws Exception
   {
+    Competition.newInstance("test");
     baseTime = new DateTime().toInstant();
   }
 
   @Test
   public void testTimeslot ()
   {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     assertNotNull("not null", ts1);
     assertNull("no previous", ts1.getPrevious());
   }
@@ -40,54 +41,33 @@ public class TimeslotTests
   @Test
   public void testTimeslotPrev ()
   {
-    Timeslot ts1 = new Timeslot(1, 
-                                baseTime, 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     Timeslot ts2 = new Timeslot(2, 
                                 new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR * 2), 
                                 ts1);
     assertNotNull("not null", ts2);
     assertEquals("correct previous", ts1, ts2.getPrevious());
     assertEquals("correct next", ts2, ts1.getNext());
   }
-  
-  @Test
-  public void testTimeslotBadPrev ()
-  {
-    Timeslot ts1 = new Timeslot(1, 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR * 2), 
-                                null);
-    Timeslot ts2 = new Timeslot(2, 
-                                baseTime, 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                ts1);
-    assertEquals("ts1 correct sn", 1, ts1.getSerialNumber());
-    assertEquals("ts2 sn flag", -1, ts2.getSerialNumber());
-    assertNull("no linkage ts1", ts1.getNext());
-    assertNull("no linkage ts2", ts2.getPrevious());
-  }
 
   @Test
   public void testGetSerialNumber ()
   {
-    Timeslot ts1 = new Timeslot(42, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(42, baseTime, null);
     assertEquals("correct serial", 42, ts1.getSerialNumber());
   }
 
   @Test
   public void testIsEnabled ()
   {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     assertTrue("enabled", ts1.isEnabled());
   }
 
   @Test
   public void testEnable ()
   {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     ts1.disable();
     assertFalse("disabled", ts1.isEnabled());
   }
@@ -95,7 +75,7 @@ public class TimeslotTests
   @Test
   public void testDisable ()
   {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     ts1.disable();
     assertFalse("disabled", ts1.isEnabled());
     ts1.enable();
@@ -105,29 +85,25 @@ public class TimeslotTests
   @Test
   public void testGetStartInstant ()
   {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     assertEquals("correct start", baseTime, ts1.getStartInstant());
   }
 
-  @Test
-  public void testGetEndInstant ()
-  {
-    Timeslot ts1 = new Timeslot(1, baseTime, new Instant(baseTime.getMillis() + TimeService.HOUR), null);
-    assertEquals("correct end", new Instant(baseTime.getMillis() + TimeService.HOUR), ts1.getEndInstant());
-  }
+//  @Test
+//  public void testGetEndInstant ()
+//  {
+//    Timeslot ts1 = new Timeslot(1, baseTime, null);
+//    assertEquals("correct end", new Instant(baseTime.getMillis() + TimeService.HOUR), ts1.getEndInstant());
+//  }
 
   @Test
   public void testGetNextPrev ()
   {
-    Timeslot ts1 = new Timeslot(1, 
-                                baseTime, 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                null);
+    Timeslot ts1 = new Timeslot(1, baseTime, null);
     assertNull("no prev", ts1.getPrevious());
     assertNull("no next", ts1.getNext());
     Timeslot ts2 = new Timeslot(2, 
                                 new Instant(baseTime.getMillis() + TimeService.HOUR), 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR * 2), 
                                 ts1);
     assertEquals("correct previous", ts1, ts2.getPrevious());
     assertEquals("correct next", ts2, ts1.getNext());
@@ -140,7 +116,6 @@ public class TimeslotTests
   {
     Timeslot ts1 = new Timeslot(1, 
                                 baseTime, 
-                                new Instant(baseTime.getMillis() + TimeService.HOUR), 
                                 null);
     XStream xstream = new XStream();
     xstream.processAnnotations(Timeslot.class);

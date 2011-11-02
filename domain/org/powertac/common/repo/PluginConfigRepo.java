@@ -79,6 +79,10 @@ public class PluginConfigRepo implements DomainRepo
     return result;
   }
   
+  /**
+   * Returns the PluginConfig instance (if any) that matches the given
+   * PluginConfig by role name and name.
+   */
   public PluginConfig findMatching (PluginConfig match)
   {
     for (PluginConfig pic : findAllByRoleName(match.getRoleName())) {
@@ -86,6 +90,20 @@ public class PluginConfigRepo implements DomainRepo
         return pic;
     }
     return null;
+  }
+  
+  /**
+   * Returns the list of PluginConfig instances that are public information
+   * with respect to brokers.
+   */
+  public List<PluginConfig> findAllPublic ()
+  {
+    ArrayList<PluginConfig> result = new ArrayList<PluginConfig>(); 
+    for (PluginConfig config : storage) {
+      // TODO - filter by some attribute
+      result.add(config);
+    }
+    return result;    
   }
   
   /**

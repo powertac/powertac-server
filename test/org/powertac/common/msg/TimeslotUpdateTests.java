@@ -26,6 +26,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.TimeslotRepo;
@@ -45,14 +46,14 @@ public class TimeslotUpdateTests
   @Before
   public void setUp () throws Exception
   {
+    Competition.newInstance("test");
     timeService = new TimeService();
     Instant start = new DateTime(2011,1,10,0,0,0,0,DateTimeZone.UTC).toInstant();
     timeslotRepo = new TimeslotRepo();
     ReflectionTestUtils.setField(timeslotRepo, "timeService", timeService);
     Timeslot ts;
     for (int i = 0; i < 15; i++) {
-      ts = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * i),
-                                     start.plus(TimeService.HOUR * (i + 1)));
+      ts = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * i));
       ts.enable();
     }
 
