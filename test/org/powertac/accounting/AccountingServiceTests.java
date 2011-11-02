@@ -178,10 +178,10 @@ public class AccountingServiceTests
     tariffRepo.addTariff(tariffJ1);
     
     // set up some timeslots
-    timeslotRepo.makeTimeslot(now.minus(TimeService.HOUR), now);
-    timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR), now.plus(TimeService.HOUR * 2));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2), now.plus(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(now.minus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(now);
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
   }
   
   private void initializeService () {
