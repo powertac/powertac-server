@@ -85,8 +85,7 @@ public class DistributionUtilityServiceTests
 
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC);
     timeService.setCurrentTime(start.toInstant());
-    timeslotRepo.makeTimeslot(start.toInstant(),
-                              new Instant(start.getMillis() + TimeService.HOUR));
+    timeslotRepo.makeTimeslot(start.toInstant());
     timeslotRepo.currentTimeslot().disable();// enabled: false);
     exp = new Instant(start.getMillis() + TimeService.WEEK * 10);
 
@@ -499,14 +498,11 @@ public class DistributionUtilityServiceTests
     // add some new timeslots
     Timeslot ts0 = timeslotRepo.currentTimeslot();
     long start = timeService.getCurrentTime().getMillis();
-    Timeslot ts1 = new Timeslot(1, new Instant(start - TimeService.HOUR * 3),
-                                new Instant(start - TimeService.HOUR * 2), null);
+    Timeslot ts1 = new Timeslot(1, new Instant(start - TimeService.HOUR * 3), null);
     ts1.disable(); // enabled: false
-    Timeslot ts2 = new Timeslot(2, new Instant(start - TimeService.HOUR * 2),
-                                new Instant(start - TimeService.HOUR), null);
+    Timeslot ts2 = new Timeslot(2, new Instant(start - TimeService.HOUR * 2), null);
     ts2.disable(); // enabled: false
-    Timeslot ts3 = new Timeslot(3, new Instant(start - TimeService.HOUR),
-                                new Instant(start), null);
+    Timeslot ts3 = new Timeslot(3, new Instant(start - TimeService.HOUR), null);
     ts3.disable(); // enabled: false
 
     // add some orderbooks
