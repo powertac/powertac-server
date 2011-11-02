@@ -98,8 +98,8 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
     double balancingCostMax =
         config.getDoubleValue("balancingCostMax", 0.08);
 
-    randomGen = randomSeedService.getRandomSeed(
-                                                "DistributionUtilityService", id, "model");
+    randomGen = randomSeedService.getRandomSeed("DistributionUtilityService",
+                                                id, "model");
     distributionFee = (distributionFeeMin + randomGen.nextDouble()
         * (distributionFeeMax - distributionFeeMin));
     balancingCost = (balancingCostMin + randomGen.nextDouble()

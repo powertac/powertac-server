@@ -23,14 +23,12 @@ implements InitializationService
   private PluginConfigRepo pluginConfigRepo;
 
   public void setDefaults() {
-    PluginConfig config = pluginConfigRepo.makePluginConfig("DistributionUtility", "");
-    // TODO implement configurable values for below variables.
-    // configuration: ['distributionFeeMin': '0.003',
-    // 'distributionFeeMax': '0.03',
-    // 'balancingCostMin': '0.02',
-    // 'balancingCostMax': '0.06',
-    // 'defaultSpotPrice': '50.0']);
-    // config.save();
+    pluginConfigRepo.makePluginConfig("DistributionUtility", "")
+      .addConfiguration("distributionFeeMin", "0.003")
+      .addConfiguration("distributionFeeMax", "0.03")
+      .addConfiguration("balancingCostMin", "0.02")
+      .addConfiguration("balancingCostMax", "0.06")
+      .addConfiguration("defaultSpotPrice", "50.0");
   }
 
   public String initialize(Competition competition,
