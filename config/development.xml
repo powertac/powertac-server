@@ -48,6 +48,11 @@
   </bean>
   
   <!-- need explicit list of beans that have properties to set -->
+  <bean id="competitionControlService"
+        class="org.powertac.server.CompetitionControlService">
+    <property name="bootstrapTimeslotMillis", value="1000" />
+  </bean>
+  
   <bean id="auctionService" 
         class="org.powertac.auctioneer.AuctionService">
     <property name="timeslotPhase" value="1" />

@@ -156,6 +156,7 @@ public class CompetitionControlService
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
+  private long bootstrapTimeslotMillis = 1000;
   
   private boolean simRunning = false;
 
@@ -427,6 +428,7 @@ public class CompetitionControlService
   private void step ()
   {
     Instant time = timeService.getCurrentTime();
+    Date started = new Date();
     activateNextTimeslot();
     log.info("step at " + time.toString());
     for (int index = 0; index < phaseRegistrations.size(); index++) {
@@ -435,6 +437,8 @@ public class CompetitionControlService
         fn.activate(time, index + 1);
       }
     }
+    Date ended = new Date();
+    log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
     if (--timeslotCount <= 0) {
       log.info("Stopping simulation");
       stop();
@@ -550,6 +554,14 @@ public class CompetitionControlService
     clock.releasePause();
     pauseRequester = null;
   }
+  
+  /**
+   * Allows Spring to set the boostrap timeslot length
+   */
+  public void setBootstrapTimeslotMillis (long length)
+  {
+    bootstrapTimeslotMillis = length;
+  }
 
   //--------- local methods -------------
 
@@ -613,12 +625,16 @@ public class CompetitionControlService
     Instant base = competition.getSimulationBaseTime();
     // if we are not in bootstrap mode, we have to add the bootstrap interval
     // to the base
+    long rate = competition.getSimulationRate();
     if (!bootstrapMode) {
       base = base.plus(competition.getBootstrapTimeslotCount() * 
                        competition.getTimeslotLength() * 
                        TimeService.MINUTE);
     }
-    long rate = competition.getSimulationRate();
+    else {
+      // compute rate from bootstrapTimeslotMillis
+      rate = competition.getTimeslotLength() * TimeService.MINUTE / bootstrapTimeslotMillis;
+    }
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
       long mult = competition.getSimulationRate() / competition.getTimeslotLength();
