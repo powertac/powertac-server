@@ -21,12 +21,12 @@ package org.powertac.common.interfaces;
  *
  * @author David Dauer
  */
-public interface VisualizationProxy {
+public interface VisualizerProxy {
 
   /**
    * Sets up a dispatch listener for market messages
    */
-  void registerVisualizationListener(VisualizationListener listener);
+  void registerVisualizerMessageListener(VisualizerMessageListener listener);
 
   /**
    * Forwards message to registered listeners

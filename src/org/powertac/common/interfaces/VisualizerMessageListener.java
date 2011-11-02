@@ -17,11 +17,11 @@ package org.powertac.common.interfaces;
 
 /**
  * Implementors of this interface will be notified of selected events
- * necessary for visualization by calling registerVisualizationListener(this)
- * on VisualizationProxy.
+ * necessary for visualization by calling registerVisualizerMessageListener(this)
+ * on VisualizerProxy.
  *
  * @author David Dauer
  */
-public interface VisualizationListener {
+public interface VisualizerMessageListener {
   void receiveMessage(Object msg);
 }
