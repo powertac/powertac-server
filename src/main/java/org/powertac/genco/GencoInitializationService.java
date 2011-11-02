@@ -49,22 +49,38 @@ class GencoInitializationService
 
   public void setDefaults ()
   {
+    // set up several producers
     build("nsp1", 100.0, 0.05, 20.0, 8, 1.0);
     build("nsp2", 60.0, 0.05, 21.8, 8, 1.0);
     build("gas1", 40.0, 0.03, 35.0, 1, 0.5);
     build("gas2", 30.0, 0.03, 38.5, 0, 0.5) ;
-    build("backup", 20000.0, 0.001, 100.0, 0, 0.8); // backup source   
+    build("backup", 20000.0, 0.001, 100.0, 0, 0.8); // backup source
+    
+    // set up a buyer that will not buy from any of these sellers
+    pluginConfigRepo.makePluginConfig("genco", "buyer")
+      .addConfiguration("priceBeta", "10.0")
+      .addConfiguration("mwh", "500.0");
   }
 
   public String initialize (Competition competition, List<String> completedInits)
   {
     ArrayList<Genco> gencos = new ArrayList<Genco>();
     for (PluginConfig config : pluginConfigRepo.findAllByRoleName("genco")) {
-      Genco genco = new Genco(config.getName());
-      brokerRepo.add(genco);
-      genco.configure(config);
-      genco.init(brokerProxyService, randomSeedRepo);
-      gencos.add(genco);
+      if ("buyer".equals(config.getName())) {
+        // set up buyer
+        Buyer buyer = new Buyer(config.getName());
+        brokerRepo.add(buyer);
+        buyer.configure(config);
+        buyer.init(brokerProxyService, randomSeedRepo);
+        gencos.add(buyer);
+      }
+      else {
+        Genco genco = new Genco(config.getName());
+        brokerRepo.add(genco);
+        genco.configure(config);
+        genco.init(brokerProxyService, randomSeedRepo);
+        gencos.add(genco);
+      }
     }
     simpleGencoService.init(gencos);
     return "Genco";

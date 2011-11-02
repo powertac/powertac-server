@@ -65,8 +65,8 @@ public class Genco
   /** True if this is a renewable source */
   private boolean renewable = false;
   
-  private BrokerProxy brokerProxyService;
-  private RandomSeed seed;
+  protected BrokerProxy brokerProxyService;
+  protected RandomSeed seed;
 
   // configured parameters  
   //private String name;
@@ -149,8 +149,8 @@ public class Genco
         Shout offer =
             new Shout(this, slot, Shout.OrderType.SELL,
                       availableCapacity, cost);
-	log.debug("${name} offers ${availableCapacity} in ${slot} for ${cost}");
-        // should we send this?
+	log.debug(getUsername() + " offers " + availableCapacity +
+	          " in " + slot.getSerialNumber() + " for " + cost);
 	brokerProxyService.routeMessage(offer);
       }
     }
