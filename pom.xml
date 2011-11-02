@@ -225,4 +225,9 @@
 			</plugin>
 		</plugins>
 	</build>
+	<organization>
+		<name>Power TAC</name>
+		<url>http://www.powertac.org</url>
+	</organization>
+	<description>Domain data and services needed by both server and brokers in the Power TAC competitive simulation system.</description>
 </project>

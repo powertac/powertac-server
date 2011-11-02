@@ -157,7 +157,10 @@ public class Competition //implements Serializable
     this.description = description;
     return this;
   }
-
+  
+  /**
+   * Returns the length of a timeslot in minutes (sim time).
+   */
   public int getTimeslotLength ()
   {
     return timeslotLength;
@@ -186,7 +189,7 @@ public class Competition //implements Serializable
   {
     return bootstrapTimeslotCount;
   }
-
+  
   @StateChange
   public Competition withBootstrapTimeslotCount (int bootstrapTimeslotCount)
   {
