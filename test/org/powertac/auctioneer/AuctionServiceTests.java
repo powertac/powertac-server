@@ -115,16 +115,12 @@ public class AuctionServiceTests
     // set the clock, create some useful timeslots
     Instant now = new DateTime(2011, 1, 26, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(now);
-    ts0 = timeslotRepo.makeTimeslot(now, now.plus(TimeService.HOUR));
+    ts0 = timeslotRepo.makeTimeslot(now);
     ts0.disable();
-    ts1 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR), 
-                                    now.plus(TimeService.HOUR * 2));
-    ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2), 
-                                    now.plus(TimeService.HOUR * 3));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3), 
-                              now.plus(TimeService.HOUR * 4));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4), 
-                              now.plus(TimeService.HOUR * 5));
+    ts1 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
+    ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
     
     // mock the AccountingService, capture args
     doAnswer(new Answer() {
