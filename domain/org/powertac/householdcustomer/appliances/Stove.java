@@ -26,9 +26,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Stove is the kitchen utility we use for cooking. It is use at least twice a day depending on the
- * number of tenants. The tenants should be present when functioning so this is a not shifting
+ * Stove is the kitchen utility we use for cooking. It is use at least twice a day depending on the number of tenants. The tenants should be present when functioning so this is a not shifting
  * appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -94,7 +94,7 @@ public class Stove extends SemiShiftingAppliance
       if (operation.get(i) == true) {
         boolean flag = true;
         int counter = 0;
-        while ((flag) && (i < HouseholdConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
+        while ((flag) && (i < HouseholdConstants.QUARTERS_OF_DAY - 1) && (counter >= 0)) {
           if (applianceOf.isEmpty(weekday, i) == false && applianceOf.isEmpty(weekday, i + 1) == false) {
             loadVector.add(power);
             dailyOperation.add(true);
@@ -116,6 +116,11 @@ public class Stove extends SemiShiftingAppliance
         loadVector.add(0);
         dailyOperation.add(false);
       }
+    }
+
+    if (loadVector.size() == 95) {
+      loadVector.add(0);
+      dailyOperation.add(false);
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
