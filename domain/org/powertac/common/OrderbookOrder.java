@@ -21,7 +21,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * Each instance is an individual un-cleared entry (a Bid or an Ask) within an Orderbook.
+ * Each instance is an individual un-cleared entry (a Bid or an Ask) within 
+ * an Orderbook.
  * @author Daniel Schnurr
  */
 @Domain
@@ -31,18 +32,15 @@ public class OrderbookOrder implements Comparable<Object>
   private long id = IdGenerator.createId();
 
   @XStreamAsAttribute
-  private double limitPrice;
+  private Double limitPrice;
 
   @XStreamAsAttribute
   private double mWh;
   
-  @XStreamAsAttribute
-  private Shout.OrderType orderType;
   
-  public OrderbookOrder (Shout.OrderType orderType, double limitPrice, double mWh)
+  public OrderbookOrder (double limitPrice, Double mWh)
   {
     super();
-    this.orderType = orderType;
     this.limitPrice = limitPrice;
     this.mWh = mWh;
   }
@@ -57,11 +55,6 @@ public class OrderbookOrder implements Comparable<Object>
       return 1;
     OrderbookOrder other = (OrderbookOrder) o;
     return (this.limitPrice == (other.limitPrice) ? 0 : (this.limitPrice < other.limitPrice ? 1 : -1));
-  }
-
-  public Shout.OrderType getOrderType ()
-  {
-    return orderType;
   }
   
   public double getLimitPrice ()

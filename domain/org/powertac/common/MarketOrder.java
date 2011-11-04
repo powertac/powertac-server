@@ -26,7 +26,7 @@ import com.thoughtworks.xstream.annotations.*;
 
 /**
  * A MarketOrder instance represents a market (no price specified) or a limit
- * (min/max price specified) order in the PowerTAC wholesale market. Each Shout
+ * (min/max price specified) order in the PowerTAC wholesale market. Each MarketOrder
  * specifies an amount of energy in MWh, and a price in units. The quantities
  * represent the broker's view of the proposed transaction in terms of the
  * broker's energy and money accounts: positive quantities
@@ -40,8 +40,8 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, John Collins
  */
 @Domain
-@XStreamAlias("shout")
-public class Shout //implements Serializable 
+@XStreamAlias("market-order")
+public class MarketOrder
 {  
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
@@ -59,31 +59,36 @@ public class Shout //implements Serializable
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
 
-  /** product quantity in mWh to buy or sell */
+  /** product quantity in mWh - positive to buy, negative to sell */
   @XStreamAsAttribute
   private double mWh;
 
   /**
    * Limit price/mWh -- max. acceptable buy or sell price. A positive value
    * indicates payment to the broker; a negative value indicates payment to
-   * the other party.
+   * the other party. Null value indicates a market order.
    */
   @XStreamAsAttribute
   private Double limitPrice;
 
-  /** optional comment that can be used for example to further 
-   * describe why a shout was deleted by system (e.g. during 
-   * deactivaton of a timeslot) */
-  private String comment;
-
-  public Shout (Broker broker, Timeslot timeslot, 
-                OrderType orderType,
-                double mWh, Double limitPrice)
+  /**
+   * Creates a new MarketOrder for Broker to buy or sell a quantity of energy
+   * in Timeslot. A positive value for mWh indicates a buy order (because the
+   * broker's energy account will increase), and a negative value for mWh
+   * indicates an offer to sell. Similarly, a negative value for limitPrice
+   * indicates a willingness to pay the given amount, while a positive value
+   * indicates a demand to be paid at least that amount. A null value for
+   * limitPrice indicates an unlimited price. In the clearing process, null
+   * values will be considered last for both buy and sell orders, and
+   * the price-setting algorithm may not be advantageous for the broker in this
+   * case.
+   */
+  public MarketOrder (Broker broker, Timeslot timeslot, 
+                      double mWh, Double limitPrice)
   {
     super();
     this.broker = broker;
     this.timeslot = timeslot;
-    this.orderType = orderType;
     this.mWh = mWh;
     this.limitPrice = limitPrice;
   }
@@ -95,21 +100,9 @@ public class Shout //implements Serializable
 
   /** Fluent-style setter */
   @StateChange
-  public Shout withProduct (ProductType product)
+  public MarketOrder withProduct (ProductType product)
   {
     this.product = product;
-    return this;
-  }
-
-  public String getComment ()
-  {
-    return comment;
-  }
-
-  @StateChange
-  public Shout withComment (String comment)
-  {
-    this.comment = comment;
     return this;
   }
 
@@ -126,29 +119,6 @@ public class Shout //implements Serializable
   public Timeslot getTimeslot ()
   {
     return timeslot;
-  }
-
-  /**
-   * @deprecated - use {@link getOrderType} instead.
-   */
-  @Deprecated
-  public OrderType getBuySellIndicator ()
-  {
-    return orderType;
-  }
-
-  public OrderType getOrderType ()
-  {
-    return orderType;
-  }
-
-  /**
-   * @deprecated - use {@link getMWh} instead.
-   */
-  @Deprecated
-  public double getQuantity ()
-  {
-    return mWh;
   }
 
   public double getMWh ()
