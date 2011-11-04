@@ -104,7 +104,6 @@ public class DefaultBrokerService
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
-  //private HashMap<Timeslot, MarketPosition> marketPositions;
 
   /**
    * Default constructor, called once when the server starts, before
@@ -127,7 +126,6 @@ public class DefaultBrokerService
     log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
-    //marketPositions = new HashMap<Timeslot, MarketPosition>();
     
     // if we are in bootstrap mode, we need to set up the dataset
     if (bootstrapMode)
@@ -189,16 +187,6 @@ public class DefaultBrokerService
   {
     Timeslot current = timeslotRepo.currentTimeslot();
     log.info("activate: timeslot " + current.getSerialNumber());
-    
-    // In the first timeslot, we buy a fixed amount because we have no
-    // usage record. Note that this gets called after a timeslot update, but
-    // before the sim clock is updated. However the "current timeslot" is
-    // the one in which the most recent energy usage was recorded.
-    //if (current.getSerialNumber() == 0) {
-    //  for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
-    //    submitShout(initialBidKWh, timeslot);
-    //  }
-    //}
     
     // In the first through 23rd timeslot, we buy enough to meet what was
     // used in the previous timeslot. Note that this is called after the
@@ -465,8 +453,9 @@ public class DefaultBrokerService
     double totalMWh = 0.0;
     double totalCost = 0.0;
     for (MarketTransaction tx : txList) {
+      // TODO - only include buy orders?
       totalMWh += tx.getMWh();
-      totalCost += tx.getPrice();
+      totalCost += tx.getPrice() * tx.getMWh();
     }
     marketMWh.add(totalMWh);
     if (totalMWh == 0.0) {
