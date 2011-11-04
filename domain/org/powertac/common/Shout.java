@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2009-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,29 +25,24 @@ import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * A shout domain instance represents a market (no price specified) or a limit (min/max
- * price specified) order in the PowerTAC wholesale
- * market. More precisely it represents a single state of this specific order. Each time a
- * change occurs, the shout object is cloned, the {@code latest} property is set to false
- * for the original object (which remains unchanged otherwise) and all necessary changes
- * are put into the newly cloned shout instance. Like this, each update (e.g. a partial
- * execution, a deletion by system or by user can be tracked by selecting all
- * shout instances from the database that carry the same {@code shoutId}, which is the
- * common identifier for all instances that belong to the same original shout (note that
- * this is not the {@code id} field, which is different (and unique) for each shout
- * instance and servers as primary key for the database.
+ * A MarketOrder instance represents a market (no price specified) or a limit
+ * (min/max price specified) order in the PowerTAC wholesale market. Each Shout
+ * specifies an amount of energy in MWh, and a price in units. The quantities
+ * represent the broker's view of the proposed transaction in terms of the
+ * broker's energy and money accounts: positive quantities
+ * of energy represent a proposal to buy power from another party and transfer
+ * it to the broker. A positive quantity of energy is almost always accompanied 
+ * by a negative price, which in turn represents money to be transfered out
+ * of the broker's account to the other party in the transaction. So a buy order
+ * is indicated by a positive energy quantity, and a sell order is indicated by
+ * a negative energy quantity.
  *
- * Note: The word "shout" was chosen to avoid db level incompatibilities due to the word
- * "order" being a reserved word in most SQL dialects.
- *
- * @author Carsten Block
+ * @author Carsten Block, John Collins
  */
 @Domain
 @XStreamAlias("shout")
 public class Shout //implements Serializable 
-{
-  public enum OrderType { BUY, SELL }
-  
+{  
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -64,15 +59,15 @@ public class Shout //implements Serializable
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
 
-  /** flag that indicates if this shout is a buy or sell order */
-  @XStreamAsAttribute
-  private OrderType orderType;
-
-  /** the product quantity in mWh to buy or sell */
+  /** product quantity in mWh to buy or sell */
   @XStreamAsAttribute
   private double mWh;
 
-  /** the limit price, i.e. the max. acceptable buy or min acceptable sell price */
+  /**
+   * Limit price/mWh -- max. acceptable buy or sell price. A positive value
+   * indicates payment to the broker; a negative value indicates payment to
+   * the other party.
+   */
   @XStreamAsAttribute
   private Double limitPrice;
 
