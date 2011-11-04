@@ -1,6 +1,7 @@
 package org.powertac.common.repo;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -93,6 +94,19 @@ public class PluginConfigRepoTests
                  repo.findMatching(new PluginConfig("role2", "name2")));
     assertNull("no match",
                repo.findMatching(new PluginConfig("role2", "Name2")));
+  }
+  
+  @Test
+  public void testIsPrivileged ()
+  {
+    PluginConfig pic1 = repo.makePluginConfig("role1", "name");
+    PluginConfig pic21 = repo.makePluginConfig("role2", "name1").asPrivileged();
+    PluginConfig pic22 = repo.makePluginConfig("role2", "name2");
+    assertFalse("pic1 not privileged", pic1.isPrivileged());
+    assertTrue("pic21 is privileged", pic21.isPrivileged());
+    assertFalse("pic22 not privileged", pic22.isPrivileged());
+    assertEquals("3 pics", 3, repo.list().size());
+    assertEquals("2 public pics", 2, repo.findAllPublic().size());
   }
 
   @Test

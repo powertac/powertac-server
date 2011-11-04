@@ -100,8 +100,8 @@ public class PluginConfigRepo implements DomainRepo
   {
     ArrayList<PluginConfig> result = new ArrayList<PluginConfig>(); 
     for (PluginConfig config : storage) {
-      // TODO - filter by some attribute
-      result.add(config);
+      if (!config.isPrivileged())
+        result.add(config);
     }
     return result;    
   }
