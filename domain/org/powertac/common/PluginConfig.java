@@ -50,6 +50,10 @@ public class PluginConfig
   @XStreamAsAttribute
   private String name = "";
   
+  @XStreamOmitField
+  private boolean privileged = false;
+  
+  
   /** Attribute-value pairs representing the configuration settings. */
   private TreeMap<String, String> configuration;
   
@@ -82,6 +86,18 @@ public class PluginConfig
   public String getName ()
   {
     return name;
+  }
+  
+  public boolean isPrivileged ()
+  {
+    return privileged;
+  }
+  
+  @StateChange
+  public PluginConfig asPrivileged ()
+  {
+    privileged = true;
+    return this;
   }
 
   public Map<String, String> getConfiguration ()
