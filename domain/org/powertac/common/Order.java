@@ -16,9 +16,7 @@
 
 package org.powertac.common;
 
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 
@@ -49,10 +47,6 @@ public class Order
   /** the broker who created this shout */
   @XStreamConverter(BrokerConverter.class)
   private Broker broker;
-
-  /** the product that should be bought or sold. Defaults to Future */
-  @XStreamAsAttribute
-  private ProductType product = ProductType.Future;
 
   /** the timeslot for which the product should be bought or sold */
   @XStreamAsAttribute
@@ -91,19 +85,6 @@ public class Order
     this.timeslot = timeslot;
     this.mWh = mWh;
     this.limitPrice = limitPrice;
-  }
-
-  public ProductType getProduct ()
-  {
-    return product;
-  }
-
-  /** Fluent-style setter */
-  @StateChange
-  public Order withProduct (ProductType product)
-  {
-    this.product = product;
-    return this;
   }
 
   public long getId ()

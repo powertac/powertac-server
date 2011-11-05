@@ -28,6 +28,7 @@ import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -40,6 +41,7 @@ import com.thoughtworks.xstream.XStream;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
+@DirtiesContext
 public class CustomerBootstrapDataTests
 {
   @Autowired

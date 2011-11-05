@@ -17,6 +17,7 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.StringWriter;
 import java.util.SortedSet;
 
@@ -24,14 +25,14 @@ import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powertac.common.enumerations.ProductType;
-import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -43,6 +44,7 @@ import com.thoughtworks.xstream.XStream;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
+@DirtiesContext
 public class OrderbookTests
 {
   @Autowired
@@ -58,9 +60,19 @@ public class OrderbookTests
     PropertyConfigurator.configure("test/log.config");
   }
 
+  @AfterClass
+  public static void saveLogs () throws Exception
+  {
+    File state = new File("log/test.state");
+    state.renameTo(new File("log/OrderbookTests.state"));
+    File trace = new File("log/test.trace");
+    trace.renameTo(new File("log/OrderbookTests.trace"));
+  }
+
   @Before
   public void setUp () throws Exception
   {
+    timeslotRepo.recycle();
     competition = Competition.newInstance("market order test");
     now = new DateTime(2011, 10, 10, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeslotRepo.makeTimeslot(now);
@@ -74,25 +86,23 @@ public class OrderbookTests
     assertNotNull("non-null orderbook", ob);
     assertEquals("correct timeslot", timeslot, ob.getTimeslot());
     assertEquals("correct time", now, ob.getDateExecuted());
-    assertEquals("default product type", ProductType.Future, ob.getProduct());
     assertNull("null clearing price", ob.getClearingPrice());
   }
 
   @Test
   public void testOrderbook ()
   {
-    Orderbook ob = new Orderbook(timeslot, ProductType.Future, 22.1, now);
+    Orderbook ob = new Orderbook(timeslot, 22.1, now);
     assertNotNull("non-null orderbook", ob);
     assertEquals("correct timeslot", timeslot, ob.getTimeslot());
     assertEquals("correct time", now, ob.getDateExecuted());
-    assertEquals("correct product type", ProductType.Future, ob.getProduct());
     assertEquals("correct clearing price", 22.1, ob.getClearingPrice(), 1e-6);
   }
 
   @Test
   public void testGetBids ()
   {
-    Orderbook ob = new Orderbook(timeslot, ProductType.Future, 20.1, now);
+    Orderbook ob = new Orderbook(timeslot, 20.1, now);
     ob.addBid(new OrderbookOrder(3.3, -20.0))
       .addBid(new OrderbookOrder(2.1, -18.2))
       .addBid(new OrderbookOrder(5.6, -19.4))
@@ -108,7 +118,7 @@ public class OrderbookTests
   @Test
   public void testGetAsks ()
   {
-    Orderbook ob = new Orderbook(timeslot, ProductType.Future, 20.1, now);
+    Orderbook ob = new Orderbook(timeslot, 20.1, now);
     ob.addAsk(new OrderbookOrder(-3.3, 24.0))
       .addAsk(new OrderbookOrder(-2.1, 20.2))
       .addAsk(new OrderbookOrder(-5.6, 22.4))
@@ -123,7 +133,7 @@ public class OrderbookTests
   @Test
   public void xmlSerializationTest ()
   {
-    Orderbook ob1 = new Orderbook(timeslot, ProductType.Future, 22.1, now)
+    Orderbook ob1 = new Orderbook(timeslot, 22.1, now)
       .addBid(new OrderbookOrder(3.3, -20.0))
       .addBid(new OrderbookOrder(2.1, -18.2))
       .addBid(new OrderbookOrder(5.6, -19.4))
@@ -134,7 +144,7 @@ public class OrderbookTests
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ob1));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     
     Orderbook xob1 = (Orderbook)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xob1);

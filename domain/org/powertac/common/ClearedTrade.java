@@ -17,7 +17,6 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.TimeslotConverter;
 
@@ -46,10 +45,6 @@ public class ClearedTrade
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
 
-  /** related product that was traded*/
-  @XStreamAsAttribute
-  private ProductType product;
-
   /** the transactionId is generated during the execution of a trade in market and
    * relates corresponding domain instances that were created or changed during
    * this transaction. Like this the clearedTradeInstance with transactionId=1
@@ -69,16 +64,14 @@ public class ClearedTrade
   @XStreamAsAttribute
   private Instant dateExecuted;
   
-  public ClearedTrade (Timeslot timeslot, ProductType product,
+  public ClearedTrade (Timeslot timeslot,
                        double executionPrice, double executionMWh,
                        Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
-    this.product = product;
     this.executionPrice = executionPrice;
     this.executionMWh = executionMWh;
-    //this.transactionId = transactionId;
     this.dateExecuted = dateExecuted;
   }
 
@@ -92,25 +85,9 @@ public class ClearedTrade
     return timeslot;
   }
 
-  public ProductType getProduct ()
-  {
-    return product;
-  }
-
-  //public long getTransactionId ()
-  //{
-  //  return transactionId;
-  //}
-
   public double getExecutionPrice ()
   {
     return executionPrice;
-  }
-
-  @Deprecated
-  public double getExecutionQuantity ()
-  {
-    return executionMWh;
   }
 
   public double getExecutionMWh ()

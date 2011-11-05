@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +31,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BrokerRepo implements DomainRepo
 {
+  static private Logger log = Logger.getLogger(BrokerRepo.class.getName());
+
   // indexed by username, and by id value
   private HashMap<String, Broker> nameTable;
   private HashMap<Long, Broker> idTable;
@@ -44,6 +47,7 @@ public class BrokerRepo implements DomainRepo
   
   public void add (Broker broker)
   {
+    log.debug("add " + broker.getUsername());
     nameTable.put(broker.getUsername(), broker);
     idTable.put(broker.getId(), broker);
   }
@@ -55,11 +59,13 @@ public class BrokerRepo implements DomainRepo
   
   public Broker findByUsername (String username)
   {
+    log.debug("find " + username);
     return nameTable.get(username);
   }
   
   public Broker findById (long id)
   {
+    log.debug("find " + id);
     return idTable.get(id);
   }
   
@@ -95,6 +101,7 @@ public class BrokerRepo implements DomainRepo
   
   public void recycle ()
   {
+    log.debug("recycle");
     nameTable.clear();
     idTable.clear();
   }

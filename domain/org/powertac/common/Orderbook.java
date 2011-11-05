@@ -19,7 +19,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.TimeslotConverter;
@@ -49,10 +48,6 @@ public class Orderbook
 
   private Instant dateExecuted;
 
-  /** the product this orderbook is generated for  */
-  @XStreamAsAttribute
-  private ProductType product = ProductType.Future;
-
   /** the timeslot this orderbook is generated for  */
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
@@ -71,17 +66,6 @@ public class Orderbook
   /** sorted set of OrderbookOrders represenging asks ascending */
   @XStreamImplicit(itemFieldName = "ask")
   private SortedSet<OrderbookOrder> asks = new TreeSet<OrderbookOrder>();
-
-  /**
-   * Constructor with explicit product type. Useful if we must distinguish
-   * more than one product type.
-   */
-  public Orderbook (Timeslot timeslot, ProductType product,
-                    Double clearingPrice, Instant dateExecuted)
-  {
-    this(timeslot, clearingPrice, dateExecuted);
-    this.product = product;
-  }
 
   /**
    * Constructor with default product type.
@@ -115,11 +99,6 @@ public class Orderbook
   public Instant getDateExecuted ()
   {
     return dateExecuted;
-  }
-
-  public ProductType getProduct ()
-  {
-    return product;
   }
 
   /**

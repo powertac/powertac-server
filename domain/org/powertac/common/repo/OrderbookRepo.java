@@ -21,7 +21,6 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.ProductType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -57,8 +56,7 @@ public class OrderbookRepo implements DomainRepo
    */
   public Orderbook makeOrderbook (Timeslot timeslot, Double clearingPrice)
   {
-    Orderbook result = new Orderbook(timeslot, 
-                                     ProductType.Future,
+    Orderbook result = new Orderbook(timeslot,
                                      clearingPrice,
                                      timeService.getCurrentTime());
     timeslotIndex.put(timeslot, result);

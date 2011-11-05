@@ -26,7 +26,6 @@ import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.ProductType;
 import org.springframework.test.util.ReflectionTestUtils;
 
 
@@ -65,7 +64,6 @@ public class OrderbookRepoTests
     assertNotNull("created orderbook", ob);
     assertEquals("correct timeslot", timeslot, ob.getTimeslot());
     assertEquals("correct clearing price", 22.0, ob.getClearingPrice(), 1e-6);
-    assertEquals("correct product", ProductType.Future, ob.getProduct());
     assertEquals("correct date", start, ob.getDateExecuted());
   }
 

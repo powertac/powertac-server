@@ -17,7 +17,6 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
@@ -37,10 +36,6 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("market-tx")
 public class MarketTransaction extends BrokerTransaction
 {
-  /** the product for which this information is created */
-  @XStreamAsAttribute
-  private ProductType product; // not clear what this means -- JEC
-
   /** price/mWh of a trade, positive for a buy, negative for a sell */
   @XStreamAsAttribute
   private double price;
@@ -61,11 +56,6 @@ public class MarketTransaction extends BrokerTransaction
     this.timeslot = timeslot;
     this.price = price;
     this.mWh = mWh;
-  }
-
-  public ProductType getProduct ()
-  {
-    return product;
   }
 
   public double getPrice ()

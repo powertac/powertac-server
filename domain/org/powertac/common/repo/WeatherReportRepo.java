@@ -19,9 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.joda.time.Instant;
-import org.powertac.common.TimeService;
+//import org.apache.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +33,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class WeatherReportRepo implements DomainRepo{
-	  static private Logger log = Logger.getLogger(WeatherReportRepo.class.getName());
+	  //static private Logger log = Logger.getLogger(WeatherReportRepo.class.getName());
 
 	  // storage
 	  private HashMap<Timeslot, WeatherReport> indexedWeatherReports;

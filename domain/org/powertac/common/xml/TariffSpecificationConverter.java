@@ -3,9 +3,7 @@ package org.powertac.common.xml;
 import com.thoughtworks.xstream.converters.SingleValueConverter;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class TariffSpecificationConverter implements SingleValueConverter
 {

@@ -43,7 +43,6 @@ public class TimeslotRepo implements DomainRepo
 
   // local state
   private int timeslotIndex = 0;
-  private int indexOffset = 0; // set to non-zero for non-bootstrap case
   private Timeslot first;
   private Timeslot last;
   private Timeslot firstEnabled;
@@ -59,17 +58,7 @@ public class TimeslotRepo implements DomainRepo
     super();
     indexedTimeslots = new ArrayList<Timeslot>();
   }
-  
-//  /**
-//   * Offsets timeslot index to be correct after bootstrap period. The offset
-//   * value should be equal to the number of timeslots in the bootstrap
-//   * period.
-//   */
-//  public void setIndexOffset (int offset)
-//  {
-//    indexOffset = offset;
-//  }
-  
+
   /** 
    * Creates a timeslot with the given start time. It is assumed that timeslots are
    * created in sequence; therefore  the sequence number of the new timeslot is simply the 
@@ -81,15 +70,14 @@ public class TimeslotRepo implements DomainRepo
   public Timeslot makeTimeslot (Instant startTime)
   {
     long duration = Competition.currentCompetition().getTimeslotDuration();
-    log.debug("Duration=" + duration);
+    log.debug("makeTimeslot" + startTime.toString());
     Instant lastStart = startTime.minus(duration);
     if (last != null && !last.getStartInstant().isEqual(lastStart)) {
       log.error("Timeslot " + (timeslotIndex + 1) + ": start:" + startTime.toString() +
                 " != previous.end:" + lastStart.plus(duration));
       return null;
     }
-    Timeslot result = new Timeslot(timeslotIndex + indexOffset, 
-                                   startTime, last);
+    Timeslot result = new Timeslot(timeslotIndex, startTime, last);
     if (result.getSerialNumber() == -1) // big trouble
       return null;
     if (first == null)
@@ -113,6 +101,7 @@ public class TimeslotRepo implements DomainRepo
       return current;
     }
     current = findByInstant(time);
+    log.debug("current: " + current.toString());
     return current;
   }
 
@@ -121,7 +110,9 @@ public class TimeslotRepo implements DomainRepo
    */
   public Timeslot findBySerialNumber (int serialNumber)
   {
-    int index = serialNumber - indexOffset;
+    log.debug("find sn " + serialNumber);
+    //Timeslot result = null;
+    int index = serialNumber;
     if (index >= indexedTimeslots.size())
       return null;
     else
@@ -133,6 +124,7 @@ public class TimeslotRepo implements DomainRepo
    */
   public Timeslot findByInstant (Instant time)
   {
+    log.debug("find " + time.toString());
     long offset = time.getMillis() - first.getStartInstant().getMillis();
     long duration = Competition.currentCompetition().getTimeslotDuration();
     // truncate to timeslot boundary
@@ -177,6 +169,7 @@ public class TimeslotRepo implements DomainRepo
 
   public void recycle ()
   {
+    log.debug("recycle");
     timeslotIndex = 0;
     first = null;
     last = null;

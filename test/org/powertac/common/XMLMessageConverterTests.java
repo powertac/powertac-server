@@ -25,11 +25,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.CustomerType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
+@DirtiesContext
 public class XMLMessageConverterTests {
   private static final Log log = LogFactory.getLog(XMLMessageConverterTests.class);
   
