@@ -25,8 +25,8 @@ import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * A MarketOrder instance represents a market (no price specified) or a limit
- * (min/max price specified) order in the PowerTAC wholesale market. Each MarketOrder
+ * A Order instance represents a market (no price specified) or a limit
+ * (min/max price specified) order in the PowerTAC wholesale market. Each Order
  * specifies an amount of energy in MWh, and a price in units. The quantities
  * represent the broker's view of the proposed transaction in terms of the
  * broker's energy and money accounts: positive quantities
@@ -40,8 +40,8 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, John Collins
  */
 @Domain
-@XStreamAlias("market-order")
-public class MarketOrder
+@XStreamAlias("order")
+public class Order
 {  
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
@@ -69,10 +69,10 @@ public class MarketOrder
    * the other party. Null value indicates a market order.
    */
   @XStreamAsAttribute
-  private Double limitPrice;
+  private Double limitPrice = null;
 
   /**
-   * Creates a new MarketOrder for Broker to buy or sell a quantity of energy
+   * Creates a new Order for Broker to buy or sell a quantity of energy
    * in Timeslot. A positive value for mWh indicates a buy order (because the
    * broker's energy account will increase), and a negative value for mWh
    * indicates an offer to sell. Similarly, a negative value for limitPrice
@@ -83,8 +83,8 @@ public class MarketOrder
    * the price-setting algorithm may not be advantageous for the broker in this
    * case.
    */
-  public MarketOrder (Broker broker, Timeslot timeslot, 
-                      double mWh, Double limitPrice)
+  public Order (Broker broker, Timeslot timeslot, 
+                double mWh, Double limitPrice)
   {
     super();
     this.broker = broker;
@@ -100,7 +100,7 @@ public class MarketOrder
 
   /** Fluent-style setter */
   @StateChange
-  public MarketOrder withProduct (ProductType product)
+  public Order withProduct (ProductType product)
   {
     this.product = product;
     return this;
@@ -126,7 +126,7 @@ public class MarketOrder
     return mWh;
   }
 
-  public double getLimitPrice ()
+  public Double getLimitPrice ()
   {
     return limitPrice;
   }

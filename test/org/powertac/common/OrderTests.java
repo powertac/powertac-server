@@ -22,7 +22,7 @@ import com.thoughtworks.xstream.XStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
-public class MarketOrderTests
+public class OrderTests
 {
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -30,7 +30,6 @@ public class MarketOrderTests
   @Autowired
   private BrokerRepo brokerRepo;
 
-  private Competition competition;
   private Broker broker;
   private Timeslot timeslot;
   private Instant now;
@@ -44,7 +43,7 @@ public class MarketOrderTests
   @Before
   public void setUp () throws Exception
   {
-    competition = Competition.newInstance("market order test");
+    Competition.newInstance("market order test");
     broker = new Broker("Sam");
     brokerRepo.add(broker);
     now = new DateTime(2011, 10, 10, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -52,9 +51,9 @@ public class MarketOrderTests
   }
 
   @Test
-  public void testMarketOrder ()
+  public void testOrder ()
   {
-    MarketOrder mo = new MarketOrder(broker, timeslot, 0.5, -12.0);
+    Order mo = new Order(broker, timeslot, 0.5, -12.0);
     assertNotNull("created something", mo);
     assertEquals("correct broker", broker, mo.getBroker());
     assertEquals("correct timeslot", timeslot, mo.getTimeslot());
@@ -62,24 +61,54 @@ public class MarketOrderTests
     assertEquals("correct price", -12.0, mo.getLimitPrice(), 1e-6);
   }
 
+  @Test
+  public void testOrderNull ()
+  {
+    Order mo = new Order(broker, timeslot, 0.5, null);
+    assertNotNull("created something", mo);
+    assertEquals("correct broker", broker, mo.getBroker());
+    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
+    assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
+    assertNull("null price", mo.getLimitPrice());
+  }
 
   @Test
   public void xmlSerializationTest ()
   {
-    MarketOrder mo1 = new MarketOrder(broker, timeslot, 0.5, -12.0);
+    Order mo1 = new Order(broker, timeslot, 0.5, -12.0);
     XStream xstream = new XStream();
-    xstream.processAnnotations(MarketOrder.class);
+    xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
     System.out.println(serialized.toString());
     
-    MarketOrder xmo1 = (MarketOrder)xstream.fromXML(serialized.toString());
+    Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);
     assertEquals("correct broker", broker, xmo1.getBroker());
     assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
     assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
     assertEquals("correct price", -12.0, xmo1.getLimitPrice(), 1e-6);
+  }
+
+  @Test
+  public void xmlSerializationTestNull ()
+  {
+    Order mo1 = new Order(broker, timeslot, 0.5, null);
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Order.class);
+    xstream.processAnnotations(Broker.class);
+    xstream.processAnnotations(Timeslot.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(mo1));
+    System.out.println(serialized.toString());
+    
+    Order xmo1 = (Order)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xmo1);
+    assertEquals("correct broker", broker, xmo1.getBroker());
+    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
+    assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
+    assertNull("null price", xmo1.getLimitPrice());
   }
 }

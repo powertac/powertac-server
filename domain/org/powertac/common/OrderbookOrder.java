@@ -19,6 +19,7 @@ import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * Each instance is an individual un-cleared entry (a Bid or an Ask) within 
@@ -29,6 +30,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("orderbook-bid")
 public class OrderbookOrder implements Comparable<Object> 
 {
+  @XStreamOmitField
   private long id = IdGenerator.createId();
 
   @XStreamAsAttribute
@@ -38,7 +40,7 @@ public class OrderbookOrder implements Comparable<Object>
   private double mWh;
   
   
-  public OrderbookOrder (double limitPrice, Double mWh)
+  public OrderbookOrder (double mWh, Double limitPrice)
   {
     super();
     this.limitPrice = limitPrice;
@@ -54,25 +56,37 @@ public class OrderbookOrder implements Comparable<Object>
     if (!(o instanceof OrderbookOrder)) 
       return 1;
     OrderbookOrder other = (OrderbookOrder) o;
-    return (this.limitPrice == (other.limitPrice) ? 0 : (this.limitPrice < other.limitPrice ? 1 : -1));
+    if (this.limitPrice == null)
+      if (other.limitPrice == null)
+        return 0;
+      else
+        return -1;
+    else if (other.limitPrice == null)
+      return 1;
+    else
+      return (this.limitPrice == (other.limitPrice) ? 0 : (this.limitPrice < other.limitPrice ? -1 : 1));
   }
   
-  public double getLimitPrice ()
+  /** 
+   * Returns the limit price for this unsatisfied order. Normally this will 
+   * have a sign opposite to the mWh energy quantity.
+   */
+  public Double getLimitPrice ()
   {
     return limitPrice;
   }
 
   /**
-   * @deprecated Use {@link getMWh()} instead.
+   * Returns the quantity of energy unsatisfied for an order. This will positive
+   * for a bid, negative for an ask.
    */
-  @Deprecated
-  public double getQuantity ()
-  {
-    return mWh;
-  }
-
   public double getMWh ()
   {
     return mWh;
+  }
+  
+  public String toString()
+  {
+    return ("OrderbookOrder: " + mWh + "@" + limitPrice);
   }
 }
