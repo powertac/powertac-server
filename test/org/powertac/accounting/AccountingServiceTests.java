@@ -59,11 +59,13 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
+@DirtiesContext
 public class AccountingServiceTests
 {
   @Autowired
@@ -292,16 +294,15 @@ public class AccountingServiceTests
   {
     initializeService();
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(2), 45.0, 0.5);
+        timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(3), 43.0, 0.7);
+        timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
     assertEquals("correct number in list", 2, pending.size());
-    //assertEquals("correct number in db", 2, MarketTransaction.count());
     MarketTransaction mtx = (MarketTransaction)pending.get(0);
     assertNotNull("first mtx not null", mtx);
     assertEquals("correct timeslot id 0", 2, mtx.getTimeslot().getSerialNumber());
-    assertEquals("correct price id 0", 45.0, mtx.getPrice(), 1e-6);
+    assertEquals("correct price id 0", -45.0, mtx.getPrice(), 1e-6);
     Broker b1 = mtx.getBroker();
     Broker b2 = brokerRepo.findById(bob.getId());
     assertEquals("same broker", b1, b2);
@@ -321,9 +322,9 @@ public class AccountingServiceTests
         
     // add a couple of transactions
     accountingService.addMarketTransaction(bob,
-      timeslotRepo.findBySerialNumber(2), 45.0, 0.5);
+      timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
-      timeslotRepo.findBySerialNumber(3), 43.0, 0.7);
+      timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
 
     final Map<Broker, List> msgMap = new HashMap<Broker, List>();
     doAnswer(new Answer() {
@@ -388,15 +389,15 @@ public class AccountingServiceTests
     initializeService();
     // market transactions
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(2), 45.0, 0.5);
+        timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(2), 31.0, 0.3);
+        timeslotRepo.findBySerialNumber(2), 0.3, -31.0);
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(3), 43.0, 0.7);
+        timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
     accountingService.addMarketTransaction(jim,
-        timeslotRepo.findBySerialNumber(2), 35.0, 0.4);
+        timeslotRepo.findBySerialNumber(2), 0.4, -35.0);
     accountingService.addMarketTransaction(jim,
-        timeslotRepo.findBySerialNumber(2), -20.0, -0.2);
+        timeslotRepo.findBySerialNumber(2), -0.2, 20.0);
     // tariff transactions
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffB1, customerInfo1, 7, 77.0, 7.7);
@@ -469,15 +470,15 @@ public class AccountingServiceTests
   {
     initializeService();
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(2), 45.0, 0.5);
+        timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(2), 31.0, 0.3);
+        timeslotRepo.findBySerialNumber(2), 0.3, -31.0);
     accountingService.addMarketTransaction(bob,
-        timeslotRepo.findBySerialNumber(3), 43.0, 0.7);
+        timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
     accountingService.addMarketTransaction(jim,
-        timeslotRepo.findBySerialNumber(2), 35.0, 0.4);
+        timeslotRepo.findBySerialNumber(2), 0.4, -35.0);
     accountingService.addMarketTransaction(jim,
-        timeslotRepo.findBySerialNumber(2), -20.0, -0.2);
+        timeslotRepo.findBySerialNumber(2), -0.2, 20.0);
     assertEquals("correct number in list", 5, accountingService.getPendingTransactions().size());
     accountingService.activate(timeService.getCurrentTime(), 3);
     // current timeslot is 4, should be 0 mkt posn
