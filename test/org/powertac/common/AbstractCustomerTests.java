@@ -39,6 +39,7 @@ import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -49,6 +50,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:test/test-config.xml" })
+@DirtiesContext
 public class AbstractCustomerTests
 {
   @Autowired
@@ -72,7 +74,7 @@ public class AbstractCustomerTests
   Broker broker2;
   CustomerInfo info;
   AbstractCustomer customer;
-  DateTime now;
+  Instant now;
   TariffSpecification defaultTariffSpec;
   Tariff tariff;
   Tariff defaultTariff;
@@ -92,16 +94,20 @@ public class AbstractCustomerTests
     broker1 = new Broker("Joe");
     broker1 = new Broker("Anna");
 
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC);
+    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(now.toInstant());
 
     exp = new Instant(now.getMillis() + TimeService.WEEK * 10);
 
-    defaultTariffSpec = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.222));
+    defaultTariffSpec = new TariffSpecification(broker1, PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8)
+      .addRate(new Rate().withValue(0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
 
-    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(defaultTariff);
+    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+      .thenReturn(defaultTariff);
 
   }
 
@@ -113,7 +119,8 @@ public class AbstractCustomerTests
     assertNotNull("not null", customer);
     assertEquals("correct customerInfo", info, customer.getCustomerInfo());
     assertEquals("correct id", info.getId(), customer.getId());
-    assertEquals("correct powerType", PowerType.CONSUMPTION, customer.getCustomerInfo().getPowerTypes().get(0));
+    assertEquals("correct powerType", PowerType.CONSUMPTION,
+                 customer.getCustomerInfo().getPowerTypes().get(0));
     assertEquals("one customer on repo", 1, customerRepo.list().size());
   }
 
@@ -124,17 +131,27 @@ public class AbstractCustomerTests
     customer = new AbstractCustomer(info);
 
     // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+    ArgumentCaptor<Tariff> tariffArg = 
+        ArgumentCaptor.forClass(Tariff.class);
+    ArgumentCaptor<CustomerInfo> customerArg = 
+        ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<Integer> countArg = 
+        ArgumentCaptor.forClass(Integer.class);
+    TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(),
+                                               defaultTariff);
+    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                            customerArg.capture(),
+                                            countArg.capture()))
+        .thenReturn(defaultSub);
 
     customer.subscribeDefault();
 
-    assertEquals("one subscription for our customer", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-    assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)),
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
+    assertEquals("one subscription for our customer", 1,
+                 tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+    assertEquals("customer on DefaultTariff",
+                 mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)),
+                 tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
   }
 
   @Test
@@ -144,21 +161,40 @@ public class AbstractCustomerTests
     customer = new AbstractCustomer(info);
 
     // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
-    TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+    ArgumentCaptor<Tariff> tariffArg =
+        ArgumentCaptor.forClass(Tariff.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+        ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<Integer> countArg =
+        ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<PowerType> powerArg =
+        ArgumentCaptor.forClass(PowerType.class);
+    TariffSubscription defaultSub = 
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(),
+                                               defaultTariff);
+    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                            customerArg.capture(),
+                                            countArg.capture()))
+        .thenReturn(defaultSub);
 
     customer.subscribeDefault();
 
     Rate r2 = new Rate().withValue(0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc2 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(3 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -172,19 +208,28 @@ public class AbstractCustomerTests
 
     // Changing from default to another tariff
     TariffSubscription sub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff1);
-    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tariffRepo.findAllTariffs());
+    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                            customerArg.capture(),
+                                            countArg.capture()))
+        .thenReturn(sub);
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+        .thenReturn(tariffRepo.findAllTariffs());
 
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
     assertFalse("Changed from default tariff",
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff()
+        == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
     // Changing back from the new tariff to the default one in order to check every
     // changeSubscription Method
     Tariff lastTariff = tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff();
 
-    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-    customer.changeSubscription(lastTariff, mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                            customerArg.capture(),
+                                            countArg.capture()))
+        .thenReturn(defaultSub);
+    customer.changeSubscription(lastTariff,
+                                mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
     assertTrue("Changed from default tariff",
         tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
@@ -194,7 +239,8 @@ public class AbstractCustomerTests
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), lastTariff, 5);
 
     assertFalse("Changed from default tariff",
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(1).getTariff()
+        == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
   }
 
@@ -209,7 +255,7 @@ public class AbstractCustomerTests
     ArgumentCaptor<TariffRevoke> tariffRevokeArg = ArgumentCaptor.forClass(TariffRevoke.class);
     ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    //ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
     TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
     when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
 

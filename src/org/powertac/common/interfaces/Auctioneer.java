@@ -22,50 +22,21 @@ import org.powertac.common.Order;
  * Interface that defines the publicly accessible methods
  * a Power TAC auctioneer has to implement.
  *
- * @author Carsten Block
- * @version 0.1, Date: 01.12.10
+ * @author Carsten Block, John Collins
  */
 public interface Auctioneer
 {
-
   /**
-   * Process an incoming shout, e.g. by matching it against existing shouts
-   * As a CDA market auctioneer this is the method to match the <code>shoutDoCreate</shout>
-   * against existing shouts in order to execute it immediately. As a call (PDA) market
-   * auctioner this method could be used to store the new shout and to wait for a
-   * <code>Auctioneer.clearMarket()</code> method invocation in order to start the matching
-   * and execution process.
-   * <p/>
-   * In both cases orderbook updates, quote updates, shout status updates etc may be created
-   * and returned in a list so that other components (e.g. {@link Accounting})
-   * can further process these objects later on.
+   * Processes an incoming order, typically by saving it on a list for the
+   * next market clearing.
    */
-  public void processShout(Order order); // throws ShoutCreationException;
+  public void processOrder (Order order); // throws ShoutCreationException;
 
   /**
-   * Deletes the shout specified by {@link Order}
-   *
-   * @param shoutDoDeleteCmd command object that contains the shoutId that should be deleted
-   * @return List of objects, which can consist of {@link Order} (deleted shout object), {@link org.powertac.common.MarketTransaction}, {@link org.powertac.common.Orderbook}
-   * @throws org.powertac.common.exceptions.ShoutDeletionException thrown if the shout deletion fails
-   */
-  //List processShoutDelete(ShoutDoDeleteCmd shoutDoDeleteCmd) throws ShoutDeletionException;
-
-  /**
-   * Updates the shout specified by the {@link ShoutDoUpdateCmd}. Changeable
-   * shout attributes are limit price and quantity only.
-   *
-   * @param shoutDoUpdateCmd the shout object to update
-   * @return a List of objects, which can include {@link org.powertac.common.CashPosition}, {@link org.powertac.common.MarketPosition}, {@link org.powertac.common.Orderbook},{@link org.powertac.common.MarketTransaction}, {@link Order} (matched / partially matched shout object), or an empty list.
-   * @throws org.powertac.common.exceptions.ShoutUpdateException thrown if the shout update fails
-   */
-  //List processShoutUpdate(ShoutDoUpdateCmd shoutDoUpdateCmd) throws ShoutUpdateException;
-
-  /**
-   * This method is required for periodic clearing auctions and essentially tells
-   * the Auctioneer module to clear the market matching all open shouts in the orderbooks.
-   * Resulting transactions are created by calling addMarketTransaction() on the Accounting service.
+   * Clears the market by matching all Orders that have arrived since the
+   * last market clearing. Resulting transactions are created by calling 
+   * addMarketTransaction() on the Accounting service. Orderbooks and
+   * ClearedTrade instances are also created and broadcast to brokers.
    */
   public void clearMarket();
-
 }
