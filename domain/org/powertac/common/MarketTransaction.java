@@ -50,7 +50,7 @@ public class MarketTransaction extends BrokerTransaction
   private Timeslot timeslot;
   
   public MarketTransaction (Broker broker, Instant when, 
-                            Timeslot timeslot, double price, double mWh)
+                            Timeslot timeslot, double mWh, double price)
   {
     super(when, broker);
     this.timeslot = timeslot;

@@ -64,9 +64,8 @@ public class ClearedTrade
   @XStreamAsAttribute
   private Instant dateExecuted;
   
-  public ClearedTrade (Timeslot timeslot,
-                       double executionPrice, double executionMWh,
-                       Instant dateExecuted)
+  public ClearedTrade (Timeslot timeslot, double executionMWh,
+                       double executionPrice, Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
@@ -102,6 +101,6 @@ public class ClearedTrade
   
   public String toString()
   {
-    return "ClearedTrade-" + executionMWh + "-at-" + executionPrice;
+    return "ClearedTrade " + executionMWh + "@" + executionPrice;
   }
 }
