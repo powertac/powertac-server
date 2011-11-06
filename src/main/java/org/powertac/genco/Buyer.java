@@ -20,7 +20,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.PluginConfig;
-import org.powertac.common.Shout;
+import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 
 /**
@@ -45,17 +45,17 @@ public class Buyer extends Genco
   }
 
   /**
-   * Generates buy shouts. Price is distributed exponentially with a mean value
+   * Generates buy orders. Price is distributed exponentially with a mean value
    * of priceBeta. Quantity is mwh/price.
    */
   @Override
-  public void generateShouts (Instant now, List<Timeslot> openSlots)
+  public void generateOrders (Instant now, List<Timeslot> openSlots)
   {
-    log.info("generate shouts for " + getUsername());
+    log.info("generate orders for " + getUsername());
     for (Timeslot slot : openSlots) {
       double price = - priceBeta * Math.log(1.0 - seed.nextDouble());
       double qty = mwh / price;
-      Shout offer = new Shout(this, slot, Shout.OrderType.BUY, qty, price);
+      Order offer = new Order(this, slot, qty, -price);
       log.debug(getUsername() + " wants " + qty +
                   " in " + slot.getSerialNumber() + " for " + price);
       brokerProxyService.routeMessage(offer);

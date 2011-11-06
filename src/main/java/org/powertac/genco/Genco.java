@@ -22,7 +22,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.PluginConfig;
-import org.powertac.common.Shout;
+import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -63,6 +63,7 @@ public class Genco
   private double reliability = 0.98;
   
   /** True if this is a renewable source */
+  @SuppressWarnings("unused")
   private boolean renewable = false;
   
   protected BrokerProxy brokerProxyService;
@@ -126,16 +127,16 @@ public class Genco
   }
   
   /**
-   * Generates Shouts in the market to sell available capacity. No Shouts
+   * Generates Orders in the market to sell available capacity. No Orders
    * are submitted if the plant is not in operation.
    */
-  public void generateShouts (Instant now, List<Timeslot> openSlots)
+  public void generateOrders (Instant now, List<Timeslot> openSlots)
   {
     if (!inOperation){
-      log.info("not in operation - no shouts");
+      log.info("not in operation - no orders");
       return;
     }
-    log.info("Generate shouts for " + getUsername());
+    log.info("Generate orders for " + getUsername());
     for (Timeslot slot : openSlots) {
       double availableCapacity = currentCapacity;
       // do we receive these?
@@ -146,9 +147,9 @@ public class Genco
       }
       if (availableCapacity > 0.0) {
         // make an offer to sell
-        Shout offer =
-            new Shout(this, slot, Shout.OrderType.SELL,
-                      availableCapacity, cost);
+        Order offer =
+            new Order(this, slot,
+                      -availableCapacity, cost);
 	log.debug(getUsername() + " offers " + availableCapacity +
 	          " in " + slot.getSerialNumber() + " for " + cost);
 	brokerProxyService.routeMessage(offer);
