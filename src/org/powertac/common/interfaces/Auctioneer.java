@@ -16,7 +16,7 @@
 
 package org.powertac.common.interfaces;
 
-import org.powertac.common.Shout;
+import org.powertac.common.Order;
 
 /**
  * Interface that defines the publicly accessible methods
@@ -40,13 +40,13 @@ public interface Auctioneer
    * and returned in a list so that other components (e.g. {@link Accounting})
    * can further process these objects later on.
    */
-  public void processShout(Shout shout); // throws ShoutCreationException;
+  public void processShout(Order order); // throws ShoutCreationException;
 
   /**
-   * Deletes the shout specified by {@link Shout}
+   * Deletes the shout specified by {@link Order}
    *
    * @param shoutDoDeleteCmd command object that contains the shoutId that should be deleted
-   * @return List of objects, which can consist of {@link Shout} (deleted shout object), {@link org.powertac.common.MarketTransaction}, {@link org.powertac.common.Orderbook}
+   * @return List of objects, which can consist of {@link Order} (deleted shout object), {@link org.powertac.common.MarketTransaction}, {@link org.powertac.common.Orderbook}
    * @throws org.powertac.common.exceptions.ShoutDeletionException thrown if the shout deletion fails
    */
   //List processShoutDelete(ShoutDoDeleteCmd shoutDoDeleteCmd) throws ShoutDeletionException;
@@ -56,7 +56,7 @@ public interface Auctioneer
    * shout attributes are limit price and quantity only.
    *
    * @param shoutDoUpdateCmd the shout object to update
-   * @return a List of objects, which can include {@link org.powertac.common.CashPosition}, {@link org.powertac.common.MarketPosition}, {@link org.powertac.common.Orderbook},{@link org.powertac.common.MarketTransaction}, {@link Shout} (matched / partially matched shout object), or an empty list.
+   * @return a List of objects, which can include {@link org.powertac.common.CashPosition}, {@link org.powertac.common.MarketPosition}, {@link org.powertac.common.Orderbook},{@link org.powertac.common.MarketTransaction}, {@link Order} (matched / partially matched shout object), or an empty list.
    * @throws org.powertac.common.exceptions.ShoutUpdateException thrown if the shout update fails
    */
   //List processShoutUpdate(ShoutDoUpdateCmd shoutDoUpdateCmd) throws ShoutUpdateException;
