@@ -74,7 +74,7 @@ public class Rate //implements Serializable
 
   /**
    * Default constructor only. You create one of these with the
-   * constructor and the builder-style setter methods.
+   * constructor and the fluent-style setter methods.
    */
   public Rate ()
   {
@@ -82,26 +82,6 @@ public class Rate //implements Serializable
     timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     rateHistory = new TreeSet<HourlyCharge>();
   }
-    
-//    m?.each { k,v ->
-//      if (k == "weeklyBegin")
-//        setWeeklyBegin(v) // extract day-of-week
-//      else if (k == "weeklyEnd")
-//        setWeeklyEnd(v) // extract day-of-week
-//      else if (k == "dailyBegin")
-//        setDailyBegin(v) // extract hour-of-day
-//      else if (k == "dailyEnd")
-//        setDailyEnd(v) // extract hour-of-day
-//      else if (k == "noticeInterval")
-//        setNoticeInterval(v) // truncate to integer hours
-//      else if (k == "value")
-//        setValue(v)
-//      else
-//        this."$k" = v }
-//    if (weeklyBegin >= 0 && weeklyEnd == -1) {
-//      weeklyEnd = weeklyBegin
-//    }
-//  }
 
   public long getId ()
   {
@@ -124,7 +104,8 @@ public class Rate //implements Serializable
   }
   
   /**
-   * Process weeklyBegin spec to extract dayOfWeek field
+   * Sets the day of the week on which this Rate comes into effect. The
+   * {@code begin} parameter is processed to extract the dayOfWeek field.
    */
   public Rate withWeeklyBegin (AbstractDateTime begin)
   {
@@ -135,7 +116,8 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process weeklyBegin spec to extract dayOfWeek field
+   * Sets the day of the week on which this Rate comes into effect.
+   * Process begin spec to extract dayOfWeek field
    */
   public Rate withWeeklyBegin (ReadablePartial begin)
   {
@@ -145,7 +127,10 @@ public class Rate //implements Serializable
     return this;
   }
 
-  /** Fluent setter */
+  /**
+   * Sets the day of the week on which this Rate comes into effect. Note that
+   * a value of 1 represents Monday, while 7 represents Sunday.
+   */
   @StateChange
   public Rate withWeeklyBegin (int begin)
   {
@@ -159,7 +144,8 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process weeklyEnd spec to extract dayOfWeek field
+   * Sets the weekly end of applicability for this Rate,
+   * by processing end spec to extract dayOfWeek field.
    */
   public Rate withWeeklyEnd (AbstractDateTime end)
   {
@@ -170,7 +156,8 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process weeklyEnd spec to extract dayOfWeek field
+   * Sets the weekly end of applicability for this Rate,
+   * by processing end spec to extract dayOfWeek field.
    */
   public Rate withWeeklyEnd (ReadablePartial end)
   {
@@ -180,7 +167,10 @@ public class Rate //implements Serializable
     return this;
   }
 
-  // normal setter also
+  /**
+   * Sets the weekly end of applicability for this Rate. A value
+   * of 1 represents Monday, and 7 represents Sunday.
+   */
   @StateChange
   public Rate withWeeklyEnd (int end)
   {
@@ -194,7 +184,7 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process dailyBegin specification to extract hourOfDay field
+   * Sets the time of day when this Rate comes into effect.
    */
   public Rate withDailyBegin (AbstractDateTime begin)
   {
@@ -205,7 +195,7 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process dailyBegin specification to extract hourOfDay field
+   * Sets the time of day when this Rate comes into effect.
    */
   public Rate withDailyBegin (ReadablePartial begin)
   {
@@ -215,7 +205,10 @@ public class Rate //implements Serializable
     return this;
   }
 
-  // normal setter also
+  /**
+   * Sets the time of day when this Rate comes into effect as hours
+   * since midnight.
+   */
   @StateChange
   public Rate withDailyBegin (int begin)
   {
@@ -229,7 +222,7 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process dailyEnd specification to extract hourOfDay field
+   * Sets the time of day when this Rate is no longer in effect.
    */
   public Rate withDailyEnd (AbstractDateTime end)
   {
@@ -240,7 +233,7 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Process dailyEnd specification to extract hourOfDay field
+   * Sets the time of day when this Rate is no longer in effect.
    */
   public Rate withDailyEnd (ReadablePartial end)
   {
@@ -250,7 +243,10 @@ public class Rate //implements Serializable
     return this;
   }
 
-  // normal setter also
+  /**
+   * Sets the time of day when this Rate is no longer in effect, given
+   * as hours since midnight.
+   */
   @StateChange
   public Rate withDailyEnd (int end)
   {
@@ -264,7 +260,8 @@ public class Rate //implements Serializable
   }  
 
   /**
-   * Truncate noticeInterval field to integer hours
+   * Specifies the minimum interval for rate change notifications for a
+   * variable Rate. The value is truncated to integer hours.
    */
   public Rate withNoticeInterval (Duration interval)
   {
@@ -272,6 +269,10 @@ public class Rate //implements Serializable
     return withNoticeInterval(interval.getMillis() / TimeService.HOUR);
   }
 
+  /**
+   * Specifies the minimum interval in hours for rate change notifications
+   * for a variable Rate.
+   */
   @StateChange
   public Rate withNoticeInterval (long hours)
   {
@@ -299,7 +300,7 @@ public class Rate //implements Serializable
   }
   
   /**
-   *  allows initial publication of HourlyCharge instances within the notification interval.
+   * Allows initial publication of HourlyCharge instances within the notification interval.
    */
   @StateChange
   public boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
@@ -341,6 +342,11 @@ public class Rate //implements Serializable
     return tierThreshold;
   }
 
+  /**
+   * Sets the usage threshold for applicability of this Rate. The value is
+   * interpreted from the Customer's viewpoint, so positive values represent
+   * energy consumption in kWh, negative values represent energy production.
+   */
   @StateChange
   public Rate withTierThreshold (double tierThreshold)
   {
@@ -353,6 +359,11 @@ public class Rate //implements Serializable
     return minValue;
   }
 
+  /**
+   * Specifies the minimum charge (closest to zero) for variable Rates.
+   * Value should be negative for consumption tariffs, positive for production
+   * tariffs.
+   */
   @StateChange
   public Rate withMinValue (double minValue)
   {
@@ -365,6 +376,11 @@ public class Rate //implements Serializable
     return maxValue;
   }
 
+  /**
+   * Specifies the maximum charge (furthest from zero) for variable Rates.
+   * Value should be negative for consumption tariffs, positive for production
+   * tariffs.
+   */
   @StateChange
   public Rate withMaxValue (double maxValue)
   {
@@ -377,6 +393,9 @@ public class Rate //implements Serializable
     return isFixed;
   }
 
+  /**
+   * Specifies whether this Rate is fixed (true) or variable (false).
+   */
   @StateChange
   public Rate withFixed (boolean fixed)
   {
@@ -389,6 +408,10 @@ public class Rate //implements Serializable
     return expectedMean;
   }
 
+  /**
+   * Specifies the expected mean charge/kWh, excluding periodic charges,
+   * for this Rate.
+   */
   @StateChange
   public Rate withExpectedMean (double value)
   {
@@ -396,6 +419,9 @@ public class Rate //implements Serializable
     return this;
   }
 
+  /**
+   * Returns the sequence of HourlyCharge instances for this Rate.
+   */
   public TreeSet<HourlyCharge> getRateHistory ()
   {
     return rateHistory;
@@ -476,7 +502,9 @@ public class Rate //implements Serializable
   }
 
   /**
-   * Allows Hibernate to set the value
+   * Specifies the charge/kWh for a fixed rate, from the customer's viewpoint.
+   * Negative values represent customer debits, while positive values 
+   * represent customer credits.
    */
   @StateChange
   public Rate withValue(double value) {

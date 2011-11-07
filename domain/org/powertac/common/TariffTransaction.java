@@ -52,7 +52,7 @@ public class TariffTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private int customerCount = 0;
 
-  /** The total kWh of energy consumed (> 0) or produced (< 0) in kWh.
+  /** The total kWh of energy consumed (< 0) or produced (> 0) in kWh.
    *  Note that this is not per-individual in a population model, but rather
    *  aggregate usage by customerCount individuals. */
   @XStreamAsAttribute
@@ -66,6 +66,12 @@ public class TariffTransaction extends BrokerTransaction
   @XStreamConverter(TariffSpecificationConverter.class)
   private TariffSpecification tariffSpec;
   
+  /**
+   * Creates a new TariffTransaction for broker of type txType against
+   * a particular tariff spec and customer. Energy quantity and charge
+   * is specified from the Broker's viewpoint, so a consumption transaction
+   * would have kwh < 0 and charge > 0.
+   */
   public TariffTransaction (Broker broker, Instant when, 
                             Type txType,
                             TariffSpecification spec, 
@@ -92,22 +98,29 @@ public class TariffTransaction extends BrokerTransaction
     return customerInfo;
   }
 
+  /**
+   * Number of individual customers within the customer model represented
+   * by this transaction. The value will always be less than or equal to 
+   * the population represented by the customerInfo.
+   */
   public int getCustomerCount ()
   {
     return customerCount;
   }
 
-  @Deprecated
-  public double getQuantity ()
-  {
-    return kWh;
-  }
-
+  /**
+   * Returns the debit (negative) or credit (positive) to the broker's
+   * energy account in the current timeslot represented by this transaction.
+   */
   public double getKWh ()
   {
     return kWh;
   }
 
+  /**
+   * Returns the debit (negative) or credit (positive) to the broker's
+   * money account represented by this transaction.
+   */
   public double getCharge ()
   {
     return charge;
@@ -119,8 +132,8 @@ public class TariffTransaction extends BrokerTransaction
   }
 
   public String toString() {
-    return("TariffTx-customer" + customerInfo.getId() + "-" +
-           postedTime.getMillis()/TimeService.HOUR + "-" +
-           txType + "-" + kWh + "-" + charge);
+    return("TariffTx: customer" + customerInfo.getId() + " at " +
+           Competition.currentCompetition().computeTimeslotIndex(postedTime) +
+           ", " + txType + ": " + kWh + "@" + charge);
   }
 }

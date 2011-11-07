@@ -173,6 +173,15 @@ public class Competition //implements Serializable
   {
     return timeslotLength * TimeService.MINUTE;
   }
+  
+  /**
+   * Converts a time value to the number of timeslots since the beginning 
+   * of the simulation.
+   */
+  public int computeTimeslotIndex (Instant time)
+  {
+    return (int) (time.getMillis() / getTimeslotDuration()); 
+  }
 
   @StateChange
   public Competition withTimeslotLength (int timeslotLength)
