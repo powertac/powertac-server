@@ -240,7 +240,7 @@ public class Tariff
   @StateChange
   public void addPeriodicPayment ()
   {
-    totalCost += getPeriodicPayment();
+    //totalCost += getPeriodicPayment();
   }
 
   /** 
