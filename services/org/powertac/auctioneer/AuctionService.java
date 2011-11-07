@@ -237,9 +237,9 @@ public class AuctionService
       double clearingPrice = askPrice + sellerSurplusRatio * (-bidPrice - askPrice);
       for (PendingTrade trade : pendingTrades) {
         accountingService.addMarketTransaction(trade.from, timeslot,
-                                               clearingPrice, -trade.mWh);
-        accountingService.addMarketTransaction(trade.to, timeslot,
-                                               -clearingPrice, trade.mWh);
+                                               -trade.mWh, clearingPrice);
+        accountingService.addMarketTransaction(trade.to, timeslot, 
+                                               trade.mWh, -clearingPrice);
       }
       // create the orderbook and cleared-trade, send to brokers
       Orderbook orderbook = 

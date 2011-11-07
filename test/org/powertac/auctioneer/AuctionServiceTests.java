@@ -196,13 +196,13 @@ public class AuctionServiceTests
     Object[] args = accountingArgs.get(0);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", 21.0, (Double)args[2], 1e-6);
-    assertEquals("mWh", -1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", -1.0, (Double)args[2], 1e-6);
+    assertEquals("price", 21.0, (Double)args[3], 1e-6);
     args = accountingArgs.get(1);
     assertEquals("b1", b1, args[0]);
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", -21.0, (Double)args[2], 1e-6);
-    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[2], 1e-6);
+    assertEquals("price", -21.0, (Double)args[3], 1e-6);
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
     assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
@@ -299,26 +299,26 @@ public class AuctionServiceTests
     Object[] args = accountingArgs.get(0);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", -0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", -0.6, (Double)args[2], 1e-6);
+    assertEquals("price", 20.5, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(1);
     assertEquals("b2", b2, args[0]); // b2 had the higher bid price
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", -20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[2], 1e-6);
+    assertEquals("price", -20.5, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(2);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", -0.4, (Double)args[3], 1e-6);
+    assertEquals("mWh", -0.4, (Double)args[2], 1e-6);
+    assertEquals("price", 20.5, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(3);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts1", ts1, args[1]);
-    assertEquals("price", -20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", 0.4, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.4, (Double)args[2], 1e-6);
+    assertEquals("price", -20.5, (Double)args[3], 1e-6);
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
     assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
@@ -361,38 +361,38 @@ public class AuctionServiceTests
     Object[] args = accountingArgs.get(0);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", -0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", -0.6, (Double)args[2], 1e-6);
+    assertEquals("price", 20.5, (Double)args[3], 1e-6);
 
     args = accountingArgs.get(1);
     assertEquals("b2", b2, args[0]); // b2 had the higher bid price
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", -20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", 0.6, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.6, (Double)args[2], 1e-6);
+    assertEquals("price", -20.5, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(2);
     assertEquals("s1", s1, args[0]);
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", -0.3, (Double)args[3], 1e-6);
+    assertEquals("mWh", -0.3, (Double)args[2], 1e-6);
+    assertEquals("price", 20.5, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(3);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", -20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", 0.3, (Double)args[3], 1e-6);
+    assertEquals("mWh", 0.3, (Double)args[2], 1e-6);
+    assertEquals("price", -20.5, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(4);
     assertEquals("s2", s2, args[0]);
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", 20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", -1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", -1.0, (Double)args[2], 1e-6);
+    assertEquals("price", 20.5, (Double)args[3], 1e-6);
     
     args = accountingArgs.get(5);
     assertEquals("b1", b1, args[0]); // b1 had the lower bid price
     assertEquals("ts2", ts2, args[1]);
-    assertEquals("price", -20.5, (Double)args[2], 1e-6);
-    assertEquals("mWh", 1.0, (Double)args[3], 1e-6);
+    assertEquals("mWh", 1.0, (Double)args[2], 1e-6);
+    assertEquals("price", -20.5, (Double)args[3], 1e-6);
 
     // two broker messages
     assertEquals("2 messages", 2, brokerMsgs.size());
