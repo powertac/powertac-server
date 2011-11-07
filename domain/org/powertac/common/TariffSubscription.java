@@ -47,7 +47,6 @@ public class TariffSubscription
   private TariffMarket tariffMarketService;
   
   /** The customer who has this Subscription */
-  //private AbstractCustomer customer;
   private CustomerInfo customer;
   
   /** The tariff for which this subscription applies */
@@ -141,10 +140,11 @@ public class TariffSubscription
       log.debug("signup bonus: " + customerCount + 
                 " customers, total = " + customerCount * tariff.getSignupPayment());
     }
+    // signup payment is positive for a bonus, to it's a debit for the broker.
     accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                            tariff, customer, 
                                            customerCount, 0.0,
-                                           customerCount * tariff.getSignupPayment());
+                                           customerCount * -tariff.getSignupPayment());
   }
   
   /**
@@ -176,7 +176,7 @@ public class TariffSubscription
     if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
       accountingService.addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer, customerCount, 0.0,
-          penaltyCount * tariff.getEarlyWithdrawPayment());
+          penaltyCount * -tariff.getEarlyWithdrawPayment());
     }
   }
   
@@ -224,8 +224,8 @@ public class TariffSubscription
     // generate the usage transaction
     TariffTransaction.Type txType = kWh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     accountingService.addTariffTransaction(txType, tariff,
-        customer, customersCommitted, kWh,
-        customersCommitted * tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
+        customer, customersCommitted, -kWh,
+        customersCommitted * -tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
     if (timeService.getHourOfDay() == 0) {
       //reset the daily usage counter
       totalUsage = 0.0;
@@ -236,7 +236,7 @@ public class TariffSubscription
       tariff.addPeriodicPayment();
       accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
           tariff, customer, customersCommitted, 0.0,
-          customersCommitted * tariff.getPeriodicPayment() / 24.0);
+          customersCommitted * -tariff.getPeriodicPayment() / 24.0);
     }
   }
   
