@@ -63,6 +63,7 @@ import org.powertac.householdcustomer.customers.Village;
 import org.powertac.tariffmarket.TariffMarketInitializationService;
 import org.powertac.tariffmarket.TariffMarketService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -72,6 +73,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:test/test-config.xml" })
+@DirtiesContext
 public class HouseholdCustomerServiceTests
 {
 
@@ -120,7 +122,7 @@ public class HouseholdCustomerServiceTests
   private Instant exp;
   private Broker broker1;
   private Broker broker2;
-  private DateTime now;
+  private Instant now;
   private TariffSpecification defaultTariffSpec;
   private Competition comp;
 
@@ -147,11 +149,11 @@ public class HouseholdCustomerServiceTests
     broker1 = new Broker("Joe");
     broker2 = new Broker("Anna");
 
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC);
-    timeService.setCurrentTime(now.toInstant());
+    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    timeService.setCurrentTime(now);
     timeService.setBase(now.getMillis());
-    timeService.setStart(now.getMillis());
-    exp = new Instant(now.getMillis() + TimeService.WEEK * 10);
+    //timeService.setStart(now.getMillis());
+    exp = now.plus(TimeService.WEEK * 10);
 
     List<String> inits = new ArrayList<String>();
 
@@ -224,11 +226,12 @@ public class HouseholdCustomerServiceTests
     }
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   public void testPowerConsumption ()
   {
     initializeService();
-    timeService.setCurrentTime(new Instant(now.getMillis() + (TimeService.HOUR)));
+    timeService.setCurrentTime(now.plus(TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     for (Village customer : householdCustomerService.getVillageList()) {
       assertFalse("Household consumed power",
@@ -249,10 +252,17 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    Rate r2 = new Rate().withValue(0.222);
+    Rate r2 = new Rate().withValue(-0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc2 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(2 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
     TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
@@ -298,12 +308,22 @@ public class HouseholdCustomerServiceTests
       assertEquals("one subscription", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
     }
 
-    Rate r2 = new Rate().withValue(0.222);
+    Rate r2 = new Rate().withValue(-0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc2 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(2 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(3 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -331,7 +351,7 @@ public class HouseholdCustomerServiceTests
       TariffSubscription ts3 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff3, customer.getCustomerInfo());
       customer.unsubscribe(ts3, 2);
       assertEquals("4 Subscriptions for customer", 4, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-      timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     }
 
     TariffRevoke tex = new TariffRevoke(tariff2.getBroker(), tariff2.getTariffSpec());
@@ -385,7 +405,7 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct thing", tariffMarketService, mockCC.processor);
     assertEquals("correct phase", 2, mockCC.timeslotPhase);
 
-    Instant start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //Instant start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     initializeService();
 
     // current time is noon. Set pub interval to 3 hours.
@@ -400,26 +420,50 @@ public class HouseholdCustomerServiceTests
     assertEquals("no tariffs at 12:00", 0, householdCustomerService.publishedTariffs.size());
 
     // publish some tariffs over a period of three hours, check for publication
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.222));
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(-0.222));
     tariffMarketService.processTariff(tsc1);
-    TariffSpecification tsc1a = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.223));
+    TariffSpecification tsc1a = new TariffSpecification(broker1,
+                                                        PowerType.CONSUMPTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(-0.223));
     tariffMarketService.processTariff(tsc1a);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 13:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals("no tariffs at 13:00", 0, householdCustomerService.publishedTariffs.size());
 
-    TariffSpecification tsc2 = new TariffSpecification(broker2, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.222));
+    TariffSpecification tsc2 = new TariffSpecification(broker2,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(-0.222));
     tariffMarketService.processTariff(tsc2);
-    TariffSpecification tsc3 = new TariffSpecification(broker2, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.222));
+    TariffSpecification tsc3 = new TariffSpecification(broker2,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(-0.222));
     tariffMarketService.processTariff(tsc3);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 14:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals("no tariffs at 14:00", 0, householdCustomerService.publishedTariffs.size());
 
-    TariffSpecification tsp1 = new TariffSpecification(broker1, PowerType.PRODUCTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.119));
-    TariffSpecification tsp2 = new TariffSpecification(broker1, PowerType.PRODUCTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.119));
+    TariffSpecification tsp1 = new TariffSpecification(broker1,
+                                                       PowerType.PRODUCTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(0.119));
+    TariffSpecification tsp2 = new TariffSpecification(broker1,
+                                                       PowerType.PRODUCTION)
+         .withExpiration(exp)
+         .withMinDuration(TimeService.WEEK * 8)
+         .addRate(new Rate().withValue(0.119));
     tariffMarketService.processTariff(tsp1);
     tariffMarketService.processTariff(tsp2);
     assertEquals("seven tariffs", 7, tariffRepo.findAllTariffs().size());
@@ -443,12 +487,22 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    Rate r2 = new Rate().withValue(0.222);
+    Rate r2 = new Rate().withValue(-0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + 3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8)
+    TariffSpecification tsc2 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(2 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(3 * TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8)
         .addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
@@ -477,32 +531,59 @@ public class HouseholdCustomerServiceTests
     initializeService();
     // for (int i = 0; i < 10; i++) {
 
-    Rate r0 = new Rate().withValue(Math.random()).withDailyBegin(0).withDailyEnd(0);
-    Rate r1 = new Rate().withValue(Math.random()).withDailyBegin(1).withDailyEnd(1);
-    Rate r2 = new Rate().withValue(Math.random()).withDailyBegin(2).withDailyEnd(2);
-    Rate r3 = new Rate().withValue(Math.random()).withDailyBegin(3).withDailyEnd(3);
-    Rate r4 = new Rate().withValue(Math.random()).withDailyBegin(4).withDailyEnd(4);
-    Rate r5 = new Rate().withValue(Math.random()).withDailyBegin(5).withDailyEnd(5);
-    Rate r6 = new Rate().withValue(Math.random()).withDailyBegin(6).withDailyEnd(6);
-    Rate r7 = new Rate().withValue(Math.random()).withDailyBegin(7).withDailyEnd(7);
-    Rate r8 = new Rate().withValue(Math.random()).withDailyBegin(8).withDailyEnd(8);
-    Rate r9 = new Rate().withValue(Math.random()).withDailyBegin(9).withDailyEnd(9);
-    Rate r10 = new Rate().withValue(Math.random()).withDailyBegin(10).withDailyEnd(10);
-    Rate r11 = new Rate().withValue(Math.random()).withDailyBegin(11).withDailyEnd(11);
-    Rate r12 = new Rate().withValue(Math.random()).withDailyBegin(12).withDailyEnd(12);
-    Rate r13 = new Rate().withValue(Math.random()).withDailyBegin(13).withDailyEnd(13);
-    Rate r14 = new Rate().withValue(Math.random()).withDailyBegin(14).withDailyEnd(14);
-    Rate r15 = new Rate().withValue(Math.random()).withDailyBegin(15).withDailyEnd(15);
-    Rate r16 = new Rate().withValue(Math.random()).withDailyBegin(16).withDailyEnd(16);
-    Rate r17 = new Rate().withValue(Math.random()).withDailyBegin(17).withDailyEnd(17);
-    Rate r18 = new Rate().withValue(Math.random()).withDailyBegin(18).withDailyEnd(18);
-    Rate r19 = new Rate().withValue(Math.random()).withDailyBegin(19).withDailyEnd(19);
-    Rate r20 = new Rate().withValue(Math.random()).withDailyBegin(20).withDailyEnd(20);
-    Rate r21 = new Rate().withValue(Math.random()).withDailyBegin(21).withDailyEnd(21);
-    Rate r22 = new Rate().withValue(Math.random()).withDailyBegin(22).withDailyEnd(22);
-    Rate r23 = new Rate().withValue(Math.random()).withDailyBegin(23).withDailyEnd(23);
+    Rate r0 = new Rate().withValue(-Math.random())
+        .withDailyBegin(0).withDailyEnd(0);
+    Rate r1 = new Rate().withValue(-Math.random())
+        .withDailyBegin(1).withDailyEnd(1);
+    Rate r2 = new Rate().withValue(-Math.random())
+        .withDailyBegin(2).withDailyEnd(2);
+    Rate r3 = new Rate().withValue(-Math.random())
+        .withDailyBegin(3).withDailyEnd(3);
+    Rate r4 = new Rate().withValue(-Math.random())
+        .withDailyBegin(4).withDailyEnd(4);
+    Rate r5 = new Rate().withValue(-Math.random())
+        .withDailyBegin(5).withDailyEnd(5);
+    Rate r6 = new Rate().withValue(-Math.random())
+        .withDailyBegin(6).withDailyEnd(6);
+    Rate r7 = new Rate().withValue(-Math.random())
+        .withDailyBegin(7).withDailyEnd(7);
+    Rate r8 = new Rate().withValue(-Math.random())
+        .withDailyBegin(8).withDailyEnd(8);
+    Rate r9 = new Rate().withValue(-Math.random())
+        .withDailyBegin(9).withDailyEnd(9);
+    Rate r10 = new Rate().withValue(-Math.random())
+        .withDailyBegin(10).withDailyEnd(10);
+    Rate r11 = new Rate().withValue(-Math.random())
+        .withDailyBegin(11).withDailyEnd(11);
+    Rate r12 = new Rate().withValue(-Math.random())
+        .withDailyBegin(12).withDailyEnd(12);
+    Rate r13 = new Rate().withValue(-Math.random())
+        .withDailyBegin(13).withDailyEnd(13);
+    Rate r14 = new Rate().withValue(-Math.random())
+        .withDailyBegin(14).withDailyEnd(14);
+    Rate r15 = new Rate().withValue(-Math.random())
+        .withDailyBegin(15).withDailyEnd(15);
+    Rate r16 = new Rate().withValue(-Math.random())
+        .withDailyBegin(16).withDailyEnd(16);
+    Rate r17 = new Rate().withValue(-Math.random())
+        .withDailyBegin(17).withDailyEnd(17);
+    Rate r18 = new Rate().withValue(-Math.random())
+        .withDailyBegin(18).withDailyEnd(18);
+    Rate r19 = new Rate().withValue(-Math.random())
+        .withDailyBegin(19).withDailyEnd(19);
+    Rate r20 = new Rate().withValue(-Math.random())
+        .withDailyBegin(20).withDailyEnd(20);
+    Rate r21 = new Rate().withValue(-Math.random())
+        .withDailyBegin(21).withDailyEnd(21);
+    Rate r22 = new Rate().withValue(-Math.random())
+        .withDailyBegin(22).withDailyEnd(22);
+    Rate r23 = new Rate().withValue(-Math.random())
+        .withDailyBegin(23).withDailyEnd(23);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(new Instant(now.getMillis() + TimeService.DAY)).withMinDuration(TimeService.WEEK * 8);
+    TariffSpecification tsc1 = new TariffSpecification(broker1,
+                                                       PowerType.CONSUMPTION)
+        .withExpiration(now.plus(TimeService.DAY))
+        .withMinDuration(TimeService.WEEK * 8);
     tsc1.addRate(r0);
     tsc1.addRate(r1);
     tsc1.addRate(r2);
@@ -539,7 +620,7 @@ public class HouseholdCustomerServiceTests
     }
     // }
     timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR * 23));
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
 

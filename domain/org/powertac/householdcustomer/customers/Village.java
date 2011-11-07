@@ -633,7 +633,7 @@ public class Village extends AbstractCustomer
    */
   double estimateFixedTariffPayments (Tariff tariff)
   {
-    double lifecyclePayment = (double) tariff.getEarlyWithdrawPayment() + (double) tariff.getSignupPayment();
+    double lifecyclePayment = -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
     double minDuration;
 
     // When there is not a Minimum Duration of the contract, you cannot divide with the duration
@@ -644,7 +644,7 @@ public class Village extends AbstractCustomer
       minDuration = tariff.getMinDuration();
 
     log.info("Minimum Duration: " + minDuration);
-    return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
+    return (-tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
   }
 
   /**
@@ -663,7 +663,7 @@ public class Village extends AbstractCustomer
     for (int day : daysList) {
       if (day < daylimit)
         day = (int) (day + (daylimit / HouseholdConstants.RANDOM_DAYS_NUMBER));
-      Instant now = new Instant(base.getMillis() + day * TimeService.DAY);
+      Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
 
@@ -673,8 +673,8 @@ public class Village extends AbstractCustomer
 
         log.debug("Cost for hour " + hour + ":" + tariff.getUsageCharge(now, 1, 0));
         cumulativeSummary += summary;
-        costSummary += tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = new Instant(now.getMillis() + TimeService.HOUR);
+        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
+        now = now.plus(TimeService.HOUR);
       }
       log.debug("Variable Cost Summary: " + finalCostSummary);
       finalCostSummary += costSummary;
@@ -695,13 +695,13 @@ public class Village extends AbstractCustomer
     double finalCostSummary = 0;
 
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    Instant base = new Instant(timeService.getCurrentTime().getMillis() - serial * TimeService.HOUR);
+    Instant base = timeService.getCurrentTime().minus(serial * TimeService.HOUR);
     int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1; // this will be changed to
 
     for (int day : daysList) {
       if (day < daylimit)
         day = (int) (day + (daylimit / HouseholdConstants.RANDOM_DAYS_NUMBER));
-      Instant now = new Instant(base.getMillis() + day * TimeService.DAY);
+      Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
 
@@ -710,8 +710,8 @@ public class Village extends AbstractCustomer
       for (int hour = 0; hour < HouseholdConstants.HOURS_OF_DAY; hour++) {
         summary = getBaseConsumptions(day, hour) + newControllableLoad[hour];
         cumulativeSummary += summary;
-        costSummary += tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = new Instant(now.getMillis() + TimeService.HOUR);
+        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
+        now = now.plus(TimeService.HOUR);
       }
       log.debug("Variable Cost Summary: " + finalCostSummary);
       finalCostSummary += costSummary;
