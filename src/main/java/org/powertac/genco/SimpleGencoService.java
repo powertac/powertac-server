@@ -21,12 +21,9 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -64,7 +61,7 @@ class SimpleGencoService
     Instant when = timeService.getCurrentTime();
     for (Genco genco : gencos) {
       genco.updateModel(when);
-      genco.generateShouts(when, openSlots);
+      genco.generateOrders(when, openSlots);
     }
   }
 }

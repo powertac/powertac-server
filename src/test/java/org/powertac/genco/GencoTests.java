@@ -35,7 +35,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
-import org.powertac.common.Shout;
+import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerProxy;
@@ -124,12 +124,12 @@ public class GencoTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(start);
     Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
     Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-    MarketPosition posn2 = new MarketPosition(genco, ts2, 0.6);
+    MarketPosition posn2 = new MarketPosition(genco, ts2, -0.6);
     genco.receiveMessage(posn2);
     assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
     assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
     assertNull("no position for ts3", genco.findMarketPositionByTimeslot(ts3));
-    MarketPosition posn3 = new MarketPosition(genco, ts3, 0.6);
+    MarketPosition posn3 = new MarketPosition(genco, ts3, -0.6);
     genco.receiveMessage(posn3);
     assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
     assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
@@ -137,20 +137,20 @@ public class GencoTests
   }
 
   @Test
-  public void testGenerateShouts ()
+  public void testGenerateOrders ()
   {
     // set up the genco
     PluginConfig config = new PluginConfig("Genco", "");
     genco.configure(config); // all defaults
-    // capture shouts
-    final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
+    // capture orders
+    final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        shoutList.add((Shout)args[0]);
+        orderList.add((Order)args[0]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Shout.class));
+    }).when(mockProxy).routeMessage(isA(Order.class));
     // set up some timeslots
     Timeslot ts1 = timeslotRepo.makeTimeslot(start);
     ts1.disable();
@@ -160,17 +160,17 @@ public class GencoTests
     // 50 mwh already sold in ts2
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
     genco.receiveMessage(posn2);
-    // generate shouts and check
-    genco.generateShouts(start, timeslotRepo.enabledTimeslots());
-    assertEquals("two shouts", 2, shoutList.size());
-    Shout first = shoutList.get(0);
+    // generate orders and check
+    genco.generateOrders(start, timeslotRepo.enabledTimeslots());
+    assertEquals("two shouts", 2, orderList.size());
+    Order first = orderList.get(0);
     assertEquals("first shout for ts2", ts2, first.getTimeslot());
     assertEquals("first shout price", 1.0, first.getLimitPrice(), 1e-6);
-    assertEquals("first shout for 50 mwh", 50.0, first.getMWh(), 1e-6);
-    Shout second = shoutList.get(1);
+    assertEquals("first shout for 50 mwh", -50.0, first.getMWh(), 1e-6);
+    Order second = orderList.get(1);
     assertEquals("second shout for ts3", ts3, second.getTimeslot());
     assertEquals("second shout price", 1.0, second.getLimitPrice(), 1e-6);
-    assertEquals("second shout for 100 mwh", 100.0, second.getMWh(), 1e-6);
+    assertEquals("second shout for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
 
   @Test
@@ -178,5 +178,4 @@ public class GencoTests
   {
     //fail("Not yet implemented");
   }
-
 }
