@@ -157,17 +157,18 @@ public class Genco
     }
   }
   
-  /**
-   * Override Broker.receiveMessage(). The only message type we care about is
-   * the market position.
-   */
-  public void receiveMessage (Object object)
-  {
-    if (object instanceof MarketPosition) {
-      MarketPosition posn = (MarketPosition)object;
-      addMarketPosition(posn, posn.getTimeslot());
-    }
-  }
+  // redundant - this is already done by Accounting for all brokers.
+//  /**
+//   * Override Broker.receiveMessage(). The only message type we care about is
+//   * the market position.
+//   */
+//  public void receiveMessage (Object object)
+//  {
+//    if (object instanceof MarketPosition) {
+//      MarketPosition posn = (MarketPosition)object;
+//      addMarketPosition(posn, posn.getTimeslot());
+//    }
+//  }
   
   
   private void updateCapacity (double val)
