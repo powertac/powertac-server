@@ -266,7 +266,8 @@ public class WeatherService
     pluginConfigRepo.makePluginConfig("weatherService", "init")
                     .addConfiguration("server", "url")
                     .addConfiguration("location", "Minneapolis")
-                    .addConfiguration("dateRange", "10-10-2009::10-12-2009");
+                    .addConfiguration("dateRange", "10-10-2009::10-12-2009")
+                    .asPrivileged();
   }
 
   public String initialize (Competition competition, List<String> completedInits)

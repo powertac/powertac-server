@@ -155,13 +155,14 @@ public class CompetitionControlService
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
+  private int currentSlot = 0;
   //private long timeslotMillis;
   private RandomSeed randomGen;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
-  //private List<Object> bootstrapDataset = null;
-  private long bootstrapTimeslotMillis = 1000;
+  private List<Object> bootstrapDataset = null;
+  private long bootstrapTimeslotMillis = 2000;
   
   private boolean simRunning = false;
 
@@ -200,14 +201,8 @@ public class CompetitionControlService
       init.setDefaults();
     }
 
-    // add broker message registration
+    // broker message registration for clock-control messages
     brokerProxyService.registerSimListener(this);
-
-    // configure competition instance
-//    for (PluginConfig config : pluginConfigRepo.list()) {
-//      log.info("adding plugin " + config.toString());
-//      competition.addPluginConfig(config);
-//    }
   }
   
   /**
@@ -328,37 +323,37 @@ public class CompetitionControlService
     logService.stopLog();
   }
   
-//  /**
-//   * Loads a bootstrap dataset, starts a simulation
-//   */
-//  public void runOnce (File datasetFile)
-//  {
-//    // load the bootstrap dataset, and start the sim
-//    //bootstrapDataset = new ArrayList<Object>();
-//    XPathFactory factory = XPathFactory.newInstance();
-//    XPath xPath = factory.newXPath();
-//    try {
-//      InputSource source = new InputSource(new FileReader(datasetFile));
-//      // we want all the children of the bootstrap node
-//      XPathExpression exp =
-//          xPath.compile("/powertac-bootstrap-data/bootstrap/*");
-//      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-//      log.info("Found " + nodes.getLength() + " bootstrap nodes");
-//      // Each node is a bootstrap data item
-//      for (int i = 0; i < nodes.getLength(); i++) {
-//        String xml = nodeToString(nodes.item(i));
-//        Object msg = messageConverter.fromXML(xml);
-//        bootstrapDataset.add(msg);
-//      }
-//    }
-//    catch (XPathExpressionException xee) {
-//      log.error("runOnce: Error reading config file: " + xee.toString());
-//    }
-//    catch (IOException ioe) {
-//      log.error("runOnce: reset fault: " + ioe.toString());
-//    }
-//    runOnce();
-//  }
+  /**
+   * Loads a bootstrap dataset, starts a simulation
+   */
+  public void runOnce (File datasetFile)
+  {
+    // load the bootstrap dataset, and start the sim
+    bootstrapDataset = new ArrayList<Object>();
+    XPathFactory factory = XPathFactory.newInstance();
+    XPath xPath = factory.newXPath();
+    try {
+      InputSource source = new InputSource(new FileReader(datasetFile));
+      // we want all the children of the bootstrap node
+      XPathExpression exp =
+          xPath.compile("/powertac-bootstrap-data/bootstrap/*");
+      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      log.info("Found " + nodes.getLength() + " bootstrap nodes");
+      // Each node is a bootstrap data item
+      for (int i = 0; i < nodes.getLength(); i++) {
+        String xml = nodeToString(nodes.item(i));
+        Object msg = messageConverter.fromXML(xml);
+        bootstrapDataset.add(msg);
+      }
+    }
+    catch (XPathExpressionException xee) {
+      log.error("runOnce: Error reading config file: " + xee.toString());
+    }
+    catch (IOException ioe) {
+      log.error("runOnce: reset fault: " + ioe.toString());
+    }
+    runOnce();
+  }
   
   /**
    * Runs a bootstrap sim, saves the bootstrap dataset in a file
@@ -606,9 +601,9 @@ public class CompetitionControlService
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
     brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
-//    if (!bootstrapMode) {
-//      brokerProxyService.broadcastMessages(bootstrapDataset);
-//    }
+    if (!bootstrapMode) {
+      brokerProxyService.broadcastMessages(bootstrapDataset);
+    }
     brokerProxyService.broadcastDeferredMessages();
 
     // sim length for bootstrap mode comes from the competition instance;
@@ -668,9 +663,6 @@ public class CompetitionControlService
   {
     long timeslotMillis = competition.getTimeslotDuration();
     // set timeslot index according to bootstrap mode
-//    if (!bootstrapMode) {
-//      timeslotRepo.setIndexOffset(competition.getBootstrapTimeslotCount());
-//    }
     for (int i = 0; i < initialSlots - 1; i++) {
       Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
       ts.disable();
@@ -691,6 +683,10 @@ public class CompetitionControlService
     if (current == null) {
       log.error("current timeslot is null at " + timeService.getCurrentTime());
       return;
+    }
+    if (current.getSerialNumber() != currentSlot) {
+      log.error("current timeslot serial is " + current.getSerialNumber() +
+                ", should be " + currentSlot);
     }
     int oldSerial = (current.getSerialNumber() +
             competition.getDeactivateTimeslotsAhead() - 1);
@@ -836,12 +832,12 @@ public class CompetitionControlService
       timeService.init();
       // run the simulation
       running = true;
-      int slot = 0;
       clock.scheduleTick();
       while (running) {
-        log.info("Wait for tick " + slot);
-        clock.waitForTick(slot++);
+        log.info("Wait for tick " + currentSlot);
+        clock.waitForTick(currentSlot);
         step();
+        currentSlot += 1;
         clock.complete();
       }
       // simulation is complete

@@ -71,6 +71,11 @@ public class BrokerProxyService implements BrokerProxy
     // dispatch to visualizers
     visualizerProxyService.forwardMessage(messageObject);
     
+    localSendMessage(broker, messageObject);
+  }
+
+  private void localSendMessage (Broker broker, Object messageObject)
+  {
     // route to local brokers
     if (broker.isLocal()) {
       broker.receiveMessage(messageObject);
@@ -126,7 +131,7 @@ public class BrokerProxyService implements BrokerProxy
       // ActiveMQ
       // if we have JMS performance issue, we will look into optimization using
       // ActiveMQ special queues.
-      sendMessage(broker, messageObject);
+      localSendMessage(broker, messageObject);
     }
   }
 
