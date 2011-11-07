@@ -473,14 +473,14 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(1),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     order = orderList.get(22);
     assertNotNull("last order not null", order);
     assertEquals("ts24 is last", 
                  timeslotRepo.findBySerialNumber(23),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -523,7 +523,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(2),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     order = orderList.get(20);
     assertEquals("ts22 in list[20]", 
                  timeslotRepo.findBySerialNumber(22),
@@ -537,7 +537,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(24),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -569,7 +569,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(3),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.51, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     order = orderList.get(20);
     assertEquals("ts23 in list[20]", 
                  timeslotRepo.findBySerialNumber(23),
@@ -583,7 +583,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(25),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
     orderList.clear();
   }
   

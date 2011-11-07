@@ -78,15 +78,15 @@ public class DefaultBrokerInitializationServiceTests
     
     PluginConfig config = pluginConfigRepo.findByRoleName("defaultBroker");
     assertNotNull("found config", config);
-    assertEquals("correct consumption rate", "0.5",
+    assertEquals("correct consumption rate", "-0.5",
                  config.getConfigurationValue("consumptionRate"));
-    assertEquals("correct productionRate", "-0.02",
+    assertEquals("correct productionRate", "0.02",
                  config.getConfigurationValue("productionRate"));
     assertEquals("correct bid kwh", "1000.0",
                  config.getConfigurationValue("initialBidKWh"));
-    assertEquals("correct buy limit price", "100.0",
+    assertEquals("correct buy limit price", "-100.0",
                  config.getConfigurationValue("buyLimitPrice"));
-    assertEquals("correct sell limit price", "0.1",
+    assertEquals("correct sell limit price", "1.0",
                  config.getConfigurationValue("sellLimitPrice"));
   }
 

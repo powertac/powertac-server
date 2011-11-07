@@ -60,7 +60,7 @@ implements InitializationService
       .addConfiguration("consumptionRate", "-0.5") // -0.50/kwh
       .addConfiguration("productionRate", "0.02") // 0.02/kwh
       .addConfiguration("initialBidKWh", "1000.0")
-      .addConfiguration("buyLimitPrice", "-50.0")
+      .addConfiguration("buyLimitPrice", "-100.0")
       .addConfiguration("sellLimitPrice", "1.0");
   }
 
