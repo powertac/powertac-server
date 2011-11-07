@@ -31,8 +31,7 @@ import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
-import org.powertac.common.Shout;
-import org.powertac.common.Shout.OrderType;
+import org.powertac.common.Order;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
@@ -84,11 +83,14 @@ public class DefaultBrokerService
   private LocalBroker face;
   
   /** parameters */
-  private double defaultConsumptionRate = 1.0;
-  private double defaultProductionRate = -0.01;
+  // keep in mind that brokers need to deal with two viewpoints. Tariffs
+  // types take the viewpoint of the customer, while market-related types
+  // take the viewpoint of the broker.
+  private double defaultConsumptionRate = -1.0; // customer pays
+  private double defaultProductionRate = 0.01;  // broker pays
   private double initialBidKWh = 500.0;
-  private double buyLimitPrice = 200.0;
-  private double sellLimitPrice = 0.0;
+  private double buyLimitPrice = -100.0;  // broker pays
+  private double sellLimitPrice = 0.1;    // other broker pays
   private int usageRecordLength = 7 * 24; // one week
   
   // bootstrap-mode data - uninitialized for normal sim mode
@@ -207,7 +209,7 @@ public class DefaultBrokerService
           neededKWh = currentKWh;
         // subtract out the current market position, and we know what to
         // buy or sell
-        submitShout(neededKWh, timeslot);
+        submitOrder(neededKWh, timeslot);
       }
     }
     
@@ -218,7 +220,7 @@ public class DefaultBrokerService
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
         int index = (timeslot.getSerialNumber()) % 24;
         neededKWh = collectUsage(index);
-        submitShout(neededKWh, timeslot);
+        submitOrder(neededKWh, timeslot);
       }      
     }
     
@@ -229,7 +231,7 @@ public class DefaultBrokerService
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
         int index = (timeslot.getSerialNumber()) % usageRecordLength;
         neededKWh = collectUsage(index);
-        submitShout(neededKWh, timeslot);
+        submitOrder(neededKWh, timeslot);
       }      
     }
   }
@@ -243,29 +245,26 @@ public class DefaultBrokerService
         result += record.getUsage(index);
       }
     }
-    return result;
+    return -result; // convert to needed energy account balance
   }
 
-  private void submitShout (double neededKWh, Timeslot timeslot)
+  private void submitOrder (double neededKWh, Timeslot timeslot)
   {
     double neededMWh = neededKWh / 1000.0;
     double limitPrice = buyLimitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
-    OrderType buySell = OrderType.BUY;
     if (neededMWh < 0.0) {
-      buySell = OrderType.SELL;
-      neededMWh = -neededMWh;
       limitPrice = sellLimitPrice;
     }
     if (neededMWh == 0.0) {
       log.info("no power required in timeslot " + timeslot.getSerialNumber());
       return;
     }
-    log.info("new " + buySell + " order for " + neededMWh +
+    log.info("new order for " + neededMWh +
              " in timeslot " + timeslot.getSerialNumber());
-    brokerProxyService.routeMessage(new Shout(face, timeslot, buySell,
+    brokerProxyService.routeMessage(new Order(face, timeslot,
                                               neededMWh, limitPrice));
   }
 
@@ -339,13 +338,14 @@ public class DefaultBrokerService
     }
   }
 
-  /**
-   * Receives a new MarketPosition for a given timeslot and stores it
-   */
-  public void handleMessage (MarketPosition posn)
-  {
-    face.addMarketPosition(posn, posn.getTimeslot());
-  }
+  // redundant - this is already done by Accounting for all brokers.
+//  /**
+//   * Receives a new MarketPosition for a given timeslot and stores it
+//   */
+//  public void handleMessage (MarketPosition posn)
+//  {
+//    face.addMarketPosition(posn, posn.getTimeslot());
+//  }
   
   /**
    * Receives a new WeatherReport. We only care about this if in bootstrap
@@ -422,7 +422,9 @@ public class DefaultBrokerService
   /**
    * Records the net power usage for each customer in the current timeslot.
    * Obviously, this must be run after each customer model has reported its
-   * consumption and production.
+   * consumption and production. The number we want to record is the negative
+   * of the customer record, because we want to record what the broker must
+   * buy.
    */
   private void recordNetUsage ()
   {
@@ -434,13 +436,15 @@ public class DefaultBrokerService
           usage = new ArrayList<Double>();
           netUsageMap.put(record.getCustomerInfo(), usage);
         }
-        usage.add(record.getUsage(record.getIndex(now)));
+        usage.add(-record.getUsage(record.getIndex(now)));
       }
     }
   }
   
   /**
    * Records the delivered price of purchased power in the current timeslot.
+   * If the broker has purchased more than it has sold, this will be a negative
+   * number.
    */
   private void recordDeliveredPrice ()
   {
@@ -453,10 +457,14 @@ public class DefaultBrokerService
     double totalMWh = 0.0;
     double totalCost = 0.0;
     for (MarketTransaction tx : txList) {
-      // TODO - only include buy orders?
-      totalMWh += tx.getMWh();
-      totalCost += tx.getPrice() * tx.getMWh();
+      // only include buy orders
+      if (tx.getMWh() > 0.0) {
+        //log.info("record price: mwh=" + tx.getMWh() + ", price=" + tx.getPrice());
+        totalMWh += tx.getMWh();
+        totalCost += tx.getPrice() * tx.getMWh();
+      }
     }
+    //log.info("market totals: mwh=" + totalMWh + ", price=" + totalCost);
     marketMWh.add(totalMWh);
     if (totalMWh == 0.0) {
       marketPrice.add(0.0);
@@ -647,7 +655,7 @@ public class DefaultBrokerService
     
     // we assume here that timeslot index always matches the number of
     // timeslots that have passed since the beginning of the simulation.
-    private int getIndex (Instant when)
+    int getIndex (Instant when)
     {
       int result = (int)((when.getMillis() - base.getMillis()) /
                          (Competition.currentCompetition().getTimeslotLength() * 

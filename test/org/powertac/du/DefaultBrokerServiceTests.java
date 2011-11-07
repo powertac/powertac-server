@@ -38,7 +38,7 @@ import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
-import org.powertac.common.Shout;
+import org.powertac.common.Order;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
@@ -55,6 +55,7 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.du.DefaultBrokerInitializationService;
 import org.powertac.du.DefaultBrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -68,6 +69,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:test/test-config.xml"})
+@DirtiesContext
 public class DefaultBrokerServiceTests
 {
   @Autowired
@@ -186,7 +188,7 @@ public class DefaultBrokerServiceTests
         List<Rate> rates = spec.getRates();
         assertEquals("just one rate", 1, rates.size());
         assertTrue("fixed rate", rates.get(0).isFixed());
-        assertEquals("correct rate", 0.5, rates.get(0).getValue(), 1e-6);
+        assertEquals("correct rate", -0.5, rates.get(0).getValue(), 1e-6);
       }
       else if (spec.getPowerType() == PowerType.PRODUCTION) {
         foundProduction = true;
@@ -194,7 +196,7 @@ public class DefaultBrokerServiceTests
         List<Rate> rates = spec.getRates();
         assertEquals("just one rate", 1, rates.size());
         assertTrue("fixed rate", rates.get(0).isFixed());
-        assertEquals("correct rate", -0.02, rates.get(0).getValue(), 1e-6);
+        assertEquals("correct rate", 0.02, rates.get(0).getValue(), 1e-6);
       }
     }
     assertTrue("found a consumption tariff", foundConsumption);
@@ -362,43 +364,43 @@ public class DefaultBrokerServiceTests
 
   @SuppressWarnings("rawtypes")
   @Test
-  public void testShoutTS0 ()
+  public void testOrderTS0 ()
   {
     Broker face = init();
     Timeslot current = timeslotRepo.currentTimeslot(); 
     assertEquals("current timeslot has serial 0", 0, current.getSerialNumber());
-    final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
+    final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        shoutList.add((Shout)args[0]);
+        orderList.add((Order)args[0]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Shout.class));
+    }).when(mockProxy).routeMessage(isA(Order.class));
     
     // activate the trading function by sending a cash position msg
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // timeslot -1
 
-    // without any subscriptions or consumption, we don't expect any shouts
-    assertEquals("0 shouts", 0, shoutList.size());
-//    Shout firstShout = shoutList.get(0);
-//    assertNotNull("first shout not null", firstShout);
-//    assertEquals("bid flag", Shout.OrderType.BUY, firstShout.getOrderType());
-//    assertEquals("correct mwh", 0.0, firstShout.getMWh(), 1e-6);
-//    assertEquals("correct price", 100.0, firstShout.getLimitPrice(), 1e-6);
-//    Shout lastShout = shoutList.get(22);
-//    assertNotNull("last shout not null", lastShout);
-//    assertEquals("bid flag", Shout.OrderType.BUY, lastShout.getOrderType());
-//    assertEquals("correct mwh", 0.0, lastShout.getMWh(), 1e-6);
-//    assertEquals("correct price", 100.0, lastShout.getLimitPrice(), 1e-6);
+    // without any subscriptions or consumption, we don't expect any orders
+    assertEquals("0 orders", 0, orderList.size());
+//    Order firstOrder = orderList.get(0);
+//    assertNotNull("first order not null", firstOrder);
+//    assertEquals("bid flag", Order.OrderType.BUY, firstOrder.getOrderType());
+//    assertEquals("correct mwh", 0.0, firstOrder.getMWh(), 1e-6);
+//    assertEquals("correct price", 100.0, firstOrder.getLimitPrice(), 1e-6);
+//    Order lastOrder = orderList.get(22);
+//    assertNotNull("last order not null", lastOrder);
+//    assertEquals("bid flag", Order.OrderType.BUY, lastOrder.getOrderType());
+//    assertEquals("correct mwh", 0.0, lastOrder.getMWh(), 1e-6);
+//    assertEquals("correct price", 100.0, lastOrder.getLimitPrice(), 1e-6);
   }
   
   // in timeslot 3, we should have 3 days of records on which to base the last
   @SuppressWarnings("rawtypes")
   // three bids
   @Test
-  public void testShoutTS3 ()
+  public void testOrderTS3 ()
   {
     // collect the tariff specs
     final HashMap<PowerType, TariffSpecification> specs = 
@@ -412,15 +414,15 @@ public class DefaultBrokerServiceTests
       }
     }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
     
-    // collect shouts when they are submitted
-    final ArrayList<Shout> shoutList = new ArrayList<Shout>(); 
+    // collect orders when they are submitted
+    final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        shoutList.add((Shout)args[0]);
+        orderList.add((Order)args[0]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Shout.class));
+    }).when(mockProxy).routeMessage(isA(Order.class));
 
     // initialize the default broker
     Broker face = init();
@@ -460,28 +462,26 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              500.0, 4.2));
+                                              -500.0, 4.2));
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // last message in ts0
-    assertEquals("23 shouts", 23, shoutList.size());
-    assertEquals("23 shouts ts1", 23, shoutList.size());
-    Shout shout = shoutList.get(0);
-    assertNotNull("first shout not null", shout);
+    assertEquals("23 orders", 23, orderList.size());
+    assertEquals("23 orders ts1", 23, orderList.size());
+    Order order = orderList.get(0);
+    assertNotNull("first order not null", order);
     assertEquals("ts1 is first", 
                  timeslotRepo.findBySerialNumber(1),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.5, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shout = shoutList.get(22);
-    assertNotNull("last shout not null", shout);
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    order = orderList.get(22);
+    assertNotNull("last order not null", order);
     assertEquals("ts24 is last", 
                  timeslotRepo.findBySerialNumber(23),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.5, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shoutList.clear();
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(nextTimeslot()); // end of ts0: 1 disabled, 24 enabled
@@ -492,7 +492,7 @@ public class DefaultBrokerServiceTests
     assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
     assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
     
-    assertEquals("correct usage index 0", 500.0,
+    assertEquals("correct usage index 0", -500.0,
                  service.getUsageForCustomer(customer1, cspec, 0), 1e-6);
     assertEquals("correct usage index 1", 0.0,
                  service.getUsageForCustomer(customer1, cspec, 1), 1e-6);
@@ -505,42 +505,40 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              450.0, 4.2));
+                                              -450.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              -30.0, -0.15));
+                                              30.0, -0.15));
     // accounting runs ts1
     face.receiveMessage(cp);
     // broker sends bids for ts2...ts24
-    assertEquals("23 shouts ts1", 23, shoutList.size());
-    shout = shoutList.get(0);
-    assertNotNull("first shout not null", shout);
+    assertEquals("23 orders ts1", 23, orderList.size());
+    order = orderList.get(0);
+    assertNotNull("first order not null", order);
     assertEquals("ts2 is first", 
                  timeslotRepo.findBySerialNumber(2),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shout = shoutList.get(20);
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    order = orderList.get(20);
     assertEquals("ts22 in list[20]", 
                  timeslotRepo.findBySerialNumber(22),
-                 shout.getTimeslot());
-    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
-    shout = shoutList.get(21);
-    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
-    shout = shoutList.get(22);
-    assertNotNull("last shout not null", shout);
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+    order = orderList.get(21);
+    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+    order = orderList.get(22);
+    assertNotNull("last order not null", order);
     assertEquals("ts24 is last", 
                  timeslotRepo.findBySerialNumber(24),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.5, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shoutList.clear();
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(nextTimeslot()); // ts2 disabled, ts25 enabled
@@ -553,48 +551,46 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              550.0, 4.2));
+                                              -550.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              -40.0, -0.15));
+                                              40.0, -0.15));
     // accounting runs ts2
     face.receiveMessage(cp);
     // broker sends bids for ts3...ts25
-    assertEquals("23 shouts ts2", 23, shoutList.size());
-    shout = shoutList.get(0);
-    assertNotNull("first shout not null", shout);
+    assertEquals("23 orders ts2", 23, orderList.size());
+    order = orderList.get(0);
+    assertNotNull("first order not null", order);
     assertEquals("ts3 is first", 
                  timeslotRepo.findBySerialNumber(3),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.51, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shout = shoutList.get(20);
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.51, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    order = orderList.get(20);
     assertEquals("ts23 in list[20]", 
                  timeslotRepo.findBySerialNumber(23),
-                 shout.getTimeslot());
-    assertEquals("correct mwh", 0.51, shout.getMWh(), 1e-6);
-    shout = shoutList.get(21);
-    assertEquals("correct mwh", 0.50, shout.getMWh(), 1e-6);
-    shout = shoutList.get(22);
-    assertNotNull("last shout not null", shout);
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.51, order.getMWh(), 1e-6);
+    order = orderList.get(21);
+    assertEquals("correct mwh", 0.50, order.getMWh(), 1e-6);
+    order = orderList.get(22);
+    assertNotNull("last order not null", order);
     assertEquals("ts25 is last", 
                  timeslotRepo.findBySerialNumber(25),
-                 shout.getTimeslot());
-    assertEquals("bid flag", Shout.OrderType.BUY, shout.getOrderType());
-    assertEquals("correct mwh", 0.42, shout.getMWh(), 1e-6);
-    assertEquals("correct price", 100.0, shout.getLimitPrice(), 1e-6);
-    shoutList.clear();
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+    assertEquals("correct price", -50.0, order.getLimitPrice(), 1e-6);
+    orderList.clear();
   }
   
   // Generate three days of bootstrap data
   @SuppressWarnings("rawtypes")
   @Test
-  public void testShoutTS3Bootstrap ()
+  public void testOrderTS3Bootstrap ()
   {
     // collect the tariff specs
     final HashMap<PowerType, TariffSpecification> specs = 
@@ -646,7 +642,7 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              500.0, 4.2));
+                                              -500.0, 4.2));
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // last message in ts0
 
@@ -661,14 +657,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              450.0, 4.2));
+                                              -450.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              -30.0, -0.15));
+                                              30.0, -0.15));
     // accounting runs ts1
     face.receiveMessage(cp);
     // broker sends bids for ts2...ts24
@@ -684,14 +680,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              550.0, 4.2));
+                                              -550.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              -40.0, -0.15));
+                                              40.0, -0.15));
     // accounting runs ts2
     face.receiveMessage(cp);
     // broker sends bids for ts3...ts25
