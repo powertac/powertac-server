@@ -109,8 +109,8 @@ public class TariffSubscriptionTests
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 4)
-            .withSignupPayment(-33.2)
-            .addRate(new Rate().withValue(0.121));
+            .withSignupPayment(33.2)
+            .addRate(new Rate().withValue(-0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -132,9 +132,9 @@ public class TariffSubscriptionTests
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 4)
-            .withSignupPayment(-33.2)
-            .withEarlyWithdrawPayment(42.1)
-            .addRate(new Rate().withValue(0.121));
+            .withSignupPayment(33.2)
+            .withEarlyWithdrawPayment(-42.1)
+            .addRate(new Rate().withValue(-0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
     TariffSubscription tsub =
@@ -182,8 +182,8 @@ public class TariffSubscriptionTests
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 4)
-            .withSignupPayment(-33.2)
-            .addRate(new Rate().withValue(0.121));
+            .withSignupPayment(33.2)
+            .addRate(new Rate().withValue(-0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -193,7 +193,7 @@ public class TariffSubscriptionTests
     assertEquals("four customers committed", 4, tsub.getCustomersCommitted());
     tsub.usePower(24.4); // consumption
     assertEquals("correct total usage", 24.4 / 4, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", 0.121, tariff.getRealizedPrice(), 1e-6);
+    assertEquals("correct realized price", -0.121, tariff.getRealizedPrice(), 1e-6);
     //def txs = TariffTransaction.findAllByPostedTime(timeService.getCurrentTime());
     //assertEquals("two transactions", 2, txs.size())
     //TariffTransaction ttx = 
@@ -210,7 +210,7 @@ public class TariffSubscriptionTests
     timeService.setCurrentTime(hour);
     tsub.usePower(32.8); // consumption
     assertEquals("correct total usage", (24.4 + 32.8) / 4, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", 0.121, tariff.getRealizedPrice(), 1e-6);
+    assertEquals("correct realized price", -0.121, tariff.getRealizedPrice(), 1e-6);
     //txs = TariffTransaction.findAllByPostedTime(timeService.getCurrentTime())
     //assertEquals("one transaction", 1, txs.size())
     //ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.getCurrentTime(), TariffTransactionType.CONSUME)
@@ -228,9 +228,9 @@ public class TariffSubscriptionTests
         new TariffSpecification(broker, PowerType.CONSUMPTION)
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 4)
-            .withSignupPayment(-31.2)
-            .withPeriodicPayment(1.3)
-            .addRate(new Rate().withValue(0.112));
+            .withSignupPayment(31.2)
+            .withPeriodicPayment(-1.3)
+            .addRate(new Rate().withValue(-0.112));
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
@@ -240,7 +240,7 @@ public class TariffSubscriptionTests
     assertEquals("six customers committed", 6, tsub.getCustomersCommitted());
     tsub.usePower(28.8); // consumption
     assertEquals("correct total usage", 28.8 / 6, tsub.getTotalUsage(), 1e-6);
-    assertEquals("correct realized price", (0.112 * 28.8 + 6 * 1.3) / 28.8, tariff.getRealizedPrice(), 1e-6);
+    assertEquals("correct realized price", -0.112, tariff.getRealizedPrice(), 1e-6);
     //def txs = TariffTransaction.findAllByPostedTime(timeService.currentTime);
     //assertEquals("two transactions", 3, txs.size())
     //TariffTransaction ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime, TariffTransactionType.SIGNUP)
@@ -264,8 +264,8 @@ public class TariffSubscriptionTests
         new TariffSpecification(broker, PowerType.PRODUCTION)
             .withExpiration(exp)
             .withMinDuration(TimeService.WEEK * 4)
-            .withSignupPayment(-34.2)
-            .withEarlyWithdrawPayment(35.0)
+            .withSignupPayment(34.2)
+            .withEarlyWithdrawPayment(-35.0)
             .addRate(new Rate().withValue(0.102));
     tariff = new Tariff(tariffSpec);
     tariff.init();
