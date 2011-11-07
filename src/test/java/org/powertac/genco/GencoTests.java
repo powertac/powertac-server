@@ -116,25 +116,26 @@ public class GencoTests
     assertTrue("still in operation", genco.isInOperation());
   }
 
-  @Test
-  public void testReceiveMessage ()
-  {
-    PluginConfig config = new PluginConfig("Genco", "");
-    genco.configure(config); // all defaults
-    Timeslot ts1 = timeslotRepo.makeTimeslot(start);
-    Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-    Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-    MarketPosition posn2 = new MarketPosition(genco, ts2, -0.6);
-    genco.receiveMessage(posn2);
-    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
-    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
-    assertNull("no position for ts3", genco.findMarketPositionByTimeslot(ts3));
-    MarketPosition posn3 = new MarketPosition(genco, ts3, -0.6);
-    genco.receiveMessage(posn3);
-    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
-    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
-    assertEquals("match for ts3", posn3, genco.findMarketPositionByTimeslot(ts3));
-  }
+  // TODO - redo this with a message that is actually received
+//  @Test
+//  public void testReceiveMessage ()
+//  {
+//    PluginConfig config = new PluginConfig("Genco", "");
+//    genco.configure(config); // all defaults
+//    Timeslot ts1 = timeslotRepo.makeTimeslot(start);
+//    Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
+//    Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
+//    MarketPosition posn2 = new MarketPosition(genco, ts2, -0.6);
+//    genco.receiveMessage(posn2);
+//    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
+//    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
+//    assertNull("no position for ts3", genco.findMarketPositionByTimeslot(ts3));
+//    MarketPosition posn3 = new MarketPosition(genco, ts3, -0.6);
+//    genco.receiveMessage(posn3);
+//    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
+//    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
+//    assertEquals("match for ts3", posn3, genco.findMarketPositionByTimeslot(ts3));
+//  }
 
   @Test
   public void testGenerateOrders ()
@@ -159,18 +160,18 @@ public class GencoTests
     assertEquals("2 enabled timeslots", 2, timeslotRepo.enabledTimeslots().size());
     // 50 mwh already sold in ts2
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
-    genco.receiveMessage(posn2);
+    genco.addMarketPosition(posn2, ts2);
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("two shouts", 2, orderList.size());
+    assertEquals("two orders", 2, orderList.size());
     Order first = orderList.get(0);
-    assertEquals("first shout for ts2", ts2, first.getTimeslot());
-    assertEquals("first shout price", 1.0, first.getLimitPrice(), 1e-6);
-    assertEquals("first shout for 50 mwh", -50.0, first.getMWh(), 1e-6);
+    assertEquals("first order for ts2", ts2, first.getTimeslot());
+    assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
+    assertEquals("first order for 50 mwh", -50.0, first.getMWh(), 1e-6);
     Order second = orderList.get(1);
-    assertEquals("second shout for ts3", ts3, second.getTimeslot());
-    assertEquals("second shout price", 1.0, second.getLimitPrice(), 1e-6);
-    assertEquals("second shout for 100 mwh", -100.0, second.getMWh(), 1e-6);
+    assertEquals("second order for ts3", ts3, second.getTimeslot());
+    assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
+    assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
 
   @Test
