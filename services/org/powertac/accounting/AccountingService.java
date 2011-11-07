@@ -91,11 +91,11 @@ public class AccountingService
   public synchronized MarketTransaction 
   addMarketTransaction(Broker broker,
                        Timeslot timeslot,
-                       double price,
-                       double mWh) 
+                       double mWh,
+                       double price) 
   {
     MarketTransaction mtx = new MarketTransaction(broker, timeService.getCurrentTime(),
-                                                  timeslot, price, mWh);
+                                                  timeslot, mWh, price);
     pendingTransactions.add(mtx);
     return mtx;
   }
@@ -269,7 +269,7 @@ public class AccountingService
                                  ArrayList<Object> messages) 
   {
     Broker broker = tx.getBroker();
-    updateCash(broker, -tx.getPrice() * Math.abs(tx.getMWh()));
+    updateCash(broker, tx.getPrice() * Math.abs(tx.getMWh()));
     MarketPosition mkt =
         broker.findMarketPositionByTimeslot(tx.getTimeslot());
     if (mkt == null) {
