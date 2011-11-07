@@ -22,7 +22,10 @@ import org.powertac.common.xml.DoubleArrayConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * Encapsulates market prices and quantities over the bootstrap period.
+ * Encapsulates market prices and quantities over the bootstrap period. Prices
+ * and quantities are given from the broker's viewpoint, which means that
+ * typically quantities are positive and prices are negative (the broker is
+ * buying energy).
  * @author John Collins
  */
 @Domain

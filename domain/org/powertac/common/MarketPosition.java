@@ -18,7 +18,6 @@ package org.powertac.common;
 
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
 //import org.joda.time.Instant
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
@@ -57,24 +56,13 @@ public class MarketPosition //implements Serializable
   @XStreamAsAttribute
   double overallBalance = 0.0;
 
-  /** the product this position update belongs to */
-  @XStreamAsAttribute
-  private ProductType product = ProductType.Future; // not sure what this is for -- JEC
-
   public MarketPosition (Broker broker, Timeslot timeslot,
-                         double balance, ProductType product)
+                         double balance)
   {
     super();
     this.broker = broker;
     this.timeslot = timeslot;
     this.overallBalance = balance;
-    this.product = product;
-  }
-
-  public MarketPosition (Broker broker, Timeslot timeslot,
-                         double balance)
-  {
-    this(broker, timeslot, balance, ProductType.Future);
   }
   
   public long getId()
@@ -95,11 +83,6 @@ public class MarketPosition //implements Serializable
   public double getOverallBalance ()
   {
     return overallBalance;
-  }
-
-  public ProductType getProduct ()
-  {
-    return product;
   }
 
   public String toString() {

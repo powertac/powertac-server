@@ -17,26 +17,18 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
-import org.powertac.common.enumerations.ProductType;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
- * A MarketTransaction instance represents data commonly
- * referred to as trade and quote data (TAQ) in financial markets (stock exchanges).
- * One domain instance can (i) represent a trade that happened on the market
- * (price, mWh tuple and - in case of CDA markets - buyer and seller) or (ii)
- * a quote (which occurs if an order was entered into the system that changed the best
- * bid and/or best ask price / mWh but did not causing a clearing / trade). These
- * are created by the market, used by Accounting to update broker accounts, and then
- * forwarded to brokers.
- *<p>
- * Note: this domain class / table is closely modeled after the Thompson Reuter's TAQ data
- * file format in order to allow ex-post data analysis using the econometrics tools of the
- * Karlsruhe financial markets research group. The denormalization (trade and quote in one
- * domain class) is on purpose as econometrics analysis of market efficiency usually rely
- * on the combined data stream of both information types sorted by time precedence</p>
+ * A MarketTransaction instance represents a trade in the wholesale market.
+ * It is created by the market, used by Accounting to update accounts, and
+ * forwarded to the broker for its records. The values represent changes in
+ * the broker's energy and cash balances, from the viewpoint of the broker.
+ * Therefore, a positive price means that money will be deposited in the
+ * broker's bank account, and a positive amount of energy means that the broker
+ * has an additional quantity of energy in its account for the given timeslot.
  *
  * @author Carsten Block, John Collins
  */
@@ -44,10 +36,6 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("market-tx")
 public class MarketTransaction extends BrokerTransaction
 {
-  /** the product for which this information is created */
-  @XStreamAsAttribute
-  private ProductType product; // not clear what this means -- JEC
-
   /** price/mWh of a trade, positive for a buy, negative for a sell */
   @XStreamAsAttribute
   private double price;
@@ -62,7 +50,7 @@ public class MarketTransaction extends BrokerTransaction
   private Timeslot timeslot;
   
   public MarketTransaction (Broker broker, Instant when, 
-                            Timeslot timeslot, double price, double mWh)
+                            Timeslot timeslot, double mWh, double price)
   {
     super(when, broker);
     this.timeslot = timeslot;
@@ -70,20 +58,9 @@ public class MarketTransaction extends BrokerTransaction
     this.mWh = mWh;
   }
 
-  public ProductType getProduct ()
-  {
-    return product;
-  }
-
   public double getPrice ()
   {
     return price;
-  }
-
-  @Deprecated
-  public double getQuantity ()
-  {
-    return mWh;
   }
 
   public double getMWh ()
@@ -97,7 +74,7 @@ public class MarketTransaction extends BrokerTransaction
   }
 
   public String toString() {
-    return ("MktTx-" + timeslot.getSerialNumber() + "-" +
-            mWh + "-" + price);
+    return ("MktTx: time " + timeslot.getSerialNumber() + ", " +
+            mWh + "@" + price);
   }
 }

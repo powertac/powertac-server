@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;

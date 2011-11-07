@@ -46,10 +46,19 @@ public class HourlyCharge implements Comparable<HourlyCharge>
 
   private Instant atTime;
 
-  public HourlyCharge (Instant when, double value)
+  /**
+   * Creates a new HourlyCharge to communicate rate information to customers.
+   * The {@code when} parameter specifies when this charge takes effect.
+   * The specified charge/kWh applies until the next HourlyCharge takes effect
+   * on the same Rate. Note that
+   * the numbers are interpreted from the viewpoint of the Customer, so if
+   * the customer is expected to pay the broker, the value should be negative
+   * (a debit). 
+   */
+  public HourlyCharge (Instant when, double charge)
   {
     super();
-    this.value = value;
+    this.value = charge;
     this.atTime = when;
   }
 
@@ -59,10 +68,9 @@ public class HourlyCharge implements Comparable<HourlyCharge>
   }
 
   /**
-   * Set connection between rate and hourly charge. An instance with the
-   * default rateId is not considered complete, and will not appear in the
-   * state log. This method is intended to be called from Rate when the
-   * instance is added to the rate.
+   * Sets connection between rate and hourly charge. An instance with the
+   * default rateId is not considered complete. This method is intended 
+   * to be called from Rate when the instance is added to the rate.
    */
   @StateChange
   void setRateId (long rateId)

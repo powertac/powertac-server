@@ -26,15 +26,24 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.BrokerRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.thoughtworks.xstream.XStream;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@DirtiesContext
 public class TariffSpecificationTests
 {
-
+  @Autowired
   private TimeService timeService;
+  
   private Broker broker;
   private Instant now;
 
@@ -47,7 +56,6 @@ public class TariffSpecificationTests
   @Before
   public void setUp () throws Exception
   {
-    timeService = new TimeService();
     timeService.setCurrentTime(new DateTime());
     now = timeService.getCurrentTime();
     broker = new Broker("Jenny");
@@ -93,24 +101,24 @@ public class TariffSpecificationTests
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
     assertEquals("correct power type", PowerType.PRODUCTION, spec.getPowerType());
-    assertEquals("correct return", spec, spec.withSignupPayment(-10.00));
-    assertEquals("correct value", -10.00, spec.getSignupPayment(), 1e-6);
+    assertEquals("correct return", spec, spec.withSignupPayment(10.00));
+    assertEquals("correct value", 10.00, spec.getSignupPayment(), 1e-6);
   }
 
   @Test
   public void testSetEarlyWithdrawPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.withEarlyWithdrawPayment(20.00));
-    assertEquals("correct value", 20.00, spec.getEarlyWithdrawPayment(), 1e-6);
+    assertEquals("correct return", spec, spec.withEarlyWithdrawPayment(-20.00));
+    assertEquals("correct value", -20.00, spec.getEarlyWithdrawPayment(), 1e-6);
   }
 
   @Test
   public void testSetPeriodicPayment ()
   {
     TariffSpecification spec = new TariffSpecification(broker, PowerType.PRODUCTION);
-    assertEquals("correct return", spec, spec.withPeriodicPayment(0.01));
-    assertEquals("correct value", 0.01, spec.getPeriodicPayment(), 1e-6);
+    assertEquals("correct return", spec, spec.withPeriodicPayment(-0.01));
+    assertEquals("correct value", -0.01, spec.getPeriodicPayment(), 1e-6);
   }
 
   @Test
@@ -136,15 +144,15 @@ public class TariffSpecificationTests
   @Test
   public void testXmlSerialization ()
   {
-    Rate r = new Rate().withValue(0.121) 
+    Rate r = new Rate().withValue(-0.121) 
         .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
         .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
         .withTierThreshold(100.0);
     TariffSpecification spec = new TariffSpecification(broker,
                                                        PowerType.CONSUMPTION)
         .withMinDuration(20000l)
-        .withSignupPayment(-35.0)
-        .withPeriodicPayment(0.05)
+        .withSignupPayment(35.0)
+        .withPeriodicPayment(-0.05)
         .addRate(r);
 
     XStream xstream = new XStream();
@@ -154,10 +162,10 @@ public class TariffSpecificationTests
     //System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xspec);
-    assertEquals("correct signup", -35.0, xspec.getSignupPayment(), 1e-6);
+    assertEquals("correct signup", 35.0, xspec.getSignupPayment(), 1e-6);
     Rate xr = (Rate)xspec.getRates().get(0);
     assertNotNull("rate present", xr);
     assertTrue("correct rate type", xr.isFixed());
-    assertEquals("correct rate value", 0.121, xr.getMinValue(), 1e-6);
+    assertEquals("correct rate value", -0.121, xr.getMinValue(), 1e-6);
   }
 }

@@ -109,8 +109,8 @@ public class Tariff
   private Rate[][] rateMap;
 
   /**
-   * Initializes the Tariff, setting the publication date and running
-   * the internal analyzer to build the rate map.  
+   * Creates a new Tariff from the given TariffSpecification. Note that 
+   * the tariff will not be usable until its init() method has been called.  
    */
   public Tariff (TariffSpecification spec)
   {
@@ -183,7 +183,11 @@ public class Tariff
     return theRate.addHourlyCharge(newCharge);
   }
 
-  /** Returns the actual realized price, or 0.0 if information unavailable */
+  /** 
+   * Returns the actual realized price, or 0.0 if information unavailable.
+   * This value is negative for consumption tariffs, because it indicates
+   * that the customer has paid the broker.  
+   */
   public double getRealizedPrice ()
   {
     if (totalUsage == 0.0)
@@ -192,7 +196,9 @@ public class Tariff
       return totalCost / totalUsage;
   }
 
-  /** Pass-through for TariffSpecification.minDuration */
+  /** 
+   * Delegation for TariffSpecification.minDuration 
+   */
   public long getMinDuration ()
   {
     return tariffSpec.getMinDuration();
@@ -204,21 +210,25 @@ public class Tariff
     return tariffSpec.getPowerType();
   }
 
-  /** One-time payment for subscribing to tariff, positive for payment
-   *  from customer, negative for payment to customer. */
+  /** 
+   * One-time payment for subscribing to tariff, negative for payment
+   * from customer, positive for payment to customer. 
+   */
   public double getSignupPayment ()
   {
     return tariffSpec.getSignupPayment();
   }
 
-  /** Payment from customer to broker for canceling subscription before
-   *  minDuration has elapsed. */
+  /** 
+   * Payment from customer to broker for canceling subscription before
+   * minDuration has elapsed. This is typically a negative value. 
+   */
   public double getEarlyWithdrawPayment ()
   {
     return tariffSpec.getEarlyWithdrawPayment();
   }
 
-  /** Flat payment per period for two-part tariffs */
+  /** Flat payment per period for two-part tariffs, typically negative. */
   public double getPeriodicPayment ()
   {
     return tariffSpec.getPeriodicPayment();
@@ -235,7 +245,8 @@ public class Tariff
 
   /** 
    * Returns the usage charge for a single customer in the current timeslot. 
-   * If the kwh parameter is given as 1.0, you get the per-kwh value. If you supply
+   * If the kwh parameter is given as +1.0, you get the per-kwh value for 
+   * energy consumption, which is typically a negative value. If you supply
    * a non-zero value for cumulativeUsage, then the charge will be affected by the
    * rate tier structure in accordance with the new cumulative usage.
    * <p>
@@ -254,8 +265,9 @@ public class Tariff
 
   /** 
    * Returns the usage charge for a single customer using an amount of 
-   * energy at some time in 
-   * the past or future. If the requested time is farther in the future 
+   * energy at some time in the past or future. The return value is typically
+   * opposite in sign to the kwh parameter.
+   * If the requested time is farther in the future 
    * than maxHorizon, then the result will may be a default value, which 
    * may not be useful. The cumulativeUsage parameter sets the base for
    * probing the rate tier structure. Do not use this method for billing,
@@ -385,6 +397,9 @@ public class Tariff
     return state;
   }
   
+  /**
+   * Updates the state of this tariff.
+   */
   @StateChange
   public void setState(State newState)
   {
@@ -545,17 +560,9 @@ public class Tariff
     }
     return rate.getValue(when);
   }
-//
-//  public void setApplicationContext (ApplicationContext ctx)
-//  throws BeansException
-//  {
-//    System.out.println("tariff - set application context");
-//    timeService = ctx.getBean(TimeService.class);
-//    tariffRepo = ctx.getBean(TariffRepo.class);
-//  }
 
   /**
-   * @return the analyzed
+   * Returns the analyzed flag.
    */
   public boolean isAnalyzed ()
   {

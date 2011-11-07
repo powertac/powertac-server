@@ -1,11 +1,8 @@
 package org.powertac.common.xml;
 
 import org.powertac.common.Timeslot;
-import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.thoughtworks.xstream.converters.SingleValueConverter;
 

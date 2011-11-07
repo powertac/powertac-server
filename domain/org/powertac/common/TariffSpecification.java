@@ -35,6 +35,11 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * Tariff from it to make serious use of it. New tariffs and their Rates
  * are communicated to Customers and to Brokers when tariffs are published.
  * <p>
+ * TariffSpecifications and their associated Rates and HourlyCharges are
+ * specified from the Customer's viewpoint in terms of quantities and charges.
+ * In other words, a positive charge means the broker pays the customer, while
+ * a positive energy quantity means the broker sends energy to the customer.</p>
+ * <p>
  * <strong>Note:</strong> Must be serialized "deep" to gather up the Rates and
  * associated HourlyCharge instances.</p>
  * @author John Collins
@@ -58,7 +63,7 @@ public class TariffSpecification extends TariffMessage
   private PowerType powerType = PowerType.CONSUMPTION;
 
   /** One-time payment for subscribing to tariff, positive for payment
-   *  from customer, negative for payment to customer. */
+   *  to customer, negative for payment from customer. */
   @XStreamAsAttribute
   private double signupPayment = 0.0;
 
@@ -75,6 +80,10 @@ public class TariffSpecification extends TariffMessage
 
   private List<Long> supersedes;
   
+  /**
+   * Creates a new TariffSpecification for a broker and a specific powerType.
+   * Attributes are provided by the fluent {@code withX() methods}.
+   */
   public TariffSpecification (Broker broker, PowerType powerType)
   {
     super(broker);
@@ -93,6 +102,10 @@ public class TariffSpecification extends TariffMessage
     return expiration;
   }
 
+  /**
+   * Sets the expiration date for this tariff. After this date, customers 
+   * will no longer be allowed to subscribe.
+   */
   @StateChange
   public TariffSpecification withExpiration (Instant expiration)
   {
@@ -105,6 +118,11 @@ public class TariffSpecification extends TariffMessage
     return minDuration;
   }
 
+  /**
+   * Sets the minimum duration of a subscription for this tariff. If a customer
+   * wishes to withdraw earlier than the minimum duration, it may be required
+   * to pay a fee as specified by the withdrawPayment.
+   */
   @StateChange
   public TariffSpecification withMinDuration (long minDuration)
   {
@@ -117,6 +135,10 @@ public class TariffSpecification extends TariffMessage
     return signupPayment;
   }
 
+  /**
+   * Sets the signup payment for new subscriptions. This is a positive
+   * number if the broker pays the customer.
+   */
   @StateChange
   public TariffSpecification withSignupPayment (double signupPayment)
   {
@@ -129,6 +151,11 @@ public class TariffSpecification extends TariffMessage
     return earlyWithdrawPayment;
   }
 
+  /**
+   * Sets the payment for a customer who withdraws from a subscription to
+   * this tariff before the minimumDuration has expired. A negative number
+   * indicates that the customer pays the broker.
+   */
   @StateChange
   public TariffSpecification withEarlyWithdrawPayment (double earlyWithdrawPayment)
   {
@@ -141,6 +168,10 @@ public class TariffSpecification extends TariffMessage
     return periodicPayment;
   }
 
+  /**
+   * Sets the daily payment per customer for subscriptions to this tariff.
+   * A negative number indicates that the customer pays the broker.
+   */
   @StateChange
   public TariffSpecification withPeriodicPayment (double periodicPayment)
   {
@@ -163,6 +194,9 @@ public class TariffSpecification extends TariffMessage
     return rates;
   }
 
+  /**
+   * Adds a new Rate to this tariff.
+   */
   @StateChange
   public TariffSpecification addRate (Rate rate)
   {
@@ -175,7 +209,13 @@ public class TariffSpecification extends TariffMessage
   {
     return supersedes;
   }
-  
+
+  /**
+   * Indicates that this tariff supersedes the tariff specified by the
+   * specId, the id of the superseded tariff. Setting this value has no
+   * effect unless the superseded tariff is revoked by sending a TariffRevoke
+   * message for that tariff.
+   */
   @StateChange
   public TariffSpecification addSupersedes (long specId)
   {
