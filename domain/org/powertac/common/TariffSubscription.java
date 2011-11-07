@@ -233,7 +233,7 @@ public class TariffSubscription
     totalUsage += kWh / customersCommitted;
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
-      tariff.addPeriodicPayment();
+      // (#417) tariff.addPeriodicPayment();
       accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
           tariff, customer, customersCommitted, 0.0,
           customersCommitted * -tariff.getPeriodicPayment() / 24.0);
