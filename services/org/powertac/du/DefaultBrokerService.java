@@ -30,6 +30,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Order;
 import org.powertac.common.TariffSpecification;
@@ -45,6 +46,7 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +82,9 @@ public class DefaultBrokerService
   @Autowired
   private CustomerRepo customerRepo;
   
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
+  
   private LocalBroker face;
   
   /** parameters */
@@ -89,8 +94,10 @@ public class DefaultBrokerService
   private double defaultConsumptionRate = -1.0; // customer pays
   private double defaultProductionRate = 0.01;  // broker pays
   private double initialBidKWh = 500.0;
-  private double buyLimitPrice = -100.0;  // broker pays
-  private double sellLimitPrice = 0.1;    // other broker pays
+  private double buyLimitPriceMin = -1.0;  // broker pays
+  private double buyLimitPriceMax = -100.0;  // broker pays
+  private double sellLimitPriceMin = 0.1;    // other broker pays
+  private double sellLimitPriceMax = 100.0;    // other broker pays
   private int usageRecordLength = 7 * 24; // one week
   
   // bootstrap-mode data - uninitialized for normal sim mode
@@ -106,6 +113,9 @@ public class DefaultBrokerService
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
+  private RandomSeed randomSeed;
+  private HashMap<Timeslot, Double> lastBuyPrice;
+  private HashMap<Timeslot, Double> lastSellPrice;
 
   /**
    * Default constructor, called once when the server starts, before
@@ -128,6 +138,10 @@ public class DefaultBrokerService
     log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
+    lastBuyPrice = new HashMap<Timeslot, Double>();
+    lastSellPrice = new HashMap<Timeslot, Double>();
+    randomSeed = randomSeedRepo.getRandomSeed(this.getClass().getName(),
+                                              0, "pricing");
     
     // if we are in bootstrap mode, we need to set up the dataset
     if (bootstrapMode)
@@ -158,8 +172,14 @@ public class DefaultBrokerService
     
     // Other setup parameters
     initialBidKWh = config.getDoubleValue("initialBidKWh", initialBidKWh);
-    buyLimitPrice = config.getDoubleValue("buyLimitPrice", buyLimitPrice);
-    sellLimitPrice = config.getDoubleValue("sellLimitPrice", sellLimitPrice);
+    buyLimitPriceMin = config.getDoubleValue("buyLimitPriceMin",
+                                             buyLimitPriceMin);
+    buyLimitPriceMax = config.getDoubleValue("buyLimitPriceMax",
+                                             buyLimitPriceMax);
+    sellLimitPriceMin = config.getDoubleValue("sellLimitPriceMin",
+                                              sellLimitPriceMin);
+    sellLimitPriceMax = config.getDoubleValue("sellLimitPriceMax",
+                                              sellLimitPriceMax);
   }
   
   /**
@@ -251,21 +271,56 @@ public class DefaultBrokerService
   private void submitOrder (double neededKWh, Timeslot timeslot)
   {
     double neededMWh = neededKWh / 1000.0;
-    double limitPrice = buyLimitPrice;
+    
+    double limitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
-    if (neededMWh < 0.0) {
-      limitPrice = sellLimitPrice;
-    }
+    log.debug("needed mWh=" + neededMWh);
     if (neededMWh == 0.0) {
       log.info("no power required in timeslot " + timeslot.getSerialNumber());
       return;
     }
-    log.info("new order for " + neededMWh +
+    else if (neededMWh < 0.0) {
+      limitPrice = computeLimitPrice(timeslot, lastSellPrice,
+                                     sellLimitPriceMin, sellLimitPriceMax);
+    }
+    else {
+      limitPrice = computeLimitPrice(timeslot, lastBuyPrice,
+                                     buyLimitPriceMin, buyLimitPriceMax);
+    }
+    log.info("new order for " + neededMWh + " at " + limitPrice +
              " in timeslot " + timeslot.getSerialNumber());
     brokerProxyService.routeMessage(new Order(face, timeslot,
                                               neededMWh, limitPrice));
+  }
+
+  /**
+   * Computes a limit price with a random element. 
+   */
+  private double computeLimitPrice (Timeslot timeslot,
+                                    HashMap<Timeslot, Double> lastPrice,
+                                    double limitPriceMin, 
+                                    double limitPriceMax)
+  {
+    Double oldLimitPrice = lastPrice.get(timeslot);
+    double newLimitPrice;
+    if (oldLimitPrice == null)
+      oldLimitPrice = limitPriceMin;
+    Timeslot current = timeslotRepo.currentTimeslot();
+    int remainingTries = (timeslot.getSerialNumber()
+                          - current.getSerialNumber()
+                          - Competition.currentCompetition().getDeactivateTimeslotsAhead());
+    if (remainingTries > 0) {
+      double range = (limitPriceMax - oldLimitPrice) * 2.0 / (double)remainingTries;
+      log.debug("oldLimitPrice=" + oldLimitPrice + ", range=" + range);
+      newLimitPrice = oldLimitPrice + randomSeed.nextDouble() * range;
+      lastPrice.put(timeslot, newLimitPrice);
+    }
+    else {
+      newLimitPrice = limitPriceMax;
+    }
+    return newLimitPrice;
   }
 
   // ------------ process incoming messages -------------

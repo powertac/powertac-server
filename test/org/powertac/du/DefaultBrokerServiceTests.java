@@ -37,6 +37,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Order;
 import org.powertac.common.TariffSpecification;
@@ -51,6 +52,7 @@ import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.du.DefaultBrokerInitializationService;
 import org.powertac.du.DefaultBrokerService;
@@ -91,6 +93,7 @@ public class DefaultBrokerServiceTests
   private BrokerProxy mockProxy;
   
   private TariffMarket mockMarket; // not autowired
+  private RandomSeedRepo mockRandom; // not autowired
   
   private DefaultBrokerInitializationService initializer;
   private DefaultBrokerService service;
@@ -130,12 +133,16 @@ public class DefaultBrokerServiceTests
                                  "pluginConfigRepo",
                                  pluginConfigRepo);
     mockMarket = mock(TariffMarket.class);
+    mockRandom = mock(RandomSeedRepo.class);
+    when(mockRandom.getRandomSeed(anyString(), anyInt(), anyString()))
+        .thenReturn(new MockRandomSeed("broker", 0, ""));
     ReflectionTestUtils.setField(service,
                                  "competitionControlService", 
                                  mockCompetitionControl);
     ReflectionTestUtils.setField(service, "tariffMarketService", mockMarket);
     ReflectionTestUtils.setField(service, "brokerProxyService", mockProxy);
     ReflectionTestUtils.setField(service, "timeslotRepo", timeslotRepo);
+    ReflectionTestUtils.setField(service, "randomSeedRepo", mockRandom);
     
     competition = Competition.newInstance("broker-test");
     createTimeslots();
@@ -384,16 +391,6 @@ public class DefaultBrokerServiceTests
 
     // without any subscriptions or consumption, we don't expect any orders
     assertEquals("0 orders", 0, orderList.size());
-//    Order firstOrder = orderList.get(0);
-//    assertNotNull("first order not null", firstOrder);
-//    assertEquals("bid flag", Order.OrderType.BUY, firstOrder.getOrderType());
-//    assertEquals("correct mwh", 0.0, firstOrder.getMWh(), 1e-6);
-//    assertEquals("correct price", 100.0, firstOrder.getLimitPrice(), 1e-6);
-//    Order lastOrder = orderList.get(22);
-//    assertNotNull("last order not null", lastOrder);
-//    assertEquals("bid flag", Order.OrderType.BUY, lastOrder.getOrderType());
-//    assertEquals("correct mwh", 0.0, lastOrder.getMWh(), 1e-6);
-//    assertEquals("correct price", 100.0, lastOrder.getLimitPrice(), 1e-6);
   }
   
   // in timeslot 3, we should have 3 days of records on which to base the last
@@ -480,7 +477,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(23),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-5 -95.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -537,7 +534,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(24),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-5.0 -95.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -583,7 +580,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(25),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    assertEquals("correct price", -100.0, order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-5.0 -95.0/21.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
   }
   
@@ -723,5 +720,19 @@ public class DefaultBrokerServiceTests
     newTs.enable();
     return new TimeslotUpdate(timeService.getCurrentTime(), 
                               timeslotRepo.enabledTimeslots());
+  }
+  
+  class MockRandomSeed extends RandomSeed
+  {
+
+    public MockRandomSeed (String classname, long requesterId, String purpose)
+    {
+      super(classname, requesterId, purpose);
+    }
+    
+    public double nextDouble ()
+    {
+      return 0.5;
+    }
   }
 }
