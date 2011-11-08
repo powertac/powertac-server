@@ -80,9 +80,9 @@ public class WeatherService
 
   // If network requests should be made asynchronously or not.
   private boolean blocking = true;
-
-  // @Autowired
-  // private TimeService timeService;
+  
+  // length of forecasts
+  private int forecastHorizon = 24; // 24 hours
 
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -103,6 +103,7 @@ public class WeatherService
   public void init (PluginConfig config)
   {
     super.init();
+    forecastHorizon = config.getIntegerValue("forecastHorizon", forecastHorizon);
   }
 
   // Make actual web request to the weather-server
@@ -235,7 +236,7 @@ public class WeatherService
     String[] currentPred;
     for (int i = 1; i <= 2 * weatherReqInterval; i++) {
       currentPredictions = new ArrayList<WeatherForecastPrediction>();
-      for (int j = 1; j < 47; j++) {
+      for (int j = 1; j <= forecastHorizon; j++) {
         currentPred = forecastValues.get(i + j);
         currentPredictions.add(new WeatherForecastPrediction(
                                                              j,
@@ -267,6 +268,7 @@ public class WeatherService
                     .addConfiguration("server", "url")
                     .addConfiguration("location", "Minneapolis")
                     .addConfiguration("dateRange", "10-10-2009::10-12-2009")
+                    .addConfiguration("forecastHorizon", "24")
                     .asPrivileged();
   }
 
