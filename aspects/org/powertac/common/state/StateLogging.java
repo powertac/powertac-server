@@ -17,6 +17,7 @@ package org.powertac.common.state;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
@@ -90,6 +91,7 @@ public class StateLogging
     stateLog.info(buf.toString());
   }
 
+  @SuppressWarnings("rawtypes")
   private void writeArg (StringBuffer buf, Object arg)
   {
     Long argId = findId(arg);
@@ -97,6 +99,16 @@ public class StateLogging
       buf.append(argId.toString());
     else if (arg == null)
       buf.append("null");
+    else if (arg instanceof Collection) {
+      buf.append("(");
+      String delimiter = "";
+      for (Object item : (Collection) arg) {
+        buf.append(delimiter);
+        writeArg(buf, item);
+        delimiter = ",";
+      }
+      buf.append(")");
+    }
     else if (arg.getClass().isArray()) {
       buf.append("[");
       int length = Array.getLength(arg);
