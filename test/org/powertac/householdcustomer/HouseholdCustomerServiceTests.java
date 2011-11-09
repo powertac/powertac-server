@@ -654,6 +654,27 @@ public class HouseholdCustomerServiceTests
     public void receiveMessage (PauseRelease msg)
     {
     }
+
+    @Override
+    public void preGame ()
+    {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public void setAuthorizedBrokerList (ArrayList<String> brokerList)
+    {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public void runOnce ()
+    {
+      // TODO Auto-generated method stub
+      
+    }
   }
 
 }
