@@ -84,8 +84,8 @@ public class DefaultBrokerInitializationServiceTests
                  config.getConfigurationValue("productionRate"));
     assertEquals("correct bid kwh", "1000.0",
                  config.getConfigurationValue("initialBidKWh"));
-    assertEquals("correct upper buy limit price", "-100.0",
-                 config.getConfigurationValue("buyLimitPriceMax"));
+    assertEquals("correct lower buy limit price", "-100.0",
+                 config.getConfigurationValue("buyLimitPriceMin"));
     assertEquals("correct lower sell limit price", "0.1",
                  config.getConfigurationValue("sellLimitPriceMin"));
   }
