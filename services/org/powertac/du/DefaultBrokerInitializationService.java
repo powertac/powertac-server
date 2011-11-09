@@ -60,8 +60,8 @@ implements InitializationService
       .addConfiguration("consumptionRate", "-0.5") // -0.50/kwh
       .addConfiguration("productionRate", "0.02") // 0.02/kwh
       .addConfiguration("initialBidKWh", "1000.0")
-      .addConfiguration("buyLimitPriceMin", "-5.0")
-      .addConfiguration("buyLimitPriceMax", "-100.0")
+      .addConfiguration("buyLimitPriceMax", "-5.0")
+      .addConfiguration("buyLimitPriceMin", "-100.0")
       .addConfiguration("sellLimitPriceMin", "0.1")
       .addConfiguration("sellLimitPriceMax", "30.0");
   }

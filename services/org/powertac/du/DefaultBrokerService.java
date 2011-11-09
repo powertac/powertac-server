@@ -94,10 +94,12 @@ public class DefaultBrokerService
   private double defaultConsumptionRate = -1.0; // customer pays
   private double defaultProductionRate = 0.01;  // broker pays
   private double initialBidKWh = 500.0;
-  private double buyLimitPriceMin = -1.0;  // broker pays
-  private double buyLimitPriceMax = -100.0;  // broker pays
-  private double sellLimitPriceMin = 0.1;    // other broker pays
+  
+  // max and min offer prices. Max means "sure to trade"
+  private double buyLimitPriceMax = -1.0;  // broker pays
+  private double buyLimitPriceMin = -100.0;  // broker pays
   private double sellLimitPriceMax = 100.0;    // other broker pays
+  private double sellLimitPriceMin = 0.2;    // other broker pays
   private int usageRecordLength = 7 * 24; // one week
   
   // bootstrap-mode data - uninitialized for normal sim mode
@@ -114,8 +116,7 @@ public class DefaultBrokerService
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
   private RandomSeed randomSeed;
-  private HashMap<Timeslot, Double> lastBuyPrice;
-  private HashMap<Timeslot, Double> lastSellPrice;
+  private HashMap<Timeslot, Order> lastOrder;
 
   /**
    * Default constructor, called once when the server starts, before
@@ -138,8 +139,7 @@ public class DefaultBrokerService
     log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new HashMap<TariffSpecification,
                                         HashMap<CustomerInfo, CustomerRecord>>();
-    lastBuyPrice = new HashMap<Timeslot, Double>();
-    lastSellPrice = new HashMap<Timeslot, Double>();
+    lastOrder = new HashMap<Timeslot, Order>();
     randomSeed = randomSeedRepo.getRandomSeed(this.getClass().getName(),
                                               0, "pricing");
     
@@ -281,44 +281,53 @@ public class DefaultBrokerService
       log.info("no power required in timeslot " + timeslot.getSerialNumber());
       return;
     }
-    else if (neededMWh < 0.0) {
-      limitPrice = computeLimitPrice(timeslot, lastSellPrice,
-                                     sellLimitPriceMin, sellLimitPriceMax);
-    }
     else {
-      limitPrice = computeLimitPrice(timeslot, lastBuyPrice,
-                                     buyLimitPriceMin, buyLimitPriceMax);
+      limitPrice = computeLimitPrice(timeslot, neededMWh);
     }
     log.info("new order for " + neededMWh + " at " + limitPrice +
              " in timeslot " + timeslot.getSerialNumber());
-    brokerProxyService.routeMessage(new Order(face, timeslot,
-                                              neededMWh, limitPrice));
+    Order result = new Order(face, timeslot, neededMWh, limitPrice);
+    lastOrder.put(timeslot, result);
+    brokerProxyService.routeMessage(result);
   }
 
   /**
    * Computes a limit price with a random element. 
    */
   private double computeLimitPrice (Timeslot timeslot,
-                                    HashMap<Timeslot, Double> lastPrice,
-                                    double limitPriceMin, 
-                                    double limitPriceMax)
+                                    double amountNeeded)
   {
-    Double oldLimitPrice = lastPrice.get(timeslot);
-    double newLimitPrice;
-    if (oldLimitPrice == null)
-      oldLimitPrice = limitPriceMin;
+    // start with default limits
+    double oldLimitPrice;
+    double minPrice;
+    if (amountNeeded > 0.0) {
+      // buying
+      oldLimitPrice = buyLimitPriceMax;
+      minPrice = buyLimitPriceMin;
+    }
+    else {
+      // selling
+      oldLimitPrice = sellLimitPriceMax;
+      minPrice = sellLimitPriceMin;
+    }
+    // check for escalation
+    Order lastTry = lastOrder.get(timeslot);
+    if (lastTry != null
+        && Math.signum(amountNeeded) == Math.signum(lastTry.getMWh()))
+      oldLimitPrice = lastTry.getLimitPrice();
+
+    // set price between oldLimitPrice and maxPrice, according to number of
+    // remaining chances we have to get what we need.
+    double newLimitPrice = minPrice; // default value
     Timeslot current = timeslotRepo.currentTimeslot();
     int remainingTries = (timeslot.getSerialNumber()
                           - current.getSerialNumber()
                           - Competition.currentCompetition().getDeactivateTimeslotsAhead());
     if (remainingTries > 0) {
-      double range = (limitPriceMax - oldLimitPrice) * 2.0 / (double)remainingTries;
+      double range = (minPrice - oldLimitPrice) * 2.0 / (double)remainingTries;
       log.debug("oldLimitPrice=" + oldLimitPrice + ", range=" + range);
-      newLimitPrice = oldLimitPrice + randomSeed.nextDouble() * range;
-      lastPrice.put(timeslot, newLimitPrice);
-    }
-    else {
-      newLimitPrice = limitPriceMax;
+      double computedPrice =oldLimitPrice + randomSeed.nextDouble() * range; 
+      newLimitPrice = Math.max(newLimitPrice, computedPrice);
     }
     return newLimitPrice;
   }
@@ -422,7 +431,7 @@ public class DefaultBrokerService
    */
   public void handleMessage (MarketTransaction tx)
   {
-    // only in bootstrapMode
+    // Save all transactions in bootstrapMode
     if (bootstrapMode) {
       ArrayList<MarketTransaction> txs = marketTxMap.get(tx.getTimeslot());
       if (txs == null) {
@@ -431,6 +440,12 @@ public class DefaultBrokerService
       }
       txs.add(tx);
     }
+    // reset price escalation when a trade fully clears.
+    Order lastTry = lastOrder.get(tx.getTimeslot());
+    if (lastTry == null) // should not happen
+      log.error("order corresponding to market tx " + tx + " is null");
+    else if (tx.getMWh() == lastTry.getMWh()) // fully cleared
+      lastOrder.put(tx.getTimeslot(), null);
   }
   
   /**
