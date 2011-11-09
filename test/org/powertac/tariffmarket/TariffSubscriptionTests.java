@@ -139,6 +139,9 @@ public class TariffSubscriptionTests
     tariff.init();
     TariffSubscription tsub =
         tariffMarketService.subscribeToTariff(tariff, customer, 5);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                tariff, customer,
+                                                5, 0.0, -33.2*5);
 
     // move time forward 2 weeks, withdraw 2 customers
     Instant wk2 = now.plus(TimeService.WEEK * 2);
