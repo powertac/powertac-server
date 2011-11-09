@@ -156,8 +156,8 @@ public class CompetitionControlService
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private int currentSlot = 0;
-  //private long timeslotMillis;
   private RandomSeed randomGen;
+  private ArrayList<String> authorizedBrokerList;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
@@ -283,6 +283,23 @@ public class CompetitionControlService
     return true;
   }
 
+  // Converts an xml node into a string that can be converted by XStream
+  private String nodeToString(Node node) {
+    StringWriter sw = new StringWriter();
+    try {
+      Transformer t = TransformerFactory.newInstance().newTransformer();
+      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+      t.setOutputProperty(OutputKeys.INDENT, "no");
+      t.transform(new DOMSource(node), new StreamResult(sw));
+    }
+    catch (TransformerException te) {
+      log.error("nodeToString Transformer Exception " + te.toString());
+    }
+    String result = sw.toString();
+    //log.info("xml node: " + result);
+    return result;
+  }
+
   /**
    * Runs the initialization process, starts the simulation thread, waits
    * for it to complete, then shuts down and prepares for the next simulation
@@ -293,6 +310,16 @@ public class CompetitionControlService
     runOnce();
     // prepare for the next run
     preGame();
+  }
+  
+  /**
+   * Sets the list of brokers allowed and expected to log in before
+   * starting a simulation. The simulation will not start until all 
+   * brokers in the list are logged in, unless a timeout is configured.
+   */
+  public void setAuthorizedBrokerList(ArrayList<String> brokerList)
+  {
+    authorizedBrokerList = brokerList;
   }
   
   public void runOnce ()
@@ -407,6 +434,236 @@ public class CompetitionControlService
     }
   }
 
+  // ------------------ simulation setup -------------------
+  // Sets up simulation state in preparation for a sim run. At this point,
+  // all brokers should already be logged in
+  private boolean setup ()
+  {
+    // set up random sequence for new simulation run
+    randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
+                                             competition.getId(),
+                                             "game-setup");
+    
+    // configure plugins, but don't allow them to broadcast to brokers
+    brokerProxyService.setDeferredBroadcast(true);
+    if (!configurePlugins()) {
+      log.error("failed to configure plugins");
+      return false;
+    }
+    
+    // add CustomerInfo instances to the Competition instance
+    for (CustomerInfo customer : customerRepo.list()) {
+      competition.addCustomer(customer);
+    }
+
+    // get brokers logged in
+    //jmsManagementService.createQueues()
+    waitForBrokerLogin();
+
+    // set up the simulation clock
+    setTimeParameters();
+
+    // Publish Competition object at right place - after plugins
+    // are initialized. This is necessary because some may need to
+    // see the broadcast after they are initialized (visualizer, for example)
+    for (String retailer : brokerRepo.findRetailBrokerNames()) {
+      competition.addBroker(retailer);
+    }
+    
+    // send the Competition instance, then the public PluginConfig instances,
+    // and finally broadcast deferred messages
+    brokerProxyService.setDeferredBroadcast(false);
+    brokerProxyService.broadcastMessage(competition);
+    brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
+    if (!bootstrapMode) {
+      brokerProxyService.broadcastMessages(bootstrapDataset);
+    }
+    brokerProxyService.broadcastDeferredMessages();
+
+    // sim length for bootstrap mode comes from the competition instance;
+    // for non-bootstrap mode, it is computed from competition parameters.
+    if (!bootstrapMode) {
+      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
+                                        competition.getExpectedTimeslotCount());
+    }
+    else {
+      timeslotCount = competition.getBootstrapTimeslotCount();
+    }
+
+    // grab setup parameters, set up initial timeslots, including zero timeslot
+    createInitialTimeslots(timeService.getCurrentTime(),
+                           competition.getDeactivateTimeslotsAhead(),
+                           competition.getTimeslotsOpen());
+    TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
+                                            timeslotRepo.enabledTimeslots());
+    brokerProxyService.broadcastMessage(msg);
+    return true;
+  }
+  
+  // blocks until all brokers have logged in.
+  // TODO -- add a timeout
+  private synchronized void waitForBrokerLogin ()
+  {
+    if (authorizedBrokerList == null || authorizedBrokerList.size() == 0) {
+      // nothing to do here
+      return;
+    }
+    try {
+      while (authorizedBrokerList.size() > 0) {
+        authorizedBrokerList.wait();
+      }  
+    }
+    catch (InterruptedException ie) {
+      authorizedBrokerList.clear();
+    }
+  }
+  
+  /**
+   * Logs in a broker, just in case the broker is on the authorizedBrokerList.
+   * Returns true if the broker is authorized, otherwise false.
+   */
+  public synchronized boolean loginBroker (String username)
+  {
+    // cannot log in if there's no list, or if the broker is not on the list
+    if (authorizedBrokerList == null
+        || authorizedBrokerList.size() == 0
+        || !authorizedBrokerList.contains(username)) {
+      log.info("Unauthorized attempt to log in " + username);
+      return false;
+    }
+    // otherwise we log the broker in. Note that the broker's queue must
+    // be set up and acknowledgement sent before returning, because as
+    // soon as the last broker logs in, the simulation starts. If the broker
+    // is not already logged in at that point, it will likely miss one or more
+    // startup messages.
+
+    // TODO - log in broker - only if not local?
+    // brokerManagementService.loginBroker(username);
+    
+    // clear the broker from the list, and if the list is now empty, then
+    // notify the simulation to start
+    authorizedBrokerList.remove(username);
+    if (authorizedBrokerList.size() == 0) {
+      authorizedBrokerList.notifyAll();
+    }
+    return true;
+  }
+  
+  // set simulation time parameters, making sure that simulationStartTime
+  // is still sufficiently in the future.
+  private void setTimeParameters()
+  {
+    Instant base = competition.getSimulationBaseTime();
+    // if we are not in bootstrap mode, we have to add the bootstrap interval
+    // to the base
+    long rate = competition.getSimulationRate();
+    if (!bootstrapMode) {
+      base = base.plus(competition.getBootstrapTimeslotCount() * 
+                       competition.getTimeslotLength() * 
+                       TimeService.MINUTE);
+    }
+    else {
+      // compute rate from bootstrapTimeslotMillis
+      rate = competition.getTimeslotLength() * TimeService.MINUTE / bootstrapTimeslotMillis;
+    }
+    long rem = rate % competition.getTimeslotLength();
+    if (rem > 0) {
+      long mult = competition.getSimulationRate() / competition.getTimeslotLength();
+      log.warn("Simulation rate " + rate + 
+               " not a multiple of " + competition.getTimeslotLength() + 
+               "; adjust to " + (mult + 1) * competition.getTimeslotLength());
+      rate = (mult + 1) * competition.getTimeslotLength();
+    }
+    timeService.setClockParameters(base.getMillis(), rate,
+                                   competition.getTimeslotLength() * TimeService.MINUTE);
+    timeService.setCurrentTime(base);
+  }
+
+  // Computes a random game length as outlined in the game specification
+  private int computeGameLength (int minLength, int expLength)
+  {
+    double roll = randomGen.nextDouble();
+    // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
+    double k = (Math.log(1.0 - roll) /
+                Math.log(1.0 - 1.0 /
+                         (expLength - minLength + 1)));
+    int length = minLength + (int) Math.floor(k);
+    log.info("game-length " + length + "(k=" + k + ", roll=" + roll + ")");
+    return length;
+  }
+
+  // Runs the initialization protocol on each plugin, supports precedence
+  // relationships among them.
+  private boolean configurePlugins ()
+  {
+    Map<String, InitializationService> initializers =
+      applicationContext.getBeansOfType(InitializationService.class);
+
+    ArrayList<String> completedPlugins = new ArrayList<String>();
+    ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
+    for (InitializationService initializer : initializers.values()) {
+      log.info("attempt to initialize " + initializer.toString());
+      String success = initializer.initialize(competition, completedPlugins);
+      if (success == null) {
+        // defer this one
+        log.info("deferring " + initializer.toString());
+        deferredInitializers.add(initializer);
+      }
+      else if (success == "fail") {
+        log.error("Failed to initialize plugin " + initializer.toString());
+        return false;
+      }
+      else {
+        log.info("completed " + success);
+        completedPlugins.add(success);
+      }
+    }
+    int tryCounter = deferredInitializers.size();
+    List<InitializationService> remaining = deferredInitializers;
+    while (remaining.size() > 0 && tryCounter > 0) {
+      InitializationService initializer = remaining.get(0);
+      log.info("additional attempt to initialize " + initializer.toString());
+      if (remaining.size() > 1) {
+        remaining.remove(0);
+      }
+      else {
+        remaining.clear();
+      }
+      String success = initializer.initialize(competition, completedPlugins);
+      if (success == null) {
+        // defer this one
+        log.info("deferring " + initializer.toString());
+        remaining.add(initializer);
+        tryCounter -= 1;
+      }
+      else {
+        log.info("completed " + success);
+        completedPlugins.add(success);
+      }
+    }
+    for (InitializationService initializer : remaining) {
+      log.error("Failed to initialize " + initializer.toString());
+    }
+    return true;
+  }
+
+  // Creates the initial complement of timeslots
+  private void createInitialTimeslots (Instant base,
+                                       int initialSlots,
+                                       int openSlots)
+  {
+    long timeslotMillis = competition.getTimeslotDuration();
+    // set timeslot index according to bootstrap mode
+    for (int i = 0; i < initialSlots - 1; i++) {
+      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
+      ts.disable();
+    }
+    for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
+      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
+    }
+  }
+
+  // ------------- simulation start and run ----------------
   /**
    * Starts the simulation.  
    */
@@ -445,6 +702,71 @@ public class CompetitionControlService
     }
   }
 
+  // activates the next timeslot - called once/timeslot
+  private void activateNextTimeslot ()
+  {
+    long timeslotMillis = competition.getTimeslotDuration();
+    TimeslotUpdate msg;
+    // first, deactivate the oldest active timeslot
+    // remember that this runs at the beginning of a timeslot, so the current
+    // timeslot is the first one we consider.
+    Timeslot current = timeslotRepo.currentTimeslot();
+    if (current == null) {
+      log.error("current timeslot is null at " + timeService.getCurrentTime());
+      return;
+    }
+    if (current.getSerialNumber() != currentSlot) {
+      log.error("current timeslot serial is " + current.getSerialNumber() +
+                ", should be " + currentSlot);
+    }
+    int oldSerial = (current.getSerialNumber() +
+            competition.getDeactivateTimeslotsAhead() - 1);
+    Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
+    oldTs.disable();
+    log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
+
+    // then create if necessary and activate the newest timeslot
+    int newSerial = (current.getSerialNumber() +
+            competition.getDeactivateTimeslotsAhead() - 1 +
+            competition.getTimeslotsOpen());
+    Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
+    if (newTs == null) {
+      long start = (current.getStartInstant().getMillis() +
+              (newSerial - current.getSerialNumber()) * timeslotMillis);
+      newTs = timeslotRepo.makeTimeslot(new Instant(start));
+    }
+    else {
+      newTs.enable();
+    }
+    log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
+    // Communicate timeslot updates to brokers
+    msg = new TimeslotUpdate(timeService.getCurrentTime(),
+                             timeslotRepo.enabledTimeslots());
+    brokerProxyService.broadcastMessage(msg);
+  }
+
+  // ------------ simulation shutdown ------------
+  /**
+   * Signals the simulation thread to stop after processing is completed in
+   * the current timeslot.
+   */
+  public void stop ()
+  {
+    running = false;
+  }
+
+  /**
+   * Shuts down the simulation and cleans up.
+   */
+  private void shutDown ()
+  {
+    running = false;
+
+    SimEnd endMsg = new SimEnd();
+    brokerProxyService.broadcastMessage(endMsg);
+  }
+
+  // ---------------- API contract -------------
   /**
    * Allows instances of TimeslotPhaseProcessor to register themselves
    * to be activated during one of the processing phases in each timeslot.
@@ -464,26 +786,6 @@ public class CompetitionControlService
       }
       phaseRegistrations.get(phase - 1).add(thing);
     }
-  }
-
-  /**
-   * Signals the simulation thread to stop after processing is completed in
-   * the current timeslot.
-   */
-  public void stop ()
-  {
-    running = false;
-  }
-
-  /**
-   * Shuts down the simulation and cleans up.
-   */
-  private void shutDown ()
-  {
-    running = false;
-
-    SimEnd endMsg = new SimEnd();
-    brokerProxyService.broadcastMessage(endMsg);
   }
 
   /** True just in case the sim is running in bootstrap mode */
@@ -561,238 +863,6 @@ public class CompetitionControlService
   public void setBootstrapTimeslotMillis (long length)
   {
     bootstrapTimeslotMillis = length;
-  }
-
-  //--------- local methods -------------
-
-  private boolean setup ()
-  {
-    setTimeParameters();
-
-    // set up random sequence for CCS
-    randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
-                                             competition.getId(),
-                                             "game-setup");
-
-    // TODO set up broker queues -- they should be logged in already
-    //jmsManagementService.createQueues()
-
-    // Publish Competition object at right place - after plugins
-    // are initialized. This is necessary because some may need to
-    // see the broadcast after they are initialized (visualizer, for example)
-    for (String retailer : brokerRepo.findRetailBrokerNames()) {
-      competition.addBroker(retailer);
-    }
-    
-    // configure plugins, but don't allow them to broadcast to brokers
-    brokerProxyService.setDeferredBroadcast(true);
-    if (!configurePlugins()) {
-      log.error("failed to configure plugins");
-      return false;
-    }
-    
-    // add CustomerInfo instances to the Competition instance
-    for (CustomerInfo customer : customerRepo.list()) {
-      competition.addCustomer(customer);
-    }
-    
-    // send the Competition instance, then the public PluginConfig instances,
-    // and finally broadcast deferred messages
-    brokerProxyService.setDeferredBroadcast(false);
-    brokerProxyService.broadcastMessage(competition);
-    brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
-    if (!bootstrapMode) {
-      brokerProxyService.broadcastMessages(bootstrapDataset);
-    }
-    brokerProxyService.broadcastDeferredMessages();
-
-    // sim length for bootstrap mode comes from the competition instance;
-    // for non-bootstrap mode, it is computed from competition parameters.
-    if (!bootstrapMode) {
-      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
-                                        competition.getExpectedTimeslotCount());
-    }
-    else {
-      timeslotCount = competition.getBootstrapTimeslotCount();
-    }
-
-    // grab setup parameters, set up initial timeslots, including zero timeslot
-    createInitialTimeslots(timeService.getCurrentTime(),
-                           competition.getDeactivateTimeslotsAhead(),
-                           competition.getTimeslotsOpen());
-    TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
-                                            timeslotRepo.enabledTimeslots());
-    brokerProxyService.broadcastMessage(msg);
-    return true;
-  }
-
-  // set simulation time parameters, making sure that simulationStartTime
-  // is still sufficiently in the future.
-  private void setTimeParameters()
-  {
-    Instant base = competition.getSimulationBaseTime();
-    // if we are not in bootstrap mode, we have to add the bootstrap interval
-    // to the base
-    long rate = competition.getSimulationRate();
-    if (!bootstrapMode) {
-      base = base.plus(competition.getBootstrapTimeslotCount() * 
-                       competition.getTimeslotLength() * 
-                       TimeService.MINUTE);
-    }
-    else {
-      // compute rate from bootstrapTimeslotMillis
-      rate = competition.getTimeslotLength() * TimeService.MINUTE / bootstrapTimeslotMillis;
-    }
-    long rem = rate % competition.getTimeslotLength();
-    if (rem > 0) {
-      long mult = competition.getSimulationRate() / competition.getTimeslotLength();
-      log.warn("Simulation rate " + rate + 
-               " not a multiple of " + competition.getTimeslotLength() + 
-               "; adjust to " + (mult + 1) * competition.getTimeslotLength());
-      rate = (mult + 1) * competition.getTimeslotLength();
-    }
-    timeService.setClockParameters(base.getMillis(), rate,
-                                   competition.getTimeslotLength() * TimeService.MINUTE);
-    timeService.setCurrentTime(base);
-  }
-  
-  // Creates the initial complement of timeslots
-  private void createInitialTimeslots (Instant base,
-                                       int initialSlots,
-                                       int openSlots)
-  {
-    long timeslotMillis = competition.getTimeslotDuration();
-    // set timeslot index according to bootstrap mode
-    for (int i = 0; i < initialSlots - 1; i++) {
-      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
-      ts.disable();
-    }
-    for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
-      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
-    }
-  }
-
-  private void activateNextTimeslot ()
-  {
-    long timeslotMillis = competition.getTimeslotDuration();
-    TimeslotUpdate msg;
-    // first, deactivate the oldest active timeslot
-    // remember that this runs at the beginning of a timeslot, so the current
-    // timeslot is the first one we consider.
-    Timeslot current = timeslotRepo.currentTimeslot();
-    if (current == null) {
-      log.error("current timeslot is null at " + timeService.getCurrentTime());
-      return;
-    }
-    if (current.getSerialNumber() != currentSlot) {
-      log.error("current timeslot serial is " + current.getSerialNumber() +
-                ", should be " + currentSlot);
-    }
-    int oldSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead() - 1);
-    Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
-    oldTs.disable();
-    log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
-
-    // then create if necessary and activate the newest timeslot
-    int newSerial = (current.getSerialNumber() +
-            competition.getDeactivateTimeslotsAhead() - 1 +
-            competition.getTimeslotsOpen());
-    Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
-    if (newTs == null) {
-      long start = (current.getStartInstant().getMillis() +
-              (newSerial - current.getSerialNumber()) * timeslotMillis);
-      newTs = timeslotRepo.makeTimeslot(new Instant(start));
-    }
-    else {
-      newTs.enable();
-    }
-    log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
-    // Communicate timeslot updates to brokers
-    msg = new TimeslotUpdate(timeService.getCurrentTime(),
-                             timeslotRepo.enabledTimeslots());
-    brokerProxyService.broadcastMessage(msg);
-  }
-
-  private int computeGameLength (int minLength, int expLength)
-  {
-    double roll = randomGen.nextDouble();
-    // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
-    double k = (Math.log(1.0 - roll) /
-		Math.log(1.0 - 1.0 /
-			 (expLength - minLength + 1)));
-    int length = minLength + (int) Math.floor(k);
-    log.info("game-length " + length + "(k=" + k + ", roll=" + roll + ")");
-    return length;
-  }
-
-  private boolean configurePlugins ()
-  {
-    Map<String, InitializationService> initializers =
-      applicationContext.getBeansOfType(InitializationService.class);
-
-    ArrayList<String> completedPlugins = new ArrayList<String>();
-    ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
-    for (InitializationService initializer : initializers.values()) {
-      log.info("attempt to initialize " + initializer.toString());
-      String success = initializer.initialize(competition, completedPlugins);
-      if (success == null) {
-        // defer this one
-        log.info("deferring " + initializer.toString());
-        deferredInitializers.add(initializer);
-      }
-      else if (success == "fail") {
-        log.error("Failed to initialize plugin " + initializer.toString());
-        return false;
-      }
-      else {
-        log.info("completed " + success);
-        completedPlugins.add(success);
-      }
-    }
-    int tryCounter = deferredInitializers.size();
-    List<InitializationService> remaining = deferredInitializers;
-    while (remaining.size() > 0 && tryCounter > 0) {
-      InitializationService initializer = remaining.get(0);
-      log.info("additional attempt to initialize " + initializer.toString());
-      if (remaining.size() > 1) {
-        remaining.remove(0);
-      }
-      else {
-        remaining.clear();
-      }
-      String success = initializer.initialize(competition, completedPlugins);
-      if (success == null) {
-        // defer this one
-        log.info("deferring " + initializer.toString());
-        remaining.add(initializer);
-        tryCounter -= 1;
-      }
-      else {
-        log.info("completed " + success);
-        completedPlugins.add(success);
-      }
-    }
-    for (InitializationService initializer : remaining) {
-      log.error("Failed to initialize " + initializer.toString());
-    }
-    return true;
-  }
-
-  private String nodeToString(Node node) {
-    StringWriter sw = new StringWriter();
-    try {
-      Transformer t = TransformerFactory.newInstance().newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-      t.setOutputProperty(OutputKeys.INDENT, "no");
-      t.transform(new DOMSource(node), new StreamResult(sw));
-    }
-    catch (TransformerException te) {
-      log.error("nodeToString Transformer Exception " + te.toString());
-    }
-    String result = sw.toString();
-    //log.info("xml node: " + result);
-    return result;
   }
 
   public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException

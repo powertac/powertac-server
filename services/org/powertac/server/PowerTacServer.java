@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,7 +50,7 @@ public class PowerTacServer
    * configure and run games. Each line in the file must be in one of two
    * forms:<br/>
    * <code>&nbsp;&nbsp;bootstrap bootstrap-filename boot-config</code><br/>
-   * <code>&nbsp;&nbsp;sim bootstrap-filename n</code><br/>
+   * <code>&nbsp;&nbsp;sim bootstrap-filename broker1 broker2 ...</code><br/>
    * where 
    * <dl>
    *  <dt><code>boot-config</code></dt>
@@ -118,8 +119,14 @@ public class PowerTacServer
             }
             else {
               File bootFile = new File(tokens[1]);
+              // collect broker names, hand to CC for login control
+              ArrayList<String> brokerList = new ArrayList<String>();
+              for (int i = 2; i < tokens.length; i++) {
+                brokerList.add(tokens[i]);
+              }
+              cc.setAuthorizedBrokerList(brokerList);
+              
               if (cc.preGame(bootFile)) {
-                // TODO: wait for broker login
                 cc.runOnce(bootFile);
               }
             }
@@ -133,7 +140,7 @@ public class PowerTacServer
         System.out.println("Error reading file " + args[0]);
       }
     }
-    else {
+    else if (args.length == 0) {
       // running from web interface
       System.out.println("Server BootStrap");
       //participantManagementService.initialize();
@@ -147,6 +154,9 @@ public class PowerTacServer
 
         }
       }
+    }
+    else { // usage problem
+      System.out.println("Usage: powertac-server [filename]");
     }
     // if we get here, it's time to exit
     System.exit(0);
