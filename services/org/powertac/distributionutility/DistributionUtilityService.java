@@ -80,9 +80,10 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
   private RandomSeed randomGen;
 
   long id = 0;
-  private double distributionFee = 0.01;
-  private double balancingCost = 0.06;
-  private double defaultSpotPrice = 30.0; // per mwh
+  // fees and prices should be negative, because they are debits against brokers
+  private double distributionFee = -0.01;
+  private double balancingCost = -0.06;
+  private double defaultSpotPrice = -30.0; // per mwh
 
   /**
    * Computes actual distribution and balancing costs by random selection
@@ -90,13 +91,13 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
   public void init(PluginConfig config)
   {
     double distributionFeeMin =
-        config.getDoubleValue("distributionFeeMin", 0.005);
+        config.getDoubleValue("distributionFeeMin", -0.005);
     double distributionFeeMax = 
-        config.getDoubleValue("distributionFeeMax", 0.15);
+        config.getDoubleValue("distributionFeeMax", -0.15);
     double balancingCostMin = 
-        config.getDoubleValue("balancingCostMin", 0.04);
+        config.getDoubleValue("balancingCostMin", -0.04);
     double balancingCostMax =
-        config.getDoubleValue("balancingCostMax", 0.08);
+        config.getDoubleValue("balancingCostMax", -0.08);
 
     randomGen = randomSeedService.getRandomSeed("DistributionUtilityService",
                                                 id, "model");
@@ -135,7 +136,7 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
   public double getMarketBalance (Broker broker)
   {
     return accountingService.getCurrentMarketPosition(broker) * 1000.0
-           - accountingService.getCurrentNetLoad(broker);
+           + accountingService.getCurrentNetLoad(broker);
   }
 
   /**
@@ -155,7 +156,7 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
     Orderbook ob =
         orderbookRepo.findSpotByTimeslot(timeslotRepo.currentTimeslot());
     if (ob != null) {
-      result = new Double(ob.getClearingPrice());
+      result = -ob.getClearingPrice();
     }
     else {
       log.info("null Orderbook");
@@ -186,11 +187,11 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
     Broker theBroker;
     for (int i = 0; i < brokerList.size(); i++) {
       theBroker = brokerList.get(i);
-      theNetLoad = accountingService.getCurrentNetLoad(theBroker);
+      theNetLoad = -accountingService.getCurrentNetLoad(theBroker);
       accountingService.addDistributionTransaction(theBroker, theNetLoad,
                                                    theNetLoad * distributionFee);
 
-      theBalanceCharge = balanceCharges.get(i).doubleValue();
+      theBalanceCharge = -balanceCharges.get(i);
       chargeInfoList.add(new ChargeInfo(theBroker.getUsername(), theNetLoad,
                                         theBalanceCharge));
       if (theBalanceCharge != 0.0) {
@@ -208,8 +209,8 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
     QuadraticSolver myQuadraticSolver;
     BasicMatrix[] inputMatrices = new BigMatrix[6];
     int numOfBrokers = brokerList.size();
-    double P = getSpotPrice(); // market price in day ahead market
-    double c0 = balancingCost; // cost function per unit of energy produced by
+    double P = -getSpotPrice(); // market price in day ahead market
+    double c0 = -balancingCost; // cost function per unit of energy produced by
                                // the DU
     double x = 0.0; // total market balance
     double[] brokerBalance = new double[numOfBrokers];

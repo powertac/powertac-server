@@ -130,8 +130,8 @@ public class DistributionUtilityServiceTests
   {
     distributionUtilityInitializationService.setDefaults();
     PluginConfig duConfig = pluginConfigRepo.findByRoleName("DistributionUtility");
-    duConfig.addConfiguration("balancingCostMin", "0.06")
-            .addConfiguration("balancingCostMax", "0.06");
+    duConfig.addConfiguration("balancingCostMin", "-0.06")
+            .addConfiguration("balancingCostMax", "-0.06");
     distributionUtilityInitializationService.initialize(comp,
                                                         new ArrayList<String>());
   }
@@ -144,16 +144,16 @@ public class DistributionUtilityServiceTests
 
     // Create two tariff specifications, one for consumption and one for
     // production
-    TariffSpecification tariffSpec1 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec1.addRate(new Rate().withValue(-0.1));
 
-    TariffSpecification tariffSpec2 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              PowerType.PRODUCTION).withExpiration(exp)
-                                                                                   .withMinDuration(TimeService.WEEK * 8);
+    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(0),
+                                                              PowerType.PRODUCTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
     tariffSpec2.addRate(new Rate().withValue(0.1));
 
     // Create a tariff for each specification
@@ -200,25 +200,25 @@ public class DistributionUtilityServiceTests
     double powerUse = 50.0;
 
     // Create a tariff specification for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec1.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec1);
 
-    TariffSpecification tariffSpec2 = new TariffSpecification(
-                                                              brokerList.get(1),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec2.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec2);
 
-    TariffSpecification tariffSpec3 = new TariffSpecification(
-                                                              brokerList.get(2),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec3.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec3);
 
     // Create a tariff for each specification
@@ -338,23 +338,23 @@ public class DistributionUtilityServiceTests
     double balance = 0.0;
 
     // Create tariff specifications for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec1.addRate(new Rate().withValue(-0.1));
 
-    TariffSpecification tariffSpec2 = new TariffSpecification(
-                                                              brokerList.get(1),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec2.addRate(new Rate().withValue(-0.1));
 
-    TariffSpecification tariffSpec3 = new TariffSpecification(
-                                                              brokerList.get(2),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec3.addRate(new Rate().withValue(-0.1));
 
     // Create a tariff for each specification
     Tariff tariff1 = new Tariff(tariffSpec1);
@@ -379,7 +379,7 @@ public class DistributionUtilityServiceTests
 
     // Create positively balanced broker
     tsub1.usePower(19654852);
-    tsub1.usePower(-54862);
+    tsub1.usePower(-54862); // this probably should not work
 
     // Create balanced broker
     tsub2.usePower(500000);
@@ -421,25 +421,25 @@ public class DistributionUtilityServiceTests
   {
     initializeService();
     // Create a tariff specification for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec1.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec1);
 
-    TariffSpecification tariffSpec2 = new TariffSpecification(
-                                                              brokerList.get(1),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec2.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec2);
 
-    TariffSpecification tariffSpec3 = new TariffSpecification(
-                                                              brokerList.get(2),
-                                                              null).withExpiration(exp)
-                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(0.1));
+    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
+                                                              PowerType.CONSUMPTION)
+      .withExpiration(exp)
+      .withMinDuration(TimeService.WEEK * 8);
+    tariffSpec3.addRate(new Rate().withValue(-0.1));
     tariffSpecList.add(tariffSpec3);
 
     // Create a tariff for each specification
@@ -476,18 +476,18 @@ public class DistributionUtilityServiceTests
     List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                                                     brokerList);
 
-    // Correct solution list is [-4, 14, 2]
+    // Correct solution list is [-4, 14, 2] (but negated)
     ChargeInfo ci = theChargeInfoList.get(0); // BalancingTransaction.findByBroker(brokerList.get(0));
     assertNotNull("non-null btx, broker 1", ci);
-    assertEquals("correct balancing charge broker1", -4, ci.itsBalanceCharge,
+    assertEquals("correct balancing charge broker1", 4.0, ci.itsBalanceCharge,
                  1e-6);
     ci = theChargeInfoList.get(1); // BalancingTransaction.findByBroker(brokerList.get(1));
     assertNotNull("non-null btx, broker 2", ci);
-    assertEquals("correct balancing charge broker2", 14, ci.itsBalanceCharge,
+    assertEquals("correct balancing charge broker2", -14.0, ci.itsBalanceCharge,
                  1e-6);
     ci = theChargeInfoList.get(2); // BalancingTransaction.findByBroker(brokerList.get(2));
     assertNotNull("non-null btx, broker 3", ci);
-    assertEquals("correct balancing charge broker3", 2, ci.itsBalanceCharge,
+    assertEquals("correct balancing charge broker3", -2.0, ci.itsBalanceCharge,
                  1e-6);
   }
 
@@ -513,7 +513,7 @@ public class DistributionUtilityServiceTests
     orderbookRepo.makeOrderbook(ts0, 20.1);
 
     // make sure we can retrieve current spot price
-    assertEquals("correct spot price", 0.0201,
+    assertEquals("correct spot price", -0.0201,
                  distributionUtilityService.getSpotPrice(), 1e-6);
   }
 }

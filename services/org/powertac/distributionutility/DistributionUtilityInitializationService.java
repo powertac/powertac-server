@@ -24,11 +24,11 @@ implements InitializationService
 
   public void setDefaults() {
     pluginConfigRepo.makePluginConfig("DistributionUtility", "")
-      .addConfiguration("distributionFeeMin", "0.003")
-      .addConfiguration("distributionFeeMax", "0.03")
-      .addConfiguration("balancingCostMin", "0.02")
-      .addConfiguration("balancingCostMax", "0.06")
-      .addConfiguration("defaultSpotPrice", "50.0");
+      .addConfiguration("distributionFeeMin", "-0.003")
+      .addConfiguration("distributionFeeMax", "-0.03")
+      .addConfiguration("balancingCostMin", "-0.02")
+      .addConfiguration("balancingCostMax", "-0.06")
+      .addConfiguration("defaultSpotPrice", "-50.0");
   }
 
   public String initialize(Competition competition,
