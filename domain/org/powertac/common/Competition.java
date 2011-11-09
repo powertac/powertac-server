@@ -69,7 +69,7 @@ public class Competition //implements Serializable
 
   /** concurrently open timeslots, i.e. time window in which broker actions like trading are allowed   */
   @XStreamAsAttribute
-  private int timeslotsOpen = 23;
+  private int timeslotsOpen = 24;
 
   /** # timeslots a timeslot gets deactivated ahead of the now timeslot (default: 1 timeslot, which (given default length of 60 min) means that e.g. trading is disabled 60 minutes ahead of time    */
   @XStreamAsAttribute
