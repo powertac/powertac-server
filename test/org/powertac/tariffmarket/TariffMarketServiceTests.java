@@ -693,6 +693,24 @@ public class TariffMarketServiceTests
     {
       return false;
     }
+
+    public void preGame ()
+    {
+      // TODO Auto-generated method stub
+      
+    }
+
+    public void setAuthorizedBrokerList (ArrayList<String> brokerList)
+    {
+      // TODO Auto-generated method stub
+      
+    }
+
+    public void runOnce ()
+    {
+      // TODO Auto-generated method stub
+      
+    }
   }
   
   class MockTariffListener implements NewTariffListener
