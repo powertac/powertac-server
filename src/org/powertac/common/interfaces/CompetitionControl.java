@@ -15,6 +15,8 @@
  */
 package org.powertac.common.interfaces;
 
+import java.util.ArrayList;
+
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
 
@@ -39,7 +41,25 @@ public interface CompetitionControl
    * proper phase sequence.
    */
   public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase);
+  
+  /**
+   * Runs the pre-game cycle of the simulator, which sets all plugin components
+   * to their default state.
+   */
+  public void preGame ();
 
+  /**
+   * Sets the list of brokers authorized to log in to the next game. Must
+   * be called after completion of a simulation and before calling runOnce(). 
+   * This is normally done immediately after calling preGame().
+   */
+  public void setAuthorizedBrokerList (ArrayList<String> brokerList);
+  
+  /**
+   * Waits for broker login, then starts and runs a simulation.
+   */
+  public void runOnce ();
+  
   /**
    * Processes simulation pause messages
    */
