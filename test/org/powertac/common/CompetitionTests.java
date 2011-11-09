@@ -84,7 +84,7 @@ public class CompetitionTests
   public void testSetTimeslotsOpen ()
   {
     Competition c1 = Competition.newInstance("c1");
-    assertEquals("default count", 23, c1.getTimeslotsOpen());
+    assertEquals("default count", 24, c1.getTimeslotsOpen());
     Competition cx = c1.withTimeslotsOpen(13);
     assertEquals("correct return", c1, cx);
     assertEquals("new count", 13, c1.getTimeslotsOpen());
