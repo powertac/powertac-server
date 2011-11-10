@@ -116,27 +116,6 @@ public class GencoTests
     assertTrue("still in operation", genco.isInOperation());
   }
 
-  // TODO - redo this with a message that is actually received
-//  @Test
-//  public void testReceiveMessage ()
-//  {
-//    PluginConfig config = new PluginConfig("Genco", "");
-//    genco.configure(config); // all defaults
-//    Timeslot ts1 = timeslotRepo.makeTimeslot(start);
-//    Timeslot ts2 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
-//    Timeslot ts3 = timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
-//    MarketPosition posn2 = new MarketPosition(genco, ts2, -0.6);
-//    genco.receiveMessage(posn2);
-//    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
-//    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
-//    assertNull("no position for ts3", genco.findMarketPositionByTimeslot(ts3));
-//    MarketPosition posn3 = new MarketPosition(genco, ts3, -0.6);
-//    genco.receiveMessage(posn3);
-//    assertNull("no position for ts1", genco.findMarketPositionByTimeslot(ts1));
-//    assertEquals("match for ts2", posn2, genco.findMarketPositionByTimeslot(ts2));
-//    assertEquals("match for ts3", posn3, genco.findMarketPositionByTimeslot(ts3));
-//  }
-
   @Test
   public void testGenerateOrders ()
   {
@@ -174,9 +153,45 @@ public class GencoTests
     assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
 
+  // set commitment leadtime to a larger number and make sure ordering
+  // behavior is correct
   @Test
-  public void testConfigure ()
+  public void testGenerateOrders2 ()
   {
-    //fail("Not yet implemented");
+    // set up the genco with commitment leadtime=3
+    PluginConfig config = new PluginConfig("Genco", "")
+      .addConfiguration("commitmentLeadtime", "3");
+    genco.configure(config); // all defaults
+    // capture orders
+    final ArrayList<Order> orderList = new ArrayList<Order>(); 
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        orderList.add((Order)args[0]);
+        return null;
+      }
+    }).when(mockProxy).routeMessage(isA(Order.class));
+    // set up some timeslots
+    Timeslot ts0 = timeslotRepo.makeTimeslot(start);
+    ts0.disable();
+    assertEquals("first ts has sn=0", 0, ts0.getSerialNumber());
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
+    assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
+
+    // generate orders and check
+    genco.generateOrders(start, timeslotRepo.enabledTimeslots());
+    assertEquals("two orders", 2, orderList.size());
+    Order first = orderList.get(0);
+    assertEquals("first order for ts3", 3, first.getTimeslot().getSerialNumber());
+    assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
+    assertEquals("first order for 50 mwh", -100.0, first.getMWh(), 1e-6);
+    Order second = orderList.get(1);
+    assertEquals("second order for ts4", 4, second.getTimeslot().getSerialNumber());
+    assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
+    assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
+  
 }

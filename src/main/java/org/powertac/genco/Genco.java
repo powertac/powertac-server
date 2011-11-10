@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 
 import org.powertac.common.Broker;
+import org.powertac.common.Competition;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
@@ -137,7 +138,13 @@ public class Genco
       return;
     }
     log.info("Generate orders for " + getUsername());
+    int skip = (commitmentLeadtime
+                - Competition.currentCompetition().getDeactivateTimeslotsAhead());
+    if (skip < 0)
+      skip = 0;
     for (Timeslot slot : openSlots) {
+      if (skip-- > 0)
+        continue;
       double availableCapacity = currentCapacity;
       // do we receive these?
       MarketPosition posn = findMarketPositionByTimeslot(slot);
