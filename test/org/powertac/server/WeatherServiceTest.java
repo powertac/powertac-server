@@ -136,8 +136,8 @@ public class WeatherServiceTest {
 	@Test
 	public void testForecastValues(){
 		timeService.setCurrentTime(start);
-		// There should be 46 predictions in the forecast
-		assertEquals(46, weatherForecastRepo.currentWeatherForecast().getPredictions().size());
+		// There should be 24 predictions in the forecast
+		assertEquals(24, weatherForecastRepo.currentWeatherForecast().getPredictions().size());
 		
 		// Predictions should increment by one each time
 		int i = 1;

@@ -208,9 +208,4 @@
 			</plugin>
 		</plugins>
 	</build>
-				<groupId>powertac</groupId>
-				<artifactId>household-customer</artifactId>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 </project>
