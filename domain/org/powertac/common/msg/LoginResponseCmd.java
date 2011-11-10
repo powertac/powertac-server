@@ -17,13 +17,16 @@ public class LoginResponseCmd
 
   private StatusCode status;
   private String serverAddress;
-  private String queueName;
+  private String brokerQueueName;
+  private String serverQueueName;
   
-  public LoginResponseCmd (StatusCode stat, String addr, String queue)
+  public LoginResponseCmd (StatusCode stat, String addr, String serverQueueName,
+      String brokerQueueName)
   {
-    status = stat;
-    serverAddress = addr;
-    queueName = queue;
+    this.status = stat;
+    this.serverAddress = addr;
+    this.setServerQueueName(serverQueueName);
+    this.setBrokerQueueName(brokerQueueName);
   }
 
   public StatusCode getStatus ()
@@ -36,9 +39,36 @@ public class LoginResponseCmd
     return serverAddress;
   }
 
-  public String getQueueName ()
+  /**
+   * @return the brokerQueueName
+   */
+  public String getBrokerQueueName ()
   {
-    return queueName;
+    return brokerQueueName;
+  }
+
+  /**
+   * @param brokerQueueName the brokerQueueName to set
+   */
+  public void setBrokerQueueName (String brokerQueueName)
+  {
+    this.brokerQueueName = brokerQueueName;
+  }
+
+  /**
+   * @return the serverQueueName
+   */
+  public String getServerQueueName ()
+  {
+    return serverQueueName;
+  }
+
+  /**
+   * @param serverQueueName the serverQueueName to set
+   */
+  public void setServerQueueName (String serverQueueName)
+  {
+    this.serverQueueName = serverQueueName;
   }
   
 }

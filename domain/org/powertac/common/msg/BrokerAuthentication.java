@@ -15,10 +15,10 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.Broker;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * This message is used for authenticating a broker with the server.
@@ -31,43 +31,21 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("broker-authentication")
 public class BrokerAuthentication
 {
-  @XStreamAsAttribute
-  private String username;
-
-  @XStreamAsAttribute
-  private String gameToken;
+  private Broker broker;
 
   /**
-   * @return the username
+   * @return the broker
    */
-  public String getUsername ()
+  public Broker getBroker ()
   {
-    return username;
+    return broker;
   }
 
   /**
-   * @param username
-   *          the username to set
+   * @param broker the broker to set
    */
-  public void setUsername (String username)
+  public void setBroker (Broker broker)
   {
-    this.username = username;
-  }
-
-  /**
-   * @return the gameToken
-   */
-  public String getGameToken ()
-  {
-    return gameToken;
-  }
-
-  /**
-   * @param gameToken
-   *          the gameToken to set
-   */
-  public void setGameToken (String gameToken)
-  {
-    this.gameToken = gameToken;
+    this.broker = broker;
   }
 }
