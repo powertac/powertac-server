@@ -443,6 +443,9 @@ public class CompetitionControlService
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
                                              competition.getId(),
                                              "game-setup");
+
+    // set up the simulation clock
+    setTimeParameters();
     
     // configure plugins, but don't allow them to broadcast to brokers
     brokerProxyService.setDeferredBroadcast(true);
@@ -459,9 +462,6 @@ public class CompetitionControlService
     // get brokers logged in
     //jmsManagementService.createQueues()
     waitForBrokerLogin();
-
-    // set up the simulation clock
-    setTimeParameters();
 
     // Publish Competition object at right place - after plugins
     // are initialized. This is necessary because some may need to
