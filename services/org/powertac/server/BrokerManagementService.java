@@ -41,19 +41,20 @@ public class BrokerManagementService
 
   public synchronized void processBrokerAuthentication (BrokerAuthentication authentication)
   {
-    Broker broker = brokerRepo.findByUsername(authentication.getUsername());
+    Broker broker = brokerRepo.findByUsername(authentication.getBroker().getUsername());
     boolean authenticated = false;
-    if (propertiesUtil.getProperty("server.mode", "research").equals("tournament")) { 
-      // tournament mode
-      if (broker != null && authentication.getGameToken().equals(broker.getApiKey())) {
-        authenticated = true;         
-      }
-    } else {
-      // research mode
-      if (broker != null) {
-        authenticated = true;
-      }
-    }
+// FIXME: logic changed
+//    if (propertiesUtil.getProperty("server.mode", "research").equals("tournament")) { 
+//      // tournament mode
+//      if (broker != null && authentication.getBroker().getGameToken().equals(broker.getApiKey())) {
+//        authenticated = true;         
+//      }
+//    } else {
+//      // research mode
+//      if (broker != null) {
+//        authenticated = true;
+//      }
+//    }
   
     if (authenticated) {
       broker.setEnabled(true);

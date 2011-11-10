@@ -83,12 +83,10 @@
 		<dependency>
 			<groupId>powertac</groupId>
 			<artifactId>common</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>powertac</groupId>
 			<artifactId>server-interface</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<!-- ActiveMQ -->
@@ -119,6 +117,32 @@
 			<version>1.1.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>powertac</groupId>
+			<artifactId>auctioneer</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>powertac</groupId>
+			<artifactId>genco</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>powertac</groupId>
+			<artifactId>distribution-utility</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>powertac</groupId>
+			<artifactId>default-broker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>powertac</groupId>
+			<artifactId>accounting</artifactId>
+		</dependency>
+    <dependency>
+      <groupId>powertac</groupId>
+      <artifactId>household-customer</artifactId>
+      <scope>compile</scope>
+    </dependency>
 	</dependencies>
 	<repositories>
 		<repository>
@@ -178,4 +202,48 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>common</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>server-interface</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>auctioneer</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>genco</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>distribution-utility</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>default-broker</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>accounting</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>powertac</groupId>
+				<artifactId>household-customer</artifactId>
+				<version>0.0.1-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 </project>
