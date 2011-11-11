@@ -43,7 +43,7 @@ import com.thoughtworks.xstream.XStream;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
 @DirtiesContext
 public class OrderbookTests
 {
@@ -57,7 +57,7 @@ public class OrderbookTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @AfterClass

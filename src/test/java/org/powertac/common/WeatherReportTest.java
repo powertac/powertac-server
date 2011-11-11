@@ -19,7 +19,7 @@ public class WeatherReportTest {
 	Timeslot ts1;
 	@BeforeClass
 	public static void setupLog() {
-		PropertyConfigurator.configure("test/log.config");
+		PropertyConfigurator.configure("src/test/resources/log.config");
 	}
 
 	@Before

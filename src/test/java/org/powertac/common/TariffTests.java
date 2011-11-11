@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
 @DirtiesContext
 public class TariffTests
 {
@@ -59,7 +59,7 @@ public class TariffTests
   @BeforeClass
   public static void setUpLog () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
   
   @AfterClass

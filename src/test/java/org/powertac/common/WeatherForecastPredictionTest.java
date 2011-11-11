@@ -18,7 +18,7 @@ public class WeatherForecastPredictionTest {
 	
 	@BeforeClass
 	public static void setupLog() {
-		PropertyConfigurator.configure("test/log.config");
+		PropertyConfigurator.configure("src/test/resources/log.config");
 	}
 
 	@Before

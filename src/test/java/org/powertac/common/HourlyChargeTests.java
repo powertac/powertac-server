@@ -36,7 +36,7 @@ public class HourlyChargeTests
   @BeforeClass
   public static void setUpLog () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before

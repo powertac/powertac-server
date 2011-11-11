@@ -36,7 +36,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.thoughtworks.xstream.XStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
 @DirtiesContext
 public class RateTests
 {
@@ -46,7 +46,7 @@ public class RateTests
   @BeforeClass
   public static void setUpLog () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before
