@@ -354,7 +354,6 @@ public class AuctionService
       return (order.getMWh() > 0.0);
     }
 
-    @Override
     public int compareTo(Object o) {
       if (!(o instanceof OrderWrapper)) 
         return 1;
