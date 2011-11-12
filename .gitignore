@@ -3,6 +3,8 @@
 *.ipr
 *.iws
 .idea/
+.classpath
+.project
 
 # Deployment directories
 target/
