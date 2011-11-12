@@ -20,7 +20,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
 @DirtiesContext
 public class RandomSeedRepoTests
 {
@@ -30,7 +30,7 @@ public class RandomSeedRepoTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before
@@ -90,7 +90,7 @@ public class RandomSeedRepoTests
       while ((line = input.readLine()) != null) {
         lines.add(line);
       }
-      assertEquals("two lines", 2, lines.size());
+      assertEquals("three lines", 3, lines.size());
       for (String entry : lines) {
         String[] fields = entry.split("::");
         assertEquals("correct classname", seedClass, fields[1]);
@@ -118,7 +118,7 @@ public class RandomSeedRepoTests
   public void testLoadRepo ()
   {
     try {
-      randomSeedRepo.loadSeeds(new File("test/randomSeedTest.state"));
+      randomSeedRepo.loadSeeds(new File("src/test/resources/randomSeedTest.state"));
     }
     catch (Exception fnf) {
       fail(fnf.toString());
