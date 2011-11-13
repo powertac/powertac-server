@@ -74,7 +74,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/tariff-test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/tariff-test-config.xml"})
 @DirtiesContext
 public class TariffMarketServiceTests
 {
@@ -121,7 +121,7 @@ public class TariffMarketServiceTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @SuppressWarnings("rawtypes")
