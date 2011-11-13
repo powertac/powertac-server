@@ -72,7 +72,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author Antonios Chrysopoulos
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "file:test/test-config.xml" })
+@ContextConfiguration(locations = { "file:src/test/resources/test-config.xml" })
 @DirtiesContext
 public class HouseholdCustomerServiceTests
 {
@@ -129,7 +129,7 @@ public class HouseholdCustomerServiceTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before
@@ -180,7 +180,7 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "../household-customer/src/org/powertac/common/configurations/Household.properties");
+    config.getConfiguration().put("cofigFile", "src/main/resources/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerInitializationService.initialize(comp, inits);
@@ -191,12 +191,12 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "../household-customer/src/org/powertac/common/configurations/Household.properties");
+    config.getConfiguration().put("cofigFile", "src/main/resources/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerInitializationService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "../household-customer/src/org/powertac/common/configurations/Household.properties", householdCustomerService.getConfigFile());
+    assertEquals("correct configuration file", "src/main/resources/Household.properties", householdCustomerService.getConfigFile());
   }
 
   @Test
