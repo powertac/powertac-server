@@ -70,7 +70,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/test-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
 @DirtiesContext
 public class DefaultBrokerServiceTests
 {
@@ -105,7 +105,7 @@ public class DefaultBrokerServiceTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before
