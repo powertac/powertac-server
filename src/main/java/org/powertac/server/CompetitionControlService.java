@@ -42,6 +42,7 @@ import javax.xml.xpath.XPathFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
@@ -55,6 +56,7 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
 import org.powertac.common.msg.SimEnd;
@@ -158,6 +160,7 @@ public class CompetitionControlService
   private int currentSlot = 0;
   private RandomSeed randomGen;
   private ArrayList<String> authorizedBrokerList;
+  private int idPrefix = 0;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
@@ -185,6 +188,7 @@ public class CompetitionControlService
     log.info("pre-game initialization");
 
     phaseRegistrations = null;
+    idPrefix = 0;
 
     // Handle pre-game initializations by clearing out the repos,
     // then creating the PluginConfig instances
@@ -532,13 +536,15 @@ public class CompetitionControlService
       return false;
     }
     // otherwise we log the broker in. Note that the broker's queue must
-    // be set up and acknowledgement sent before returning, because as
+    // be set up and acknowledgment sent before returning, because as
     // soon as the last broker logs in, the simulation starts. If the broker
     // is not already logged in at that point, it will likely miss one or more
     // startup messages.
 
-    // TODO - log in broker - only if not local?
-    // brokerManagementService.loginBroker(username);
+    Broker broker = new Broker(username);
+    brokerRepo.add(broker);
+    // assign prefix...
+    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
