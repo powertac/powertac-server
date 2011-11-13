@@ -12,7 +12,7 @@
   market.</description>
   <dependencies>
     <dependency>
-      <groupId>powertac</groupId>
+      <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
