@@ -120,6 +120,7 @@ public class AuctionServiceTests
     ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
     timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
     timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
+    svc.clearEnabledTimeslots();
     
     // mock the AccountingService, capture args
     doAnswer(new Answer() {

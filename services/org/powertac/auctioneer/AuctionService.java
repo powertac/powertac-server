@@ -88,6 +88,7 @@ public class AuctionService
   
   private HashMap<Timeslot, TreeSet<OrderWrapper>> sortedBids;
   private HashMap<Timeslot, TreeSet<OrderWrapper>> sortedAsks;
+  private List<Timeslot> enabledTimeslots = null;
   
   public AuctionService ()
   {
@@ -167,6 +168,7 @@ public class AuctionService
    */
   public void activate (Instant time, int phaseNumber)
   {
+    log.info("Activate");
     // Grab all the incoming marketOrders and sort them by price and timeslot
     ArrayList<OrderWrapper> orders;
     synchronized(incoming) {
@@ -187,10 +189,16 @@ public class AuctionService
     log.debug("activate: " + sortedAsks.size() + " asks, " +
               sortedBids.size() + " bids");
     
-    // Iterate through the enabled timeslots, and clear each one individually
-    for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+    // Iterate through the timeslots that were enabled at the end of the last
+    // timeslot, and clear each one individually
+    if (enabledTimeslots == null) {
+      enabledTimeslots = timeslotRepo.enabledTimeslots();
+    }
+    for (Timeslot timeslot : enabledTimeslots) {
       clearTimeslot(timeslot);
     }
+    // save a copy of the current set of enabled timeslots for the next clearing
+    enabledTimeslots = new ArrayList<Timeslot>(timeslotRepo.enabledTimeslots());
   }
 
   private void clearTimeslot (Timeslot timeslot)
@@ -288,6 +296,12 @@ public class AuctionService
     sortedBids.get(timeslot).add(marketOrder);
   }
   
+  // test support -- get rid of saved timeslots
+  void clearEnabledTimeslots ()
+  {
+    enabledTimeslots = null;
+  }
+  
   class PendingTrade
   {
     Broker from;
@@ -340,7 +354,6 @@ public class AuctionService
       return (order.getMWh() > 0.0);
     }
 
-    @Override
     public int compareTo(Object o) {
       if (!(o instanceof OrderWrapper)) 
         return 1;
