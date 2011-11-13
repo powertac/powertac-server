@@ -24,13 +24,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:development.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/development.xml"})
 public class BrokerProxyServiceTest {
   @Autowired 
   private BrokerProxy brokerProxy;
   private Broker broker = new Broker("standard_broker", false, false);
   private CustomerInfo message = new CustomerInfo("t1", 33);
-  
+
   private JmsTemplate template = mock(JmsTemplate.class);
 
   @Before
@@ -49,7 +49,7 @@ public class BrokerProxyServiceTest {
     
     verify(template, times(1)).send(any(String.class), any(MessageCreator.class));
   }
-  
+
   @Test
   public void testSendMessage_multiple() {
     List<CustomerInfo> messageLists = new ArrayList<CustomerInfo>();
@@ -59,8 +59,4 @@ public class BrokerProxyServiceTest {
     brokerProxy.sendMessages(broker, messageLists);
     verify(template, times(messageLists.size())).send(any(String.class), any(MessageCreator.class));
   }
-  
-  
-  
-
 }

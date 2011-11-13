@@ -31,7 +31,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/cc-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
 public class CompetitionControlServiceTests
 {
 
@@ -50,7 +50,7 @@ public class CompetitionControlServiceTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/logger.config");
+    PropertyConfigurator.configure("src/test/resources/logger.config");
     Logger.getRootLogger().setLevel(Level.DEBUG);
   }
 

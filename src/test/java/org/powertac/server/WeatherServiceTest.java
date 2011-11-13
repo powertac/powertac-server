@@ -28,7 +28,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/cc-config.xml"})
+@ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
 public class WeatherServiceTest {
 	@Autowired
 	private WeatherService weatherService;
@@ -51,7 +51,7 @@ public class WeatherServiceTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-	  PropertyConfigurator.configure("test/logger.config");
+	  PropertyConfigurator.configure("src/test/resources/logger.config");
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
 	}
 
@@ -136,8 +136,8 @@ public class WeatherServiceTest {
 	@Test
 	public void testForecastValues(){
 		timeService.setCurrentTime(start);
-		// There should be 46 predictions in the forecast
-		assertEquals(46, weatherForecastRepo.currentWeatherForecast().getPredictions().size());
+		// There should be 24 predictions in the forecast
+		assertEquals(24, weatherForecastRepo.currentWeatherForecast().getPredictions().size());
 		
 		// Predictions should increment by one each time
 		int i = 1;
