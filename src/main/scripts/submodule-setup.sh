@@ -14,8 +14,8 @@ while read lhs eq rhs; do
     if [ $lhs = $tag ]; then
 	#echo $lhs $eq $rhs
 	pushd $rhs
-	git checkout $repo $branch
-	git pull
+	git checkout $branch
+	git pull $repo $branch
 	popd
     fi
 done < .gitmodules
