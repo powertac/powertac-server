@@ -11,6 +11,15 @@ logs/
 log/
 .settings/
 
+# sub-project directories
+accounting/
+auctioneer/
+default-broker/
+distribution-utility/
+genco/
+household-customer/
+server-interface/
+
 # OS generated files
 .DS_Store?
 .DS_Store
