@@ -180,7 +180,7 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "src/main/resources/Household.properties");
+    config.getConfiguration().put("configFile", "../household-customer/src/main/resources/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerInitializationService.initialize(comp, inits);
@@ -191,12 +191,12 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("cofigFile", "src/main/resources/Household.properties");
+    config.getConfiguration().put("configFile", "../household-customer/src/main/resources/Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerInitializationService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "src/main/resources/Household.properties", householdCustomerService.getConfigFile());
+    assertEquals("correct configuration file", "../household-customer/src/main/resources/Household.properties", householdCustomerService.getConfigFile());
   }
 
   @Test
