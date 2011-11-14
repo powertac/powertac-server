@@ -13,5 +13,6 @@ while read lhs eq rhs; do
 	pushd rhs
 	git checkout $branch
 	git pull
+	popd
     fi
 done < .gitmodules
