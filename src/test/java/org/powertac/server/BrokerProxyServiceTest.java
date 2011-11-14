@@ -19,24 +19,30 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/test/resources/development.xml"})
-public class BrokerProxyServiceTest {
+@DirtiesContext
+public class BrokerProxyServiceTest 
+{
   @Autowired 
   private BrokerProxy brokerProxy;
-  private Broker broker = new Broker("standard_broker", false, false);
-  private CustomerInfo message = new CustomerInfo("t1", 33);
 
-  private JmsTemplate template = mock(JmsTemplate.class);
+  private Broker broker;
+  private CustomerInfo message;
+
+  private JmsTemplate template;
 
   @Before
   public void setUp() throws Exception {
+    broker = new Broker("standard_broker", false, false);
+    message = new CustomerInfo("t1", 33);
+    template = mock(JmsTemplate.class);
     ReflectionTestUtils.setField(brokerProxy, "template", template);
-    reset(template);
   }
 
   @After
@@ -52,11 +58,11 @@ public class BrokerProxyServiceTest {
 
   @Test
   public void testSendMessage_multiple() {
-    List<CustomerInfo> messageLists = new ArrayList<CustomerInfo>();
-    messageLists.add(message);
-    messageLists.add(new CustomerInfo("t2", 22));
+    List<CustomerInfo> messageList = new ArrayList<CustomerInfo>();
+    messageList.add(message);
+    messageList.add(new CustomerInfo("t2", 22));
     
-    brokerProxy.sendMessages(broker, messageLists);
-    verify(template, times(messageLists.size())).send(any(String.class), any(MessageCreator.class));
+    brokerProxy.sendMessages(broker, messageList);
+    verify(template, times(messageList.size())).send(any(String.class), any(MessageCreator.class));
   }
 }

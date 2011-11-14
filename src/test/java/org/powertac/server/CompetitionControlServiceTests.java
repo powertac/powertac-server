@@ -25,6 +25,7 @@ import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.NodeList;
@@ -32,6 +33,7 @@ import org.xml.sax.InputSource;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
+@DirtiesContext
 public class CompetitionControlServiceTests
 {
 
@@ -90,6 +92,7 @@ public class CompetitionControlServiceTests
     
     CharArrayWriter writer = new CharArrayWriter();
     ccs.saveBootstrapData(writer);
+    //System.out.println(writer.toString());
     
     // transfer the data to a reader and check content with XPath
     CharArrayReader reader = new CharArrayReader(writer.toCharArray());
@@ -98,14 +101,13 @@ public class CompetitionControlServiceTests
     XPath xPath = factory.newXPath();
     try {
       XPathExpression exp = 
-        xPath.compile("/powertac-bootstrap-data/config/plugin-config[@roleName='AccountingService']/configuration/entry/string");
+        xPath.compile("/powertac-bootstrap-data/config/plugin-config[@roleName='weatherService']/configuration/entry/string");
       NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-      assertEquals("two entries", 2, nodes.getLength());
-      assertEquals("node 0", "bankInterest", nodes.item(0).getTextContent());
-      String num = nodes.item(1).getTextContent();
-      double interest = Double.parseDouble(num);
-      assertTrue(">0.0", interest >= 0.0);
-      assertTrue("<0.2", interest < 0.2);
+      assertEquals("two entries", 8, nodes.getLength());
+      assertEquals("node 2", "forecastHorizon", nodes.item(2).getTextContent());
+      String num = nodes.item(3).getTextContent();
+      int hours= Integer.parseInt(num);
+      assertEquals("24 hour", 24, hours);
     }
     catch (XPathExpressionException xee) {
       fail("XPath trouble: " + xee.toString());
