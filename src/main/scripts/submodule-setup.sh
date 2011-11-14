@@ -10,7 +10,8 @@ branch=$1
 tag=path
 while read lhs eq rhs; do
     if [ $lhs = $tag ]; then
-	pushd rhs
+	#echo $lhs $eq $rhs
+	pushd $rhs
 	git checkout $branch
 	git pull
 	popd
