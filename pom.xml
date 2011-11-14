@@ -52,6 +52,36 @@
       <artifactId>spring-jms</artifactId>
       <version>3.0.6.RELEASE</version>
     </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>accounting</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>auctioneer</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>default-broker</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>distribution-utility</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>genco</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>household-customer</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <repositories>
