@@ -28,7 +28,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class BrokerProxyService implements BrokerProxy
 {
-  @SuppressWarnings("unused")
   private static final Log log = LogFactory.getLog(BrokerProxyService.class);
 
   @Autowired

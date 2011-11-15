@@ -4,6 +4,9 @@
 *.iws
 .idea/
 
+# editor temp files
+*~
+
 # Deployment directories
 target/
 activemq-data/

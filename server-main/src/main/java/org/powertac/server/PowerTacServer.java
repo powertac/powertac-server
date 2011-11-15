@@ -71,7 +71,7 @@ public class PowerTacServer
   public static void main (String[] args)
   {
     AbstractApplicationContext context =
-      new ClassPathXmlApplicationContext("development.xml");
+      new ClassPathXmlApplicationContext("powertac.xml");
     context.registerShutdownHook();
     
     // debug code -

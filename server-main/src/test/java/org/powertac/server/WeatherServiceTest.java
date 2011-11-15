@@ -1,6 +1,5 @@
 package org.powertac.server;
 
-
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -22,14 +21,15 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-
-
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:test/cc-config.xml"})
-public class WeatherServiceTest {
+@ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
+@DirtiesContext
+public class WeatherServiceTest
+{
 	@Autowired
 	private WeatherService weatherService;
 	
@@ -51,7 +51,7 @@ public class WeatherServiceTest {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-	  PropertyConfigurator.configure("test/logger.config");
+	  PropertyConfigurator.configure("src/test/resources/logger.config");
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
 	}
 

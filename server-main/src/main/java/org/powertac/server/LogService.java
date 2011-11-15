@@ -55,7 +55,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogService
 {
-  private String configFilename = "config/log.config";
+  private String configFilename = "src/main/resources/log.config";
   private String filenamePrefix = "powertac";
   
   public LogService ()
