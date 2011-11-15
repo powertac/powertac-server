@@ -1,3 +1,16 @@
+# Don't commit changes to these files out unless you know what you are doing
+.classpath
+.project
+.gitmodules
+rw.gitmodules
+accounting
+auctioneer
+default-broker
+distribution-utility
+genco
+household-customer
+server-interface
+
 # IntelliJ IDEA project files
 *.iml
 *.ipr
@@ -7,12 +20,13 @@
 # editor temp files
 *~
 
-# Deployment directories
+# Deployment directories and runtime artifacts
 target/
 activemq-data/
 logs/
 log/
 .settings/
+server-main/boot-data.xml
 
 # OS generated files
 .DS_Store?
