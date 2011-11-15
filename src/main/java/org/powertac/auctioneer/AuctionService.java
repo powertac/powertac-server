@@ -246,7 +246,7 @@ public class AuctionService
       for (PendingTrade trade : pendingTrades) {
         accountingService.addMarketTransaction(trade.from, timeslot,
                                                -trade.mWh, clearingPrice);
-        accountingService.addMarketTransaction(trade.to, timeslot, 
+        accountingService.addMarketTransaction(trade.to, timeslot,
                                                trade.mWh, -clearingPrice);
       }
       // create the orderbook and cleared-trade, send to brokers
