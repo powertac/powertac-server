@@ -139,9 +139,13 @@ public class Broker
     return password;
   }
 
+  /**
+   * True just in case either the broker is logged in, or is a local wholesale
+   * broker.
+   */
   public boolean isEnabled ()
   {
-    return enabled;
+    return (enabled || (isLocal() && isWholesale()));
   }
   
   public void setEnabled(boolean enabled) 
@@ -154,7 +158,12 @@ public class Broker
     return local;
   }
   
-  /** Allows subclasses to set themselves as local brokers */
+  /**
+   * Allows subclasses to set themselves as local brokers. Local brokers
+   * must subclass this class, and implement receiveMessage() to receive
+   * messages from the server. They send messages by calling
+   * BrokerProxy.routeMessage(). 
+   */
   @StateChange
   protected void setLocal (boolean value)
   {
