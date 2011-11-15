@@ -36,8 +36,8 @@ public class BrokerManagementService
   @Autowired
   private BrokerProxy brokerProxy;
 
-  @Autowired
-  private PropertiesUtil propertiesUtil;
+//  @Autowired
+//  private PropertiesUtil propertiesUtil;
 
   public synchronized void processBrokerAuthentication (BrokerAuthentication authentication)
   {

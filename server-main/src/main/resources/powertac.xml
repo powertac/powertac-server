@@ -11,19 +11,6 @@
 	<context:annotation-config />
 	<context:component-scan base-package="org.powertac" />
 
-	<bean id="propertiesUtil" class="org.powertac.util.PropertiesUtil">
-		<property name="ignoreUnresolvablePlaceholders" value="true" />
-		<property name="searchSystemEnvironment" value="true" />
-		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
-		<property name="locations">
-			<list>
-				<value>classpath:*.properties</value>
-				<!-- this happens to override previous properties due to the implementation... -->
-				<value>file:/${config.dir}/*.properties</value>
-			</list>
-		</property>
-	</bean>
-
 	<!-- Embedded ActiveMQ Broker -->
 	<amq:broker id="broker" useJmx="false" persistent="false">
 		<amq:transportConnectors>
