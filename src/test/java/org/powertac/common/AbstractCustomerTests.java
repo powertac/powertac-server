@@ -49,7 +49,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Antonios Chrysopoulos
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "file:test/test-config.xml" })
+@ContextConfiguration(locations = { "file:src/test/resources/test-config.xml" })
 @DirtiesContext
 public class AbstractCustomerTests
 {
@@ -82,7 +82,7 @@ public class AbstractCustomerTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("test/log.config");
+    PropertyConfigurator.configure("src/test/resources/log.config");
   }
 
   @Before

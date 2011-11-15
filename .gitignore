@@ -4,11 +4,16 @@
 *.iws
 .idea/
 
+# Eclipse project files
+#.project
+#.classpath
+
 # Deployment directories
 target/
 activemq-data/
 log/
 .settings/
+.springBeans/
 
 # OS generated files
 .DS_Store?
