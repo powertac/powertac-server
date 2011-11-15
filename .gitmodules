@@ -1,0 +1,21 @@
+[submodule "server-interface"]
+	path = server-interface
+	url = git://github.com/jecollins/server-interface.git
+[submodule "accounting"]
+	path = accounting
+	url = git://github.com/jecollins/accounting.git
+[submodule "auctioneer"]
+	path = auctioneer
+	url = git://github.com/jecollins/auctioneer.git
+[submodule "default-broker"]
+	path = default-broker
+	url = git://github.com/jecollins/default-broker.git
+[submodule "distribution-utility"]
+	path = distribution-utility
+	url = git://github.com/jecollins/distribution-utility.git
+[submodule "genco"]
+	path = genco
+	url = git://github.com/jecollins/genco.git
+[submodule "household-customer"]
+	path = household-customer
+	url = git://github.com/jecollins/household-customer.git
