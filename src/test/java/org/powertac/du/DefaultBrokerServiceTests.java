@@ -155,6 +155,7 @@ public class DefaultBrokerServiceTests
     completedInits.add("TariffMarket");
     initializer.initialize(competition, completedInits);
     Broker face = brokerRepo.findByUsername("default broker");
+    face.setEnabled(true);
     return face;
   }
 

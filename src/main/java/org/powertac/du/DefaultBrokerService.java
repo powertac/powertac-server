@@ -134,6 +134,9 @@ public class DefaultBrokerService
    */
   void init (PluginConfig config)
   {
+    // log in to ccs
+    competitionControlService.loginBroker(face.getUsername());
+    
     // set up local state
     bootstrapMode = competitionControlService.isBootstrapMode();
     log.info("init, bootstrapMode=" + bootstrapMode);
@@ -192,7 +195,7 @@ public class DefaultBrokerService
   public Broker createBroker (String username)
   {
     face = new LocalBroker(username);
-    face.setEnabled(true);
+    //face.setEnabled(true); // log in -- do not set this directly
     return face;
   }
 
