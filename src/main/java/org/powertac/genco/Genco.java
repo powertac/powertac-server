@@ -159,7 +159,7 @@ public class Genco
                       -availableCapacity, cost);
 	log.debug(getUsername() + " offers " + availableCapacity +
 	          " in " + slot.getSerialNumber() + " for " + cost);
-	brokerProxyService.routeMessage(offer);
+	brokerProxyService.routeMessage(this, offer);
       }
     }
   }

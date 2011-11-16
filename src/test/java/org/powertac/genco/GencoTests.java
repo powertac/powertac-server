@@ -31,6 +31,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.PluginConfig;
@@ -127,10 +128,10 @@ public class GencoTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[0]);
+        orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
     // set up some timeslots
     Timeslot ts1 = timeslotRepo.makeTimeslot(start);
     ts1.disable();
@@ -167,10 +168,10 @@ public class GencoTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[0]);
+        orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
     // set up some timeslots
     Timeslot ts0 = timeslotRepo.makeTimeslot(start);
     ts0.disable();
