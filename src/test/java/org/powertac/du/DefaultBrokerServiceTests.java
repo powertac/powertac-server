@@ -164,6 +164,7 @@ public class DefaultBrokerServiceTests
     Broker face = init();
     assertNotNull("found face", face);
     assertEquals("correct face", face, service.getFace());
+    assertTrue("face is enabled", face.isEnabled());
     assertFalse("not bootstrap mode", service.isBootstrapMode());
   }
   
@@ -380,10 +381,10 @@ public class DefaultBrokerServiceTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[0]);
+        orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
     
     // activate the trading function by sending a cash position msg
     CashPosition cp = new CashPosition(face, 0.0);
@@ -416,10 +417,10 @@ public class DefaultBrokerServiceTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[0]);
+        orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
 
     // initialize the default broker
     Broker face = init();

@@ -192,6 +192,7 @@ public class DefaultBrokerService
   public Broker createBroker (String username)
   {
     face = new LocalBroker(username);
+    face.setEnabled(true);
     return face;
   }
 
@@ -288,7 +289,7 @@ public class DefaultBrokerService
              " in timeslot " + timeslot.getSerialNumber());
     Order result = new Order(face, timeslot, neededMWh, limitPrice);
     lastOrder.put(timeslot, result);
-    brokerProxyService.routeMessage(result);
+    brokerProxyService.routeMessage(face, result);
   }
 
   /**
@@ -401,15 +402,6 @@ public class DefaultBrokerService
       record.produceConsume(ttx.getKWh(), ttx.getPostedTime());      
     }
   }
-
-  // redundant - this is already done by Accounting for all brokers.
-//  /**
-//   * Receives a new MarketPosition for a given timeslot and stores it
-//   */
-//  public void handleMessage (MarketPosition posn)
-//  {
-//    face.addMarketPosition(posn, posn.getTimeslot());
-//  }
   
   /**
    * Receives a new WeatherReport. We only care about this if in bootstrap
