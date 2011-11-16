@@ -158,7 +158,10 @@ public class CompetitionControlService
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private int currentSlot = 0;
-  private RandomSeed randomGen;
+  private RandomSeed randomGen; // used to compute game length
+
+  // broker interaction state
+  private ArrayList<String> alwaysAuthorizedBrokers;
   private ArrayList<String> authorizedBrokerList;
   private int idPrefix = 0;
   
@@ -176,6 +179,7 @@ public class CompetitionControlService
    * the completion of each simulation. The actual simulation is started
    * with a call to init().
    */
+  @SuppressWarnings("unchecked")
   public void preGame ()
   {
     // Create default competition
@@ -317,13 +321,27 @@ public class CompetitionControlService
   }
   
   /**
+   * Sets the list of broker usernames that are always authorized, even in
+   * bootstrap mode. Normally this is just "defaultBroker". This method is
+   * intended to be called by Spring initialization.
+   */
+  public void setAlwaysAuthorizedBrokers (List<String> brokerList)
+  {
+    // copy the list out of Spring space
+    alwaysAuthorizedBrokers = new ArrayList<String>(brokerList);
+  }
+  
+  /**
    * Sets the list of brokers allowed and expected to log in before
    * starting a simulation. The simulation will not start until all 
    * brokers in the list are logged in, unless a timeout is configured.
    */
-  public void setAuthorizedBrokerList(ArrayList<String> brokerList)
+  public void setAuthorizedBrokerList (ArrayList<String> brokerList)
   {
-    authorizedBrokerList = brokerList;
+    authorizedBrokerList = new ArrayList<String>(alwaysAuthorizedBrokers);
+    for (String broker : brokerList) {
+      authorizedBrokerList.add(broker);
+    }
   }
   
   public void runOnce ()
@@ -512,9 +530,17 @@ public class CompetitionControlService
       // nothing to do here
       return;
     }
+    if (log.isInfoEnabled()) {
+      StringBuffer msg = new StringBuffer();
+      msg.append("waiting for logins from");
+      for (String name : authorizedBrokerList) {
+        msg.append(" ").append(name);
+      }
+      log.info(msg.toString());
+    }
     try {
       while (authorizedBrokerList.size() > 0) {
-        authorizedBrokerList.wait();
+        wait();
       }  
     }
     catch (InterruptedException ie) {
@@ -540,17 +566,27 @@ public class CompetitionControlService
     // soon as the last broker logs in, the simulation starts. If the broker
     // is not already logged in at that point, it will likely miss one or more
     // startup messages.
-
-    Broker broker = new Broker(username);
-    brokerRepo.add(broker);
-    // assign prefix...
-    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
+    
+    // Brokers can be local, in which case the Broker instance already exists.
+    // If that's the case, we don't need to create the broker, send a message,
+    // or create a new ID prefix.
+    log.info("Log in broker " + username);
+    Broker broker = brokerRepo.findByUsername(username);
+    if (broker == null) {
+      broker = new Broker(username);
+      brokerRepo.add(broker);
+      // assign prefix...
+      brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
+    }
+    
+    // only enabled brokers get messages
+    broker.setEnabled(true);
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
     authorizedBrokerList.remove(username);
     if (authorizedBrokerList.size() == 0) {
-      authorizedBrokerList.notifyAll();
+      notifyAll();
     }
     return true;
   }
@@ -600,6 +636,7 @@ public class CompetitionControlService
 
   // Runs the initialization protocol on each plugin, supports precedence
   // relationships among them.
+  @SuppressWarnings("unchecked")
   private boolean configurePlugins ()
   {
     Map<String, InitializationService> initializers =

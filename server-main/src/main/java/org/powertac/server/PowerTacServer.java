@@ -101,6 +101,7 @@ public class PowerTacServer
             }
             else {
               FileWriter bootWriter = new FileWriter(tokens[1]);
+              cc.setAuthorizedBrokerList(new ArrayList<String>());
               if (tokens.length > 2) {
                 File configFile = new File(tokens[2]);
                 cc.preGame(configFile);
