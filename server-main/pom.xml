@@ -13,6 +13,13 @@
   <description>Top-level module of the Power TAC simulation server</description>
 
   <dependencies>
+    <!-- BeanUtils -->
+    <dependency>
+      <groupId>commons-beanutils</groupId>
+      <artifactId>commons-beanutils</artifactId>
+      <version>1.8.0</version>
+    </dependency>
+  
     <!-- server-interface -->
     <dependency>
       <groupId>org.powertac</groupId>
