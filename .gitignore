@@ -21,6 +21,7 @@ server-interface
 *~
 
 # Deployment directories and runtime artifacts
+bin/
 target/
 activemq-data/
 logs/
