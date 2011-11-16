@@ -47,6 +47,14 @@ public interface CompetitionControl
    * to their default state.
    */
   public void preGame ();
+  
+  /**
+   * Attempts to log in a broker by username. Returns true just in case the
+   * login is successful. The intent is that login will be successful if the
+   * username is on the authorizedBrokerList, or if it is one of the
+   * pre-configured brokers (usually only the default broker).
+   */
+  public boolean loginBroker (String username);
 
   /**
    * Sets the list of brokers authorized to log in to the next game. Must
