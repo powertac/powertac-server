@@ -67,14 +67,22 @@ public class BrokerProxyService implements BrokerProxy
    */
   public void sendMessage (Broker broker, Object messageObject)
   {
-    // dispatch to visualizers
-    visualizerProxyService.forwardMessage(messageObject);
+    // dispatch to visualizers, but only if we're actually going to send
+    // to the broker.
+    if (broker.isEnabled())
+      visualizerProxyService.forwardMessage(messageObject);
     
     localSendMessage(broker, messageObject);
   }
 
+  // break out the actual sending to prevent visualizer getting multiple
+  // copies of broadcast messages
   private void localSendMessage (Broker broker, Object messageObject)
   {
+    // don't communicate with non-enabled brokers
+    if (!broker.isEnabled())
+      return;
+    
     // route to local brokers
     if (broker.isLocal()) {
       broker.receiveMessage(messageObject);
@@ -154,8 +162,12 @@ public class BrokerProxyService implements BrokerProxy
    * @see
    * org.powertac.common.interfaces.BrokerProxy#routeMessage(java.lang.Object)
    */
-  public void routeMessage (Object message)
+  public void routeMessage (Broker originator, Object message)
   {
+    // ignore calls from non-enabled brokers
+    if (!originator.isEnabled())
+      return;
+    
     // dispatch to visualizers
     visualizerProxyService.forwardMessage(message);
 
