@@ -675,6 +675,12 @@ public class HouseholdCustomerServiceTests
       // TODO Auto-generated method stub
       
     }
+
+    @Override
+    public boolean loginBroker (String username)
+    {
+      return false;
+    }
   }
 
 }
