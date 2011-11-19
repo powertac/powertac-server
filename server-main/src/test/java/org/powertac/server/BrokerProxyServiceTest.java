@@ -1,6 +1,6 @@
 package org.powertac.server;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -12,24 +12,17 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.powertac.common.interfaces.VisualizerProxy;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/development.xml"})
-@DirtiesContext
 public class BrokerProxyServiceTest 
 {
-  @Autowired 
   private BrokerProxy brokerProxy;
   
   private MessageRouter router;
@@ -38,20 +31,29 @@ public class BrokerProxyServiceTest
   private TestBroker wholesaleBroker; // can always send and receive messages
   private TestBroker localBroker; 
   private CustomerInfo message;
-
+  
+  private VisualizerProxy visualizer;
   private JmsTemplate template;
+  private XMLMessageConverter converter;
 
   @Before
   public void setUp() throws Exception 
   {
+    brokerProxy = new BrokerProxyService();
+        
     stdBroker = new TestBroker("standard_broker", false, false);
     wholesaleBroker = new TestBroker("wholesaler", true, true);
     localBroker = new TestBroker("local", true, false);
     message = new CustomerInfo("t1", 33);
+    
     template = mock(JmsTemplate.class);
     ReflectionTestUtils.setField(brokerProxy, "template", template);
     router = mock(MessageRouter.class);
     ReflectionTestUtils.setField(brokerProxy, "router", router);
+    visualizer = mock(VisualizerProxy.class);
+    ReflectionTestUtils.setField(brokerProxy, "visualizerProxyService", visualizer);    
+    converter = mock(XMLMessageConverter.class);
+    ReflectionTestUtils.setField(brokerProxy, "converter", converter);     
   }
 
   @After
