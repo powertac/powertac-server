@@ -18,7 +18,7 @@
   <repositories>
     <repository>
       <id>powertac-umn</id>
-      <url>http://tac04.cs.umn.edu:8080/plugin/repository/everything/</url>
+      <url>http://tac04.cs.umn.edu:8080/plugin/repository/everything</url>
     </repository>
   </repositories>
 

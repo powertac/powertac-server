@@ -20,7 +20,6 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.msg.BrokerAuthentication;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.util.PropertiesUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
