@@ -17,22 +17,15 @@ package org.powertac.server;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.powertac.common.interfaces.CompetitionControl;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.w3c.dom.Document;
 
 /**
  * This is the top level of the Power TAC server.
@@ -70,17 +63,8 @@ public class PowerTacServer
    */
   public static void main (String[] args)
   {
-    AbstractApplicationContext context =
-      new ClassPathXmlApplicationContext("powertac.xml");
+    AbstractApplicationContext context = new ClassPathXmlApplicationContext("powertac.xml");
     context.registerShutdownHook();
-    
-    // debug code -
-//    String[] allBeanNames = context.getBeanNamesForType(Object.class);
-//    if (allBeanNames != null) {
-//      for (String beanName : allBeanNames) {
-//        System.out.println(beanName);
-//      }
-//    }
     
     // find the CompetitionControl bean
     cc = (CompetitionControlService)context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
