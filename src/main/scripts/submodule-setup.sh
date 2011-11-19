@@ -7,8 +7,19 @@
 git submodule init
 git submodule update
 
-repo=$1
-branch=$2
+
+if [ -z "$1" ]; then
+    repo=origin
+else
+    repo="$1"
+fi
+
+if [ -z "$2" ]; then
+    branch=master
+else
+    branch=$2
+fi
+
 tag=path
 while read lhs eq rhs; do
     if [ $lhs = $tag ]; then
