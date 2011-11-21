@@ -30,6 +30,7 @@ public class ServerMessageReceiver implements MessageListener
   @Override
   public void onMessage (Message message)
   {
+    System.out.println("onMessage(message) - received a message");
     if (message instanceof TextMessage) {
       try {
         onMessage(((TextMessage) message).getText());
@@ -43,6 +44,7 @@ public class ServerMessageReceiver implements MessageListener
     Object message = converter.fromXML(xml);
     Broker broker = null;
     try {
+      System.out.println("onMessage(String) - received a " + message.getClass().getSimpleName() + " message");
       broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
       brokerProxy.routeMessage(broker, message);
     }

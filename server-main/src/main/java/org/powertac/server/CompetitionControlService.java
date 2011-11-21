@@ -57,6 +57,7 @@ import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BrokerAccept;
+import org.powertac.common.msg.BrokerAuthentication;
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
 import org.powertac.common.msg.SimEnd;
@@ -154,6 +155,12 @@ public class CompetitionControlService
   
   @Autowired
   private XMLMessageConverter messageConverter;
+  
+  @Autowired
+  private JmsManagementService jmsManagementService;
+  
+  @Autowired
+  private ServerMessageReceiver serverMessageReceiver;
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
@@ -165,6 +172,9 @@ public class CompetitionControlService
   private ArrayList<String> alwaysAuthorizedBrokers;
   private ArrayList<String> authorizedBrokerList;
   private int idPrefix = 0;
+  
+  // Server JMS Queue Name
+  private String serverQueueName = "serverInput";
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
@@ -211,6 +221,9 @@ public class CompetitionControlService
       init.setDefaults();
     }
 
+    // register with JMS Server
+    jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
+    
     // broker message registration for clock-control messages
     brokerProxyService.registerSimListener(this);
   }
@@ -942,6 +955,17 @@ public class CompetitionControlService
   }
   
   /**
+   * Authenticate Broker.
+   * TODO: add auth-token processing
+   */
+  public void receiveMessage(BrokerAuthentication msg) {
+    Broker broker = msg.getBroker();
+    if (broker != null) {
+      loginBroker(broker.getUsername());
+    }
+  }
+  
+  /**
    * Allows Spring to set the boostrap timeslot length
    */
   public void setBootstrapTimeslotMillis (long length)
@@ -1009,6 +1033,8 @@ public class CompetitionControlService
       receiveMessage((PauseRelease)msg);
     } else if (msg instanceof PauseRequest) {
       receiveMessage((PauseRequest)msg);
+    } else if (msg instanceof BrokerAuthentication) {
+      receiveMessage((BrokerAuthentication)msg);
     } else {
       log.error("receiveMessage - unexpected message:" + msg);
     }

@@ -8,21 +8,20 @@
 	                    http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd
 	                    http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd">
 
-	<context:annotation-config />
-	<context:component-scan base-package="org.powertac" />
+  <context:annotation-config />
+  <context:component-scan base-package="org.powertac" />
 
 	<!-- Embedded ActiveMQ Broker -->
-	<amq:broker id="broker" useJmx="false" persistent="false">
-		<amq:transportConnectors>
-			<amq:transportConnector uri="tcp://localhost:61616" />
-		</amq:transportConnectors>
-	</amq:broker>
+  <amq:broker id="broker" useJmx="false" persistent="false">
+    <amq:transportConnectors>
+  	  <amq:transportConnector uri="tcp://localhost:61616" />
+    </amq:transportConnectors>
+  </amq:broker>
 
-	<!-- JMS ConnectionFactory to use, configuring the embedded broker using 
-		XML -->
-	<amq:connectionFactory id="jmsFactory" brokerURL="vm://localhost:61616" />
+  <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+  <amq:connectionFactory id="jmsFactory" brokerURL="tcp://localhost:61616" />
 
-	<!-- JMS Producer Configuration -->
+  <!-- JMS Producer Configuration -->
   <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
     <property name="connectionFactory">
       <!-- lets wrap in a pool to avoid creating a connection per send -->
@@ -33,6 +32,8 @@
       </bean>
     </property>
   </bean>
+  
+  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
   
   <!-- need explicit list of beans that have properties to set -->
   <bean id="competitionControlService"
@@ -80,5 +81,5 @@
         class="org.powertac.accounting.AccountingService">
     <property name="timeslotPhase" value="4" />
   </bean>
-
+  
 </beans>

@@ -2,6 +2,7 @@ package org.powertac.server;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -22,6 +23,9 @@ public class JmsManagementService {
 
   @Autowired 
   private ConnectionFactory connectionFactory;
+  
+  @Autowired
+  private Executor taskExecutor;
   
   private Map<MessageListener,AbstractMessageListenerContainer> listenerContainerMap = 
       new HashMap<MessageListener,AbstractMessageListenerContainer>();
@@ -52,10 +56,13 @@ public class JmsManagementService {
   }
   
   public void registerMessageListener(String destinationName, MessageListener listener) {
+    System.out.println("registerMessageListener(destinationName:" + destinationName + ", listener:" + listener + ")");
+    
     DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
     container.setDestinationName(destinationName);
     container.setMessageListener(listener);
+    container.setTaskExecutor(taskExecutor);
     container.afterPropertiesSet();
     container.start();
     
