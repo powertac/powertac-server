@@ -27,6 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -126,8 +127,6 @@ public class CompetitionControlService
   
   @Autowired
   private TimeService timeService; // inject simulation time service dependency
-  //def jmsManagementService
-  //def springSecurityService
 
   @Autowired
   private BrokerProxy brokerProxyService;

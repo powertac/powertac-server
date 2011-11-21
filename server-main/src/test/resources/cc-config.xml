@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mockito="http://www.mockito.org/spring/mockito"
        xsi:schemaLocation="http://www.springframework.org/schema/beans 
@@ -21,6 +21,26 @@
     <constructor-arg value="org.powertac.common.interfaces.BootstrapDataCollector"/>
   </bean>
 
+  <bean id="jmsManagementService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.server.JmsManagementService"/>
+  </bean>
+  
+  <bean id="jmsFactory"
+        class="org.mockito.Mockito"
+        factory-method="mock" autowire="byName">
+    <constructor-arg value="javax.jms.ConnectionFactory"/>
+  </bean>
+   
+  <bean id="serverMessageReceiver"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.server.ServerMessageReceiver"/>
+  </bean>
+ 
+  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/> 
+ 
   <context:annotation-config />
 
   <bean id="timeService"

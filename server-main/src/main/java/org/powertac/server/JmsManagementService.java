@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import javax.annotation.Resource;
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Service;
 public class JmsManagementService {
   static private Logger log = Logger.getLogger(JmsManagementService.class.getName());
 
-  @Autowired 
+  @Resource(name="jmsFactory")
   private ConnectionFactory connectionFactory;
   
   @Autowired
