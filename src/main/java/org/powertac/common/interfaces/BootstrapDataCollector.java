@@ -25,7 +25,9 @@ public interface BootstrapDataCollector
 {
   /**
    * Returns a list of bootstrap messages that can be bundled up and sent
-   * to brokers at the beginning of a game.
+   * to brokers at the beginning of a game. The argument is the maximum
+   * number of timeslots to be included. This allows data from the beginning 
+   * of the bootstrap period to be excluded
    */
-  public List<Object> collectBootstrapData ();
+  public List<Object> collectBootstrapData (int maxTimeslots);
 }
