@@ -45,7 +45,7 @@ public class MessageDispatcher
     Logger log = Logger.getLogger(target.getClass().getName());
     Object result = null;
     try {
-      Class<?>[] classes = new Class[args.length];
+      Class[] classes = new Class[args.length];
       for (int index = 0; index < args.length; index++) {
         //log.debug("arg class: " + args[index].getClass().getName());
         classes[index] = (args[index].getClass());

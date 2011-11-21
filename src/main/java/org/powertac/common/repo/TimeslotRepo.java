@@ -144,7 +144,7 @@ public class TimeslotRepo implements DomainRepo
       return null;
     if (firstEnabled == null)
       firstEnabled = first;
-    while (!firstEnabled.isEnabled())
+    while (firstEnabled != null && !firstEnabled.isEnabled())
       firstEnabled = firstEnabled.getNext();
     if (firstEnabled == null) {
       log.error("ran out of timeslots looking for first enabled");

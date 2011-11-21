@@ -17,6 +17,7 @@ package org.powertac.common.msg;
 
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.DoubleArrayConverter;
 
@@ -39,14 +40,18 @@ public class CustomerBootstrapData
   @XStreamAsAttribute
   private String customerName;
   
+  @XStreamAsAttribute
+  private PowerType powerType;
+  
   @XStreamConverter(DoubleArrayConverter.class)
   private double[] netUsage;
 
-  public CustomerBootstrapData (CustomerInfo customer,
+  public CustomerBootstrapData (CustomerInfo customer, PowerType powerType,
                                 double[] netUsage)
   {
     super();
     this.customerName = customer.getName();
+    this.powerType = powerType;
     this.netUsage = netUsage;
   }
 
@@ -58,6 +63,11 @@ public class CustomerBootstrapData
   public String getCustomerName ()
   {
     return customerName;
+  }
+  
+  public PowerType getPowerType ()
+  {
+    return powerType;
   }
 
   public double[] getNetUsage ()

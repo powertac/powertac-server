@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -68,7 +69,9 @@ public class CustomerBootstrapDataTests
   @Test
   public void testCustomerBootstrapData ()
   {
-    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, data);
+    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, 
+                                                          PowerType.CONSUMPTION,
+                                                          data);
     assertNotNull("object created", cbd);
     assertEquals("correct customer name", customer.getName(), cbd.getCustomerName());
     assertEquals("correct array size", 24, cbd.getNetUsage().length);
@@ -78,7 +81,9 @@ public class CustomerBootstrapDataTests
   @Test
   public void xmlSerializationTest ()
   {
-    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, data);
+    CustomerBootstrapData cbd = new CustomerBootstrapData(customer, 
+                                                          PowerType.CONSUMPTION,
+                                                          data);
     XStream xstream = new XStream();
     xstream.processAnnotations(CustomerBootstrapData.class);
     StringWriter serialized = new StringWriter();
@@ -90,5 +95,4 @@ public class CustomerBootstrapDataTests
     assertEquals("correct id", cbd.getId(), xcbd.getId());
     assertEquals("correct 5th element", 1.7, xcbd.getNetUsage()[4], 1e-6);
   }
-
 }
