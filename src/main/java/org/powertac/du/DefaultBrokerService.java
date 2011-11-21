@@ -104,7 +104,7 @@ public class DefaultBrokerService
   
   // bootstrap-mode data - uninitialized for normal sim mode
   private boolean bootstrapMode = false;
-  private HashMap<CustomerInfo, ArrayList<Double>> netUsageMap;
+  //private HashMap<CustomerInfo, ArrayList<Double>> netUsageMap;
   private HashMap<Timeslot, ArrayList<MarketTransaction>> marketTxMap;
   private ArrayList<Double> marketMWh;
   private ArrayList<Double> marketPrice;
@@ -149,7 +149,7 @@ public class DefaultBrokerService
     // if we are in bootstrap mode, we need to set up the dataset
     if (bootstrapMode)
     {
-      netUsageMap = new HashMap<CustomerInfo, ArrayList<Double>>();
+      //netUsageMap = new HashMap<CustomerInfo, ArrayList<Double>>();
       marketTxMap = new HashMap<Timeslot, ArrayList<MarketTransaction>>();
       marketMWh = new ArrayList<Double>();
       marketPrice = new ArrayList<Double>();
@@ -444,21 +444,31 @@ public class DefaultBrokerService
   }
   
   /**
-   * Handles CustomerBootstrapData by populating the customer models so the
-   * broker can get a running start.
+   * Handles CustomerBootstrapData by populating the customer model 
+   * corresponding to the given customer and power type. This gives the
+   * broker a running start.
    */
   public void handleMessage (CustomerBootstrapData cbd)
   {
     CustomerInfo customer = customerRepo.findByName(cbd.getCustomerName());
+    TariffSpecification tariff = null;
+    for (TariffSpecification spec : customerSubscriptions.keySet()) {
+      if (spec.getPowerType() == cbd.getPowerType()) {
+        tariff = spec;
+        break;
+      }
+    }
     HashMap<CustomerInfo, CustomerRecord> customerMap = 
-      customerSubscriptions.get(defaultConsumption);
-    CustomerRecord record = customerMap.get(customer);
+      customerSubscriptions.get(tariff);
+    CustomerRecord record = customerMap.get(customer); // subscription exists
     if (record == null) {
       record = new CustomerRecord(customer, customer.getPopulation());
       customerMap.put(customer, record);
     }
+    int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
+                  - cbd.getNetUsage().length);
     for (int i = 0; i < cbd.getNetUsage().length; i++) {
-      record.produceConsume(cbd.getNetUsage()[i], i);
+      record.produceConsume(cbd.getNetUsage()[i], i + offset);
     }
   }
 
@@ -474,9 +484,6 @@ public class DefaultBrokerService
   {
     // collect usage and price data
     if (bootstrapMode) {
-      // at this point, we have all the net usage data by customer collected
-      // in the customer record for the current timeslot.
-      recordNetUsage();
       // the wholesale market transactions can be mined for the net cost of
       // purchased power in the current timeslot.
       recordDeliveredPrice();
@@ -484,28 +491,6 @@ public class DefaultBrokerService
     this.activate();
   }
 
-  /**
-   * Records the net power usage for each customer in the current timeslot.
-   * Obviously, this must be run after each customer model has reported its
-   * consumption and production. The number we want to record is the negative
-   * of the customer record, because we want to record what the broker must
-   * buy.
-   */
-  private void recordNetUsage ()
-  {
-    Instant now = timeslotRepo.currentTimeslot().getStartInstant();
-    for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
-      for (CustomerRecord record : customerMap.values()) {
-        ArrayList<Double> usage = netUsageMap.get(record.getCustomerInfo());
-        if (usage == null) {
-          usage = new ArrayList<Double>();
-          netUsageMap.put(record.getCustomerInfo(), usage);
-        }
-        usage.add(-record.getUsage(record.getIndex(now)));
-      }
-    }
-  }
-  
   /**
    * Records the delivered price of purchased power in the current timeslot.
    * If the broker has purchased more than it has sold, this will be a negative
@@ -524,12 +509,13 @@ public class DefaultBrokerService
     for (MarketTransaction tx : txList) {
       // only include buy orders
       if (tx.getMWh() > 0.0) {
-        //log.info("record price: mwh=" + tx.getMWh() + ", price=" + tx.getPrice());
+        log.info("record price: mwh=" + tx.getMWh() + ", price=" + tx.getPrice());
         totalMWh += tx.getMWh();
         totalCost += tx.getPrice() * tx.getMWh();
       }
     }
-    //log.info("market totals: mwh=" + totalMWh + ", price=" + totalCost);
+    log.info("market totals: mwh=" + totalMWh
+             + ", price=" + totalCost / totalMWh);
     marketMWh.add(totalMWh);
     if (totalMWh == 0.0) {
       marketPrice.add(0.0);
@@ -546,37 +532,43 @@ public class DefaultBrokerService
    * demand, market price, and weather records for the bootstrap period. Note
    * that the customer and weather info is flattened.
    */
-  public List<Object> collectBootstrapData ()
+  public List<Object> collectBootstrapData (int maxTimeslots)
   {
     ArrayList<Object> result = new ArrayList<Object>();
-    for (Object item : getCustomerBootstrapData()) {
+    for (Object item : getCustomerBootstrapData(maxTimeslots)) {
       result.add(item);
     }
-    result.add(getMarketBootstrapData());
-    for (Object item : getWeatherReports()) {
+    result.add(getMarketBootstrapData(maxTimeslots));
+    for (Object item : getWeatherReports(maxTimeslots)) {
       result.add(item);
     }
     return result;
   }
 
   /**
-   * Returns a list of CustomerBootstrapData instances. Note that this only
+   * Returns a list of CustomerBootstrapData instances, one for each
+   * (tariff, customer) pair. Note that this only
    * makes sense at the end of a bootstrap sim run.
    */
-  List<CustomerBootstrapData> getCustomerBootstrapData ()
+  List<CustomerBootstrapData> getCustomerBootstrapData (int maxTimeslots)
   {
-    if (netUsageMap == null) {
-      log.warn("net usage map is null");
-      return null;
-    }
-    ArrayList<CustomerBootstrapData> result = 
-      new ArrayList<CustomerBootstrapData>(); 
-    for (CustomerInfo customer : netUsageMap.keySet()) {
-      ArrayList<Double> usageList = netUsageMap.get(customer);
-      double[] usage = new double[usageList.size()];
-      for (int i = 0; i < usage.length; i++)
-        usage[i] = usageList.get(i);
-      result.add(new CustomerBootstrapData(customer, usage));
+    ArrayList<CustomerBootstrapData> result = new ArrayList<CustomerBootstrapData>();
+    // iterate through the tariffs
+    for (TariffSpecification spec : customerSubscriptions.keySet()) {
+      HashMap<CustomerInfo, CustomerRecord> customerMap
+          = customerSubscriptions.get(spec);
+      // then iterate through the customers
+      for (CustomerInfo customer : customerMap.keySet()) {
+        CustomerRecord record = customerMap.get(customer);
+        ArrayList<Double>usageList = record.bootstrapUsage;
+        int startIndex = Math.max(0, usageList.size() - maxTimeslots);
+        double[] usage = new double[usageList.size() - startIndex];
+        for (int i = 0; i < usage.length; i++)
+          usage[i] = usageList.get(i + startIndex);
+        result.add(new CustomerBootstrapData(customer,
+                                             spec.getPowerType(),
+                                             usage));
+      }
     }
     return result;
   }
@@ -586,33 +578,37 @@ public class DefaultBrokerService
    * and prices paid by the default broker for the power it purchased over 
    * the bootstrap period.
    */
-  MarketBootstrapData getMarketBootstrapData ()
+  MarketBootstrapData getMarketBootstrapData (int maxTimeslots)
   {
     if (marketMWh.size() != marketPrice.size()) {
       // should not happen
       log.error("marketMWh.size()=" + marketMWh.size() + " != " +
                 "marketPrice.size()=" + marketPrice.size());
     }
+    int startOffset = Math.max(0, marketMWh.size() - maxTimeslots);
+    int size = marketMWh.size() - startOffset;
+
     // ARRRGH - autoboxing does not work for arrays...
-    double[] mwh = new double[marketMWh.size()];
-    int i = 0;
-    for (double amt : marketMWh) {
-      mwh[i++] = amt;
+    double[] mwh = new double[size];
+    double[] price = new double[size];
+    for (int i = 0; i < size; i++) {
+      mwh[i] = marketMWh.get(i + startOffset);
+      price[i] = marketPrice.get(i + startOffset);
     }
-    double[] price = new double[marketPrice.size()];
-    i = 0;
-    for (double cost : marketPrice) {
-      price[i++] = cost;
-    }
-    
     return new MarketBootstrapData(mwh, price);
   }
   
   /**
    * Returns the accumulated list of WeatherReport instances
    */
-  List<WeatherReport> getWeatherReports ()
+  List<WeatherReport> getWeatherReports (int maxTimeslotCount)
   {
+    int discardCount = weather.size() - maxTimeslotCount;
+    if (discardCount > 0) {
+      for (int i = 0; i < discardCount; i++) {
+        weather.remove(0);
+      }
+    }
     return weather;
   }
 
@@ -651,6 +647,7 @@ public class DefaultBrokerService
     CustomerInfo customer;
     int subscribedPopulation = 0;
     double[] usage = new double[usageRecordLength];
+    ArrayList<Double> bootstrapUsage = new ArrayList<Double>();
     Instant base = null;
     double alpha = 0.3;
     
@@ -671,7 +668,8 @@ public class DefaultBrokerService
     // Adds new individuals to the count
     void signup (int population)
     {
-      subscribedPopulation += population;
+      subscribedPopulation = Math.min(customer.getPopulation(),
+                                      subscribedPopulation + population);
     }
     
     // Removes individuals from the count
@@ -691,6 +689,17 @@ public class DefaultBrokerService
     // store profile data at the given index
     void produceConsume (double kwh, int rawIndex)
     {
+      // in bootstrap mode, we also record everything raw
+      if (bootstrapMode) {
+        if (bootstrapUsage.size() < rawIndex) {
+          while (bootstrapUsage.size() < rawIndex - 1)
+            bootstrapUsage.add(0.0);
+          bootstrapUsage.add(kwh);
+        }
+        else {
+          bootstrapUsage.set(rawIndex, bootstrapUsage.get(rawIndex) + kwh);
+        }
+      }
       int index = getIndex(rawIndex);
       double kwhPerCustomer = kwh / (double)subscribedPopulation;
       double oldUsage = usage[index];
@@ -712,10 +721,7 @@ public class DefaultBrokerService
         log.warn("usage requested for negative index " + index);
         index = 0;
       }
-      else if (index > usage.length) {
-        index = index % usage.length;
-      }
-      return (usage[index] * (double)subscribedPopulation);
+      return (usage[getIndex(index)] * (double)subscribedPopulation);
     }
     
     // we assume here that timeslot index always matches the number of
@@ -723,8 +729,7 @@ public class DefaultBrokerService
     int getIndex (Instant when)
     {
       int result = (int)((when.getMillis() - base.getMillis()) /
-                         (Competition.currentCompetition().getTimeslotLength() * 
-                          TimeService.MINUTE));
+                         (Competition.currentCompetition().getTimeslotDuration()));
       return getIndex(result);
     }
     

@@ -692,10 +692,10 @@ public class DefaultBrokerServiceTests
     // broker sends bids for ts3...ts25
     
     // check the customer bootstrap data
-    List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData();
+    List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData(2);
     assertEquals("Two entries in cbd", 2, cbd.size());
     CustomerBootstrapData first = cbd.get(0);
-    assertEquals("Three usage records", 3, first.getNetUsage().length);
+    assertEquals("Three usage records", 2, first.getNetUsage().length);
   }
   
   // set up some timeslots - ts0 is disabled, then 23 enabled slots
