@@ -1,1 +1,1 @@
-sim boot-data.xml 1
+sim boot-data.xml

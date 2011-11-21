@@ -21,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -84,11 +85,11 @@ public class CompetitionControlServiceTests
     
     ArrayList<Object> data = new ArrayList<Object>();
     double[] usage1 = new double[] {3.1,3.2,3.3,3.4};
-    data.add(new CustomerBootstrapData(customer1, usage1));
+    data.add(new CustomerBootstrapData(customer1, PowerType.CONSUMPTION, usage1));
     double[] usage2 = new double[] {7.2,7.3,7.4,7.5};
-    data.add(new CustomerBootstrapData(customer2, usage2));
+    data.add(new CustomerBootstrapData(customer2, PowerType.CONSUMPTION, usage2));
     
-    when(collector.collectBootstrapData()).thenReturn(data);
+    when(collector.collectBootstrapData(anyInt())).thenReturn(data);
     
     CharArrayWriter writer = new CharArrayWriter();
     ccs.saveBootstrapData(writer);
@@ -112,7 +113,7 @@ public class CompetitionControlServiceTests
     catch (XPathExpressionException xee) {
       fail("XPath trouble: " + xee.toString());
     }
-    System.out.println(writer.toString());
+    //System.out.println(writer.toString());
   }
 
   @Test

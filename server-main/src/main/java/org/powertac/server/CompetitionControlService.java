@@ -158,6 +158,7 @@ public class CompetitionControlService
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
   private int currentSlot = 0;
+  private int currentSlotOffset = 0;
   private RandomSeed randomGen; // used to compute game length
 
   // broker interaction state
@@ -169,6 +170,7 @@ public class CompetitionControlService
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
   private long bootstrapTimeslotMillis = 2000;
+  private int bootstrapDiscardedTimeslots = 24;
   
   private boolean simRunning = false;
 
@@ -233,13 +235,23 @@ public class CompetitionControlService
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
-      // first, pull out the Competition
+      // first grab the bootstrap offset
       XPathExpression exp =
-          xPath.compile("/powertac-bootstrap-data/config/competition");
+          xPath.compile("/powertac-bootstrap-data/config/bootstrap-offset/@value");
       NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
                                               XPathConstants.NODESET);
+      String value = nodes.item(0).getNodeValue();
+      bootstrapDiscardedTimeslots = Integer.parseInt(value);
+      log.info("offset: " + bootstrapDiscardedTimeslots + " timeslots");
+      
+      // then pull out the Competition
+      exp =
+          xPath.compile("/powertac-bootstrap-data/config/competition");
+      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+                                     XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
+
       // then get the configs
       exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
       nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
@@ -281,9 +293,13 @@ public class CompetitionControlService
     }
     
     // Create the timeslots from the bootstrap period - they will be needed to 
-    // instantiate weather reports.
+    // instantiate weather reports. All are disabled.
+    currentSlotOffset = competition.getBootstrapTimeslotCount()
+                        + bootstrapDiscardedTimeslots;
     createInitialTimeslots(competition.getSimulationBaseTime(),
-                           competition.getBootstrapTimeslotCount() + 1, 0);
+                           (currentSlotOffset + 1),
+                           0);
+    log.info("created " + timeslotRepo.count() + " timeslots");
     
     // we currently ignore cases where there's a config in the server that's
     // not in the file; there might be use cases for which this would
@@ -344,6 +360,21 @@ public class CompetitionControlService
     }
   }
   
+  /**
+   * Sets the number of timeslots to discard at the beginning of a bootstrap
+   * run. Length of the sim will be the bootstrap length plus this length.
+   * Default value is 24.
+   */
+  public void setBootstrapDiscardedTimeslots (int count)
+  {
+    bootstrapDiscardedTimeslots = count;
+  }
+  
+  /**
+   * Runs a simulation that is already set up. This is intended to be called
+   * from a method that knows whether we are running a bootstrap sim or a 
+   * normal sim.
+   */
   public void runOnce ()
   {
     // to enhance testability, initialization is split into a static setup()
@@ -378,6 +409,7 @@ public class CompetitionControlService
   public void runOnce (File datasetFile)
   {
     // load the bootstrap dataset, and start the sim
+    bootstrapMode = false;
     bootstrapDataset = new ArrayList<Object>();
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
@@ -419,7 +451,8 @@ public class CompetitionControlService
   void saveBootstrapData (Writer datasetWriter)
   {
     BufferedWriter output = new BufferedWriter(datasetWriter);
-    List<Object> data = defaultBroker.collectBootstrapData();
+    List<Object> data = 
+        defaultBroker.collectBootstrapData(competition.getBootstrapTimeslotCount());
     try {
       // write the config data
       output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -428,7 +461,11 @@ public class CompetitionControlService
       output.newLine();
       output.write("<config>");
       output.newLine();
-      // current competition first
+      // bootstrap offset
+      output.write("<bootstrap-offset value=\"" 
+                   + bootstrapDiscardedTimeslots + "\" />");
+      output.newLine();
+      // current competition
       output.write(messageConverter.toXML(competition));
       output.newLine();
       // next the PluginConfig instances
@@ -468,6 +505,7 @@ public class CompetitionControlService
 
     // set up the simulation clock
     setTimeParameters();
+    //log.info("start at timeslot " + timeslotRepo.currentTimeslot().getSerialNumber());
     
     // configure plugins, but don't allow them to broadcast to brokers
     brokerProxyService.setDeferredBroadcast(true);
@@ -475,6 +513,12 @@ public class CompetitionControlService
       log.error("failed to configure plugins");
       return false;
     }
+
+    // set up the initial timeslots - some initialization processes may need to
+    // see a non-null current timeslot.
+    createInitialTimeslots(timeService.getCurrentTime(),
+                           competition.getDeactivateTimeslotsAhead(),
+                           competition.getTimeslotsOpen());
     
     // add CustomerInfo instances to the Competition instance
     for (CustomerInfo customer : customerRepo.list()) {
@@ -509,13 +553,10 @@ public class CompetitionControlService
                                         competition.getExpectedTimeslotCount());
     }
     else {
-      timeslotCount = competition.getBootstrapTimeslotCount();
+      timeslotCount = currentSlotOffset;
     }
 
-    // grab setup parameters, set up initial timeslots, including zero timeslot
-    createInitialTimeslots(timeService.getCurrentTime(),
-                           competition.getDeactivateTimeslotsAhead(),
-                           competition.getTimeslotsOpen());
+    // Send out the first timeslot update
     TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
                                             timeslotRepo.enabledTimeslots());
     brokerProxyService.broadcastMessage(msg);
@@ -600,13 +641,13 @@ public class CompetitionControlService
     // to the base
     long rate = competition.getSimulationRate();
     if (!bootstrapMode) {
-      base = base.plus(competition.getBootstrapTimeslotCount() * 
-                       competition.getTimeslotLength() * 
-                       TimeService.MINUTE);
+      int slotCount = (currentSlotOffset);
+      log.info("first slot: " + slotCount);
+      base = base.plus(slotCount * competition.getTimeslotDuration());
     }
     else {
       // compute rate from bootstrapTimeslotMillis
-      rate = competition.getTimeslotLength() * TimeService.MINUTE / bootstrapTimeslotMillis;
+      rate = competition.getTimeslotDuration() / bootstrapTimeslotMillis;
     }
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
@@ -617,7 +658,7 @@ public class CompetitionControlService
       rate = (mult + 1) * competition.getTimeslotLength();
     }
     timeService.setClockParameters(base.getMillis(), rate,
-                                   competition.getTimeslotLength() * TimeService.MINUTE);
+                                   competition.getTimeslotDuration());
     timeService.setCurrentTime(base);
   }
 
@@ -758,9 +799,9 @@ public class CompetitionControlService
       log.error("current timeslot is null at " + timeService.getCurrentTime());
       return;
     }
-    if (current.getSerialNumber() != currentSlot) {
+    if (current.getSerialNumber() != currentSlot + currentSlotOffset) {
       log.error("current timeslot serial is " + current.getSerialNumber() +
-                ", should be " + currentSlot);
+                ", should be " + (currentSlot + currentSlotOffset));
     }
     int oldSerial = (current.getSerialNumber() +
             competition.getDeactivateTimeslotsAhead() - 1);
