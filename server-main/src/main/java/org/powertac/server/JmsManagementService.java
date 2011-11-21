@@ -55,9 +55,7 @@ public class JmsManagementService {
     return queue;
   }
   
-  public void registerMessageListener(String destinationName, MessageListener listener) {
-    System.out.println("registerMessageListener(destinationName:" + destinationName + ", listener:" + listener + ")");
-    
+  public void registerMessageListener(String destinationName, MessageListener listener) {    
     DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
     container.setDestinationName(destinationName);
