@@ -691,14 +691,16 @@ public class DefaultBrokerService
     {
       // in bootstrap mode, we also record everything raw
       if (bootstrapMode) {
-        if (bootstrapUsage.size() < rawIndex) {
-          while (bootstrapUsage.size() < rawIndex - 1)
+        if (bootstrapUsage.size() <= rawIndex) {
+          while (bootstrapUsage.size() < rawIndex)
             bootstrapUsage.add(0.0);
           bootstrapUsage.add(kwh);
         }
         else {
           bootstrapUsage.set(rawIndex, bootstrapUsage.get(rawIndex) + kwh);
         }
+        //log.info("bootstrapUsage customer " + customer.getName()
+        //         + "[" + rawIndex + "]=" + bootstrapUsage.get(rawIndex));
       }
       int index = getIndex(rawIndex);
       double kwhPerCustomer = kwh / (double)subscribedPopulation;
@@ -730,7 +732,7 @@ public class DefaultBrokerService
     {
       int result = (int)((when.getMillis() - base.getMillis()) /
                          (Competition.currentCompetition().getTimeslotDuration()));
-      return getIndex(result);
+      return result;
     }
     
     private int getIndex (int rawIndex)
