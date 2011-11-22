@@ -135,8 +135,10 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
    */
   public double getMarketBalance (Broker broker)
   {
-    return accountingService.getCurrentMarketPosition(broker) * 1000.0
-           + accountingService.getCurrentNetLoad(broker);
+    double result = accountingService.getCurrentMarketPosition(broker) * 1000.0
+                    + accountingService.getCurrentNetLoad(broker);
+    log.info("market balance for " + broker.getUsername() + ": " + result);
+    return result;
   }
 
   /**
