@@ -204,6 +204,9 @@ public class TariffMarketServiceTests
     PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
     config.getConfiguration().put("tariffPublicationFee", "42.0");
     config.getConfiguration().put("tariffRevocationFee", "420.0");
+    // Set pub interval to 3 hours, offset = 0.
+    config.getConfiguration().put("publicationInterval", "3");
+    config.getConfiguration().put("publicationOffset", "0");
     List<String> inits = new ArrayList<String>();
     inits.add("AccountingService");
     tariffMarketInitializationService.initialize(comp, inits);
@@ -496,14 +499,14 @@ public class TariffMarketServiceTests
     assertEquals("correct thing", tariffMarketService, mockCC.processor);
     assertEquals("correct phase", 3, mockCC.timeslotPhase);
         
-    // current time is noon. Set pub interval to 3 hours.
-    ReflectionTestUtils.setField(tariffMarketService, "publicationInterval", 3);
+    // current time is noon.
     assertEquals("newTariffs list is empty", 0, tariffRepo.findTariffsByState(Tariff.State.PENDING).size());
     // register a NewTariffListener 
     //List<Tariff> publishedTariffs = new ArrayList<Tariff>();
     MockTariffListener listener = new MockTariffListener();
     tariffMarketService.registerNewTariffListener(listener);
     assertEquals("one registration", 1, tariffMarketService.getRegistrations().size());
+    tariffMarketService.activate(timeService.getCurrentTime(), 2);
     assertEquals("no tariffs at 12:00", 0, listener.publishedTariffs.size());
     // publish some tariffs over a period of three hours, check for publication
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)

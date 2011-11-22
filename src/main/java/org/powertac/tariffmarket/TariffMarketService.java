@@ -87,6 +87,8 @@ public class TariffMarketService
   private double tariffPublicationFee = 0.0;
   private double tariffRevocationFee = 0.0;
   private int publicationInterval = 6;
+  private int publicationOffset = 0;
+  private boolean firstPublication;
   
   /**
    * Default constructor
@@ -110,8 +112,26 @@ public class TariffMarketService
                                                  tariffPublicationFee);
     tariffRevocationFee = config.getDoubleValue("tariffRevocationFee", 
                                                 tariffRevocationFee);
+
+    // publication interval must be <= 24
     publicationInterval = config.getIntegerValue("publicationInterval",
                                                  publicationInterval);
+    if (publicationInterval > 24) {
+      log.error("tariff publication interval " + publicationInterval + " > 24 hr");
+      publicationInterval = 24;
+    }
+    
+    // publication offset must be < publicationInterval
+    int value = config.getIntegerValue("publicationOffset",
+                                       publicationOffset);
+    if (value >= publicationInterval) {
+      log.error("tariff publication offset " + publicationOffset
+                + " >= publication interval " + value);
+    }
+    else {
+      publicationOffset = value;      
+    }
+    firstPublication = false;
     super.init();
   }
 
@@ -275,14 +295,13 @@ public class TariffMarketService
   // handle distribution of new tariffs to customers
   public void activate (Instant time, int phase)
   {
-    if (publicationInterval > 24) {
-      log.error("tariff publication interval " + publicationInterval + " > 24 hr");
-      publicationInterval = 24;
-    }
+    log.info("Activate");
     long msec = timeService.getCurrentTime().getMillis();
-    if (msec % (publicationInterval * TimeService.HOUR) == 0) {
-      // time to publish
+    if (!firstPublication ||
+        (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
+      // time to publish or never published
       publishTariffs();
+      firstPublication = true;
     }
   }
 

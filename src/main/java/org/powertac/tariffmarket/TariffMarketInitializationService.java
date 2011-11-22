@@ -42,7 +42,8 @@ public class TariffMarketInitializationService
     pluginConfigRepo.makePluginConfig("TariffMarket", "")
             .addConfiguration("tariffPublicationFee", "-100.0")
             .addConfiguration("tariffRevocationFee", "-100.0")
-            .addConfiguration("publicationInterval", "6");
+            .addConfiguration("publicationInterval", "6")
+            .addConfiguration("publicationOffset", "1");
   }
   
   public String initialize (Competition competition, List<String> completedInits)
