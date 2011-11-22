@@ -144,7 +144,9 @@ public class AccountingService
   /**
    * Returns the net load for the given broker in the current timeslot.
    * Note that this only works AFTER the customer models have run, and
-   * BEFORE the day's transactions have been processed.
+   * BEFORE the day's transactions have been processed. The value will be
+   * negative if the broker's customers are consuming more than they produce
+   * in the current timeslot.
    */
   public synchronized double getCurrentNetLoad (Broker broker) 
   {
@@ -160,6 +162,7 @@ public class AccountingService
         }
       }
     }
+    log.info("net load for " + broker.getUsername() + ": " + netLoad);
     return netLoad;
   }
 
@@ -167,7 +170,8 @@ public class AccountingService
    * Gets the net market position for the current timeslot. This only works on
    * processed transactions, but it can be used before activation in case there
    * can be no new market transactions for the current timeslot. This is the
-   * normal case.
+   * normal case. The value will be positive if the broker is importing power
+   * during the current timeslot.
    */
 
   public synchronized double getCurrentMarketPosition(Broker broker) 
@@ -180,6 +184,8 @@ public class AccountingService
       log.debug("null position for ts " + current.getSerialNumber());
       return 0.0;
     }
+    log.info("market position for " + broker.getUsername()
+             + ": " + position.getOverallBalance());
     return position.getOverallBalance();
   }
 
