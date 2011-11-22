@@ -564,7 +564,8 @@ public class CompetitionControlService
                                         competition.getExpectedTimeslotCount());
     }
     else {
-      timeslotCount = currentSlotOffset;
+      timeslotCount = competition.getBootstrapTimeslotCount()
+                      + bootstrapDiscardedTimeslots;;
     }
 
     // Send out the first timeslot update
