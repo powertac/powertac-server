@@ -397,90 +397,91 @@ public class HouseholdCustomerServiceTests
     }
   }
 
-  @Test
-  public void testTariffPublication ()
-  {
-    // test competitionControl registration
-    MockCC mockCC = new MockCC(tariffMarketService, 2);
-    assertEquals("correct thing", tariffMarketService, mockCC.processor);
-    assertEquals("correct phase", 2, mockCC.timeslotPhase);
-
-    //Instant start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    initializeService();
-
-    // current time is noon. Set pub interval to 3 hours.
-    ReflectionTestUtils.setField(tariffMarketService, "publicationInterval", 3);
-    assertEquals("newTariffs list has only default tariff", 1, tariffRepo.findTariffsByState(Tariff.State.PENDING).size());
-
-    Object newtemp = ReflectionTestUtils.getField(tariffMarketService, "registrations");
-    List<NewTariffListener> newtemp2 = (List<NewTariffListener>) newtemp;
-    int listeners = newtemp2.size();
-
-    assertEquals("one registration", 1, listeners);
-    assertEquals("no tariffs at 12:00", 0, householdCustomerService.publishedTariffs.size());
-
-    // publish some tariffs over a period of three hours, check for publication
-    TariffSpecification tsc1 = new TariffSpecification(broker1,
-                                                       PowerType.CONSUMPTION)
-        .withExpiration(exp)
-        .withMinDuration(TimeService.WEEK * 8)
-        .addRate(new Rate().withValue(-0.222));
-    tariffMarketService.processTariff(tsc1);
-    TariffSpecification tsc1a = new TariffSpecification(broker1,
-                                                        PowerType.CONSUMPTION)
-        .withExpiration(exp)
-        .withMinDuration(TimeService.WEEK * 8)
-        .addRate(new Rate().withValue(-0.223));
-    tariffMarketService.processTariff(tsc1a);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    // it's 13:00
-    tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("no tariffs at 13:00", 0, householdCustomerService.publishedTariffs.size());
-
-    TariffSpecification tsc2 = new TariffSpecification(broker2,
-                                                       PowerType.CONSUMPTION)
-        .withExpiration(exp)
-        .withMinDuration(TimeService.WEEK * 8)
-        .addRate(new Rate().withValue(-0.222));
-    tariffMarketService.processTariff(tsc2);
-    TariffSpecification tsc3 = new TariffSpecification(broker2,
-                                                       PowerType.CONSUMPTION)
-        .withExpiration(exp)
-        .withMinDuration(TimeService.WEEK * 8)
-        .addRate(new Rate().withValue(-0.222));
-    tariffMarketService.processTariff(tsc3);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    // it's 14:00
-    tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("no tariffs at 14:00", 0, householdCustomerService.publishedTariffs.size());
-
-    TariffSpecification tsp1 = new TariffSpecification(broker1,
-                                                       PowerType.PRODUCTION)
-        .withExpiration(exp)
-        .withMinDuration(TimeService.WEEK * 8)
-        .addRate(new Rate().withValue(0.119));
-    TariffSpecification tsp2 = new TariffSpecification(broker1,
-                                                       PowerType.PRODUCTION)
-         .withExpiration(exp)
-         .withMinDuration(TimeService.WEEK * 8)
-         .addRate(new Rate().withValue(0.119));
-    tariffMarketService.processTariff(tsp1);
-    tariffMarketService.processTariff(tsp2);
-    assertEquals("seven tariffs", 7, tariffRepo.findAllTariffs().size());
-
-    Tariff tariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
-
-    TariffRevoke tex = new TariffRevoke(tariff.getBroker(), tariff.getTariffSpec());
-    tariffMarketService.processTariff(tex);
-
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    // it's 15:00 - time to publish
-    tariffMarketService.activate(timeService.getCurrentTime(), 2);
-    assertEquals("6 tariffs at 15:00", 6, householdCustomerService.publishedTariffs.size());
-    List<Tariff> pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
-    assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
-
-  }
+  // JEC - why are we testing the TariffMarket here?
+//  @Test
+//  public void testTariffPublication ()
+//  {
+//    // test competitionControl registration
+//    MockCC mockCC = new MockCC(tariffMarketService, 2);
+//    assertEquals("correct thing", tariffMarketService, mockCC.processor);
+//    assertEquals("correct phase", 2, mockCC.timeslotPhase);
+//
+//    //Instant start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+//    initializeService();
+//
+//    // current time is noon. Set pub interval to 3 hours.
+//    ReflectionTestUtils.setField(tariffMarketService, "publicationInterval", 3);
+//    assertEquals("newTariffs list has only default tariff", 1, tariffRepo.findTariffsByState(Tariff.State.PENDING).size());
+//
+//    Object newtemp = ReflectionTestUtils.getField(tariffMarketService, "registrations");
+//    List<NewTariffListener> newtemp2 = (List<NewTariffListener>) newtemp;
+//    int listeners = newtemp2.size();
+//
+//    assertEquals("one registration", 1, listeners);
+//    assertEquals("no tariffs at 12:00", 0, householdCustomerService.publishedTariffs.size());
+//
+//    // publish some tariffs over a period of three hours, check for publication
+//    TariffSpecification tsc1 = new TariffSpecification(broker1,
+//                                                       PowerType.CONSUMPTION)
+//        .withExpiration(exp)
+//        .withMinDuration(TimeService.WEEK * 8)
+//        .addRate(new Rate().withValue(-0.222));
+//    tariffMarketService.processTariff(tsc1);
+//    TariffSpecification tsc1a = new TariffSpecification(broker1,
+//                                                        PowerType.CONSUMPTION)
+//        .withExpiration(exp)
+//        .withMinDuration(TimeService.WEEK * 8)
+//        .addRate(new Rate().withValue(-0.223));
+//    tariffMarketService.processTariff(tsc1a);
+//    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+//    // it's 13:00
+//    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+//    assertEquals("no tariffs at 13:00", 0, householdCustomerService.publishedTariffs.size());
+//
+//    TariffSpecification tsc2 = new TariffSpecification(broker2,
+//                                                       PowerType.CONSUMPTION)
+//        .withExpiration(exp)
+//        .withMinDuration(TimeService.WEEK * 8)
+//        .addRate(new Rate().withValue(-0.222));
+//    tariffMarketService.processTariff(tsc2);
+//    TariffSpecification tsc3 = new TariffSpecification(broker2,
+//                                                       PowerType.CONSUMPTION)
+//        .withExpiration(exp)
+//        .withMinDuration(TimeService.WEEK * 8)
+//        .addRate(new Rate().withValue(-0.222));
+//    tariffMarketService.processTariff(tsc3);
+//    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+//    // it's 14:00
+//    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+//    assertEquals("no tariffs at 14:00", 0, householdCustomerService.publishedTariffs.size());
+//
+//    TariffSpecification tsp1 = new TariffSpecification(broker1,
+//                                                       PowerType.PRODUCTION)
+//        .withExpiration(exp)
+//        .withMinDuration(TimeService.WEEK * 8)
+//        .addRate(new Rate().withValue(0.119));
+//    TariffSpecification tsp2 = new TariffSpecification(broker1,
+//                                                       PowerType.PRODUCTION)
+//         .withExpiration(exp)
+//         .withMinDuration(TimeService.WEEK * 8)
+//         .addRate(new Rate().withValue(0.119));
+//    tariffMarketService.processTariff(tsp1);
+//    tariffMarketService.processTariff(tsp2);
+//    assertEquals("seven tariffs", 7, tariffRepo.findAllTariffs().size());
+//
+//    Tariff tariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
+//
+//    TariffRevoke tex = new TariffRevoke(tariff.getBroker(), tariff.getTariffSpec());
+//    tariffMarketService.processTariff(tex);
+//
+//    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+//    // it's 15:00 - time to publish
+//    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+//    assertEquals("6 tariffs at 15:00", 6, householdCustomerService.publishedTariffs.size());
+//    List<Tariff> pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
+//    assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
+//
+//  }
 
   @Test
   public void testEvaluatingTariffs ()
