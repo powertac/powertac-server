@@ -40,9 +40,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Implements the Generic Consumer abstraction. It creates an Consumer that can subscribe to
- * tariffs, evaluate them in order to choose the best one for its interests, shift its load in order
- * to minimize its costs and many others.
+ * Implements the Generic Consumer abstraction. It creates an Consumer that can subscribe to tariffs, evaluate them in order to choose the best one for its interests, shift its load in order to
+ * minimize its costs and many others.
+ * 
  * @author Antonios Chrysopoulos
  */
 @Service
@@ -50,8 +50,7 @@ import org.springframework.stereotype.Service;
 public class HouseholdCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
 {
   /**
-   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
-   * log.debug() for output you want to see in testing or debugging.
+   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use log.debug() for output you want to see in testing or debugging.
    */
   static private Logger log = Logger.getLogger(HouseholdCustomerService.class.getName());
 
@@ -65,11 +64,10 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private RandomSeed rs1;
 
   // read this normally from plugin config
-  private String configFile = "../household-customer/src/org/powertac/common/configurations/Household.properties";
+  private String configFile = "../household-customer/src/main/resources/Household.properties";
 
   /**
-   * This is the configuration file that will be utilized to pass the parameters that can be
-   * adjusted by user
+   * This is the configuration file that will be utilized to pass the parameters that can be adjusted by user
    */
   Properties configuration = new Properties();
 
@@ -87,9 +85,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   /**
-   * This is called once at the beginning of each game by the initialization service. Here is where
-   * you do per-game setup. This will create a listener for our service, in order to get the new
-   * tariff as well as create the generic Consumers that will be running in the game.
+   * This is called once at the beginning of each game by the initialization service. Here is where you do per-game setup. This will create a listener for our service, in order to get the new tariff
+   * as well as create the generic Consumers that will be running in the game.
+   * 
    * @throws IOException
    */
   void init (PluginConfig config) throws IOException
@@ -141,14 +139,22 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     return configFile;
   }
 
+  /**
+   * Allows Spring to set the configuration file for the household models length
+   */
+  public void setConfigFile (String file)
+  {
+    configFile = file;
+  }
+
   public List<Village> getVillageList ()
   {
     return villageList;
   }
 
   /**
-   * This function finds all the available Generic Consumers in the competition and creates a list
-   * of their customerInfo.
+   * This function finds all the available Generic Consumers in the competition and creates a list of their customerInfo.
+   * 
    * @return List<CustomerInfo>
    */
   public List<CustomerInfo> generateCustomerInfoList ()
