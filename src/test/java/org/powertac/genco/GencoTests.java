@@ -127,7 +127,7 @@ public class GencoTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[1]);
+        orderList.add((Order)args[0]);
         return null;
       }
     }).when(mockProxy).routeMessage(isA(Order.class));
@@ -167,7 +167,7 @@ public class GencoTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[1]);
+        orderList.add((Order)args[0]);
         return null;
       }
     }).when(mockProxy).routeMessage(isA(Order.class));
@@ -208,7 +208,7 @@ public class GencoTests
     doAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        orderList.add((Order)args[1]);
+        orderList.add((Order)args[0]);
         return null;
       }
     }).when(mockProxy).routeMessage(isA(Order.class));
