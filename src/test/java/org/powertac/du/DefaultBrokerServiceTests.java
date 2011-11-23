@@ -385,7 +385,7 @@ public class DefaultBrokerServiceTests
         orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Order.class));
     
     // activate the trading function by sending a cash position msg
     CashPosition cp = new CashPosition(face, 0.0);
@@ -421,7 +421,7 @@ public class DefaultBrokerServiceTests
         orderList.add((Order)args[1]);
         return null;
       }
-    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
+    }).when(mockProxy).routeMessage(isA(Order.class));
 
     // initialize the default broker
     Broker face = init();

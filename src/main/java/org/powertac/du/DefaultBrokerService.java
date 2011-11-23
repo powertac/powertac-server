@@ -292,7 +292,7 @@ public class DefaultBrokerService
              " in timeslot " + timeslot.getSerialNumber());
     Order result = new Order(face, timeslot, neededMWh, limitPrice);
     lastOrder.put(timeslot, result);
-    brokerProxyService.routeMessage(face, result);
+    brokerProxyService.routeMessage(result);
   }
 
   /**
