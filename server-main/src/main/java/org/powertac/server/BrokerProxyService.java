@@ -162,16 +162,12 @@ public class BrokerProxyService implements BrokerProxy
    * @see
    * org.powertac.common.interfaces.BrokerProxy#routeMessage(java.lang.Object)
    */
-  public void routeMessage (Broker originator, Object message)
+  public void routeMessage (Object message)
   {
-    // ignore calls from non-enabled brokers
-    if (!originator.isEnabled())
-      return;
-    
-    // dispatch to visualizers
-    visualizerProxyService.forwardMessage(message);
-
-    router.route(message);
+    if (router.route(message)) {
+      // dispatch to visualizers
+      visualizerProxyService.forwardMessage(message);
+    }
   }
 
   /*

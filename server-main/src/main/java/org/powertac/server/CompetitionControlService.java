@@ -112,7 +112,7 @@ import org.xml.sax.InputSource;
 public class CompetitionControlService
   implements ApplicationContextAware, CompetitionControl, BrokerMessageListener
 {
-  static private Logger log = Logger.getLogger(CompetitionControlService.class.getName());
+  static private Logger log = Logger.getLogger(CompetitionControlService.class);
   
   private ApplicationContext applicationContext = null;
 
@@ -192,6 +192,7 @@ public class CompetitionControlService
   @SuppressWarnings("unchecked")
   public void preGame ()
   {
+    log.info("preGame() - start");
     // Create default competition
     competition = Competition.newInstance("defaultCompetition");
     competitionId = competition.getId();
@@ -234,6 +235,7 @@ public class CompetitionControlService
    */
   public boolean preGame (File bootFile)
   {
+    log.info("preGame(File) - start");
     // turn off bootstrap mode, and run the basic pre-game setup
     bootstrapMode = false;
     preGame();
@@ -262,7 +264,7 @@ public class CompetitionControlService
                                      XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
-
+      
       // then get the configs
       exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
       nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
@@ -277,7 +279,6 @@ public class CompetitionControlService
     }
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading config file: " + xee.toString());
-      System.out.println("Error reading config file: " + xee.toString());
       return false;
     }
     catch (IOException ioe) {
@@ -296,7 +297,6 @@ public class CompetitionControlService
       if (match == null) {
         // there's a pic in the file that's not in the server
         log.error("no matching PluginConfig found for " + next.toString());
-        System.out.println("no matching PluginConfig found for " + next.toString());
         return false;
       }
       // if we found it, then we need to update it.
@@ -958,10 +958,12 @@ public class CompetitionControlService
    * TODO: add auth-token processing
    */
   public void receiveMessage(BrokerAuthentication msg) {
+    log.info("receiveMessage(BrokerAuthentication) - start");
     Broker broker = msg.getBroker();
     if (broker != null) {
       loginBroker(broker.getUsername());
     }
+    log.info("receiveMessage(BrokerAuthentication) - end");
   }
   
   /**

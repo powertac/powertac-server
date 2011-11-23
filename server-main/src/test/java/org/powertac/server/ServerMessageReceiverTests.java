@@ -43,7 +43,7 @@ public class ServerMessageReceiverTests
     when(converter.fromXML(any(String.class))).thenReturn(ba);
     
     receiver.onMessage(message);
-    verify(brokerProxy).routeMessage(broker, ba);
+    verify(brokerProxy).routeMessage(ba);
   }
 
 }

@@ -15,10 +15,14 @@
  */
 package org.powertac.server;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.log4j.Logger;
+import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
@@ -36,6 +40,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageRouter
 {
+  static private Logger log = Logger.getLogger(MessageRouter.class);
+
   @Autowired
   private MessageListenerRegistrar registrar;
   
@@ -49,19 +55,43 @@ public class MessageRouter
   Set<?> simMessageTypes = new HashSet<Class>(Arrays.asList(PauseRequest.class, 
       PauseRelease.class, BrokerAuthentication.class));
 
-  public void route(Object message) {
-    if (tariffMessageTypes.contains(message.getClass())) {
-      for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
-        tariffMessageListener.receiveMessage(message);
-      }
-    } else if (simMessageTypes.contains(message.getClass())) {
-      for (BrokerMessageListener simMessageListener : registrar.getSimRegistrations()) {
-        simMessageListener.receiveMessage(message);
-      }
-    } else {
-      for (BrokerMessageListener marketMessageListener : registrar.getMarketRegistrations()) {
-        marketMessageListener.receiveMessage(message);
+  public boolean route(Object message) {
+    boolean routed = false;
+    
+    boolean byPassed = (message instanceof BrokerAuthentication);
+    
+    try {
+      Broker broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
+      if (broker != null && (broker.isEnabled() || byPassed)) {     
+        log.info("route(Object) - routing " + message.getClass().getSimpleName() + " from " + broker.getUsername());
+        routed = true;
+        if (tariffMessageTypes.contains(message.getClass())) {
+          for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
+            tariffMessageListener.receiveMessage(message);
+          }
+        } else if (simMessageTypes.contains(message.getClass())) {
+          for (BrokerMessageListener simMessageListener : registrar.getSimRegistrations()) {
+            simMessageListener.receiveMessage(message);
+          }
+        } else {
+          for (BrokerMessageListener marketMessageListener : registrar.getMarketRegistrations()) {
+            marketMessageListener.receiveMessage(message);
+          }
+        }   
       }
     }
+    catch (IllegalAccessException e) {
+      log.error("Failed to extract broker", e);
+    }
+    catch (InvocationTargetException e) {
+      log.error("Failed to extract broker", e);
+    }
+    catch (NoSuchMethodException e) {
+      log.error("Failed to extract broker", e);
+    }
+
+    log.info("route(Object) - routed:" + routed);
+    
+    return routed;
   }
 }

@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -33,6 +34,8 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class PowerTacServer
 {
+  static private Logger log = Logger.getLogger(PowerTacServer.class);
+
   private static CompetitionControlService cc = null;
 
   /**
@@ -103,6 +106,7 @@ public class PowerTacServer
               System.out.println("Bad input " + input);
             }
             else {
+              log.info("In Simulation mode!!!");
               File bootFile = new File(tokens[1]);
               // collect broker names, hand to CC for login control
               ArrayList<String> brokerList = new ArrayList<String>();

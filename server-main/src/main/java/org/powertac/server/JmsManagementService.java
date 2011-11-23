@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JmsManagementService {
-  static private Logger log = Logger.getLogger(JmsManagementService.class.getName());
+  static private Logger log = Logger.getLogger(JmsManagementService.class);
 
   @Resource(name="jmsFactory")
   private ConnectionFactory connectionFactory;
@@ -57,6 +57,7 @@ public class JmsManagementService {
   }
   
   public void registerMessageListener(String destinationName, MessageListener listener) {    
+    log.info("registerMessageListener(" + destinationName + ", " + listener + ")");
     DefaultMessageListenerContainer container = new DefaultMessageListenerContainer();
     container.setConnectionFactory(connectionFactory);
     container.setDestinationName(destinationName);
