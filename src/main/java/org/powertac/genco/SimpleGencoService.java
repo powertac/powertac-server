@@ -28,6 +28,11 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Very simple service, activated by the
+ * {@link org.powertac.server.CompetitionControlService} once each timeslot.
+ * @author John Collins
+ */
 @Service
 class SimpleGencoService
   extends TimeslotPhaseProcessor
@@ -50,12 +55,20 @@ class SimpleGencoService
     super();
   }
 
+  /**
+   * Simply receives and stores the list of genco and buyer instances generated
+   * by the initialization service.
+   */
   public void init(List<Genco> gencos)
   {
     this.gencos = gencos;
     super.init();
   }
-  
+
+  /**
+   * Called once/timeslot, simply calls updateModel() and generateOrders() on
+   * each of the gencos.
+   */
   public void activate(Instant now, int phase)
   {
     log.info("Activate");

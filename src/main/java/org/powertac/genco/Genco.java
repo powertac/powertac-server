@@ -143,11 +143,11 @@ public class Genco
     if (skip < 0)
       skip = 0;
     for (Timeslot slot : openSlots) {
-      if (skip-- > 0)
-        continue;
       double availableCapacity = currentCapacity;
       // do we receive these?
       MarketPosition posn = findMarketPositionByTimeslot(slot);
+      if (skip-- > 0 && (posn == null || posn.getOverallBalance() == 0.0))
+        continue;
       if (posn != null) {
         // posn.overallBalance is negative if we have sold power in this slot
         availableCapacity += posn.getOverallBalance();

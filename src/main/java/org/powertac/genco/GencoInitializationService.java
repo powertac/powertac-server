@@ -28,6 +28,10 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Initializes all the individual Genco instances.
+ * @author John Collins
+ */
 @Service
 class GencoInitializationService 
     implements InitializationService
@@ -47,6 +51,10 @@ class GencoInitializationService
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
+  /**
+   * Creates a {@link org.powertac.common.PluginConfig} containing descriptions
+   * of several wholesale power producers and a buyer.
+   */
   public void setDefaults ()
   {
     // set up several producers
@@ -63,6 +71,10 @@ class GencoInitializationService
       .addConfiguration("mwh", "500.0");
   }
 
+  /**
+   * Uses the specs in the "genco" {@link org.powertac.common.PluginConfig} to
+   * create and initialize the genco entities. 
+   */
   public String initialize (Competition competition, List<String> completedInits)
   {
     ArrayList<Genco> gencos = new ArrayList<Genco>();

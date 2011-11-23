@@ -188,11 +188,60 @@ public class GencoTests
     Order first = orderList.get(0);
     assertEquals("first order for ts3", 3, first.getTimeslot().getSerialNumber());
     assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
-    assertEquals("first order for 50 mwh", -100.0, first.getMWh(), 1e-6);
+    assertEquals("first order for 100 mwh", -100.0, first.getMWh(), 1e-6);
     Order second = orderList.get(1);
     assertEquals("second order for ts4", 4, second.getTimeslot().getSerialNumber());
     assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
     assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
-  
+
+  // set commitment leadtime & market position and make sure ordering
+  // behavior is correct
+  @Test
+  public void testGenerateOrders3 ()
+  {
+    // set up the genco with commitment leadtime=3
+    PluginConfig config = new PluginConfig("Genco", "")
+      .addConfiguration("commitmentLeadtime", "3");
+    genco.configure(config); // all defaults
+    // capture orders
+    final ArrayList<Order> orderList = new ArrayList<Order>(); 
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        orderList.add((Order)args[1]);
+        return null;
+      }
+    }).when(mockProxy).routeMessage(isA(Broker.class), isA(Order.class));
+    // set up some timeslots
+    Timeslot ts0 = timeslotRepo.makeTimeslot(start);
+    ts0.disable();
+    assertEquals("first ts has sn=0", 0, ts0.getSerialNumber());
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 2));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 3));
+    timeslotRepo.makeTimeslot(start.plus(TimeService.HOUR * 4));
+    assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
+
+    // 50 mwh already sold in ts2
+    Timeslot ts2 = timeslotRepo.findBySerialNumber(2);
+    MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
+    genco.addMarketPosition(posn2, ts2);
+
+    // generate orders and check
+    genco.generateOrders(start, timeslotRepo.enabledTimeslots());
+    assertEquals("two orders", 3, orderList.size());
+    Order order = orderList.get(0);
+    assertEquals("second order for ts2", 2, order.getTimeslot().getSerialNumber());
+    assertEquals("second order price", 1.0, order.getLimitPrice(), 1e-6);
+    assertEquals("second order for 50 mwh", -50.0, order.getMWh(), 1e-6);
+    order = orderList.get(1);
+    assertEquals("second order for ts3", 3, order.getTimeslot().getSerialNumber());
+    assertEquals("second order price", 1.0, order.getLimitPrice(), 1e-6);
+    assertEquals("second order for 100 mwh", -100.0, order.getMWh(), 1e-6);
+    order = orderList.get(2);
+    assertEquals("third order for ts4", 4, order.getTimeslot().getSerialNumber());
+    assertEquals("third order price", 1.0, order.getLimitPrice(), 1e-6);
+    assertEquals("third order for 100 mwh", -100.0, order.getMWh(), 1e-6);
+  }
 }
