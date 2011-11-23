@@ -58,7 +58,7 @@ public class Buyer extends Genco
       Order offer = new Order(this, slot, qty, -price);
       log.debug(getUsername() + " wants " + qty +
                   " in " + slot.getSerialNumber() + " for " + price);
-      brokerProxyService.routeMessage(this, offer);
+      brokerProxyService.routeMessage(offer);
     }
   }
   
