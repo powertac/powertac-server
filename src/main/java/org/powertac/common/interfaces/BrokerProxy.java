@@ -53,7 +53,7 @@ public interface BrokerProxy {
    * and the default broker. Messages from non-enabled brokers will be silently
    * dropped into the bit-bucket.
    */
-  public void routeMessage (Broker originator, Object message);
+  public void routeMessage (Object message);
   
   /**
    * Sets up a dispatch listener for market messages
