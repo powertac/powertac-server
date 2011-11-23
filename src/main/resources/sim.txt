@@ -1,1 +1,1 @@
-sim boot-data.xml
+sim boot-data.xml grailsDemo

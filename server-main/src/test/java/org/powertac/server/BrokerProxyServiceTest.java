@@ -5,6 +5,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,11 +116,18 @@ public class BrokerProxyServiceTest
   @Test
   public void routeMessageTest()
   {
-    brokerProxy.routeMessage(localBroker, message);
-    verify(router, times(0)).route(message);
-    localBroker.setEnabled(true);
-    brokerProxy.routeMessage(localBroker, message);
+    when(router.route(message)).thenReturn(false);
+    brokerProxy.routeMessage(message);
     verify(router, times(1)).route(message);
+    verify(visualizer, times(0)).forwardMessage(message);
+    
+    reset(router);
+    reset(visualizer);
+    when(router.route(message)).thenReturn(true);    
+    
+    brokerProxy.routeMessage(message);
+    verify(router, times(1)).route(message);
+    verify(visualizer, times(1)).forwardMessage(message);
   }
   
   // Broker that collects the messages it receives

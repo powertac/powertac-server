@@ -18,12 +18,15 @@ package org.powertac.server;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MessageListenerRegistrar
 {
+  static private Logger log = Logger.getLogger(MessageListenerRegistrar.class);
+
   // Routing data
   private Set<BrokerMessageListener> tariffRegistrations = new HashSet<BrokerMessageListener>();
   private Set<BrokerMessageListener> marketRegistrations = new HashSet<BrokerMessageListener>();
@@ -71,6 +74,8 @@ public class MessageListenerRegistrar
    * @see org.powertac.common.interfaces.BrokerProxy#registerSimListener(org.powertac.common.interfaces.BrokerMessageListener)
    */
   public void registerSimListener(BrokerMessageListener listener) {
+    log.info("registerSimListener(BrokerMessageListener) - start");
     simRegistrations.add(listener);
+    log.info("registerSimListener(BrokerMessageListener) - end");
   }
 }
