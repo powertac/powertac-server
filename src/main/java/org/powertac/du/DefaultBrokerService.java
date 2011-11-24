@@ -276,7 +276,7 @@ public class DefaultBrokerService
   {
     double neededMWh = neededKWh / 1000.0;
     
-    double limitPrice;
+    Double limitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
@@ -298,11 +298,11 @@ public class DefaultBrokerService
   /**
    * Computes a limit price with a random element. 
    */
-  private double computeLimitPrice (Timeslot timeslot,
+  private Double computeLimitPrice (Timeslot timeslot,
                                     double amountNeeded)
   {
     // start with default limits
-    double oldLimitPrice;
+    Double oldLimitPrice;
     double minPrice;
     if (amountNeeded > 0.0) {
       // buying
@@ -330,10 +330,11 @@ public class DefaultBrokerService
     if (remainingTries > 0) {
       double range = (minPrice - oldLimitPrice) * 2.0 / (double)remainingTries;
       log.debug("oldLimitPrice=" + oldLimitPrice + ", range=" + range);
-      double computedPrice =oldLimitPrice + randomSeed.nextDouble() * range; 
-      newLimitPrice = Math.max(newLimitPrice, computedPrice);
+      double computedPrice = oldLimitPrice + randomSeed.nextDouble() * range; 
+      return Math.max(newLimitPrice, computedPrice);
     }
-    return newLimitPrice;
+    else
+      return null; // market order
   }
 
   // ------------ process incoming messages -------------
