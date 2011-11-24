@@ -45,13 +45,24 @@ import org.springframework.stereotype.Service;
 /**
  * This is the wholesale day-ahead market. Energy is traded in future timeslots by
  * submitting MarketOrders representing bids and asks. Each specifies a price (minimum price
- * for asks, maximum price for bids) and a quantity in mWh. Once during each timeslot, the
+ * for asks, maximum (negative) price for bids) and a quantity in mWh. A bid is
+ * defined as an Order with a positive value for mWh; an ask is an Order with a
+ * negative mWh value. Once during each timeslot, the
  * market is cleared by matching bids with asks such that the bid price is no lower than
  * the ask price, and allocating quantities, until no matching bids or asks are
  * available. In general, the last matched bid will have a higher price than the last
  * matched ask. All trades are cleared at a price determined by splitting the difference
  * between the last bid and the last ask according to the value of sellerSurplusRatio,
  * which is a parameter set in the initialization process. 
+ * <p>
+ * Orders may be market orders (no specified price) as well as limit orders
+ * (the normal case). Market orders are considered to have a "more attractive"
+ * price than any limit order, so they are sorted first in the clearing process.
+ * In case the clearing process needs to set a price by matching a market order
+ * with a limit order, the clearing price is set by applying a "default margin"
+ * to the limit order. If there are no limit orders in the match, then the
+ * market clears at a fixed default clearing price. It's probably best if brokers
+ * do not allow this to happen.</p>
  * @author John Collins
  */
 @Service
@@ -104,6 +115,7 @@ public class AuctionService
     incoming.clear();
     setSellerSurplusRatio(config.getDoubleValue("sellerSurplus",
                                                 defaultSellerSurplus));
+    setDefaultMargin(config.getDoubleValue("defaultMargin", defaultMargin));
     brokerProxyService.registerBrokerMarketListener(this);
     super.init();
   }
@@ -118,7 +130,7 @@ public class AuctionService
     this.defaultSellerSurplus = defaultSellerSurplus;
   }
 
-  double getSellerSurplusRatio ()
+  public double getSellerSurplusRatio ()
   {
     return sellerSurplusRatio;
   }
@@ -127,6 +139,22 @@ public class AuctionService
   private void setSellerSurplusRatio (Double number)
   {
     sellerSurplusRatio = number;
+  }
+  
+  public double getDefaultMargin ()
+  {
+    return defaultMargin;
+  }
+  
+  @StateChange
+  private void setDefaultMargin (Double number)
+  {
+    defaultMargin = number;
+  }
+  
+  public double getDefaultClearingPrice ()
+  {
+    return defaultClearingPrice;
   }
 
   List<Order> getIncoming ()
@@ -211,13 +239,15 @@ public class AuctionService
         log.info("Timeslot " + timeslot.getSerialNumber() + 
                  ": Clearing " + asks.size() + " asks and " +
                  bids.size() + " bids");
-      double bidPrice = 0.0;
-      double askPrice = 0.0;
+      Double bidPrice = 0.0;
+      Double askPrice = 0.0;
       double totalMWh = 0.0;
       ArrayList<PendingTrade> pendingTrades = new ArrayList<PendingTrade>();
       while (bids != null && bids.size() > 0 && 
              asks != null && asks.size() > 0 &&
-             -bids.first().getLimitPrice() >= asks.first().getLimitPrice()) {
+             (bids.first().isMarketOrder() ||
+                 asks.first().isMarketOrder() ||
+                 -bids.first().getLimitPrice() >= asks.first().getLimitPrice())) {
         // transfer from ask to bid, keep track of qty
         OrderWrapper bid = bids.first();
         bidPrice = bid.getLimitPrice();
@@ -242,7 +272,29 @@ public class AuctionService
         if (ask.getMWh() - ask.executionMWh >= 0.0)
           asks.remove(ask);
       }
-      double clearingPrice = askPrice + sellerSurplusRatio * (-bidPrice - askPrice);
+      double clearingPrice;
+      if (bidPrice != null) {
+        if (askPrice != null) {
+          clearingPrice = askPrice + sellerSurplusRatio * (-bidPrice - askPrice);
+        }
+        else {
+          // ask price is null
+          clearingPrice = -bidPrice / (1.0 + defaultMargin);
+          log.info("market clears at " + clearingPrice + " with null ask price");
+        }
+      }
+      else {
+        // bid price is null
+        if (askPrice != null) {
+          clearingPrice = askPrice * (1.0 + defaultMargin);
+          log.info("market clears at " + clearingPrice + " with null bid price");
+        }
+        else {
+          // both bid and ask are null
+          clearingPrice = defaultClearingPrice;
+          log.info("market clears at default clearing price"  + clearingPrice);
+        }
+      }
       for (PendingTrade trade : pendingTrades) {
         accountingService.addMarketTransaction(trade.from, timeslot,
                                                -trade.mWh, clearingPrice);
@@ -334,6 +386,11 @@ public class AuctionService
       return order.getBroker();
     }
     
+    boolean isMarketOrder ()
+    {
+      return (order.getLimitPrice() == null);
+    }
+    
     Double getLimitPrice ()
     {
       return order.getLimitPrice();
@@ -358,12 +415,12 @@ public class AuctionService
       if (!(o instanceof OrderWrapper)) 
         return 1;
       OrderWrapper other = (OrderWrapper) o;
-      if (this.getLimitPrice() == null)
-        if (other.getLimitPrice() == null)
+      if (this.isMarketOrder())
+        if (other.isMarketOrder())
           return 0;
         else
           return -1;
-      else if (other.getLimitPrice() == null)
+      else if (other.isMarketOrder())
         return 1;
       else
         return (this.getLimitPrice() == 

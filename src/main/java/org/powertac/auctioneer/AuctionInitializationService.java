@@ -28,19 +28,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuctionInitializationService implements InitializationService
 {
-  static private Logger log = Logger.getLogger(AuctionInitializationService.class.getName());
+  static private Logger log = Logger.getLogger(AuctionInitializationService.class);
 
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
-  
+
   @Autowired
   private AuctionService auctionService;
-  
+
   public void setDefaults ()
   {
-    double sellerSurplusRatio = 0.5;
     pluginConfigRepo.makePluginConfig("Auctioneer", "init")
-      .addConfiguration("sellerSurplus", Double.toString(sellerSurplusRatio));
+      .addConfiguration("sellerSurplus", "0.5")
+      .addConfiguration("defaultMargin", "0.2");
   }
 
   public String initialize (Competition competition, List<String> completedInits)
