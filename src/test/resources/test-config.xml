@@ -8,7 +8,16 @@
 	       http://www.springframework.org/schema/context 
 	       http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	       http://www.mockito.org/spring/mockito 
-	       http://www.mockito.org/spring/mockito.xsd">		       
+	       http://www.mockito.org/spring/mockito.xsd">		  
+	       
+	            
+  <bean id="accountingService" name="mockAccounting" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.Accounting" />
+  </bean>      
+  
+  <bean id="tariffMarketService" name="mockTariffMarket" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+  </bean>	
 
   <bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
@@ -45,30 +54,12 @@
         class="org.powertac.common.repo.BrokerRepo" />
         
   <bean id="customerRepo"
-        class="org.powertac.common.repo.CustomerRepo" />      
-        
-  <bean id="accountingService"
-  		class="org.powertac.accounting.AccountingService">
-  </bean>      
-        
-  <bean id="accountingInitializationService"
-  		class="org.powertac.accounting.AccountingInitializationService">
-  </bean>
-  
-  <bean id="tariffMarketService"
-        class="org.powertac.tariffmarket.TariffMarketService" >
-        <property name="timeslotPhase">
-                <value>3</value>
-        </property>
-  </bean>
-  
-  <bean id="tariffMarketInitializationService"
-        class="org.powertac.tariffmarket.TariffMarketInitializationService" />
+        class="org.powertac.common.repo.CustomerRepo" />         
         
   <bean id="householdCustomerService"
         class="org.powertac.householdcustomer.HouseholdCustomerService">
         <property name="timeslotPhase">
-                <value>1</value>
+                <value>2</value>
         </property> 
   </bean>
   
