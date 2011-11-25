@@ -31,9 +31,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Dishwasher are used in order to wash easily the dishes after dinner. There are several programs
- * that help you automate the procedure in order to start at a less costly time, without problem,
+ * Dishwasher are used in order to wash easily the dishes after dinner. There are several programs that help you automate the procedure in order to start at a less costly time, without problem,
  * because it doesn't need emptying after utilization. So this is a semi-shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -41,8 +41,7 @@ public class Dishwasher extends SemiShiftingAppliance
 {
 
   /**
-   * The function mode of the dishwasher. For more info, read the details in the enumerations.Mode
-   * java file
+   * The function mode of the dishwasher. For more info, read the details in the enumerations.Mode java file
    **/
   // Mode mode = Mode.One
 
@@ -177,8 +176,8 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   /**
-   * This function checks for the household to see when it is empty or not empty for the duration of
-   * the operation
+   * This function checks for the household to see when it is empty or not empty for the duration of the operation
+   * 
    * @param weekday
    * @param quarter
    * @return
@@ -213,6 +212,11 @@ public class Dishwasher extends SemiShiftingAppliance
             possibleHours.add(i);
           }
         }
+
+        if (possibleHours.size() == 0) {
+          return newControllableLoad;
+        }
+
         minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
       }
       // case of variable tariff rate

@@ -31,10 +31,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Washing Machine is used to wash clothes easily. There are several programs that help you automate
- * the procedure in order to start at a less costly time, without problem. The only restriction is
- * that must be emptied by the tenants after finishing and not work at night due to noise. So this
- * is a semi-shifting appliance.
+ * Washing Machine is used to wash clothes easily. There are several programs that help you automate the procedure in order to start at a less costly time, without problem. The only restriction is
+ * that must be emptied by the tenants after finishing and not work at night due to noise. So this is a semi-shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -48,14 +47,12 @@ public class WashingMachine extends SemiShiftingAppliance
   public int dryerPower = 0;
 
   /**
-   * The function mode of the washing machine. For more info, read the details in the
-   * enumerations.Mode java file
+   * The function mode of the washing machine. For more info, read the details in the enumerations.Mode java file
    **/
   // Mode mode = Mode.One
 
   /**
-   * The function reaction of the washing machine. For more info, read the details in the
-   * enumerations.Reaction java file
+   * The function reaction of the washing machine. For more info, read the details in the enumerations.Reaction java file
    **/
   // Reaction reaction = Reaction.Strong
 
@@ -130,8 +127,8 @@ public class WashingMachine extends SemiShiftingAppliance
   }
 
   /**
-   * This function checks for the household to see when it is empty or not empty for the duration of
-   * the operation
+   * This function checks for the household to see when it is empty or not empty for the duration of the operation
+   * 
    * @param hour
    * @return
    */
@@ -163,6 +160,10 @@ public class WashingMachine extends SemiShiftingAppliance
         for (int i = 0; i < HouseholdConstants.END_OF_FUNCTION_HOUR; i++) {
           if (functionMatrix[i])
             possibleHours.add(i);
+        }
+
+        if (possibleHours.size() == 0) {
+          return newControllableLoad;
         }
         minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
 
