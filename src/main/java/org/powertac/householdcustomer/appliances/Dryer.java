@@ -30,10 +30,9 @@ import org.powertac.common.Tariff;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Dryer appliances are utilized by the inhabitants to order to dry the freshly washed clothes. That
- * means that the household should contain an washiung machine in order to have a dryer. Also, the
- * clothes should be placed in the washing machine shortly after the washing is finished. So this is
- * a semi-shifting appliance.
+ * Dryer appliances are utilized by the inhabitants to order to dry the freshly washed clothes. That means that the household should contain an washiung machine in order to have a dryer. Also, the
+ * clothes should be placed in the washing machine shortly after the washing is finished. So this is a semi-shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -75,10 +74,12 @@ public class Dryer extends SemiShiftingAppliance
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
     Vector<Boolean> operation = operationVector.get(weekday);
+
     for (int l = 0; l < HouseholdConstants.QUARTERS_OF_DAY; l++) {
       loadVector.add(0);
       dailyOperation.add(false);
     }
+
     int start = washingEnds(weekday);
     if (start > 0) {
       for (int i = start; i < HouseholdConstants.QUARTERS_OF_DAY - 1; i++) {
@@ -87,6 +88,8 @@ public class Dryer extends SemiShiftingAppliance
           for (int j = i; j < i + HouseholdConstants.DRYER_SECOND_PHASE; j++) {
             loadVector.set(j, power);
             dailyOperation.set(j, true);
+            if (j == HouseholdConstants.QUARTERS_OF_DAY - 1)
+              break;
           }
           for (int k = i + HouseholdConstants.DRYER_SECOND_PHASE; k < i + HouseholdConstants.DRYER_THIRD_PHASE; k++) {
             loadVector.set(k, loadVector.get(k - 1) - HouseholdConstants.DRYER_THIRD_PHASE_LOAD);
@@ -97,6 +100,7 @@ public class Dryer extends SemiShiftingAppliance
           i = HouseholdConstants.QUARTERS_OF_DAY;
         }
       }
+
       weeklyLoadVector.add(loadVector);
       weeklyOperation.add(dailyOperation);
       operationVector.set(weekday, operation);
@@ -125,8 +129,8 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   /**
-   * This function is utilized in order to find when the washing machine ends its function in order
-   * to put the dryer in use soon afterwards.
+   * This function is utilized in order to find when the washing machine ends its function in order to put the dryer in use soon afterwards.
+   * 
    * @param weekday
    * @return
    */
@@ -209,8 +213,8 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   /**
-   * In this function we take the days of function of the washing machine in order to make dryer
-   * work the same days.
+   * In this function we take the days of function of the washing machine in order to make dryer work the same days.
+   * 
    * @param times
    * @return
    */

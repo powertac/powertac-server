@@ -32,9 +32,8 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.HeaterType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It works most of the hours
- * of the day, but always when someone is at home in need of water. So it's a not shifting
- * appliance.
+ * Circulation pump is the appliance that brings water to the household. It works most of the hours of the day, but always when someone is at home in need of water. So it's a not shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -42,8 +41,7 @@ public class WaterHeater extends FullyShiftingAppliance
 {
 
   /**
-   * The type of the water heater. For more info, read the details in the enumerations.HeaterType
-   * java file
+   * The type of the water heater. For more info, read the details in the enumerations.HeaterType java file
    **/
   HeaterType type;
 
@@ -214,8 +212,7 @@ public class WaterHeater extends FullyShiftingAppliance
       cycleDuration = HouseholdConstants.INSTANT_HEATER_DURATION_CYCLE;
       od = false;
       inUse = false;
-      probabilitySeason = fillSeason(HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_2,
-          HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_3);
+      probabilitySeason = fillSeason(HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_2, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_3);
       probabilityWeekday = fillDay(HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_1, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_2, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_3);
       type = HeaterType.InstantHeater;
       times = Integer.parseInt(conf.getProperty("InstantHeaterDailyTimes")) + (int) (applianceOf.getMembers().size() / 2);
@@ -229,8 +226,7 @@ public class WaterHeater extends FullyShiftingAppliance
       cycleDuration = HouseholdConstants.STORAGE_HEATER_DURATION_CYCLE;
       od = false;
       inUse = false;
-      probabilitySeason = fillSeason(HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_2,
-          HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_3);
+      probabilitySeason = fillSeason(HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_2, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_3);
       probabilityWeekday = fillDay(HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_1, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_2, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_3);
       type = HeaterType.StorageHeater;
     }
@@ -260,6 +256,9 @@ public class WaterHeater extends FullyShiftingAppliance
             if (functionMatrix[i]) {
               possibleHours.add(i);
             }
+          }
+          if (possibleHours.size() == 0) {
+            return newControllableLoad;
           }
           minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
         }
@@ -299,6 +298,9 @@ public class WaterHeater extends FullyShiftingAppliance
             if (functionMatrix[i]) {
               possibleHours.add(i);
             }
+          }
+          if (possibleHours.size() == 0) {
+            return newControllableLoad;
           }
           minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
         }

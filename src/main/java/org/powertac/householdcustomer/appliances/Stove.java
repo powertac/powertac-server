@@ -168,9 +168,10 @@ public class Stove extends SemiShiftingAppliance
         if (functionMatrix[i])
           possibleHours.add(i);
       }
-      // log.debug("Stove Bag Size: " + possibleHours.size());
-      if (possibleHours.size() > 0)
-        minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
+      if (possibleHours.size() == 0) {
+        return newControllableLoad;
+      }
+      minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
     }
     // case of variable tariff rate
     else {
