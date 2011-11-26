@@ -23,8 +23,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * A {@code BalanceTransaction} instance represents the final supply/demand
- * imbalance in the current timeslot, and the Distribution Utilities charge
+ * A {@code BalancingTransaction} instance represents the final supply/demand
+ * imbalance in the current timeslot, and the Distribution Utility's charge
  * for this imbalance.
  *
  * @author John Collins
@@ -33,14 +33,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("balance-tx")
 public class BalancingTransaction extends BrokerTransaction
 {
-  /** The total size of the imbalance in kWH, positive for surplus and
-   * negative for deficit
-   */
   @XStreamAsAttribute
   private double kWh = 0.0;
   
-  /** The total charge imposed by the DU for this imbalance --
-   *  positive for credit to broker, negative for debit from broker */
   @XStreamAsAttribute
   private double charge = 0.0;
   
@@ -58,11 +53,19 @@ public class BalancingTransaction extends BrokerTransaction
     return kWh;
   }
   
+  /**
+   * Returns the total size of the imbalance in kWH, positive for surplus and
+   * negative for deficit
+   */
   public double getKWh ()
   {
     return kWh;
   }
 
+  /**
+   * Returns the total charge imposed by the DU for this imbalance --
+   * positive for credit to broker, negative for debit from broker
+   */
   public double getCharge ()
   {
     return charge;

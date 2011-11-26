@@ -97,7 +97,7 @@ public class OrderTests
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
-    //System.out.println(serialized.toString());
+    System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);
@@ -117,7 +117,7 @@ public class OrderTests
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
-    //System.out.println(serialized.toString());
+    System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);
@@ -125,5 +125,38 @@ public class OrderTests
     assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
     assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
     assertNull("null price", xmo1.getLimitPrice());
+  }
+  
+  @Test
+  public void xmlSerializationLocalBroker ()
+  {
+    DummyBroker db = new DummyBroker("Dummy", true, false);
+    brokerRepo.add(db);
+    Order mo1 = new Order(db, timeslot, 0.5, -12.0);
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Order.class);
+    xstream.processAnnotations(Broker.class);
+    //xstream.processAnnotations(Broker.class);
+    xstream.processAnnotations(Timeslot.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(mo1));
+    System.out.println(serialized.toString());
+    
+    Order xmo1 = (Order)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xmo1);
+    assertEquals("correct broker", db, xmo1.getBroker());
+    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
+    assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
+    assertEquals("correct price", -12.0, xmo1.getLimitPrice(), 1e-6);
+  }
+  
+  class DummyBroker extends Broker
+  {
+
+    public DummyBroker (String username, boolean local, boolean wholesale)
+    {
+      super(username, local, wholesale);
+    }
+    
   }
 }
