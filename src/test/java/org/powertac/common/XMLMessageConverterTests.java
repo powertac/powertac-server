@@ -18,6 +18,7 @@ package org.powertac.common;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,6 +26,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.CustomerType;
+import org.powertac.common.repo.CustomerRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -36,6 +39,9 @@ public class XMLMessageConverterTests {
   private static final Log log = LogFactory.getLog(XMLMessageConverterTests.class);
   
   private XMLMessageConverter converter;
+  
+  @Autowired
+  private CustomerRepo customerRepo;
   
   /**
    * @throws java.lang.Exception
@@ -65,4 +71,21 @@ public class XMLMessageConverterTests {
     assertFalse("can't negotiate", convertedInfo.isCanNegotiate());
   }
 
+  @Test
+  public void testFullCustomerConverter() {
+    Competition competition = Competition.newInstance("test");
+    competition.addBroker("broker 1");
+    
+    CustomerInfo c1 = new CustomerInfo("c1", 10);
+    competition.addCustomer(c1);
+    
+    assertNull(customerRepo.findById(c1.getId()));
+    
+    String xml = converter.toXML(competition);
+        
+    Competition convertedCompetition = (Competition)converter.fromXML(xml);
+    assertNotNull(convertedCompetition);
+    
+    assertEquals(c1, customerRepo.findById(c1.getId()));
+  }
 }
