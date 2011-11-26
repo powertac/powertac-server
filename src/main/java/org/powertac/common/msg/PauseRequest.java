@@ -16,6 +16,7 @@
 package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
+import org.powertac.common.xml.BrokerConverter;
 //import org.powertac.common.transformer.BrokerConverter;
 import com.thoughtworks.xstream.annotations.*;
 
@@ -35,7 +36,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class PauseRequest
 {
   /** The broker who is requesting this pause  */
-  //@XStreamConverter(BrokerConverter)
+  @XStreamConverter(BrokerConverter.class)
   private Broker broker;
   
   public PauseRequest (Broker broker)
