@@ -103,6 +103,16 @@ public class TimeslotRepoTests
     assertEquals("sn 2", ts2, repo.findBySerialNumber(2));
   }
 
+  @Test
+  public void testFindOrCreateBySerialNumber ()
+  {
+    repo.makeTimeslot(baseTime);
+    repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
+    Timeslot ts4 = repo.findOrCreateBySerialNumber(4);
+    assertEquals("5 entries", 5, repo.count());
+    assertEquals("sn 4", 4, ts4.getSerialNumber());
+  }
+
   @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots0 ()
