@@ -8,7 +8,15 @@
 	       http://www.springframework.org/schema/context 
 	       http://www.springframework.org/schema/context/spring-context-3.0.xsd
 	       http://www.mockito.org/spring/mockito 
-	       http://www.mockito.org/spring/mockito.xsd">		       
+	       http://www.mockito.org/spring/mockito.xsd">		  
+	       
+  <bean id="accountingService" name="mockAccounting" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.Accounting" />
+  </bean>      
+  
+  <bean id="tariffMarketService" name="mockTariffMarket" class="org.mockito.Mockito" factory-method="mock">
+        <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+  </bean>	
 
   <bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
@@ -45,17 +53,14 @@
         class="org.powertac.common.repo.BrokerRepo" />
         
   <bean id="customerRepo"
-        class="org.powertac.common.repo.CustomerRepo" />      
+        class="org.powertac.common.repo.CustomerRepo" />         
         
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
-        <property name="timeslotPhase">
-                <value>1</value>
-        </property> 
+        <property name="timeslotPhase"><value>2</value></property> 
   </bean>
   
   <bean id="factoredCustomerInitializationService"
         class="org.powertac.factoredcustomer.FactoredCustomerInitializationService" />  
             
-  
 </beans>

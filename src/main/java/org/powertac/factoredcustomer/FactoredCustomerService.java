@@ -19,8 +19,7 @@ package org.powertac.factoredcustomer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.ArrayList;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.w3c.dom.*;
@@ -53,8 +52,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
 
     String configResource = null;
     
-    Map<String,CustomerProfile> customerProfiles = new HashMap<String,CustomerProfile>();
-    Map<String,FactoredCustomer> customers = new HashMap<String,FactoredCustomer>();
+    List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
+    List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
     CustomerFactory customerFactory = new CustomerFactory();
         
     public FactoredCustomerService()
@@ -83,10 +82,10 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         //customerFactory.registerCreator(ResidentialConsumerPopulation.getCreator());
         
         log.info("Creating factored customers from configuration profiles.");
-        for (CustomerProfile customerProfile: customerProfiles.values()) { 
+        for (CustomerProfile customerProfile: customerProfiles) { 
             FactoredCustomer customer = customerFactory.processProfile(customerProfile);
             if (customer != null) {
-                customers.put(customerProfile.name, customer);
+                customers.add(customer);
                 //customer.subscribeDefault();
             } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
         }
@@ -109,9 +108,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
           
             for (int i = 0; i < numProfiles; ++i) {
                 Element profileElement = (Element) profileNodes.item(i);
-                String profileName = profileElement.getAttribute("name");
                 CustomerProfile profile = new CustomerProfile(profileElement);
-                customerProfiles.put(profileName, profile);
+                customerProfiles.add(profile);
             }
         } catch (Exception e) {
             log.error("Error loading factored customer profiles from config resourcee: " + configResource + 
@@ -126,7 +124,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      **/
     public void publishNewTariffs(List<Tariff> tariffs)
     {
-        for (FactoredCustomer customer : customers.values()) {
+        for (FactoredCustomer customer : customers) {
             customer.handleNewTariffs(tariffs);
         }
     }
@@ -136,7 +134,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      */
     public void activate(Instant now, int phase)
     {
-        for (FactoredCustomer customer : customers.values()) {
+        for (FactoredCustomer customer : customers) {
             customer.handleNewTimeslot();
         }
     }
@@ -146,7 +144,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      */
     public void receiveMessage(Object msg)
     {
-        // TODO Implement per-message behavior. Note that incoming messages
+        // TODO: Implement per-message behavior. Note that incoming messages
         // from brokers arrive in a JMS thread, so you need to synchronize
         // access to shared data structures. See AuctionService for an example.
 
@@ -155,12 +153,19 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         // TariffMarketService and AccountingService work this way.
     }
 
-    public String getConfigResource() {
+    public String getConfigResource() 
+    {
         return configResource;
     }
     
-    public void setConfigResource(String resource) {
+    public void setConfigResource(String resource) 
+    {
         configResource = resource;
+    }
+    
+    public List<FactoredCustomer> getCustomers() 
+    {
+        return customers;
     }
     
 }

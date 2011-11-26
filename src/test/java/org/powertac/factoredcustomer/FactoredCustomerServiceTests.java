@@ -13,43 +13,44 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+
 package org.powertac.factoredcustomer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+//import static org.junit.Assert.assertNotNull;
+//import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-//import org.powertac.accounting.AccountingInitializationService;
-//import org.powertac.accounting.AccountingService;
+import org.mockito.ArgumentCaptor;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.NewTariffListener;
-import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.PauseRelease;
-import org.powertac.common.msg.PauseRequest;
-import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -57,16 +58,13 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
-//import org.powertac.tariffmarket.TariffMarketInitializationService;
-//import org.powertac.tariffmarket.TariffMarketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * @author Prashant Reddy
+ * @author Prashant Reddy, Antonios Chrysopoulos
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/test/resources/test-config.xml" })
@@ -74,197 +72,181 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class FactoredCustomerServiceTests
 {
 
-  @Autowired
-  private TimeService timeService;
+    @Autowired
+    private TimeService timeService;
 
-//  @Autowired
-//  private AccountingService accountingService;
+    @Autowired
+    private Accounting mockAccounting;
 
-//  @Autowired
-//  private AccountingInitializationService accountingInitializationService;
+    @Autowired
+    private TariffMarket mockTariffMarket;
 
-//  @Autowired
-//  private TariffMarketService tariffMarketService;
+    @Autowired
+    private FactoredCustomerService factoredCustomerService;
 
-//  @Autowired
-//  private TariffMarketInitializationService tariffMarketInitializationService;
+    @Autowired
+    private FactoredCustomerInitializationService factoredCustomerInitializationService;
 
-  @Autowired
-  private FactoredCustomerService factoredCustomerService;
+    @Autowired
+    private TariffRepo tariffRepo;
 
-  @Autowired
-  private FactoredCustomerInitializationService factoredCustomerInitializationService;
+    @Autowired
+    private CustomerRepo customerRepo;
 
-  @Autowired
-  private TariffRepo tariffRepo;
+    @Autowired
+    private TariffSubscriptionRepo tariffSubscriptionRepo;
 
-  @Autowired
-  private CustomerRepo customerRepo;
+    @Autowired
+    private TimeslotRepo timeslotRepo;
 
-  @Autowired
-  private TariffSubscriptionRepo tariffSubscriptionRepo;
+    @Autowired
+    private BrokerRepo brokerRepo;
 
-  @Autowired
-  private TimeslotRepo timeslotRepo;
+    @Autowired
+    private RandomSeedRepo randomSeedRepo;
 
-  @Autowired
-  private BrokerRepo brokerRepo;
+    @Autowired
+    private PluginConfigRepo pluginConfigRepo;
 
-  @Autowired
-  private RandomSeedRepo randomSeedRepo;
+    private Instant exp;
+    private Instant now;
+    private Broker defaultBroker;
+    private TariffSpecification defaultConsumptionTariffSpec;
+    private Tariff defaultConsumptionTariff;
+    private TariffSpecification defaultProductionTariffSpec;
+    private Tariff defaultProductionTariff;
+    private Competition comp;
+    private List<Object[]> accountingArgs;
 
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
-
-  private Instant exp;
-  private Broker broker1;
-  private Broker broker2;
-  private Instant now;
-  private TariffSpecification defaultTariffSpec;
-  private Competition comp;
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
-
-  @Before
-  public void setUp ()
-  {
-    customerRepo.recycle();
-    brokerRepo.recycle();
-    tariffRepo.recycle();
-    tariffSubscriptionRepo.recycle();
-    pluginConfigRepo.recycle();
-    randomSeedRepo.recycle();
-    timeslotRepo.recycle();
-
-    // create a Competition, needed for initialization
-    comp = Competition.newInstance("factored-customer-test");
-
-    broker1 = new Broker("Joe");
-    broker2 = new Broker("Anna");
-
-    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    timeService.setCurrentTime(now);
-    timeService.setBase(now.getMillis());
-    //timeService.setStart(now.getMillis());
-    exp = now.plus(TimeService.WEEK * 10);
-
-    List<String> inits = new ArrayList<String>();
-/**
-    accountingInitializationService.setDefaults();
-    accountingInitializationService.initialize(comp, inits);
-
-    inits.add("AccountingService");
-
-    tariffMarketInitializationService.setDefaults();
-    tariffMarketInitializationService.initialize(comp, inits);
-
-    defaultTariffSpec = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.222));
-    tariffMarketService.setDefaultTariff(defaultTariffSpec);
-**/
-  }
-
-  @After
-  public void shutDown ()
-  {
-    // VillageService.shutDown();
-  }
-
-  public void initializeService ()
-  {
-    factoredCustomerInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("FactoredCustomer");
-    config.getConfiguration().put("configResource", "FactoredCustomers.xml");
-    List<String> inits = new ArrayList<String>();
-    inits.add("DefaultBroker");
-    factoredCustomerInitializationService.initialize(comp, inits);
-  }
-
-  @Test
-  public void testNormalInitialization ()
-  {
-    factoredCustomerInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("FactoredCustomer");
-    config.getConfiguration().put("configResource", "FactoredCustomers.xml");
-    List<String> inits = new ArrayList<String>();
-    inits.add("DefaultBroker");
-    String result = factoredCustomerInitializationService.initialize(comp, inits);
-    assertEquals("correct return value", "FactoredCustomer", result);
-    assertEquals("correct configuration file", "FactoredCustomers.xml", factoredCustomerService.getConfigResource());
-  }
-
-  @Test
-  public void testBogusInitialization ()
-  {
-    PluginConfig config = pluginConfigRepo.findByRoleName("FactoredCustomer");
-    assertNull("config not created", config);
-    List<String> inits = new ArrayList<String>();
-    String result = factoredCustomerInitializationService.initialize(comp, inits);
-    assertNull("needs DefaultBrokerService in the list", result);
-    inits.add("DefaultBroker");
-    result = factoredCustomerInitializationService.initialize(comp, inits);
-    assertEquals("failure return value", "fail", result);
-    factoredCustomerInitializationService.setDefaults();
-  }
-
-  class MockCC implements CompetitionControl
-  {
-
-    public MockCC (TimeslotPhaseProcessor thing, int phase)
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception
     {
-      processor = thing;
-      timeslotPhase = phase;
+        PropertyConfigurator.configure("src/test/resources/log.config");
     }
 
-    TimeslotPhaseProcessor processor;
-    int timeslotPhase;
-
-    public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
+    @Before
+    public void setUp()
     {
-      processor = thing;
-      timeslotPhase = phase;
+        customerRepo.recycle();
+        brokerRepo.recycle();
+        tariffRepo.recycle();
+        tariffSubscriptionRepo.recycle();
+        pluginConfigRepo.recycle();
+        randomSeedRepo.recycle();
+        timeslotRepo.recycle();
+        reset(mockTariffMarket);
+        reset(mockAccounting);
+
+        // create a Competition, needed for initialization
+        comp = Competition.newInstance("factored-customer-test");
+
+        defaultBroker = new Broker("DefaultBroker");
+
+        now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+        timeService.setCurrentTime(now);
+        exp = now.plus(TimeService.WEEK * 10);
+
+        defaultConsumptionTariffSpec = new TariffSpecification(defaultBroker, PowerType.CONSUMPTION).withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.12));
+        defaultConsumptionTariff = new Tariff(defaultConsumptionTariffSpec);
+        defaultConsumptionTariff.init();
+
+        defaultProductionTariffSpec = new TariffSpecification(defaultBroker, PowerType.PRODUCTION).withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(-0.08));
+        defaultProductionTariff = new Tariff(defaultProductionTariffSpec);
+        defaultProductionTariff.init();
+
+        when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(defaultConsumptionTariff);
+        when(mockTariffMarket.getDefaultTariff(PowerType.PRODUCTION)).thenReturn(defaultProductionTariff);
+
+        accountingArgs = new ArrayList<Object[]>();
+
+        // mock the AccountingService, capture args
+        doAnswer(new Answer<Object>() {
+            public Object answer(InvocationOnMock invocation)
+            {
+                Object[] args = invocation.getArguments();
+                accountingArgs.add(args);
+                return null;
+            }
+        }).when(mockAccounting).addTariffTransaction(
+                isA(TariffTransaction.Type.class), isA(Tariff.class),
+                isA(CustomerInfo.class), anyInt(), anyDouble(), anyDouble());
+
     }
 
-    public boolean isBootstrapMode ()
+    public void initializeService()
     {
-      return false;
+        factoredCustomerInitializationService.setDefaults();
+        PluginConfig config = pluginConfigRepo.findByRoleName("FactoredCustomer");
+        config.getConfiguration().put("configFile", "../factored-customer/src/main/resources/FactoredCustomers.xml");
+        List<String> inits = new ArrayList<String>();
+        inits.add("DefaultBroker");
+        factoredCustomerInitializationService.initialize(comp, inits);
     }
 
-    public void receiveMessage (PauseRequest msg)
+    @Test
+    public void testServiceInitialization()
     {
+        initializeService();
+        assertEquals("Configured number of customers created", 7, factoredCustomerService.getCustomers().size());
     }
 
-    public void receiveMessage (PauseRelease msg)
+    /******  IGNORE FOR NOW
+    public void subscribeDefault()
     {
-    }
-
-    @Override
-    public void preGame ()
-    {
-      // TODO Auto-generated method stub
-    }
-
-    @Override
-    public void setAuthorizedBrokerList (ArrayList<String> brokerList)
-    {
-      // TODO Auto-generated method stub
+        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
+            // capture subscription method args
+            ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+            ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+            ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+            when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture()))
+                .thenReturn(tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariffArg.getValue()));
+        }
+        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
+            customer.subscribeDefault();
+        }
     }
     
-    @Override
-    public boolean loginBroker (String name)
+    @Test
+    public void testTimeslotActivation()
     {
-      // TODO Auto-generated method stub 
-      return false;
+        initializeService();
+        //subscribeDefault();
+        
+        timeService.setCurrentTime(now.plus(TimeService.HOUR));
+        factoredCustomerService.activate(timeService.getCurrentTime(), 1);
+        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
+            assertFalse("Factored customer capacity",
+                        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()) == null
+                        || tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTotalUsage() == 0);
+        }
+        assertEquals("Tariff transactions created", factoredCustomerService.getCustomers().size() + 1, accountingArgs.size());
     }
 
-    @Override
-    public void runOnce ()
-    {
-      // TODO Auto-generated method stub 
-    }
-  }
 
+    @Test
+    public void testTariffEvaluation()
+    {
+        initializeService();
+        subscribeDefault();
+        
+        Broker secondBroker = new Broker("SecondBroker");
+
+        TariffSpecification secondConsumptionTariffSpec = new TariffSpecification(secondBroker, PowerType.CONSUMPTION).withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.10));
+        Tariff secondConsumptionTariff = new Tariff(secondConsumptionTariffSpec);
+        secondConsumptionTariff.init();
+
+        TariffSpecification secondProductionTariffSpec = new TariffSpecification(secondBroker, PowerType.PRODUCTION).withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(-0.09));
+        Tariff secondProductionTariff = new Tariff(secondProductionTariffSpec);
+        secondProductionTariff.init();
+
+        List<Tariff> tariffs = tariffRepo.findAllTariffs();
+        assertEquals("Four tariffs found", 4, tariffRepo.findAllTariffs().size());
+
+        factoredCustomerService.publishNewTariffs(tariffs);
+    }
+     END IGNORE FOR NOW ******/
 }

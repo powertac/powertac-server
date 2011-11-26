@@ -45,6 +45,9 @@ abstract class FactoredCustomer
         tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
     }
     
+    /** Explicitly subscribe to default tariffs **/
+    abstract void subscribeDefault();
+    
     /** Tariff publication callback **/
     abstract void handleNewTariffs(List<Tariff> newTariffs);
     
