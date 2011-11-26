@@ -63,6 +63,16 @@ public class BrokerRepo implements DomainRepo
     return nameTable.get(username);
   }
   
+  public Broker findOrCreateByUsername (String username) 
+  {
+    Broker broker = findByUsername(username);
+    if (broker == null) {
+      broker = new Broker(username);
+      add(broker);
+    }
+    return broker;
+  }
+  
   public Broker findById (long id)
   {
     log.debug("find " + id);

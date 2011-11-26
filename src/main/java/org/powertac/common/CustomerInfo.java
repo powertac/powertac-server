@@ -79,7 +79,7 @@ public class CustomerInfo //implements Serializable
     this.name = name;
     this.population = population;
   }
-
+  
   public long getId ()
   {
     return id;
