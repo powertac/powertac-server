@@ -17,12 +17,10 @@
 package org.powertac.factoredcustomer;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
@@ -78,9 +76,7 @@ class DefaultFactoredCustomer extends FactoredCustomer
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
 
 	customerProfile = profile; 
-	Iterator<CapacityProfile> iter = customerProfile.capacityProfiles.iterator();
-	while (iter.hasNext()) {
-	    CapacityProfile capacityProfile = iter.next();
+	for (CapacityProfile capacityProfile: customerProfile.capacityProfiles) {
 	    if (capacityProfile.capacityType == CapacityType.CONSUMPTION) canConsume = true;
 	    else if (capacityProfile.capacityType == CapacityType.PRODUCTION) canProduce = true;
 			
@@ -343,14 +339,10 @@ class DefaultFactoredCustomer extends FactoredCustomer
 			
         double totalConsumption = 0.0;
         List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
-        Iterator<TariffSubscription> iter = subscriptions.iterator();
-        while (iter.hasNext()) {
-            TariffSubscription subscription = iter.next();
+        for (TariffSubscription subscription: subscriptions) {
             if (subscription.getCustomersCommitted() > 0 && 
                     CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.CONSUMPTION) {
-                Iterator<DefaultCapacityManager> cIter = capacityManagers.iterator();
-                while (cIter.hasNext()) {
-                    DefaultCapacityManager capacityManager = cIter.next();
+                for (DefaultCapacityManager capacityManager: capacityManagers) {
                     if (capacityManager.capacityProfile.capacityType == CapacityType.CONSUMPTION) {
                         double currCapacity = capacityManager.computeCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // positive usage is consumption
@@ -370,14 +362,10 @@ class DefaultFactoredCustomer extends FactoredCustomer
         
         double totalProduction = 0.0;
         List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
-        Iterator<TariffSubscription> iter = subscriptions.iterator();
-        while (iter.hasNext()) {
-            TariffSubscription subscription = iter.next();
+        for (TariffSubscription subscription: subscriptions) {
             if (subscription.getCustomersCommitted() > 0 && 
                     CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.PRODUCTION) {
-                Iterator<DefaultCapacityManager> cIter = capacityManagers.iterator();
-                while (cIter.hasNext()) {
-                    DefaultCapacityManager capacityManager = cIter.next();
+                for (DefaultCapacityManager capacityManager: capacityManagers) {
                     if (capacityManager.capacityProfile.capacityType == CapacityType.PRODUCTION) {
                         double currCapacity = -1 * capacityManager.computeCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // negative usage is production

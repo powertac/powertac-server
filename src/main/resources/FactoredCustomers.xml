@@ -1,7 +1,7 @@
 <profiles>
 
   <profile name="DowntownHouseholds">
-    <category entityType="RESIDENTIAL" customerRole="CONSUMPTION" modelType="POPULATION" />
+    <category entityType="RESIDENTIAL" customerRole="CONSUMER" modelType="POPULATION" />
     <population value="10000" />
     <multiContracting value="true" />
     <canNegotiate value="false" />
@@ -20,7 +20,7 @@
   </profile>
 
   <profile name="HighlandBusinesses">
-    <category entityType="COMMERCIAL" customerRole="CONSUMPTION" modelType="POPULATION" />
+    <category entityType="COMMERCIAL" customerRole="CONSUMER" modelType="POPULATION" />
     <population value="400" />
     <multiContracting value="true" />
     <canNegotiate value="false" />
@@ -37,7 +37,7 @@
   </profile>
 
   <profile name="JennywoodPark">
-    <category entityType="COMMERCIAL" customerRole="PRODUCTION" modelType="INDIVIDUAL" />
+    <category entityType="COMMERCIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
     <population value="1" />
     <multiContracting value="false" />
     <canNegotiate value="false" />
@@ -52,7 +52,7 @@
   </profile>
 
   <profile name="MorewoodHouseholds">
-    <category entityType="RESIDENTIAL" customerRole="CONSUMPTION" modelType="POPULATION" />
+    <category entityType="RESIDENTIAL" customerRole="CONSUMER" modelType="POPULATION" />
     <population value="1000" />
     <multiContracting value="true" />
     <canNegotiate value="false" />
@@ -69,7 +69,7 @@
   </profile>
   
   <profile name="SunnysideSolar">
-    <category entityType="INDUSTRIAL" customerRole="PRODUCTION" modelType="INDIVIDUAL" />
+    <category entityType="INDUSTRIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
     <population value="2" />
     <multiContracting value="false" />
     <canNegotiate value="true" />
@@ -84,7 +84,7 @@
   </profile>
   
   <profile name="UniFacilities">
-    <category entityType="COMMERCIAL" customerRole="COMBINATION" modelType="INDIVIDUAL" />
+    <category entityType="COMMERCIAL" customerRole="HYBRID" modelType="INDIVIDUAL" />
     <population value="1" />
     <multiContracting value="false" />
     <canNegotiate value="true" />
@@ -106,7 +106,7 @@
   </profile>
 
   <profile name="WindmillCoOp">
-    <category entityType="COMMERCIAL" customerRole="PRODUCTION" modelType="INDIVIDUAL" />
+    <category entityType="COMMERCIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
     <population value="50" />
     <multiContracting value="true" />
     <canNegotiate value="false" />

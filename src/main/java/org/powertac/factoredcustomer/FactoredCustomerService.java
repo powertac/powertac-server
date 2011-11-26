@@ -80,7 +80,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         loadCustomerProfiles(configResource);
         
         customerFactory.registerDefaultCreator(DefaultFactoredCustomer.getCreator());
-   
+        //customerFactory.registerCreator(ResidentialConsumerPopulation.getCreator());
+        
         log.info("Creating factored customers from configuration profiles.");
         for (CustomerProfile customerProfile: customerProfiles.values()) { 
             FactoredCustomer customer = customerFactory.processProfile(customerProfile);

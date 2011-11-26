@@ -37,7 +37,7 @@ class CustomerProfile
     RandomSeedRepo randomSeedRepo;
 
     enum EntityType { RESIDENTIAL, COMMERCIAL, INDUSTRIAL }
-    enum CustomerRole { CONSUMPTION, PRODUCTION, COMBINATION }
+    enum CustomerRole { CONSUMER, PRODUCER, HYBRID }
     enum ModelType { INDIVIDUAL, POPULATION }
 	
     enum TariffUtilityCriteria { BEST_VALUE, PREFER_GREEN }
@@ -82,18 +82,12 @@ class CustomerProfile
         		
 	int population = Integer.parseInt(((Element) xml.getElementsByTagName("population").item(0)).getAttribute("value"));
         customerInfo = new CustomerInfo(name, population);
-	if (category.entityType == EntityType.RESIDENTIAL) {
-	    customerInfo.withCustomerType(CustomerType.CustomerHousehold);
-	} 
-	else if (category.entityType == EntityType.COMMERCIAL) {
-	    customerInfo.withCustomerType(CustomerType.CustomerOffice);
-	} 
-	else if (category.entityType == EntityType.INDUSTRIAL) {
-	    customerInfo.withCustomerType(CustomerType.CustomerFactory);
-	} 
-	else {  // EntityType.AGRICULTURAL
-	    customerInfo.withCustomerType(CustomerType.CustomerOther);
-	}
+        switch (category.entityType) {
+            case RESIDENTIAL: customerInfo.withCustomerType(CustomerType.CustomerHousehold); break;
+            case COMMERCIAL: customerInfo.withCustomerType(CustomerType.CustomerOffice); break;
+            case INDUSTRIAL: customerInfo.withCustomerType(CustomerType.CustomerFactory); break;
+            default: customerInfo.withCustomerType(CustomerType.CustomerOther);
+        }
 	Element multiContractingElement = (Element) xml.getElementsByTagName("multiContracting").item(0);
 	customerInfo.withMultiContracting(Boolean.parseBoolean(multiContractingElement.getAttribute("value")));
 	
@@ -145,7 +139,7 @@ class CustomerProfile
                     
                     customerFactorsInitialized = true;
                 }
-                capacityProfile = new FactoredProfile(capacitySpec, random);
+                capacityProfile = new AttitudesProfile(capacitySpec, random);
             }
             capacityProfiles.add(capacityProfile);
             PowerType powerType = capacityProfile.determinePowerType();
