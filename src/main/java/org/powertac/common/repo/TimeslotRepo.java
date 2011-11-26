@@ -118,6 +118,38 @@ public class TimeslotRepo implements DomainRepo
     else
       return indexedTimeslots.get(index);
   }
+
+  /**
+   * Returns the timeslot (if any) with the given serial number.
+   */
+  public Timeslot findOrCreateBySerialNumber (int serialNumber)
+  {
+    log.debug("find or create sn " + serialNumber);
+    Timeslot result = findBySerialNumber(serialNumber);
+    if (result != null)
+      return result;
+    else if (serialNumber < 0) {
+      log.error("FindOrCreate: serial number " + serialNumber + " < 0");
+      return null;
+    }
+    else if (serialNumber < count()) {
+      log.error("FindOrCreate: serial number "
+                + serialNumber + " < count " + count());
+      return null;
+    }
+    else if (last == null) {
+      log.error("FindOrCreate: no last timeslot");
+      return null;
+    }
+    else {
+      // at this point, the serial number should be >= count 
+      for (int sn = last.getSerialNumber() + 1; sn <= serialNumber; sn++) {
+        last = new Timeslot(sn, last.getEndInstant(), last);
+        indexedTimeslots.add(sn, last);
+      }
+      return last;
+    }
+  }
   
   /**
    * Returns the timeslot (if any) corresponding to a particular Instant.
