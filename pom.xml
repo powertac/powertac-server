@@ -18,7 +18,7 @@
   <repositories>
     <repository>
       <id>powertac-umn</id>
-      <url>http://tac04.cs.umn.edu:8080/plugin/repository/everything</url>
+      <url>http://tac04.cs.umn.edu:8080/plugin/repository/everything/</url>
     </repository>
   </repositories>
 
@@ -32,6 +32,7 @@
     <module>genco</module>
     <module>household-customer</module>
     <module>server-main</module>
+    <module>factored-customer</module>
   </modules>
 
   <!-- common dependencies across all modules -->
