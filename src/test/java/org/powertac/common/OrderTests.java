@@ -138,6 +138,7 @@ public class OrderTests
     xstream.processAnnotations(Broker.class);
     //xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
+    xstream.aliasSystemAttribute(null, "class");
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
     System.out.println(serialized.toString());
