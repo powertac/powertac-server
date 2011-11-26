@@ -22,11 +22,11 @@
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
     <dependency>
-      <groupId>ojalgo</groupId>
+      <groupId>org.ojalgo</groupId>
       <artifactId>ojalgo</artifactId>
       <version>30.6</version>
-      <systemPath>${basedir}/lib/ojalgo-30.6.jar</systemPath>
       <scope>system</scope>
+      <systemPath>${project.basedir}/../distribution-utility/lib/ojalgo-30.6.jar</systemPath>
     </dependency>
   </dependencies>
 </project>

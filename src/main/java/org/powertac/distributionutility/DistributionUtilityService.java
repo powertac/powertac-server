@@ -149,11 +149,6 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
   {
     Double result = defaultSpotPrice;
     // most recent trade is determined by Competition parameters
-    // TODO - not sure if still needed
-    // Competition comp = Competition.currentCompetition();
-    // int offset = comp.getDeactivateTimeslotsAhead();
-    // Instant executed = new Instant(timeService.getCurrentTime().getMillis()
-    // - offset * comp.getTimeslotLength() * TimeService.MINUTE);
     // orderbooks have timeslot and execution time
     Orderbook ob =
         orderbookRepo.findSpotByTimeslot(timeslotRepo.currentTimeslot());
@@ -164,6 +159,46 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
       log.info("null Orderbook");
     }
     return result / 1000.0; // convert to kwh
+  }
+  
+  /**
+   * Returns the maximum price for energy in the current timeslot
+   */
+  public double getPMax ()
+  {
+    double result = defaultSpotPrice;
+    List<Orderbook> obs = 
+        orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
+    if (obs.size() > 0) {
+      Double max = null;
+      for (Orderbook ob : obs) {
+        Double price = ob.getClearingPrice();
+        if (price != null && (max == null || price > max))
+          max = price;
+      }
+      result = max;
+    }
+    return result;
+  }
+  
+  /**
+   * Returns the minimum price for energy in the current timeslot
+   */
+  public double getPMin ()
+  {
+    double result = defaultSpotPrice;
+    List<Orderbook> obs = 
+        orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
+    if (obs.size() > 0) {
+      Double min = null;
+      for (Orderbook ob : obs) {
+        Double price = ob.getClearingPrice();
+        if (price != null && (min == null || price < min))
+          min = price;
+      }
+      result = min;
+    }
+    return result;
   }
 
   /**
