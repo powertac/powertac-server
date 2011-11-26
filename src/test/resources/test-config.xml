@@ -43,7 +43,7 @@
         
   <bean id="brokerRepo"
         class="org.powertac.common.repo.BrokerRepo" />
-        
+  <!--       
   <bean id="customerRepo"
         class="org.powertac.common.repo.CustomerRepo" />      
         
@@ -64,7 +64,8 @@
   
   <bean id="tariffMarketInitializationService"
         class="org.powertac.tariffmarket.TariffMarketInitializationService" />
-        
+   -->
+         
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
         <property name="timeslotPhase">
