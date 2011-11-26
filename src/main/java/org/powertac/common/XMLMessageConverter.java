@@ -83,6 +83,8 @@ public class XMLMessageConverter
     }
 
     xstream.autodetectAnnotations(true);
+
+    xstream.aliasSystemAttribute(null, "class");
   }
 
   public String toXML(Object message) {

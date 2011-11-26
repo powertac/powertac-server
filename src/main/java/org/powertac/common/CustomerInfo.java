@@ -79,7 +79,13 @@ public class CustomerInfo //implements Serializable
     this.name = name;
     this.population = population;
   }
-
+  
+  public CustomerInfo (long id, String name, int population)
+  {
+    this(name, population);
+    this.id = id;
+  }
+  
   public long getId ()
   {
     return id;

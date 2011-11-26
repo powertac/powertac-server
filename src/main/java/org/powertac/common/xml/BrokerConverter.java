@@ -52,7 +52,7 @@ public class BrokerConverter implements SingleValueConverter
       log.warn("no autowire BrokerRepo - using singleton");
       brokerRepo = BrokerRepo.getInstance();
     }
-    return brokerRepo.findByUsername(username);
+    return brokerRepo.findOrCreateByUsername(username);
   }
 
   public String toString (Object broker)
