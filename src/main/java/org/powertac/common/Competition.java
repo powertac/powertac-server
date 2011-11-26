@@ -24,9 +24,11 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.xml.FullCustomerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
@@ -103,6 +105,7 @@ public class Competition //implements Serializable
   //private ArrayList<PluginConfig> pluginConfigs;
   
   @XStreamImplicit(itemFieldName = "customer")
+  @XStreamConverter(FullCustomerConverter.class)
   private ArrayList<CustomerInfo> customers;
 
   // singleton instance
