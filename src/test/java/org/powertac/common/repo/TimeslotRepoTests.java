@@ -112,6 +112,16 @@ public class TimeslotRepoTests
     assertEquals("5 entries", 5, repo.count());
     assertEquals("sn 4", 4, ts4.getSerialNumber());
   }
+  
+  @Test
+  public void testFindOrCreateAll ()
+  {
+    Competition comp = Competition.currentCompetition();
+    comp.withSimulationBaseTime(baseTime);
+    Timeslot ts4 = repo.findOrCreateBySerialNumber(4);
+    assertEquals("5 entries", 5, repo.count());
+    assertEquals("sn 4", 4, ts4.getSerialNumber());
+  }
 
   @SuppressWarnings("unused")
   @Test

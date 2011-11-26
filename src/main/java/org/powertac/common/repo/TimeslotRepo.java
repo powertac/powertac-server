@@ -137,11 +137,14 @@ public class TimeslotRepo implements DomainRepo
                 + serialNumber + " < count " + count());
       return null;
     }
-    else if (last == null) {
-      log.error("FindOrCreate: no last timeslot");
-      return null;
-    }
-    else {
+    else  {
+      if (last == null) {
+        // ts 0 starts at the sim base time
+        first = 
+            new Timeslot(0, Competition.currentCompetition().getSimulationBaseTime(), null);
+        indexedTimeslots.add(0, first);
+        last = first;
+      }
       // at this point, the serial number should be >= count 
       for (int sn = last.getSerialNumber() + 1; sn <= serialNumber; sn++) {
         last = new Timeslot(sn, last.getEndInstant(), last);
