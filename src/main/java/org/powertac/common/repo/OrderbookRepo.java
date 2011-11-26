@@ -15,7 +15,9 @@
  */
 package org.powertac.common.repo;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Orderbook;
@@ -37,8 +39,10 @@ public class OrderbookRepo implements DomainRepo
   @Autowired
   private TimeService timeService;
   
-  // local state - keep track of the current orderbook, as well as the
+  // local state - keep track of orderbooks by timeslot,
+  // the current orderbook, as well as the
   // most recent one for a given timeslot with a non-empty clearing price
+  private HashMap<Timeslot, List<Orderbook>> orderbookIndex;
   private HashMap<Timeslot, Orderbook> timeslotIndex;
   private HashMap<Timeslot, Orderbook> spotIndex;
   
@@ -46,6 +50,7 @@ public class OrderbookRepo implements DomainRepo
   public OrderbookRepo ()
   {
     super();
+    orderbookIndex = new HashMap<Timeslot, List<Orderbook>>();
     timeslotIndex = new HashMap<Timeslot, Orderbook>();
     spotIndex = new HashMap<Timeslot, Orderbook>();
   }
@@ -62,6 +67,12 @@ public class OrderbookRepo implements DomainRepo
     timeslotIndex.put(timeslot, result);
     if (clearingPrice != null)
       spotIndex.put(timeslot, result);
+    List<Orderbook> obList = orderbookIndex.get(timeslot);
+    if (obList == null) {
+      obList = new ArrayList<Orderbook>();
+      orderbookIndex.put(timeslot, obList);
+    }
+    obList.add(result);
     log.debug("Created new Orderbook ts=" + timeslot.getSerialNumber() +
               ", clearingPrice=" + clearingPrice);
     return result;
@@ -83,6 +94,11 @@ public class OrderbookRepo implements DomainRepo
   public Orderbook findSpotByTimeslot (Timeslot timeslot)
   {
     return spotIndex.get(timeslot);
+  }
+  
+  public List<Orderbook> findAllByTimeslot (Timeslot timeslot)
+  {
+    return orderbookIndex.get(timeslot);
   }
   
   /**
