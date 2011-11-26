@@ -106,7 +106,7 @@
   </profile>
 
   <profile name="WindmillCoOp">
-    <category entityType="COMMERCIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
+    <category entityType="INDUSTRIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
     <population value="50" />
     <multiContracting value="true" />
     <canNegotiate value="false" />

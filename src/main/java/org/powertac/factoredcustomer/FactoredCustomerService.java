@@ -86,7 +86,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
             FactoredCustomer customer = customerFactory.processProfile(customerProfile);
             if (customer != null) {
                 customers.add(customer);
-                //customer.subscribeDefault();
+                customer.subscribeDefault();
             } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
         }
         log.info("Successfully initialized factored customers from configuration profiles.");     

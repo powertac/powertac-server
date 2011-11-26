@@ -20,6 +20,7 @@ import java.util.List;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 abstract class FactoredCustomer 
 {
+    @Autowired
+    CustomerRepo customerRepo;
+
     @Autowired
     TariffMarket tariffMarketService;
 
@@ -41,8 +45,11 @@ abstract class FactoredCustomer
     {
         customerProfile = profile;
         
+        customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
         tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
         tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
+        
+        customerRepo.add(profile.customerInfo);
     }
     
     /** Explicitly subscribe to default tariffs **/
