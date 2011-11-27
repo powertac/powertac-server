@@ -19,3 +19,6 @@
 [submodule "household-customer"]
 	path = household-customer
 	url = git://github.com/powertac/household-customer.git
+[submodule "factored-customer"]
+	path = factored-customer
+	url = git://github.com/powertac/factored-customer.git

@@ -63,7 +63,7 @@ public class MessageRouter
     try {
       Broker broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
       if (broker != null && (broker.isEnabled() || byPassed)) {     
-        log.info("route(Object) - routing " + message.getClass().getSimpleName() + " from " + broker.getUsername());
+        log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + broker.getUsername());
         routed = true;
         if (tariffMessageTypes.contains(message.getClass())) {
           for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
@@ -90,7 +90,7 @@ public class MessageRouter
       log.error("Failed to extract broker", e);
     }
 
-    log.info("route(Object) - routed:" + routed);
+    log.debug("route(Object) - routed:" + routed);
     
     return routed;
   }

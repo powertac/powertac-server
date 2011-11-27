@@ -89,6 +89,11 @@
       <artifactId>household-customer</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>factored-customer</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <repositories>

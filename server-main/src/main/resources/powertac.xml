@@ -63,6 +63,11 @@
     <property name="configFile" value="../household-customer/src/main/resources/Household.properties" />
   </bean>
   
+  <bean id="factoredCustomerService"
+        class="org.powertac.factoredcustomer.FactoredCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+  
   <bean id="tariffMarketService"
         class="org.powertac.tariffmarket.TariffMarketService">
     <property name="timeslotPhase" value="3" />
