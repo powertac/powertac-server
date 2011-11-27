@@ -14,6 +14,7 @@ import javax.jms.TextMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerMessageListener;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BrokerProxyService implements BrokerProxy
 {
-  private static final Log log = LogFactory.getLog(BrokerProxyService.class);
+  static private Logger log = Logger.getLogger(BrokerProxyService.class);
 
   @Autowired
   private JmsTemplate template;
@@ -89,6 +90,7 @@ public class BrokerProxyService implements BrokerProxy
     } 
     else {
       final String text = converter.toXML(messageObject);
+      log.info("sending text: \n" + text);
       final String queueName = broker.toQueueName();
 
       template.send(queueName, new MessageCreator() {

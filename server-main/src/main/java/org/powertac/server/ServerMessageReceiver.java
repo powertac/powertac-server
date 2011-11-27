@@ -36,6 +36,7 @@ public class ServerMessageReceiver implements MessageListener
   }
 
   private void onMessage (String xml) {
+    log.info("onMessage(String) - received message:\n" + xml);
     Object message = converter.fromXML(xml);
     log.info("onMessage(String) - received message of type " + message.getClass().getSimpleName());
     brokerProxy.routeMessage(message);
