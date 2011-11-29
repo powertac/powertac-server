@@ -25,14 +25,11 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
- * A clearedTrade instance reports public trade information, i.e. the execution price and quantity.
- *
- * It relates to a single transaction, specifying the timeslot and product. The single clearedTrade
- * instances are aggregated in a collection by the auctioneer before they are sent to other entities/brokers.
- * In the periodic clearing this collection is collection is built after each clearing and includes
- * a clearedTrade instance per tradeable timslot and product.
- *
- * @author Daniel Schnurr
+ * A ClearedTrade instance reports public information about a specific
+ * market clearing -- clearing price and total quantity traded. Each time 
+ * the market is cleared, a ClearedTrade is generated at least for each 
+ * timeslot in which a non-zero quantity was traded. 
+ * @author Daniel Schnurr, John Collins
  */
 @Domain
 @XStreamAlias("trade")

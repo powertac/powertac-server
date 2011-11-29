@@ -25,7 +25,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
- * A {@code CashPosition} domain instance represents the current state of
+ * A CashPosition domain instance represents the current state of
  * a broker's cash account. An updated CashPosition is sent to brokers
  * during each timeslot. This is not public information.
  *
@@ -59,11 +59,18 @@ public class CashPosition //implements Serializable
     return id;
   }
   
+  /**
+   * Returns the broker whose cash is represented.
+   */
   public Broker getBroker ()
   {
     return broker;
   }
 
+  /**
+   * Returns the balance in the account at the time this CashPosition was
+   * generated.
+   */
   public double getBalance ()
   {
     return balance;

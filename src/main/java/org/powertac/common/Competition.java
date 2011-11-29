@@ -144,16 +144,21 @@ public class Competition //implements Serializable
     return id;
   }
 
+  /** Returns the competition name */
   public String getName ()
   {
     return name;
   }
 
+  /** Uninterpreted text that further describes the competition. */
   public String getDescription ()
   {
     return description;
   }
   
+  /**
+   * Fluent setter for competition description.
+   */
   @StateChange
   public Competition withDescription (String description)
   {
@@ -186,6 +191,9 @@ public class Competition //implements Serializable
     return (int) (time.getMillis() / getTimeslotDuration()); 
   }
 
+  /**
+   * Fluent setter for timeslot length, interpreted as minutes in sim time.
+   */
   @StateChange
   public Competition withTimeslotLength (int timeslotLength)
   {
@@ -193,11 +201,18 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Minimum number of timeslots for this competition. The actual number is
+   * randomized by CompetitionControl at sim start time.
+   */
   public int getMinimumTimeslotCount ()
   {
     return minimumTimeslotCount;
   }
 
+  /**
+   * Fluent setter for minimumTimeslotCount.
+   */
   @StateChange
   public Competition withMinimumTimeslotCount (int minimumTimeslotCount)
   {
@@ -205,11 +220,18 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Number of timeslots in the bootstrap data report for a normal sim.
+   */
   public int getBootstrapTimeslotCount ()
   {
     return bootstrapTimeslotCount;
   }
   
+  /**
+   * Fluent setter for the bootstrap timeslot count. It only makes sense to
+   * change this before running a bootstrap session.
+   */
   @StateChange
   public Competition withBootstrapTimeslotCount (int bootstrapTimeslotCount)
   {
@@ -217,11 +239,17 @@ public class Competition //implements Serializable
     return this;
   }
   
+  /**
+   * Expected value of timeslot count for a normal sim session.
+   */
   public int getExpectedTimeslotCount ()
   {
     return expectedTimeslotCount;
   }
 
+  /**
+   * Fluent setter for the expected length of a normal sim session.
+   */
   @StateChange
   public Competition withExpectedTimeslotCount (int expectedTimeslotCount)
   {
@@ -229,11 +257,17 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Number of timeslots simultaneously open for trading.
+   */
   public int getTimeslotsOpen ()
   {
     return timeslotsOpen;
   }
 
+  /**
+   * Fluent setter for the open timeslot count. Default value is 24.
+   */
   @StateChange
   public Competition withTimeslotsOpen (int timeslotsOpen)
   {
@@ -241,11 +275,19 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Number of timeslots, starting with the current timeslot, that are closed
+   * for trading. 
+   */
   public int getDeactivateTimeslotsAhead ()
   {
     return deactivateTimeslotsAhead;
   }
 
+  /**
+   * Fluent setter for number of timeslots, starting with the current timeslot,
+   * that are closed for trading.Default value is 1. 
+   */
   @StateChange
   public Competition withDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
   {
@@ -253,11 +295,23 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Start time of a sim session in the sim world. This is actually the start
+   * of the bootstrap session, which is typically 15 days before the start of
+   * a normal sim session.
+   */
   public Instant getSimulationBaseTime ()
   {
     return simulationBaseTime;
   }
 
+  /**
+   * Fluent setter for simiulation base time. This is the start of a simulation
+   * scenario, in the sim world, at the beginning of a bootstrap session. So if
+   * the bootstrap session collects data for 14 days, with an addional day of 
+   * discarded data at the beginning, it is 15 days before the start of a
+   * normal sim. 
+   */
   @StateChange
   public Competition withSimulationBaseTime (Instant simulationBaseTime)
   {
@@ -265,11 +319,18 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * The time-compression factor for the simulation.
+   */
   public long getSimulationRate ()
   {
     return simulationRate;
   }
 
+  /**
+   * Fluent setter for time compression ratio. Default value is 720, which
+   * runs 1-hour timeslots in 5 real-time seconds.
+   */
   @StateChange
   public Competition withSimulationRate (long simulationRate)
   {
@@ -277,11 +338,22 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * Minimum value in milliseconds by which time advances in a simulation,
+   * or in other words, the size of a clock tick. Normally it's
+   * one timeslot. In the sim world, time is always at the beginning of
+   * a clock tick.
+   */
   public long getSimulationModulo ()
   {
     return simulationModulo;
   }
 
+  /**
+   * Fluent setter for simulation modulo. Most likely, most server components
+   * will not respond properly for values that are different from a timeslot
+   * length. Default value is 3600000 msec.
+   */
   @StateChange
   public Competition withSimulationModulo (long simulationModulo)
   {
@@ -289,23 +361,38 @@ public class Competition //implements Serializable
     return this;
   }
 
+  /**
+   * The Brokers who are participating in this Competion.
+   */
   public List<String> getBrokers ()
   {
     return brokers;
   }
-  
+
+  /**
+   * Adds a broker to the Competition. This only makes sense in the server
+   * environment.
+   */
   @StateChange
   public Competition addBroker (String brokerUsername)
   {
     brokers.add(brokerUsername);
     return this;
   }
-  
+
+  /**
+   * The list of customers (or more precisely, customer models) in the 
+   * simulation environment.
+   */
   public List<CustomerInfo> getCustomers ()
   {
     return customers;
   }
   
+  /**
+   * Adds a customer to the Competition. This only makes sense in the server
+   * environment.
+   */
   @StateChange
   public Competition addCustomer (CustomerInfo customer)
   {

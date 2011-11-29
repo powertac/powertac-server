@@ -32,6 +32,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class BrokerAuthentication
 {
   private Broker broker;
+  
+  /**
+   * Creates an instance
+   */
+  public BrokerAuthentication (Broker broker)
+  {
+    super();
+    this.broker = broker;
+  }
 
   /**
    * @return the broker

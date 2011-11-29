@@ -21,6 +21,10 @@ import org.powertac.common.xml.BrokerConverter;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 
+/**
+ * Superclass with common attributes for a number of transaction types.
+ * @author John Collins
+ */
 public abstract class BrokerTransaction
 {
   @XStreamAsAttribute
@@ -33,6 +37,10 @@ public abstract class BrokerTransaction
   /** The timeslot for which this meter reading is generated */
   protected Instant postedTime;
 
+  /**
+   * A BrokerTransaction contains a Broker and an Instant that represents the
+   * time when the transaction was posted.
+   */
   public BrokerTransaction (Instant when, Broker broker)
   {
     super();
@@ -45,11 +53,17 @@ public abstract class BrokerTransaction
     return id;
   }
 
+  /**
+   * The Broker to whom this Transaction applies.
+   */
   public Broker getBroker ()
   {
     return broker;
   }
 
+  /**
+   * When this Transaction was posted.
+   */
   public Instant getPostedTime ()
   {
     return postedTime;

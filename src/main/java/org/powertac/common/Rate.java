@@ -83,11 +83,18 @@ public class Rate //implements Serializable
     rateHistory = new TreeSet<HourlyCharge>();
   }
 
+  /**
+   * Returns the id of this Rate
+   */
   public long getId ()
   {
     return id;
   }
 
+  /**
+   * Returns the id of the TariffSpecification to which this Rate is
+   * attached.
+   */
   public long getTariffId ()
   {
     return tariffId;
