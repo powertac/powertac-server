@@ -33,9 +33,8 @@ public class ServerMessageReceiverTests
   @Test
   public void testOnMessage() throws Exception
   {
-    BrokerAuthentication ba = new BrokerAuthentication();
     Broker broker = new Broker("abc");
-    ba.setBroker(broker);
+    BrokerAuthentication ba = new BrokerAuthentication(broker);
     String xml = converter.toXML(ba);
     TextMessage message = mock(TextMessage.class);
     
