@@ -24,7 +24,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * This message is used for authenticating a broker with the server.
  * Broker sends this message to the server with its username and game-token which 
  * it receives from the web-app.  The game-token is ignored in research mode.
- * 
+ * If the login is accepted, a {@link BrokerAccept} message is returned.
  */
 
 @Domain
