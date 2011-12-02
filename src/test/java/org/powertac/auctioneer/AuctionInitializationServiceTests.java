@@ -5,9 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
@@ -18,12 +16,6 @@ public class AuctionInitializationServiceTests
 {
   PluginConfigRepo pluginConfigRepo;
   AuctionInitializationService svc;
-  
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception
