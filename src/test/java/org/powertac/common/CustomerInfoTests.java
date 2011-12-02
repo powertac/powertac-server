@@ -7,9 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
@@ -18,12 +16,6 @@ import com.thoughtworks.xstream.XStream;
 
 public class CustomerInfoTests
 {
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception

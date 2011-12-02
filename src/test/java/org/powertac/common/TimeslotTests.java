@@ -4,11 +4,9 @@ import static org.junit.Assert.*;
 
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
@@ -16,12 +14,6 @@ import com.thoughtworks.xstream.XStream;
 public class TimeslotTests
 {
   Instant baseTime;
-  
-  @BeforeClass
-  public static void setupLog ()
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
   
   @Before
   public void setUp () throws Exception

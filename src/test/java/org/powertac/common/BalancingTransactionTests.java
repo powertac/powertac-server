@@ -21,11 +21,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.repo.BrokerRepo;
@@ -42,19 +40,13 @@ import com.thoughtworks.xstream.XStream;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class BalancingTransactionTests
 {
   Instant baseTime;
   Broker broker;
   BrokerRepo brokerRepo;
-
-  @BeforeClass
-  public static void setUpLog () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception

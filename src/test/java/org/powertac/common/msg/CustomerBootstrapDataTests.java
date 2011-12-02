@@ -20,9 +20,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
@@ -41,7 +39,7 @@ import com.thoughtworks.xstream.XStream;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class CustomerBootstrapDataTests
 {
@@ -51,12 +49,6 @@ public class CustomerBootstrapDataTests
   private CustomerInfo customer;
 
   private double[] data;
-  
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception

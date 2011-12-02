@@ -6,20 +6,14 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
 
-public class WeatherForecastPredictionTest {
+public class WeatherForecastPredictionTest 
+{
 
-	
-	@BeforeClass
-	public static void setupLog() {
-		PropertyConfigurator.configure("src/test/resources/log.config");
-	}
 
 	@Before
 	public void setUp() throws Exception {

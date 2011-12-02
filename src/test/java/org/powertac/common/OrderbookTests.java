@@ -21,13 +21,11 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.SortedSet;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.repo.TimeslotRepo;
@@ -43,7 +41,7 @@ import com.thoughtworks.xstream.XStream;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class OrderbookTests
 {
@@ -53,12 +51,6 @@ public class OrderbookTests
   private Competition competition;
   private Timeslot timeslot;
   private Instant now;
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @AfterClass
   public static void saveLogs () throws Exception

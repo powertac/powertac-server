@@ -5,20 +5,12 @@ import static org.junit.Assert.*;
 import java.io.StringWriter;
 import java.util.Map;
 
-import org.apache.log4j.PropertyConfigurator;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.thoughtworks.xstream.XStream;
 
 public class PluginConfigTests
 {
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Test
   public void testGetRoleName ()

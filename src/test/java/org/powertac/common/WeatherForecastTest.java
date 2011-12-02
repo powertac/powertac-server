@@ -8,28 +8,22 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.thoughtworks.xstream.XStream;
 
-public class WeatherForecastTest {
+public class WeatherForecastTest 
+{
 
 	@Autowired
 	TimeService timeService;
 	
 	Timeslot ts1;
 	List<WeatherForecastPrediction> tlist;
-	@BeforeClass
-	public static void setupLog()
-	{
-		PropertyConfigurator.configure("src/test/resources/log.config");
-	}
 
 	@Before
 	public void setUp() throws Exception

@@ -35,7 +35,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
-public class XMLMessageConverterTests {
+public class XMLMessageConverterTests 
+{
   private static final Log log = LogFactory.getLog(XMLMessageConverterTests.class);
   
   private XMLMessageConverter converter;

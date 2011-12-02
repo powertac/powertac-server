@@ -22,13 +22,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
@@ -40,7 +38,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class TariffTests
 {
@@ -55,12 +53,6 @@ public class TariffTests
   private Instant start;
   private Instant exp;
   private Broker broker;
-
-  @BeforeClass
-  public static void setUpLog () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
   
   @AfterClass
   public static void saveLogs () throws Exception

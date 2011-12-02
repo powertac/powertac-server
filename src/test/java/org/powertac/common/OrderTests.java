@@ -5,13 +5,11 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.StringWriter;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.repo.BrokerRepo;
@@ -24,7 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.thoughtworks.xstream.XStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class OrderTests
 {
@@ -37,12 +35,6 @@ public class OrderTests
   private Broker broker;
   private Timeslot timeslot;
   private Instant now;
-  
-  @BeforeClass
-  public static void setUpLog () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @AfterClass
   public static void saveLogs () throws Exception
