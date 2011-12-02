@@ -15,7 +15,6 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,7 +23,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.common.repo.PluginConfigRepo;
+//import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -33,7 +32,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
+@ContextConfiguration(locations = {"classpath:cc-config.xml"})
 @DirtiesContext
 public class CompetitionControlServiceTests
 {
@@ -41,8 +40,8 @@ public class CompetitionControlServiceTests
   @Autowired
   private CompetitionControlService ccs;
   
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
+  //@Autowired
+  //private PluginConfigRepo pluginConfigRepo;
   
   @Autowired
   private BootstrapDataCollector collector;
@@ -53,7 +52,6 @@ public class CompetitionControlServiceTests
   @BeforeClass
   public static void setUpBeforeClass () throws Exception
   {
-    PropertyConfigurator.configure("src/test/resources/logger.config");
     Logger.getRootLogger().setLevel(Level.DEBUG);
   }
 

@@ -48,7 +48,7 @@ public class LogServiceTests
     new File("log/test.state").delete();
     
     // initialize the log service
-    logService = new LogService("src/test/resources/logger.config");
+    logService = new LogService("src/test/resources/log4j.properties");
   }
   
   // per-test setup

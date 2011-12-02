@@ -1,11 +1,9 @@
 package org.powertac.server;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -15,7 +13,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
@@ -26,7 +23,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/cc-config.xml"})
+@ContextConfiguration(locations = {"classpath:cc-config.xml"})
 @DirtiesContext
 public class WeatherServiceTest
 {
@@ -51,7 +48,6 @@ public class WeatherServiceTest
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-	  PropertyConfigurator.configure("src/test/resources/logger.config");
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
 	}
 
