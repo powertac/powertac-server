@@ -57,7 +57,6 @@ public class Genco
    *  back to nominal capacity */
   private double meanReversion = 0.2;
   
-  /** True if plant is currently operating */
   private boolean inOperation = true;
   
   /** Proportion of time plant is working */
@@ -89,27 +88,43 @@ public class Genco
     this.seed = randomSeedRepo.getRandomSeed(Genco.class.getName(), id, "update");
   }
 
-  // getters for testing purposes
+  /** True if plant is currently operating */
   public boolean isInOperation ()
   {
     return inOperation;
   }
 
+  /**
+   * Nominal or mean capacity of plant. This is the value toward which the
+   * mean-reverting random walk reverts.
+   */
   public double getNominalCapacity ()
   {
     return nominalCapacity;
   }
 
+  /**
+   * Ask price for energy from this plant.
+   */
   public double getCost ()
   {
     return cost;
   }
 
+  /**
+   * Leadtime to commit energy from this plant, expressed in number of
+   * timeslots. Plant will not send orders to the market within this
+   * leadtime unless it has at least partially committed power for the
+   * timeslot in question.
+   */
   public int getCommitmentLeadtime ()
   {
     return commitmentLeadtime;
   }
 
+  /**
+   * Current capacity, varies by a mean-reverting random walk.
+   */
   double getCurrentCapacity ()
   {
     return currentCapacity;
@@ -164,20 +179,6 @@ public class Genco
     }
   }
   
-  // redundant - this is already done by Accounting for all brokers.
-//  /**
-//   * Override Broker.receiveMessage(). The only message type we care about is
-//   * the market position.
-//   */
-//  public void receiveMessage (Object object)
-//  {
-//    if (object instanceof MarketPosition) {
-//      MarketPosition posn = (MarketPosition)object;
-//      addMarketPosition(posn, posn.getTimeslot());
-//    }
-//  }
-  
-  
   private void updateCapacity (double val)
   {
     if (variability > 0.0) {
@@ -206,7 +207,10 @@ public class Genco
     inOperation = op;
   }
 
-  // ------------------ configuration access methods -------------------
+  /**
+   * Configures a Genco from a PluginConfig, presumably one that was
+   * created by GencoInitializationService.
+   */
   void configure (PluginConfig config)
   {
     //this.config = config

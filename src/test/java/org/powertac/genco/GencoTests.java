@@ -21,14 +21,11 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
@@ -41,16 +38,13 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Tests for the Genco broker type
  * @author John Collins
  */
 //@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+//@ContextConfiguration(locations = {"classpath:test-config.xml"})
 public class GencoTests
 {
   //@Autowired
@@ -63,12 +57,6 @@ public class GencoTests
   private Instant start;
   private RandomSeedRepo mockSeedRepo;
   private RandomSeed seed;
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
   
   @Before
   public void setUp () throws Exception
