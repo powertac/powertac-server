@@ -53,11 +53,12 @@ public class FullCustomerConverter implements Converter
   public Object unmarshal (HierarchicalStreamReader reader,
                            UnmarshallingContext context)
   {
+    // this method does not seem to be used at all.
     //System.out.println("unmarshal");
     if (customerRepo == null)
       customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
     CustomerInfo ci = (CustomerInfo) context.convertAnother(null, CustomerInfo.class); 
-    customerRepo.add(ci);
+    //customerRepo.add(ci); // need to do this somewhere else...
     return ci;
   }
 }
