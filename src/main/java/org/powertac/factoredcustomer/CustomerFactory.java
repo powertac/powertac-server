@@ -22,7 +22,7 @@ import java.util.HashMap;
 /**
  * @author Prashant Reddy
  * Register CustomerCategory-specific creators.  Creators can be classes or closures 
- * that implement a @code{createModel()} method.
+ * that implement a createModel() method.
  */
 class CustomerFactory
 {
