@@ -27,12 +27,11 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 
 public class FullCustomerConverter implements Converter
 {
-  CustomerRepo customerRepo;
+  private CustomerRepo customerRepo = null;
   
   public FullCustomerConverter ()
   {
     super();
-    customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
   }
   
   @SuppressWarnings("rawtypes")
@@ -46,7 +45,7 @@ public class FullCustomerConverter implements Converter
                        MarshallingContext context)
   {
     CustomerInfo ci = (CustomerInfo)source;
-    customerRepo.add(ci);
+    //System.out.println("marshal " + ci.getName());
     context.convertAnother(ci);
   }
 
@@ -54,6 +53,11 @@ public class FullCustomerConverter implements Converter
   public Object unmarshal (HierarchicalStreamReader reader,
                            UnmarshallingContext context)
   {
-    return context.convertAnother(null, CustomerInfo.class);
+    //System.out.println("unmarshal");
+    if (customerRepo == null)
+      customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
+    CustomerInfo ci = (CustomerInfo) context.convertAnother(null, CustomerInfo.class); 
+    customerRepo.add(ci);
+    return ci;
   }
 }

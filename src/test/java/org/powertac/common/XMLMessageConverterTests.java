@@ -82,10 +82,14 @@ public class XMLMessageConverterTests {
     assertNull(customerRepo.findById(c1.getId()));
     
     String xml = converter.toXML(competition);
-        
+    //System.out.println(xml);
     Competition convertedCompetition = (Competition)converter.fromXML(xml);
     assertNotNull(convertedCompetition);
-    
-    assertEquals(c1, customerRepo.findById(c1.getId()));
+    assertNotNull("has customers", convertedCompetition.getCustomers());
+    assertEquals("one customer", 1, convertedCompetition.getCustomers().size());
+    CustomerInfo xc1 = convertedCompetition.getCustomers().get(0);
+    assertEquals("correct name", c1.getName(), xc1.getName());
+    // See issue #449
+    assertEquals("customer in repo", xc1, customerRepo.findById(c1.getId()));
   }
 }
