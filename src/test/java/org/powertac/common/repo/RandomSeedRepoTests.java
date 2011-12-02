@@ -8,9 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.RandomSeed;
@@ -20,18 +18,12 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/test-config.xml"})
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
 public class RandomSeedRepoTests
 {
   @Autowired
   private RandomSeedRepo randomSeedRepo;
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception
@@ -72,7 +64,7 @@ public class RandomSeedRepoTests
     assertEquals("two entries", 2, randomSeedRepo.size());
     assertEquals("find rs1", rs1,
                  randomSeedRepo.getRandomSeed("Foo", 3, "test"));
-    assertEquals("find rs1", rs2,
+    assertEquals("find rs2", rs2,
                  randomSeedRepo.getRandomSeed("Bar", 42, "more test"));
     assertEquals("still two entries", 2, randomSeedRepo.size());    
   }
@@ -90,11 +82,14 @@ public class RandomSeedRepoTests
       while ((line = input.readLine()) != null) {
         lines.add(line);
       }
-      assertEquals("three lines", 3, lines.size());
+      assertTrue("at least three lines", lines.size() >= 3);
+      int rsLines = 0;
       for (String entry : lines) {
         String[] fields = entry.split("::");
-        assertEquals("correct classname", seedClass, fields[1]);
+        if(seedClass.equals(fields[1]))
+          rsLines += 1;
       }
+      assertTrue("at least three RandomSeed lines", rsLines >= 3);
     }
     catch (IOException ioe) {
       fail("IOException reading seedfile:" + ioe.toString());

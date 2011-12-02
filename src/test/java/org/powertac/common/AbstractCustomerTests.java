@@ -22,12 +22,10 @@ import static org.mockito.Mockito.when;
 
 import javax.annotation.Resource;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -49,7 +47,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  * @author Antonios Chrysopoulos
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "file:src/test/resources/test-config.xml" })
+@ContextConfiguration(locations = { "classpath:test-config.xml" })
 @DirtiesContext
 public class AbstractCustomerTests
 {
@@ -78,12 +76,6 @@ public class AbstractCustomerTests
   TariffSpecification defaultTariffSpec;
   Tariff tariff;
   Tariff defaultTariff;
-
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp () throws Exception
