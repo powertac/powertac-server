@@ -18,17 +18,14 @@ package org.powertac.tariffmarket;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.powertac.common.Broker;
-//import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -44,7 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/tariff-test-config.xml"})
+@ContextConfiguration(locations = {"classpath:tariff-test-config.xml"})
 @DirtiesContext
 public class TariffSubscriptionTests
 {
@@ -62,12 +59,6 @@ public class TariffSubscriptionTests
   private CustomerInfo customer;
   //private AbstractCustomer customer;
   private Instant now;
-  
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @Before
   public void setUp()

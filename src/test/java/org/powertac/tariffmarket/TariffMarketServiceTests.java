@@ -25,13 +25,11 @@ import static org.mockito.Mockito.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -74,7 +72,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * @author John Collins
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/test/resources/tariff-test-config.xml"})
+@ContextConfiguration(locations = {"classpath:tariff-test-config.xml"})
 @DirtiesContext
 public class TariffMarketServiceTests
 {
@@ -117,12 +115,6 @@ public class TariffMarketServiceTests
   //private List<Object> txs;
   private List<Object> msgs;
   private Competition comp;
-  
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   @SuppressWarnings("rawtypes")
   @Before
