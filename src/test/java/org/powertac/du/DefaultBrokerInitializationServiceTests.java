@@ -24,9 +24,7 @@ import static org.mockito.Mockito.anyObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.PropertyConfigurator;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
@@ -40,13 +38,6 @@ public class DefaultBrokerInitializationServiceTests
 {
   PluginConfigRepo pluginConfigRepo;
   DefaultBrokerInitializationService serviceUnderTest;
-
-  /** Initializes log4j */
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    PropertyConfigurator.configure("src/test/resources/log.config");
-  }
 
   /** sets up before each test */
   @Before
