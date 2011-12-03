@@ -6,7 +6,14 @@
   <name>Power TAC common</name>
   <url>https://github.com/powertac/common</url>
   <description>domain types, services, utilities shared by Power TAC server and agents</description>
-  <dependencies>
+  
+   <parent>
+	<groupId>org.sonatype.oss</groupId>
+	<artifactId>oss-parent</artifactId>
+	<version>7</version>
+   </parent>
+
+   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
