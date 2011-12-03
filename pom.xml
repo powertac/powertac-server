@@ -12,7 +12,28 @@
 	<artifactId>oss-parent</artifactId>
 	<version>7</version>
    </parent>
-
+   
+   <scm>
+   	<connection>scm:git:git//github.com/powertac/common.git</connection>
+   	<developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
+   	<url>https://github.com/powertac/common</url>
+   </scm>
+   <settings>
+   		<servers>
+   			<server>
+   				<id>sonatype-nexus-snapshots</id>
+   				<username>ribei017</username>
+   				<password>Q2pMagQP</password>
+   			</server>
+   			<server>
+   				<id>sonatype-nexus-staging</id>
+   				<username>ribei017</username>
+   				<password>Q2pMagQP</password>
+   			</server>
+   		</servers>
+   		<server>
+   		</server>
+   </settings>
    <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
