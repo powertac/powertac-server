@@ -19,20 +19,14 @@
    	<url>https://github.com/powertac/common</url>
    </scm>
    <settings>
-   		<servers>
-   			<server>
-   				<id>sonatype-nexus-snapshots</id>
-   				<username>ribei017</username>
-   				<password>Q2pMagQP</password>
-   			</server>
-   			<server>
-   				<id>sonatype-nexus-staging</id>
-   				<username>ribei017</username>
-   				<password>Q2pMagQP</password>
-   			</server>
-   		</servers>
-   		<server>
+     <servers>
+       <server>
+   	     <id>sonatype-nexus-snapshots</id>
    		</server>
+   		<server>
+   		  <id>sonatype-nexus-staging</id>
+   	   </server>
+     </servers>
    </settings>
    <dependencies>
     <dependency>
