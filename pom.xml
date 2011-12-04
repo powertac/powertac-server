@@ -1,25 +1,25 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.powertac</groupId>
   <artifactId>common</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Power TAC common</name>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>Power TAC common domain model</name>
   <url>https://github.com/powertac/common</url>
   <description>domain types, services, utilities shared by Power TAC server and agents</description>
+  <packaging>jar</packaging>
+
+  <!-- pull in the sonatype repo definitions -->
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
   
-   <parent>
-	<groupId>org.sonatype.oss</groupId>
-	<artifactId>oss-parent</artifactId>
-	<version>7</version>
-   </parent>
-   
-   <scm>
-   	<connection>scm:git:git//github.com/powertac/common.git</connection>
-   	<developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
-   	<url>https://github.com/powertac/common</url>
-   </scm>
-   
-   <dependencies>
+  <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
@@ -123,4 +123,48 @@
       </plugin>
     </plugins>
   </build>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/common.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
+    <url>https://github.com/powertac/common</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>john</id>
+      <name>John Collins</name>
+      <email>jcollins.cs@gmail.com</email>
+      <url>http://www.cs.umn.edu/~jcollins</url>
+      <organization>University of Minnesota</organization>
+      <roles>
+	<role>game designer</role>
+	<role>architect</role>
+	<role>project manager</role>
+	<role>developer</role>
+      </roles>
+      <timezone>-6</timezone>
+    </developer>
+    <developer>
+      <id>wolf</id>
+      <name>Wolf Ketter</name>
+      <email>wolf.ketter@gmail.com</email>
+      <url>http://ketter.ws</url>
+      <organization>Rotterdam School of Management, Erasmus
+      University</organization>
+      <roles>
+	<role>project lead</role>
+	<role>game design</role>
+      </roles>
+    </developer>
+  </developers>
 </project>
