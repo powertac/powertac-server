@@ -3,7 +3,7 @@
   <parent>
     <artifactId>powertac-server</artifactId>
     <groupId>org.powertac</groupId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
   <artifactId>distribution-utility</artifactId>
@@ -14,12 +14,12 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${powertac.version}</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>${powertac.version}</version>
     </dependency>
     <dependency>
       <groupId>org.ojalgo</groupId>
