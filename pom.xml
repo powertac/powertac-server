@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.powertac</groupId>
   <artifactId>powertac-server</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Power TAC server</name>
   <url>http://www.powertac.org</url>
@@ -11,14 +11,14 @@
   <properties>
     <spring.version>3.0.6.RELEASE</spring.version>
     <junit.version>4.10</junit.version>
-    <powertac.version>0.0.1-SNAPSHOT</powertac.version>
+    <powertac.version>0.1.0-SNAPSHOT</powertac.version>
   </properties>
 
-  <!-- cs.umn.edu jenkins-based repo -->
+  <!-- Sonatype OSS repo -->
   <repositories>
     <repository>
-      <id>powertac-umn</id>
-      <url>http://tac04.cs.umn.edu:8080/plugin/repository/everything/</url>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
 
@@ -71,7 +71,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+      <version>0.1.0-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
