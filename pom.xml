@@ -14,7 +14,14 @@
     <powertac.version>0.1.0-SNAPSHOT</powertac.version>
   </properties>
 
-  <!-- Sonatype OSS repo -->
+  <!-- pull in the sonatype repo definitions for deployment -->
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
+  <!-- Sonatype OSS repo for resolving modules -->
   <repositories>
     <repository>
       <id>sonatype</id>
@@ -88,6 +95,18 @@
   <build>
     <finalName>server</finalName>
     <plugins>
+      <!-- compiler compliance level -->
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<version>2.3.2</version>
+	<configuration>
+	  <source>1.6</source>
+	  <target>1.6</target>
+	  <excludes>
+	  </excludes>
+	</configuration>
+      </plugin>
       <!-- Testing support -->
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
@@ -98,17 +117,6 @@
 	    <include>**/*Tests.java</include>
 	    <include>**/*Test.java</include>
 	  </includes>
-	</configuration>
-      </plugin>
-      <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<version>2.3.2</version>
-	<configuration>
-	  <source>1.6</source>
-	  <target>1.6</target>
-	  <excludes>
-	  </excludes>
 	</configuration>
       </plugin>
       <!-- Javadoc generation -->
@@ -134,6 +142,37 @@
     </plugins>
   </build>
 
+  <!-- sign releases - see
+    https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
+  <profiles>
+    <profile>
+      <id>release-sign-artifacts</id>
+      <activation>
+	<property>
+          <name>performRelease</name>
+          <value>true</value>
+	</property>
+      </activation>
+      <build>
+	<plugins>
+	  <plugin>
+	    <groupId>org.apache.maven.plugins</groupId>
+	    <artifactId>maven-gpg-plugin</artifactId>
+	    <executions>
+	      <execution>
+		<id>sign-artifacts</id>
+		<phase>verify</phase>
+		<goals>
+		  <goal>sign</goal>
+		</goals>
+	      </execution>
+	    </executions>
+	  </plugin>
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <organization>
     <name>Power TAC</name>
     <url>http://www.powertac.org</url>
@@ -142,4 +181,48 @@
     <system>github</system>
     <url>https://github.com/powertac/powertac-server/issues</url>
   </issueManagement>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/common.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
+    <url>https://github.com/powertac/common</url>
+  </scm>
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>john</id>
+      <name>John Collins</name>
+      <email>jcollins.cs@gmail.com</email>
+      <url>http://www.cs.umn.edu/~jcollins</url>
+      <organization>University of Minnesota</organization>
+      <roles>
+	<role>game designer</role>
+	<role>architect</role>
+	<role>project manager</role>
+	<role>developer</role>
+      </roles>
+      <timezone>-6</timezone>
+    </developer>
+    <developer>
+      <id>wolf</id>
+      <name>Wolf Ketter</name>
+      <email>wolf.ketter@gmail.com</email>
+      <url>http://ketter.ws</url>
+      <organization>Rotterdam School of Management, Erasmus
+      University</organization>
+      <roles>
+	<role>project lead</role>
+	<role>game design</role>
+      </roles>
+    </developer>
+  </developers>
 </project>
