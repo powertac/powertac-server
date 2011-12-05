@@ -94,6 +94,7 @@ public class AuctionService
   private double defaultMargin = 0.05; // used when one side has no limit price
   private double defaultClearingPrice = 40.00; // used when no limit prices
   private double sellerSurplusRatio;
+  private double epsilon = 1e-8;
 
   private List<Order> incoming;
   
@@ -267,9 +268,9 @@ public class AuctionService
           bid.executionMWh += transfer;
           ask.executionMWh -= transfer;
         }
-        if (bid.getMWh() - bid.executionMWh <= 0.0)
+        if (bid.getMWh() - bid.executionMWh <= epsilon)
           bids.remove(bid);
-        if (ask.getMWh() - ask.executionMWh >= 0.0)
+        if (ask.getMWh() - ask.executionMWh >= -epsilon)
           asks.remove(ask);
       }
       double clearingPrice;
