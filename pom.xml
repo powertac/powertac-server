@@ -24,9 +24,7 @@
     <dependency>
       <groupId>org.ojalgo</groupId>
       <artifactId>ojalgo</artifactId>
-      <version>30.6</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/../distribution-utility/lib/ojalgo-30.6.jar</systemPath>
+      <version>31.0</version>
     </dependency>
   </dependencies>
 </project>
