@@ -1,0 +1,9 @@
+This directory is used for pushing an instance of ojalgo.jar to maven
+central. The process is described in detail at
+https://docs.sonatype.org/display/Repository/Uploading+3rd-party+Artifacts+to+The+Central+Repository.
+
+To use this, you need to set up your gpg signature, and you need to
+pull down the full compiled and packaged download from
+http://ojalgo.org/getting.html, then create the source and javadoc
+jars from this content, ideally in the target directory. Then sign
+them, create the bundle jar, and post it to sonatype.
