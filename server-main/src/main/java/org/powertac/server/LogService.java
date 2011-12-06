@@ -57,6 +57,7 @@ public class LogService
 {
   //private String configFilename = "src/main/resources/log.config";
   private String filenamePrefix = "powertac";
+  private String outputPath = "log"; //added
   
   public LogService ()
   {
@@ -70,6 +71,13 @@ public class LogService
     PropertyConfigurator.configure(config);
   }
   
+  	//added:
+	public void setOutputPath(String outputPath) 
+	{
+	    if(outputPath!=null)
+	    this.outputPath = outputPath;
+	}
+  
   /**
    * Sets the filename prefix. This should be set to the hostname
    * or some other distinguishing value.
@@ -79,37 +87,57 @@ public class LogService
     filenamePrefix = prefix;
   }
   
-  public Logger getStateLogger ()
+ //modified 
+  public Logger getStateLogger() 
   {
-    return Logger.getLogger("State");
+	    Logger stateLogger = Logger.getLogger("State");
+	    //Don't send logs from this logger to "higher" loggers (root, for instance):
+	    stateLogger.setAdditivity(false);   //helps to avoid writing logs on the web-app console
+	    return stateLogger;
   }
-
-  public void startLog (long id)
+  //added
+  private Logger getPowertacLogger(){
+	    Logger powertacLogger = Logger.getLogger("org.powertac");
+	    //Don't send logs from this logger to "higher" loggers (root, for instance):
+	    powertacLogger.setAdditivity(false);
+	     return powertacLogger;
+  }
+  //modified
+  public void startLog(long id) 
   {
-    Logger root = Logger.getRootLogger();
-    Logger state = getStateLogger();
-    root.removeAllAppenders();
-    state.removeAllAppenders();
-    try {
-      PatternLayout logLayout = new PatternLayout("%r %-5p %c{2}: %m%n");
-      FileAppender logFile
-          = new FileAppender(logLayout, ("log/" + filenamePrefix + id + ".trace"), false);
-      root.addAppender(logFile);
-      PatternLayout stateLayout = new PatternLayout("%r:%m%n");
-      FileAppender stateFile
-          = new FileAppender(stateLayout, ("log/" + filenamePrefix + id + ".state"), false);
-      state.addAppender(stateFile);
-    }
-    catch (IOException ioe) {
-      System.out.println("Can't open log file");
-      System.exit(0);
-    }
-  }
+	   
+		
+		Logger state = getStateLogger();
+		getPowertacLogger().removeAllAppenders();
+		state.removeAllAppenders();
+		try {
+		 PatternLayout logLayout = new PatternLayout("%r %-5p %c{2}: %m%n");
+		 
+		 
+		String traceAppenderName= outputPath+ "/" + filenamePrefix + id +".trace";
+		 System.out.print(traceAppenderName);
+		
+		 FileAppender logFile
+		 = new FileAppender(logLayout, traceAppenderName, false);
+		 getPowertacLogger().addAppender(logFile); 
+		 
+		 PatternLayout stateLayout = new PatternLayout("%r:%m%n");
+		 
+		 String stateAppenderName= outputPath+ "/" + filenamePrefix + id + ".state";
+		 FileAppender stateFile
+		 = new FileAppender(stateLayout, stateAppenderName, false);
+		 state.addAppender(stateFile);
+		 }
+		 catch (IOException ioe) {
+		 System.out.println("Can't open log file");
+		 System.exit(0);
+		 }
+	}
 
   public void stopLog ()
   {
-    stopLogger(Logger.getRootLogger());
-    stopLogger(Logger.getLogger("State"));
+	  stopLogger(getPowertacLogger()); //modified
+	  stopLogger(Logger.getLogger("State"));
   }
   
   @SuppressWarnings("unchecked")
