@@ -18,6 +18,7 @@ package org.powertac.accounting;
 
 import static org.junit.Assert.*;
 import static org.powertac.util.ListTools.*;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
@@ -51,6 +52,7 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -91,11 +93,8 @@ public class AccountingServiceTests
   @Autowired
   private BrokerProxy mockProxy;
   
-  //@Autowired
-  //private CompetitionControl mockCompetitionControl;
-  
-  //@Autowired
-  //private RandomSeedRepo mockRandom;
+  @Autowired
+  private ServerProperties mockServerProperties;
 
   private Competition comp;
   private CustomerInfo customerInfo1;
@@ -108,6 +107,7 @@ public class AccountingServiceTests
   private Broker jim;
   //private int nameCounter = 0;
 
+  @SuppressWarnings("rawtypes")
   @Before
   public void setUp() 
   {
@@ -117,6 +117,7 @@ public class AccountingServiceTests
     brokerRepo.recycle();
     pluginConfigRepo.recycle();
     reset(mockProxy);
+    reset(mockServerProperties);
 
     // create a Competition, needed for initialization
     comp = Competition.newInstance("accounting-test");
@@ -176,9 +177,25 @@ public class AccountingServiceTests
     timeslotRepo.makeTimeslot(now);
     timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
     timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
+
+    // Set up serverProperties mock
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        return args[1];
+      }
+    }).when(mockServerProperties).getIntegerProperty(anyString(), anyInt());
+
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        return args[1];
+      }
+    }).when(mockServerProperties).getDoubleProperty(anyString(), anyDouble());
   }
   
-  private void initializeService () {
+  private void initializeService () 
+  {
     accountingInitializationService.setDefaults();
     accountingInitializationService.initialize(comp, new ArrayList<String>());
   }

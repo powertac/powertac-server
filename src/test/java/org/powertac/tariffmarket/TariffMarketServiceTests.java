@@ -18,7 +18,10 @@ package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
 //import static org.powertac.util.ListTools.*;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
@@ -45,6 +48,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffSpecification;
@@ -107,6 +111,9 @@ public class TariffMarketServiceTests
   @Autowired
   private BrokerProxy mockProxy;
   
+  @Autowired
+  private ServerProperties mockServerProperties;
+  
   private TariffSpecification tariffSpec; // instance var
 
   private Instant start;
@@ -127,6 +134,7 @@ public class TariffMarketServiceTests
     pluginConfigRepo.recycle();
     reset(mockProxy);
     reset(accountingService);
+    reset(mockServerProperties);
 
     //txs = new ArrayList<BrokerTransaction>();
     msgs = new ArrayList<Object>();
@@ -170,6 +178,21 @@ public class TariffMarketServiceTests
         return null;
       }
     }).when(mockProxy).broadcastMessages(anyList());
+
+    // Set up serverProperties mock
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        return args[1];
+      }
+    }).when(mockServerProperties).getIntegerProperty(anyString(), anyInt());
+
+    doAnswer(new Answer() {
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        return args[1];
+      }
+    }).when(mockServerProperties).getDoubleProperty(anyString(), anyDouble());
     
     // init time service
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();

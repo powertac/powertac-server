@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,13 +38,28 @@ public class TariffMarketInitializationService
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
   
+  @Autowired
+  private ServerProperties serverProps;
+
   public void setDefaults ()
   {
+    double publicationFee =
+        serverProps.getDoubleProperty("tariffMarket.publicationFee", -100.0);
+    double revocationFee =
+        serverProps.getDoubleProperty("tariffMarket.revocationFee", -100.0);
+    int publicationInterval =
+        serverProps.getIntegerProperty("tariffMarket.publicationInterval", 6);
+    int publicationOffset =
+        serverProps.getIntegerProperty("tariffMarket.publicationOffset", 1);
     pluginConfigRepo.makePluginConfig("TariffMarket", "")
-            .addConfiguration("tariffPublicationFee", "-100.0")
-            .addConfiguration("tariffRevocationFee", "-100.0")
-            .addConfiguration("publicationInterval", "6")
-            .addConfiguration("publicationOffset", "1");
+            .addConfiguration("tariffPublicationFee",
+                              Double.toString(publicationFee))
+            .addConfiguration("tariffRevocationFee",
+                              Double.toString(revocationFee))
+            .addConfiguration("publicationInterval",
+                              Integer.toString(publicationInterval))
+            .addConfiguration("publicationOffset",
+                              Integer.toString(publicationOffset));
   }
   
   public String initialize (Competition competition, List<String> completedInits)

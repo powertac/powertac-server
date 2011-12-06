@@ -22,6 +22,12 @@
   <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
   </bean>      
+  
+  <bean id="serverPropertiesService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.ServerProperties" />
+  </bean>
 
   <context:annotation-config />
   <!-- need to turn this off to prevent auto-discovery of the real accounting service

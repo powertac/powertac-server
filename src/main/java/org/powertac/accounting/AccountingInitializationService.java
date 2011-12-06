@@ -22,6 +22,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,9 @@ public class AccountingInitializationService
   private RandomSeedRepo randomSeedService;
   private RandomSeed randomGen;
   
+  @Autowired
+  private ServerProperties serverProps;
+  
   private double minInterest = 0.04;
   private double maxInterest = 0.12;
   
@@ -54,11 +58,11 @@ public class AccountingInitializationService
   {
     randomGen = randomSeedService.getRandomSeed("AccountingInitializationService",
                                                  0l, "interest");
-    //randomGen = new Random(randomSeed);
 
     double interest = (minInterest + 
 		       (randomGen.nextDouble() *
 			(maxInterest - minInterest)));
+    interest = serverProps.getDoubleProperty("accounting.interest", interest);
 
     log.info("bank interest: " + interest);
     pluginConfigRepo.makePluginConfig("AccountingService", "init")
