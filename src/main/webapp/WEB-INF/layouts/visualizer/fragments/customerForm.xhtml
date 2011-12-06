@@ -1,0 +1,39 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:fragment xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	
+		<h:form id="carouselForm">
+			<p:outputPanel id="customersPanel">
+				<p:carousel id="customersCurousel" headerText="Customers"
+					rendered="#{customerBackingBean.allowCarouselRendering}"
+					value="#{customers}" var="customer" rows="2" circular="true">
+					<h:panelGrid columns="2" style="width:100%">
+
+						<h:outputLabel value="Name: " />
+						<h:outputText value="#{customer.name}" />
+
+						<h:outputLabel value="Customer Type: " />
+						<h:outputText value="#{customer.customerType}" />
+
+						<h:outputLabel value="Population: " />
+						<h:outputText value="#{customer.population}" />
+
+					</h:panelGrid>
+
+				</p:carousel>
+			</p:outputPanel>
+			<p:poll widgetVar="customersPoller" id="customerPollerID"
+				interval="15" autoStart="true" update="customersPanel"
+				oncomplete="checkPoller()" />
+
+
+		</h:form>
+
+
+
+</ui:fragment>

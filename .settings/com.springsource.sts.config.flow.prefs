@@ -1,0 +1,4 @@
+#Tue Dec 06 19:42:01 CET 2011
+//com.springsource.sts.config.flow.coordinates\:http\://www.springframework.org/schema/webflow\:/visualizer/src/main/webapp/WEB-INF/flows/competitioncontrol/flow.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<graph>\r\n<element clazz\="ViewStateModelElement" type\="view-state">\r\n<structure end\="1644" endstart\="1631" start\="625" startend\="647"/>\r\n<bounds height\="88" width\="90" x\="19" y\="17"/>\r\n</element>\r\n</graph>
+//com.springsource.sts.config.flow.coordinates\:http\://www.springframework.org/schema/webflow\:/visualizer/src/main/webapp/WEB-INF/flows/visualizer/flow.xml=<?xml version\="1.0" encoding\="UTF-8"?>\r\n<graph>\r\n<element clazz\="ViewStateModelElement" type\="view-state">\r\n<structure end\="505" endstart\="492" start\="362" startend\="384"/>\r\n<bounds height\="88" width\="90" x\="19" y\="17"/>\r\n</element>\r\n</graph>
+eclipse.preferences.version=1

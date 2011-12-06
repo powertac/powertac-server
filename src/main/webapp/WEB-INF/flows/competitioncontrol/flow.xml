@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
+	parent="parent-flow">
+
+	<!--
+		Also see ../parent-flow.xml. 
+	-->
+
+	<var name="message" class="java.lang.String" />
+	<!-- <var name="visualizerService" class="org.powertac.visualizer.services.VisualizerService"/> -->
+		
+	<on-start>
+		<set name="flashScope.message" value="'output from competition control methods'" />
+	</on-start>
+
+	<view-state id="view">
+		<transition on="poll">
+			<evaluate expression="visualizerBean.getMessageCount()" result="requestScope.message"/>
+		</transition>
+		<transition on="start">
+			<set name="requestScope.message" value="'Starting...'" />
+		</transition>
+		<transition on="stop">
+			<set name="requestScope.message" value="'Stopped...'" />
+		</transition>
+		
+		<transition on="preGame">
+			<evaluate expression="webCompetitionControlService.preGame()" result="requestScope.message"></evaluate>
+		</transition>	
+		
+		<transition on="configPlugins">
+			<evaluate expression="webCompetitionControlService.configPlugins()" result="requestScope.message"></evaluate>
+		</transition>
+		
+		<transition on="runOnce">
+			<evaluate expression="webCompetitionControlService.runOnce()" result="requestScope.message"></evaluate>
+		</transition>
+		
+		<transition on="stopCompetition">
+			<evaluate expression="webCompetitionControlService.stop()" result="requestScope.message"></evaluate>
+		</transition>
+								
+		
+	</view-state>
+
+</flow>

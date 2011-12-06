@@ -1,0 +1,125 @@
+<profiles>
+
+  <profile name="DowntownHouseholds">
+    <category entityType="RESIDENTIAL" customerRole="CONSUMER" modelType="POPULATION" />
+    <population value="10000" />
+    <multiContracting value="true" />
+    <canNegotiate value="false" />
+    <capacity id="1" type="CONSUMPTION" subType="NONE" specType="BEHAVIORS" 
+	      description="Typical Pittsburgh households.">
+      <baseBenchmarkRate value="0.08" />
+      <!--baseTotalCapacity probability="UNIFORM" low="200000" high="400000" /-->
+      <baseTotalCapacity probability="NORMAL" mean="300000" stdDev="5000" />
+      <!--baseTotalCapacity probability="LOGNORMAL" expMean="300000" expStdDev="1.2" /-->
+      <!--baseTotalCapacity probability="INTERVAL" mean="300000" stdDev="50000" low="200000" high="400000" /-->
+      <elasticityOfCapacity function="1.1: 0.9, 1.2: 0.8, 1.3: 0.75" /><!-- each pair is [rate%, capacity%] -->
+    </capacity>
+    <tariffUtility criteria="BEST_VALUE" allocationRules="0.7:0.3, 0.5:0.3:0.2, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05" />
+    <!--tariffSwitchingInertia probability="POINTMASS" value="0.6" /-->
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+  </profile>
+
+  <profile name="HighlandBusinesses">
+    <category entityType="COMMERCIAL" customerRole="CONSUMER" modelType="POPULATION" />
+    <population value="400" />
+    <multiContracting value="true" />
+    <canNegotiate value="false" />
+    <capacity id="1" type="CONSUMPTION" subType="NONE" specType="BEHAVIORS" 
+	      description="Eco-conscious Pittsburgh shopping area.">
+      <baseBenchmarkRate value="0.10" />
+      <!--baseTotalCapacity probability="UNIFORM" low="150000" high="900000" /-->
+      <!--baseTotalCapacity probability="LOGNORMAL" expMean="500000" expStdDev="1.2" /-->
+      <baseCapacityPerCustomer probability="LOGNORMAL" expMean="60" expStdDev="1.5" />
+      <elasticityOfCapacity function="1.2: 0.9, 1.4: 0.8" /><!-- each pair is [rate%: capacity%] -->
+    </capacity>
+    <tariffUtility criteria="PREFER_GREEN" allocationRules="0.6:0.4, 0.4:0.35:0.25, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05" />
+    <tariffSwitchingInertia probability="NORMAL" mean="0.2" stdDev="0.05" />
+  </profile>
+
+  <profile name="JennywoodPark">
+    <category entityType="COMMERCIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
+    <population value="1" />
+    <multiContracting value="false" />
+    <canNegotiate value="false" />
+    <capacity id="1" type="PRODUCTION" subType="WIND" specType="BEHAVIORS" 
+	      description="Excess solar generation at amusement park.">
+      <baseBenchmarkRate value="-0.07" />
+      <baseTotalCapacity probability="UNIFORM" low="10000" high="20000" />
+      <elasticityOfCapacity function="0.7: 0.8, 0.5: 0.5" /><!-- each pair is [rate%: capacity%] -->
+    </capacity>
+    <tariffUtility criteria="PREFER_GREEN" allocationRules="" />
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.1" stdDev="0.05" low="0" high="1" />
+  </profile>
+
+  <profile name="MorewoodHouseholds">
+    <category entityType="RESIDENTIAL" customerRole="CONSUMER" modelType="POPULATION" />
+    <population value="1000" />
+    <multiContracting value="true" />
+    <canNegotiate value="false" />
+    <capacity id="1" type="CONSUMPTION" subType="NONE" specType="BEHAVIORS" 
+	      description="Typical Pittsburgh households.">
+      <baseBenchmarkRate value="0.08" />
+      <baseTotalCapacity probability="NORMAL" mean="30000" stdDev="5000" /><!-- kWh per day -->
+      <!--baseCapacityPerCustomer probability="NORMAL" mean="30" stdDev="5" /--><!-- kWh per day -->
+      <elasticityOfCapacity function="1.2: 0.9, 1.3: 0.8, 1.4: 0.75" /><!-- each pair is [rate%, capacity%] -->
+    </capacity>
+    <tariffUtility criteria="PREFER_GREEN" allocationRules="0.7:0.3, 0.5:0.3:0.2, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05" />
+    <!--tariffSwitchingInertia probability="POINTMASS" value="0.6" /-->
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+  </profile>
+  
+  <profile name="SunnysideSolar">
+    <category entityType="INDUSTRIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
+    <population value="2" />
+    <multiContracting value="false" />
+    <canNegotiate value="true" />
+    <capacity id="1" type="PRODUCTION" subType="SOLAR" specType="BEHAVIORS" 
+	      description="Multiple solar installations.">
+      <baseBenchmarkRate value="-0.07" />
+      <baseCapacityPerCustomer probability="NORMAL" mean="80000" stdDev="20000" /><!-- kWh per day -->
+      <elasticityOfCapacity function="0.8: 0.8, 0.5: 0.7" /><!-- each pair is [rate%: capacity%] -->
+    </capacity>
+    <tariffUtility criteria="BEST_VALUE" allocationRules="" />
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.1" stdDev="0.05" low="0" high="1" />
+  </profile>
+  
+  <profile name="UniFacilities">
+    <category entityType="COMMERCIAL" customerRole="HYBRID" modelType="INDIVIDUAL" />
+    <population value="1" />
+    <multiContracting value="false" />
+    <canNegotiate value="true" />
+    <capacity id="1" type="CONSUMPTION" subType="NONE" specType="BEHAVIORS" 
+	      description="Consumption by campus facilities.">
+      <baseBenchmarkRate value="0.08" />
+      <baseCapacityPerCustomer probability="NORMAL" mean="150000" stdDev="10000" /><!-- kWh per day -->
+      <!--baseCapacityPerCustomer probability="POINTMASS" value="150000" /--><!-- kWh per day -->
+      <elasticityOfCapacity function="1.2: 0.8, 1.3: 0.75" /><!-- each pair is [rate%, capacity%] -->
+    </capacity>
+    <capacity id="2" type="PRODUCTION" subType="WIND" specType="BEHAVIORS" 
+	      description="10 wind turbines at 10 kWh per day.">
+      <baseBenchmarkRate value="-0.07"  />
+      <baseCapacityPerCustomer probability="NORMAL" mean="20000" stdDev="5000" /><!-- kWh per day -->
+      <elasticityOfCapacity function="0.7: 0.5" /><!-- each pair is [rate%: capacity%] -->
+    </capacity>
+    <tariffUtility criteria="PREFER_GREEN" allocationRules="" />
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.2" stdDev="0.05" low="0" high="1" />
+  </profile>
+
+  <profile name="WindmillCoOp">
+    <category entityType="INDUSTRIAL" customerRole="PRODUCER" modelType="INDIVIDUAL" />
+    <population value="50" />
+    <multiContracting value="true" />
+    <canNegotiate value="false" />
+    <capacity id="1" type="PRODUCTION" subType="WIND" specType="BEHAVIORS" 
+	      description="Cooperative of small windmill owners.">
+      <baseBenchmarkRate value="-0.07" />
+      <baseTotalCapacity probability="UNIFORM" low="10000" high="20000" />
+      <elasticityOfCapacity function="0.8: 0.8, 0.75: 0.7" /><!-- each pair is [rate%: capacity%] -->
+    </capacity>
+    <tariffUtility criteria="BEST_VALUE" allocationRules="0.75:0.25" />
+    <tariffSwitchingInertia probability="INTERVAL" mean="0.1" stdDev="0.05" low="0" high="1" />
+  </profile>
+
+</profiles>
+
+
