@@ -1,7 +1,9 @@
 package org.powertac.auctioneer;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
@@ -26,6 +28,7 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +66,9 @@ public class AuctionServiceTests
   @Autowired
   private CompetitionControl mockControl;
   
+  @Autowired
+  private ServerProperties mockServerProps;
+  
   private Competition competition;
   private Broker b1;
   private Broker b2;
@@ -86,11 +92,20 @@ public class AuctionServiceTests
     timeslotRepo.recycle();
     reset(mockProxy);
     reset(mockControl);
+    reset(mockServerProps);
     accountingArgs = new ArrayList<Object[]>();
     brokerMsgs = new ArrayList<Object>();
     
     // create a Competition, needed for initialization
     competition = Competition.newInstance("auctioneer-test");
+
+    // mock the ServerProperties
+    doAnswer(new Answer<Double>() {
+      public Double answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        return (Double)args[1];
+      }
+    }).when(mockServerProps).getDoubleProperty(anyString(), anyDouble());
 
     // Configure the AuctionService
     auctionInitializationService.setDefaults();

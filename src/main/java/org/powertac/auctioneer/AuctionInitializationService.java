@@ -21,6 +21,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,12 +36,19 @@ public class AuctionInitializationService implements InitializationService
 
   @Autowired
   private AuctionService auctionService;
+  
+  @Autowired
+  private ServerProperties serverProps;
 
   public void setDefaults ()
   {
+    double sellerSurplus =
+        serverProps.getDoubleProperty("auctioneer.sellerSurplus", 0.5);
+    double defaultMargin =
+        serverProps.getDoubleProperty("auctioneer.defaultMargin", 0.2);
     pluginConfigRepo.makePluginConfig("Auctioneer", "init")
-      .addConfiguration("sellerSurplus", "0.5")
-      .addConfiguration("defaultMargin", "0.2");
+      .addConfiguration("sellerSurplus", Double.toString(sellerSurplus))
+      .addConfiguration("defaultMargin", Double.toString(defaultMargin));
   }
 
   public String initialize (Competition competition, List<String> completedInits)

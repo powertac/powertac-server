@@ -21,6 +21,12 @@
     <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
   </bean>
 
+  <bean id="serverPropertiesService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.ServerProperties" />
+  </bean>
+
   <context:annotation-config />
 
   <bean id="auctionService"
