@@ -114,7 +114,11 @@
   </bean>
   
   <bean id="weatherService"
-  		class="org.powertac.server.WeatherService">
+  	class="org.powertac.server.WeatherService">
+  </bean>
+  
+  <bean id="serverPropertiesService"
+        class="org.powertac.server.ServerPropertiesService">
   </bean>
 
   <bean id="springApplicationContext"

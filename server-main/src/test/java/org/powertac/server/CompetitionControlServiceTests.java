@@ -15,6 +15,11 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -120,4 +125,14 @@ public class CompetitionControlServiceTests
     //fail("Not yet implemented");
   }
 
+  @Test
+  public void testConfig ()
+  {
+    DateTimeZone.setDefault(DateTimeZone.UTC);
+    Instant val = new DateTime(2011, 1, 26, 0, 0, 0, 0).toInstant();
+    String dateString = "2011-1-26";
+    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+    DateTime dt = fmt.parseDateTime(dateString);
+    assertEquals("correct time translation", val, dt.toInstant());
+  }
 }
