@@ -12,6 +12,14 @@
   <name>Power TAC default broker</name>
   <description>Simulates holder of all customer tariffs prior to market opening</description>
 
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.powertac</groupId>
