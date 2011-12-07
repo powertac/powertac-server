@@ -14,6 +14,14 @@
   Top-down statistical model framework for different classes of customers.
   </description>
 
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
     	<groupId>org.powertac</groupId>
