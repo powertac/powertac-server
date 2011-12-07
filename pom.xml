@@ -12,6 +12,14 @@
   <name>Power TAC wholesale market</name>
   <description>simulation of day-ahead wholesale market for trading electric power</description>
 
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.powertac</groupId>
