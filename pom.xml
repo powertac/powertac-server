@@ -11,6 +11,14 @@
   <name>Power TAC server interface</name>
   <description>interfaces and domain types shared by multiple server components</description>
 
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework</groupId>
