@@ -2,11 +2,13 @@
 
 ## Introduction
 
-Power TAC is a competitive simulation to study retail electric power markets, especially as they relate to managing distributed renewable power sources. For more information, see http://www.powertac.org.
+Power TAC is a competitive simulation designed to support the study of retail electric power markets, especially as they relate to managing distributed renewable power sources. For more information, see http://www.powertac.org.
 
 ## Getting Started 
 
-Go to the Power TAC wiki at
+
+
+Go to the Power TAC developer's wiki at
 https://github.com/powertac/powertac-server/wiki for information on design, development, and deployment of the Power TAC simulation server.
 
 ## PowerTAC Continuous Integration Server
