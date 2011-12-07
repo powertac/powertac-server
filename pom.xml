@@ -32,4 +32,12 @@
     <module>server-main</module>
     <module>factored-customer</module>
   </modules>
+
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
 </project>
