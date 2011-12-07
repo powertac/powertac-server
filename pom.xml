@@ -12,6 +12,14 @@
   <name>Power TAC household customer</name>
   <description>Bottom-up model of a household energy customer</description>
 
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
     	<groupId>org.powertac</groupId>
