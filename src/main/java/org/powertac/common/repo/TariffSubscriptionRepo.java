@@ -74,7 +74,8 @@ public class TariffSubscriptionRepo implements DomainRepo
   }
 
   /** Returns the list of subscriptions for a given customer. */
-  public List<TariffSubscription> findSubscriptionsForCustomer (CustomerInfo customer)
+  public List<TariffSubscription>
+  findSubscriptionsForCustomer (CustomerInfo customer)
   {
     // new list allows caller to smash the return value
     List<TariffSubscription> result = customerMap.get(customer);
@@ -84,15 +85,32 @@ public class TariffSubscriptionRepo implements DomainRepo
       return new ArrayList<TariffSubscription>(result);
   }
 
+  /**
+   * Returns the list of active subscriptions for a given customer.
+   * These are subscriptions that have non-zero committed-customer counts.
+   */
+  public List<TariffSubscription>
+  findActiveSubscriptionsForCustomer (CustomerInfo customer)
+  {
+    List<TariffSubscription> result = new ArrayList<TariffSubscription>();
+    for (TariffSubscription sub : findSubscriptionsForCustomer(customer)) {
+      if (sub.getCustomersCommitted() > 0)
+        result.add(sub);
+    }
+    return result;
+  }
+
   /** Adds an existing subscription to the repo. */
   public TariffSubscription add (TariffSubscription subscription)
   {
-    storeSubscription(subscription, subscription.getCustomer(), subscription.getTariff());
+    storeSubscription(subscription,
+                      subscription.getCustomer(),
+                      subscription.getTariff());
     return subscription;
   }
 
-  public TariffSubscription findSubscriptionForTariffAndCustomer (Tariff tariff,
-                                                                  CustomerInfo customer)
+  public TariffSubscription
+  findSubscriptionForTariffAndCustomer (Tariff tariff, CustomerInfo customer)
   {
     List<TariffSubscription> subs = findSubscriptionsForTariff(tariff);
     if (subs == null)
@@ -110,7 +128,8 @@ public class TariffSubscriptionRepo implements DomainRepo
    * returned subscriptions are removed from the repository, so a second call
    * in the same timeslot cycle will return an empty list.
    */
-  public List<TariffSubscription> getRevokedSubscriptionList (CustomerInfo customer)
+  public List<TariffSubscription>
+  getRevokedSubscriptionList (CustomerInfo customer)
   {
     List<TariffSubscription> result = new ArrayList<TariffSubscription>();
     for (TariffSubscription sub : findSubscriptionsForCustomer(customer)) {
@@ -140,8 +159,9 @@ public class TariffSubscriptionRepo implements DomainRepo
     customerMap.get(subscription.getCustomer()).remove(subscription);
   }
 
-  private TariffSubscription findSubscriptionForCustomer (List<TariffSubscription> subs,
-                                                          CustomerInfo customer)
+  private TariffSubscription
+  findSubscriptionForCustomer (List<TariffSubscription> subs,
+                               CustomerInfo customer)
   {
     if (subs == null)
       return null;
