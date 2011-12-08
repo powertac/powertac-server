@@ -28,37 +28,35 @@
     </dependency>
 
     <!-- ActiveMQ -->
-    <dependency>
+    <dependency>    
       <groupId>org.apache.activemq</groupId>
-      <artifactId>com.springsource.org.apache.activemq</artifactId>
-      <version>5.3.0</version>
+      <artifactId>activemq-core</artifactId>
+      <version>5.5.1</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.xbean</groupId>
-      <artifactId>com.springsource.org.apache.xbean.spring</artifactId>
-      <version>3.6.0</version>
+	  <groupId>org.apache.xbean</groupId>
+	  <artifactId>xbean-spring</artifactId>
+	  <version>3.6</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>com.springsource.javax.management.j2ee</artifactId>
-      <version>1.0.1</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.4</version>
     </dependency>
 
-    <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>com.springsource.javax.annotation</artifactId>
-      <version>1.0.0</version>
-    </dependency>
-    <dependency>
-      <groupId>javax.jms</groupId>
-      <artifactId>com.springsource.javax.jms</artifactId>
-      <version>1.1.0</version>
-    </dependency>
+	<!-- Spring for JMS  -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
       <version>${spring.version}</version>
     </dependency>
+    
+    <!-- PowerTAC -->
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
@@ -100,21 +98,6 @@
     <repository>
       <id>sonatype</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-    <repository>
-      <id>com.springsource.repository.bundles.release</id>
-      <name>SpringSource Enterprise Bundle Repository - SpringSource Bundle Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
-    </repository>
-    <repository>
-      <id>com.springsource.repository.bundles.external</id>
-      <name>SpringSource Enterprise Bundle Repository - External Bundle Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/external</url>
-    </repository>
-    <repository>
-      <id>spring.maven.milestone</id>
-      <name>Spring Milestone Maven Repo</name>
-      <url>http://repository.springsource.com/maven/bundles/milestone</url>
     </repository>
   </repositories>
 </project>
