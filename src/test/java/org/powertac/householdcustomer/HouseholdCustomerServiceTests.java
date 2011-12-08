@@ -170,7 +170,7 @@ public class HouseholdCustomerServiceTests
   {
     householdCustomerInitializationService.setDefaults();
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("configFile", "../household-customer/src/main/resources/Household.properties");
+    config.getConfiguration().put("configFile", "Household.properties");
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerInitializationService.initialize(comp, inits);

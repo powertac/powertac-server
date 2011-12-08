@@ -55,7 +55,8 @@ public class HouseholdCustomerInitializationService implements InitializationSer
    */
   public void setDefaults ()
   {
-    pluginConfigRepo.makePluginConfig("HouseholdCustomer", "").addConfiguration("configFile", "../household-customer/src/main/resources/Household.properties");
+    //pluginConfigRepo.makePluginConfig("HouseholdCustomer", "").addConfiguration("configFile", "../household-customer/src/main/resources/Household.properties");
+    pluginConfigRepo.makePluginConfig("HouseholdCustomer", "").addConfiguration("configFile", "Household.properties");
   }
 
   /**

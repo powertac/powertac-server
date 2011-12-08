@@ -63,9 +63,8 @@ public class HouseholdCustomerInitializationServiceTests
     serviceUnderTest.setDefaults();
 
     PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    // config.getConfiguration().put("configFile", "../household-customer/src/main/resources/Household.properties");
     assertNotNull("found config", config);
-    assertEquals("correct config file", "../household-customer/src/main/resources/Household.properties", config.getConfigurationValue("configFile"));
+    assertEquals("correct config file", "Household.properties", config.getConfigurationValue("configFile"));
 
   }
 

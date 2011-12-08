@@ -64,7 +64,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private RandomSeed rs1;
 
   // read this normally from plugin config
-  private String configFile = "../household-customer/src/main/resources/Household.properties";
+  //private String configFile = "../household-customer/src/main/resources/Household.properties";
+  private String configFile = "Household.properties";
 
   /**
    * This is the configuration file that will be utilized to pass the parameters that can be adjusted by user
@@ -100,7 +101,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     super.init();
 
     InputStream cfgFile = null;
-    cfgFile = new FileInputStream(configFile);
+    //cfgFile = new FileInputStream(configFile);
+    cfgFile = ClassLoader.getSystemResourceAsStream(configFile);
     configuration.load(cfgFile);
     cfgFile.close();
 
