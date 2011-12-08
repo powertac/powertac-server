@@ -41,7 +41,11 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -159,6 +163,9 @@ public class CompetitionControlService
   
   @Autowired
   private ServerMessageReceiver serverMessageReceiver;
+  
+  @Autowired
+  private ServerPropertiesService serverProps;
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
@@ -197,10 +204,11 @@ public class CompetitionControlService
     competition = Competition.newInstance("defaultCompetition");
     competitionId = competition.getId();
     logService.startLog(competitionId);
-    log.setLevel(Level.DEBUG);
+    //log.setLevel(Level.DEBUG);
 
     // Set up all the plugin configurations
     log.info("pre-game initialization");
+    configureCompetition(competition);
 
     phaseRegistrations = null;
     idPrefix = 0;
@@ -227,6 +235,76 @@ public class CompetitionControlService
     brokerProxyService.registerSimListener(this);
   }
   
+  // configures a Competition from server.properties
+  private void configureCompetition (Competition competition2)
+  {
+    // get game length
+    int minimumTimeslotCount =
+        serverProps.getIntegerProperty("competition.minimumTimeslotCount",
+                                       competition.getMinimumTimeslotCount());
+    int expectedTimeslotCount =
+        serverProps.getIntegerProperty("competition.expectedTimeslotCount",
+                                       competition.getExpectedTimeslotCount());
+    if (expectedTimeslotCount < minimumTimeslotCount) {
+      log.warn("competition expectedTimeslotCount " + expectedTimeslotCount
+               + " < minimumTimeslotCount " + minimumTimeslotCount);
+      expectedTimeslotCount = minimumTimeslotCount;
+    }
+    int bootstrapTimeslotCount =
+        serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
+                                       competition.getBootstrapTimeslotCount());
+
+    // get trading parameters
+    int timeslotsOpen =
+        serverProps.getIntegerProperty("competition.timeslotsOpen",
+                                       competition.getTimeslotsOpen());
+    int deactivateTimeslotsAhead =
+        serverProps.getIntegerProperty("competition.deactivateTimeslotsAhead",
+                                       competition.getDeactivateTimeslotsAhead());
+
+    // get time parameters
+    int timeslotLength =
+        serverProps.getIntegerProperty("competition.timeslotLength",
+                                       competition.getTimeslotLength());
+    int simulationTimeslotSeconds =
+        timeslotLength * 60 / (int)competition.getSimulationRate();
+    simulationTimeslotSeconds =
+        serverProps.getIntegerProperty("competition.simulationTimeslotSeconds",
+                                       simulationTimeslotSeconds);
+    int simulationRate = timeslotLength * 60 / simulationTimeslotSeconds;
+    DateTimeZone.setDefault(DateTimeZone.UTC);
+    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+    Instant start = null;
+    try {
+      start =
+        fmt.parseDateTime(serverProps.getProperty("competition.baseTime")).toInstant();
+    }
+    catch (Exception e) {
+      log.error("Exception reading base time: " + e.toString());
+    }
+    if (start == null)
+      start = competition.getSimulationBaseTime();
+
+    // populate the competition instance
+    competition
+      .withMinimumTimeslotCount(minimumTimeslotCount)
+      .withExpectedTimeslotCount(expectedTimeslotCount)
+      .withSimulationBaseTime(start)
+      .withSimulationRate(simulationRate)
+      .withTimeslotLength(timeslotLength)
+      .withSimulationModulo(timeslotLength * TimeService.MINUTE)
+      .withTimeslotsOpen(timeslotsOpen)
+      .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
+      .withBootstrapTimeslotCount(bootstrapTimeslotCount);
+    
+    // bootstrap timeslot timing is a local parameter
+    int bootstrapTimeslotSeconds =
+        serverProps.getIntegerProperty("competition.bootstrapTimeslotSeconds",
+                                       (int)(bootstrapTimeslotMillis
+                                             / TimeService.SECOND));
+    bootstrapTimeslotMillis = bootstrapTimeslotSeconds * TimeService.SECOND;
+  }
+
   /**
    * Sets up the simulator, with config overrides provided in a file
    * containing a sequence of PluginConfig instances. Errors are logged
