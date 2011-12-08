@@ -224,4 +224,13 @@ public class TariffSpecification extends TariffMessage
     supersedes.add(specId);
     return this;
   }
+  
+  /**
+   * Returns a String giving the id, broker username, and powertype
+   */
+  public String toString ()
+  {
+    return ("TariffSpecification " + getId() + " "
+            + getBroker().getUsername() + "." + getPowerType());
+  }
 }
