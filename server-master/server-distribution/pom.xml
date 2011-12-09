@@ -11,8 +11,8 @@
   <groupId>org.powertac</groupId>
   <artifactId>server-distribution</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>Power TAC server master</name>
+  <packaging>jar</packaging>
+  <name>Power TAC distribution</name>
   <description>Dependencies and structure for all powertac server modules</description>
   <url>http://www.powertac.org</url>
 
@@ -25,7 +25,7 @@
   <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
   	<groupId>org.powertac</groupId>
-  	<artifactId>server-main</artifactId>
+  	<artifactId>server-master</artifactId>
   	<version>0.1.0-SNAPSHOT</version>
   	<relativePath/>
   </parent>
@@ -59,17 +59,11 @@
             <groupId>org.powertac</groupId>
             <artifactId>server-distribution</artifactId>
           </executableDependency>
-          <mainClass>org.powertac.server.powertac-server</mainClass>
+          <mainClass>org.Powertac.Server.Powertac-Server</mainClass>
           <arguments>
-            <argument>argument1</argument>
+            <argument>bootstrap.txt</argument>
+            <argument>sim.txt</argument>
           </arguments>
-          <systemProperties>
-            <systemProperty>
-              <key>myproperty</key>
-              <value>myvalue</value>
-            </systemProperty>
-            ...
-          </systemProperties>
         </configuration>
       </plugin>
    </plugins>
