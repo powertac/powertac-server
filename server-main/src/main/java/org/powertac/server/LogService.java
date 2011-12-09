@@ -84,7 +84,7 @@ public class LogService
     return Logger.getLogger("State");
   }
 
-  public void startLog (long id)
+  public void startLog (String id)
   {
     Logger root = Logger.getRootLogger();
     Logger state = getStateLogger();
@@ -93,11 +93,15 @@ public class LogService
     try {
       PatternLayout logLayout = new PatternLayout("%r %-5p %c{2}: %m%n");
       FileAppender logFile
-          = new FileAppender(logLayout, ("log/" + filenamePrefix + id + ".trace"), false);
+          = new FileAppender(logLayout,
+                             ("log/" + filenamePrefix + "-" + id + ".trace"),
+                             false);
       root.addAppender(logFile);
       PatternLayout stateLayout = new PatternLayout("%r:%m%n");
       FileAppender stateFile
-          = new FileAppender(stateLayout, ("log/" + filenamePrefix + id + ".state"), false);
+          = new FileAppender(stateLayout,
+                             ("log/" + filenamePrefix + "-" + id + ".state"),
+                             false);
       state.addAppender(stateFile);
     }
     catch (IOException ioe) {

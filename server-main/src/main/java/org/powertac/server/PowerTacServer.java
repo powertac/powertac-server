@@ -25,6 +25,7 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.ServerProperties;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -37,28 +38,34 @@ public class PowerTacServer
   static private Logger log = Logger.getLogger(PowerTacServer.class);
 
   private static CompetitionControlService cc = null;
+  private static ServerPropertiesService serverProps = null;
 
   /**
    * Sets up the container, sets up logging, and starts the
    * CompetitionControl service.
    * <p>
-   * A simple configuration file can be used in lieu of a web interface to
+   * A simple script file can be used in lieu of a web interface to
    * configure and run games. Each line in the file must be in one of two
    * forms:<br/>
-   * <code>&nbsp;&nbsp;bootstrap bootstrap-filename boot-config</code><br/>
-   * <code>&nbsp;&nbsp;sim bootstrap-filename broker1 broker2 ...</code><br/>
+   * <code>&nbsp;&nbsp;bootstrap [--config boot-config]</code><br/>
+   * <code>&nbsp;&nbsp;sim [--config sim-config] broker1 broker2 ...</code><br/>
    * where 
    * <dl>
    *  <dt><code>boot-config</code></dt>
-   *  <dd>is the optional name of a file containing a
-   *   sequence of serialized PluginConfig instances that specifies the
-   *   bootstrap setup,</dd>
-   *  <dt><code>bootstrap-filename</code></dt>
-   *  <dd>is the name of a file to write out a bootstrap dataset in bootstrap
-   *   mode, or the name to read from for sim mode,</dd>
-   *  <dt><code>n</code></dt>
-   *  <dd>is the number of broker logins to expect in sim mode before starting
-   *   the simulation.</dd>
+   *  <dd>is the optional name of a properties file that specifies the
+   *    bootstrap setup. If not provided, then the default
+   *    server.properties will be used.</dd>
+   *  <dt><code>sim-config</code></dt>
+   *  <dd>is the optional name of a properties file that specifies the
+   *    simulation setup. If not provided, then the default server.properties
+   *    file will be used. It is possible for the sim-config to be different
+   *    from the boot-config that produced the bootstrap data file used
+   *    in the sim, but many properties will be carried over from the
+   *    bootstrap session regardless of the contents of sim-config.</dd>
+   *  <dt><code>brokern</code></dt>
+   *  <dd>are the broker usernames of the brokers that will be logged in
+   *    before the simulation starts. They must attempt to log in after the
+   *    server starts.</dd>
    * </dl>
    * To use a configuration file, simply give the filename as a command-line
    * argument.
@@ -69,8 +76,9 @@ public class PowerTacServer
     AbstractApplicationContext context = new ClassPathXmlApplicationContext("powertac.xml");
     context.registerShutdownHook();
     
-    // find the CompetitionControl bean
+    // find the CompetitionControl and ServerProperties beans
     cc = (CompetitionControlService)context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
+    serverProps = (ServerPropertiesService)context.getBeansOfType(ServerProperties.class).values().toArray()[0];
 
     // pick up and process the command-line arg if it's there
     if (args.length == 1) {
@@ -81,43 +89,57 @@ public class PowerTacServer
         while ((input = config.readLine()) != null) {
           String[] tokens = input.split("\\s+");
           if ("bootstrap".equals(tokens[0])) {
-            
-            // bootstrap mode - dataset fn is tokens[1], config fn is tokens[2]
-            if (tokens.length < 2) {
+            // bootstrap mode - optional config fn is tokens[2]
+            if (tokens.length == 2 || tokens.length > 3) {
               System.out.println("Bad input " + input);
             }
             else {
-              FileWriter bootWriter = new FileWriter(tokens[1]);
+              if (tokens.length == 3 && "--config".equals(tokens[1])) {
+                // explicit config file
+                serverProps.setUserConfig(tokens[2]);
+              }
+              FileWriter bootWriter =
+                  new FileWriter(serverProps.getProperty("server.bootstrapDataFile",
+                                                         "bootstrapData.xml"));
               cc.setAuthorizedBrokerList(new ArrayList<String>());
-              if (tokens.length > 2) {
-                File configFile = new File(tokens[2]);
-                cc.preGame(configFile);
-              }
-              else {
-                cc.preGame();
-              }
+              cc.preGame();
               cc.runOnce(bootWriter);
             }
           }
           else if ("sim".equals(tokens[0])) {
-            
-            // sim mode, dataset fn is tokens[1]
+            int brokerIndex = 1;
+            // sim mode, check for --config in tokens[1]
             if (tokens.length < 2) {
-              System.out.println("Bad input " + input);
+              System.out.println("Bad input: " + input);
             }
-            else {
-              log.info("In Simulation mode!!!");
-              File bootFile = new File(tokens[1]);
-              // collect broker names, hand to CC for login control
-              ArrayList<String> brokerList = new ArrayList<String>();
-              for (int i = 2; i < tokens.length; i++) {
-                brokerList.add(tokens[i]);
+            else if ("--config".equals(tokens[1])) {
+              if (tokens.length < 4) {
+                System.out.println("No brokers given for sim: " + input);
               }
+              else {
+                // explicit config file in tokens[2]
+                serverProps.setUserConfig(tokens[2]);
+              }
+              brokerIndex = 3;
+            }
+            log.info("In Simulation mode!!!");
+            File bootFile =
+                new File(serverProps.getProperty("server.bootstrapDataFile",
+                                                 "bd-noname.xml"));
+            // collect broker names, hand to CC for login control
+            ArrayList<String> brokerList = new ArrayList<String>();
+            for (int i = brokerIndex; i < tokens.length; i++) {
+              brokerList.add(tokens[i]);
+            }
+            if (brokerList.size() > 0) {
               cc.setAuthorizedBrokerList(brokerList);
               
               if (cc.preGame(bootFile)) {
                 cc.runOnce(bootFile);
               }
+            }
+            else {
+              System.out.println("Cannot run sim without brokers");
             }
           }
         }

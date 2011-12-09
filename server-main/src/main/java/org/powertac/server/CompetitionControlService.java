@@ -119,7 +119,6 @@ public class CompetitionControlService
   private ApplicationContext applicationContext = null;
 
   private Competition competition; // convenience var, invalid across sessions
-  private long competitionId;
 
   private int timeslotPhaseCount = 4; // # of phases/timeslot
   private boolean running = false;
@@ -199,9 +198,9 @@ public class CompetitionControlService
     log.info("preGame() - start");
     // Create default competition
     competition = Competition.newInstance("defaultCompetition");
-    competitionId = competition.getId();
-    logService.startLog(competitionId);
-    //log.setLevel(Level.DEBUG);
+    //competitionId = competition.getId();
+    String suffix = serverProps.getProperty("server.logfileSuffix", "x");
+    logService.startLog(suffix);
 
     // Set up all the plugin configurations
     log.info("pre-game initialization");
