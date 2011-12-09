@@ -17,8 +17,10 @@ package org.powertac.common.msg;
 
 
 import org.powertac.common.Broker;
-//import org.powertac.common.transformer.BrokerConverter;
-import com.thoughtworks.xstream.annotations.*;
+import org.powertac.common.xml.BrokerConverter;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * This message is used by a broker to release a pause in the simulation that
@@ -31,7 +33,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class PauseRelease
 {
   /** The broker who is requesting the pause release. */
-  //@XStreamConverter(BrokerConverter)
+  @XStreamConverter(BrokerConverter.class)
   private Broker broker;
   
   public PauseRelease (Broker broker)

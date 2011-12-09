@@ -17,7 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.xml.BrokerConverter;
-//import org.powertac.common.transformer.BrokerConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
