@@ -52,6 +52,25 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <includeProjectDependencies>false</includeProjectDependencies>
+          <includePluginDependencies>true</includePluginDependencies>
+          <executableDependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>server-distribution</artifactId>
+          </executableDependency>
+          <mainClass>org.powertac.server.powertac-server</mainClass>
+          <arguments>
+            <argument>argument1</argument>
+          </arguments>
+          <systemProperties>
+            <systemProperty>
+              <key>myproperty</key>
+              <value>myvalue</value>
+            </systemProperty>
+            ...
+          </systemProperties>
+        </configuration>
       </plugin>
    </plugins>
    </build>
