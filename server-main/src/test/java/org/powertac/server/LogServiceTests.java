@@ -94,7 +94,7 @@ public class LogServiceTests
   public void testSimLogging ()
   {
     logService.setPrefix("test");
-    logService.startLog(42l);
+    logService.startLog("42");
     
     // write to the trace log and check
     log.info("start sim 42");
@@ -128,7 +128,7 @@ public class LogServiceTests
   public void simLoggingAgain ()
   {
     logService.setPrefix("test");
-    logService.startLog(43l);
+    logService.startLog("43");
     
     // write to the trace log and check
     log.info("start sim 43");

@@ -79,14 +79,14 @@ public class ServerPropertiesService implements ServerProperties
     // see if we can find the default config file
     defaultFileProps = new Properties(classpathProps);
     try {
-      FileInputStream fileStream = new FileInputStream("server.properties");
+      FileInputStream fileStream = new FileInputStream("config/server.properties");
       defaultFileProps.load(fileStream);
     }
     catch (FileNotFoundException fnf) {
-      log.warn("Cannot find server.properties in current directory");
+      log.warn("Cannot find config/server.properties");
     }
     catch (IOException e) {
-      log.error("Error loading file server.properties: " + e.toString());
+      log.error("Error loading file config/server.properties: " + e.toString());
     }
     
     // set up user-specified config, but don't load it here
