@@ -16,12 +16,6 @@
   <description>Dependencies and structure for all powertac server modules</description>
   <url>http://www.powertac.org</url>
 
-  <properties>
-    <spring.version>3.0.6.RELEASE</spring.version>
-    <junit.version>4.10</junit.version>
-    <powertac.version>0.1.0-SNAPSHOT</powertac.version>
-  </properties>
-
   <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
   	<groupId>org.powertac</groupId>
@@ -38,6 +32,15 @@
     </repository>
   </repositories>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-main</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
+    
   <build>
     <finalName>server-distribution</finalName>
     <plugins>
@@ -59,10 +62,10 @@
             <groupId>org.powertac</groupId>
             <artifactId>server-distribution</artifactId>
           </executableDependency>
-          <mainClass>org.Powertac.Server.Powertac-Server</mainClass>
+          <mainClass>org.powertac.server.PowerTacServer</mainClass>
           <arguments>
             <argument>bootstrap.txt</argument>
-            <argument>sim.txt</argument>
+            <!--  <argument>sim.txt</argument> -->
           </arguments>
         </configuration>
       </plugin>
