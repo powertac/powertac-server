@@ -39,9 +39,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
@@ -196,7 +194,6 @@ public class CompetitionControlService
    * the completion of each simulation. The actual simulation is started
    * with a call to init().
    */
-  @SuppressWarnings("unchecked")
   public void preGame ()
   {
     log.info("preGame() - start");
@@ -767,7 +764,6 @@ public class CompetitionControlService
 
   // Runs the initialization protocol on each plugin, supports precedence
   // relationships among them.
-  @SuppressWarnings("unchecked")
   private boolean configurePlugins ()
   {
     Map<String, InitializationService> initializers =
