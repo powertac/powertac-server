@@ -55,8 +55,8 @@
           </executableDependency>
           <mainClass>org.powertac.server.PowerTacServer</mainClass>
           <arguments>
-            <argument>bootstrap.txt</argument>
-            <!--  <argument>sim.txt</argument> -->
+            <argument>config/bootstrap.txt</argument>
+            <!--  <argument>config/sim.txt</argument> -->
           </arguments>
         </configuration>
         <dependencies>
