@@ -11,7 +11,7 @@
   <groupId>org.powertac</groupId>
   <artifactId>server-distribution</artifactId>
   <version>0.1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <packaging>pom</packaging>
   <name>Power TAC distribution</name>
   <description>Dependencies and structure for all powertac server modules</description>
   <url>http://www.powertac.org</url>
@@ -31,15 +31,6 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-main</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
     
   <build>
     <finalName>server-distribution</finalName>
@@ -60,7 +51,7 @@
           <includePluginDependencies>true</includePluginDependencies>
           <executableDependency>
             <groupId>org.powertac</groupId>
-            <artifactId>server-distribution</artifactId>
+            <artifactId>server-main</artifactId>
           </executableDependency>
           <mainClass>org.powertac.server.PowerTacServer</mainClass>
           <arguments>
@@ -68,6 +59,15 @@
             <!--  <argument>sim.txt</argument> -->
           </arguments>
         </configuration>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-main</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
       </plugin>
    </plugins>
    </build>
