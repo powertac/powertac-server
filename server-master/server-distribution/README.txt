@@ -56,7 +56,7 @@ where
 
 To run the server with the script file config/bootstrap.txt, the command is
 
-  mvn exec:java -Dexec.args="config/bootstrap.txt"
+  mvn exec:exec -Dexec.args="config/bootstrap.txt"
 
 Access to code resources
 ------------------------
