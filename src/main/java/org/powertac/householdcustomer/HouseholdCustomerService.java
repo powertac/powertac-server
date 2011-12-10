@@ -15,7 +15,6 @@
  */
 package org.powertac.householdcustomer;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -64,7 +63,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private RandomSeed rs1;
 
   // read this normally from plugin config
-  //private String configFile = "../household-customer/src/main/resources/Household.properties";
+  // private String configFile = "../household-customer/src/main/resources/Household.properties";
   private String configFile = "Household.properties";
 
   /**
@@ -101,7 +100,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     super.init();
 
     InputStream cfgFile = null;
-    //cfgFile = new FileInputStream(configFile);
+    // cfgFile = new FileInputStream(configFile);
     cfgFile = ClassLoader.getSystemResourceAsStream(configFile);
     configuration.load(cfgFile);
     cfgFile.close();
@@ -128,7 +127,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
-    publishedTariffs = tariffs;
+    publishedTariffs = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
     for (Village village : villageList) {
       village.possibilityEvaluationNewTariffs(publishedTariffs);
     }

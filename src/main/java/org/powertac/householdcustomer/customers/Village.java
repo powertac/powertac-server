@@ -281,7 +281,7 @@ public class Village extends AbstractCustomer
   {
     Timeslot ts = timeslotRepo.currentTimeslot();
     double summary = 0;
-    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(this.getCustomerInfo());
+    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(this.getCustomerInfo());
 
     for (TariffSubscription sub : subscriptions) {
       if (ts == null) {
@@ -578,7 +578,7 @@ public class Village extends AbstractCustomer
   public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs)
   {
 
-    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(this.getCustomerInfo());
+    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(this.getCustomerInfo());
 
     if (subscriptions == null || subscriptions.size() == 0) {
       subscribeDefault();
@@ -589,7 +589,7 @@ public class Village extends AbstractCustomer
 
     // adds current subscribed tariffs for reevaluation
     ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
-    Collections.copy(evaluationTariffs, newTariffs);
+    //Collections.copy(evaluationTariffs, newTariffs);
 
     log.debug("Estimation size for " + this.toString() + " = " + evaluationTariffs.size());
 
