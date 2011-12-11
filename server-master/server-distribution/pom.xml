@@ -59,7 +59,7 @@
       	 </executions>
       	<configuration>
 	  <executable>java</executable>
-	  <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer config/bootstrap.txt</commandlineArgs>
+	  <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer ${exec.args}</commandlineArgs>
 	</configuration>
       </plugin>
     </plugins>
