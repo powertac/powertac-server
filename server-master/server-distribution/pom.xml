@@ -39,17 +39,12 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>1.2.1</version>
+      <plugin>
+     </plugins>
         <configuration>
-          <executable>java</executable>
-          <includeProjectDependencies>false</includeProjectDependencies>
-          <includePluginDependencies>true</includePluginDependencies>
-          <executableDependency>
-            <groupId>org.powertac</groupId>
-            <artifactId>server-main</artifactId>
-          </executableDependency>
-          <mainClass>org.powertac.server.PowerTacServer</mainClass>
-          <arguments>
-            <argument>config/bootstrap.txt</argument>
+           <executable>java</executable>
+     	   <commandLineArgs>-server -Xms1024m -classpath</commandLineArgs>
+           <argument>config/bootstrap.txt</argument>
             <!--  <argument>config/sim.txt</argument> -->
           </arguments>
         </configuration>
@@ -61,7 +56,5 @@
             <scope>runtime</scope>
           </dependency>
         </dependencies>
-      </plugin>
-   </plugins>
    </build>
 </project>
