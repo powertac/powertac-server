@@ -32,29 +32,36 @@
     </repository>
   </repositories>
     
+  <dependencies>
+     <dependency>
+       <groupId>org.powertac</groupId>
+       <artifactId>server-main</artifactId>
+       <version>0.1.0-SNAPSHOT</version>
+       <scope>runtime</scope>
+     </dependency>
+  </dependencies>
+  <!--
+    mvn exec:exec -Dexec.executable="java" -Dexec.args="-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer config/bootstrap.txt"
+  -->
   <build>
     <finalName>server-distribution</finalName>
     <plugins>
       <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-      <plugin>
-     </plugins>
-        <configuration>
-           <executable>java</executable>
-     	   <commandLineArgs>-server -Xms1024m -classpath</commandLineArgs>
-           <argument>config/bootstrap.txt</argument>
-            <!--  <argument>config/sim.txt</argument> -->
-          </arguments>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.powertac</groupId>
-            <artifactId>server-main</artifactId>
-            <version>0.1.0-SNAPSHOT</version>
-            <scope>runtime</scope>
-          </dependency>
-        </dependencies>
+      	<groupId>org.codehaus.mojo</groupId>
+      	<artifactId>exec-maven-plugin</artifactId>
+      	<version>1.2.1</version>
+      	<executions>
+      	  <execution>
+      	    <goals>
+      	      <goal>exec</goal>
+      	    </goals>
+      	  </execution>
+      	 </executions>
+      	<configuration>
+	  <executable>java</executable>
+	  <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer config/bootstrap.txt</commandlineArgs>
+	</configuration>
+      </plugin>
+    </plugins>
    </build>
-</project>
+ </project>
