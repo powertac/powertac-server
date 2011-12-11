@@ -461,88 +461,84 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.publishNewTariffs(tclist);
   }
 
-  /*
-    @Test
-    public void testSupersedingTariffs ()
-    {
-      initializeService();
+  @Test
+  public void testSupersedingTariffs ()
+  {
+    initializeService();
 
-      // capture subscription method args
-      ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-      ArgumentCaptor<TariffRevoke> tariffRevokeArg = ArgumentCaptor.forClass(TariffRevoke.class);
-      ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
-      ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-      ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    // capture subscription method args
+    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+    ArgumentCaptor<TariffRevoke> tariffRevokeArg = ArgumentCaptor.forClass(TariffRevoke.class);
+    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
 
-      for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer : householdCustomerService.getVillageList()) {
 
-        TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-        defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-        when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-        assertEquals("one subscription", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-      }
-
-      Rate r2 = new Rate().withValue(-0.222);
-      Rate r3 = new Rate().withValue(-0.111);
-
-      TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-      TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-      TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-      TariffSpecification tsc4 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r3);
-
-      Tariff tariff1 = new Tariff(tsc1);
-      tariff1.init();
-      Tariff tariff2 = new Tariff(tsc2);
-      tariff2.init();
-      Tariff tariff3 = new Tariff(tsc3);
-      tariff3.init();
-
-      tsc4.addSupersedes(tsc3.getId());
-      assertEquals("correct length", 1, tsc4.getSupersedes().size());
-      assertEquals("correct first element", tsc3.getId(), (long) tsc4.getSupersedes().get(0));
-
-      assertNotNull("first tariff found", tariff1);
-      assertNotNull("second tariff found", tariff2);
-      assertNotNull("third tariff found", tariff3);
-      assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
-
-      List<Tariff> tclist = tariffRepo.findAllTariffs();
-      assertEquals("4 consumption tariffs", 4, tclist.size());
-      System.out.println("Before");
-      for (Tariff tariff : tclist) {
-        System.out.print(tariff.getSpecId() + " ");
-      }
-      System.out.println();
-
-      when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tclist);
-
-      // Test the function with different inputs, in order to get the same result.
-      householdCustomerService.publishNewTariffs(tclist);
-
-      TariffStatus st = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
-      when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
-
-      timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
-      TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
-      TariffStatus status = mockTariffMarket.processTariff(tex);
-      tariff3.setState(Tariff.State.KILLED);
-      assertNotNull("non-null status", status);
-      assertEquals("success", TariffStatus.Status.success, status.getStatus());
-      assertTrue("tariff revoked", tariff3.isRevoked());
-
-      timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
-
-      tclist = tariffRepo.findAllTariffs();
-      assertEquals("4 consumption tariffs", 4, tclist.size());
-      System.out.println("After");
-      for (Tariff tariff : tclist) {
-        System.out.print(tariff.getSpecId() + " ");
-      }
-      System.out.println();
-
-      householdCustomerService.publishNewTariffs(tclist);
+      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
+      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+      assertEquals("one subscription", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
     }
-  */
+
+    Rate r2 = new Rate().withValue(-0.222);
+    Rate r3 = new Rate().withValue(-0.111);
+
+    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc4 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r3);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    Tariff tariff2 = new Tariff(tsc2);
+    tariff2.init();
+    Tariff tariff3 = new Tariff(tsc3);
+    tariff3.init();
+    Tariff tariff4 = new Tariff(tsc4);
+    tariff4.init();
+
+    tsc4.addSupersedes(tsc3.getId());
+    assertEquals("correct length", 1, tsc4.getSupersedes().size());
+    assertEquals("correct first element", tsc3.getId(), (long) tsc4.getSupersedes().get(0));
+
+    assertNotNull("first tariff found", tariff1);
+    assertNotNull("second tariff found", tariff2);
+    assertNotNull("third tariff found", tariff3);
+    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs().size());
+
+    List<Tariff> tclist = tariffRepo.findAllTariffs();
+    assertEquals("5 consumption tariffs", 5, tclist.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tclist);
+
+    // Test the function with different inputs, in order to get the same result.
+    householdCustomerService.publishNewTariffs(tclist);
+
+    TariffStatus st = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
+    when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
+
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+    TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
+    TariffStatus status = mockTariffMarket.processTariff(tex);
+    tariff3.setState(Tariff.State.KILLED);
+    assertNotNull("non-null status", status);
+    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    assertTrue("tariff revoked", tariff3.isRevoked());
+
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+
+    tclist = tariffRepo.findAllTariffs();
+    assertEquals("5 consumption tariffs", 5, tclist.size());
+    List<Tariff> tcactivelist = new ArrayList<Tariff>();
+    for (Tariff tariff : tclist) {
+      if (tariff.isRevoked() == false)
+        tcactivelist.add(tariff);
+    }
+
+    householdCustomerService.publishNewTariffs(tcactivelist);
+  }
+
   @Test
   public void testDailyShifting ()
   {
