@@ -43,12 +43,6 @@ public interface CompetitionControl
   public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase);
   
   /**
-   * Runs the pre-game cycle of the simulator, which sets all plugin components
-   * to their default state.
-   */
-  public void preGame ();
-  
-  /**
    * Attempts to log in a broker by username. Returns true just in case the
    * login is successful. The intent is that login will be successful if the
    * username is on the authorizedBrokerList, or if it is one of the
@@ -66,7 +60,7 @@ public interface CompetitionControl
   /**
    * Waits for broker login, then starts and runs a simulation.
    */
-  public void runOnce ();
+  public void runOnce (boolean bootstrapMode);
   
   /**
    * Processes simulation pause messages
