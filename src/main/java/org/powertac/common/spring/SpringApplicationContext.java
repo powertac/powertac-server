@@ -15,7 +15,9 @@
  */
 package org.powertac.common.spring;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -38,14 +40,18 @@ public class SpringApplicationContext implements ApplicationContextAware
     return context.getBean(beanName);
   }
   
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  public static Object getBeanByType (Class type) {
-    Object bean = null;
-    Collection beans = context.getBeansOfType(type).values();
+  public static <T> T getBeanByType (Class<T> type) {
+    T bean = null;
+    Collection<T> beans = context.getBeansOfType(type).values();
     if (beans.size() > 0) {
-      bean = beans.toArray()[0];
+      bean = new ArrayList<T>(beans).get(0);
     }
       
     return bean;
+  }
+  
+  public static <T> Map<String, T> getBeansOfType(Class<T> clazz)
+  {
+    return context.getBeansOfType(clazz);
   }
 }
