@@ -47,6 +47,7 @@ import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -213,6 +214,7 @@ public class CompetitionControlService
   public void runOnce (boolean bootstrapMode)
   {
     this.bootstrapMode = bootstrapMode;
+    competition = Competition.currentCompetition();
     
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
@@ -440,7 +442,7 @@ public class CompetitionControlService
   private boolean configurePlugins ()
   {
     Map<String, InitializationService> initializers =
-      applicationContext.getBeansOfType(InitializationService.class);
+      SpringApplicationContext.getBeansOfType(InitializationService.class);
 
     ArrayList<String> completedPlugins = new ArrayList<String>();
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
