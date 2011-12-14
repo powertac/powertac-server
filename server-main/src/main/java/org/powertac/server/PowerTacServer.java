@@ -37,8 +37,7 @@ public class PowerTacServer
 {
   static private Logger log = Logger.getLogger(PowerTacServer.class);
 
-  private static CompetitionControlService cc = null;
-  private static ServerPropertiesService serverProps = null;
+  private static CompetitionSetupService css = null;
 
   /**
    * Sets up the container, sets up logging, and starts the
@@ -77,98 +76,9 @@ public class PowerTacServer
     context.registerShutdownHook();
     
     // find the CompetitionControl and ServerProperties beans
-    cc = (CompetitionControlService)context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
-    serverProps = (ServerPropertiesService)context.getBeansOfType(ServerProperties.class).values().toArray()[0];
-
-    // pick up and process the command-line arg if it's there
-    if (args.length == 1) {
-      // running from config file
-      try {
-        BufferedReader config = new BufferedReader(new FileReader(args[0]));
-        String input;
-        while ((input = config.readLine()) != null) {
-          String[] tokens = input.split("\\s+");
-          if ("bootstrap".equals(tokens[0])) {
-            // bootstrap mode - optional config fn is tokens[2]
-            if (tokens.length == 2 || tokens.length > 3) {
-              System.out.println("Bad input " + input);
-            }
-            else {
-              if (tokens.length == 3 && "--config".equals(tokens[1])) {
-                // explicit config file
-                serverProps.setUserConfig(tokens[2]);
-              }
-              FileWriter bootWriter =
-                  new FileWriter(serverProps.getProperty("server.bootstrapDataFile",
-                                                         "bootstrapData.xml"));
-              cc.setAuthorizedBrokerList(new ArrayList<String>());
-              cc.preGame();
-              cc.runOnce(bootWriter);
-            }
-          }
-          else if ("sim".equals(tokens[0])) {
-            int brokerIndex = 1;
-            // sim mode, check for --config in tokens[1]
-            if (tokens.length < 2) {
-              System.out.println("Bad input: " + input);
-            }
-            else if ("--config".equals(tokens[1])) {
-              if (tokens.length < 4) {
-                System.out.println("No brokers given for sim: " + input);
-              }
-              else {
-                // explicit config file in tokens[2]
-                serverProps.setUserConfig(tokens[2]);
-              }
-              brokerIndex = 3;
-            }
-            log.info("In Simulation mode!!!");
-            File bootFile =
-                new File(serverProps.getProperty("server.bootstrapDataFile",
-                                                 "bd-noname.xml"));
-            // collect broker names, hand to CC for login control
-            ArrayList<String> brokerList = new ArrayList<String>();
-            for (int i = brokerIndex; i < tokens.length; i++) {
-              brokerList.add(tokens[i]);
-            }
-            if (brokerList.size() > 0) {
-              cc.setAuthorizedBrokerList(brokerList);
-              
-              if (cc.preGame(bootFile)) {
-                cc.runOnce(bootFile);
-              }
-            }
-            else {
-              System.out.println("Cannot run sim without brokers");
-            }
-          }
-        }
-      }
-      catch (FileNotFoundException fnf) {
-        System.out.println("Cannot find file " + args[0]);
-      }
-      catch (IOException ioe ) {
-        System.out.println("Error reading file " + args[0]);
-      }
-    }
-    else if (args.length == 0) {
-      // running from web interface
-      System.out.println("Server BootStrap");
-      //participantManagementService.initialize();
-      cc.preGame();
-
-      // idle while the web interface controls the simulator
-      while(true) {
-        try {
-          Thread.sleep(5000);
-        } catch (InterruptedException e) {
-
-        }
-      }
-    }
-    else { // usage problem
-      System.out.println("Usage: powertac-server [filename]");
-    }
+    css = (CompetitionSetupService)context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
+    
+    css.processCmdLine(args);
     // if we get here, it's time to exit
     System.exit(0);
   }

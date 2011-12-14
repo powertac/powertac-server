@@ -15,44 +15,19 @@
  */
 package org.powertac.server;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.XMLMessageConverter;
-import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
@@ -69,26 +44,17 @@ import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 /**
- * This is the competition controller. It has three major roles in the
+ * This is the competition controller. It has two major roles in the
  * server:
  * <ol>
- * <li>At server startup, the <code>preGame()</code> method must be called to
- * set up the environment and allow configuration of the next game, through
- * a web (or REST) interface.</li>
  * <li>Once the game is configured, the <code>init()</code> method must be
  * called. There are two versions of this method; the <code>init()</code>
  * version runs a "bootstrap" simulation that runs the customer models and
@@ -112,19 +78,19 @@ import org.xml.sax.InputSource;
  */
 @Service
 public class CompetitionControlService
-  implements ApplicationContextAware, CompetitionControl, BrokerMessageListener
+  implements CompetitionControl, BrokerMessageListener
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class);
   
   private ApplicationContext applicationContext = null;
 
-  private Competition competition; // convenience var, invalid across sessions
+  private Competition competition;
 
   private int timeslotPhaseCount = 4; // # of phases/timeslot
   private boolean running = false;
 
   private SimulationClockControl clock;
-  
+
   @Autowired
   private TimeService timeService; // inject simulation time service dependency
 
@@ -136,33 +102,27 @@ public class CompetitionControlService
 
   @Autowired
   private LogService logService;
-  
+
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
-  
+
   @Autowired
   private BrokerRepo brokerRepo;
-  
+
   @Autowired
   private CustomerRepo customerRepo;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
-  @Autowired
-  private BootstrapDataCollector defaultBroker;
-  
-  @Autowired
-  private XMLMessageConverter messageConverter;
-  
-  @Autowired
-  private JmsManagementService jmsManagementService;
-  
+
   @Autowired
   private ServerMessageReceiver serverMessageReceiver;
-  
+
   @Autowired
-  private ServerPropertiesService serverProps;
+  private JmsManagementService jmsManagementService;
+
+  // Server JMS Queue Name
+  private String serverQueueName = "serverInput";
 
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
   private int timeslotCount = 0;
@@ -175,9 +135,6 @@ public class CompetitionControlService
   private ArrayList<String> authorizedBrokerList;
   private int idPrefix = 0;
   
-  // Server JMS Queue Name
-  private String serverQueueName = "serverInput";
-  
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
@@ -187,238 +144,18 @@ public class CompetitionControlService
   private boolean simRunning = false;
 
   /**
-   * Pre-game server setup - creates the basic configuration elements
-   * to make them accessible to the web-based game-setup functions.
-   * This method must be called when the server is started, and again at
-   * the completion of each simulation. The actual simulation is started
-   * with a call to init().
+   * Initializes the service in preparation for a new simulation
    */
-  public void preGame ()
+  public void init ()
   {
-    log.info("preGame() - start");
-    // Create default competition
-    competition = Competition.newInstance("defaultCompetition");
-    //competitionId = competition.getId();
-    String suffix = serverProps.getProperty("server.logfileSuffix", "x");
-    logService.startLog(suffix);
-
-    // Set up all the plugin configurations
-    log.info("pre-game initialization");
-    configureCompetition(competition);
-
     phaseRegistrations = null;
     idPrefix = 0;
-
-    // Handle pre-game initializations by clearing out the repos,
-    // then creating the PluginConfig instances
-    Map<String, DomainRepo> repos =
-      applicationContext.getBeansOfType(DomainRepo.class);
-    log.debug("found " + repos.size() + " repos");
-    for (DomainRepo repo : repos.values()) {
-      repo.recycle();
-    }
-    Map<String, InitializationService> initializers =
-      applicationContext.getBeansOfType(InitializationService.class);
-    log.debug("found " + initializers.size() + " initializers");
-    for (InitializationService init : initializers.values()) {
-      init.setDefaults();
-    }
 
     // register with JMS Server
     jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
     
     // broker message registration for clock-control messages
     brokerProxyService.registerSimListener(this);
-  }
-  
-  // configures a Competition from server.properties
-  private void configureCompetition (Competition competition2)
-  {
-    // get game length
-    int minimumTimeslotCount =
-        serverProps.getIntegerProperty("competition.minimumTimeslotCount",
-                                       competition.getMinimumTimeslotCount());
-    int expectedTimeslotCount =
-        serverProps.getIntegerProperty("competition.expectedTimeslotCount",
-                                       competition.getExpectedTimeslotCount());
-    if (expectedTimeslotCount < minimumTimeslotCount) {
-      log.warn("competition expectedTimeslotCount " + expectedTimeslotCount
-               + " < minimumTimeslotCount " + minimumTimeslotCount);
-      expectedTimeslotCount = minimumTimeslotCount;
-    }
-    int bootstrapTimeslotCount =
-        serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
-                                       competition.getBootstrapTimeslotCount());
-
-    // get trading parameters
-    int timeslotsOpen =
-        serverProps.getIntegerProperty("competition.timeslotsOpen",
-                                       competition.getTimeslotsOpen());
-    int deactivateTimeslotsAhead =
-        serverProps.getIntegerProperty("competition.deactivateTimeslotsAhead",
-                                       competition.getDeactivateTimeslotsAhead());
-
-    // get time parameters
-    int timeslotLength =
-        serverProps.getIntegerProperty("competition.timeslotLength",
-                                       competition.getTimeslotLength());
-    int simulationTimeslotSeconds =
-        timeslotLength * 60 / (int)competition.getSimulationRate();
-    simulationTimeslotSeconds =
-        serverProps.getIntegerProperty("competition.simulationTimeslotSeconds",
-                                       simulationTimeslotSeconds);
-    int simulationRate = timeslotLength * 60 / simulationTimeslotSeconds;
-    DateTimeZone.setDefault(DateTimeZone.UTC);
-    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    Instant start = null;
-    try {
-      start =
-        fmt.parseDateTime(serverProps.getProperty("competition.baseTime")).toInstant();
-    }
-    catch (Exception e) {
-      log.error("Exception reading base time: " + e.toString());
-    }
-    if (start == null)
-      start = competition.getSimulationBaseTime();
-
-    // populate the competition instance
-    competition
-      .withMinimumTimeslotCount(minimumTimeslotCount)
-      .withExpectedTimeslotCount(expectedTimeslotCount)
-      .withSimulationBaseTime(start)
-      .withSimulationRate(simulationRate)
-      .withTimeslotLength(timeslotLength)
-      .withSimulationModulo(timeslotLength * TimeService.MINUTE)
-      .withTimeslotsOpen(timeslotsOpen)
-      .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
-      .withBootstrapTimeslotCount(bootstrapTimeslotCount);
-    
-    // bootstrap timeslot timing is a local parameter
-    int bootstrapTimeslotSeconds =
-        serverProps.getIntegerProperty("competition.bootstrapTimeslotSeconds",
-                                       (int)(bootstrapTimeslotMillis
-                                             / TimeService.SECOND));
-    bootstrapTimeslotMillis = bootstrapTimeslotSeconds * TimeService.SECOND;
-  }
-
-  /**
-   * Sets up the simulator, with config overrides provided in a file
-   * containing a sequence of PluginConfig instances. Errors are logged
-   * if one or more PluginConfig instances cannot be used in the current
-   * server setup.
-   */
-  public boolean preGame (File bootFile)
-  {
-    log.info("preGame(File) - start");
-    // turn off bootstrap mode, and run the basic pre-game setup
-    bootstrapMode = false;
-    preGame();
-    
-    // read the config info from the bootReader - 
-    // We need to find a Competition and a set of PluginConfig instances
-    Competition bootstrapCompetition = null;
-    ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
-    //InputSource source = new InputSource(bootReader);
-    XPathFactory factory = XPathFactory.newInstance();
-    XPath xPath = factory.newXPath();
-    try {
-      // first grab the bootstrap offset
-      XPathExpression exp =
-          xPath.compile("/powertac-bootstrap-data/config/bootstrap-offset/@value");
-      NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
-                                              XPathConstants.NODESET);
-      String value = nodes.item(0).getNodeValue();
-      bootstrapDiscardedTimeslots = Integer.parseInt(value);
-      log.info("offset: " + bootstrapDiscardedTimeslots + " timeslots");
-      
-      // then pull out the Competition
-      exp =
-          xPath.compile("/powertac-bootstrap-data/config/competition");
-      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
-                                     XPathConstants.NODESET);
-      String xml = nodeToString(nodes.item(0));
-      bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
-      
-      // then get the configs
-      exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
-      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
-                                     XPathConstants.NODESET);
-      // Each node is a plugin-config
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Node node = nodes.item(i);
-        xml = nodeToString(node);
-        PluginConfig pic = (PluginConfig)messageConverter.fromXML(xml);
-        configList.add(pic);
-      }
-    }
-    catch (XPathExpressionException xee) {
-      log.error("preGame: Error reading config file: " + xee.toString());
-      return false;
-    }
-    catch (IOException ioe) {
-      log.error("preGame: Error opening file " + bootFile + ": " + ioe.toString());
-    }
-    // update the existing Competition - should be the current competition
-    Competition.currentCompetition().update(bootstrapCompetition);
-    
-    // update the existing config, and make sure the bootReader has the
-    // same set of PluginConfig instances as the running server
-    for (Iterator<PluginConfig> pics = configList.iterator(); pics.hasNext(); ) {
-      // find the matching one in the server and update it, then remove
-      // the current element from the configList
-      PluginConfig next = pics.next();
-      PluginConfig match = pluginConfigRepo.findMatching(next);
-      if (match == null) {
-        // there's a pic in the file that's not in the server
-        log.error("no matching PluginConfig found for " + next.toString());
-        return false;
-      }
-      // if we found it, then we need to update it.
-      match.update(next);
-    }
-    
-    // Create the timeslots from the bootstrap period - they will be needed to 
-    // instantiate weather reports. All are disabled.
-    currentSlotOffset = competition.getBootstrapTimeslotCount()
-                        + bootstrapDiscardedTimeslots;
-    createInitialTimeslots(competition.getSimulationBaseTime(),
-                           (currentSlotOffset + 1),
-                           0);
-    log.info("created " + timeslotRepo.count() + " timeslots");
-    
-    // we currently ignore cases where there's a config in the server that's
-    // not in the file; there might be use cases for which this would
-    // be useful.
-    return true;
-  }
-
-  // Converts an xml node into a string that can be converted by XStream
-  private String nodeToString(Node node) {
-    StringWriter sw = new StringWriter();
-    try {
-      Transformer t = TransformerFactory.newInstance().newTransformer();
-      t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-      t.setOutputProperty(OutputKeys.INDENT, "no");
-      t.transform(new DOMSource(node), new StreamResult(sw));
-    }
-    catch (TransformerException te) {
-      log.error("nodeToString Transformer Exception " + te.toString());
-    }
-    String result = sw.toString();
-    //log.info("xml node: " + result);
-    return result;
-  }
-
-  /**
-   * Runs the initialization process, starts the simulation thread, waits
-   * for it to complete, then shuts down and prepares for the next simulation
-   * run. This is probably only useful for a web-interface controller.
-   */
-  public void init ()
-  {
-    runOnce();
-    // prepare for the next run
-    preGame();
   }
   
   /**
@@ -446,6 +183,14 @@ public class CompetitionControlService
   }
   
   /**
+   * Sets up the bootstrap dataset extracted from its external source.
+   */
+  void setBootstrapDataset (List<Object> dataset)
+  {
+    bootstrapDataset = dataset;
+  }
+  
+  /**
    * Sets the number of timeslots to discard at the beginning of a bootstrap
    * run. Length of the sim will be the bootstrap length plus this length.
    * Default value is 24.
@@ -455,13 +200,20 @@ public class CompetitionControlService
     bootstrapDiscardedTimeslots = count;
   }
   
+  int getBootstrapDiscardedTimeslots ()
+  {
+    return bootstrapDiscardedTimeslots;
+  }
+  
   /**
    * Runs a simulation that is already set up. This is intended to be called
    * from a method that knows whether we are running a bootstrap sim or a 
    * normal sim.
    */
-  public void runOnce ()
+  public void runOnce (boolean bootstrapMode)
   {
+    this.bootstrapMode = bootstrapMode;
+    
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
     if (simRunning) {
@@ -487,96 +239,6 @@ public class CompetitionControlService
     simRunning = false;
     logService.stopLog();
   }
-  
-  /**
-   * Loads a bootstrap dataset, starts a simulation
-   */
-  public void runOnce (File datasetFile)
-  {
-    // load the bootstrap dataset, and start the sim
-    bootstrapMode = false;
-    bootstrapDataset = new ArrayList<Object>();
-    XPathFactory factory = XPathFactory.newInstance();
-    XPath xPath = factory.newXPath();
-    try {
-      InputSource source = new InputSource(new FileReader(datasetFile));
-      // we want all the children of the bootstrap node
-      XPathExpression exp =
-          xPath.compile("/powertac-bootstrap-data/bootstrap/*");
-      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-      log.info("Found " + nodes.getLength() + " bootstrap nodes");
-      // Each node is a bootstrap data item
-      for (int i = 0; i < nodes.getLength(); i++) {
-        String xml = nodeToString(nodes.item(i));
-        Object msg = messageConverter.fromXML(xml);
-        bootstrapDataset.add(msg);
-      }
-    }
-    catch (XPathExpressionException xee) {
-      log.error("runOnce: Error reading config file: " + xee.toString());
-    }
-    catch (IOException ioe) {
-      log.error("runOnce: reset fault: " + ioe.toString());
-    }
-    runOnce();
-  }
-  
-  /**
-   * Runs a bootstrap sim, saves the bootstrap dataset in a file
-   */
-  public void runOnce (Writer datasetWriter)
-  {
-    bootstrapMode = true;
-    runOnce();
-    // save the dataset
-    saveBootstrapData(datasetWriter);
-  }
-
-  // method broken out to simplify testing
-  void saveBootstrapData (Writer datasetWriter)
-  {
-    BufferedWriter output = new BufferedWriter(datasetWriter);
-    List<Object> data = 
-        defaultBroker.collectBootstrapData(competition.getBootstrapTimeslotCount());
-    try {
-      // write the config data
-      output.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      output.newLine();
-      output.write("<powertac-bootstrap-data>");
-      output.newLine();
-      output.write("<config>");
-      output.newLine();
-      // bootstrap offset
-      output.write("<bootstrap-offset value=\"" 
-                   + bootstrapDiscardedTimeslots + "\" />");
-      output.newLine();
-      // current competition
-      output.write(messageConverter.toXML(competition));
-      output.newLine();
-      // next the PluginConfig instances
-      for (PluginConfig pic : pluginConfigRepo.list()) {
-        output.write(messageConverter.toXML(pic));
-        output.newLine();
-      }
-      output.write("</config>");
-      output.newLine();
-      // finally the bootstrap data
-      output.write("<bootstrap>");
-      output.newLine();
-      for (Object item : data) {
-        output.write(messageConverter.toXML(item));
-        output.newLine();
-      }
-      output.write("</bootstrap>");
-      output.newLine();
-      output.write("</powertac-bootstrap-data>");
-      output.newLine();
-      output.close();
-    }
-    catch (IOException ioe) {
-      log.error("Error writing bootstrap file: " + ioe.toString());
-    }
-  }
 
   // ------------------ simulation setup -------------------
   // Sets up simulation state in preparation for a sim run. At this point,
@@ -587,6 +249,18 @@ public class CompetitionControlService
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
                                              competition.getId(),
                                              "game-setup");
+    
+    if (!bootstrapMode) {
+      // Create the timeslots from the bootstrap period - they will be needed to 
+      // instantiate weather reports. All are disabled.
+      currentSlotOffset = competition.getBootstrapTimeslotCount()
+                              + getBootstrapDiscardedTimeslots();
+      createInitialTimeslots(competition.getSimulationBaseTime(),
+                             (currentSlotOffset + 1),
+                             0);
+      log.info("created " + timeslotRepo.count() + " bootstrap timeslots");
+
+    }
 
     // set up the simulation clock
     setTimeParameters();
@@ -1046,10 +720,10 @@ public class CompetitionControlService
   {
     bootstrapTimeslotMillis = length;
   }
-
-  public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException
+  
+  long getBootstrapTimeslotMillis ()
   {
-    this.applicationContext = applicationContext;
+    return bootstrapTimeslotMillis;
   }
   
   /**
