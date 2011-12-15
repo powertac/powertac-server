@@ -31,4 +31,10 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/factored-customer.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/factored-customer.git</developerConnection>
+    <url>https://github.com/powertac/factored-customer</url>
+  </scm>
 </project>
