@@ -29,4 +29,10 @@
     	<scope>compile</scope>
     </dependency>
   </dependencies>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/household-customer.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/household-customer.git</developerConnection>
+    <url>https://github.com/powertac/household-customer</url>
+  </scm>
 </project>
