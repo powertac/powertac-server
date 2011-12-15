@@ -5,7 +5,7 @@
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
     <version>0.1.1</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <artifactId>server-main</artifactId>
@@ -25,7 +25,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
 
     <!-- ActiveMQ -->
@@ -61,37 +61,37 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>auctioneer</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>distribution-utility</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>household-customer</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>0.1.0-SNAPSHOT</version>
+      <version>0.1.0</version>
     </dependency>
   </dependencies>
 
