@@ -4,7 +4,7 @@ for dir in $(ls);
 do 
   if [ -d ${dir}/.git ]; then
 	  pushd ${dir}
-  	git $@
+  	git "$@"
   	popd
   fi
 done
