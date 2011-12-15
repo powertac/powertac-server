@@ -4,7 +4,7 @@
   <parent>
     <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <relativePath/>
   </parent>
 
