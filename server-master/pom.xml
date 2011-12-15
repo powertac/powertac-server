@@ -18,7 +18,7 @@
   <properties>
     <spring.version>3.0.6.RELEASE</spring.version>
     <junit.version>4.10</junit.version>
-    <powertac.version>0.1.0</powertac.version>
+    <!-- <powertac.version>0.1.0</powertac.version> -->
   </properties>
 
   <!-- pull in the sonatype repo definitions for deployment -->
