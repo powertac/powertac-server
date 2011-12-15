@@ -40,4 +40,10 @@
       <version>31.0</version>
     </dependency>
   </dependencies>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/distribution-utility.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/distribution-utility.git</developerConnection>
+    <url>https://github.com/powertac/distribution-utility</url>
+  </scm>
 </project>
