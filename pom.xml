@@ -9,9 +9,10 @@
   </parent>
   
   <artifactId>distribution-utility</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
   <name>Power TAC distribution utility</name>
   <description>
-  Responsible for balancing supply and demand in the current timeslot
+    Balances supply and demand in the current timeslot
   </description>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
