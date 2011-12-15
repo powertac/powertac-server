@@ -94,7 +94,7 @@ public class AuctionService
   private double defaultMargin = 0.05; // used when one side has no limit price
   private double defaultClearingPrice = 40.00; // used when no limit prices
   private double sellerSurplusRatio;
-  private double epsilon = 1e-8;
+  private double epsilon = 1e-6; // position balance less than this is ignored
 
   private List<Order> incoming;
   
@@ -244,8 +244,8 @@ public class AuctionService
       Double askPrice = 0.0;
       double totalMWh = 0.0;
       ArrayList<PendingTrade> pendingTrades = new ArrayList<PendingTrade>();
-      while (bids != null && bids.size() > 0 && 
-             asks != null && asks.size() > 0 &&
+      while (bids != null && !bids.isEmpty() && 
+             asks != null && !asks.isEmpty() &&
              (bids.first().isMarketOrder() ||
                  asks.first().isMarketOrder() ||
                  -bids.first().getLimitPrice() >= asks.first().getLimitPrice())) {
@@ -268,6 +268,8 @@ public class AuctionService
           bid.executionMWh += transfer;
           ask.executionMWh -= transfer;
         }
+        log.debug("bid remaining=" + (bid.getMWh() - bid.executionMWh));
+        log.debug("ask remaining=" + (ask.getMWh() - ask.executionMWh));
         if (bid.getMWh() - bid.executionMWh <= epsilon)
           bids.remove(bid);
         if (ask.getMWh() - ask.executionMWh >= -epsilon)
