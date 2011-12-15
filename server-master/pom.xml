@@ -114,26 +114,6 @@
 	  </includes>
 	</configuration>
       </plugin>
-      <!-- Javadoc generation -->
-      <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-javadoc-plugin</artifactId>
-	<version>2.8</version>
-	<configuration>
-	  <links>
-	    <link>http://tac04.cs.umn.edu:8080/job/common/ws/target/site/apidocs/</link>
-	    <link>http://download.oracle.com/javase/6/docs/api/</link>
-	  </links>
-	</configuration>
-	<executions>
-	  <execution>
-	    <phase>package</phase>
-	    <goals>
-	      <goal>aggregate</goal>
-	    </goals>
-	  </execution>
-	</executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -176,12 +156,6 @@
     <system>github</system>
     <url>https://github.com/powertac/powertac-server/issues</url>
   </issueManagement>
-  
-  <scm>
-    <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
-    <url>https://github.com/powertac/powertac-server</url>
-  </scm>
 
   <licenses>
     <license>
