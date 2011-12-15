@@ -37,6 +37,13 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/server-interface.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/server-interface.git</developerConnection>
+    <url>https://github.com/powertac/server-interface</url>
+  </scm>
+
   <build>
     <plugins>
       <plugin>
