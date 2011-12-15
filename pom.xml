@@ -44,6 +44,12 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/genco.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/genco.git</developerConnection>
+    <url>https://github.com/powertac/genco</url>
+  </scm>
 
   <!-- needs AspectJ build -->
   <build>
