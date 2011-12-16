@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>server-main</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0-SNAPSHOT</version>
   <name>Power TAC server main</name>
   <description>Top-level module of the Power TAC simulation server</description>
 
