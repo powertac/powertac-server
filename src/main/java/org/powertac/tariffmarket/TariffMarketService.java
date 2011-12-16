@@ -246,7 +246,8 @@ public class TariffMarketService
       // If there are active subscriptions, then we have to charge a fee.
       List<TariffSubscription> activeSubscriptions =
           tariffSubscriptionRepo.findSubscriptionsForTariff(result.tariff);
-      for (Iterator<TariffSubscription> subs = activeSubscriptions.iterator(); subs.hasNext(); ) {
+      for (Iterator<TariffSubscription> subs = activeSubscriptions.iterator();
+           subs.hasNext(); ) {
         TariffSubscription sub = subs.next();
         if (sub.getCustomersCommitted() <= 0) {
           subs.remove();
