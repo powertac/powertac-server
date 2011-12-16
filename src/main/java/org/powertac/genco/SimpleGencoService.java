@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
  * @author John Collins
  */
 @Service
-class SimpleGencoService
+public class SimpleGencoService
   extends TimeslotPhaseProcessor
 {
   static private Logger log = Logger.getLogger(SimpleGencoService.class.getName());
