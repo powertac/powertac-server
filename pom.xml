@@ -5,11 +5,11 @@
     <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
     <version>0.1.1</version>
-    <relativePath/>
+    <relativePath />
   </parent>
 
   <artifactId>default-broker</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>Power TAC default broker</name>
   <description>
     Simulates holder of all customer tariffs prior to market opening
