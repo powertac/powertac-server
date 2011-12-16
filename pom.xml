@@ -9,7 +9,7 @@
   </parent>
 
   <artifactId>factored-customer</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <name>Power TAC factored customer</name>
   <description>
     Top-down statistical model framework for different classes of customers.
