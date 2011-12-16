@@ -22,3 +22,6 @@
 [submodule "factored-customer"]
 	path = factored-customer
 	url = git://github.com/powertac/factored-customer.git
+[submodule "server-main"]
+	path = server-main
+	url = git@github.com:powertac/server-main.git
