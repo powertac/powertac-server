@@ -99,12 +99,12 @@ public class LogServiceTests
     // write to the trace log and check
     log.info("start sim 42");
     staticLog.warn("warning message");
-    File traceFile = new File("log/test42.trace");
+    File traceFile = new File("log/test-42.trace");
     assertTrue("trace file exists", traceFile.exists());
     
     // write to the state log and check
     stateLog.info("sim-state");
-    File stateFile = new File("log/test42.state");
+    File stateFile = new File("log/test-42.state");
     assertTrue("state file exists", stateFile.exists());
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
@@ -133,12 +133,12 @@ public class LogServiceTests
     // write to the trace log and check
     log.info("start sim 43");
     staticLog.warn("warning message 43");
-    File traceFile = new File("log/test43.trace");
+    File traceFile = new File("log/test-43.trace");
     assertTrue("trace file exists", traceFile.exists());
     
     // write to the state log and check
     stateLog.info("sim-state-43");
-    File stateFile = new File("log/test43.state");
+    File stateFile = new File("log/test-43.state");
     assertTrue("state file exists", stateFile.exists());
     try {
       BufferedReader stateReader = new BufferedReader(new FileReader(stateFile));
