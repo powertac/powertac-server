@@ -4,7 +4,8 @@
   <!--
      Bundle pom for Powertac server. Individual components do not
      inherit from this pom; instead they inherit from server-master,
-     as does this pom.
+     as does this pom. Note that this module is only needed for
+     development; there is no need to release it.
    -->
 
   <!-- pull in the project master pom -->
@@ -16,7 +17,7 @@
   </parent>
 
   <artifactId>powertac-server</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
 
@@ -27,10 +28,10 @@
     <module>auctioneer</module>
     <module>default-broker</module>
     <module>distribution-utility</module>
+    <module>factored-customer</module>
     <module>genco</module>
     <module>household-customer</module>
     <module>server-main</module>
-    <module>factored-customer</module>
   </modules>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
