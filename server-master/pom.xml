@@ -40,6 +40,11 @@
   <!-- common dependencies across all modules -->
   <dependencies>
     <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>common</artifactId>
+      <version>0.2.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
@@ -69,11 +74,6 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
       <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>common</artifactId>
-      <version>0.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
