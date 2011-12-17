@@ -54,42 +54,42 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>auctioneer</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>distribution-utility</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>household-customer</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0_SNAPSHOT</version>
     </dependency>
   </dependencies>
 
