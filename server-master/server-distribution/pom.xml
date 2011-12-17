@@ -13,7 +13,7 @@
   <version>0.1.0</version>
   <packaging>pom</packaging>
   <name>Power TAC distribution</name>
-  <description>Dependencies and structure for all powertac server modules</description>
+  <description>Support for download and execution of the Power TAC server</description>
   <url>http://www.powertac.org</url>
 
   <!-- pull in the sonatype repo definitions for deployment -->
