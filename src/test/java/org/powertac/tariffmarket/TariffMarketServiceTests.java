@@ -729,6 +729,11 @@ public class TariffMarketServiceTests
     {
       return false;
     }
+
+    @Override
+    public void runOnce (boolean bootstrapMode)
+    { 
+    }
   }
   
   class MockTariffListener implements NewTariffListener
