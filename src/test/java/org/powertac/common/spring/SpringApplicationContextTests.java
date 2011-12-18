@@ -65,13 +65,22 @@ public class SpringApplicationContextTests
   }
 
   /**
-   * Test method for {@link org.powertac.common.spring.SpringApplicationContext#getBeansOfType(java.lang.Class)}.
+   * Test method for {@link org.powertac.common.spring.SpringApplicationContext#listBeansOfType(java.lang.Class)}.
    */
   @Test
-  public void testGetBeansOfType ()
+  public void testListBeansOfType ()
+  {
+    List<DomainRepo> repos =
+        SpringApplicationContext.listBeansOfType(DomainRepo.class);
+    assertEquals("8 repos", 8, repos.size());
+    // assertTrue("type match", repos.get("brokerRepo") instanceof BrokerRepo);
+  }
+
+  @Test
+  public void testMapBeansOfType ()
   {
     Map<String, DomainRepo> repos =
-        SpringApplicationContext.getBeansOfType(DomainRepo.class);
+        SpringApplicationContext.mapBeansOfType(DomainRepo.class);
     assertEquals("8 repos", 8, repos.size());
     assertTrue("type match", repos.get("brokerRepo") instanceof BrokerRepo);
   }

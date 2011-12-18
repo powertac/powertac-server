@@ -17,13 +17,20 @@ package org.powertac.common.spring;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
+import org.powertac.common.repo.DomainRepo;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
+/**
+ * Static methods to access the Spring application context. It is set up
+ * as a service so Spring will create and initialize it.
+ * @author John Collins
+ */
 @Service
 public class SpringApplicationContext implements ApplicationContextAware
 {
@@ -35,11 +42,18 @@ public class SpringApplicationContext implements ApplicationContextAware
     context = appContext;    
   }
   
+  /**
+   * Returns the Spring bean, if any, with the given name.
+   */
   public static Object getBean (String beanName)
   {
     return context.getBean(beanName);
   }
   
+  /**
+   * Returns the first Spring bean found that is an instance of the 
+   * given class.
+   */
   public static <T> T getBeanByType (Class<T> type) {
     T bean = null;
     Collection<T> beans = context.getBeansOfType(type).values();
@@ -49,9 +63,21 @@ public class SpringApplicationContext implements ApplicationContextAware
       
     return bean;
   }
-  
-  public static <T> Map<String, T> getBeansOfType(Class<T> clazz)
+
+  /**
+   * Returns all the Spring beans that are instances of the given type.
+   */
+  public static <T> List<T> listBeansOfType(Class<T> type)
   {
-    return context.getBeansOfType(clazz);
+    return new ArrayList<T>(context.getBeansOfType(type).values());
+  }
+
+  /**
+   * Returns a map of all the Spring beans that are instances of 
+   * the given type.
+   */
+  public static <T> Map<String, T> mapBeansOfType(Class<T> type)
+  {
+    return context.getBeansOfType(type);
   }
 }
