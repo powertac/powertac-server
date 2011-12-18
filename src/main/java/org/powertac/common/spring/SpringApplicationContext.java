@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.powertac.common.repo.DomainRepo;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
@@ -79,5 +80,10 @@ public class SpringApplicationContext implements ApplicationContextAware
   public static <T> Map<String, T> mapBeansOfType(Class<T> type)
   {
     return context.getBeansOfType(type);
+  }
+  
+  public static ApplicationContext getContext ()
+  {
+    return context;
   }
 }
