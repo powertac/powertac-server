@@ -27,7 +27,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -76,9 +75,10 @@ import org.xml.sax.InputSource;
  */
 @Service
 public class CompetitionSetupService
-  implements CompetitionSetup
+  implements CompetitionSetup//, ApplicationContextAware
 {
   static private Logger log = Logger.getLogger(CompetitionSetupService.class);
+  //static private ApplicationContext context;
 
   @Autowired
   private CompetitionControlService cc;
@@ -216,6 +216,7 @@ public class CompetitionSetupService
    * the completion of each simulation. The actual simulation is started
    * with a call to init().
    */
+  @Override
   public void preGame ()
   {
     log.info("preGame() - start");
@@ -488,4 +489,11 @@ public class CompetitionSetupService
     //log.info("xml node: " + result);
     return result;
   }
+
+//  @Override
+//  public void setApplicationContext (ApplicationContext appContext)
+//      throws BeansException
+//  {
+//    context = appContext;    
+//  }
 }

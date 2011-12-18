@@ -15,17 +15,7 @@
  */
 package org.powertac.server;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import org.apache.log4j.Logger;
-import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.ServerProperties;
+//import org.apache.log4j.Logger;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -35,7 +25,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class PowerTacServer
 {
-  static private Logger log = Logger.getLogger(PowerTacServer.class);
+  //static private Logger log = Logger.getLogger(PowerTacServer.class);
 
   private static CompetitionSetupService css = null;
 

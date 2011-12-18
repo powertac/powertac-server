@@ -115,6 +115,7 @@ public class ServerPropertiesService implements ServerProperties
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.ServerProperties#getProperty(java.lang.String)
    */
+  @Override
   public String getProperty (String name)
   {
     init();
@@ -124,12 +125,14 @@ public class ServerPropertiesService implements ServerProperties
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.ServerProperties#getProperty(java.lang.String, java.lang.String)
    */
+  @Override
   public String getProperty (String name, String defaultValue)
   {
     init();
     return userFileProps.getProperty(name, defaultValue);
   }
 
+  @Override
   public Integer getIntegerProperty (String name, Integer defaultValue)
   {
     String value = getProperty(name);
@@ -150,6 +153,7 @@ public class ServerPropertiesService implements ServerProperties
     return number;
   }
 
+  @Override
   public Double getDoubleProperty (String name, Double defaultValue)
   {
     String value = getProperty(name);

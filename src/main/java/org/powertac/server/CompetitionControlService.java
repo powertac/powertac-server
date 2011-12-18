@@ -18,7 +18,6 @@ package org.powertac.server;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -49,7 +48,6 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 /**
@@ -79,11 +77,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CompetitionControlService
-  implements CompetitionControl, BrokerMessageListener
+  implements CompetitionControl, BrokerMessageListener//, ApplicationContextAware
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class);
-  
-  private ApplicationContext applicationContext = null;
 
   private Competition competition;
 
@@ -175,6 +171,7 @@ public class CompetitionControlService
    * starting a simulation. The simulation will not start until all 
    * brokers in the list are logged in, unless a timeout is configured.
    */
+  @Override
   public void setAuthorizedBrokerList (ArrayList<String> brokerList)
   {
     authorizedBrokerList = new ArrayList<String>(alwaysAuthorizedBrokers);
@@ -211,6 +208,7 @@ public class CompetitionControlService
    * from a method that knows whether we are running a bootstrap sim or a 
    * normal sim.
    */
+  @Override
   public void runOnce (boolean bootstrapMode)
   {
     this.bootstrapMode = bootstrapMode;
@@ -355,6 +353,7 @@ public class CompetitionControlService
    * Logs in a broker, just in case the broker is on the authorizedBrokerList.
    * Returns true if the broker is authorized, otherwise false.
    */
+  @Override
   public synchronized boolean loginBroker (String username)
   {
     // cannot log in if there's no list, or if the broker is not on the list
@@ -442,7 +441,7 @@ public class CompetitionControlService
   private boolean configurePlugins ()
   {
     List<InitializationService> initializers =
-        SpringApplicationContext.<InitializationService>listBeansOfType(InitializationService.class);
+        SpringApplicationContext.listBeansOfType(InitializationService.class);
 
     ArrayList<String> completedPlugins = new ArrayList<String>();
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
@@ -616,6 +615,7 @@ public class CompetitionControlService
    * Allows instances of TimeslotPhaseProcessor to register themselves
    * to be activated during one of the processing phases in each timeslot.
    */
+  @Override
   public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
   {
     if (phase <= 0 || phase > timeslotPhaseCount) {
@@ -634,6 +634,7 @@ public class CompetitionControlService
   }
 
   /** True just in case the sim is running in bootstrap mode */
+  @Override
   public boolean isBootstrapMode ()
   {
     return bootstrapMode;
@@ -672,6 +673,7 @@ public class CompetitionControlService
    * cycle has finished, or immediately if no simulation cycle is currently
    * in progress.
    */
+  @Override
   public void receiveMessage (PauseRequest msg)
   {
     if (pauseRequester != null) {
@@ -687,6 +689,7 @@ public class CompetitionControlService
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
    */
+  @Override
   public void receiveMessage (PauseRelease msg)
   {
     if (pauseRequester == null) {
@@ -743,6 +746,7 @@ public class CompetitionControlService
       parent = instance;
     }
     
+    @Override
     public void run ()
     {
       SimulationClockControl.initialize(parent, timeService);
@@ -777,6 +781,7 @@ public class CompetitionControlService
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.BrokerMessageListener#receiveMessage(java.lang.Object)
    */
+  @Override
   public void receiveMessage(Object msg)
   {
     if (msg instanceof PauseRelease) {

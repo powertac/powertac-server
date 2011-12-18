@@ -64,6 +64,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#sendMessage(org.powertac.common
    * .Broker, java.lang.Object)
    */
+  @Override
   public void sendMessage (Broker broker, Object messageObject)
   {
     // dispatch to visualizers, but only if we're actually going to send
@@ -92,6 +93,7 @@ public class BrokerProxyService implements BrokerProxy
       final String queueName = broker.toQueueName();
 
       template.send(queueName, new MessageCreator() {
+        @Override
         public Message createMessage (Session session) throws JMSException
         {
           TextMessage message = session.createTextMessage(text);
@@ -108,6 +110,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#sendMessages(org.powertac.common
    * .Broker, java.util.List)
    */
+  @Override
   public void sendMessages (Broker broker, List<?> messageObjects)
   {
     for (Object message : messageObjects) {
@@ -122,6 +125,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#broadcastMessage(java.lang.Object
    * )
    */
+  @Override
   public void broadcastMessage (Object messageObject)
   {
     if (deferredBroadcast) {
@@ -149,6 +153,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#broadcastMessages(java.util.
    * List)
    */
+  @Override
   public void broadcastMessages (List<?> messageObjects)
   {
     for (Object message : messageObjects) {
@@ -162,6 +167,7 @@ public class BrokerProxyService implements BrokerProxy
    * @see
    * org.powertac.common.interfaces.BrokerProxy#routeMessage(java.lang.Object)
    */
+  @Override
   public void routeMessage (Object message)
   {
     if (router.route(message)) {
@@ -177,6 +183,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#registerBrokerMarketListener
    * (org.powertac.common.interfaces.BrokerMessageListener)
    */
+  @Override
   public void registerBrokerMarketListener (BrokerMessageListener listener)
   {
     registrar.registerBrokerMarketListener(listener);
@@ -189,6 +196,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#registerBrokerTariffListener
    * (org.powertac.common.interfaces.BrokerMessageListener)
    */
+  @Override
   public void registerBrokerTariffListener (BrokerMessageListener listener)
   {
     registrar.registerBrokerTariffListener(listener);
@@ -201,6 +209,7 @@ public class BrokerProxyService implements BrokerProxy
    * org.powertac.common.interfaces.BrokerProxy#registerSimListener(org.powertac
    * .common.interfaces.BrokerMessageListener)
    */
+  @Override
   public void registerSimListener (BrokerMessageListener listener)
   {
     registrar.registerSimListener(listener);
@@ -212,6 +221,7 @@ public class BrokerProxyService implements BrokerProxy
    * @see
    * org.powertac.common.interfaces.BrokerProxy#setDeferredBroadcast(boolean)
    */
+  @Override
   public void setDeferredBroadcast (boolean b)
   {
     deferredBroadcast = b;
@@ -222,6 +232,7 @@ public class BrokerProxyService implements BrokerProxy
    * 
    * @see org.powertac.common.interfaces.BrokerProxy#broadcastDeferredMessages()
    */
+  @Override
   public void broadcastDeferredMessages ()
   {
     deferredBroadcast = false;
