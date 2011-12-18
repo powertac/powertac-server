@@ -45,8 +45,8 @@ public class CompetitionControlServiceTests
   @Autowired
   private CompetitionControlService ccs;
   
-  //@Autowired
-  //private PluginConfigRepo pluginConfigRepo;
+  @Autowired
+  private CompetitionSetupService css;
   
   @Autowired
   private BootstrapDataCollector collector;
@@ -84,7 +84,7 @@ public class CompetitionControlServiceTests
   public void testRunOnceWriter ()
   {
     // create the PluginConfig instances
-    ccs.preGame();
+    css.preGame();
     
     ArrayList<Object> data = new ArrayList<Object>();
     double[] usage1 = new double[] {3.1,3.2,3.3,3.4};
@@ -95,7 +95,7 @@ public class CompetitionControlServiceTests
     when(collector.collectBootstrapData(anyInt())).thenReturn(data);
     
     CharArrayWriter writer = new CharArrayWriter();
-    ccs.saveBootstrapData(writer);
+    css.saveBootstrapData(writer);
     //System.out.println(writer.toString());
     
     // transfer the data to a reader and check content with XPath

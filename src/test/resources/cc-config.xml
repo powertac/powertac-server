@@ -100,9 +100,13 @@
         class="org.powertac.tariffmarket.TariffMarketService">
   </bean>
    -->
-   
+
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
+  </bean>
+
+  <bean id="competitionSetupService"
+        class="org.powertac.server.CompetitionSetupService">
   </bean>
   
   <bean id="weatherReportRepo"
