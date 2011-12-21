@@ -1,18 +1,8 @@
 package org.powertac.visualizer.beans;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 
 import org.apache.log4j.Logger;
-import org.primefaces.mobile.component.content.Content;
-import org.primefaces.model.DefaultStreamedContent;
-import org.primefaces.model.StreamedContent;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ResourceLoaderAware;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.stereotype.Service;
 
 /**
  * Backing bean that returns context-relative path of images for use in PrimeFaces components. This pattern is used for avoiding

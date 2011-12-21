@@ -10,12 +10,7 @@
 
 	<ui:define name="notes">
 		<h5>Comments:</h5>
-		<p>From here you can start the simulator, steps:</p>
-		<p>0. Stop Competition</p>
-		<p>1. PreGame</p>
-		<p>2. ConfigPlugins</p>
-		<p>3. RunOnce</p>
-		<hr />
+		<p>From here you can start the simulator</p>
 	</ui:define>
 
 	<ui:define name="content">
@@ -30,12 +25,7 @@
 
 
 			<h:panelGroup layout="block">
-				<p:commandButton value="PreGame" action="preGame" update="content" />
-				<p:commandButton value="ConfigPlugins" action="configPlugins"
-					update="content" />
-				<p:commandButton value="RunOnce" action="runOnce" update="content" />
-				<p:commandButton value="Stop Competition" action="stopCompetition"
-					update="content" />
+				<p:commandButton value="Run" action="run" update="content" />
 			</h:panelGroup>
 
 			<hr />

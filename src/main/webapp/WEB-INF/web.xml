@@ -76,5 +76,11 @@
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
+	
+	<!-- TAG LIBS -->
+	<context-param>
+        <param-name>facelets.LIBRARIES</param-name>
+        <param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
+    </context-param>
 
 </web-app>

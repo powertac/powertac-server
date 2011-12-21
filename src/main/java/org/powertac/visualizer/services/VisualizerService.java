@@ -85,7 +85,7 @@ public class VisualizerService implements VisualizerMessageListener {
 
 	visualizerBean.incrementMessageCounter();
 
-	log.debug("Counter: " + visualizerBean.getMessageCount()
+	log.info("Counter: " + visualizerBean.getMessageCount()
 		+ ", Got message: " + msg.getClass().getName());
 
 	if (msg != null) {

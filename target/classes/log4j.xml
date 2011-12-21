@@ -21,7 +21,7 @@
 	<!-- Application Loggers -->
 
 	<logger name="org.powertac.visualizer" additivity="false">
-		<level value="debug" />
+		<level value="info" />
 		<appender-ref ref="visualizerFileAppender" />
 
 	</logger>

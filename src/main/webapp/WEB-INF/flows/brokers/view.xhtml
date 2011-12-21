@@ -1,0 +1,40 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title">Brokers</ui:define>
+
+	<ui:define name="content">
+		<h:form>
+
+			<p:accordionPanel id="accordion" dynamic="true">
+				<p:tab title="Overview" id="accordionOverview">
+					<p:layout style="width:1024px;height:600px">
+						<p:layoutUnit position="west" size="500">
+							<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+						</p:layoutUnit>
+						<p:layoutUnit position="center">
+							<p:lineChart value="#{visualizerBean.brokerCashBalancesCartesian}"
+								rendered="#{not empty visualizerBean.brokerCashBalancesCartesian}" seriesColors="#{visualizerBean.brokerColors}"
+								title="Cash Balance" xaxisLabel="timeslot" yaxisLabel="cash" style="width:500px;height:250px" />
+
+							<p:lineChart value="#{visualizerBean.brokerEnergyBalancesCartesian}"
+								rendered="#{not empty visualizerBean.brokerEnergyBalancesCartesian}" seriesColors="#{visualizerBean.brokerColors}"
+								title="Energy Balance" xaxisLabel="timeslot" yaxisLabel="energy/kWh" style="width:500px;height:250px" />
+						</p:layoutUnit>
+					</p:layout>
+
+
+				</p:tab>
+				<p:tab title="Individual" id="accordionIndividual">
+					<ui:include src="/WEB-INF/tags/brokers.xhtml" />
+				</p:tab>
+			</p:accordionPanel>
+
+			<p:poll autoStart="true" update="accordion" interval="2"></p:poll>
+
+		</h:form>
+	</ui:define>
+
+</ui:composition>

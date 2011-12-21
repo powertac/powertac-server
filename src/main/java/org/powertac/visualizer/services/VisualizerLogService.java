@@ -81,6 +81,7 @@ public class VisualizerLogService {
 	// add Visualizer summary at the end of log
 	logVisualizerSummary();
 	
+	
 	visualizerLogger.removeAppender(logFile);
 
 	

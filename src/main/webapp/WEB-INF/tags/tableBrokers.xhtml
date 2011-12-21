@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui">
+
+
+<h:body>
+	<ui:fragment>
+		
+			<p:dataTable value="#{visualizerBean.brokers}" var="broker" type="ordered" >
+				<f:facet name="header">  
+            			List of Brokers:  
+        	</f:facet>
+
+				<p:column headerText="Icon">
+					<p:graphicImage value="${broker.appearance.iconLocation}" width="65" height="65" />
+				</p:column>
+
+				<p:column headerText="Name">
+					<h:outputText value="#{broker.name}" style="font-weight: bold" />
+				</p:column>
+
+				<p:column headerText="Cash balance">
+					<h:outputText value="#{broker.cashBalance}" style="font-weight: bold" />
+				</p:column>
+
+				<p:column headerText="Energy balance">
+					<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
+				</p:column>
+
+			</p:dataTable>
+	</ui:fragment>
+</h:body>
+
+</html>
+

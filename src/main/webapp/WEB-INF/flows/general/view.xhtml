@@ -1,0 +1,41 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title">General overview</ui:define>
+
+	<ui:define name="content">
+		<h:form>
+			<p:panel id="GencosPanel" header="GenCos">
+				<h:outputText value=" " />
+			</p:panel>
+			<p:draggable for="GencosPanel" />
+			
+			<p:panel id="WholesalePanel" header="Wholesale market">
+				<h:outputText value=" " />
+			</p:panel>
+			<p:draggable for="WholesalePanel" />
+			
+			<p:panel id="DUPanel" header="Distribution utility">
+				<h:outputText value=" " />
+			</p:panel>
+			<p:draggable for="DUPanel" />
+			
+			<p:panel id="TarrifPanel" header="Tariff market">
+				<h:outputText value=" " />
+			</p:panel>
+			<p:draggable for="TarrifPanel" />
+			
+			<p:panel id="CustomersPanel" header="Customers">
+				<h:outputText value=" " />
+			</p:panel>
+			<p:draggable for="CustomersPanel" />
+			
+			<p:poll autoStart="true" update="brokersRanking" />
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
