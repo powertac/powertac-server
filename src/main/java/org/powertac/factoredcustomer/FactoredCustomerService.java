@@ -16,7 +16,6 @@
 
 package org.powertac.factoredcustomer;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
@@ -31,40 +30,38 @@ import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Key class that processes the configuration file and creates a collection of customers 
+ * during the initialization process.  It also delegates tariff selection callbacks and 
+ * timeslot activation (i.e., capacity reporting) to the collection of customers.
+ * 
  * @author Prashant Reddy
  */
 @Service  // allow autowiring
-public class FactoredCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
+public final class FactoredCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
 {
     private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
     @Autowired
-    TariffMarket tariffMarketService;
+    private TariffMarket tariffMarketService;
 
-    @Autowired
-    protected RandomSeedRepo randomSeedRepo;
-
-    String configResource = null;
+    private String configResource = null;
     
-    List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
-    List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
-    CustomerFactory customerFactory = new CustomerFactory();
+    private List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
+    private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
+    private CustomerFactory customerFactory = new CustomerFactory();
         
+    
     public FactoredCustomerService()
     {
         super();
-        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
     }
 
     /**
      * This is called once at the beginning of each game by the initialization service. 
-     * @throws IOException
      */
     void init(PluginConfig config) 
     {
@@ -86,7 +83,6 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
             FactoredCustomer customer = customerFactory.processProfile(customerProfile);
             if (customer != null) {
                 customers.add(customer);
-                customer.subscribeDefault();
             } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
         }
         log.info("Successfully initialized factored customers from configuration profiles.");     
@@ -102,7 +98,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
             Document doc = docBuilder.parse(configStream);
 
-            NodeList profileNodes = doc.getElementsByTagName("profile");
+            NodeList profileNodes = doc.getElementsByTagName("customer");
             int numProfiles = profileNodes.getLength();
             log.info("Loading " + numProfiles + " factored customer profiles.");
           
@@ -153,17 +149,17 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         // TariffMarketService and AccountingService work this way.
     }
 
-    public String getConfigResource() 
+    String getConfigResource() 
     {
         return configResource;
     }
     
-    public void setConfigResource(String resource) 
+    void setConfigResource(String resource) 
     {
         configResource = resource;
     }
     
-    public List<FactoredCustomer> getCustomers() 
+    List<FactoredCustomer> getCustomers() 
     {
         return customers;
     }

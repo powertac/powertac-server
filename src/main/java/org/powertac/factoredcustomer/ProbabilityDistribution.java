@@ -15,128 +15,278 @@
 
 package org.powertac.factoredcustomer;
 
+import java.util.Random;
 import org.w3c.dom.*;
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.distribution.*; 
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Prashant
- *
+ * Container class for one a large set of probability distribution samplers.
+ * The various samplers are implemented as nested classes.
+ * 
+ * @author Prashant Reddy
  */
-class ProbabilityDistribution
-{
-    enum DistributionType { DEGENERATE, POINTMASS, UNIFORM, NORMAL, GAUSSIAN,  LOGNORMAL, Z, STDNORMAL, INTERVAL };
-             //	CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL, GAMMA, WEIBULL, T, STUDENT, F, SNEDECOR, }
-	
-    DistributionType distributionType;	
-    long seed;
-    DistributionSamplerBase sampler;
-	
-    /**
-     * @param xml - XML GPathResult from config
-     */
-    ProbabilityDistribution(Element xml, long randomSeed)
+final class ProbabilityDistribution
+{       
+    enum DistType { DEGENERATE, POINTMASS, UNIFORM, INTERVAL, NORMAL, GAUSSIAN, STDNORMAL, LOGNORMAL, 
+                    CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL, GAMMA, WEIBULL, STUDENT, SNEDECOR }  
+
+    @Autowired
+    private RandomSeedRepo randomSeedRepo;
+
+    private static long distCounter = 0;
+    private final long distId = ++distCounter;
+
+    private final DistType type;
+    private final Sampler sampler;
+    private double param1, param2, param3, param4;
+        
+    ProbabilityDistribution(Element xml)
     {
-	seed = randomSeed;
-	distributionType = Enum.valueOf(DistributionType.class, xml.getAttribute("probability"));
-	switch (distributionType) {
-	case POINTMASS:
-	case DEGENERATE:
-	    double value = Double.parseDouble(xml.getAttribute("value"));
-	    sampler = new DistributionSamplerDegenerate(value);
-	    break;
-	case UNIFORM:
-	    double low = Double.parseDouble(xml.getAttribute("low"));
-	    double high = Double.parseDouble(xml.getAttribute("high"));
-	    sampler = new DistributionSamplerUniform(low, high);
-	    break;
-	case NORMAL:
-	case GAUSSIAN:
-	    double mean = Double.parseDouble(xml.getAttribute("mean"));
-	    double stdDev = Double.parseDouble(xml.getAttribute("stdDev"));
-	    sampler = new DistributionSamplerNormal(mean, stdDev);
-	    break;
-	case LOGNORMAL:
-	    double expMean = Math.log(Double.parseDouble(xml.getAttribute("expMean")));
-	    double expStdDev = Math.log(Double.parseDouble(xml.getAttribute("expStdDev")));
-	    sampler = new DistributionSamplerNormal(expMean, expStdDev);
-	    break;
-	case Z:
-	case STDNORMAL:
-	    sampler = new DistributionSamplerNormal(0, 1);
-	    break;
-	case INTERVAL:
-	    double imean = Double.parseDouble(xml.getAttribute("mean"));
-	    double istdDev = Double.parseDouble(xml.getAttribute("stdDev"));
-	    double ilow = Double.parseDouble(xml.getAttribute("low"));
-	    double ihigh = Double.parseDouble(xml.getAttribute("high")); 
-	    sampler = new DistributionSamplerInterval(imean, istdDev, ilow, ihigh);
-	    break;
-	                /**
-	                case CAUCHY:
-				param1 = xml.getAttribute("median"));
-				param2 = xml.getAttribute("scale"));
-				sampler = new CauchyDistributionImpl(param1, param2)
-				break
-			case BETA:
-				param1 = xml.getAttribute("alpha"));
-				param2 = xml.getAttribute("beta"));
-				sampler = new BetaDistributionImpl(param1)
-				break
-			case BINOMIAL:
-				param1 = xml.getAttribute("trials").toInteger()
-				param2 = xml.getAttribute("success"));
-				sampler = new BinomialDistributionImpl(param1, param2)
-				break
-			case POISSON:
-				param1 = xml.getAttribute("lambda"));
-				sampler = new PoissonDistributionImpl(param1)
-				break
-			case CHISQUARED:
-				param1 = xml.getAttribute("dof"));
-				sampler = new ChiSquaredDistributionImpl(param1)
-				break
-			case EXPONENTIAL:
-				param1 = xml.getAttribute("mean"));
-				sampler = new ExponentialDistributionImpl(param1)
-				break
-			case GAMMA:
-				param1 = xml.getAttribute("alpha"));
-				param2 = xml.getAttribute("beta"));
-				sampler = new BetaDistributionImpl(param1)
-				break
-			case WEIBULL:
-				param1 = xml.getAttribute("alpha"));
-				param2 = xml.getAttribute("beta"));
-				sampler = new WeibullDistributionImpl(param1, param2)
-				break
-			case [T, STUDENT]:
-				param1 = xml.getAttribute("dof"));
-				sampler = new TDistributionImpl(param1, param2)
-				break
-			case [F, SNEDECOR]:
-				param1 = xml.getAttribute("d1"));
-				param2 = xml.getAttribute("d2"));
-				sampler = new FDistributionImpl(param1, param2)
-				break
-			**/
-	default:  throw new Error("Shouldn't be getting to unknown distributionType: " + distributionType);
-	}
-	sampler.init(seed);
+        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+
+        type = Enum.valueOf(DistType.class, xml.getAttribute("distribution"));
+        switch (type) {
+        case POINTMASS:
+        case DEGENERATE:
+            param1 = Double.parseDouble(xml.getAttribute("value"));
+            sampler = new DegenerateSampler(param1);
+            break;
+        case UNIFORM:
+            param1 = Double.parseDouble(xml.getAttribute("low"));
+            param2 = Double.parseDouble(xml.getAttribute("high"));
+            sampler = new UniformSampler(param1, param2);
+            break;
+        case INTERVAL:
+            param1 = Double.parseDouble(xml.getAttribute("mean"));
+            param2 = Double.parseDouble(xml.getAttribute("stdDev"));
+            param3 = Double.parseDouble(xml.getAttribute("low"));
+            param4 = Double.parseDouble(xml.getAttribute("high")); 
+            sampler = new IntervalSampler(param1, param2, param3, param4);
+            break;
+        case NORMAL:
+        case GAUSSIAN:
+            param1 = Double.parseDouble(xml.getAttribute("mean"));
+            param2 = Double.parseDouble(xml.getAttribute("stdDev"));
+            sampler = new ContinuousSampler(new NormalDistributionImpl(param1, param2));
+            break;
+        case STDNORMAL:
+            param1 = 0; param2 = 1;
+            sampler = new ContinuousSampler(new NormalDistributionImpl(param1, param2));
+            break;
+        case LOGNORMAL:
+            param1 = Double.parseDouble(xml.getAttribute("expMean"));
+            param2 = Double.parseDouble(xml.getAttribute("expStdDev"));
+            sampler = new LogNormalSampler(param1, param2);
+            break;         
+        case CAUCHY:
+            param1 = Double.parseDouble(xml.getAttribute("median"));
+            param2 = Double.parseDouble(xml.getAttribute("scale"));
+            sampler = new ContinuousSampler(new CauchyDistributionImpl(param1, param2));
+            break;
+        case BETA:
+            param1 = Double.parseDouble(xml.getAttribute("alpha"));
+            param2 = Double.parseDouble(xml.getAttribute("beta"));
+            sampler = new ContinuousSampler(new BetaDistributionImpl(param1, param2));
+            break;
+        case BINOMIAL:
+            param1 = Double.parseDouble(xml.getAttribute("trials"));
+            param2 = Double.parseDouble(xml.getAttribute("success"));
+            sampler = new DiscreteSampler(new BinomialDistributionImpl((int) param1, param2));
+            break;
+        case POISSON:
+            param1 = Double.parseDouble(xml.getAttribute("lambda"));
+            sampler = new DiscreteSampler(new PoissonDistributionImpl(param1));
+            break;
+        case CHISQUARED:
+            param1 = Double.parseDouble(xml.getAttribute("dof"));
+            sampler = new ContinuousSampler(new ChiSquaredDistributionImpl(param1));
+            break;
+        case EXPONENTIAL:
+            param1 = Double.parseDouble(xml.getAttribute("mean"));
+            sampler = new ContinuousSampler(new ExponentialDistributionImpl(param1));
+            break;
+        case GAMMA:
+            param1 = Double.parseDouble(xml.getAttribute("alpha"));
+            param2 = Double.parseDouble(xml.getAttribute("beta"));
+            sampler = new ContinuousSampler(new GammaDistributionImpl(param1, param2));
+            break;
+        case WEIBULL:
+            param1 = Double.parseDouble(xml.getAttribute("alpha"));
+            param2 = Double.parseDouble(xml.getAttribute("beta"));
+            sampler = new ContinuousSampler(new WeibullDistributionImpl(param1, param2));
+            break;
+        case STUDENT:
+            param1 = Double.parseDouble(xml.getAttribute("dof"));
+            sampler = new ContinuousSampler(new TDistributionImpl(param1));
+            break;
+        case SNEDECOR:
+            param1 = Double.parseDouble(xml.getAttribute("d1"));
+            param2 = Double.parseDouble(xml.getAttribute("d2"));
+            sampler = new ContinuousSampler(new FDistributionImpl(param1, param2));
+            break;
+        default: throw new Error("Invalid probability distribution type!");
+        } 
+        sampler.reseedRandomGenerator(randomSeedRepo.getRandomSeed("ProbabilityDistribution", distId, "Sampler").getValue());
     }
-	
+        
     double drawSample()
     {
-        switch (distributionType) {
-	case LOGNORMAL:
-	    return Math.exp(sampler.sample());	
-	default:
-	    return sampler.sample();
+        try {
+            return sampler.sample();
+        } 
+        catch (MathException e) 
+        {
+            System.err.println("ProbabilityDistribution(" + toString() + ") - drawSample():" + toString() + " Caught MathException:\n");
+            e.printStackTrace(System.err);
+            throw new Error("ProbabilityDistribution(" + toString() + ") - drawSample(): Caught MathException: " + e.toString());
         }
     }
-	
-    public String toString()
+ 
+    public String toString() 
     {
-	return "ProbabilityDistribution(distributionType: " + distributionType + ", seed: " + seed;
+        return "ProbabilityDistribution:" + distId + ":" + type + 
+               "(" + param1 + ", " + param2 + ", " + param3 + ", " + param4 + ")";
     }
 
-} // end class
+    
+    ///////////////////////////// HELPER CLASSES //////////////////////////////
+
+    interface Sampler
+    {
+        public void reseedRandomGenerator(long seed);
+        
+        public double sample() throws MathException;
+    }
+    
+    final class DegenerateSampler implements Sampler
+    {
+        final double value;
+        
+        DegenerateSampler(double v) { value = v; }
+        
+        public void reseedRandomGenerator(long seed) {}
+            
+        public double sample()  throws MathException { return value; }
+    }
+    
+    final class UniformSampler implements Sampler
+    {
+        final Random random;
+        final double low;
+        final int range;
+        
+        UniformSampler(double l, double h) 
+        { 
+            low = l; 
+            range = safeLongToInt(Math.round(h - low));
+            random = new Random();
+        }
+        
+        public void reseedRandomGenerator(long seed)
+        {
+            random.setSeed(seed);
+        }
+        
+        public double sample() throws MathException
+        {
+            return low + random.nextInt(range);
+        }
+
+        protected int safeLongToInt(long x) 
+        {
+            if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException(x + " cannot be cast to int without changing its value.");
+            } else return (int) x;
+        }
+    }
+    
+    final class IntervalSampler implements Sampler
+    {
+        final double low;
+        final double high;
+        final NormalDistributionImpl normalSampler;
+
+        IntervalSampler(double m, double s, double l, double h) 
+        {
+            normalSampler = new NormalDistributionImpl(m, s);
+            low = l;
+            high = h;
+        }
+        
+        public void reseedRandomGenerator(long seed)
+        {
+            normalSampler.reseedRandomGenerator(seed);
+        }
+        
+        public double sample() throws MathException
+        {
+            return Math.min(high, Math.max(low, normalSampler.sample()));
+        }
+    }
+    
+    final class LogNormalSampler implements Sampler
+    {
+        final NormalDistributionImpl normalSampler;
+
+        LogNormalSampler(double m, double s) 
+        {
+            normalSampler = new NormalDistributionImpl(Math.log(m), Math.log(s));
+        }
+        
+        public void reseedRandomGenerator(long seed)
+        {
+            normalSampler.reseedRandomGenerator(seed);
+        }
+        
+        public double sample() throws MathException
+        {
+            return Math.exp(normalSampler.sample());
+        }
+    }
+    
+    final class DiscreteSampler implements Sampler
+    {
+        final AbstractIntegerDistribution impl;
+        
+        DiscreteSampler(AbstractIntegerDistribution i)
+        {
+            impl = i;
+        }
+        
+        public void reseedRandomGenerator(long seed)
+        {
+            impl.reseedRandomGenerator(seed);
+        }
+        
+        public double sample() throws MathException
+        {
+            return impl.sample();
+        }
+    }
+    
+    final class ContinuousSampler implements Sampler
+    {
+        final AbstractContinuousDistribution impl;
+        
+        ContinuousSampler(AbstractContinuousDistribution i)
+        {
+            impl = i;
+        }
+        
+        public void reseedRandomGenerator(long seed)
+        {
+            impl.reseedRandomGenerator(seed);
+        }
+        
+        public double sample() throws MathException
+        {
+            return impl.sample();
+        }
+    }
+    
+}
 
