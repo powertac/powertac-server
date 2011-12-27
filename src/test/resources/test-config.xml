@@ -55,6 +55,9 @@
   <bean id="customerRepo"
         class="org.powertac.common.repo.CustomerRepo" />         
         
+  <bean id="weatherReportRepo"
+        class="org.powertac.common.repo.WeatherReportRepo" />         
+        
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
         <property name="timeslotPhase"><value>2</value></property> 
