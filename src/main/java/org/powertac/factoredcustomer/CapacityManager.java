@@ -16,29 +16,15 @@
 
 package org.powertac.factoredcustomer;
 
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.Timeslot;
+
 /**
  * @author Prashant Reddy
  */
-class CustomerCategory
+interface CapacityManager
 {
-    CustomerProfile.EntityType entityType;
-    CustomerProfile.CustomerRole customerRole;
-    CustomerProfile.ModelType modelType;
-
-    CustomerCategory(CustomerProfile.EntityType e, CustomerProfile.CustomerRole c, CustomerProfile.ModelType m)
-    {
-        entityType = e;
-        customerRole = c;
-        modelType = m;
-    }
-
-    public boolean equals(Object obj)
-    {
-        if (obj instanceof CustomerCategory) {
-            CustomerCategory o = (CustomerCategory) obj;
-            return entityType == o.entityType && customerRole == o.customerRole
-                    && modelType == o.modelType;
-        }
-        return false;
-    }
+    double drawBaseCapacitySample(Timeslot timeslot, int customerCount);
+    
+    double computeCapacity(Timeslot timeslot, TariffSubscription subscription);
 }

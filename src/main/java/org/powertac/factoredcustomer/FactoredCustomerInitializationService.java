@@ -26,9 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Sets up the configuration file location for @code{FactoredCustomerService}.
+ * 
  * @author Prashant Reddy
  */
-
 @Service  // allow autowiring
 public class FactoredCustomerInitializationService implements InitializationService
 {

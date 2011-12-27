@@ -16,145 +16,265 @@
 
 package org.powertac.factoredcustomer;
 
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.DataInputStream;
+import java.util.List;
+import java.util.ArrayList;
+import org.w3c.dom.*;
 import org.apache.log4j.Logger;
-import org.powertac.common.Tariff;
+import org.joda.time.DateTime;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.WeatherReport;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.factoredcustomer.CapacityProfile.BaseCapacityType;
+import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
+import org.powertac.factoredcustomer.CapacityProfile.InfluenceKind;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Key class responsible for drawing from a base capacity and ajusting that 
+ * capacity in response to various static and dynamic factors for each timeslot.
+ * 
  * @author Prashant Reddy
  */
-class DefaultCapacityManager
+final class DefaultCapacityManager implements CapacityManager
 {
     private static Logger log = Logger.getLogger(DefaultCapacityManager.class.getName());
 
     @Autowired
-    TimeService timeService;
+    private TimeService timeService;
     
     @Autowired
-    TimeslotRepo timeslotRepo;
-
-    protected static final int BASE_CAPACITY_TIMESLOTS = 24;
-    protected static final int NUM_HOURS_IN_DAY = 24;
+    private WeatherReportRepo weatherReportRepo;
     
-    CustomerProfile customerProfile;
-    CapacityProfile capacityProfile;
+    static final int MAX_TIMESERIES_LENGTH = 2400;
+    List<Double> baseTimeSeries = new ArrayList<Double>();
     
-    DefaultCapacityManager(CustomerProfile customer, CapacityProfile capacity) 
+    private final CustomerProfile customerProfile;
+    private final CapacityProfile capacityProfile;
+    
+    private double lastBaseCapacity = Double.NaN;
+    private double lastAdjustedCapacity = Double.NaN;
+    
+    
+    DefaultCapacityManager(CustomerProfile customer, CapacityBundle bundle, Element xml) 
     {
         customerProfile = customer;
-        capacityProfile = capacity;
+        capacityProfile = new CapacityProfile(xml, bundle);
         
         timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-        timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+        weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+        
+        if (capacityProfile.baseCapacityType == BaseCapacityType.TIMESERIES) {
+            initializeBaseTimeseries();
+        }
     }
     
-    double computeDailyUsageCharge(Tariff tariff)
+    private void initializeBaseTimeseries() 
     {
-        Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
-		
-	double totalUsage = 0.0;
-	double totalCharge = 0.0;
-	for (int i=0; i < NUM_HOURS_IN_DAY; ++i) {
-	    double baseCapacity = 0;
-	    if (capacityProfile.specType == CapacityProfile.SpecType.BEHAVIORS) {
-	        BehaviorsProfile behaviorsProfile = (BehaviorsProfile) capacityProfile;
-	        if (behaviorsProfile.baseTotalCapacity != null) {
-	            baseCapacity = ((BehaviorsProfile) capacityProfile).baseTotalCapacity.drawSample();
-	        } else {
-	            double draw = behaviorsProfile.baseCapacityPerCustomer.drawSample();
-	            baseCapacity += draw * customerProfile.customerInfo.getPopulation();
-	        }
-	    }
-	    double hourlyUsage = customerProfile.customerInfo.getPopulation() * (baseCapacity / BASE_CAPACITY_TIMESLOTS);
-	    totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
-	    totalUsage += hourlyUsage;
-	    hourlyTimeslot = hourlyTimeslot.getNext();
-	}
-	return totalCharge;
-    }
-	
-    double drawBaseCapacitySample(TariffSubscription subscription) 
-    {
-        double baseCapacity = 0.0;
-        BehaviorsProfile behaviorsProfile = (BehaviorsProfile) capacityProfile;
-        if (behaviorsProfile.baseTotalCapacity != null) {
-            double popRatio = subscription.getCustomersCommitted() / customerProfile.customerInfo.getPopulation();
-            baseCapacity = popRatio * behaviorsProfile.baseTotalCapacity.drawSample() / BASE_CAPACITY_TIMESLOTS;
-        } else {
-            for (int i=0; i < subscription.getCustomersCommitted(); ++i) {
-                double draw = behaviorsProfile.baseCapacityPerCustomer.drawSample();
-                baseCapacity += draw / BASE_CAPACITY_TIMESLOTS;
+        InputStream inputStream = null;
+        String seriesName = capacityProfile.baseTimeseriesModel.seriesName;
+        switch (capacityProfile.baseTimeseriesModel.seriesSource) {
+        case BUILTIN:
+            try {
+                inputStream = TimeseriesPatterns.generateTimeseriesStream(seriesName);
+            } catch (java.io.IOException e) {
+                log.error(getName() + ": Unexpected IOException caught from builtin timeseries stream: " + e);
+                throw new Error("Caught IOException: " + e.toString());
             }
+        case CLASSPATH:
+            inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(seriesName);
+            break;
+        case FILEPATH:
+            try {
+                inputStream = new FileInputStream(seriesName);  
+            } catch (FileNotFoundException e) {
+                log.error(getName() + ": Could not find file to initialize base timeseries: " + seriesName);
+            }
+            break;
+        default: throw new Error(getName() + ": Unexpected base timeseries source type!");
         }
-        return truncateTo2Decimals(baseCapacity);
+        if (inputStream == null) throw new Error(getName() + ": Base timeseries input stream is uninitialized!");
+        
+        DataInputStream dataStream = new DataInputStream(inputStream);
+        for (int i=0; i < MAX_TIMESERIES_LENGTH; ++i) {
+            try {
+                baseTimeSeries.add(dataStream.readDouble());
+            } catch (java.io.EOFException e) {
+                break;
+            } catch (java.io.IOException e) {
+                log.error(getName() + ": Error reading timeseries data from file: " + seriesName);
+                e.printStackTrace();
+                throw new Error(getName() + ": Caught IOException: " + e.toString());
+            }
+        }        
+    }
+
+    /** @Override @code{CapacityManager} **/
+    public double drawBaseCapacitySample(Timeslot timeslot, int customerCount) 
+    {    
+        double baseCapacity = 0.0;
+        switch (capacityProfile.baseCapacityType) {
+        case POPULATION:
+            double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
+            baseCapacity = popRatio * capacityProfile.basePopulationCapacity.drawSample();
+            if (! Double.isNaN(lastBaseCapacity)) baseCapacity = (baseCapacity + lastBaseCapacity) / 2;  // smoothing
+            break;
+        case INDIVIDUAL:
+            for (int i=0; i < customerCount; ++i) {
+                double draw = capacityProfile.baseIndividualCapacity.drawSample();
+                baseCapacity += draw;
+            }
+            if (! Double.isNaN(lastBaseCapacity)) baseCapacity = (baseCapacity + lastBaseCapacity) / 2;  // smoothing
+            break;
+        case TIMESERIES:
+            baseCapacity = getBaseCapacityFromTimeseries(timeslot, customerCount);
+            break;            
+        default: throw new Error(getName() + ": Unexpected base capacity type: " + capacityProfile.baseCapacityType);
+        }
+        lastBaseCapacity = truncateTo2Decimals(baseCapacity);
+        return (lastBaseCapacity);
     }
 	
-    double computeCapacity(Timeslot timeslot, TariffSubscription subscription)
+    private double drawBaseCapacitySample(Timeslot timeslot, TariffSubscription subscription) 
     {
-        double computedCapacity;
-        if (capacityProfile.specType == CapacityProfile.SpecType.BEHAVIORS) {
-            computedCapacity = computeCapacityFromBehaviors(timeslot, subscription);
-        } else {  // CapacityProfile.SpecType.FACTORED
-            computedCapacity = computeCapacityFromFactors(timeslot, subscription);
-        }
-        return truncateTo2Decimals(computedCapacity);
+        return drawBaseCapacitySample(timeslot, subscription.getCustomersCommitted());
     }
-
-    double computeCapacityFromBehaviors(Timeslot timeslot, TariffSubscription subscription)
+    
+    private double getBaseCapacityFromTimeseries(Timeslot timeslot, int customerCount)
     {
-        double baseCapacity = drawBaseCapacitySample(subscription);
-        log.info("Base capacity from behaviors = " + baseCapacity);
-
-        double adjustedCapacity = baseCapacity;
-        BehaviorsProfile behaviorsProfile = (BehaviorsProfile) capacityProfile;
-        if (behaviorsProfile.elasticityOfCapacity != null) {
-            adjustedCapacity = computeElasticCapacity(timeslot, subscription, baseCapacity);
+        try {
+            double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
+            return popRatio * baseTimeSeries.get(timeslot.getSerialNumber());
+        } catch (ArrayIndexOutOfBoundsException e) {
+            log.error(getName() + ": Tried to get base capacity from time series at index beyond maximum!");
+            throw e;
         }
-        adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-        log.info("Adjusted capacity from behaviors = " + adjustedCapacity);
-	return adjustedCapacity;
     }
-
-    double computeCapacityFromFactors(Timeslot timeslot, TariffSubscription subscription)
-    {
-        double baseCapacity = drawBaseCapacitySample(subscription);
-        log.info("Base capacity from factors = " + baseCapacity);
-
-        double adjustedCapacity = baseCapacity;
-        BehaviorsProfile behaviorsProfile = (BehaviorsProfile) capacityProfile;
-        if (behaviorsProfile.elasticityOfCapacity != null) {
-            adjustedCapacity = computeElasticCapacity(timeslot, subscription, baseCapacity);
-        }
         
-        // TODO: Adjust for the other specified factors 
-
-        adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-        log.info("Adjusted capacity from factors = " + adjustedCapacity);        
-        return adjustedCapacity;
+    /** Override @code{CapacityManager} **/
+    public double computeCapacity(Timeslot timeslot, TariffSubscription subscription)
+    {
+        double baseCapacity = drawBaseCapacitySample(timeslot, subscription);
+        
+        double adjustedCapacity = baseCapacity;
+        adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity);
+        adjustedCapacity = adjustCapacityForWeather(timeslot, adjustedCapacity);                
+        adjustedCapacity = adjustCapacityForTariffRates(timeslot, subscription, adjustedCapacity);
+   
+        if (! Double.isNaN(lastAdjustedCapacity)) adjustedCapacity = (adjustedCapacity + lastAdjustedCapacity) / 2;  // smoothing
+        
+        lastAdjustedCapacity = truncateTo2Decimals(adjustedCapacity);
+        
+        log.info(getName() + ": Base capacity = " + baseCapacity + "; adjusted capacity = " + lastAdjustedCapacity);        
+        return lastAdjustedCapacity;
     }
 
-    double computeElasticCapacity(Timeslot timeslot, TariffSubscription subscription, double baseCapacity)
+    private double adjustCapacityForPeriodicSkew(double capacity)
+    {
+        DateTime now = timeService.getCurrentDateTime();
+        int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
+        int hour = now.getHourOfDay();  // 0-23
+        
+        double periodicSkew = capacityProfile.dailySkew[day-1] * capacityProfile.hourlySkew[hour];
+        log.debug(getName() + ": periodicSkew = " + periodicSkew);
+        return capacity * periodicSkew;        
+    }
+
+    private double adjustCapacityForWeather(Timeslot timeslot, double capacity)
+    {
+        WeatherReport weather = weatherReportRepo.currentWeatherReport();
+        log.debug(getName() + ": weather = (" + weather.getTemperature() + ", " 
+                + weather.getWindSpeed() + ", " + weather.getWindDirection() + ", " + weather.getCloudCover() + ")");
+        double weatherFactor = 1.0;
+        if (capacityProfile.temperatureInfluence == InfluenceKind.DIRECT) {
+            int temperature = (int) Math.round(weather.getTemperature());
+            weatherFactor = weatherFactor * capacityProfile.temperatureMap.get(temperature);
+        }
+        else if (capacityProfile.temperatureInfluence == InfluenceKind.DEVIATION) {
+            int curr = (int) Math.round(weather.getTemperature());
+            int ref = (int) Math.round(capacityProfile.temperatureReference);
+            double deviationFactor = 1.0;
+            if (curr > ref) {
+                for (int t = ref+1; t <= curr; ++t) {
+                    deviationFactor += capacityProfile.temperatureMap.get(t);
+                }
+            } else if (curr < ref) {
+                for (int t = curr; t < ref; ++t) {
+                    deviationFactor += capacityProfile.temperatureMap.get(t);
+                }                
+            }
+            weatherFactor = weatherFactor * deviationFactor;
+        }
+        if (capacityProfile.windSpeedInfluence == InfluenceKind.DIRECT) {
+            int windSpeed = (int) Math.round(weather.getWindSpeed());
+            weatherFactor = weatherFactor * capacityProfile.windSpeedMap.get(windSpeed);
+        }
+        if (capacityProfile.windDirectionInfluence == InfluenceKind.DIRECT) {
+            int windDirection = (int) Math.round(weather.getWindDirection());
+            weatherFactor = weatherFactor * capacityProfile.windDirectionMap.get(windDirection);
+        }
+        if (capacityProfile.cloudCoverInfluence == InfluenceKind.DIRECT) {
+            int cloudCover = (int) Math.round(weather.getCloudCover());
+            weatherFactor = weatherFactor * capacityProfile.cloudCoverMap.get(cloudCover);
+        }
+        log.debug(getName() + ": weatherFactor = " + weatherFactor);
+        return capacity * weatherFactor;
+    }
+    
+    private double adjustCapacityForTariffRates(Timeslot timeslot, TariffSubscription subscription, double baseCapacity)
     {
         double chargeForBase = subscription.getTariff().getUsageCharge(timeslot.getStartInstant(), 
                                                                        baseCapacity, subscription.getTotalUsage());
         double rateForBase = chargeForBase / baseCapacity;
-        double rateRatio = rateForBase / capacityProfile.baseBenchmarkRate;
-        BehaviorsProfile behaviorsProfile = (BehaviorsProfile) capacityProfile;
-        double[][] elasticity = behaviorsProfile.elasticityOfCapacity;
-        double elasticityFactor = lookupElasticityFactor(rateRatio, elasticity);
-        log.debug("Compute elastic capacity - elasticityFactor = " + elasticityFactor);
-        double elasticCapacity = baseCapacity * elasticityFactor;
-	return elasticCapacity;
+        
+        double benchmarkRate = capacityProfile.benchmarkRates.get(timeService.getHourOfDay());
+        double rateRatio = rateForBase / benchmarkRate;
+
+        double tariffRatesFactor = determineElasticityFactor(rateRatio);
+        log.debug(getName() + ": tariffRatesFactor = " + tariffRatesFactor);
+        return baseCapacity * tariffRatesFactor;
     }
 	
-    double lookupElasticityFactor(double rateRatio, double[][] elasticity)
+    private double determineElasticityFactor(double rateRatio)
     {
-        if (rateRatio == 1 || elasticity.length == 0) return 1.0;	
+        switch (capacityProfile.elasticityModelType) {
+        case CONTINUOUS:
+            return determineContinuousElasticityFactor(rateRatio);
+        case STEPWISE:
+            return determineStepwiseElasticityFactor(rateRatio);
+        default: throw new Error("Unexpected elasticity model type: " + capacityProfile.elasticityModelType);
+        }
+    }
+    
+    private double determineContinuousElasticityFactor(double rateRatio)
+    {
+        double percentChange = (rateRatio - 1.0) / 0.01;
+        double elasticityRatio = Double.parseDouble(capacityProfile.elasticityModelXml.getAttribute("ratio"));
+        
+        String range = capacityProfile.elasticityModelXml.getAttribute("range");
+        String[] minmax = range.split("~");
+        double low = Double.parseDouble(minmax[0]);
+        double high = Double.parseDouble(minmax[1]);
+        
+        return Math.max(low, Math.min(high, 1.0 + (percentChange * elasticityRatio)));
+    }
+    
+    private double determineStepwiseElasticityFactor(double rateRatio)
+    {
+        double[][] elasticity = null;
+        if (elasticity == null) {
+            elasticity = parseMapToDoubleArray(capacityProfile.elasticityModelXml.getAttribute("map"));
+        }
+        if (Math.abs(rateRatio - 1) < 0.01 || elasticity.length == 0) return 1.0;       
+        if (capacityProfile.parentBundle.getCapacityType() == CapacityType.CONSUMPTION && rateRatio < 1.0) return 1.0;       
+        if (capacityProfile.parentBundle.getCapacityType() == CapacityType.PRODUCTION && rateRatio > 1.0) return 1.0;
+        
         final int RATE_RATIO_INDEX = 0;
         final int CAPACITY_FACTOR_INDEX = 1;
         double rateLowerBound = Double.NEGATIVE_INFINITY;
@@ -175,6 +295,17 @@ class DefaultCapacityManager
         return (rateRatio < 1) ? upperBoundCapacityFactor : lowerBoundCapacityFactor;
     }
     
+    private static double[][] parseMapToDoubleArray(String input) {
+        String[] pairs = input.split(",");
+        double[][] ret = new double[pairs.length][2];
+        for (int i=0; i < pairs.length; ++i) {
+            String[] vals = pairs[i].split(":");
+            ret[i][0] = Double.parseDouble(vals[0]);
+            ret[i][1] = Double.parseDouble(vals[1]);
+        }
+        return ret;
+    }
+    
     private static double truncateTo2Decimals(double x)
     {
         double fract, whole;
@@ -187,5 +318,10 @@ class DefaultCapacityManager
         }
         return whole + fract;
     }
-		
+
+    private String getName() 
+    {
+        return customerProfile.name;
+    }    
 }
+

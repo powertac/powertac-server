@@ -18,46 +18,47 @@ package org.powertac.factoredcustomer;
 
 import java.util.Map;
 import java.util.HashMap;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 /**
+ * Register CustomerCategory-specific creators.  Creators implement the nested 
+ * public interface @code{CustomerCreator}.
+ * 
  * @author Prashant Reddy
- * Register CustomerCategory-specific creators.  Creators can be classes or closures 
- * that implement a createModel() method.
  */
-class CustomerFactory
+@Domain
+final class CustomerFactory
 {
     public interface CustomerCreator {
-        public CustomerCategory getCategory();
+        public String getKey();
         public FactoredCustomer createModel(CustomerProfile profile);
     }
     
     CustomerCreator defaultCreator;
-    Map<CustomerCategory, CustomerCreator> customerCreators = new HashMap<CustomerCategory, CustomerCreator>();
+    Map<String, CustomerCreator> customerCreators = new HashMap<String, CustomerCreator>();
     
+    @StateChange
     void registerDefaultCreator(CustomerCreator creator) 
     {
         defaultCreator = creator;
     }
 	
+    @StateChange
     void registerCreator(CustomerCreator creator)
     {
-        registerCreator(creator.getCategory(), creator);
+        registerCreator(creator.getKey(), creator);
     }
         
-    void registerCreator(CustomerProfile.EntityType entityType, CustomerProfile.CustomerRole customerRole, 
-                         CustomerProfile.ModelType modelType, CustomerCreator creator) 
+    @StateChange
+    void registerCreator(String key, CustomerCreator creator) 
     {
-        registerCreator(new CustomerCategory(entityType, customerRole, modelType), creator);
-    }
-
-    void registerCreator(CustomerCategory category, CustomerCreator creator) 
-    {
-        customerCreators.put(category, creator);
+        customerCreators.put(key, creator);
     }
 
     FactoredCustomer processProfile(CustomerProfile profile) 
     {
-	CustomerCreator creator = customerCreators.get(profile.category);
+	CustomerCreator creator = customerCreators.get(profile.creatorKey);
 	if (creator == null) creator = defaultCreator;
 	return creator.createModel(profile);
     }

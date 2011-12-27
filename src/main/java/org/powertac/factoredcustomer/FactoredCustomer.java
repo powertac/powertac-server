@@ -19,41 +19,31 @@ package org.powertac.factoredcustomer;
 import java.util.List;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
-import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
+ * Implements minimal functionality for a factored customer which includes 
+ * adding the customer to the global customer repo.
+ * 
  * @author Prashant Reddy
  */
 abstract class FactoredCustomer 
 {
     @Autowired
-    CustomerRepo customerRepo;
+    protected CustomerRepo customerRepo;
 
-    @Autowired
-    TariffMarket tariffMarketService;
-
-    @Autowired
-    TariffSubscriptionRepo tariffSubscriptionRepo;
-
-    CustomerProfile customerProfile;
+    protected final CustomerProfile customerProfile;
     
     FactoredCustomer(CustomerProfile profile) 
     {
         customerProfile = profile;
         
         customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
-        tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
-        tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
         
         customerRepo.add(profile.customerInfo);
     }
-    
-    /** Explicitly subscribe to default tariffs **/
-    abstract void subscribeDefault();
     
     /** Tariff publication callback **/
     abstract void handleNewTariffs(List<Tariff> newTariffs);
@@ -61,17 +51,22 @@ abstract class FactoredCustomer
     /** Timeslot activation callback **/
     abstract void handleNewTimeslot();
     
-    public CustomerInfo getCustomerInfo()
-    {
-        return customerProfile.customerInfo;
-    }
-
-    public String getName() 
+    String getName() 
     {
         return customerProfile.name;
     }
     
-    public int getPopulation() 
+    CustomerProfile getCustomerProfile()
+    {
+        return customerProfile;
+    }
+
+    CustomerInfo getCustomerInfo()
+    {
+        return customerProfile.customerInfo;
+    }
+
+    int getPopulation() 
     {
         return getCustomerInfo().getPopulation();
     }
