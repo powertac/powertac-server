@@ -31,7 +31,7 @@ import org.springframework.stereotype.Service;
  * @author Prashant Reddy
  */
 @Service  // allow autowiring
-public final class FactoredCustomerInitializationService implements InitializationService
+public class FactoredCustomerInitializationService implements InitializationService
 {
     private static Logger log = Logger.getLogger(FactoredCustomerInitializationService.class.getName());
 

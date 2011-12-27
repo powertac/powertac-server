@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
  * @author Prashant Reddy
  */
 @Service  // allow autowiring
-public final class FactoredCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
+public class FactoredCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
 {
     private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
