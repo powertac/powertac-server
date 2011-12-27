@@ -84,7 +84,7 @@ final class DefaultCapacityManager implements CapacityManager
             try {
                 inputStream = TimeseriesPatterns.generateTimeseriesStream(seriesName);
             } catch (java.io.IOException e) {
-                log.error("Unexpected IOException caught from builtin timeseries stream: " + e);
+                log.error(getName() + ": Unexpected IOException caught from builtin timeseries stream: " + e);
                 throw new Error("Caught IOException: " + e.toString());
             }
         case CLASSPATH:
@@ -94,12 +94,12 @@ final class DefaultCapacityManager implements CapacityManager
             try {
                 inputStream = new FileInputStream(seriesName);  
             } catch (FileNotFoundException e) {
-                log.error("initializeBaseTimeseries - Could not find file: " + seriesName);
+                log.error(getName() + ": Could not find file to initialize base timeseries: " + seriesName);
             }
             break;
-        default: throw new Error("Unexpected base timeseries source type!");
+        default: throw new Error(getName() + ": Unexpected base timeseries source type!");
         }
-        if (inputStream == null) throw new Error("Base timeseries input stream is uninitialized!");
+        if (inputStream == null) throw new Error(getName() + ": Base timeseries input stream is uninitialized!");
         
         DataInputStream dataStream = new DataInputStream(inputStream);
         for (int i=0; i < MAX_TIMESERIES_LENGTH; ++i) {
@@ -108,9 +108,9 @@ final class DefaultCapacityManager implements CapacityManager
             } catch (java.io.EOFException e) {
                 break;
             } catch (java.io.IOException e) {
-                log.error("initializeBaseTimeseries - Error reading timeseries data from file: " + seriesName);
+                log.error(getName() + ": Error reading timeseries data from file: " + seriesName);
                 e.printStackTrace();
-                throw new Error("Caught IOException: " + e.toString());
+                throw new Error(getName() + ": Caught IOException: " + e.toString());
             }
         }        
     }
@@ -135,7 +135,7 @@ final class DefaultCapacityManager implements CapacityManager
         case TIMESERIES:
             baseCapacity = getBaseCapacityFromTimeseries(timeslot, customerCount);
             break;            
-        default: throw new Error("Unexpected base capacity type: " + capacityProfile.baseCapacityType);
+        default: throw new Error(getName() + ": Unexpected base capacity type: " + capacityProfile.baseCapacityType);
         }
         lastBaseCapacity = truncateTo2Decimals(baseCapacity);
         return (lastBaseCapacity);
@@ -152,7 +152,7 @@ final class DefaultCapacityManager implements CapacityManager
             double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
             return popRatio * baseTimeSeries.get(timeslot.getSerialNumber());
         } catch (ArrayIndexOutOfBoundsException e) {
-            log.error("DefaultCapacityManager: Tried to get base capacity from time series at index beyond maximum!");
+            log.error(getName() + ": Tried to get base capacity from time series at index beyond maximum!");
             throw e;
         }
     }
@@ -165,13 +165,13 @@ final class DefaultCapacityManager implements CapacityManager
         double adjustedCapacity = baseCapacity;
         adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity);
         adjustedCapacity = adjustCapacityForWeather(timeslot, adjustedCapacity);                
-        adjustedCapacity = adjustCapacityForElasticity(timeslot, subscription, adjustedCapacity);
+        adjustedCapacity = adjustCapacityForTariffRates(timeslot, subscription, adjustedCapacity);
    
         if (! Double.isNaN(lastAdjustedCapacity)) adjustedCapacity = (adjustedCapacity + lastAdjustedCapacity) / 2;  // smoothing
         
         lastAdjustedCapacity = truncateTo2Decimals(adjustedCapacity);
         
-        log.info("Base capacity = " + baseCapacity + "; adjusted capacity = " + lastAdjustedCapacity);        
+        log.info(getName() + ": Base capacity = " + baseCapacity + "; adjusted capacity = " + lastAdjustedCapacity);        
         return lastAdjustedCapacity;
     }
 
@@ -182,20 +182,16 @@ final class DefaultCapacityManager implements CapacityManager
         int hour = now.getHourOfDay();  // 0-23
         
         double periodicSkew = capacityProfile.dailySkew[day-1] * capacityProfile.hourlySkew[hour];
-        log.debug("adjustCapacityForPeriodicSkew - periodicSkew = " + periodicSkew);
+        log.debug(getName() + ": periodicSkew = " + periodicSkew);
         return capacity * periodicSkew;        
     }
 
     private double adjustCapacityForWeather(Timeslot timeslot, double capacity)
     {
         WeatherReport weather = weatherReportRepo.currentWeatherReport();
+        log.debug(getName() + ": weather = (" + weather.getTemperature() + ", " 
+                + weather.getWindSpeed() + ", " + weather.getWindDirection() + ", " + weather.getCloudCover() + ")");
         double weatherFactor = 1.0;
-        /**
-        log.info("adjustCapacityForWeather() - temperature = " + weather.getTemperature());
-        log.info("adjustCapacityForWeather() - cloudCover = " + weather.getCloudCover());
-        log.info("adjustCapacityForWeather() - windSpeed = " + weather.getWindSpeed());
-        log.info("adjustCapacityForWeather() - windDirection = " + weather.getWindDirection());
-        **/
         if (capacityProfile.temperatureInfluence == InfluenceKind.DIRECT) {
             int temperature = (int) Math.round(weather.getTemperature());
             weatherFactor = weatherFactor * capacityProfile.temperatureMap.get(temperature);
@@ -227,11 +223,11 @@ final class DefaultCapacityManager implements CapacityManager
             int cloudCover = (int) Math.round(weather.getCloudCover());
             weatherFactor = weatherFactor * capacityProfile.cloudCoverMap.get(cloudCover);
         }
-        log.debug("adjustCapacityForWeather - weatherFactor = " + weatherFactor);
+        log.debug(getName() + ": weatherFactor = " + weatherFactor);
         return capacity * weatherFactor;
     }
     
-    private double adjustCapacityForElasticity(Timeslot timeslot, TariffSubscription subscription, double baseCapacity)
+    private double adjustCapacityForTariffRates(Timeslot timeslot, TariffSubscription subscription, double baseCapacity)
     {
         double chargeForBase = subscription.getTariff().getUsageCharge(timeslot.getStartInstant(), 
                                                                        baseCapacity, subscription.getTotalUsage());
@@ -240,9 +236,9 @@ final class DefaultCapacityManager implements CapacityManager
         double benchmarkRate = capacityProfile.benchmarkRates.get(timeService.getHourOfDay());
         double rateRatio = rateForBase / benchmarkRate;
 
-        double elasticityFactor = determineElasticityFactor(rateRatio);
-        log.debug("adjustCapacityForElasticity - elasticityFactor = " + elasticityFactor);
-        return baseCapacity * elasticityFactor;
+        double tariffRatesFactor = determineElasticityFactor(rateRatio);
+        log.debug(getName() + ": tariffRatesFactor = " + tariffRatesFactor);
+        return baseCapacity * tariffRatesFactor;
     }
 	
     private double determineElasticityFactor(double rateRatio)
@@ -322,5 +318,10 @@ final class DefaultCapacityManager implements CapacityManager
         }
         return whole + fract;
     }
-		
+
+    private String getName() 
+    {
+        return customerProfile.name;
+    }    
 }
+

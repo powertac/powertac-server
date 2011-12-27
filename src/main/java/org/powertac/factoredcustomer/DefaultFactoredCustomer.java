@@ -82,18 +82,17 @@ class DefaultFactoredCustomer extends FactoredCustomer
     /** @Override @code{FactoredCustomer} **/
     void handleNewTariffs (List<Tariff> newTariffs)
     {
-        log.info("handleNewTariffs() begin - " + getName() + ": Received " + newTariffs.size() + " new tariffs.");
+        Timeslot timeslot =  timeslotRepo.currentTimeslot();
+        log.info("Customer " + getName() + " received " + newTariffs.size() + " new tariffs at timeslot " + timeslot.getSerialNumber());
         utilityManager.handleNewTariffs(newTariffs);
-        log.info("handleNewTariffs() end - " + getName());
     }
 	    
     /** @Override @code{FactoredCustomer} **/
     public void handleNewTimeslot()
     {
         Timeslot timeslot =  timeslotRepo.currentTimeslot();
-        log.info("Customer " + customerProfile.name + " begin step for timeslot " + timeslot.getSerialNumber());   
+        log.info("Customer " + getName() + " activated for timeslot " + timeslot.getSerialNumber());   
         utilityManager.handleNewTimeslot(timeslot);
-        log.info("Customer " + customerProfile.name + " end step for timeslot " + timeslot.getSerialNumber());    
     }
 	
     public String toString() 

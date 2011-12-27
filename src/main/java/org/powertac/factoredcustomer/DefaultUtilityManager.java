@@ -106,20 +106,20 @@ class DefaultUtilityManager extends UtilityManager
         for (CapacityBundle bundle: capacityBundles) {
             PowerType powerType = CapacityProfile.reportPowerType(bundle.getCapacityType(), bundle.getCapacitySubType());
             if (tariffMarketService.getDefaultTariff(powerType) == null) {
-                log.info("subscribeDefault() - " + getName() + ": No default tariff for power type " + powerType + "; trying less specific type.");
+                log.info(getName() + ": No default tariff for power type " + powerType + "; trying less specific type.");
 
                 CapacityType capacityType = CapacityProfile.reportCapacityType(powerType);
                 PowerType generalType = CapacityProfile.reportPowerType(capacityType, CapacitySubType.NONE);
 		  
                 if (tariffMarketService.getDefaultTariff(generalType) == null) {
-                    log.warn("subscribeDefault() - " + getName() + ": No default tariff for general power type " + powerType + " either!");
+                    log.warn(getName() + ": No default tariff for general power type " + powerType + " either!");
                 } else {
                     tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(generalType), getCustomerInfo(), getPopulation());
-                    log.info("subscribeDefault() - " + getName() + " subscribed " + getPopulation() + " customers to default " + generalType + " tariff successfully.");
+                    log.info(getName() + " subscribed " + getPopulation() + " customers to default " + generalType + " tariff successfully.");
 		} 
             } else {
                 tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(powerType), getCustomerInfo(), getPopulation());
-                log.info("subscribeDefault() - " + getName() + " subscribed " + getPopulation() + " customers to default " + powerType + " tariff successfully.");
+                log.info(getName() + " subscribed " + getPopulation() + " customers to default " + powerType + " tariff successfully.");
             }
         }
     }
@@ -128,14 +128,14 @@ class DefaultUtilityManager extends UtilityManager
     protected void subscribe(Tariff tariff, int customerCount)
     {
       tariffMarketService.subscribeToTariff(tariff, getCustomerInfo(), customerCount);
-      log.info("subscribe() - " + getName() + " subscribed " + customerCount + " customers to tariff " + tariff.getId() + " successfully.");
+      log.info(getName() + " subscribed " + customerCount + " customers to tariff " + tariff.getId() + " successfully.");
     }
 
     @StateChange
     protected void unsubscribe(TariffSubscription subscription, int customerCount)
     {
       subscription.unsubscribe(customerCount);
-      log.info("unsubscribe() - " + getName() + " unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully.");
+      log.info(getName() + " unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully.");
     }
 
     private void reevaluateTariffs(List<Tariff> newTariffs) 
@@ -150,7 +150,7 @@ class DefaultUtilityManager extends UtilityManager
         if (bundle.getSubscriberProfile().inertiaDistribution != null) {
             double inertia = bundle.getSubscriberProfile().inertiaDistribution.drawSample();
             if (inertiaSampler.nextDouble() < inertia) {
-                log.info("handleNewTariffs() - Ignoring new tariffs for now due to tariff switching inertia.");
+                log.info(getName() + ": Skipping " + bundle.getCapacityType() + " tariff reevaluation due to inertia");
                 for (Tariff newTariff: newTariffs) {
                     ignoredTariffs.add(newTariff);
                 }
@@ -181,7 +181,7 @@ class DefaultUtilityManager extends UtilityManager
     {
         CapacityType capacityType = bundle.getCapacityType();
         
-        log.info("manageSubscriptions() begin - " +  getName() + "; capacityType: " + capacityType);
+        log.info(getName() + ": Managing " + capacityType + " subscriptions");
 		
         List<Tariff> evalTariffs = new ArrayList<Tariff>();
         for (Tariff tariff: allTariffs.values()) {
@@ -190,10 +190,10 @@ class DefaultUtilityManager extends UtilityManager
             }
         }
 	if (evalTariffs.isEmpty()) {
-	    log.info("manageSubscriptions(): end early - No new tariffs to evaluate for capacity type: " + capacityType);
+	    log.info(getName() + ": No new or ignored " + capacityType + " tariffs to evaluate");
 	    return;
 	}
-	log.info("manageSubscriptions(): Number of " + capacityType + " tariffs for evaluation: " + evalTariffs.size());
+	log.info(getName() + ": Number of " + capacityType + " tariffs for evaluation = " + evalTariffs.size());
 		
 	double[] estimatedPayments = new double[evalTariffs.size()];
 	for (int i=0; i < evalTariffs.size(); ++i) {
@@ -211,7 +211,7 @@ class DefaultUtilityManager extends UtilityManager
 	    } 
 	}		
 	List<Integer> allocations = determineAllocations(evalTariffs, estimatedPayments, bundle);
-	log.info("manageSubscriptions(): " + capacityType + " allocations: " + allocations);
+	log.info(getName() + ": " + capacityType + " allocations: " + allocations);
 		
 	int overAllocations = 0;
 	for (int i=0; i < evalTariffs.size(); ++i) {
@@ -221,28 +221,28 @@ class DefaultUtilityManager extends UtilityManager
 	    int currentCommitted = (subscription != null) ? subscription.getCustomersCommitted() : 0;
 	    int numChange = allocation - currentCommitted; 
 			
-	    log.debug("manageSubscriptions() - evalTariff = " + evalTariff.getId() + ", numChange = " + numChange +
+	    log.debug(getName() + ": evalTariff = " + evalTariff.getId() + ", numChange = " + numChange +
 	                  ", currentCommitted = " + currentCommitted + ", allocation = " + allocation);
 			
 	    if (numChange == 0) {
 	        if (currentCommitted > 0) {
-	            log.info("manageSubscriptions() - Maintaining " + currentCommitted + " " + capacityType + " customers in tariff " + evalTariff.getId());
+	            log.info(getName() + ": Maintaining " + currentCommitted + " " + capacityType + " customers in tariff " + evalTariff.getId());
 	        } else {
-                    log.info("manageSubscriptions() - Not allocating any " + capacityType + " customers to tariff " + evalTariff.getId());
+                    log.info(getName() + ": Not allocating any " + capacityType + " customers to tariff " + evalTariff.getId());
 	        }
 	    } else if (numChange > 0) {
 	        if (evalTariff.isExpired()) {
 	            overAllocations += numChange;
 	            if (currentCommitted > 0) {
-	                log.info("manageSubscriptions() - Maintaining " + currentCommitted + " " + capacityType + " customers in expired tariff " + evalTariff.getId());
+	                log.info(getName() + ": Maintaining " + currentCommitted + " " + capacityType + " customers in expired tariff " + evalTariff.getId());
 	            }
-	            log.info("manageSubscriptions() - Reallocating " + numChange + " " + capacityType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
+	            log.info(getName() + ": Reallocating " + numChange + " " + capacityType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
 	        } else { 
-                    log.info("manageSubscriptions() - Subscribing " + numChange + " " + capacityType + " customers to tariff " + evalTariff.getId());
+                    log.info(getName() + ": Subscribing " + numChange + " " + capacityType + " customers to tariff " + evalTariff.getId());
                     subscribe(evalTariff, numChange);
 	        }
 	    } else if (numChange < 0) {
-	        log.info("manageSubscriptions()  - Unsubscribing " + -numChange + " " + capacityType + " customers from tariff " + evalTariff.getId());
+	        log.info(getName() + ": Unsubscribing " + -numChange + " " + capacityType + " customers from tariff " + evalTariff.getId());
                 unsubscribe(subscription, -numChange);
 	    }
 	}
@@ -255,10 +255,9 @@ class DefaultUtilityManager extends UtilityManager
 	            minEstimate = estimatedPayments[i];
 	        }
 	    }
-	    log.info("manageSubscriptions() - Subscribing " + overAllocations + " over-allocated customers to tariff " + evalTariffs.get(minIndex).getId());
+	    log.info(getName() + ": Subscribing " + overAllocations + " over-allocated customers to tariff " + evalTariffs.get(minIndex).getId());
 	    subscribe(evalTariffs.get(minIndex), overAllocations);
 	}
-	log.info("manageSubscriptions(): end - " + getName() + "; capacityType: " + capacityType);
     }
 	
     private double estimateFixedTariffPayments(Tariff tariff)
@@ -416,7 +415,7 @@ class DefaultUtilityManager extends UtilityManager
                 }
             }			
         }
-	log.info("Total consumption for timeslot " + timeslot.getSerialNumber() + " = " + totalConsumption);
+	log.info(getName() + ": Total consumption for timeslot " + timeslot.getSerialNumber() + " = " + totalConsumption);
     }
 	
     private void producePower(Timeslot timeslot, List<TariffSubscription> subscriptions) 
@@ -434,7 +433,7 @@ class DefaultUtilityManager extends UtilityManager
                 }
             }
         }
-        log.info("Total production for timeslot " + timeslot.getSerialNumber() + " = " + totalProduction);
+        log.info(getName() + ": Total production for timeslot " + timeslot.getSerialNumber() + " = " + totalProduction);
     }
 
     public String toString() 
