@@ -8,6 +8,9 @@
 .project
 .classpath
 
+# Local files
+Tasks.txt
+
 # Deployment directories
 target/
 activemq-data/

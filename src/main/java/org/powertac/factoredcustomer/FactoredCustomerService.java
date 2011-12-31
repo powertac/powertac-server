@@ -140,7 +140,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      */
     public void receiveMessage(Object msg)
     {
-        // TODO: Implement per-message behavior. Note that incoming messages
+        // Implement per-message behavior here. Note that incoming messages
         // from brokers arrive in a JMS thread, so you need to synchronize
         // access to shared data structures. See AuctionService for an example.
 

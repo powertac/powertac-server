@@ -16,12 +16,6 @@
 
 package org.powertac.factoredcustomer;
 
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.DataInputStream;
-import java.util.List;
-import java.util.ArrayList;
 import org.w3c.dom.*;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -52,8 +46,7 @@ final class DefaultCapacityManager implements CapacityManager
     @Autowired
     private WeatherReportRepo weatherReportRepo;
     
-    static final int MAX_TIMESERIES_LENGTH = 2400;
-    List<Double> baseTimeSeries = new ArrayList<Double>();
+    private final TimeseriesGenerator tsGenerator;
     
     private final CustomerProfile customerProfile;
     private final CapacityProfile capacityProfile;
@@ -71,50 +64,11 @@ final class DefaultCapacityManager implements CapacityManager
         weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
         
         if (capacityProfile.baseCapacityType == BaseCapacityType.TIMESERIES) {
-            initializeBaseTimeseries();
-        }
+            tsGenerator = new TimeseriesGenerator(capacityProfile.baseTimeseriesProfile);
+        } 
+        else tsGenerator = null; 
     }
     
-    private void initializeBaseTimeseries() 
-    {
-        InputStream inputStream = null;
-        String seriesName = capacityProfile.baseTimeseriesModel.seriesName;
-        switch (capacityProfile.baseTimeseriesModel.seriesSource) {
-        case BUILTIN:
-            try {
-                inputStream = TimeseriesPatterns.generateTimeseriesStream(seriesName);
-            } catch (java.io.IOException e) {
-                log.error(getName() + ": Unexpected IOException caught from builtin timeseries stream: " + e);
-                throw new Error("Caught IOException: " + e.toString());
-            }
-        case CLASSPATH:
-            inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream(seriesName);
-            break;
-        case FILEPATH:
-            try {
-                inputStream = new FileInputStream(seriesName);  
-            } catch (FileNotFoundException e) {
-                log.error(getName() + ": Could not find file to initialize base timeseries: " + seriesName);
-            }
-            break;
-        default: throw new Error(getName() + ": Unexpected base timeseries source type!");
-        }
-        if (inputStream == null) throw new Error(getName() + ": Base timeseries input stream is uninitialized!");
-        
-        DataInputStream dataStream = new DataInputStream(inputStream);
-        for (int i=0; i < MAX_TIMESERIES_LENGTH; ++i) {
-            try {
-                baseTimeSeries.add(dataStream.readDouble());
-            } catch (java.io.EOFException e) {
-                break;
-            } catch (java.io.IOException e) {
-                log.error(getName() + ": Error reading timeseries data from file: " + seriesName);
-                e.printStackTrace();
-                throw new Error(getName() + ": Caught IOException: " + e.toString());
-            }
-        }        
-    }
-
     /** @Override @code{CapacityManager} **/
     public double drawBaseCapacitySample(Timeslot timeslot, int customerCount) 
     {    
@@ -150,7 +104,7 @@ final class DefaultCapacityManager implements CapacityManager
     {
         try {
             double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
-            return popRatio * baseTimeSeries.get(timeslot.getSerialNumber());
+            return popRatio * tsGenerator.generateNext(timeslot, lastAdjustedCapacity);
         } catch (ArrayIndexOutOfBoundsException e) {
             log.error(getName() + ": Tried to get base capacity from time series at index beyond maximum!");
             throw e;
@@ -269,7 +223,7 @@ final class DefaultCapacityManager implements CapacityManager
     {
         double[][] elasticity = null;
         if (elasticity == null) {
-            elasticity = parseMapToDoubleArray(capacityProfile.elasticityModelXml.getAttribute("map"));
+            elasticity = ParserFunctions.parseMapToDoubleArray(capacityProfile.elasticityModelXml.getAttribute("map"));
         }
         if (Math.abs(rateRatio - 1) < 0.01 || elasticity.length == 0) return 1.0;       
         if (capacityProfile.parentBundle.getCapacityType() == CapacityType.CONSUMPTION && rateRatio < 1.0) return 1.0;       
@@ -293,17 +247,6 @@ final class DefaultCapacityManager implements CapacityManager
             }
         }	
         return (rateRatio < 1) ? upperBoundCapacityFactor : lowerBoundCapacityFactor;
-    }
-    
-    private static double[][] parseMapToDoubleArray(String input) {
-        String[] pairs = input.split(",");
-        double[][] ret = new double[pairs.length][2];
-        for (int i=0; i < pairs.length; ++i) {
-            String[] vals = pairs[i].split(":");
-            ret[i][0] = Double.parseDouble(vals[0]);
-            ret[i][1] = Double.parseDouble(vals[1]);
-        }
-        return ret;
     }
     
     private static double truncateTo2Decimals(double x)

@@ -181,7 +181,7 @@ public class FactoredCustomerServiceTests
     public void testServiceInitialization()
     {
         initializeService();
-        assertEquals("Configured number of customers created", 5, factoredCustomerService.getCustomers().size());
+        assertEquals("Configured number of customers created", 6, factoredCustomerService.getCustomers().size());
     }
 
     /******  IGNORE FOR NOW

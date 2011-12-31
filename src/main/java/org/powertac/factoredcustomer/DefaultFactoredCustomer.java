@@ -58,7 +58,7 @@ class DefaultFactoredCustomer extends FactoredCustomer
         return creator;
     }
     
-    private final UtilityManager utilityManager;        
+    private final UtilityOptimizer utilityManager;        
     private final List<CapacityBundle> capacityBundles = new ArrayList<CapacityBundle>();
     
     
@@ -74,7 +74,7 @@ class DefaultFactoredCustomer extends FactoredCustomer
             capacityBundles.add(new CapacityBundle(profile, capacityBundleElement));
         }
         
-        utilityManager = new DefaultUtilityManager(profile, capacityBundles);
+        utilityManager = new DefaultUtilityOptimizer(profile, capacityBundles);
         
 	log.info("Customer created for profile: " + customerProfile.name);
     }
