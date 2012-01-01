@@ -60,9 +60,6 @@ public class WebCompetitionControlService {
 		if (!simRunning) {
 			System.out.println("java.class.path ===>" + System.getProperty("java.class.path"));
 
-			if (context != null) {
-				context.destroy();
-			}
 				context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
 						.getFile().getCanonicalPath());
 
@@ -110,7 +107,7 @@ public class WebCompetitionControlService {
 				// cc.setAuthorizedBrokerList(new ArrayList<String>());
 				simRunning = true;
 				cc.runOnce(bootWriter);
-			
+				context.close();
 				simRunning = false;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

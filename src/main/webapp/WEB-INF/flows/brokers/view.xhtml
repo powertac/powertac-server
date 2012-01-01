@@ -5,36 +5,58 @@
 
 	<ui:define name="title">Brokers</ui:define>
 
+
+
 	<ui:define name="content">
 		<h:form>
+			<p:panel id="brokersPanel">
+				<p:accordionPanel id="brokersAccordion" multiple="true">
+					<p:tab title="Overview">
 
-			<p:accordionPanel id="accordion" dynamic="true">
-				<p:tab title="Overview" id="accordionOverview">
-					<p:layout style="width:1024px;height:600px">
-						<p:layoutUnit position="west" size="500">
-							<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
-						</p:layoutUnit>
-						<p:layoutUnit position="center">
-							<p:lineChart value="#{visualizerBean.brokerCashBalancesCartesian}"
-								rendered="#{not empty visualizerBean.brokerCashBalancesCartesian}" seriesColors="#{visualizerBean.brokerColors}"
-								title="Cash Balance" xaxisLabel="timeslot" yaxisLabel="cash" style="width:500px;height:250px" />
+						<p:layout id="overviewLayout" style="width:1024px;height:600px">
+							<p:layoutUnit position="west" size="500">
+								<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+							</p:layoutUnit>
+							<p:layoutUnit position="center">
+<!-- ZAJEDNICKI GRAFOVI -->
 
-							<p:lineChart value="#{visualizerBean.brokerEnergyBalancesCartesian}"
-								rendered="#{not empty visualizerBean.brokerEnergyBalancesCartesian}" seriesColors="#{visualizerBean.brokerColors}"
-								title="Energy Balance" xaxisLabel="timeslot" yaxisLabel="energy/kWh" style="width:500px;height:250px" />
-						</p:layoutUnit>
-					</p:layout>
+								<div id="cashChartGlobal" style="width: 100px; height: 100px"></div>
+
+								<script type="text/javascript">
+				
+		 							if (window.cashChartGlobal) {
+									window.cashChartGlobal.destroy();
+						
+					
+									}
+									window.cashChartGlobal = $.jqplot('cashChartGlobal', [ #{visualizerBean.brokerCashBalancesJSONText} ]
+									); 
+					</script>  
+							
+							</p:layoutUnit>
+						</p:layout>
 
 
-				</p:tab>
-				<p:tab title="Individual" id="accordionIndividual">
-					<ui:include src="/WEB-INF/tags/brokers.xhtml" />
-				</p:tab>
-			</p:accordionPanel>
+					</p:tab>
+					<p:tab title="Individual">
 
-			<p:poll autoStart="true" update="accordion" interval="2"></p:poll>
+						<ui:include src="/WEB-INF/tags/brokers.xhtml" />
+						
+							
+						
+
+					</p:tab>
+				</p:accordionPanel>
+			</p:panel>
+
+			<p:poll autoStart="true" interval="3" update="brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
+
+			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" />
 
 		</h:form>
+
+
+
 	</ui:define>
 
 </ui:composition>

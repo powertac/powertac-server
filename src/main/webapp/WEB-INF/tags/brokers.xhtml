@@ -6,37 +6,89 @@
 
 <h:body>
 	<ui:fragment>
-		<p:tabView id="tabBrokers" var="broker" value="#{visualizerBean.brokers}" dynamic="true">
+
+
+		<p:tabView id="tabBrokers" var="broker" value="#{visualizerBean.brokers}" dynamic="true" cache="true">
 
 			<p:tab title="#{broker.name}">
-				<p:column>
-					<h:panelGrid columns="3" cellpadding="10">
-						<p:graphicImage value="${broker.appearance.iconLocation}" width="85" height="85" />
 
-						<h:panelGrid columns="2" cellpadding="10" >
-							<h:outputText value="Name: " />
-							<h:outputText value="#{broker.name}" style="font-weight: bold" />
+				<h:panelGrid columns="3" cellpadding="10">
+					<p:graphicImage value="${broker.appearance.iconLocation}" width="85" height="85" />
 
-							<h:outputText value="Cash balance: " />
-							<h:outputText value="#{broker.cashBalance}" style="font-weight: bold" />
+					<h:panelGrid columns="2" cellpadding="10">
+						<h:outputText value="Name: " />
+						<h:outputText value="#{broker.name}" style="font-weight: bold" />
 
-							<h:outputText value="Energy balance: " />
-							<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
-						</h:panelGrid>
+						<h:outputText value="Cash balance: " />
+						<h:outputText value="#{broker.cashBalance}" style="font-weight: bold" />
+
+						<h:outputText value="Energy balance: " />
+						<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
+
+
+
 
 					</h:panelGrid>
+
+				</h:panelGrid>
+				<div id="cashChart#{broker.id}" style="width: 700px; height: 250px"></div>
+
+				<script type="text/javascript">
+				
+		 			if (window.cashChart#{broker.id}) {
+						window.cashChart#{broker.id}.destroy();
+						
 					
-						<p:lineChart value="#{broker.cashBalanceChart}" minX="#{broker.minX}" maxX="#{broker.maxX}"
-							seriesColors="#{broker.appearance.colorCode}" title="Cash Balance" xaxisLabel="timeslot" yaxisLabel="cash"
-							style="width:500px;height:250px" />
+					}
+					window.cashChart#{broker.id} = $.jqplot('cashChart#{broker.id}', [ #{broker.cashBalanceJSONText} ],{
+						title: 'Cash balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "cash"}},
+						series:[#{broker.seriesOptions}],
+						
+						}); 
+					</script>
+						<div id="energyChart#{broker.id}" style="width: 700px; height: 250px"></div>
+
+				<script type="text/javascript">
+				
+		 			if (window.energyChart#{broker.id}) {
+						window.energyChart#{broker.id}.destroy();
+						
 					
-					<p:lineChart value="#{broker.energyBalanceChart}" seriesColors="#{broker.appearance.colorCode}"
-						title="Energy Balance" xaxisLabel="timeslot" yaxisLabel="energy/kWh" style="width:500px;height:250px"
-						minX="#{broker.minX}" maxX="#{broker.maxX}" />
-				</p:column>
+					}
+					window.energyChart#{broker.id} = $.jqplot('energyChart#{broker.id}', [ #{broker.energyBalanceJSONText} ],{
+						title: 'Energy balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "energy"}},
+						series:[#{broker.seriesOptions}],
+						
+						}); 
+					</script>
+
+
+	
+
+
+
 			</p:tab>
 
 		</p:tabView>
+
+
+
 
 	</ui:fragment>
 </h:body>

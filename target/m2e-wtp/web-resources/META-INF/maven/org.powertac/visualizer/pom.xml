@@ -119,11 +119,11 @@
 			<version>2.0.3</version>
 		</dependency>
 		<!-- PrimeFaces component library -->
-		<dependency>
+	 	<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
-			<version>3.0.RC1</version>
-		</dependency>
+			<version>3.0.RC2</version>
+		</dependency>  
 		<!-- Primefaces theme -->
 		<dependency>
 			<groupId>org.primefaces.themes</groupId>
@@ -154,6 +154,13 @@
 			<artifactId>commons-lang</artifactId>
 			<version>2.2</version>
 		</dependency>
+
+		<dependency>
+			<groupId>jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+			<version>1.0.13</version>
+		</dependency>
+
 
 
 	</dependencies>

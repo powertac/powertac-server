@@ -1,19 +1,126 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:p="http://primefaces.org/ui"
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
 	<ui:define name="title">Wholesale market</ui:define>
 
+	<ui:define name="headIncludes">
+
+
+	</ui:define>
+
 	<ui:define name="content">
+
 		<h:form>
-			
-			<p:poll autoStart="true" update=""/>
+			<p:panel id="panelici">
+
+				<p:accordionPanel>
+					<p:tab title="Godfather Part I">
+						<p:tabView>
+
+							<p:tab title="Godfather Part I">
+								<h:panelGrid columns="2" cellpadding="10">
+									<p:graphicImage value="/images/godfather/godfather1.jpg" />
+									<h:outputText value="The story begins as Don Vi" />
+
+									<!-- ZAJEDNICKI GRAFOVI -->
+
+									<div id="cashchartglobal" style="width: 500px; height: 250px"></div>
+
+									<script type="text/javascript">
+				
+		 							if (window.cashchartglobal) {
+									window.cashChartGlobal.destroy();
+						
+					
+									}
+									window.cashchartglobal = $.jqplot('cashchartglobal', [ [4,5],[[0,0]] ]
+									); 
+					</script>
+
+
+									<div id="#{imageControl.fakeId}" style="height: 400px; width: 300px;"></div>
+
+									<script language="javascript" type="text/javascript">
+					if (window.#{imageControl.fakeId}) {
+						window.#{imageControl.fakeId}.destroy();
+						
+					
+					}
+					window.#{imageControl.fakeId} = $.jqplot('#{imageControl.fakeId}', [ #{imageControl.fakeValues} ]);
+				</script>
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="Godfather Part II">
+								<h:panelGrid columns="2" cellpadding="10">
+									<p:graphicImage value="/images/godfather/godfather1.jpg" />
+									<h:outputText value="The story begins as Don Vi" />
+									<div id="a#{imageControl.fakeId}" style="height: 400px; width: 300px;"></div>
+
+									<script language="javascript" type="text/javascript">
+					if (window.a#{imageControl.fakeId}) {
+						window.a#{imageControl.fakeId}.destroy();
+						
+					
+					}
+					window.a#{imageControl.fakeId} = $.jqplot('a#{imageControl.fakeId}', [[[-5,0]],[[-5,0]], #{imageControl.fakeValues} ]);
+				</script>
+								</h:panelGrid>
+							</p:tab>
+						</p:tabView>
+
+					</p:tab>
+
+					<p:tab>
+						<h:outputText value="#{imageControl.fakeValues}"></h:outputText>
+					</p:tab>
+
+				</p:accordionPanel>
+
+
+				<p:commandButton value="LOL" onclick="loler()">
+				</p:commandButton>
+			</p:panel>
+			<p:poll autoStart="true" interval="3" update="panelici" />
 
 		</h:form>
+		<p:panel>
+
+
+
+			<div id="tabs">
+				<ul>
+					<li><a href="#panel1">Nunc tincidunt</a></li>
+					<li><a href="#panel2">Proin dolor</a></li>
+					<li><a href="#panel3">Aenean lacinia</a></li>
+				</ul>
+				<div id="panel1">
+					<p>Proin elit arcu</p>
+				</div>
+				<div id="panel2">
+					<p>Morbi tincidunt</p>
+
+				</div>
+				<div id="panel3">
+					<p>Mauris eleifend est et turpis</p>
+				</div>
+
+			</div>
+
+			<!-- CRUCIAL: fake chart so primefaces can include jqplot library -->
+			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" />
+
+			<h3>JFreeChart on-the-fly</h3>
+			<p:graphicImage value="#{imageControl.chart}" />
+
+			<h3>GraphicText on-the-fly</h3>
+			<p:graphicImage value="#{imageControl.graphicText}" />
+		</p:panel>
+
+
+
+
 
 	</ui:define>
 

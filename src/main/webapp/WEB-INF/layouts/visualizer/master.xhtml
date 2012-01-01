@@ -13,53 +13,46 @@
 	<!--[if lt IE 8]>
 		<link rel="stylesheet" href="${request.servletPath}/styles/blueprint/ie.css" type="text/css" media="screen, projection" />
 	<![endif]-->
+	<!--[if lt IE 9]><script language="javascript" type="text/javascript" src="excanvas.js"></script><![endif]-->
+	<!-- 	<script language="javascript" type="text/javascript"
+		src="${request.contextPath}/app/resources/scripts/jquery.jqplot.min.js"></script>  -->
+	<!-- 	<h:outputScript name="jquery/jquery.js" library="primefaces" /> -->
+
+
 	<ui:insert name="headIncludes" />
 </h:head>
 <h:body>
-	<h:form id="mainForm">
-		<p:layout id="mainLayout" fullPage="true">
-			<p:layoutUnit id="north" position="north" size="120">
-				<ui:include src="/WEB-INF/tags/logo.xhtml" />
-				<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
 
-			</p:layoutUnit>
+	<p:layout id="mainLayout" fullPage="true">
+		<p:layoutUnit id="north" position="north" size="120">
+			<ui:include src="/WEB-INF/tags/logo.xhtml" />
+			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
 
-			<p:layoutUnit position="center">
-				<h2 class="alt">
+		</p:layoutUnit>
 
-					<ui:insert name="title"></ui:insert>
+		<p:layoutUnit position="center">
+			<h2 class="alt">
 
-				</h2>
+				<ui:insert name="title"></ui:insert>
 
-				<ui:insert name="content" />
+			</h2>
 
-			</p:layoutUnit>
+			<ui:insert name="content" />
 
-			<p:layoutUnit position="south" size="70">
-				<p:dock>
-					<p:menuitem value="General" icon="/app/resources/images/dock/home.png" url="general" />
-					<p:menuitem value="Brokers" icon="/app/resources/images/dock/music.png" url="brokers" />
-					<p:menuitem value="Customers" icon="/app/resources/images/dock/video.png" url="customers" />
-					<p:menuitem value="GenCos" icon="/app/resources/images/dock/music.png" url="gencos" />
+		</p:layoutUnit>
 
-					<p:menuitem value="Wholesale" icon="/app/resources/images/dock/email.png" url="wholesale" />
-					<p:menuitem value="Portfolio" icon="/app/resources/images/dock/portfolio.png" url="#" />
-					<p:menuitem value="Link" icon="/app/resources/images/dock/link.png" url="#" />
-					<p:menuitem value="RSS" icon="/app/resources/images/dock/rss.png" url="#" />
-					<p:menuitem value="History" icon="/app/resources/images/dock/history.png" url="#" />
-				</p:dock>
-			</p:layoutUnit>
+		<p:layoutUnit position="south" size="70">
+			<p:dock>
+				<p:menuitem value="General" icon="/app/resources/images/dock/home.png" url="general" />
+				<p:menuitem value="Brokers" icon="/app/resources/images/dock/music.png" url="brokers" />
+				<p:menuitem value="Customers" icon="/app/resources/images/dock/video.png" url="customers" />
+				<p:menuitem value="GenCos" icon="/app/resources/images/dock/music.png" url="gencos" />
+				<p:menuitem value="Wholesalee" icon="/app/resources/images/dock/email.png" url="wholesale" />
+			</p:dock>
+		</p:layoutUnit>
 
-		</p:layout>
-	</h:form>
+	</p:layout>
 
-	<h:form>
-		<p:poll autoStart="true" interval="5" update=":mainForm:competitionInfoPanel" />
-		<!-- MAIN POLL -->
-
-
-
-	</h:form>
 </h:body>
 
 </html>

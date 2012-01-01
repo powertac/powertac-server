@@ -47,9 +47,9 @@ public class VisualizerBean implements Serializable {
 	private List<GencoModel> gencos;
 	private int relativeTimeslotIndex;
 	private int firstTimeslotIndex;
-	private String brokerColors;
-	private CartesianChartModel brokerCashBalancesCartesian;
-	private CartesianChartModel brokerEnergyBalancesCartesian;
+	private String brokerSeriesOptions;
+	// private CartesianChartModel brokerCashBalancesCartesian;
+	// private CartesianChartModel brokerEnergyBalancesCartesian;
 
 	@Autowired
 	private AppearanceListBean appearanceList;
@@ -88,10 +88,10 @@ public class VisualizerBean implements Serializable {
 		gencos = new ArrayList<GencoModel>();
 		relativeTimeslotIndex = -1;
 		firstTimeslotIndex = -1;
-		brokerColors = null;
-		brokerCashBalancesCartesian = new CartesianChartModel();
-		brokerEnergyBalancesCartesian = new CartesianChartModel();
-		
+		brokerSeriesOptions = "";
+		// brokerCashBalancesCartesian = new CartesianChartModel();
+		// brokerEnergyBalancesCartesian = new CartesianChartModel();
+
 	}
 
 	public int getVisualizerRunCount() {
@@ -107,9 +107,9 @@ public class VisualizerBean implements Serializable {
 	}
 
 	public void setBrokers(List<BrokerModel> brokers) {
-		
 
-		StringBuilder brokerColors = new StringBuilder();
+		StringBuilder seriesOptions = new StringBuilder();
+		String prefix="";
 		String stringDebug = "";
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
@@ -117,17 +117,20 @@ public class VisualizerBean implements Serializable {
 					+ brokerModel.getAppearance().getColorCode() + " Icon:"
 					+ brokerModel.getAppearance().getIconLocation() + "\n";
 			// build broker colors:
-			brokerColors.append(brokerModel.getAppearance().getColorCode() + ", ");
-			//build cash chart:
-			brokerCashBalancesCartesian.addSeries(brokerModel.getCashBalanceChartSeries());
-			//build energy chart:
-			brokerEnergyBalancesCartesian.addSeries(brokerModel.getEnergyBalanceChartSeries());
-			
-			
+			seriesOptions.append(prefix);
+			prefix=",";
+			seriesOptions.append(brokerModel.getSeriesOptions());
+			// build cash chart:
+			// brokerCashBalancesCartesian.addSeries(brokerModel.getCashBalanceChartSeries());
+			// //build energy chart:
+			// brokerEnergyBalancesCartesian.addSeries(brokerModel.getEnergyBalanceChartSeries());
+
 		}
-		this.brokerColors = brokerColors.toString();
+		this.brokerSeriesOptions = seriesOptions.toString();
+		
+		
 		this.brokers = brokers;
-		log.info("Broker list:\n" + stringDebug);
+		log.info("Broker list:\n" + stringDebug+" series options:"+brokerSeriesOptions);
 
 	}
 
@@ -211,16 +214,35 @@ public class VisualizerBean implements Serializable {
 		return firstTimeslotIndex;
 	}
 
-	public String getBrokerColors() {
-		return brokerColors;
+	public String getBrokerSeriesOptions() {
+		return brokerSeriesOptions;
 
 	}
-	public CartesianChartModel getBrokerCashBalancesCartesian() {
-		return brokerCashBalancesCartesian;
+
+	public String getBrokerCashBalancesJSONText() {
+		StringBuilder cash = new StringBuilder();
+		String prefix="";
+		if (brokers != null) {
+			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
+				BrokerModel broker = (BrokerModel) iterator.next();
+				cash.append(prefix);
+				prefix=",";
+				cash.append(broker.getCashBalanceJSONText());
+
+			}
+			
+			
+			return cash.toString();
+		} else
+			return "";
 	}
-	
-	public CartesianChartModel getBrokerEnergyBalancesCartesian() {
-		return brokerEnergyBalancesCartesian;
-	}
+
+	// public CartesianChartModel getBrokerCashBalancesCartesian() {
+	// return brokerCashBalancesCartesian;
+	// }
+	//
+	// public CartesianChartModel getBrokerEnergyBalancesCartesian() {
+	// return brokerEnergyBalancesCartesian;
+	// }
 
 }
