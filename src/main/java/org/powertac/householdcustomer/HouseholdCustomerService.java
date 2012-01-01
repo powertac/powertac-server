@@ -128,8 +128,18 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     publishedTariffs = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+
     for (Village village : villageList) {
-      village.possibilityEvaluationNewTariffs(publishedTariffs);
+      for (String type : village.getSubscriptionMap().keySet()) {
+        log.info("Evaluation for " + type + " of village " + village.toString());
+        double rand = rs1.nextDouble();
+
+        if (rand < village.getInertiaMap().get(type)) {
+          log.info("Inertia Passed for " + type + " of village " + village.toString());
+          village.possibilityEvaluationNewTariffs(publishedTariffs, type);
+        }
+      }
+
     }
   }
 
