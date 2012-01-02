@@ -62,7 +62,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   /** Random Number Generator */
   private RandomSeed rs1;
 
-  // read this normally from plugin config
+  /** read this normally from plugin config */
   // private String configFile = "../household-customer/src/main/resources/Household.properties";
   private String configFile = "Household.properties";
 
@@ -77,10 +77,14 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   /** The Tariffs that will receive the New Tariff Listener */
   List<Tariff> publishedTariffs = new ArrayList<Tariff>();
 
+  /** Counter of the publishing periods */
+  int publishingPeriods;
+
   /** This is the constructor of the Household Consumer Service. */
   public HouseholdCustomerService ()
   {
     super();
+    publishingPeriods = 0;
     villageList = new ArrayList<Village>();
   }
 
@@ -127,20 +131,33 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
+    publishingPeriods++;
     publishedTariffs = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
+    // For each village of the server //
     for (Village village : villageList) {
-      for (String type : village.getSubscriptionMap().keySet()) {
-        log.info("Evaluation for " + type + " of village " + village.toString());
-        double rand = rs1.nextDouble();
 
-        if (rand < village.getInertiaMap().get(type)) {
-          log.info("Inertia Passed for " + type + " of village " + village.toString());
-          village.possibilityEvaluationNewTariffs(publishedTariffs, type);
+      // For each type of houses of the villages //
+      for (String type : village.getSubscriptionMap().keySet()) {
+
+        // if the publishingPeriod is divided exactly with the periodicity of the evaluation of each type. //
+        if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
+
+          // System.out.println("Evaluation for " + type + " of village " + village.toString());
+          log.info("Evaluation for " + type + " of village " + village.toString());
+          double rand = rs1.nextDouble();
+          // System.out.println(rand);
+          // If the percentage is smaller that inertia then evaluate the new tariffs then evaluate //
+          if (rand < village.getInertiaMap().get(type)) {
+            // System.out.println("Inertia Passed for " + type + " of village " + village.toString());
+            log.info("Inertia Passed for " + type + " of village " + village.toString());
+            village.possibilityEvaluationNewTariffs(publishedTariffs, type);
+          }
         }
       }
 
     }
+
   }
 
   // ----------------- Data access -------------------------

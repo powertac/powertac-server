@@ -827,10 +827,31 @@ public class Village extends AbstractCustomer
   double costEstimation (Tariff tariff, String type)
   {
     double costVariable = 0;
-    if (type.equals("NS"))
-      costVariable = estimateVariableTariffPayment(tariff);
-    else
+
+    /* if it is NotShifting Houses the evaluation is done without shifting devices 
+       if it is RandomShifting Houses the evaluation is may be done without shifting devices or maybe shifting will be taken into consideration
+       In any other case shifting will be done. */
+    if (type.equals("NS")) {
+      // System.out.println("Simple Evaluation for " + type);
+      log.info("Simple Evaluation for " + type);
+      costVariable = estimateVariableTariffPayment(tariff, type);
+    } else if (type.equals("RaS")) {
+      Double rand = gen.nextDouble();
+      // System.out.println(rand);
+      if (rand < getInertiaMap().get(type)) {
+        // System.out.println("Simple Evaluation for " + type);
+        log.info("Simple Evaluation for " + type);
+        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+      } else {
+        // System.out.println("Shifting Evaluation for " + type);
+        log.info("Shifting Evaluation for " + type);
+        costVariable = estimateVariableTariffPayment(tariff, type);
+      }
+    } else {
+      // System.out.println("Shifting Evaluation for " + type);
+      log.info("Shifting Evaluation for " + type);
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+    }
 
     double costFixed = estimateFixedTariffPayments(tariff);
     return (costVariable + costFixed) / HouseholdConstants.MILLION;
@@ -858,7 +879,7 @@ public class Village extends AbstractCustomer
   /**
    * This function estimates the variable cost, depending only to the load quantity you consume
    */
-  double estimateVariableTariffPayment (Tariff tariff)
+  double estimateVariableTariffPayment (Tariff tariff, String type)
   {
 
     double finalCostSummary = 0;
@@ -877,7 +898,7 @@ public class Village extends AbstractCustomer
 
       for (int hour = 0; hour < HouseholdConstants.HOURS_OF_DAY; hour++) {
 
-        summary = getBaseConsumptions(day, hour, "NS") + getControllableConsumptions(day, hour, "NS");
+        summary = getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type);
 
         log.debug("Cost for hour " + hour + ":" + tariff.getUsageCharge(now, 1, 0));
         cumulativeSummary += summary;

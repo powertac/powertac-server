@@ -466,6 +466,9 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.publishNewTariffs(tclist);
     List<Tariff> tclist2 = new ArrayList<Tariff>();
     householdCustomerService.publishNewTariffs(tclist2);
+
+    householdCustomerService.publishNewTariffs(tclist);
+    householdCustomerService.publishNewTariffs(tclist2);
   }
 
   @Test
@@ -642,4 +645,5 @@ public class HouseholdCustomerServiceTests
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
+
 }
