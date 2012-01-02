@@ -1,8 +1,10 @@
 package org.powertac.visualizer.services.handler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -98,13 +100,14 @@ public class VisualizerMessageHandlerHelperService {
 
 		for (Iterator<BrokerModel> iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
-
+			Set<CustomerModel> customerModels = new HashSet<CustomerModel>();
 			for (Iterator<CustomerInfo> iterator2 = customers.iterator(); iterator2.hasNext();) {
 				CustomerInfo customerInfo = (CustomerInfo) iterator2.next();
-				brokerModel.addCustomerModel(new CustomerModel(customerInfo));
-
+				customerModels.add(new CustomerModel(customerInfo));
+				
 			}
-
+			
+			brokerModel.setCustomerModels(customerModels);
 		}
 
 	}

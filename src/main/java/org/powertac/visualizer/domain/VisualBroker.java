@@ -1,6 +1,7 @@
 package org.powertac.visualizer.domain;
 
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
@@ -23,7 +24,7 @@ public interface VisualBroker {
 
 	public void addTariffTransaction(TariffTransaction tariffTransaction);
 
-	public void addCustomerModel(CustomerModel customerModel);
+	public void setCustomerModels(Set<CustomerModel> customerModels);
 
 	public List<TariffSpecification> getTariffSpecifications();
 

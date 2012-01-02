@@ -30,7 +30,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-
+ 
 /**
  * Purpose of this service is to allow (very) primitive control of PowerTAC
  * simulator. Feel free to change this class to match your requirements.
@@ -63,7 +63,7 @@ public class WebCompetitionControlService {
 				context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
 						.getFile().getCanonicalPath());
 
-				context.registerShutdownHook();
+				context.registerShutdownHook(); 
 			
 			// find the CompetitionControl bean
 			cc = (CompetitionControlService) context.getBeansOfType(CompetitionControl.class).values().toArray()[0];

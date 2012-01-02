@@ -256,6 +256,8 @@ public class VisualizerMessageHandlerService {
 		BrokerModel brokerModel = helper.findBrokerModel(tariffTransaction.getBroker());
 		if (brokerModel != null) {
 			brokerModel.addTariffTransaction(tariffTransaction);
+			//update overall status for customers:
+			visualizerBean.getCustomerModel().addTariffTransaction(tariffTransaction);
 		}
 
 	}

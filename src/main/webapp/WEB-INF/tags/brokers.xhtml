@@ -7,6 +7,13 @@
 <h:body>
 	<ui:fragment>
 
+		<ui:repeat var="broker" value="#{visualizerBean.brokers}">
+			<script type="text/javascript">
+	var cashChart#{broker.id}=null;
+	var energyChart#{broker.id}=null;
+	var customerSharesBarhChart#{broker.id}=null;
+	</script>
+		</ui:repeat>
 
 		<p:tabView id="tabBrokers" var="broker" value="#{visualizerBean.brokers}" dynamic="true" cache="true">
 
@@ -25,20 +32,22 @@
 						<h:outputText value="Energy balance: " />
 						<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
 
+						<h:outputText value="Customer count: " />
+						<h:outputText value="#{broker.customerCount}" style="font-weight: bold" />
+
 
 
 
 					</h:panelGrid>
 
 				</h:panelGrid>
+				<!-- Cash line chart for a specific broker -->
 				<div id="cashChart#{broker.id}" style="width: 700px; height: 250px"></div>
 
 				<script type="text/javascript">
 				
-		 			if (window.cashChart#{broker.id}) {
-						window.cashChart#{broker.id}.destroy();
-						
-					
+		 			if (window.cashChart#{broker.id}!=null) {
+						window.cashChart#{broker.id}.destroy();					
 					}
 					window.cashChart#{broker.id} = $.jqplot('cashChart#{broker.id}', [ #{broker.cashBalanceJSONText} ],{
 						title: 'Cash balance', 
@@ -50,19 +59,22 @@
 						            pad: 0},
 						    yaxis: {
 						            label: "cash"}},
+						seriesDefaults: {
+							showMarker: false
+						},
+						
 						series:[#{broker.seriesOptions}],
 						
 						}); 
 					</script>
-						<div id="energyChart#{broker.id}" style="width: 700px; height: 250px"></div>
 
+				<!-- Energy chart for a specific broker -->
+				<div id="energyChart#{broker.id}" style="width: 700px; height: 250px"></div>
 				<script type="text/javascript">
 				
-		 			if (window.energyChart#{broker.id}) {
+		 			if (window.energyChart#{broker.id}!=null) {
 						window.energyChart#{broker.id}.destroy();
-						
-					
-					}
+						}
 					window.energyChart#{broker.id} = $.jqplot('energyChart#{broker.id}', [ #{broker.energyBalanceJSONText} ],{
 						title: 'Energy balance', 
 						axesDefaults: {
@@ -72,14 +84,66 @@
 						            label: "timeslot",
 						            pad: 0},
 						    yaxis: {
-						            label: "energy"}},
-						series:[#{broker.seriesOptions}],
+						            label: "energy/kWh"}},
+						seriesDefaults: {
+										showMarker: false
+										},
+						series:[#{broker.seriesOptions}]
 						
 						}); 
-					</script>
+				</script>
+
+				<!--  -->
+				<div id="customerSharesBarhChart#{broker.id}" style="width: 1500px; height: 250px"></div>
+				<script type="text/javascript">
+				
+		 			if (window.customerSharesBarhChart#{broker.id}!=null) {
+						window.customerSharesBarhChart#{broker.id}.destroy();
+						}
+		 				 		     
+		 		    window.customerSharesBarhChart#{broker.id} = $.jqplot('customerSharesBarhChart#{broker.id}', [#{broker.customerSharesJSONText}], {
+		 		        // The "seriesDefaults" option is an options object that will
+		 		        // be applied to all series in the chart.
+		 		        title: 'Shares for each customer type',
+		 		        seriesDefaults:{
+		 		            renderer:$.jqplot.BarRenderer,
+		 		            rendererOptions: {fillToZero: true	}
+		 		        },
+		 		        series:[
+		 		            {label:'Share [%]'}		 		         
+		 		        ],
+		 		        legend: {
+		 		            show: true,
+		 		            placement: 'outsideGrid'
+		 		        },
+		 		        axes: {
+		 		            // Use a category axis on the x axis and use our custom ticks.
+		 		            xaxis: {
+		 		                renderer: $.jqplot.CategoryAxisRenderer,
+		 		                ticks: #{broker.customerTicksJSONText}
+		 		               
+		 		            },
+		 		            // Pad the y axis just a little so bars can get close to, but
+		 		            // not touch, the grid boundaries.  1.2 is the default padding.
+		 		            yaxis: {
+		 		                pad: 1.05,
+		 		               label: "%",
+		 		               min : 0
+		 		               
+		 		            }
+		 		        }
+		 		    });
+		 		    
+		 		   </script>
+		 		   <p:barChart rendered="false" value="fake" xaxisAngle="30"/>
+		 		   
+		 		   <p:panel>
+		 		   <h:outputText value="shares: #{broker.customerSharesJSONText} ticks: #{broker.customerTicksJSONText}"/>
+		 		   </p:panel>
 
 
-	
+
+
 
 
 

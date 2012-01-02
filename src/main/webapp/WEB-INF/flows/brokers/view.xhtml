@@ -5,7 +5,13 @@
 
 	<ui:define name="title">Brokers</ui:define>
 
+	<ui:define name="headIncludes">
+		<script type="text/javascript">
+	var cashChartGlobal;
+	var marketSharePieChart;
+</script>
 
+	</ui:define>
 
 	<ui:define name="content">
 		<h:form>
@@ -13,27 +19,82 @@
 				<p:accordionPanel id="brokersAccordion" multiple="true">
 					<p:tab title="Overview">
 
-						<p:layout id="overviewLayout" style="width:1024px;height:600px">
+						<p:layout id="overviewLayout" style="width:1600px;height:1200px">
 							<p:layoutUnit position="west" size="500">
 								<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 							</p:layoutUnit>
-							<p:layoutUnit position="center">
-<!-- ZAJEDNICKI GRAFOVI -->
+							<p:layoutUnit position="center" size="510">
 
-								<div id="cashChartGlobal" style="width: 100px; height: 100px"></div>
-
+								<!-- Global Cash Chart -->
+								<div id="cashChartGlobal" style="height: 300px; width: 500px;float:left"></div>
 								<script type="text/javascript">
-				
+									
 		 							if (window.cashChartGlobal) {
-									window.cashChartGlobal.destroy();
-						
-					
+										window.cashChartGlobal.destroy();
 									}
-									window.cashChartGlobal = $.jqplot('cashChartGlobal', [ #{visualizerBean.brokerCashBalancesJSONText} ]
-									); 
-					</script>  
-							
+									window.cashChartGlobal = $.jqplot('cashChartGlobal', [ #{visualizerBean.brokerCashBalancesJSONText} ], 
+										{
+										title: 'Cash balance', 
+										axesDefaults: {
+										        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+										axes: {
+											xaxis: {
+										            label: "timeslot",
+										            pad: 0},
+										    yaxis: {
+										            label: "cash"}},
+										   
+										series:[#{visualizerBean.brokerSeriesOptions}],									
+												
+										seriesDefaults: {
+											showMarker: false
+										}
+									}); 	
+								</script>
+								<!-- Market share PieChart -->
+								<div id="marketSharePieChart" style="height: 300px; width: 300px; float:left;text-align:left;"></div>
+								<script type="text/javascript">
+									
+								if (window.marketSharePieChart) {
+									window.marketSharePieChart.destroy();
+								}
+								window.marketSharePieChart = jQuery.jqplot ('marketSharePieChart', [#{visualizerBean.marketSharePieChartJSONText}],
+									    {
+										title: 'Market share',
+										seriesColors: #{visualizerBean.brokerSeriesColors},
+								        highlighter: { show: false },
+									   	seriesDefaults: {
+									        // Make this a pie chart.
+									        renderer: jQuery.jqplot.PieRenderer,
+									        rendererOptions: {
+									        	fill: false,
+									          // Put data labels on the pie slices.
+									          // By default, labels show the percentage of the slice.
+									          showDataLabels: true,
+									          
+									          // stroke the slices with a little thicker line.
+									          lineWidth: 4
+									        }
+									      },
+									     
+									     legend: { show:false, location: 's' }
+									    }
+									  );
+
+								</script>
+								<h:outputText value="#{visualizerBean.marketSharePieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
+								
 							</p:layoutUnit>
+
+							
+								
+
+							
+
+			
+
+
+
 						</p:layout>
 
 
@@ -41,18 +102,19 @@
 					<p:tab title="Individual">
 
 						<ui:include src="/WEB-INF/tags/brokers.xhtml" />
-						
-							
-						
+
+
+
 
 					</p:tab>
 				</p:accordionPanel>
 			</p:panel>
 
-			<p:poll autoStart="true" interval="3" update="brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
+			<p:poll autoStart="true" interval="5"
+				update=":competitionInfoForm:competitionInfoPanel,brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
 
-			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" />
-
+			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" rendered="false" />
+			
 		</h:form>
 
 

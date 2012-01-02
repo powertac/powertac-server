@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
+import org.powertac.visualizer.Helper;
 
 /**
  * Represents customer model that belongs to a particular broker.
@@ -16,16 +17,11 @@ import org.powertac.common.TariffTransaction;
 public class CustomerModel {
 
 	Logger log = Logger.getLogger(CustomerModel.class);
+	// active customers
 	private int customerCount;
-	// total cash
-	private static double totalCashInflow;
-	private static double totalCashOutflow;
 	// cash from/to particular broker:
 	private double cashInflow;
 	private double cashOutflow;
-	// total energy in kWh
-	private double totalEnergyConsumption;
-	private double totalEnergyProduction;
 	// energy from/to particular broker;
 	private double energyConsumption;
 	private double energyProduction;
@@ -36,6 +32,14 @@ public class CustomerModel {
 
 	public CustomerModel(CustomerInfo customerInfo) {
 		this.customerInfo = customerInfo;
+		initialize();
+	}
+
+	public CustomerModel() {
+		initialize();
+	}
+
+	private void initialize() {
 		tariffTransactions = new ArrayList<TariffTransaction>();
 	}
 
@@ -76,68 +80,26 @@ public class CustomerModel {
 
 		// can't use switch with this enum, so if statements are used:
 
-		// add new customers
-		if (tariffTransaction.getTxType().compareTo(TariffTransaction.Type.SIGNUP) == 0) {
-			customerCount += tariffTransaction.getCustomerCount();
-
-		}// remove customers that revoke or withdraw
-		else if ((tariffTransaction.getTxType().compareTo(TariffTransaction.Type.WITHDRAW) == 0)
-				|| (tariffTransaction.getTxType().compareTo(TariffTransaction.Type.WITHDRAW) == 0)) {
-			customerCount -= tariffTransaction.getCustomerCount();
-		}
-
-		// what does PUBLISH tariffTransaction do?
+		// manage customerCount:
+		customerCount += Helper.getCustomerCount(tariffTransaction);
 
 	}
 
 	private void updateEnergy(double kWh) {
-		if (kWh <= 0) { // consumption
-			totalEnergyConsumption += (-1) * kWh;
-			energyConsumption += (-1) * kWh;
-			// to get a positive number (broker "lost" energy to customer)
-		} else {
-			totalEnergyProduction += kWh;
-			energyProduction += kWh;
-		}
-		log.info("\n energy consumption:" + totalEnergyConsumption + " energy production:" + totalEnergyProduction);
+
+		energyProduction += kWh;
+
+		log.info("\n energy consumption:" + energyConsumption + " energy production:" + energyProduction);
 	}
 
 	private void updateCash(double charge) {
-		if (charge <= 0) {// from brokers perspective: broker paid to customer
-			totalCashInflow += (-1) * charge; // positive cash inflow from
-			cashInflow += (-1) * charge; // broker
-		} else {
-			totalCashOutflow += charge;
-			cashOutflow += charge;
-		}
-		log.info("\n CashInflow:" + totalCashInflow + " CashOutflow:" + totalCashOutflow);
+
+		cashOutflow += charge;
+		log.info("\n CashInflow:" + cashInflow + " CashOutflow:" + cashOutflow);
 	}
 
 	public int getCustomerCount() {
 		return customerCount;
-	}
-
-	public double getTotalCashInflow() {
-		return totalCashInflow;
-	}
-
-	public double getTotalCashOutflow() {
-		return totalCashOutflow;
-	}
-
-	public double getTotalCashBalance() {
-		return totalCashInflow - totalCashOutflow;
-	}
-
-	public double getTotalEnergyConsumption() {
-		return totalEnergyConsumption;
-	}
-
-	public double getTotalEnergyProduction() {
-		return totalEnergyProduction;
-	}
-	public double getTotalEnergyBalance(){
-		return totalEnergyProduction-totalEnergyConsumption;
 	}
 
 	public CustomerInfo getCustomerInfo() {
@@ -156,8 +118,8 @@ public class CustomerModel {
 		return cashOutflow;
 	}
 
-	public double getCashBalance() {
-		return cashInflow - cashOutflow;
+	public synchronized double getCashBalance() {
+		return cashInflow + cashOutflow;
 	}
 
 	public double getEnergyConsumption() {
@@ -168,7 +130,15 @@ public class CustomerModel {
 		return energyProduction;
 	}
 
-	public double getEnergyBalance() {
-		return energyProduction - energyConsumption;
+	public synchronized double getEnergyBalance() {
+		return energyProduction + energyConsumption;
 	}
+
+	public synchronized double getCustomerShare() {
+		if (customerInfo.getPopulation() != 0) {
+			return (100.0)*customerCount / customerInfo.getPopulation();
+		} else
+			return 0;
+	}
+
 }

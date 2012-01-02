@@ -16,6 +16,7 @@ import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.primefaces.json.JSONArray;
 import org.primefaces.model.chart.CartesianChartModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,10 +48,11 @@ public class VisualizerBean implements Serializable {
 	private List<GencoModel> gencos;
 	private int relativeTimeslotIndex;
 	private int firstTimeslotIndex;
+	// JSON stuff
 	private String brokerSeriesOptions;
-	// private CartesianChartModel brokerCashBalancesCartesian;
-	// private CartesianChartModel brokerEnergyBalancesCartesian;
-
+	private String brokerSeriesColors;
+	// convinient variable for holding the sum of all customers:
+	private CustomerModel customerModel;
 	@Autowired
 	private AppearanceListBean appearanceList;
 
@@ -89,8 +91,8 @@ public class VisualizerBean implements Serializable {
 		relativeTimeslotIndex = -1;
 		firstTimeslotIndex = -1;
 		brokerSeriesOptions = "";
-		// brokerCashBalancesCartesian = new CartesianChartModel();
-		// brokerEnergyBalancesCartesian = new CartesianChartModel();
+		brokerSeriesColors = "";
+		customerModel = new CustomerModel();
 
 	}
 
@@ -107,30 +109,27 @@ public class VisualizerBean implements Serializable {
 	}
 
 	public void setBrokers(List<BrokerModel> brokers) {
-
+		JSONArray brokerSeriesColors = new JSONArray();
 		StringBuilder seriesOptions = new StringBuilder();
-		String prefix="";
+		String prefix = "";
 		String stringDebug = "";
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
 			stringDebug += "Name: " + brokerModel.getName() + " Color code: "
 					+ brokerModel.getAppearance().getColorCode() + " Icon:"
 					+ brokerModel.getAppearance().getIconLocation() + "\n";
-			// build broker colors:
+			// build broker series options:
 			seriesOptions.append(prefix);
-			prefix=",";
+			prefix = ",";
 			seriesOptions.append(brokerModel.getSeriesOptions());
-			// build cash chart:
-			// brokerCashBalancesCartesian.addSeries(brokerModel.getCashBalanceChartSeries());
-			// //build energy chart:
-			// brokerEnergyBalancesCartesian.addSeries(brokerModel.getEnergyBalanceChartSeries());
-
+			// build colors:
+			brokerSeriesColors.put(brokerModel.getAppearance().getColorCode());
 		}
 		this.brokerSeriesOptions = seriesOptions.toString();
-		
-		
+		this.brokerSeriesColors = brokerSeriesColors.toString();
 		this.brokers = brokers;
-		log.info("Broker list:\n" + stringDebug+" series options:"+brokerSeriesOptions);
+		log.info("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:"
+				+ brokerSeriesColors.toString());
 
 	}
 
@@ -214,6 +213,10 @@ public class VisualizerBean implements Serializable {
 		return firstTimeslotIndex;
 	}
 
+	public CustomerModel getCustomerModel() {
+		return customerModel;
+	}
+
 	public String getBrokerSeriesOptions() {
 		return brokerSeriesOptions;
 
@@ -221,28 +224,34 @@ public class VisualizerBean implements Serializable {
 
 	public String getBrokerCashBalancesJSONText() {
 		StringBuilder cash = new StringBuilder();
-		String prefix="";
+		String prefix = "";
 		if (brokers != null) {
 			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 				BrokerModel broker = (BrokerModel) iterator.next();
 				cash.append(prefix);
-				prefix=",";
+				prefix = ",";
 				cash.append(broker.getCashBalanceJSONText());
 
 			}
-			
-			
+
 			return cash.toString();
 		} else
 			return "";
 	}
 
-	// public CartesianChartModel getBrokerCashBalancesCartesian() {
-	// return brokerCashBalancesCartesian;
-	// }
-	//
-	// public CartesianChartModel getBrokerEnergyBalancesCartesian() {
-	// return brokerEnergyBalancesCartesian;
-	// }
+	public String getMarketSharePieChartJSONText() {
+		JSONArray marketShare = new JSONArray();
+		if (brokers != null) {
+			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
+				BrokerModel broker = (BrokerModel) iterator.next();
+				marketShare.put(broker.getCustomerCount());
+			}
+			return marketShare.toString();
+		} else
+			return null;
+	}
 
+	public String getBrokerSeriesColors() {
+		return brokerSeriesColors;
+	}
 }

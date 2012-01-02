@@ -17,6 +17,7 @@ import org.powertac.common.CashPosition;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.visualizer.Helper;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.primefaces.model.chart.CartesianChartModel;
@@ -31,9 +32,10 @@ public class BrokerModel implements VisualBroker {
 	private String name;
 	private Appearance appearance;
 	private int currentTimeslotIndex = -1;
-	private static int CHART_BUFFER = 40;
 	private String id;
 	private String fakeChart;
+	// customers
+	private int customerCount;
 	// balance
 	private double cashBalance;
 	private double energyBalance; // kWh
@@ -45,19 +47,14 @@ public class BrokerModel implements VisualBroker {
 	private List<BalancingTransaction> balancingTransactions;
 	// customers
 	private Set<CustomerModel> customerModels;
-	// // C H A R T S:
-	// // CASH:
-	// // Cartesian:
-	// private CartesianChartModel cashBalanceChart;
-	// private ChartSeries cashBalanceChartSeries;
-	// // ENERGY:
-	// // Cartesian:
-	// private CartesianChartModel energyBalanceChart;
-	// private ChartSeries energyBalanceChartSeries;
 	// JSON:
-	JSONArray cashBalanceJson;
-	JSONArray energyBalanceJson;
-	String seriesOptions;
+	private JSONArray cashBalanceJson;
+	private JSONArray energyBalanceJson;
+	private String seriesOptions;
+	//array of names for each customer
+	private JSONArray customerTicks;
+	//array of broker's share in each customer, in percentages:
+	private JSONArray customerShares;
 
 	public BrokerModel(String name, Appearance appearance) {
 		this.name = name;
@@ -68,20 +65,15 @@ public class BrokerModel implements VisualBroker {
 		balancingTransactions = new ArrayList<BalancingTransaction>();
 		customerModels = new HashSet<CustomerModel>();
 
-		// loadCashCartesianChart();
-		//
-		// loadEnergyCartesianChart();
-
 		energyHistory = new HashMap<Object, Number>();
 		cashHistory = new HashMap<Object, Number>();
 
 		id = RandomStringUtils.random(7, "abcdefghijklomnopqrstuvxy".toCharArray());
-		// TODO: energy chart
 
 		// JSON:
 		cashBalanceJson = new JSONArray();
 		energyBalanceJson = new JSONArray();
-		// TODO:JSON
+		//
 		JSONArray point = new JSONArray();
 		try {
 			point.put(0).put(0);
@@ -94,6 +86,12 @@ public class BrokerModel implements VisualBroker {
 		options.append("{color: '").append(appearance.getColorCode()).append("', label: '").append(name).append("'}");
 		seriesOptions = options.toString();
 		log.info(seriesOptions);
+		customerTicks=new JSONArray();
+		customerShares = new JSONArray();
+
+		
+		// TODO: delete this line (for testing only!)
+		customerCount = (int) (Math.random() * 10000);
 
 	}
 
@@ -138,19 +136,55 @@ public class BrokerModel implements VisualBroker {
 	public void addTariffTransaction(TariffTransaction tariffTransaction) {
 		log.info("\n" + name + ": my tariffTrans: +\n" + tariffTransaction.toString());
 		tariffTransactions.add(tariffTransaction);
+
+	
+				
+
 		// find customer of this transaction:
 		for (Iterator<CustomerModel> iterator = customerModels.iterator(); iterator.hasNext();) {
 			CustomerModel customerModel = (CustomerModel) iterator.next();
 			if (customerModel.getCustomerInfo().getId() == tariffTransaction.getCustomerInfo().getId()) {
+
 				// add transaction to a customer
 				customerModel.addTariffTransaction(tariffTransaction);
+				break;
 			}
+		}
+		// manage customer count
+		int customerCount = Helper.getCustomerCount(tariffTransaction);
+		this.customerCount += customerCount;
+		if(customerCount!=0){
+			//broker's portfolio is changed
+			buildCustomerShares();
 		}
 
 	}
 
-	public void addCustomerModel(CustomerModel customerModel) {
-		customerModels.add(customerModel);
+	private void buildCustomerShares() {
+		customerShares= new JSONArray();
+		for (Iterator iterator = customerModels.iterator(); iterator.hasNext();) {
+			CustomerModel customerModel = (CustomerModel) iterator.next();
+			try {
+				customerShares.put(customerModel.getCustomerShare());
+			} catch (JSONException e) {
+				log.warn("Problems with JSON while building customer shares for broker:" + name);
+			}
+		}
+		
+	}
+
+	public void setCustomerModels(Set<CustomerModel> customerModels) {
+		this.customerModels=customerModels;
+		buildCustomerShares();
+		buildCustomerTicks();
+	}
+
+	private void buildCustomerTicks() {
+		customerTicks= new JSONArray();
+		for (Iterator iterator = customerModels.iterator(); iterator.hasNext();) {
+			CustomerModel customerModel = (CustomerModel) iterator.next();
+			customerTicks.put(customerModel.getCustomerInfo().getName());	
+		}
 	}
 
 	// getters and setters:
@@ -215,56 +249,6 @@ public class BrokerModel implements VisualBroker {
 		return energyHistory;
 	}
 
-	// public CartesianChartModel getCashBalanceChart() {
-	// return cashBalanceChart;
-	// }
-	//
-	// public ChartSeries getCashBalanceChartSeries() {
-	// return cashBalanceChartSeries;
-	// }
-	//
-	// public CartesianChartModel getEnergyBalanceChart() {
-	// return energyBalanceChart;
-	// }
-	//
-	// public ChartSeries getEnergyBalanceChartSeries() {
-	// return energyBalanceChartSeries;
-	// }
-
-	public int getMaxX() {
-		return currentTimeslotIndex;
-	}
-
-	public int getMinX() {
-		return currentTimeslotIndex - CHART_BUFFER;
-	}
-
-	// TODO: getters
-
-	// private void loadEnergyCartesianChart() {
-	// // energy chart:
-	// energyHistory = new HashMap<Object, Number>();
-	// energyBalanceChart = new CartesianChartModel();
-	// energyBalanceChartSeries = new ChartSeries(name);
-	// energyBalanceChartSeries.setData(energyHistory);
-	// energyBalanceChart.addSeries(energyBalanceChartSeries);
-	// // add dummy value for testing
-	// energyHistory.put(-1, (-100)*Math.random());
-	//
-	// }
-	//
-	//
-	// private void loadCashCartesianChart() {
-	// // cash chart:
-	// cashHistory = new HashMap<Object, Number>();
-	// cashBalanceChart = new CartesianChartModel();
-	// cashBalanceChartSeries = new ChartSeries(name);
-	// cashBalanceChartSeries.setData(cashHistory);
-	// cashBalanceChart.addSeries(cashBalanceChartSeries);
-	// // add dummy value for testing
-	// cashHistory.put(-1, (-100)*Math.random());
-	//
-	// }
 	public String getId() {
 		return id;
 	}
@@ -274,7 +258,9 @@ public class BrokerModel implements VisualBroker {
 	}
 
 	public String getCashBalanceJSONText() {
+
 		return cashBalanceJson.toString();
+
 	}
 
 	public void setCashBalanceJson(JSONArray cashBalanceJson) {
@@ -290,11 +276,17 @@ public class BrokerModel implements VisualBroker {
 	}
 
 	public String getEnergyBalanceJSONText() {
+
 		return energyBalanceJson.toString();
+
 	}
 
-	public String getSeriesOptions(){
+	public String getSeriesOptions() {
 		return seriesOptions;
+	}
+
+	public int getCustomerCount() {
+		return customerCount;
 	}
 
 	public String getFakeChart() {
@@ -302,5 +294,13 @@ public class BrokerModel implements VisualBroker {
 		double y = Math.random() * 10;
 		fakeChart = "[[[" + x + ", " + y + "]]]";
 		return fakeChart;
+	}
+	
+	public String getCustomerTicksJSONText(){
+		return customerTicks.toString();
+	}
+	
+	public String getCustomerSharesJSONText() {
+		return customerShares.toString();
 	}
 }
