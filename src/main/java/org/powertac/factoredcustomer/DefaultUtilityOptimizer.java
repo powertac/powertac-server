@@ -59,7 +59,7 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
    
     private final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
     private final Random inertiaSampler;
-    
+    private final Random tariffSelector;
     
     DefaultUtilityOptimizer(CustomerProfile profile, List<CapacityBundle> bundles) 
     {        
@@ -69,7 +69,9 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
         randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
         inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
-                                                                 customerProfile.profileId, "InertiaSampler").getValue());
+                customerProfile.profileId, "InertiaSampler").getValue());
+        tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
+                customerProfile.profileId, "TariffSelector").getValue());
     }
   
     CustomerInfo getCustomerInfo() 
@@ -112,30 +114,30 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
                 PowerType generalType = CapacityProfile.reportPowerType(capacityType, CapacitySubType.NONE);
 		  
                 if (tariffMarketService.getDefaultTariff(generalType) == null) {
-                    log.warn(getName() + ": No default tariff for general power type " + powerType + " either!");
+                    log.error(getName() + ": No default tariff for general power type " + generalType + " either!");
                 } else {
-                    tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(generalType), getCustomerInfo(), getPopulation());
-                    log.info(getName() + " subscribed " + getPopulation() + " customers to default " + generalType + " tariff successfully.");
+                    log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + generalType + " tariff");
+                    subscribe(tariffMarketService.getDefaultTariff(generalType), getPopulation(), false);
 		} 
             } else {
-                tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(powerType), getCustomerInfo(), getPopulation());
-                log.info(getName() + " subscribed " + getPopulation() + " customers to default " + powerType + " tariff successfully.");
+                log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + powerType + " tariff");
+                subscribe(tariffMarketService.getDefaultTariff(powerType), getPopulation(), false);
             }
         }
     }
     
     @StateChange
-    protected void subscribe(Tariff tariff, int customerCount)
+    protected void subscribe(Tariff tariff, int customerCount, boolean verbose)
     {
       tariffMarketService.subscribeToTariff(tariff, getCustomerInfo(), customerCount);
-      log.info(getName() + " subscribed " + customerCount + " customers to tariff " + tariff.getId() + " successfully.");
+      if (verbose) log.info(getName() + ": Subscribed " + customerCount + " customers to tariff " + tariff.getId() + " successfully");
     }
 
     @StateChange
-    protected void unsubscribe(TariffSubscription subscription, int customerCount)
+    protected void unsubscribe(TariffSubscription subscription, int customerCount, boolean verbose)
     {
       subscription.unsubscribe(customerCount);
-      log.info(getName() + " unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully.");
+      if (verbose) log.info(getName() + ": Unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully");
     }
 
     private void reevaluateTariffs(List<Tariff> newTariffs) 
@@ -158,25 +160,22 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
             }
         }
         // Include previously ignored tariffs and currently subscribed tariffs in evaluation.
+        // Use map instead of list to eliminate duplicate tariffs.
         Map<Long, Tariff> allTariffs = new HashMap<Long, Tariff>();
-        
 	for (Tariff ignoredTariff: ignoredTariffs) {
 	    allTariffs.put(ignoredTariff.getId(), ignoredTariff);
 	}      
-	ignoredTariffs.clear();
-		
+	ignoredTariffs.clear();		
 	List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
         for (TariffSubscription subscription: subscriptions) {
             allTariffs.put(subscription.getTariff().getId(), subscription.getTariff());
         }
-
         for (Tariff newTariff: newTariffs) {
             allTariffs.put(newTariff.getId(), newTariff);
         }
-
         manageSubscriptions(allTariffs, bundle);	
     }
-	
+    
     private void manageSubscriptions(Map<Long, Tariff> allTariffs, CapacityBundle bundle)
     {
         CapacityType capacityType = bundle.getCapacityType();
@@ -193,25 +192,21 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
 	    log.info(getName() + ": No new or ignored " + capacityType + " tariffs to evaluate");
 	    return;
 	}
-	log.info(getName() + ": Number of " + capacityType + " tariffs for evaluation = " + evalTariffs.size());
-		
-	double[] estimatedPayments = new double[evalTariffs.size()];
-	for (int i=0; i < evalTariffs.size(); ++i) {
-	    Tariff tariff = evalTariffs.get(i);
-	    if (tariff.isExpired()) {
-	        if (capacityType == CapacityProfile.CapacityType.CONSUMPTION) {
-	            estimatedPayments[i] = Double.POSITIVE_INFINITY;  // assume worst case
-	        } else {  // PRODUCTION
-	            estimatedPayments[i] = Double.NEGATIVE_INFINITY;  // assume worst case
-	        }
-	    } else {
-	        double totalVariablePayments = 0.0;
-	        totalVariablePayments += bundle.computeDailyUsageCharge(tariff);
-	        estimatedPayments[i] = estimateFixedTariffPayments(tariff) + totalVariablePayments;
-	    } 
-	}		
+	// Order of tariffs in list matters for the rest of the logic
+        List<Long> tariffIds = new ArrayList<Long>(evalTariffs.size());
+        for (Tariff tariff: evalTariffs) tariffIds.add(tariff.getId());
+        logAllocationDetails(getName() + ": " + capacityType + " tariffs for evaluation: " + tariffIds);
+        
+        Collections.shuffle(evalTariffs);
+        tariffIds = new ArrayList<Long>(evalTariffs.size());
+        for (Tariff tariff: evalTariffs) tariffIds.add(tariff.getId());
+        logAllocationDetails(getName() + ": " + capacityType + " tariffs (shuffled) for evaluation: " + tariffIds);
+
+	List<Double> estimatedPayments = estimatePayments(evalTariffs, bundle);
+	logAllocationDetails(getName() + ": Estimated payments for evaluated tariffs: " + estimatedPayments);
+        
 	List<Integer> allocations = determineAllocations(evalTariffs, estimatedPayments, bundle);
-	log.info(getName() + ": " + capacityType + " allocations: " + allocations);
+	logAllocationDetails(getName() + ": Allocations for evaluated tariffs: " + allocations);
 		
 	int overAllocations = 0;
 	for (int i=0; i < evalTariffs.size(); ++i) {
@@ -239,27 +234,48 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
 	            log.info(getName() + ": Reallocating " + numChange + " " + capacityType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
 	        } else { 
                     log.info(getName() + ": Subscribing " + numChange + " " + capacityType + " customers to tariff " + evalTariff.getId());
-                    subscribe(evalTariff, numChange);
+                    subscribe(evalTariff, numChange, false);
 	        }
 	    } else if (numChange < 0) {
 	        log.info(getName() + ": Unsubscribing " + -numChange + " " + capacityType + " customers from tariff " + evalTariff.getId());
-                unsubscribe(subscription, -numChange);
+                unsubscribe(subscription, -numChange, false);
 	    }
 	}
 	if (overAllocations > 0) {
 	    int minIndex = 0;
 	    double minEstimate = Double.POSITIVE_INFINITY;
-	    for (int i=0; i < estimatedPayments.length; ++i) {
-	        if (estimatedPayments[i] < minEstimate && ! evalTariffs.get(i).isExpired()) {
+	    for (int i=0; i < estimatedPayments.size(); ++i) {
+	        if (estimatedPayments.get(i) < minEstimate && ! evalTariffs.get(i).isExpired()) {
 	            minIndex = i;
-	            minEstimate = estimatedPayments[i];
+	            minEstimate = estimatedPayments.get(i);
 	        }
 	    }
 	    log.info(getName() + ": Subscribing " + overAllocations + " over-allocated customers to tariff " + evalTariffs.get(minIndex).getId());
-	    subscribe(evalTariffs.get(minIndex), overAllocations);
+	    subscribe(evalTariffs.get(minIndex), overAllocations, false);
 	}
     }
 	
+    private List<Double> estimatePayments(List<Tariff> evalTariffs, CapacityBundle bundle) 
+    {
+        List<Double> estimatedPayments = new ArrayList<Double>(evalTariffs.size());
+        for (int i=0; i < evalTariffs.size(); ++i) {
+            Tariff tariff = evalTariffs.get(i);
+            if (tariff.isExpired()) {
+                if (bundle.getCapacityType() == CapacityProfile.CapacityType.CONSUMPTION) {
+                    estimatedPayments.add(Double.POSITIVE_INFINITY);  // assume worst case
+                } else {  // PRODUCTION
+                    estimatedPayments.add(Double.NEGATIVE_INFINITY);  // assume worst case
+                }
+            } else {
+                double fixedPayments = estimateFixedTariffPayments(tariff);
+                double variablePayment = bundle.computeDailyUsageCharge(tariff);
+                double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);
+                estimatedPayments.add(totalPayment);
+            } 
+        }      
+        return estimatedPayments;
+    }
+    
     private double estimateFixedTariffPayments(Tariff tariff)
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
@@ -272,16 +288,22 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
         return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
     }
   
-    private List<Integer> determineAllocations(List<Tariff> evalTariffs, double[] estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
     {
-        if (bundle.getSubscriberProfile().allocationMethod == AllocationMethod.TOTAL_ORDER) {
-            return determineTotalOrderAllocations(evalTariffs, estimatedPayments, bundle);
-        } else {
-            return determineLogitChoiceAllocations(evalTariffs, estimatedPayments, bundle);
+        if (evalTariffs.size() == 1) {
+            List<Integer> allocations = new ArrayList<Integer>();
+            allocations.add(getCustomerInfo().getPopulation());
+            return allocations;
+        } else {        
+            if (bundle.getSubscriberProfile().allocationMethod == AllocationMethod.TOTAL_ORDER) {
+                return determineTotalOrderAllocations(evalTariffs, estimatedPayments, bundle);
+            } else { // LOGIT_CHOICE
+                return determineLogitChoiceAllocations(evalTariffs, estimatedPayments, bundle);
+            }
         }
     }
     
-    private List<Integer> determineTotalOrderAllocations(List<Tariff> evalTariffs, double[] estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineTotalOrderAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
     {
         int numTariffs = evalTariffs.size();
         List<Double> allocationRule;
@@ -304,19 +326,20 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
                 }
             }
         }               
-        // payments are negative for production, so sorting is still valid
+        // payments are positive for production, so sorting is still valid
         List<Double> sortedPayments = new ArrayList<Double>(numTariffs);
         for (double estimatedPayment: estimatedPayments) {
             sortedPayments.add(estimatedPayment);
         }
         Collections.sort(sortedPayments);
+        Collections.reverse(sortedPayments); // we want descending order
 
         List<Integer> allocations = new ArrayList<Integer>(numTariffs);
         for (int i=0; i < numTariffs; ++i) {
             if (allocationRule.get(i) > 0) {
                 double nextBest = sortedPayments.get(i);
                 for (int j=0; j < numTariffs; ++j) {
-                    if (estimatedPayments[j] == nextBest) {
+                    if (estimatedPayments.get(j) == nextBest) {
                         allocations.add((int) Math.round(getCustomerInfo().getPopulation() * allocationRule.get(i)));
                     }
                 }
@@ -326,37 +349,65 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
         return allocations;
     }
     
-    private List<Integer> determineLogitChoiceAllocations(List<Tariff> evalTariffs, double[] estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineLogitChoiceAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
     {
         // logit choice model:  p_i = e^(lambda * utility_i) / sum_i(e^(lambda * utility_i))
-
-        double bestPayment = bundle.getCapacityType() == CapacityType.CONSUMPTION ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
         
-        for (int i=0; i < estimatedPayments.length; ++i) {
-            if (bundle.getCapacityType() == CapacityType.CONSUMPTION) {
-                if (estimatedPayments[i] < bestPayment) {
-                    bestPayment = estimatedPayments[i];
-                }
-            } else { // PRODUCTION
-                if (estimatedPayments[i] > bestPayment) {
-                    bestPayment = estimatedPayments[i];
-                }                
-            }
-        }
         int numTariffs = evalTariffs.size();
+        double bestPayment = Collections.max(estimatedPayments);
+        double worstPayment = Collections.min(estimatedPayments);
+        double sumPayments = 0.0;
+        for (int i=0; i < numTariffs; ++i) {
+            sumPayments += estimatedPayments.get(i);
+        }
+        double meanPayment = sumPayments / numTariffs;
+        
+        double lambda = bundle.getSubscriberProfile().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
         List<Double> numerators = new ArrayList<Double>(numTariffs);
         double denominator = 0.0;
-        for (int i=0; i < numTariffs; ++i) {
-            double lambda = bundle.getSubscriberProfile().logitChoiceRationality;  // [0.0, 1.0] 
-            double utility = Math.abs(estimatedPayments[i] - bestPayment); 
+        for (int i=0; i < numTariffs; ++i) {  
+            double basis = Math.max((bestPayment - meanPayment), (meanPayment - worstPayment));
+            double utility = ((estimatedPayments.get(i) - meanPayment) / basis) * 3.0;  // [-3.0, +3.0] 
             double numerator = Math.exp(lambda * utility);
             numerators.add(numerator);
             denominator += numerator;
         }
-        List<Integer> allocations = new ArrayList<Integer>(numTariffs);
+        List<Double> probabilities = new ArrayList<Double>(numTariffs);
         for (int i=0; i < numTariffs; ++i) {
-            double probability = numerators.get(i) / denominator;
-            allocations.add((int) Math.round(getCustomerInfo().getPopulation() * probability));
+            probabilities.add(numerators.get(i) / denominator);
+        }   
+        
+        // Now determine allocations based on above probabilities
+        List<Integer> allocations = new ArrayList<Integer>(numTariffs);
+        int population = getCustomerInfo().getPopulation();
+        if (getCustomerInfo().isMultiContracting())
+        {
+            int sumAllocations = 0;
+            for (int i=0; i < numTariffs; ++i) {
+                int allocation;
+                if (i < (numTariffs - 1)) {
+                    allocation = (int) Math.round(population * probabilities.get(i));
+                    sumAllocations += allocation;
+                } else {
+                    allocation = population - sumAllocations;
+                }
+                allocations.add(allocation);
+            }
+        } else {
+            double r = ((double) tariffSelector.nextInt(100) / 100.0); // [0.0, 1.0]
+            double cumProbability = 0.0;
+            for (int i=0; i < numTariffs; ++i) {
+                cumProbability += probabilities.get(i); 
+                if (r <= cumProbability) {
+                    allocations.add(population);
+                    for (int j=i+1; j < numTariffs; ++j) {
+                        allocations.add(0);
+                    }
+                    break;
+                } else {
+                    allocations.add(0);
+                }
+            }
         }
         return allocations;
     }
@@ -408,7 +459,7 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
                     CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.CONSUMPTION) {
                 for (CapacityBundle bundle: capacityBundles) {
                     if (bundle.getCapacityType() == CapacityType.CONSUMPTION) {
-                        double currCapacity = bundle.computeCapacity(timeslot, subscription);
+                        double currCapacity = bundle.useCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // positive usage is consumption
                         totalConsumption += currCapacity;
                     }
@@ -426,7 +477,7 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
                     CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.PRODUCTION) {
                 for (CapacityBundle bundle: capacityBundles) {
                     if (bundle.getCapacityType() == CapacityType.PRODUCTION) {
-                        double currCapacity = -1 * bundle.computeCapacity(timeslot, subscription);
+                        double currCapacity = -1 * bundle.useCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // negative usage is production
                         totalProduction = currCapacity;
                     }			
@@ -436,6 +487,25 @@ class DefaultUtilityOptimizer extends UtilityOptimizer
         log.info(getName() + ": Total production for timeslot " + timeslot.getSerialNumber() + " = " + totalProduction);
     }
 
+    private static double truncateTo2Decimals(double x)
+    {
+        double fract, whole;
+        if (x > 0) {
+            whole = Math.floor(x);
+            fract = Math.floor((x - whole) * 100) / 100;
+        } else {
+            whole = Math.ceil(x);
+            fract = Math.ceil((x - whole) * 100) / 100;
+        }
+        return whole + fract;
+    }
+
+    private void logAllocationDetails(String msg) 
+    {
+        log.info(msg);
+        //log.debug(msg);
+    }
+    
     public String toString() 
     {
 	return "DefaultFactoredCustomer:" + getName();

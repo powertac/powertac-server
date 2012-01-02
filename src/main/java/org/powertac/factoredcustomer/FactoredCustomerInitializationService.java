@@ -49,7 +49,7 @@ public class FactoredCustomerInitializationService implements InitializationServ
      */
     public void setDefaults ()
     {
-        pluginConfigRepo.makePluginConfig("FactoredCustomer", "").addConfiguration("configResource", "FactoredCustomers.xml");
+        pluginConfigRepo.makePluginConfig("FactoredCustomer", "").addConfiguration("configResource", "FactoredCustomers_temp.xml");
     }
 
     /**

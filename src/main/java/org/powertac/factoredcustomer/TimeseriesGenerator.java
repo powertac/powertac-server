@@ -39,7 +39,6 @@ final class TimeseriesGenerator
     private final Properties modelParams = new Properties();
     
     private final List<Double> genSeries = new ArrayList<Double>();
-    private final List<Double> adjSeries = new ArrayList<Double>();
     
     private final TimeseriesProfile tsProfile;
     
@@ -156,13 +155,8 @@ final class TimeseriesGenerator
         }
     }
 
-    double generateNext(Timeslot timeslot, double last)
+    double generateNext(Timeslot timeslot)
     {
-        if (Double.isNaN(last)) {
-            adjSeries.add(genSeries.get(timeslot.getSerialNumber() - 1));
-        } else {
-            adjSeries.add(last);
-        }
         double next;
         switch (tsProfile.modelType) {
         case ARIMA_101x101:

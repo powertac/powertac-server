@@ -24,7 +24,7 @@ import org.powertac.common.Timeslot;
  */
 interface CapacityManager
 {
-    double drawBaseCapacitySample(Timeslot timeslot, int customerCount);
+    double getBaseCapacity(Timeslot timeslot);
     
-    double computeCapacity(Timeslot timeslot, TariffSubscription subscription);
+    double useCapacity(Timeslot timeslot, TariffSubscription subscription);
 }

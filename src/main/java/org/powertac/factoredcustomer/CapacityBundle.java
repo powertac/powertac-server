@@ -42,7 +42,6 @@ final class CapacityBundle
     private static final int NUM_HOURS_IN_DAY = 24;
     
     private final Element configXml;
-    private final CustomerProfile customerProfile;
     
     private final CapacityType capacityType;
     private final CapacitySubType capacitySubType;
@@ -54,7 +53,6 @@ final class CapacityBundle
     
     CapacityBundle(CustomerProfile profile, Element xml)
     {
-        customerProfile = profile;
         configXml = xml;
         
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
@@ -81,10 +79,7 @@ final class CapacityBundle
         for (int i=0; i < NUM_HOURS_IN_DAY; ++i) {
             double hourlyUsage = 0;
             for (CapacityManager capacityManager: capacityManagers) {
-                hourlyUsage += capacityManager.drawBaseCapacitySample(hourlyTimeslot, customerProfile.customerInfo.getPopulation());
-            }
-            if (capacityType == CapacityType.PRODUCTION) {
-                hourlyUsage = -(hourlyUsage);  // negative for production
+                hourlyUsage += capacityManager.getBaseCapacity(hourlyTimeslot);
             }
             totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
             totalUsage += hourlyUsage;
@@ -93,11 +88,11 @@ final class CapacityBundle
         return totalCharge;
     }
 
-    double computeCapacity(Timeslot timeslot, TariffSubscription subscription)
+    double useCapacity(Timeslot timeslot, TariffSubscription subscription)
     {
         double capacity = 0;
         for (CapacityManager capacityManager: capacityManagers) {
-            capacity += capacityManager.computeCapacity(timeslot, subscription);
+            capacity += capacityManager.useCapacity(timeslot, subscription);
         }
         return capacity;
     }

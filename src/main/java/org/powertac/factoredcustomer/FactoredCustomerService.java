@@ -147,6 +147,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         // If you need to handle a number of different message types, it may
         // make sense to use a reflection-based dispatcher. Both
         // TariffMarketService and AccountingService work this way.
+        
+        log.warn("Ignoring received message: " + msg);
     }
 
     String getConfigResource() 

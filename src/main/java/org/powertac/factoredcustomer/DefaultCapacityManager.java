@@ -16,6 +16,9 @@
 
 package org.powertac.factoredcustomer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.w3c.dom.*;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -51,8 +54,8 @@ final class DefaultCapacityManager implements CapacityManager
     private final CustomerProfile customerProfile;
     private final CapacityProfile capacityProfile;
     
-    private double lastBaseCapacity = Double.NaN;
-    private double lastAdjustedCapacity = Double.NaN;
+    private final List<Double> baseCapacities = new ArrayList<Double>();
+    private final List<Double> adjCapacities = new ArrayList<Double>();
     
     
     DefaultCapacityManager(CustomerProfile customer, CapacityBundle bundle, Element xml) 
@@ -67,44 +70,56 @@ final class DefaultCapacityManager implements CapacityManager
             tsGenerator = new TimeseriesGenerator(capacityProfile.baseTimeseriesProfile);
         } 
         else tsGenerator = null; 
+   
+        baseCapacities.add(0.0);  // set capacity at timeslot 0 = 0.0
+        adjCapacities.add(0.0);   
+    }
+    
+    private double getPopulationRatio(int customerCount, int population) 
+    {
+        return ((double) customerCount) / ((double) population);
     }
     
     /** @Override @code{CapacityManager} **/
-    public double drawBaseCapacitySample(Timeslot timeslot, int customerCount) 
+    public double getBaseCapacity(Timeslot timeslot) 
+    {
+        int t = timeslot.getSerialNumber();
+        if (t < baseCapacities.size()) {
+            return baseCapacities.get(t);
+        } else {
+            return drawBaseCapacitySample(timeslot);
+        }
+    }
+    
+    public double drawBaseCapacitySample(Timeslot timeslot) 
     {    
+        int t = timeslot.getSerialNumber();
         double baseCapacity = 0.0;
         switch (capacityProfile.baseCapacityType) {
         case POPULATION:
-            double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
-            baseCapacity = popRatio * capacityProfile.basePopulationCapacity.drawSample();
-            if (! Double.isNaN(lastBaseCapacity)) baseCapacity = (baseCapacity + lastBaseCapacity) / 2;  // smoothing
+            baseCapacity = capacityProfile.basePopulationCapacity.drawSample();
             break;
         case INDIVIDUAL:
-            for (int i=0; i < customerCount; ++i) {
+            for (int i=0; i < customerProfile.customerInfo.getPopulation(); ++i) {
                 double draw = capacityProfile.baseIndividualCapacity.drawSample();
                 baseCapacity += draw;
             }
-            if (! Double.isNaN(lastBaseCapacity)) baseCapacity = (baseCapacity + lastBaseCapacity) / 2;  // smoothing
             break;
         case TIMESERIES:
-            baseCapacity = getBaseCapacityFromTimeseries(timeslot, customerCount);
+            baseCapacity = getBaseCapacityFromTimeseries(timeslot);
             break;            
         default: throw new Error(getName() + ": Unexpected base capacity type: " + capacityProfile.baseCapacityType);
         }
-        lastBaseCapacity = truncateTo2Decimals(baseCapacity);
-        return (lastBaseCapacity);
+        if (t > 1) baseCapacity = (baseCapacity + baseCapacities.get(t-1)) / 2;  // smoothing
+        baseCapacity = truncateTo2Decimals(baseCapacity);
+        baseCapacities.add(baseCapacity);
+        return baseCapacity;
     }
 	
-    private double drawBaseCapacitySample(Timeslot timeslot, TariffSubscription subscription) 
-    {
-        return drawBaseCapacitySample(timeslot, subscription.getCustomersCommitted());
-    }
-    
-    private double getBaseCapacityFromTimeseries(Timeslot timeslot, int customerCount)
+    private double getBaseCapacityFromTimeseries(Timeslot timeslot)
     {
         try {
-            double popRatio = customerCount / customerProfile.customerInfo.getPopulation();
-            return popRatio * tsGenerator.generateNext(timeslot, lastAdjustedCapacity);
+            return tsGenerator.generateNext(timeslot);
         } catch (ArrayIndexOutOfBoundsException e) {
             log.error(getName() + ": Tried to get base capacity from time series at index beyond maximum!");
             throw e;
@@ -112,21 +127,30 @@ final class DefaultCapacityManager implements CapacityManager
     }
         
     /** Override @code{CapacityManager} **/
-    public double computeCapacity(Timeslot timeslot, TariffSubscription subscription)
+    public double useCapacity(Timeslot timeslot, TariffSubscription subscription)
     {
-        double baseCapacity = drawBaseCapacitySample(timeslot, subscription);
-        
+        double baseCapacity = getBaseCapacity(timeslot);
+        if (Double.isNaN(baseCapacity)) throw new Error("Base capacity is NaN!");
+        logCapacityDetails(getName() + ": Base capacity for timeslot " + timeslot.getSerialNumber() + " = " + baseCapacity);        
+
         double adjustedCapacity = baseCapacity;
+        adjustedCapacity = adjustCapacityForPopulationRatio(adjustedCapacity, subscription);
         adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity);
         adjustedCapacity = adjustCapacityForWeather(timeslot, adjustedCapacity);                
         adjustedCapacity = adjustCapacityForTariffRates(timeslot, subscription, adjustedCapacity);
-   
-        if (! Double.isNaN(lastAdjustedCapacity)) adjustedCapacity = (adjustedCapacity + lastAdjustedCapacity) / 2;  // smoothing
+        if (Double.isNaN(adjustedCapacity)) throw new Error("Adjusted capacity is NaN for base capacity = " + baseCapacity);
         
-        lastAdjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-        
-        log.info(getName() + ": Base capacity = " + baseCapacity + "; adjusted capacity = " + lastAdjustedCapacity);        
-        return lastAdjustedCapacity;
+        adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
+        adjCapacities.add(adjustedCapacity);        
+        log.info(getName() + ": Adjusted capacity for tariff " + subscription.getTariff().getId() + " = " + adjustedCapacity);        
+        return adjustedCapacity;
+    }
+
+    private double adjustCapacityForPopulationRatio(double capacity, TariffSubscription subscription)
+    {
+        double popRatio = getPopulationRatio(subscription.getCustomersCommitted(), customerProfile.customerInfo.getPopulation());
+        logCapacityDetails(getName() + ": population ratio = " + popRatio);
+        return capacity * popRatio;     
     }
 
     private double adjustCapacityForPeriodicSkew(double capacity)
@@ -136,15 +160,16 @@ final class DefaultCapacityManager implements CapacityManager
         int hour = now.getHourOfDay();  // 0-23
         
         double periodicSkew = capacityProfile.dailySkew[day-1] * capacityProfile.hourlySkew[hour];
-        log.debug(getName() + ": periodicSkew = " + periodicSkew);
+        logCapacityDetails(getName() + ": periodic skew = " + periodicSkew);
         return capacity * periodicSkew;        
     }
 
     private double adjustCapacityForWeather(Timeslot timeslot, double capacity)
     {
         WeatherReport weather = weatherReportRepo.currentWeatherReport();
-        log.debug(getName() + ": weather = (" + weather.getTemperature() + ", " 
+        log.info(getName() + ": weather = (" + weather.getTemperature() + ", " 
                 + weather.getWindSpeed() + ", " + weather.getWindDirection() + ", " + weather.getCloudCover() + ")");
+        
         double weatherFactor = 1.0;
         if (capacityProfile.temperatureInfluence == InfluenceKind.DIRECT) {
             int temperature = (int) Math.round(weather.getTemperature());
@@ -168,21 +193,23 @@ final class DefaultCapacityManager implements CapacityManager
         if (capacityProfile.windSpeedInfluence == InfluenceKind.DIRECT) {
             int windSpeed = (int) Math.round(weather.getWindSpeed());
             weatherFactor = weatherFactor * capacityProfile.windSpeedMap.get(windSpeed);
-        }
-        if (capacityProfile.windDirectionInfluence == InfluenceKind.DIRECT) {
-            int windDirection = (int) Math.round(weather.getWindDirection());
-            weatherFactor = weatherFactor * capacityProfile.windDirectionMap.get(windDirection);
+            if (windSpeed > 0.0 && capacityProfile.windDirectionInfluence == InfluenceKind.DIRECT) {
+                int windDirection = (int) Math.round(weather.getWindDirection());
+                weatherFactor = weatherFactor * capacityProfile.windDirectionMap.get(windDirection);
+            }
         }
         if (capacityProfile.cloudCoverInfluence == InfluenceKind.DIRECT) {
             int cloudCover = (int) Math.round(weather.getCloudCover());
             weatherFactor = weatherFactor * capacityProfile.cloudCoverMap.get(cloudCover);
         }
-        log.debug(getName() + ": weatherFactor = " + weatherFactor);
+        logCapacityDetails(getName() + ": weather factor = " + weatherFactor);
         return capacity * weatherFactor;
     }
     
     private double adjustCapacityForTariffRates(Timeslot timeslot, TariffSubscription subscription, double baseCapacity)
     {
+        if ((baseCapacity - 0.0) < 0.01) return baseCapacity;
+        
         double chargeForBase = subscription.getTariff().getUsageCharge(timeslot.getStartInstant(), 
                                                                        baseCapacity, subscription.getTotalUsage());
         double rateForBase = chargeForBase / baseCapacity;
@@ -190,12 +217,12 @@ final class DefaultCapacityManager implements CapacityManager
         double benchmarkRate = capacityProfile.benchmarkRates.get(timeService.getHourOfDay());
         double rateRatio = rateForBase / benchmarkRate;
 
-        double tariffRatesFactor = determineElasticityFactor(rateRatio);
-        log.debug(getName() + ": tariffRatesFactor = " + tariffRatesFactor);
+        double tariffRatesFactor = determineTariffRatesFactor(rateRatio);
+        logCapacityDetails(getName() + ": tariff rates factor = " + tariffRatesFactor);
         return baseCapacity * tariffRatesFactor;
     }
 	
-    private double determineElasticityFactor(double rateRatio)
+    private double determineTariffRatesFactor(double rateRatio)
     {
         switch (capacityProfile.elasticityModelType) {
         case CONTINUOUS:
@@ -249,7 +276,7 @@ final class DefaultCapacityManager implements CapacityManager
         return (rateRatio < 1) ? upperBoundCapacityFactor : lowerBoundCapacityFactor;
     }
     
-    private static double truncateTo2Decimals(double x)
+    private double truncateTo2Decimals(double x)
     {
         double fract, whole;
         if (x > 0) {
@@ -262,6 +289,12 @@ final class DefaultCapacityManager implements CapacityManager
         return whole + fract;
     }
 
+    private void logCapacityDetails(String msg) 
+    {
+        log.info(msg);
+        //log.debug(msg);
+    }
+    
     private String getName() 
     {
         return customerProfile.name;
