@@ -66,7 +66,7 @@ final class CapacityBundle
         NodeList capacityNodes = xml.getElementsByTagName("capacity");
         for (int i=0; i < capacityNodes.getLength(); ++i) {
             Element capacityElement = (Element) capacityNodes.item(i);
-            capacityManagers.add(new DefaultCapacityManager(profile, this, capacityElement));
+            capacityManagers.add(new CapacityManager(profile, this, capacityElement));
         }
     }
 

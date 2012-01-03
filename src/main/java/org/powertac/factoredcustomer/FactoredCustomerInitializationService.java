@@ -47,16 +47,17 @@ public class FactoredCustomerInitializationService implements InitializationServ
      * The result is a PluginConfig instance that can be viewed and modified through the web interface
      * before a game is started.
      */
-    public void setDefaults ()
+    public void setDefaults()
     {
-        pluginConfigRepo.makePluginConfig("FactoredCustomer", "").addConfiguration("configResource", "FactoredCustomers_temp.xml");
+        pluginConfigRepo.makePluginConfig("FactoredCustomer", "")
+            .addConfiguration("configResource", "FactoredCustomers.xml");
     }
 
     /**
      * Called during game startup to set initial conditions for Generic Customer Service. 
      * In order to begin this Service the Default Broker must be initialized first.
      */
-    public String initialize (Competition competition, List<String> completedInits)
+    public String initialize(Competition competition, List<String> completedInits)
     {
         if (! completedInits.contains("DefaultBroker")) {
             log.debug("Waiting for DefaultBroker to initialize");

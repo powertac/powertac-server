@@ -19,8 +19,9 @@ package org.powertac.factoredcustomer;
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Properties;
-
 import org.joda.time.DateTime;
 import org.powertac.common.Timeslot;
 import org.apache.commons.io.IOUtils;
@@ -38,7 +39,8 @@ final class TimeseriesGenerator
 
     private final Properties modelParams = new Properties();
     
-    private final List<Double> genSeries = new ArrayList<Double>();
+    private final List<Double> refSeries = new ArrayList<Double>();
+    private final Map<Integer, Double> genSeries = new HashMap<Integer, Double>();
     
     private final TimeseriesProfile tsProfile;
     
@@ -139,14 +141,13 @@ final class TimeseriesGenerator
         try {
             @SuppressWarnings("unchecked")
             List<String> series = (List<String>) IOUtils.readLines(refStream);
-            genSeries.add(0.0);  // set capacity at timeslot 0 = 0.0
             for (String line: series) {
                 Double element = Double.parseDouble(line);
-                genSeries.add(element);
+                refSeries.add(element);
             }
         } catch (java.io.EOFException e) {
             final int MIN_TIMESERIES_LENGTH = 26;
-            if (genSeries.size() < MIN_TIMESERIES_LENGTH) {
+            if (refSeries.size() < MIN_TIMESERIES_LENGTH) {
                 throw new Error("Insufficient data in reference series; expected " + MIN_TIMESERIES_LENGTH 
                                 + " elements, found only " +  genSeries.size());
             }
@@ -157,19 +158,29 @@ final class TimeseriesGenerator
 
     double generateNext(Timeslot timeslot)
     {
-        double next;
+        Double next;
         switch (tsProfile.modelType) {
         case ARIMA_101x101:
-            if (timeslot.getSerialNumber() == genSeries.size()) {
+            if (genSeries.isEmpty()) {
+                initArima101x101GenSeries(timeslot);
+            }
+            next = genSeries.get(timeslot.getSerialNumber());
+            if (next == null) {
                 next = generateNextArima101x101(timeslot);
-                genSeries.add(next); 
-            } else { // timeslot must be less than size
-                next = genSeries.get(timeslot.getSerialNumber());
+                genSeries.put(timeslot.getSerialNumber(), next); 
             }
             break;
         default: throw new Error("Unexpected timeseries model type: " + tsProfile.modelType);
         }
         return next;
+    }
+    
+    private void initArima101x101GenSeries(Timeslot timeslot)
+    {
+        int start = timeslot.getSerialNumber();
+        for (int i=0; i < refSeries.size(); ++i) {
+            genSeries.put(start + i, refSeries.get(i));
+        }
     }
     
     private double generateNextArima101x101(Timeslot timeslot)
@@ -190,12 +201,11 @@ final class TimeseriesGenerator
         int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
         int hour = now.getHourOfDay();  // 0-23
         
-        List<Double> ts = genSeries; 
         int t = timeslot.getSerialNumber();
         
-        double logNext = Y0 + Yd[day-1] + Yh[hour] + phi1 * getLog(ts, t-1) + Phi1 * getLog(ts, t-24) 
-                         + theta1 * (getLog(ts, t-1) - getLog(ts, t-2)) + Theta1 * (getLog(ts, t-24) - getLog(ts, t-25)) 
-                         + theta1 * Theta1 * (getLog(ts, t-25) - getLog(ts, t-26));
+        double logNext = Y0 + Yd[day-1] + Yh[hour] + phi1 * getLog(t-1) + Phi1 * getLog(t-24) 
+                         + theta1 * (getLog(t-1) - getLog(t-2)) + Theta1 * (getLog(t-24) - getLog(t-25)) 
+                         + theta1 * Theta1 * (getLog(t-25) - getLog(t-26));
         logNext = logNext + (lambda * (Math.pow(Math.log(t-26), 2) / Math.pow(Math.log(FORECAST_HORIZON - 26), 2)) 
                                        * ((1 - gamma) * Yh[hour] + gamma * Yd[day-1]));
         double next = Math.exp(logNext);
@@ -203,9 +213,9 @@ final class TimeseriesGenerator
         return next;
     }
     
-    private double getLog(List<Double> ts, int index)
+    private double getLog(int timeslot)
     {
-        return Math.log(ts.get(index));
+        return Math.log(genSeries.get(timeslot));
     }
 
 } // end class
