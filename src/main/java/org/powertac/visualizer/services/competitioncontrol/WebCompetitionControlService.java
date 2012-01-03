@@ -55,7 +55,7 @@ public class WebCompetitionControlService {
 	private ServerPropertiesService serverProps;
 	private boolean simRunning = false;
 
-	public String run() throws IOException {
+	public String runSim() throws IOException {
 
 		if (!simRunning) {
 			System.out.println("java.class.path ===>" + System.getProperty("java.class.path"));
@@ -109,6 +109,8 @@ public class WebCompetitionControlService {
 				cc.runOnce(bootWriter);
 				context.close();
 				simRunning = false;
+				//start new competition
+				runSim();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

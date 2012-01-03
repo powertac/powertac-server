@@ -15,16 +15,15 @@
 
 	<ui:define name="content">
 		<h:form>
-			<p:panel id="brokersPanel">
+			
 				<p:accordionPanel id="brokersAccordion" multiple="true">
 					<p:tab title="Overview">
 
-						<p:layout id="overviewLayout" style="width:1600px;height:1200px">
-							<p:layoutUnit position="west" size="500">
+						<p:layout id="overviewLayout" style="width:1600px;height:500px">
+							<p:layoutUnit position="west" size="600">
 								<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 							</p:layoutUnit>
-							<p:layoutUnit position="center" size="510">
-
+							<p:layoutUnit position="center" size="500">
 								<!-- Global Cash Chart -->
 								<div id="cashChartGlobal" style="height: 300px; width: 500px;float:left"></div>
 								<script type="text/javascript">
@@ -82,7 +81,9 @@
 									  );
 
 								</script>
-								<h:outputText value="#{visualizerBean.marketSharePieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
+								
+								
+								<h:outputText value="DEBUG: #{visualizerBean.marketSharePieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
 								
 							</p:layoutUnit>
 
@@ -108,10 +109,10 @@
 
 					</p:tab>
 				</p:accordionPanel>
-			</p:panel>
+			
 
 			<p:poll autoStart="true" interval="5"
-				update=":competitionInfoForm:competitionInfoPanel,brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
+				update=":competitionInfoForm,brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
 
 			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" rendered="false" />
 			
