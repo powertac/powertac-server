@@ -30,6 +30,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -38,7 +39,6 @@ import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
 import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
 import org.powertac.factoredcustomer.TariffSubscriberProfile.AllocationMethod;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Key class responsible for managing the tariff(s) for one customer across 
@@ -51,13 +51,9 @@ class UtilityOptimizer
 {
     private static Logger log = Logger.getLogger(UtilityOptimizer.class.getName());
 
-    @Autowired
     protected TariffMarket tariffMarketService;
-
-    @Autowired
     protected TariffSubscriptionRepo tariffSubscriptionRepo;
-    
-    @Autowired
+    protected TimeslotRepo timeslotRepo;
     private RandomSeedRepo randomSeedRepo;
     
     private static final long MEAN_TARIFF_DURATION = 5;  // number of days
@@ -68,7 +64,10 @@ class UtilityOptimizer
     private final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
     private final Random inertiaSampler;
     private final Random tariffSelector;
-
+    
+    private final List<Tariff> allTariffs = new ArrayList<Tariff>();
+    private int tariffEvaluationCounter = 0;
+    
     
     UtilityOptimizer(CustomerProfile profile, List<CapacityBundle> bundles) 
     {        
@@ -77,6 +76,7 @@ class UtilityOptimizer
     
         tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
         tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
+        timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
         randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
         inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.UtilityOptimizer", 
@@ -87,18 +87,20 @@ class UtilityOptimizer
   
     ///////////////// TARIFF EVALUATION //////////////////////
     
-    /** @Override @code{UtilityOptimizer} **/
     void handleNewTariffs (List<Tariff> newTariffs)
     {
+        ++tariffEvaluationCounter;
+        for (Tariff tariff: newTariffs) {
+            allTariffs.add(tariff);
+        }       
         List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
         if (subscriptions == null || subscriptions.size() == 0) {
             subscribeDefault();
         } else { 
-            reevaluateTariffs(newTariffs); 
+            evaluateTariffs(newTariffs); 
 	}
     }
 	
-    @StateChange
     public void subscribeDefault() 
     {
         for (CapacityBundle bundle: capacityBundles) {
@@ -136,14 +138,34 @@ class UtilityOptimizer
       if (verbose) log.info(getName() + ": Unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully");
     }
 
-    private void reevaluateTariffs(List<Tariff> newTariffs) 
+    private void evaluateTariffs(List<Tariff> newTariffs) 
     {
         for (CapacityBundle bundle: capacityBundles) {
-            reevaluateTariffs(newTariffs, bundle);
+            if ((tariffEvaluationCounter % bundle.getSubscriberProfile().reconsiderationPeriod) == 0) { 
+                reevaluateAllTariffs(bundle);
+            } else {
+                evaluateCurrentTariffs(newTariffs, bundle);
+            }
         }
     }
     
-    private void reevaluateTariffs(List<Tariff> newTariffs, CapacityBundle bundle) 
+    private void reevaluateAllTariffs(CapacityBundle bundle) 
+    {
+        log.info(getName() + ": Reevaluating all tariffs for " + bundle.getCapacityType() + " subscriptions");
+        
+        CapacityType capacityType = bundle.getCapacityType();        
+        List<Tariff> evalTariffs = new ArrayList<Tariff>();
+        for (Tariff tariff: allTariffs) {
+            if (! tariff.isRevoked() && ! tariff.isExpired() 
+                && CapacityProfile.reportCapacityType(tariff.getTariffSpec().getPowerType()) == capacityType) {
+                evalTariffs.add(tariff);
+            }
+        }
+        assertNotEmpty(evalTariffs);
+        manageSubscriptions(evalTariffs, bundle);
+    }
+    
+    private void evaluateCurrentTariffs(List<Tariff> newTariffs, CapacityBundle bundle) 
     {
         if (bundle.getSubscriberProfile().inertiaDistribution != null) {
             double inertia = bundle.getSubscriberProfile().inertiaDistribution.drawSample();
@@ -157,40 +179,41 @@ class UtilityOptimizer
         }
         // Include previously ignored tariffs and currently subscribed tariffs in evaluation.
         // Use map instead of list to eliminate duplicate tariffs.
-        Map<Long, Tariff> allTariffs = new HashMap<Long, Tariff>();
+        Map<Long, Tariff> currTariffs = new HashMap<Long, Tariff>();
 	for (Tariff ignoredTariff: ignoredTariffs) {
-	    allTariffs.put(ignoredTariff.getId(), ignoredTariff);
+	    currTariffs.put(ignoredTariff.getId(), ignoredTariff);
 	}      
 	ignoredTariffs.clear();		
 	List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
         for (TariffSubscription subscription: subscriptions) {
-            allTariffs.put(subscription.getTariff().getId(), subscription.getTariff());
+            currTariffs.put(subscription.getTariff().getId(), subscription.getTariff());
         }
         for (Tariff newTariff: newTariffs) {
-            allTariffs.put(newTariff.getId(), newTariff);
+            currTariffs.put(newTariff.getId(), newTariff);
         }
-        manageSubscriptions(allTariffs, bundle);	
-    }
-    
-    private void manageSubscriptions(Map<Long, Tariff> allTariffs, CapacityBundle bundle)
-    {
-        CapacityType capacityType = bundle.getCapacityType();
-        
-        log.info(getName() + ": Managing " + capacityType + " subscriptions");
-		
+        CapacityType capacityType = bundle.getCapacityType();        
         List<Tariff> evalTariffs = new ArrayList<Tariff>();
-        for (Tariff tariff: allTariffs.values()) {
+        for (Tariff tariff: currTariffs.values()) {
             if (CapacityProfile.reportCapacityType(tariff.getTariffSpec().getPowerType()) == capacityType) {
                 evalTariffs.add(tariff);
             }
         }
-	if (evalTariffs.isEmpty()) {
-	    log.info(getName() + ": No new or ignored " + capacityType + " tariffs to evaluate");
-	    return;
-	}        
-        
+        assertNotEmpty(evalTariffs);
+        manageSubscriptions(evalTariffs, bundle);	
+    }
+
+    private void assertNotEmpty(List<Tariff> evalTariffs) 
+    {
+        if (evalTariffs.isEmpty()) {
+            throw new Error(getName() + ": The evaluation tariffs list is unexpectedly empty!");
+        }
+    }
+
+    private void manageSubscriptions(List<Tariff> evalTariffs, CapacityBundle bundle)
+    {
 	Collections.shuffle(evalTariffs);
         
+        CapacityType capacityType = bundle.getCapacityType();        
         List<Long> tariffIds = new ArrayList<Long>(evalTariffs.size());
         for (Tariff tariff: evalTariffs) tariffIds.add(tariff.getId());
         logAllocationDetails(getName() + ": " + capacityType + " tariffs for evaluation: " + tariffIds);
@@ -420,7 +443,7 @@ class UtilityOptimizer
     {
       List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(getCustomerInfo());
       for (TariffSubscription revokedSubscription : revoked) {
-        revokedSubscription.handleRevokedTariff();
+          revokedSubscription.handleRevokedTariff();
       }
     }
 

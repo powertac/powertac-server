@@ -26,7 +26,6 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
 import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A collection of capacities, all with the same base capacity type; 
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 final class CapacityBundle
 {
-    @Autowired
     private TimeslotRepo timeslotRepo;
     
     private static final int NUM_HOURS_IN_DAY = 24;

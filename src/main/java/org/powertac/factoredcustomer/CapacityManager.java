@@ -30,7 +30,6 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.CapacityProfile.BaseCapacityType;
 import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
 import org.powertac.factoredcustomer.CapacityProfile.InfluenceKind;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Key class responsible for drawing from a base capacity and ajusting that 
@@ -42,10 +41,7 @@ final class CapacityManager
 {
     private static Logger log = Logger.getLogger(CapacityManager.class.getName());
 
-    @Autowired
     private TimeService timeService;
-    
-    @Autowired
     private WeatherReportRepo weatherReportRepo;
     
     private final double SMOOTHING_WEIGHT = 0.4;  // 0.0 => ignore previous value

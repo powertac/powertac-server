@@ -33,6 +33,7 @@ public final class TimeseriesProfile
     final String refSeriesName;
     final DataSource refSeriesSource; 
     
+    
     TimeseriesProfile(Element xml) 
     {
         modelType = Enum.valueOf(ModelType.class, xml.getAttribute("type"));

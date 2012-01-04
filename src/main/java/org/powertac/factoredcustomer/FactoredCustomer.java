@@ -29,7 +29,6 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CustomerFactory.Customer;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Key class that encapsulates the behavior of one customer.  Much of the functionality 
@@ -42,10 +41,7 @@ class FactoredCustomer implements Customer
 {
     private static Logger log = Logger.getLogger(FactoredCustomer.class.getName());
 
-    @Autowired
     private TimeslotRepo timeslotRepo;
-    
-    @Autowired
     protected CustomerRepo customerRepo;
 
     public static class Creator implements CustomerCreator
@@ -71,6 +67,7 @@ class FactoredCustomer implements Customer
     FactoredCustomer(CustomerProfile profile) 
     {        
         customerProfile = profile;
+        
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
         customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
         customerRepo.add(profile.customerInfo);
