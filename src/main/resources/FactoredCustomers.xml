@@ -15,7 +15,7 @@
                     <!-- <totalOrder rules="0.7:0.3, 0.5:0.3:0.2, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05" /> --> 
                     <logitChoice rationality="0.5" />
                 </allocation>
-                <reconsideration period="8"/>
+                <reconsideration period="28"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="POINTMASS" value="0.0" /> 
                     <!-- <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" /> -->
@@ -69,7 +69,7 @@
                 <allocation method="LOGIT_CHOICE"> 
                     <logitChoice rationality="0.6" />
                 </allocation>
-                <reconsideration period="8"/>
+                <reconsideration period="28"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -104,7 +104,7 @@
                 <allocation method="LOGIT_CHOICE"> <!-- TOTAL_ORDER | LOGIT_CHOICE -->
                     <logitChoice rationality="0.7" />
                 </allocation>
-                <reconsideration period="8"/>
+                <reconsideration period="16"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -136,7 +136,7 @@
                 <allocation method="LOGIT_CHOICE"> <!-- TOTAL_ORDER | LOGIT_CHOICE -->
                     <logitChoice rationality="0.8" />
                 </allocation>
-                <reconsideration period="8"/>
+                <reconsideration period="12"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -164,7 +164,7 @@
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.8" />
                 </allocation>
-                <reconsideration period="8"/>
+                <reconsideration period="12"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="POINTMASS" value="0.5" />
                 </switchingInertia>
@@ -196,7 +196,7 @@
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
                 </allocation>
-                <reconsideration period="4"/>
+                <reconsideration period="12"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="POINTMASS" value="0.1" />
                 </switchingInertia>
@@ -228,7 +228,7 @@
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />
                 </allocation>
-                <reconsideration period="4"/>
+                <reconsideration period="12"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
