@@ -135,6 +135,7 @@ public class CompetitionSetupService
               FileWriter bootWriter =
                   new FileWriter(serverProps.getProperty("server.bootstrapDataFile",
                                                          "bootstrapData.xml"));
+              cc.init();
               cc.setAuthorizedBrokerList(new ArrayList<String>());
               preGame();
               //cc.runOnce(bootWriter);
@@ -162,6 +163,7 @@ public class CompetitionSetupService
             File bootFile =
                 new File(serverProps.getProperty("server.bootstrapDataFile",
                                                  "bd-noname.xml"));
+            cc.init();
             // collect broker names, hand to CC for login control
             ArrayList<String> brokerList = new ArrayList<String>();
             for (int i = brokerIndex; i < tokens.length; i++) {
@@ -214,7 +216,7 @@ public class CompetitionSetupService
    * to make them accessible to the web-based game-setup functions.
    * This method must be called when the server is started, and again at
    * the completion of each simulation. The actual simulation is started
-   * with a call to init().
+   * with a call to competitionControlService.runOnce().
    */
   @Override
   public void preGame ()
@@ -489,11 +491,4 @@ public class CompetitionSetupService
     //log.info("xml node: " + result);
     return result;
   }
-
-//  @Override
-//  public void setApplicationContext (ApplicationContext appContext)
-//      throws BeansException
-//  {
-//    context = appContext;    
-//  }
 }

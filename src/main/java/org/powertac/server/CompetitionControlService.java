@@ -149,6 +149,7 @@ public class CompetitionControlService
     idPrefix = 0;
 
     // register with JMS Server
+    jmsManagementService.initializeServerQueue(serverQueueName);
     jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
     
     // broker message registration for clock-control messages
@@ -178,6 +179,8 @@ public class CompetitionControlService
     for (String broker : brokerList) {
       authorizedBrokerList.add(broker);
     }
+    String[] brokerArray = new String[authorizedBrokerList.size()];
+    jmsManagementService.initializeBrokersQueues(authorizedBrokerList.toArray(brokerArray));
   }
   
   /**
