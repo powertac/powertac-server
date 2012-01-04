@@ -80,7 +80,7 @@ class FactoredCustomer implements Customer
         utilityOptimizer = new UtilityOptimizer(profile, capacityBundles);
 	log.info("Customer created for profile: " + customerProfile.name);
     }
-  
+
     /** @Override @code{CustomerFactory.Customer} **/
     public void handleNewTariffs (List<Tariff> newTariffs)
     {

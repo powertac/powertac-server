@@ -83,46 +83,11 @@ class UtilityOptimizer
                 customerProfile.profileId, "InertiaSampler").getValue());
         tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.UtilityOptimizer", 
                 customerProfile.profileId, "TariffSelector").getValue());
+        
+        subscribeDefault();
     }
   
     ///////////////// TARIFF EVALUATION //////////////////////
-    
-    void handleNewTariffs (List<Tariff> newTariffs)
-    {
-        ++tariffEvaluationCounter;
-        for (Tariff tariff: newTariffs) {
-            allTariffs.add(tariff);
-        }       
-        List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
-        if (subscriptions == null || subscriptions.size() == 0) {
-            subscribeDefault();
-        } else { 
-            evaluateTariffs(newTariffs); 
-	}
-    }
-	
-    public void subscribeDefault() 
-    {
-        for (CapacityBundle bundle: capacityBundles) {
-            PowerType powerType = CapacityProfile.reportPowerType(bundle.getCapacityType(), bundle.getCapacitySubType());
-            if (tariffMarketService.getDefaultTariff(powerType) == null) {
-                log.info(getName() + ": No default tariff for power type " + powerType + "; trying less specific type.");
-
-                CapacityType capacityType = CapacityProfile.reportCapacityType(powerType);
-                PowerType generalType = CapacityProfile.reportPowerType(capacityType, CapacitySubType.NONE);
-		  
-                if (tariffMarketService.getDefaultTariff(generalType) == null) {
-                    log.error(getName() + ": No default tariff for general power type " + generalType + " either!");
-                } else {
-                    log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + generalType + " tariff");
-                    subscribe(tariffMarketService.getDefaultTariff(generalType), getPopulation(), false);
-		} 
-            } else {
-                log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + powerType + " tariff");
-                subscribe(tariffMarketService.getDefaultTariff(powerType), getPopulation(), false);
-            }
-        }
-    }
     
     @StateChange
     protected void subscribe(Tariff tariff, int customerCount, boolean verbose)
@@ -138,6 +103,43 @@ class UtilityOptimizer
       if (verbose) log.info(getName() + ": Unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully");
     }
 
+    public void subscribeDefault() 
+    {
+        for (CapacityBundle bundle: capacityBundles) {
+            PowerType powerType = CapacityProfile.reportPowerType(bundle.getCapacityType(), bundle.getCapacitySubType());
+            if (tariffMarketService.getDefaultTariff(powerType) == null) {
+                log.info(getName() + ": No default tariff for power type " + powerType + "; trying less specific type.");
+
+                CapacityType capacityType = CapacityProfile.reportCapacityType(powerType);
+                PowerType generalType = CapacityProfile.reportPowerType(capacityType, CapacitySubType.NONE);
+                  
+                if (tariffMarketService.getDefaultTariff(generalType) == null) {
+                    log.error(getName() + ": No default tariff for general power type " + generalType + " either!");
+                } else {
+                    log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + generalType + " tariff");
+                    subscribe(tariffMarketService.getDefaultTariff(generalType), getPopulation(), false);
+                } 
+            } else {
+                log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + powerType + " tariff");
+                subscribe(tariffMarketService.getDefaultTariff(powerType), getPopulation(), false);
+            }
+        }
+    }
+    
+    void handleNewTariffs (List<Tariff> newTariffs)
+    {
+        ++tariffEvaluationCounter;
+        for (Tariff tariff: newTariffs) {
+            allTariffs.add(tariff);
+        }       
+        List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
+        if (subscriptions == null || subscriptions.size() == 0) {
+            subscribeDefault();
+        } else { 
+            evaluateTariffs(newTariffs); 
+	}
+    }
+	
     private void evaluateTariffs(List<Tariff> newTariffs) 
     {
         for (CapacityBundle bundle: capacityBundles) {
