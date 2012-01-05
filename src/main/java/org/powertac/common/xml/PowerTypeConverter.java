@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 by the original author or authors.
+ * Copyright (c) 2012 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 package org.powertac.common.xml;
 
-import org.powertac.common.Timeslot;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.enumerations.PowerType;
 
 import com.thoughtworks.xstream.converters.SingleValueConverter;
 
@@ -25,33 +23,30 @@ import com.thoughtworks.xstream.converters.SingleValueConverter;
  * Converts Timeslot instances by serial number.
  * @author John Collins
  */
-public class TimeslotConverter implements SingleValueConverter
+public class PowerTypeConverter implements SingleValueConverter
 {
-  private TimeslotRepo timeslotRepo;
-  
-  public TimeslotConverter ()
+  public PowerTypeConverter ()
   {
     super();
-    timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
   }
 
   @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
-    return Timeslot.class.isAssignableFrom(type);
+    return PowerType.class.isAssignableFrom(type);
   }
 
   @Override
-  public Object fromString (String serial)
+  public Object fromString (String label)
   {
-    return timeslotRepo.findBySerialNumber(Integer.valueOf(serial));
+    return PowerType.valueOf(label);
   }
 
   @Override
-  public String toString (Object timeslot)
+  public String toString (Object powerType)
   {
-    return Integer.toString(((Timeslot)timeslot).getSerialNumber());
+    return ((PowerType)powerType).toString();
   }
 
 }

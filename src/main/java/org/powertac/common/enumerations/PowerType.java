@@ -15,6 +15,12 @@
  */
 package org.powertac.common.enumerations;
 
+import java.util.HashMap;
+
+import org.powertac.common.xml.PowerTypeConverter;
+
+import com.thoughtworks.xstream.annotations.XStreamConverter;
+
 /**
  * Types of power a Customer can produce or consume. A single Customer may buy
  * or sell multiple PowerTypes.
@@ -23,9 +29,11 @@ package org.powertac.common.enumerations;
  * 
  * @author John Collins
  */
+@XStreamConverter(PowerTypeConverter.class)
 public class PowerType
 {
-
+  // The order of static elements, including the enum, must be preserved, 
+  // because they are processed in order of occurrence.
   private enum TypeLabel {
   CONSUMPTION,
   PRODUCTION,
@@ -40,6 +48,10 @@ public class PowerType
   BATTERY_STORAGE,
   ELECTRIC_VEHICLE
   }
+
+  // index to convert strings to PowerType instances
+  private static HashMap<String, PowerType> index = 
+      new HashMap<String, PowerType>();
 
   // These are the possible values. You cannot create others, because the
   // constructor is private.
@@ -80,6 +92,7 @@ public class PowerType
   {
     super();
     this.label = label;
+    index.put(label.toString(), this);
   }
 
   /**
@@ -144,5 +157,10 @@ public class PowerType
   public String toString ()
   {
     return label.toString();
+  }
+  
+  public static PowerType valueOf (String name)
+  {
+    return index.get(name);
   }
 }

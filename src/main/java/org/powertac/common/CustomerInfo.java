@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.xml.PowerTypeConverter;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -43,6 +44,7 @@ public class CustomerInfo //implements Serializable
   private long id = IdGenerator.createId();
 
   /** Name of the customer model */
+  @XStreamAsAttribute
   private String name;
 
   /** gives a "rough" classification what type of customer to 
@@ -56,6 +58,7 @@ public class CustomerInfo //implements Serializable
   private int population;
 
   /** gives the available power classifications of the customer */
+  @XStreamImplicit(itemFieldName = "power-type")
   private ArrayList<PowerType> powerTypes;
   
   /** describes whether or not this customer engages in multiple contracts at the same time.
@@ -140,6 +143,10 @@ public class CustomerInfo //implements Serializable
    */
   public ArrayList<PowerType> getPowerTypes ()
   {
+    if (powerTypes == null) {
+      // deserialization can leave this null
+      powerTypes = new ArrayList<PowerType>();
+    }
     return powerTypes;
   }
   

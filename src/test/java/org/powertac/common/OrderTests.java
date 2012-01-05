@@ -89,7 +89,7 @@ public class OrderTests
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);
@@ -109,7 +109,7 @@ public class OrderTests
     xstream.processAnnotations(Timeslot.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);
@@ -133,7 +133,7 @@ public class OrderTests
     xstream.aliasSystemAttribute(null, "class");
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(mo1));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     
     Order xmo1 = (Order)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xmo1);

@@ -108,4 +108,17 @@ public class PowerTypeTest
     assertEquals("Correct string", "INTERRUPTIBLE_CONSUMPTION", pt.toString());
   }
 
+  /**
+   * Test conversion from string
+   */
+  @Test
+  public void testValueOf ()
+  {
+    assertEquals(PowerType.BATTERY_STORAGE,
+                 PowerType.valueOf("BATTERY_STORAGE"));
+    assertEquals(PowerType.INTERRUPTIBLE_CONSUMPTION,
+                 PowerType.valueOf("INTERRUPTIBLE_CONSUMPTION"));
+    assertEquals(PowerType.CONSUMPTION, PowerType.valueOf("CONSUMPTION"));
+    assertNull(PowerType.valueOf("Blah"));
+  }
 }

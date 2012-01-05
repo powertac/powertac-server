@@ -102,6 +102,8 @@ public class CustomerInfoTests
     assertEquals("correct id", ci.getId(), xci.getId());
     assertEquals("correct name", "Sam", xci.getName());
     assertEquals("correct population", 44, xci.getPopulation());
+    assertEquals("correct number of PowerTypes", 2, xci.getPowerTypes().size());
+    assertTrue("contains CONSUMPTION", xci.getPowerTypes().contains(PowerType.CONSUMPTION));
   }
 
 }
