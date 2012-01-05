@@ -241,24 +241,13 @@ final class CapacityProfile
 	
     static CapacityType reportCapacityType(PowerType powerType)
     {
-        switch (powerType) {
-        case CONSUMPTION: 
-        case INTERRUPTIBLE_CONSUMPTION:
-        case THERMAL_STORAGE_CONSUMPTION:
-            return CapacityType.CONSUMPTION;
-        case PRODUCTION:
-        case SOLAR_PRODUCTION:
-        case WIND_PRODUCTION:
-        case RUN_OF_RIVER_PRODUCTION:
-        case PUMPED_STORAGE_PRODUCTION:
-        case CHP_PRODUCTION:
-        case FOSSIL_PRODUCTION:
-            return CapacityType.PRODUCTION;
-	case BATTERY_STORAGE:
-	case ELECTRIC_VEHICLE:
-	    return CapacityType.STORAGE;
-	default: throw new Error("Unexpected powerType: " + powerType);
-	}
+      if (powerType.isConsumption())
+        return CapacityType.CONSUMPTION;
+      if (powerType.isProduction())
+        return CapacityType.PRODUCTION;
+      if (powerType.isStorage())
+        return CapacityType.STORAGE;
+      throw new Error("Unexpected powerType: " + powerType);
     }	
 	
 } // end class
