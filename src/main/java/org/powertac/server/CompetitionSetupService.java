@@ -146,17 +146,9 @@ public class CompetitionSetupService
           else if ("sim".equals(tokens[0])) {
             int brokerIndex = 1;
             // sim mode, check for --config in tokens[1]
-            if (tokens.length < 2) {
-              System.out.println("Bad input: " + input);
-            }
-            else if ("--config".equals(tokens[1])) {
-              if (tokens.length < 4) {
-                System.out.println("No brokers given for sim: " + input);
-              }
-              else {
-                // explicit config file in tokens[2]
-                serverProps.setUserConfig(tokens[2]);
-              }
+            if (tokens.length > 2 && "--config".equals(tokens[1])) {
+              // explicit config file in tokens[2]
+              serverProps.setUserConfig(tokens[2]);
               brokerIndex = 3;
             }
             log.info("In Simulation mode!!!");
@@ -169,16 +161,11 @@ public class CompetitionSetupService
             for (int i = brokerIndex; i < tokens.length; i++) {
               brokerList.add(tokens[i]);
             }
-            if (brokerList.size() > 0) {
-              cc.setAuthorizedBrokerList(brokerList);
-              
-              if (preGame(bootFile)) {
-                cc.setBootstrapDataset(processBootDataset(bootFile));
-                cc.runOnce(false);
-              }
-            }
-            else {
-              System.out.println("Cannot run sim without brokers");
+            cc.setAuthorizedBrokerList(brokerList);
+
+            if (preGame(bootFile)) {
+              cc.setBootstrapDataset(processBootDataset(bootFile));
+              cc.runOnce(false);
             }
           }
         }
