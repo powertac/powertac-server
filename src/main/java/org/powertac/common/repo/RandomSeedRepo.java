@@ -61,7 +61,7 @@ public class RandomSeedRepo implements DomainRepo
     String name = composeName(classname, id, purpose);
     RandomSeed result = seedMap.get(name);
     if (result == null) {
-      log.info("New seed created: " + classname + ";" +
+      log.debug("New seed created: " + classname + ";" +
                id + ";" + purpose);
       result = new RandomSeed(classname, id, purpose);
       seedMap.put(composeName(classname, id, purpose), result);
