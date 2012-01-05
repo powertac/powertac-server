@@ -21,7 +21,6 @@ import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.*; 
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Container class for one a large set of probability distribution samplers.
@@ -34,7 +33,6 @@ final class ProbabilityDistribution
     enum DistType { DEGENERATE, POINTMASS, UNIFORM, INTERVAL, NORMAL, GAUSSIAN, STDNORMAL, LOGNORMAL, 
                     CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL, GAMMA, WEIBULL, STUDENT, SNEDECOR }  
 
-    @Autowired
     private RandomSeedRepo randomSeedRepo;
 
     private static long distCounter = 0;

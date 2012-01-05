@@ -16,8 +16,10 @@
 
 package org.powertac.factoredcustomer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import org.powertac.common.Tariff;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -30,9 +32,15 @@ import org.powertac.common.state.StateChange;
 @Domain
 final class CustomerFactory
 {
+    interface Customer 
+    {
+        void handleNewTariffs(List<Tariff> newTariffs);        
+        void handleNewTimeslot();
+    }
+
     public interface CustomerCreator {
         public String getKey();
-        public FactoredCustomer createModel(CustomerProfile profile);
+        public Customer createModel(CustomerProfile profile);
     }
     
     CustomerCreator defaultCreator;
@@ -56,7 +64,7 @@ final class CustomerFactory
         customerCreators.put(key, creator);
     }
 
-    FactoredCustomer processProfile(CustomerProfile profile) 
+    Customer processProfile(CustomerProfile profile) 
     {
 	CustomerCreator creator = customerCreators.get(profile.creatorKey);
 	if (creator == null) creator = defaultCreator;

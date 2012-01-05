@@ -26,7 +26,6 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
 import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A collection of capacities, all with the same base capacity type; 
@@ -36,13 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 final class CapacityBundle
 {
-    @Autowired
     private TimeslotRepo timeslotRepo;
     
     private static final int NUM_HOURS_IN_DAY = 24;
     
     private final Element configXml;
-    private final CustomerProfile customerProfile;
     
     private final CapacityType capacityType;
     private final CapacitySubType capacitySubType;
@@ -54,7 +51,6 @@ final class CapacityBundle
     
     CapacityBundle(CustomerProfile profile, Element xml)
     {
-        customerProfile = profile;
         configXml = xml;
         
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
@@ -68,7 +64,7 @@ final class CapacityBundle
         NodeList capacityNodes = xml.getElementsByTagName("capacity");
         for (int i=0; i < capacityNodes.getLength(); ++i) {
             Element capacityElement = (Element) capacityNodes.item(i);
-            capacityManagers.add(new DefaultCapacityManager(profile, this, capacityElement));
+            capacityManagers.add(new CapacityManager(profile, this, capacityElement));
         }
     }
 
@@ -81,10 +77,7 @@ final class CapacityBundle
         for (int i=0; i < NUM_HOURS_IN_DAY; ++i) {
             double hourlyUsage = 0;
             for (CapacityManager capacityManager: capacityManagers) {
-                hourlyUsage += capacityManager.drawBaseCapacitySample(hourlyTimeslot, customerProfile.customerInfo.getPopulation());
-            }
-            if (capacityType == CapacityType.PRODUCTION) {
-                hourlyUsage = -(hourlyUsage);  // negative for production
+                hourlyUsage += capacityManager.getBaseCapacity(hourlyTimeslot);
             }
             totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
             totalUsage += hourlyUsage;
@@ -93,11 +86,11 @@ final class CapacityBundle
         return totalCharge;
     }
 
-    double computeCapacity(Timeslot timeslot, TariffSubscription subscription)
+    double useCapacity(Timeslot timeslot, TariffSubscription subscription)
     {
         double capacity = 0;
         for (CapacityManager capacityManager: capacityManagers) {
-            capacity += capacityManager.computeCapacity(timeslot, subscription);
+            capacity += capacityManager.useCapacity(timeslot, subscription);
         }
         return capacity;
     }

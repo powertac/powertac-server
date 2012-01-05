@@ -30,6 +30,7 @@ import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.factoredcustomer.CustomerFactory.Customer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
     private String configResource = null;
     
     private List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
-    private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
+    private List<Customer> customers = new ArrayList<Customer>();
     private CustomerFactory customerFactory = new CustomerFactory();
         
     
@@ -75,12 +76,11 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         configResource = config.getConfigurationValue("configResource");
         loadCustomerProfiles(configResource);
         
-        customerFactory.registerDefaultCreator(DefaultFactoredCustomer.getCreator());
-        //customerFactory.registerCreator(ResidentialConsumerPopulation.getCreator());
+        customerFactory.registerDefaultCreator(FactoredCustomer.getCreator());
         
         log.info("Creating factored customers from configuration profiles.");
         for (CustomerProfile customerProfile: customerProfiles) { 
-            FactoredCustomer customer = customerFactory.processProfile(customerProfile);
+            Customer customer = customerFactory.processProfile(customerProfile);
             if (customer != null) {
                 customers.add(customer);
             } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
@@ -120,7 +120,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      **/
     public void publishNewTariffs(List<Tariff> tariffs)
     {
-        for (FactoredCustomer customer : customers) {
+        for (Customer customer : customers) {
             customer.handleNewTariffs(tariffs);
         }
     }
@@ -130,7 +130,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      */
     public void activate(Instant now, int phase)
     {
-        for (FactoredCustomer customer : customers) {
+        for (Customer customer : customers) {
             customer.handleNewTimeslot();
         }
     }
@@ -140,13 +140,15 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
      */
     public void receiveMessage(Object msg)
     {
-        // TODO: Implement per-message behavior. Note that incoming messages
+        // Implement per-message behavior here. Note that incoming messages
         // from brokers arrive in a JMS thread, so you need to synchronize
         // access to shared data structures. See AuctionService for an example.
 
         // If you need to handle a number of different message types, it may
         // make sense to use a reflection-based dispatcher. Both
         // TariffMarketService and AccountingService work this way.
+        
+        log.warn("Ignoring received message: " + msg);
     }
 
     String getConfigResource() 
@@ -159,7 +161,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor implements B
         configResource = resource;
     }
     
-    List<FactoredCustomer> getCustomers() 
+    List<Customer> getCustomers() 
     {
         return customers;
     }

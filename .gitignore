@@ -8,6 +8,12 @@
 .project
 .classpath
 
+# Local files
+fcm-tasks.txt
+fcm-boot-data.csv
+FactoredCustomers_save.xml
+FactoredCustomers_temp.xml
+
 # Deployment directories
 target/
 activemq-data/

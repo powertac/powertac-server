@@ -39,6 +39,7 @@ final class TariffSubscriberProfile
     final AllocationMethod allocationMethod;
     final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
     final double logitChoiceRationality; 
+    final int reconsiderationPeriod;
     final ProbabilityDistribution inertiaDistribution;
     final ProbabilityDistribution customerWealthDistribution;
     final double customerWealthReferenceMedian;
@@ -63,6 +64,8 @@ final class TariffSubscriberProfile
             logitChoiceRationality = Double.parseDouble(logitChoiceElement.getAttribute("rationality"));
         }
         
+        Element reconsiderationElement = (Element) xml.getElementsByTagName("reconsideration").item(0);
+        reconsiderationPeriod = Integer.parseInt(reconsiderationElement.getAttribute("period"));
         Element inertiaElement = (Element) xml.getElementsByTagName("switchingInertia").item(0);
         Node inertiaDistributionNode = inertiaElement.getElementsByTagName("inertiaDistribution").item(0);
         if (inertiaDistributionNode != null) {  

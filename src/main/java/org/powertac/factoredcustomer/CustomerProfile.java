@@ -51,7 +51,9 @@ final class CustomerProfile
         	
         Element infoElement = (Element) xml.getElementsByTagName("info").item(0);
 	int population = Integer.parseInt(infoElement.getAttribute("population"));
-        customerInfo = new CustomerInfo(name, population);
+        customerInfo = new CustomerInfo(name, population)
+            .withMultiContracting(Boolean.parseBoolean(infoElement.getAttribute("multiContracting")))
+            .withCanNegotiate(Boolean.parseBoolean(infoElement.getAttribute("canNegotiate")));
         entityType = Enum.valueOf(EntityType.class, infoElement.getAttribute("entityType"));
         switch (entityType) {
             case RESIDENTIAL: customerInfo.withCustomerType(CustomerType.CustomerHousehold); break;
@@ -59,8 +61,6 @@ final class CustomerProfile
             case INDUSTRIAL: customerInfo.withCustomerType(CustomerType.CustomerFactory); break;
             default: customerInfo.withCustomerType(CustomerType.CustomerOther);
         }
-	customerInfo.withMultiContracting(Boolean.parseBoolean(infoElement.getAttribute("multiContracting")));
-        customerInfo.withCanNegotiate(Boolean.parseBoolean(infoElement.getAttribute("canNegotiate")));
         
         NodeList capacityBundles = xml.getElementsByTagName("capacityBundle");
         for (int i=0; i < capacityBundles.getLength(); ++i) {

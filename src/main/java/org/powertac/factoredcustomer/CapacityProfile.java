@@ -29,29 +29,17 @@ import org.powertac.common.enumerations.PowerType;
  */
 final class CapacityProfile
 {	
-    enum CapacityType { CONSUMPTION, PRODUCTION, STORAGE };
+    enum CapacityType { CONSUMPTION, PRODUCTION, STORAGE }
     enum CapacitySubType { NONE, INTERRUPTIBLE, THERMAL_STORAGE, 
                            SOLAR,  WIND, RUN_OF_RIVER, PUMPED_STORAGE, CHP, FOSSIL, 
-                           BATTERY_STORAGE, ELECTRIC_VEHICLE };
+                           BATTERY_STORAGE, ELECTRIC_VEHICLE }
                           
-    enum InfluenceKind { DIRECT, DEVIATION, NONE };
+    enum InfluenceKind { DIRECT, DEVIATION, NONE }
     
     enum BaseCapacityType { POPULATION, INDIVIDUAL, TIMESERIES }
-    enum BaseTimeseriesSource { BUILTIN, CLASSPATH, FILEPATH }
 
     enum ElasticityModelType { CONTINUOUS, STEPWISE }
-    
-    class TimeseriesModel 
-    {
-        String modelKey;
-        String seriesName;
         
-        BaseTimeseriesSource seriesSource; 
-        Map<String, Double> arimaCoeffs = new HashMap<String, Double>();
-        double[] dailyCoeffs;
-        double[] hourlyCoeffs;
-    }
-    
     final String capacityId;
     final String description;
     final CapacityBundle parentBundle;
@@ -59,7 +47,7 @@ final class CapacityProfile
     final BaseCapacityType baseCapacityType;
     final ProbabilityDistribution basePopulationCapacity;
     final ProbabilityDistribution baseIndividualCapacity;
-    final TimeseriesModel baseTimeseriesModel;
+    final TimeseriesProfile baseTimeseriesProfile;
     
     final double[] dailySkew;
     final double[] hourlySkew;
@@ -92,32 +80,33 @@ final class CapacityProfile
             Element populationCapacityElement = (Element) baseCapacityElement.getElementsByTagName("populationCapacity").item(0);
             basePopulationCapacity = new ProbabilityDistribution(populationCapacityElement);
             baseIndividualCapacity = null;
-            baseTimeseriesModel = null;
+            baseTimeseriesProfile = null;
             break;
         case INDIVIDUAL: 
             basePopulationCapacity = null;
             Element individualCapacityElement = (Element) baseCapacityElement.getElementsByTagName("individualCapacity").item(0);
             baseIndividualCapacity = new ProbabilityDistribution(individualCapacityElement);
-            baseTimeseriesModel = null;
+            baseTimeseriesProfile = null;
             break;
         case TIMESERIES: 
             basePopulationCapacity = null;
             baseIndividualCapacity = null;
-            baseTimeseriesModel = parseTimeseriesModel(baseCapacityElement);
+            Element timeseriesModelElement = (Element) baseCapacityElement.getElementsByTagName("timeseriesModel").item(0);
+            baseTimeseriesProfile = new TimeseriesProfile(timeseriesModelElement);
             break;
         default: throw new Error("Unexpected base capacity type: " + baseCapacityType);
         }
         
         Element dailySkewElement = (Element) xml.getElementsByTagName("dailySkew").item(0);
-        dailySkew = parseDoubleArray(dailySkewElement.getAttribute("array"));
+        dailySkew = ParserFunctions.parseDoubleArray(dailySkewElement.getAttribute("array"));
         
         Element hourlySkewElement = (Element) xml.getElementsByTagName("hourlySkew").item(0);
-        hourlySkew = parseDoubleArray(hourlySkewElement.getAttribute("array"));
+        hourlySkew = ParserFunctions.parseDoubleArray(hourlySkewElement.getAttribute("array"));
         
         Element temperatureInfluenceElement = (Element) xml.getElementsByTagName("temperature").item(0);
         temperatureInfluence = Enum.valueOf(InfluenceKind.class, temperatureInfluenceElement.getAttribute("influence"));
         if (temperatureInfluence != InfluenceKind.NONE) {
-            parseRangeMap(temperatureInfluenceElement.getAttribute("rangeMap"), temperatureMap);
+            ParserFunctions.parseRangeMap(temperatureInfluenceElement.getAttribute("rangeMap"), temperatureMap);
             if (temperatureInfluence == InfluenceKind.DEVIATION) {
                 temperatureReference = Double.parseDouble(temperatureInfluenceElement.getAttribute("reference"));
             } else temperatureReference = Double.NaN;
@@ -126,74 +115,27 @@ final class CapacityProfile
         Element windSpeedInfluenceElement = (Element) xml.getElementsByTagName("windSpeed").item(0);
         windSpeedInfluence = Enum.valueOf(InfluenceKind.class, windSpeedInfluenceElement.getAttribute("influence"));
         if (windSpeedInfluence != InfluenceKind.NONE) {
-            parseRangeMap(windSpeedInfluenceElement.getAttribute("rangeMap"), windSpeedMap);
+            ParserFunctions.parseRangeMap(windSpeedInfluenceElement.getAttribute("rangeMap"), windSpeedMap);
         }
           
         Element windDirectionInfluenceElement = (Element) xml.getElementsByTagName("windDirection").item(0);
         windDirectionInfluence = Enum.valueOf(InfluenceKind.class, windDirectionInfluenceElement.getAttribute("influence"));
         if (windDirectionInfluence != InfluenceKind.NONE) {
-            parseRangeMap(windDirectionInfluenceElement.getAttribute("rangeMap"), windDirectionMap);
+            ParserFunctions.parseRangeMap(windDirectionInfluenceElement.getAttribute("rangeMap"), windDirectionMap);
         }
         
         Element cloudCoverInfluenceElement = (Element) xml.getElementsByTagName("cloudCover").item(0);
         cloudCoverInfluence = Enum.valueOf(InfluenceKind.class, cloudCoverInfluenceElement.getAttribute("influence"));
         if (cloudCoverInfluence != InfluenceKind.NONE) {
-            parseRangeMap(cloudCoverInfluenceElement.getAttribute("rangeMap"), cloudCoverMap);
+            ParserFunctions.parseRangeMap(cloudCoverInfluenceElement.getAttribute("rangeMap"), cloudCoverMap);
         }
 
         Element priceElasticityElement = (Element) xml.getElementsByTagName("priceElasticity").item(0);
         Element benchmarkRatesElement = (Element) priceElasticityElement.getElementsByTagName("benchmarkRates").item(0);
-        parseRangeMap(benchmarkRatesElement.getAttribute("rangeMap"), benchmarkRates);
+        ParserFunctions.parseRangeMap(benchmarkRatesElement.getAttribute("rangeMap"), benchmarkRates);
         
         elasticityModelXml = (Element) priceElasticityElement.getElementsByTagName("elasticityModel").item(0);
         elasticityModelType = Enum.valueOf(ElasticityModelType.class, elasticityModelXml.getAttribute("type"));
-    }
-    
-    protected TimeseriesModel parseTimeseriesModel(Element xml) 
-    {
-        TimeseriesModel model = new TimeseriesModel();
-        model.modelKey = xml.getAttribute("modelkey");
-
-        Element baseSeriesElement = (Element) xml.getElementsByTagName("baseSeries").item(0);
-        model.seriesName = baseSeriesElement.getAttribute("name");
-        model.seriesSource = Enum.valueOf(BaseTimeseriesSource.class, baseSeriesElement.getAttribute("source"));
-        
-        Element arimaCoeffsElement = (Element) xml.getElementsByTagName("arimaCoeffs").item(0);
-        NamedNodeMap arimaAttrs = arimaCoeffsElement.getAttributes();
-        for (int i=0; i < arimaAttrs.getLength(); ++i) {
-            Node arimaAttr = arimaAttrs.item(i);
-            model.arimaCoeffs.put(arimaAttr.getNodeName(), Double.parseDouble(arimaAttr.getNodeValue()));
-        }
-        
-        Element hourlyCoeffsElement = (Element) xml.getElementsByTagName("hourlyCoeffs").item(0);
-        model.hourlyCoeffs = parseDoubleArray(hourlyCoeffsElement.getAttribute("array"));
-        Element dailyCoeffsElement = (Element) xml.getElementsByTagName("dailyCoeffs").item(0);
-        model.dailyCoeffs = parseDoubleArray(dailyCoeffsElement.getAttribute("array"));
-        return model;
-    }
-
-    protected void parseRangeMap(String input, Map<Integer, Double> map) 
-    {
-        String[] pairs = input.split(",");
-        for (int i=0; i < pairs.length; ++i) {
-            String[] parts = pairs[i].split(":");
-            Double value = Double.parseDouble(parts[1]);
-            String[] range = parts[0].split("~");
-            Integer start = Integer.parseInt(range[0].trim());
-            Integer end = Integer.parseInt(range[1].trim());
-            for (Integer key=start; key <= end; ++key) {
-                map.put(key, value);
-            }
-        }        
-    }
-    
-    protected static double[] parseDoubleArray(String input) {
-        String[] items = input.split(",");
-        double[] ret = new double[items.length];
-        for (int i=0; i < items.length; ++i) {
-            ret[i] = Double.parseDouble(items[i]);
-        }
-        return ret;
     }
     
     static PowerType reportPowerType(CapacityType capacityType, CapacitySubType capacitySubType)
