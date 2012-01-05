@@ -19,8 +19,130 @@ package org.powertac.common.enumerations;
  * Types of power a Customer can produce or consume. A single Customer may buy
  * or sell multiple PowerTypes.
  * 
- * @author jcollins
+ * This class is intended to behave like an enum for existing code.
+ * 
+ * @author John Collins
  */
-public enum PowerType {
-  CONSUMPTION, PRODUCTION, INTERRUPTIBLE_CONSUMPTION, THERMAL_STORAGE_CONSUMPTION, SOLAR_PRODUCTION, WIND_PRODUCTION, RUN_OF_RIVER_PRODUCTION, PUMPED_STORAGE_PRODUCTION, CHP_PRODUCTION, FOSSIL_PRODUCTION, BATTERY_STORAGE, ELECTRIC_VEHICLE
+public class PowerType
+{
+
+  private enum TypeLabel {
+  CONSUMPTION,
+  PRODUCTION,
+  STORAGE,
+  INTERRUPTIBLE_CONSUMPTION,
+  THERMAL_STORAGE_CONSUMPTION,
+  SOLAR_PRODUCTION, WIND_PRODUCTION,
+  RUN_OF_RIVER_PRODUCTION,
+  PUMPED_STORAGE_PRODUCTION,
+  CHP_PRODUCTION,
+  FOSSIL_PRODUCTION,
+  BATTERY_STORAGE,
+  ELECTRIC_VEHICLE
+  }
+
+  // These are the possible values. You cannot create others, because the
+  // constructor is private.
+  public static final PowerType CONSUMPTION =
+      new PowerType(TypeLabel.CONSUMPTION);
+  public static final PowerType PRODUCTION =
+      new PowerType(TypeLabel.PRODUCTION);
+  public static final PowerType STORAGE =
+      new PowerType(TypeLabel.STORAGE);
+  public static final PowerType INTERRUPTIBLE_CONSUMPTION =
+      new PowerType(TypeLabel.INTERRUPTIBLE_CONSUMPTION);
+  public static final PowerType THERMAL_STORAGE_CONSUMPTION =
+      new PowerType(TypeLabel.THERMAL_STORAGE_CONSUMPTION);
+  public static final PowerType SOLAR_PRODUCTION =
+      new PowerType(TypeLabel.SOLAR_PRODUCTION);
+  public static final PowerType WIND_PRODUCTION =
+      new PowerType(TypeLabel.WIND_PRODUCTION);
+  public static final PowerType RUN_OF_RIVER_PRODUCTION =
+      new PowerType(TypeLabel.RUN_OF_RIVER_PRODUCTION);
+  public static final PowerType PUMPED_STORAGE_PRODUCTION =
+      new PowerType(TypeLabel.PUMPED_STORAGE_PRODUCTION);
+  public static final PowerType CHP_PRODUCTION =
+      new PowerType(TypeLabel.CHP_PRODUCTION);
+  public static final PowerType FOSSIL_PRODUCTION =
+      new PowerType(TypeLabel.FOSSIL_PRODUCTION);
+  public static final PowerType BATTERY_STORAGE =
+      new PowerType(TypeLabel.BATTERY_STORAGE);
+  public static final PowerType ELECTRIC_VEHICLE =
+      new PowerType(TypeLabel.ELECTRIC_VEHICLE);
+
+  // This is the instance data field.
+  private TypeLabel label;
+  
+  /**
+   * Private constructor, used only to create enumeration instances.
+   */
+  private PowerType (TypeLabel label)
+  {
+    super();
+    this.label = label;
+  }
+
+  /**
+   * Returns true just in case this type would apply to a consumption tariff.
+   */
+  public boolean isConsumption ()
+  {
+    return (label == TypeLabel.CONSUMPTION
+            || label == TypeLabel.INTERRUPTIBLE_CONSUMPTION
+            || label == TypeLabel.THERMAL_STORAGE_CONSUMPTION);
+  }
+
+  /**
+   * Returns true just in case this type would apply to a production tariff.
+   */
+  public boolean isProduction ()
+  {
+    return (label == TypeLabel.PRODUCTION
+            || label == TypeLabel.CHP_PRODUCTION
+            || label == TypeLabel.FOSSIL_PRODUCTION
+            || label == TypeLabel.RUN_OF_RIVER_PRODUCTION
+            || label == TypeLabel.SOLAR_PRODUCTION
+            || label == TypeLabel.WIND_PRODUCTION);
+  }
+  
+  /**
+   * Returns true just in case this type is interruptible.
+   */
+  public boolean isInterruptible ()
+  {
+    return (label == TypeLabel.INTERRUPTIBLE_CONSUMPTION
+            || label == TypeLabel.THERMAL_STORAGE_CONSUMPTION);
+  }
+  
+  /**
+   * Returns true just in case this type is a storage type.
+   */
+  public boolean isStorage ()
+  {
+    return (label == TypeLabel.STORAGE
+            || label == TypeLabel.BATTERY_STORAGE
+            || label == TypeLabel.ELECTRIC_VEHICLE
+            || label == TypeLabel.PUMPED_STORAGE_PRODUCTION);
+  }
+  
+  /**
+   * Returns the least-specific capacity type for a given PowerType.
+   */
+  public PowerType getGenericType ()
+  {
+    if (isConsumption())
+      return CONSUMPTION;
+    else if (isProduction())
+      return PRODUCTION;
+    else if (isStorage())
+      return STORAGE;
+    else
+      return null;
+  }
+
+  @Override
+  public String toString ()
+  {
+    return label.toString();
+  }
 }
