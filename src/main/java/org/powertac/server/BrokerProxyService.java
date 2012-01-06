@@ -80,8 +80,10 @@ public class BrokerProxyService implements BrokerProxy
   private void localSendMessage (Broker broker, Object messageObject)
   {
     // don't communicate with non-enabled brokers
-    if (!broker.isEnabled())
+    if (!broker.isEnabled()) {
+      log.warn("broker " + broker.getUsername() + " is disabled");
       return;
+    }
     
     // route to local brokers
     if (broker.isLocal()) {
