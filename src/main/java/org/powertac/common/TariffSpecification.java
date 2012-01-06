@@ -49,7 +49,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class TariffSpecification extends TariffMessage
 {
   @SuppressWarnings("unused")
-  static private Logger log = Logger.getLogger(Rate.class.getName());
+  static private Logger log = Logger.getLogger(TariffSpecification.class);
 
   /** Last date new subscriptions will be accepted. Null means never expire. */
   private Instant expiration = null;

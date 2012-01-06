@@ -17,6 +17,7 @@
 package org.powertac.common;
 
 
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
@@ -38,6 +39,8 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {
+  static private Logger log = Logger.getLogger(TariffTransaction.class);
+
   public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE }
   
   /** Purpose of this transaction */
@@ -132,7 +135,11 @@ public class TariffTransaction extends BrokerTransaction
   }
 
   public String toString() {
-    return("TariffTx: customer" + customerInfo.getId() + " at " +
+    String customer = "?";
+    if (customerInfo != null)
+      // not all tariff transactions have a customer
+      customer = customerInfo.getName();
+    return("TariffTx: customer" + customer + " at " +
            Competition.currentCompetition().computeTimeslotIndex(postedTime) +
            ", " + txType + ": " + kWh + "@" + charge);
   }
