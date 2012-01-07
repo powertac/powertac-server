@@ -122,8 +122,19 @@ public class Competition //implements Serializable
    * Returns the current Competition instance. There should always be either
    * zero or one of these.
    */
-  public static Competition currentCompetition() {
+  public static Competition currentCompetition()
+  {
     return theCompetition;
+  }
+  
+  /**
+   * Makes a Competition instance be the "current" competition - this is 
+   * needed in a broker when the Competition instance arrives from the
+   * server.
+   */
+  public static void setCurrent (Competition newCurrent)
+  {
+    theCompetition = newCurrent;
   }
   
   /**

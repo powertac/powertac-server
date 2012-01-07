@@ -155,17 +155,37 @@ public class TimeslotRepo implements DomainRepo
   }
   
   /**
+   * Creates timeslots to fill in the time from sim start to the current
+   * time. This is needed to initialize brokers.
+   */
+  public void createInitialTimeslots()
+  {
+    if (null == first) {
+      // need to create the first timeslot before the rest will work
+      makeTimeslot(Competition.currentCompetition().getSimulationBaseTime());
+    }
+    findOrCreateBySerialNumber(getIndex(timeService.getCurrentTime()));
+  }
+  
+  /**
    * Returns the timeslot (if any) corresponding to a particular Instant.
    */
   public Timeslot findByInstant (Instant time)
   {
     log.debug("find " + time.toString());
+    int index = getIndex(time);
+    return findBySerialNumber(index);
+  }
+
+  // converts time to timeslot index
+  private int getIndex (Instant time)
+  {
     long offset = time.getMillis() - first.getStartInstant().getMillis();
     long duration = Competition.currentCompetition().getTimeslotDuration();
     // truncate to timeslot boundary
     offset -= offset % duration;
     int index = (int)(offset / duration);
-    return findBySerialNumber(index);
+    return index;
   }
 
   /**

@@ -57,6 +57,11 @@ public class CustomerRepo implements DomainRepo
     return customers.values();
   }
   
+  public int count ()
+  {
+    return customers.values().size();
+  }
+  
   public CustomerInfo findById (long id)
   {
     return customers.get(id);

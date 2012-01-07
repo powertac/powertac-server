@@ -114,6 +114,16 @@ public class TimeslotRepoTests
     assertEquals("5 entries", 5, repo.count());
     assertEquals("sn 4", 4, ts4.getSerialNumber());
   }
+  
+  @Test
+  public void testCreateInitial ()
+  {
+    Competition comp = Competition.currentCompetition();
+    comp.withSimulationBaseTime(baseTime);
+    timeService.setCurrentTime(baseTime.plus(TimeService.HOUR * 10));
+    repo.createInitialTimeslots();
+    assertEquals("11 entries", 11, repo.count());
+  }
 
   @SuppressWarnings("unused")
   @Test
