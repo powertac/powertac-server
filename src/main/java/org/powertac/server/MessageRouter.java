@@ -60,10 +60,23 @@ public class MessageRouter
     
     boolean byPassed = (message instanceof BrokerAuthentication);
     
+    String username = "unknown";
+    Broker broker = null;
     try {
-      Broker broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
-      if (broker != null && (broker.isEnabled() || byPassed)) {     
-        log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + broker.getUsername());
+      broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
+      username = broker.getUsername();
+    }
+    catch (IllegalAccessException e) {
+      log.error("Failed to extract broker", e);
+    }
+    catch (InvocationTargetException e) {
+      log.error("Failed to extract broker", e);
+    }
+    catch (NoSuchMethodException e) {
+      log.error("Failed to extract broker", e);
+    }
+      if (byPassed || (broker != null && broker.isEnabled())) {     
+        log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + username);
         routed = true;
         if (tariffMessageTypes.contains(message.getClass())) {
           for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
@@ -79,16 +92,6 @@ public class MessageRouter
           }
         }   
       }
-    }
-    catch (IllegalAccessException e) {
-      log.error("Failed to extract broker", e);
-    }
-    catch (InvocationTargetException e) {
-      log.error("Failed to extract broker", e);
-    }
-    catch (NoSuchMethodException e) {
-      log.error("Failed to extract broker", e);
-    }
 
     log.debug("route(Object) - routed:" + routed);
     

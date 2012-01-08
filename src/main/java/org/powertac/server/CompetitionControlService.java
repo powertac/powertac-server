@@ -714,11 +714,8 @@ public class CompetitionControlService
    */
   public void receiveMessage(BrokerAuthentication msg) {
     log.info("receiveMessage(BrokerAuthentication) - start");
-    Broker broker = msg.getBroker();
-    if (broker != null) {
-      loginBroker(broker.getUsername());
-    }
-    log.info("receiveMessage(BrokerAuthentication) - end");
+    String username = msg.getUsername();
+    loginBroker(username);
   }
   
   /**
