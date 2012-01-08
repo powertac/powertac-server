@@ -81,6 +81,10 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private Instant simulationBaseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
 
+  /** length of bootstrap interval in msec */
+  @XStreamAsAttribute
+  private long bootstrapInterval = 15*24*60*60*1000;
+  
   /** the time-compression ratio for the simulation. So if we are running one-hour timeslots every 5 seconds, the rate would be 720 (=default).    */
   @XStreamAsAttribute
   private long simulationRate = 720l;
@@ -329,6 +333,25 @@ public class Competition //implements Serializable
     this.simulationBaseTime = simulationBaseTime;
     return this;
   }
+  
+  /**
+   * Length of bootstrap interval in msec. Add this to the simulation base
+   * time, and you get the start time for a normal sim session.
+   */
+  public long getBootstrapInterval ()
+  {
+    return bootstrapInterval;
+  }
+  
+  /**
+   * Fluent setter for bootstrap interval.
+   */
+  @StateChange
+  public Competition withBootstrapInterval (long interval)
+  {
+    this.bootstrapInterval = interval;
+    return this;
+  }
 
   /**
    * The time-compression factor for the simulation.
@@ -421,11 +444,13 @@ public class Competition //implements Serializable
     withBootstrapTimeslotCount(template.getBootstrapTimeslotCount());
     withDeactivateTimeslotsAhead(template.getDeactivateTimeslotsAhead());
     withSimulationBaseTime(template.getSimulationBaseTime());
+    withBootstrapInterval(template.getBootstrapInterval());
     withSimulationModulo(template.getSimulationModulo());
     withTimeslotLength(template.getTimeslotLength());
     withTimeslotsOpen(template.getTimeslotsOpen());
   }
   
+  @Override
   public String toString() 
   {
     return name;
