@@ -47,6 +47,14 @@ public class IdGenerator
   }
   
   /**
+   * Returns the id prefix - needed for testing.
+   */
+  public static int getPrefix ()
+  {
+    return prefix;
+  }
+  
+  /**
    * Converts ID value to String as A.B.   
    */
   public static String getString (long id)

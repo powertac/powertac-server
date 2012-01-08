@@ -17,8 +17,10 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * This message is used for authenticating a broker with the server.
@@ -31,30 +33,54 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("broker-authentication")
 public class BrokerAuthentication
 {
-  private Broker broker;
+  @XStreamAsAttribute
+  private String username;
+  
+  @XStreamAsAttribute
+  private String password;
   
   /**
-   * Creates an instance
+   * Creates an instance from a broker
    */
   public BrokerAuthentication (Broker broker)
   {
     super();
-    this.broker = broker;
+    this.username = broker.getUsername();
+    this.password = broker.getPassword();
+  }
+  
+  /**
+   * Creates an instance from a username, password
+   */
+  public BrokerAuthentication (String username, String password)
+  {
+    super();
+    this.username = username;
+    this.password = password;
   }
 
   /**
-   * @return the broker
+   * @return the broker username
    */
-  public Broker getBroker ()
+  public String getUsername ()
   {
-    return broker;
+    return username;
+  }
+  
+  /**
+   * @return the password
+   */
+  public String getPassword ()
+  {
+    return password;
   }
 
   /**
-   * @param broker the broker to set
+   * @param password new password
    */
-  public void setBroker (Broker broker)
+  @StateChange
+  public void setPassword (String password)
   {
-    this.broker = broker;
+    this.password = password;
   }
 }

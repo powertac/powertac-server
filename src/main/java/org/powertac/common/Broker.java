@@ -48,8 +48,7 @@ public class Broker
 
   /** the broker's login or user name     */
   private String username;
-
-  //private String password;
+  private String password;
   private boolean enabled;
 
   /** If true, the broker is local to the server and does not receive messages  */
@@ -152,10 +151,15 @@ public class Broker
     return username;
   }
 
-  //public String getPassword ()
-  //{
-  //  return password;
-  //}
+  public String getPassword ()
+  {
+    return password;
+  }
+  
+  public void setPassword (String newPassword)
+  {
+    password = newPassword;
+  }
 
   /**
    * True just in case either the broker is logged in, or is a local wholesale
