@@ -62,36 +62,38 @@ public class MessageRouter
     
     String username = "unknown";
     Broker broker = null;
-    try {
-      broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
-      username = broker.getUsername();
-    }
-    catch (IllegalAccessException e) {
-      log.error("Failed to extract broker", e);
-    }
-    catch (InvocationTargetException e) {
-      log.error("Failed to extract broker", e);
-    }
-    catch (NoSuchMethodException e) {
-      log.error("Failed to extract broker", e);
-    }
-      if (byPassed || (broker != null && broker.isEnabled())) {     
-        log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + username);
-        routed = true;
-        if (tariffMessageTypes.contains(message.getClass())) {
-          for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
-            tariffMessageListener.receiveMessage(message);
-          }
-        } else if (simMessageTypes.contains(message.getClass())) {
-          for (BrokerMessageListener simMessageListener : registrar.getSimRegistrations()) {
-            simMessageListener.receiveMessage(message);
-          }
-        } else {
-          for (BrokerMessageListener marketMessageListener : registrar.getMarketRegistrations()) {
-            marketMessageListener.receiveMessage(message);
-          }
-        }   
+    if (!byPassed) {
+      try {
+        broker = (Broker)PropertyUtils.getSimpleProperty(message, "broker");
+        username = broker.getUsername();
       }
+      catch (IllegalAccessException e) {
+        log.error("Failed to extract broker", e);
+      }
+      catch (InvocationTargetException e) {
+        log.error("Failed to extract broker", e);
+      }
+      catch (NoSuchMethodException e) {
+        log.error("Failed to extract broker", e);
+      }
+    }
+    if (byPassed || (broker != null && broker.isEnabled())) {     
+      log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + username);
+      routed = true;
+      if (tariffMessageTypes.contains(message.getClass())) {
+        for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
+          tariffMessageListener.receiveMessage(message);
+        }
+      } else if (simMessageTypes.contains(message.getClass())) {
+        for (BrokerMessageListener simMessageListener : registrar.getSimRegistrations()) {
+          simMessageListener.receiveMessage(message);
+        }
+      } else {
+        for (BrokerMessageListener marketMessageListener : registrar.getMarketRegistrations()) {
+          marketMessageListener.receiveMessage(message);
+        }
+      }   
+    }
 
     log.debug("route(Object) - routed:" + routed);
     

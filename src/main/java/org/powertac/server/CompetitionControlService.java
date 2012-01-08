@@ -380,12 +380,12 @@ public class CompetitionControlService
     if (broker == null) {
       broker = new Broker(username);
       brokerRepo.add(broker);
-      // assign prefix...
-      brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
     }
     
     // only enabled brokers get messages
     broker.setEnabled(true);
+    // assign prefix...
+    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
