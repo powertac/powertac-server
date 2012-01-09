@@ -1,0 +1,1 @@
+sim --config config/test.properties Sample
