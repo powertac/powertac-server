@@ -236,7 +236,7 @@ public class CompetitionSetupService
   }
   
   // configures a Competition from server.properties
-  private void configureCompetition (Competition competition2)
+  private void configureCompetition (Competition competition)
   {
     // get game length
     int minimumTimeslotCount =
@@ -253,6 +253,9 @@ public class CompetitionSetupService
     int bootstrapTimeslotCount =
         serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
                                        competition.getBootstrapTimeslotCount());
+    int bootstrapDiscardedTimeslots =
+        serverProps.getIntegerProperty("competition.bootstrapDiscardedTimeslots",
+                                       competition.getBootstrapDiscardedTimeslots());
 
     // get trading parameters
     int timeslotsOpen =
@@ -295,7 +298,8 @@ public class CompetitionSetupService
       .withSimulationModulo(timeslotLength * TimeService.MINUTE)
       .withTimeslotsOpen(timeslotsOpen)
       .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
-      .withBootstrapTimeslotCount(bootstrapTimeslotCount);
+      .withBootstrapTimeslotCount(bootstrapTimeslotCount)
+      .withBootstrapDiscardedTimeslots(bootstrapDiscardedTimeslots);
     
     // bootstrap timeslot timing is a local parameter
     int bootstrapTimeslotSeconds =
@@ -325,19 +329,10 @@ public class CompetitionSetupService
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
-      // first grab the bootstrap offset
+      // first grab the Competition
       XPathExpression exp =
-          xPath.compile("/powertac-bootstrap-data/config/bootstrap-offset/@value");
-      NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
-                                              XPathConstants.NODESET);
-      String value = nodes.item(0).getNodeValue();
-      cc.setBootstrapDiscardedTimeslots(Integer.parseInt(value));
-      log.info("offset: " + cc.getBootstrapDiscardedTimeslots() + " timeslots");
-      
-      // then pull out the Competition
-      exp =
           xPath.compile("/powertac-bootstrap-data/config/competition");
-      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+      NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
                                      XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
@@ -399,10 +394,6 @@ public class CompetitionSetupService
       output.write("<powertac-bootstrap-data>");
       output.newLine();
       output.write("<config>");
-      output.newLine();
-      // bootstrap offset
-      output.write("<bootstrap-offset value=\"" 
-                   + cc.getBootstrapDiscardedTimeslots() + "\" />");
       output.newLine();
       // current competition
       output.write(messageConverter.toXML(competition));

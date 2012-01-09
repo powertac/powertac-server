@@ -136,7 +136,7 @@ public class CompetitionControlService
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
   private long bootstrapTimeslotMillis = 2000;
-  private int bootstrapDiscardedTimeslots = 24;
+  //private int bootstrapDiscardedTimeslots = 24;
   
   private boolean simRunning = false;
 
@@ -191,20 +191,20 @@ public class CompetitionControlService
     bootstrapDataset = dataset;
   }
   
-  /**
-   * Sets the number of timeslots to discard at the beginning of a bootstrap
-   * run. Length of the sim will be the bootstrap length plus this length.
-   * Default value is 24.
-   */
-  public void setBootstrapDiscardedTimeslots (int count)
-  {
-    bootstrapDiscardedTimeslots = count;
-  }
-  
-  int getBootstrapDiscardedTimeslots ()
-  {
-    return bootstrapDiscardedTimeslots;
-  }
+//  /**
+//   * Sets the number of timeslots to discard at the beginning of a bootstrap
+//   * run. Length of the sim will be the bootstrap length plus this length.
+//   * Default value is 24.
+//   */
+//  public void setBootstrapDiscardedTimeslots (int count)
+//  {
+//    bootstrapDiscardedTimeslots = count;
+//  }
+//  
+//  int getBootstrapDiscardedTimeslots ()
+//  {
+//    return bootstrapDiscardedTimeslots;
+//  }
   
   /**
    * Runs a simulation that is already set up. This is intended to be called
@@ -257,7 +257,7 @@ public class CompetitionControlService
       // Create the timeslots from the bootstrap period - they will be needed to 
       // instantiate weather reports. All are disabled.
       currentSlotOffset = competition.getBootstrapTimeslotCount()
-                              + getBootstrapDiscardedTimeslots();
+                          + competition.getBootstrapDiscardedTimeslots();
       createInitialTimeslots(competition.getSimulationBaseTime(),
                              (currentSlotOffset + 1),
                              0);
@@ -316,7 +316,7 @@ public class CompetitionControlService
     }
     else {
       timeslotCount = competition.getBootstrapTimeslotCount()
-                      + bootstrapDiscardedTimeslots;;
+                      + competition.getBootstrapDiscardedTimeslots();
     }
 
     // Send out the first timeslot update
