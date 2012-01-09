@@ -62,6 +62,10 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private int bootstrapTimeslotCount = 336; // 14 days
 
+  /** Number of extra timeslots at start of bootstrap before data collection starts */
+  @XStreamAsAttribute
+  private int bootstrapDiscardedTimeslots = 24;
+
   /** Minimum number of timeslots, aka competition length    */
   @XStreamAsAttribute
   private int minimumTimeslotCount = 480;
@@ -80,10 +84,6 @@ public class Competition //implements Serializable
   /** the start time of the simulation scenario, in sim time. */
   @XStreamAsAttribute
   private Instant simulationBaseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
-
-  /** length of bootstrap interval in msec */
-  @XStreamAsAttribute
-  private long bootstrapInterval = 15*24*60*60*1000;
   
   /** the time-compression ratio for the simulation. So if we are running one-hour timeslots every 5 seconds, the rate would be 720 (=default).    */
   @XStreamAsAttribute
@@ -338,18 +338,18 @@ public class Competition //implements Serializable
    * Length of bootstrap interval in msec. Add this to the simulation base
    * time, and you get the start time for a normal sim session.
    */
-  public long getBootstrapInterval ()
+  public int getBootstrapDiscardedTimeslots()
   {
-    return bootstrapInterval;
+    return bootstrapDiscardedTimeslots;
   }
   
   /**
    * Fluent setter for bootstrap interval.
    */
   @StateChange
-  public Competition withBootstrapInterval (long interval)
+  public Competition withBootstrapDiscardedTimeslots (int count)
   {
-    this.bootstrapInterval = interval;
+    this.bootstrapDiscardedTimeslots = count;
     return this;
   }
 
@@ -444,7 +444,7 @@ public class Competition //implements Serializable
     withBootstrapTimeslotCount(template.getBootstrapTimeslotCount());
     withDeactivateTimeslotsAhead(template.getDeactivateTimeslotsAhead());
     withSimulationBaseTime(template.getSimulationBaseTime());
-    withBootstrapInterval(template.getBootstrapInterval());
+    withBootstrapDiscardedTimeslots(template.getBootstrapDiscardedTimeslots());
     withSimulationModulo(template.getSimulationModulo());
     withTimeslotLength(template.getTimeslotLength());
     withTimeslotsOpen(template.getTimeslotsOpen());
