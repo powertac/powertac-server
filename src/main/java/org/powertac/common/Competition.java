@@ -190,7 +190,7 @@ public class Competition //implements Serializable
   }
   
   /**
-   * Returns the duration of a timeslot in milliseconds real-time.
+   * Returns the duration of a timeslot in milliseconds sim-time.
    */
   public long getTimeslotDuration ()
   {

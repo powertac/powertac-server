@@ -130,6 +130,15 @@ public class CompetitionTests
     assertEquals("correct return", c1, cx);
     assertEquals("new mod", 30*60000, c1.getSimulationModulo());
   }
+  
+  @Test
+  public void testBootInterval ()
+  {
+    Competition c1 = Competition.newInstance("c1");
+    assertEquals("correct boot count", 336, c1.getBootstrapTimeslotCount());
+    assertEquals("correct discard count", 24, c1.getBootstrapDiscardedTimeslots());
+    assertEquals("correct total", 360, c1.getBootstrapTimeslotCount() + c1.getBootstrapDiscardedTimeslots());
+  }
 
   @Test
   public void testAddBroker ()
