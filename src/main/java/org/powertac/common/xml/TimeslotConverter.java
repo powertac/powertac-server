@@ -45,7 +45,7 @@ public class TimeslotConverter implements SingleValueConverter
   @Override
   public Object fromString (String serial)
   {
-    return timeslotRepo.findOrCreateBySerialNumber(Integer.valueOf(serial));
+    return timeslotRepo.findBySerialNumber(Integer.valueOf(serial));
   }
 
   @Override
