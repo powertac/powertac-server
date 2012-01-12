@@ -132,15 +132,25 @@ public class CompetitionSetupService
                 // explicit config file
                 serverProps.setUserConfig(tokens[2]);
               }
-              FileWriter bootWriter =
-                  new FileWriter(serverProps.getProperty("server.bootstrapDataFile",
-                                                         "bootstrapData.xml"));
-              cc.init();
-              cc.setAuthorizedBrokerList(new ArrayList<String>());
-              preGame();
-              //cc.runOnce(bootWriter);
-              cc.runOnce(true);
-              saveBootstrapData(bootWriter);
+              String bootstrapFilename =
+                  serverProps.getProperty("server.bootstrapDataFile",
+                                          "/bd-noname.xml");
+              if (!(new File(bootstrapFilename))
+                    .getAbsoluteFile()
+                    .getParentFile()
+                    .canWrite()) {
+                System.out.println("Cannot write to bootstrap data file " +
+                    bootstrapFilename);                
+              }
+              else {
+                FileWriter bootWriter = new FileWriter(bootstrapFilename);
+                cc.init();
+                cc.setAuthorizedBrokerList(new ArrayList<String>());
+                preGame();
+                //cc.runOnce(bootWriter);
+                cc.runOnce(true);
+                saveBootstrapData(bootWriter);
+              }
             }
           }
           else if ("sim".equals(tokens[0])) {
@@ -152,20 +162,27 @@ public class CompetitionSetupService
               brokerIndex = 3;
             }
             log.info("In Simulation mode!!!");
-            File bootFile =
-                new File(serverProps.getProperty("server.bootstrapDataFile",
-                                                 "bd-noname.xml"));
-            cc.init();
-            // collect broker names, hand to CC for login control
-            ArrayList<String> brokerList = new ArrayList<String>();
-            for (int i = brokerIndex; i < tokens.length; i++) {
-              brokerList.add(tokens[i]);
+            String bootstrapFilename =
+                serverProps.getProperty("server.bootstrapDataFile",
+                                        "bd-noname.xml");
+            File bootFile = new File(bootstrapFilename);
+            if (!bootFile.canRead()) {
+              System.out.println("Cannot read bootstrap data file " +
+                                 bootstrapFilename);
             }
-            cc.setAuthorizedBrokerList(brokerList);
+            else {
+              cc.init();
+              // collect broker names, hand to CC for login control
+              ArrayList<String> brokerList = new ArrayList<String>();
+              for (int i = brokerIndex; i < tokens.length; i++) {
+                brokerList.add(tokens[i]);
+              }
+              cc.setAuthorizedBrokerList(brokerList);
 
-            if (preGame(bootFile)) {
-              cc.setBootstrapDataset(processBootDataset(bootFile));
-              cc.runOnce(false);
+              if (preGame(bootFile)) {
+                cc.setBootstrapDataset(processBootDataset(bootFile));
+                cc.runOnce(false);
+              }
             }
           }
         }
