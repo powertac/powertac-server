@@ -4,11 +4,12 @@
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
     <version>0.2.0-SNAPSHOT</version>
-    <relativePath />
+    <!-- prevents local resolution - you must install the parent locally
+         if it is not in the central or snapshot repo -->
+    <relativePath /> 
   </parent>
 
   <artifactId>server-interface</artifactId>
-  <version>0.2.0-SNAPSHOT</version>
   <name>Power TAC server interface</name>
   <description>
     interfaces and domain types shared by multiple server components
@@ -22,21 +23,6 @@
     </repository>
   </repositories>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>${spring.version}</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-      <version>1.6.7</version>
-      <scope>compile</scope>
-    </dependency>
-  </dependencies>
   
   <scm>
     <connection>scm:git:git//github.com/powertac/server-interface.git</connection>
