@@ -3,6 +3,7 @@ package org.powertac.common;
 import static org.junit.Assert.*;
 
 import java.io.StringWriter;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -112,6 +113,18 @@ public class CompetitionTests
   }
 
   @Test
+  public void testSetSimulationBaseTimeLong ()
+  {
+    Competition c1 = Competition.newInstance("c1");
+    Instant base = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    assertEquals("default base", base, c1.getSimulationBaseTime());
+    long newBase = base.plus(TimeService.DAY).getMillis();
+    Competition cx = c1.withSimulationBaseTime(newBase);
+    assertEquals("correct return", c1, cx);
+    assertEquals("new base", newBase, c1.getSimulationBaseTime().getMillis());
+  }
+
+  @Test
   public void testSetSimulationRate ()
   {
     Competition c1 = Competition.newInstance("c1");
@@ -129,6 +142,28 @@ public class CompetitionTests
     Competition cx = c1.withSimulationModulo(30*60000);
     assertEquals("correct return", c1, cx);
     assertEquals("new mod", 30*60000, c1.getSimulationModulo());
+  }
+  
+  @Test
+  public void testGetClockParams ()
+  {
+    long base = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).getMillis();
+    long rate = 300l;
+    long modulo = 30*60000l;
+    Competition c1 = Competition.newInstance("c1")
+        .withSimulationBaseTime(base)
+        .withSimulationRate(rate)
+        .withSimulationModulo(modulo)
+        .withBootstrapDiscardedTimeslots(24)
+        .withBootstrapTimeslotCount(48)
+        .withTimeslotLength(30);
+    Map<String, Long> params = c1.getClockParameters();
+    assertEquals("correct base",
+                 base + 72 * 30 * TimeService.MINUTE,
+                 params.get("base").longValue());
+    assertEquals("correct rate", rate, params.get("rate").longValue());
+    assertEquals("correct modulo", modulo, params.get("modulo").longValue());
+    
   }
   
   @Test

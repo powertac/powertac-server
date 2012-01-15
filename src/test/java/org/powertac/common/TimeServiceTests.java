@@ -17,6 +17,10 @@
 package org.powertac.common;
 
 import static org.junit.Assert.*;
+
+import java.util.Map;
+import java.util.TreeMap;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.joda.time.DateTime;
@@ -59,13 +63,53 @@ public class TimeServiceTests
 //    super.tearDown();
 //  }
 
+  @Test
+  public void testCreate ()
+  {
+    assertEquals("correct base", theBase.getMillis(), ts.getBase());
+    assertEquals("correct rate", theRate, ts.getRate());
+    assertEquals("correct modulo", theMod, ts.getModulo());
+  }
+  
   // set base, start, rate and test, check initial time
   @Test
-  public void testTimeConversion() 
+  public void testTimeConversion () 
   {
     long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
     assertEquals("offset zero", 0, offset);
     //assertTrue("$offset close to base time", offset < 60*1000) // less than one minute has elapsed
+  }
+  
+  @Test
+  public void testSetClockParamsGood ()
+  {
+    Map<String, Long> params = new TreeMap<String, Long>();
+    long newBase = theBase.plus(TimeService.DAY).getMillis();
+    long newMod = TimeService.HOUR;
+    params.put("base", newBase);
+    params.put("rate", 560l);
+    params.put("modulo", newMod);
+    params.put("modulo1", 0l);
+    ts.setClockParameters(params);
+    assertEquals("correct base", newBase, ts.getBase());
+    assertEquals("correct rate", 560l, ts.getRate());
+    assertEquals("correct modulo", newMod, ts.getModulo());
+    Instant newTime = new Instant(newBase).minus(newMod);
+    assertEquals("correct time", newTime, ts.getCurrentTime());
+  }
+  
+  @Test
+  public void testSetClockParamsBogus ()
+  {
+    Map<String, Long> params = new TreeMap<String, Long>();
+    long newBase = theBase.plus(TimeService.DAY).getMillis();
+    params.put("base", newBase);
+    params.put("1rate", 560l);
+    params.put("modulo", TimeService.HOUR);
+    ts.setClockParameters(params);
+    assertEquals("correct base", newBase, ts.getBase());
+    assertEquals("correct rate", theRate, ts.getRate());
+    assertEquals("correct modulo", TimeService.HOUR, ts.getModulo());
   }
 
   // set base, start, rate and test, check time after delay

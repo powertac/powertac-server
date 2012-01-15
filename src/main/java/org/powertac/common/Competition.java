@@ -18,6 +18,8 @@ package org.powertac.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -321,7 +323,7 @@ public class Competition //implements Serializable
   }
 
   /**
-   * Fluent setter for simiulation base time. This is the start of a simulation
+   * Fluent setter for simulation base time. This is the start of a simulation
    * scenario, in the sim world, at the beginning of a bootstrap session. So if
    * the bootstrap session collects data for 14 days, with an addional day of 
    * discarded data at the beginning, it is 15 days before the start of a
@@ -331,6 +333,16 @@ public class Competition //implements Serializable
   public Competition withSimulationBaseTime (Instant simulationBaseTime)
   {
     this.simulationBaseTime = simulationBaseTime;
+    return this;
+  }
+  
+  /**
+   * Fluent setter for simulation base time that takes a long.
+   */
+  @StateChange
+  public Competition withSimulationBaseTime (long baseTime)
+  {
+    this.simulationBaseTime = new Instant(baseTime);
     return this;
   }
   
@@ -393,6 +405,27 @@ public class Competition //implements Serializable
   {
     this.simulationModulo = simulationModulo;
     return this;
+  }
+  
+  /**
+   * Returns the clock parameters for the start of a normal sim session
+   * as a simple Map, to simplify code that
+   * must mediate between Competition and TimeService instances. The computed
+   * base time will be the base time of the bootstrap period plus the length
+   * of the bootstrap period.
+   */
+  public Map<String, Long> getClockParameters ()
+  {
+    Map<String, Long> result = new TreeMap<String, Long>();
+    long bootstrapOffset = getTimeslotDuration() *
+                           (getBootstrapDiscardedTimeslots() +
+                            getBootstrapTimeslotCount());
+    Instant simBase = 
+        getSimulationBaseTime().plus(bootstrapOffset);
+    result.put("base", simBase.getMillis());
+    result.put("rate", getSimulationRate());
+    result.put("modulo", getSimulationModulo());
+    return result;
   }
 
   /**

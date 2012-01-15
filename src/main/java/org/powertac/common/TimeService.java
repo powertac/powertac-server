@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 by the original author
+* Copyright (c) 2011, 2012 by the original author
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.powertac.common;
 
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.powertac.common.state.StateChange;
 
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -166,11 +168,26 @@ public class TimeService
    * do not set start at this point, because it is changed whenever the clock
    * is paused and therefore needs to be treated separately.
    */
-  public void setClockParameters(long base, long rate, long modulo)
+  public void setClockParameters (long base, long rate, long modulo)
   {
     this.base = base;
     this.rate = rate;
     this.modulo = modulo;
+  }
+  
+  /**
+   * Sets base, rate, and modulo parameters from a map, which is wrapped
+   * in a Configuration to allow for conversions and default values. The 
+   * map must contain entries named "base", "rate", and "modulo". We also init
+   * the clock here, because we have all the parameters.
+   */
+  public void setClockParameters (Map<String, Long> params)
+  {
+    MapConfiguration config = new MapConfiguration(params);
+    this.base = config.getLong("base", base);
+    this.rate = config.getLong("rate", rate);
+    this.modulo = config.getLong("modulo", modulo);
+    init();
   }
   
   public long getBase ()
