@@ -17,7 +17,7 @@
 package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
-import org.powertac.common.enumerations.*;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.CustomerInfo;
 import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
 import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
@@ -55,12 +55,6 @@ final class CustomerProfile
             .withMultiContracting(Boolean.parseBoolean(infoElement.getAttribute("multiContracting")))
             .withCanNegotiate(Boolean.parseBoolean(infoElement.getAttribute("canNegotiate")));
         entityType = Enum.valueOf(EntityType.class, infoElement.getAttribute("entityType"));
-        switch (entityType) {
-            case RESIDENTIAL: customerInfo.withCustomerType(CustomerType.CustomerHousehold); break;
-            case COMMERCIAL: customerInfo.withCustomerType(CustomerType.CustomerOffice); break;
-            case INDUSTRIAL: customerInfo.withCustomerType(CustomerType.CustomerFactory); break;
-            default: customerInfo.withCustomerType(CustomerType.CustomerOther);
-        }
         
         NodeList capacityBundles = xml.getElementsByTagName("capacityBundle");
         for (int i=0; i < capacityBundles.getLength(); ++i) {
