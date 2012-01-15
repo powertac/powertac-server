@@ -133,13 +133,10 @@ public class AccountingServiceTests
     brokerRepo.add(jim);
 
     customerInfo1 = new CustomerInfo("downtown", 42)
-        .withCustomerType(CustomerType.CustomerHousehold)
         .addPowerType(PowerType.CONSUMPTION);
     customerInfo2 = new CustomerInfo("suburbs", 21)
-        .withCustomerType(CustomerType.CustomerHousehold)
         .addPowerType(PowerType.CONSUMPTION);
     customerInfo3 = new CustomerInfo("exburbs", 11)
-         .withCustomerType(CustomerType.CustomerHousehold)
          .addPowerType(PowerType.CONSUMPTION);
 
     // set up tariffs - tariff1 for consumption, tariff2 for production
