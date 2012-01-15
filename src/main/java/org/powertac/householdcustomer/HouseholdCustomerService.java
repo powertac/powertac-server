@@ -27,7 +27,6 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
-import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -119,7 +118,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     int villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("Household " + i, villagePopulation).withCustomerType(CustomerType.CustomerHousehold).addPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo = new CustomerInfo("Household " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
       Village village = new Village(villageInfo);
       village.initialize(configuration, rs1);
       villageList.add(village);
