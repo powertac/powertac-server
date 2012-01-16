@@ -9,7 +9,6 @@ import java.io.StringWriter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 
 import com.thoughtworks.xstream.XStream;
@@ -29,7 +28,6 @@ public class CustomerInfoTests
     assertNotNull("not null", info);
     assertEquals("name", "t1", info.getName());
     assertEquals("population", 33, info.getPopulation());
-    assertEquals("customerType", CustomerType.CustomerHousehold, info.getCustomerType());
     assertEquals("no power types", 0, info.getPowerTypes().size());
     assertFalse("no multicontracting", info.isMultiContracting());
     assertFalse("can't negotiate", info.isCanNegotiate());
@@ -41,15 +39,6 @@ public class CustomerInfoTests
     CustomerInfo info = new CustomerInfo("t1", 33);
     info.setPopulation(42);
     assertEquals("correct population", 42, info.getPopulation());
-  }
-
-  @Test
-  public void testSetCustomerType ()
-  {
-    CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.withCustomerType(CustomerType.CustomerFactory);
-    assertEquals("correct return", info, result);
-    assertEquals("customerType", CustomerType.CustomerFactory, info.getCustomerType());
   }
 
   @Test

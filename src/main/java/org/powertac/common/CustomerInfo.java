@@ -18,7 +18,7 @@ package org.powertac.common;
 
 import java.util.ArrayList;
 
-import org.powertac.common.enumerations.CustomerType;
+//import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -50,8 +50,8 @@ public class CustomerInfo //implements Serializable
   /** gives a "rough" classification what type of customer to 
    * expect based on an enumeration, i.e. a fixed set of 
    * customer types. Defaults to CustomerHousehold. */
-  @XStreamAsAttribute
-  private CustomerType customerType = CustomerType.CustomerHousehold;
+  //@XStreamAsAttribute
+  //private CustomerType customerType = CustomerType.CustomerHousehold;
   
   /** population represented by this model */
   @XStreamAsAttribute
@@ -122,20 +122,20 @@ public class CustomerInfo //implements Serializable
    * Gives a "rough" classification what type of customer to 
    * expect based on the CustomerType enumeration, i.e. a fixed set of 
    * customer types. Defaults to CustomerHousehold. */
-  public CustomerType getCustomerType ()
-  {
-    return customerType;
-  }
+  //public CustomerType getCustomerType ()
+  //{
+  //  return customerType;
+  //}
   
   /**
    * Fluent setter for customer classification.
    */
-  @StateChange
-  public CustomerInfo withCustomerType (CustomerType type)
-  {
-    customerType = type;
-    return this;
-  }
+  //@StateChange
+  //public CustomerInfo withCustomerType (CustomerType type)
+  //{
+  //  customerType = type;
+  //  return this;
+  //}
 
   /**
    * The types of power consumption and/or production modalities available in
