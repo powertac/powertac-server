@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.FullCustomerConverter;
@@ -198,19 +199,13 @@ public class Competition //implements Serializable
   {
     return timeslotLength * TimeService.MINUTE;
   }
-  
-  /**
-   * Converts a time value to the number of timeslots since the beginning 
-   * of the simulation.
-   */
-  public int computeTimeslotIndex (Instant time)
-  {
-    return (int) (time.getMillis() / getTimeslotDuration()); 
-  }
 
   /**
    * Fluent setter for timeslot length, interpreted as minutes in sim time.
    */
+  @ConfigurableValue(name = "timeslotLength",
+                     description = "length of timeslot in minutes sim time",
+                     valueType = "Integer")
   @StateChange
   public Competition withTimeslotLength (int timeslotLength)
   {

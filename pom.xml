@@ -43,6 +43,11 @@
       <version>${spring.version}</version>
     </dependency>
     <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+      <version>1.7</version>
+    </dependency>
+    <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
       <version>1.6.7</version>
@@ -79,11 +84,6 @@
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>1.7</version>
     </dependency>
   </dependencies>
   <build>
