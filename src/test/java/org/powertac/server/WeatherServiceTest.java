@@ -13,7 +13,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecastPrediction;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
@@ -60,7 +62,7 @@ public class WeatherServiceTest
 	  next = start.plus(comp.getTimeslotDuration());
 	  timeService.setCurrentTime(start);
 	  if (timeslotRepo.currentTimeslot() == null) {
-	    for(int i = 0; i < 24; i++) {
+	    for(int i = 0; i < 48; i++) {
 	      timeslotRepo.makeTimeslot(start.plus(comp.getTimeslotDuration() * i));
 	    }
 	  }
@@ -77,7 +79,7 @@ public class WeatherServiceTest
 		
 		
 		// Check that there are indeed 24 timeslots enabled
-		assertEquals(24, timeslotRepo.enabledTimeslots().size());
+		assertEquals(48, timeslotRepo.enabledTimeslots().size());
 				
 		
 		weatherService.activate(start, 1);
@@ -88,7 +90,10 @@ public class WeatherServiceTest
 		// Check that 24 weather forecast enterd the repo
 		assertEquals(24, weatherForecastRepo.count());
 		
+		
 	}
+	
+	
 	
 	@Test
 	public void currentTimeDataTest(){
@@ -106,6 +111,11 @@ public class WeatherServiceTest
 		
 		//Check that we can read backwards only 2 timeslots (current + previous)
 		assertEquals(2, weatherReportRepo.allWeatherReports().size());
+		
+		//Check that the 2 timeslots are different in the repo
+		assertEquals(false, weatherReportRepo.allWeatherReports().get(0).getCurrentTimeslot() == weatherReportRepo.allWeatherReports().get(1).getCurrentTimeslot());
+		//System.out.println(weatherReportRepo.allWeatherReports().get(0).getCurrentTimeslot());
+		//System.out.println(weatherReportRepo.allWeatherReports().get(1).getCurrentTimeslot());
 	}
 	
 	@Test
@@ -122,10 +132,39 @@ public class WeatherServiceTest
 	@Test
 	public void testReportValues(){
 		timeService.setCurrentTime(start);
-		assertEquals(17.2, weatherReportRepo.currentWeatherReport().getTemperature(),.0001);
-		assertEquals(4.6, weatherReportRepo.currentWeatherReport().getWindSpeed(),.0001);
-		assertEquals(150, weatherReportRepo.currentWeatherReport().getWindDirection(),.0001);
-		assertEquals(0.0, weatherReportRepo.currentWeatherReport().getCloudCover(),.0001);
+		WeatherReport wr = weatherReportRepo.allWeatherReports().get(0);
+		System.out.println(wr.getCurrentTimeslot());
+		assertEquals(17.2, wr.getTemperature(),.0001);
+		assertEquals(4.6, wr.getWindSpeed(),.0001);
+		assertEquals(150, wr.getWindDirection(),.0001);
+		assertEquals(0.0, wr.getCloudCover(),.0001);
+		
+		// Test that currentWeatherId increments correctly
+		Instant reqTime = timeslotRepo.enabledTimeslots().get(24).getStartInstant();
+		assertNotNull(reqTime);		
+		System.out.println(timeslotRepo.currentTimeslot());
+		assertEquals(24, weatherReportRepo.count());
+		
+		timeService.setCurrentTime(reqTime);
+		weatherService.activate(reqTime, 1);
+		// Check that 48 weather reports entered the repo
+		assertEquals(48, weatherReportRepo.count());
+		
+		// Check that 48 weather forecast enterd the repo
+		assertEquals(48, weatherForecastRepo.count());
+		
+		
+		System.out.println(timeslotRepo.currentTimeslot());
+		System.out.println(weatherReportRepo.currentWeatherReport().getCurrentTimeslot());
+		
+		assertEquals(48, weatherReportRepo.count());
+		//Check beginning weather
+		assertEquals(false, wr.getTemperature() == weatherReportRepo.allWeatherReports().get(24).getTemperature());
+		
+		//Check ending weather
+		timeService.setCurrentTime(timeslotRepo.enabledTimeslots().get(47).getStartInstant());
+		assertEquals(false, weatherReportRepo.allWeatherReports().get(23).getTemperature() == weatherReportRepo.allWeatherReports().get(47).getTemperature());
+		assertEquals(false, wr.getId() == weatherReportRepo.allWeatherReports().get(24).getId());
 		
 	}
 	
@@ -144,3 +183,4 @@ public class WeatherServiceTest
 	}
 
 }
+
