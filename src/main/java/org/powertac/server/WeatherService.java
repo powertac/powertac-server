@@ -129,9 +129,10 @@ public class WeatherService
       try {
         // Need try/catch for invalid host strings
 
-        // currentWeatherId+=(2*weatherRequestInterval) // 2 weather
+        // currentWeatherId+=(2*weatherReqInterval) // 2 weather
         // reports per hour
         webRequest(timeslotRepo.currentTimeslot(), 1);
+        currentWeatherId+=(2*weatherReqInterval);
         requestFailed = false;
 
       }
