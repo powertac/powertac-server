@@ -101,16 +101,16 @@
 						window.customerSharesBarhChart#{broker.id}.destroy();
 						}
 		 				 		     
-		 		    window.customerSharesBarhChart#{broker.id} = $.jqplot('customerSharesBarhChart#{broker.id}', [#{broker.customerSharesJSONText}], {
+		 		    window.customerSharesBarhChart#{broker.id} = $.jqplot('customerSharesBarhChart#{broker.id}', [#{broker.customerCountByTypesJSONText}], {
 		 		        // The "seriesDefaults" option is an options object that will
 		 		        // be applied to all series in the chart.
-		 		        title: 'Shares for each customer type',
+		 		        title: 'Customer count for each customer type',
 		 		        seriesDefaults:{
 		 		            renderer:$.jqplot.BarRenderer,
 		 		            rendererOptions: {fillToZero: true	}
 		 		        },
 		 		        series:[
-		 		            {label:'Share [%]'}		 		         
+		 		            {label:'Count'}		 		         
 		 		        ],
 		 		        legend: {
 		 		            show: true,
@@ -127,7 +127,7 @@
 		 		            // not touch, the grid boundaries.  1.2 is the default padding.
 		 		            yaxis: {
 		 		                pad: 1.05,
-		 		               label: "%",
+		 		               label: "count",
 		 		               min : 0
 		 		               
 		 		            }
@@ -138,7 +138,7 @@
 		 		   <p:barChart rendered="false" value="fake" xaxisAngle="30"/>
 		 		   
 		 		   <p:panel>
-		 		   <h:outputText value="debug output:    shares: #{broker.customerSharesJSONText} ticks: #{broker.customerTicksJSONText}"/>
+		 		   <h:outputText value="debug output:    shares: #{broker.customerCountByTypesJSONText} ticks: #{broker.customerTicksJSONText}"/>
 		 		   </p:panel>
 
 

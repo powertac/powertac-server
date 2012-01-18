@@ -8,7 +8,7 @@
 	<ui:define name="headIncludes">
 		<script type="text/javascript">
 	var cashChartGlobal;
-	var marketSharePieChart;
+	var subscriptionsPieChart;
 </script>
 
 	</ui:define>
@@ -50,16 +50,16 @@
 										}
 									}); 	
 								</script>
-								<!-- Market share PieChart -->
-								<div id="marketSharePieChart" style="height: 300px; width: 300px; float:left;text-align:left;"></div>
+								<!-- Subscriptions PieChart -->
+								<div id="subscriptionsPieChart" style="height: 300px; width: 300px; float:left;text-align:left;"></div>
 								<script type="text/javascript">
 									
-								if (window.marketSharePieChart) {
-									window.marketSharePieChart.destroy();
+								if (window.subscriptionsPieChart) {
+									window.subscriptionsPieChart.destroy();
 								}
-								window.marketSharePieChart = jQuery.jqplot ('marketSharePieChart', [#{visualizerBean.marketSharePieChartJSONText}],
+								window.subscriptionsPieChart = jQuery.jqplot ('subscriptionsPieChart', [#{visualizerBean.subscriptionsPieChartJSONText}],
 									    {
-										title: 'Market share',
+										title: 'Number of subscriptions for each broker',
 										seriesColors: #{visualizerBean.brokerSeriesColors},
 								        highlighter: { show: false },
 									   	seriesDefaults: {
@@ -83,7 +83,7 @@
 								</script>
 								
 								
-								<h:outputText value="DEBUG: #{visualizerBean.marketSharePieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
+								<h:outputText value="DEBUG: #{visualizerBean.subscriptionsPieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
 								
 							</p:layoutUnit>
 

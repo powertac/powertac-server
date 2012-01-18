@@ -1,26 +1,15 @@
 package org.powertac.visualizer.services.handler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.apache.log4j.Logger;
-import org.hibernate.validator.util.GetAnnotationParameter;
-import org.joda.time.Chronology;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeField;
-import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.BankTransaction;
 import org.powertac.common.CashPosition;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.DistributionTransaction;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
@@ -28,27 +17,21 @@ import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.PluginConfig;
-import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.WeatherForecast;
-import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
-import org.powertac.common.enumerations.CustomerType;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
-import org.powertac.visualizer.beans.backing.CustomerBackingBean;
-import org.powertac.visualizer.comparators.BrokerCashComparator;
-import org.powertac.visualizer.comparators.GencoCashComparator;
 import org.powertac.visualizer.domain.BrokerModel;
 import org.powertac.visualizer.domain.GencoModel;
 import org.powertac.visualizer.domain.VisualBroker;
-import org.primefaces.component.carousel.Carousel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class VisualizerMessageHandlerService {
@@ -68,10 +51,6 @@ public class VisualizerMessageHandlerService {
 
 			// Build a list of brokers
 			List<BrokerModel> brokers = helper.buildBrokerList(competition);
-
-			// add fake brokers for testing:
-			brokers.add(0, new BrokerModel("Fake broker2", appearanceListBean.getAppereance()));
-			brokers.add(0, new BrokerModel("Fake broker3", appearanceListBean.getAppereance()));
 
 			visualizerBean.setBrokers(brokers);
 
@@ -256,7 +235,7 @@ public class VisualizerMessageHandlerService {
 		BrokerModel brokerModel = helper.findBrokerModel(tariffTransaction.getBroker());
 		if (brokerModel != null) {
 			brokerModel.addTariffTransaction(tariffTransaction);
-			//update overall status for customers:
+			// update overall status for customers:
 			visualizerBean.getCustomerModel().addTariffTransaction(tariffTransaction);
 		}
 
@@ -266,6 +245,17 @@ public class VisualizerMessageHandlerService {
 		log.info("Broker: " + distributionTransaction.getBroker() + "\nCharge: " + distributionTransaction.getCharge()
 				+ "\nkWh: " + distributionTransaction.getKWh() + "\nPostedTime timeslot index: "
 				+ helper.computeRelativeTimeslotIndex(distributionTransaction.getPostedTime()));
+
+		// fix for brokers that do not receive balancing transaction (because
+		// their distributionTransaction is 0 KWh!)
+		if (distributionTransaction.getKWh() == 0) {
+
+			BrokerModel brokerModel = helper.findBrokerModel(distributionTransaction.getBroker());
+			if (brokerModel != null) {
+				brokerModel.updateEnergyBalance(0);
+			}
+		}
+
 	}
 
 	public void handleMessage(BalancingTransaction balancingTransaction) {

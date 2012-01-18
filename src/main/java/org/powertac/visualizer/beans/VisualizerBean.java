@@ -148,8 +148,7 @@ public class VisualizerBean implements Serializable {
 		for (Iterator iterator = customers.iterator(); iterator.hasNext();) {
 			CustomerInfo customerInfo = (CustomerInfo) iterator.next();
 			builder.append("ID:" + customerInfo.getId()).append(" NAME:" + customerInfo.getName())
-					.append(" POPULATION:" + customerInfo.getPopulation())
-					.append(" CustomerType:" + customerInfo.getCustomerType());
+					.append(" POPULATION:" + customerInfo.getPopulation());
 
 		}
 		log.info("Customer list:\n" + builder.toString());
@@ -239,7 +238,7 @@ public class VisualizerBean implements Serializable {
 			return "";
 	}
 
-	public String getMarketSharePieChartJSONText() {
+	public String getSubscriptionsPieChartJSONText() {
 		JSONArray marketShare = new JSONArray();
 		if (brokers != null) {
 			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {

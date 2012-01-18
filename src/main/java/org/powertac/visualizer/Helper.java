@@ -10,16 +10,20 @@ public class Helper {
 	 */
 	public static int getCustomerCount(TariffTransaction tariffTransaction){
 		// add new customers
-				if (tariffTransaction.getTxType().compareTo(TariffTransaction.Type.SIGNUP) == 0) {
-					
-					return tariffTransaction.getCustomerCount();
-
-				}// remove customers that revoke or withdraw
-				else if ((tariffTransaction.getTxType().compareTo(TariffTransaction.Type.WITHDRAW) == 0)
-						|| (tariffTransaction.getTxType().compareTo(TariffTransaction.Type.REVOKE) == 0)) {
-					return (-1) * tariffTransaction.getCustomerCount();
-				}
-				else return 0;
+		
+		switch (tariffTransaction.getTxType()) {
+		case SIGNUP:
+			return tariffTransaction.getCustomerCount();			
+		case REVOKE:
+		case WITHDRAW:		
+			return (-1) * tariffTransaction.getCustomerCount();
+		case CONSUME:
+		case PERIODIC:
+		case PRODUCE:
+		case PUBLISH:
+		default:
+			return 0;
+		}
 	}
 
 }

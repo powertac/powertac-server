@@ -18,26 +18,13 @@ package org.powertac.visualizer.services;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.log4j.Logger;
-import org.aspectj.bridge.MessageHandler;
-import org.mockito.cglib.proxy.Dispatcher;
-import org.powertac.common.Orderbook;
-import org.powertac.common.OrderbookOrder;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
-import org.powertac.common.msg.SimStart;
-import org.powertac.common.repo.BrokerRepo;
-import org.powertac.du.DefaultBrokerService;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.services.handler.VisualizerMessageHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.sun.xml.bind.v2.TODO;
 
 /**
  * Main Visualizer service. Its main purpose is to register with Visualizer

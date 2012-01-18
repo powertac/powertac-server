@@ -134,11 +134,11 @@ public class CustomerModel {
 		return energyProduction + energyConsumption;
 	}
 
-	public synchronized double getCustomerShare() {
-		if (customerInfo.getPopulation() != 0) {
-			return (100.0)*customerCount / customerInfo.getPopulation();
-		} else
-			return 0;
-	}
+//	public synchronized double getCustomerShare() {
+//		if (customerInfo.getPopulation() != 0) {
+//			return (100.0)*customerCount / customerInfo.getPopulation();
+//		} else
+//			return 0;
+//	}
 
 }
