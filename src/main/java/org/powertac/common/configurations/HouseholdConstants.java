@@ -14,6 +14,7 @@ package org.powertac.common.configurations;
 /**
  * This class contains constant definitions used throughout the household
  * models.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1.0, Date: 13.12.10
  */
@@ -194,6 +195,48 @@ public class HouseholdConstants
   public static final int DRYER_SECOND_PHASE = 3;
   public static final int DRYER_THIRD_PHASE = 6;
   public static final int DRYER_THIRD_PHASE_LOAD = 250;
+
+  // AIR CONDITION VARIABLES -----------------------------//
+  public static final double AIR_CONDITION_CONSUMPTION_SHARE_VARIANCE = 0.0025;
+  public static final double AIR_CONDITION_CONSUMPTION_SHARE_MEAN = 0.0012;
+  public static final double AIR_CONDITION_BASE_LOAD_SHARE = 0;
+  public static final int AIR_CONDITION_POWER_MEAN_SMALL_NORMAL = 9000;
+  public static final int AIR_CONDITION_POWER_MEAN_MEDIUM_NORMAL = 12000;
+  public static final int AIR_CONDITION_POWER_MEAN_LARGE_NORMAL = 18000;
+
+  public static final double AIR_CONDITION_POWER_OVER_START_INVERTER = 0.09;
+  public static final double AIR_CONDITION_POWER_MEAN_INVERTER = 0.5;
+
+  public static final double AIR_CONDITION_CLASS_A_EER = 3.5;
+  public static final double AIR_CONDITION_CLASS_A_COP = 4;
+  public static final double AIR_CONDITION_CLASS_B_EER = 3.1;
+  public static final double AIR_CONDITION_CLASS_B_COP = 3.5;
+  public static final double AIR_CONDITION_CLASS_C_EER = 2.9;
+  public static final double AIR_CONDITION_CLASS_C_COP = 3.3;
+  public static final double AIR_CONDITION_CLASS_D_EER = 2.7;
+  public static final double AIR_CONDITION_CLASS_D_COP = 3.0;
+  public static final double AIR_CONDITION_CLASS_E_EER = 2.5;
+  public static final double AIR_CONDITION_CLASS_E_COP = 2.7;
+  public static final double AIR_CONDITION_CLASS_F_EER = 2.3;
+  public static final double AIR_CONDITION_CLASS_F_COP = 2.5;
+  public static final double AIR_CONDITION_CLASS_G_EER = 2;
+  public static final double AIR_CONDITION_CLASS_G_COP = 2.2;
+
+  public static final int AIR_CONDITION_DURATION_CYCLE_ON_NORMAL = 3;
+  public static final int AIR_CONDITION_DURATION_CYCLE_OFF_NORMAL = 2;
+  public static final int AIR_CONDITION_DURATION_CYCLE_INVERTER = 1;
+
+  public static final int AIR_CONDITION_POSSIBILITY_SEASON_1 = 24;
+  public static final int AIR_CONDITION_POSSIBILITY_SEASON_2 = 38;
+  public static final int AIR_CONDITION_POSSIBILITY_SEASON_3 = 38;
+  public static final int AIR_CONDITION_POSSIBILITY_DAY_1 = 16;
+  public static final int AIR_CONDITION_POSSIBILITY_DAY_2 = 14;
+  public static final int AIR_CONDITION_POSSIBILITY_DAY_3 = 14;
+
+  public static final int AIR_CONDITION_LOW_LIMIT_MEAN = 16;
+  public static final int AIR_CONDITION_LOW_LIMIT_VARIANCE = 2;
+  public static final int AIR_CONDITION_UPPER_LIMIT_MEAN = 28;
+  public static final int AIR_CONDITION_UPPER_LIMIT_VARIANCE = 2;
 
   // STORAGE WATER HEATER VARIABLES -----------------------------//
   public static final double STORAGE_HEATER_CONSUMPTION_SHARE_VARIANCE = 0.0022;
