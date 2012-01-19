@@ -26,9 +26,11 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Freezer is the utilized in combination with the fridge in the household. This appliance can
- * automatically change the freezing cyles in order to save energy, without problem without tenants
- * manipulation. So this is a fully shifting appliance.
+ * Freezer is the utilized in combination with the fridge in the household. This
+ * appliance can automatically change the freezing cyles in order to save
+ * energy, without problem without tenants manipulation. So this is a fully
+ * shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -48,14 +50,10 @@ public class Freezer extends FullyShiftingAppliance
     // Filling the base variables
     name = household + " Freezer";
     saturation = Double.parseDouble(conf.getProperty("FreezerSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.FREEZER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.FREEZER_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.FREEZER_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.FREEZER_POWER_MEAN);
     cycleDuration = HouseholdConstants.FREEZER_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.FREEZER_POSSIBILITY_SEASON_1, HouseholdConstants.FREEZER_POSSIBILITY_SEASON_2, HouseholdConstants.FREEZER_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.FREEZER_POSSIBILITY_DAY_1, HouseholdConstants.FREEZER_POSSIBILITY_DAY_2, HouseholdConstants.FREEZER_POSSIBILITY_DAY_3);
+
   }
 
   @Override

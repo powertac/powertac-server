@@ -26,8 +26,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Stove is the kitchen utility we use for cooking. It is use at least twice a day depending on the number of tenants. The tenants should be present when functioning so this is a not shifting
- * appliance.
+ * Stove is the kitchen utility we use for cooking. It is use at least twice a
+ * day depending on the number of tenants. The tenants should be present when
+ * functioning so this is a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -41,14 +42,9 @@ public class Stove extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Stove";
     saturation = Double.parseDouble(conf.getProperty("StoveSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.STOVE_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.STOVE_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.STOVE_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.STOVE_POWER_MEAN);
     cycleDuration = HouseholdConstants.STOVE_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.STOVE_POSSIBILITY_SEASON_1, HouseholdConstants.STOVE_POSSIBILITY_SEASON_2, HouseholdConstants.STOVE_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.STOVE_POSSIBILITY_DAY_1, HouseholdConstants.STOVE_POSSIBILITY_DAY_2, HouseholdConstants.STOVE_POSSIBILITY_DAY_3);
     times = Integer.parseInt(conf.getProperty("StoveDailyTimes"));
     createWeeklyOperationVector(times, gen);
 

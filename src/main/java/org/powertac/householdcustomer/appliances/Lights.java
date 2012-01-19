@@ -23,8 +23,9 @@ import java.util.Vector;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Lights are utilized when the persons inhabiting the house have need for them.So it's a not
- * shifting appliance.
+ * Lights are utilized when the persons inhabiting the house have need for
+ * them.So it's a not shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -37,15 +38,10 @@ public class Lights extends NotShiftingAppliance
     // Filling the base variables
     name = household + " Lights";
     saturation = 1;
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.LIGHTS_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.LIGHTS_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.LIGHTS_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.LIGHTS_POWER_MEAN);
     cycleDuration = HouseholdConstants.LIGHTS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("LightsDailyTimes")) + applianceOf.getMembers().size();
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.LIGHTS_POSSIBILITY_SEASON_1, HouseholdConstants.LIGHTS_POSSIBILITY_SEASON_2, HouseholdConstants.LIGHTS_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.LIGHTS_POSSIBILITY_DAY_1, HouseholdConstants.LIGHTS_POSSIBILITY_DAY_2, HouseholdConstants.LIGHTS_POSSIBILITY_DAY_3);
     createWeeklyOperationVector(times, gen);
   }
 

@@ -16,13 +16,9 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.joda.time.Instant;
@@ -32,7 +28,9 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.HeaterType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It works most of the hours of the day, but always when someone is at home in need of water. So it's a not shifting appliance.
+ * Circulation pump is the appliance that brings water to the household. It
+ * works most of the hours of the day, but always when someone is at home in
+ * need of water. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -41,7 +39,8 @@ public class WaterHeater extends FullyShiftingAppliance
 {
 
   /**
-   * The type of the water heater. For more info, read the details in the enumerations.HeaterType java file
+   * The type of the water heater. For more info, read the details in the
+   * enumerations.HeaterType java file
    **/
   HeaterType type;
 
@@ -149,30 +148,10 @@ public class WaterHeater extends FullyShiftingAppliance
     // Printing basic variables
     log.info("Name = " + name);
     log.info("Saturation = " + saturation);
-    log.info("Consumption Share = " + consumptionShare);
-    log.info("Base Load Share = " + baseLoadShare);
     log.info("Power = " + power);
     log.info("Heater Type = " + type);
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
-    log.info("In Use = " + inUse);
-
-    // Printing probability variables variables
-    Set<Entry<String, Double>> set = probabilitySeason.entrySet();
-    Iterator<Entry<String, Double>> it = set.iterator();
-    log.info("Probability Season = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
-
-    set = probabilityWeekday.entrySet();
-    it = set.iterator();
-    log.info("Probability Weekday = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
 
     // Printing Operation Vector
     log.info("Operation Vector = ");
@@ -206,28 +185,18 @@ public class WaterHeater extends FullyShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("WaterHeaterSaturation"));
     // If the heater is instant Heater
     if (x < limit) {
-      consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.INSTANT_HEATER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.INSTANT_HEATER_CONSUMPTION_SHARE_MEAN));
-      baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.INSTANT_HEATER_BASE_LOAD_SHARE;
       power = (int) (HouseholdConstants.INSTANT_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.INSTANT_HEATER_POWER_MEAN);
       cycleDuration = HouseholdConstants.INSTANT_HEATER_DURATION_CYCLE;
       od = false;
-      inUse = false;
-      probabilitySeason = fillSeason(HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_2, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_SEASON_3);
-      probabilityWeekday = fillDay(HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_1, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_2, HouseholdConstants.INSTANT_HEATER_POSSIBILITY_DAY_3);
       type = HeaterType.InstantHeater;
       times = Integer.parseInt(conf.getProperty("InstantHeaterDailyTimes")) + (int) (applianceOf.getMembers().size() / 2);
       createWeeklyOperationVector(times, gen);
     }
     // If heater is storage
     else {
-      consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.STORAGE_HEATER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.STORAGE_HEATER_CONSUMPTION_SHARE_MEAN));
-      baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.STORAGE_HEATER_BASE_LOAD_SHARE;
       power = (int) (HouseholdConstants.STORAGE_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.STORAGE_HEATER_POWER_MEAN);
       cycleDuration = HouseholdConstants.STORAGE_HEATER_DURATION_CYCLE;
       od = false;
-      inUse = false;
-      probabilitySeason = fillSeason(HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_2, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_SEASON_3);
-      probabilityWeekday = fillDay(HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_1, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_2, HouseholdConstants.STORAGE_HEATER_POSSIBILITY_DAY_3);
       type = HeaterType.StorageHeater;
     }
   }

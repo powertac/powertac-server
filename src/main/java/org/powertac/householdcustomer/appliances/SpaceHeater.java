@@ -25,9 +25,11 @@ import org.powertac.common.Tariff;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Spaceheater is a electric appliance utilized to keep the rooms of a household warm when needed.
- * These devices can work automatically in order to save as much energy as possible, knowing when
- * the room must be warm. So this is a fully shifting appliance.
+ * Spaceheater is a electric appliance utilized to keep the rooms of a household
+ * warm when needed. These devices can work automatically in order to save as
+ * much energy as possible, knowing when the room must be warm. So this is a
+ * fully shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -35,8 +37,8 @@ public class SpaceHeater extends FullyShiftingAppliance
 {
 
   /**
-   * Variable that presents the mean possibility to utilize the appliance each hour of the day that
-   * someone is present in the housesold.
+   * Variable that presents the mean possibility to utilize the appliance each
+   * hour of the day that someone is present in the housesold.
    */
   double percentage;
 
@@ -47,14 +49,9 @@ public class SpaceHeater extends FullyShiftingAppliance
     name = household + " SpaceHeater";
     saturation = Double.parseDouble(conf.getProperty("SpaceHeaterSaturation"));
     percentage = Double.parseDouble(conf.getProperty("SpaceHeaterPercentage"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.SPACE_HEATER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.SPACE_HEATER_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.SPACE_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_POWER_MEAN);
     cycleDuration = HouseholdConstants.SPACE_HEATER_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.SPACE_HEATER_POSSIBILITY_SEASON_1, HouseholdConstants.SPACE_HEATER_POSSIBILITY_SEASON_2, HouseholdConstants.SPACE_HEATER_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.SPACE_HEATER_POSSIBILITY_DAY_1, HouseholdConstants.SPACE_HEATER_POSSIBILITY_DAY_2, HouseholdConstants.SPACE_HEATER_POSSIBILITY_DAY_3);
   }
 
   @Override

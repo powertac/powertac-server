@@ -28,5 +28,5 @@ package org.powertac.common.enumerations;
 
 public enum AirConditionOperation
 {
-  Cooling, Heating
+  Cooling, Heating, Off
 }

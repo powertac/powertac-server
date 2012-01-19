@@ -23,9 +23,11 @@ import java.util.Vector;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * ICT are the appliances that are utilized mainly for work or to communicate with others from the
- * household such as computers, telephone devices etc. They works only when someone is at home and
- * uses them. So it's a not shifting appliance.
+ * ICT are the appliances that are utilized mainly for work or to communicate
+ * with others from the household such as computers, telephone devices etc. They
+ * works only when someone is at home and uses them. So it's a not shifting
+ * appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -38,15 +40,10 @@ public class ICT extends NotShiftingAppliance
     // Filling the base variables
     name = household + " ICT";
     saturation = Double.parseDouble(conf.getProperty("ICTSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.ICT_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.ICT_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.ICT_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.ICT_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.ICT_POWER_MEAN);
     cycleDuration = HouseholdConstants.ICT_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ICTDailyTimes")) + applianceOf.getMembers().size();
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.ICT_POSSIBILITY_SEASON_1, HouseholdConstants.ICT_POSSIBILITY_SEASON_2, HouseholdConstants.ICT_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.ICT_POSSIBILITY_DAY_1, HouseholdConstants.ICT_POSSIBILITY_DAY_2, HouseholdConstants.ICT_POSSIBILITY_DAY_3);
     createWeeklyOperationVector(times, gen);
   }
 

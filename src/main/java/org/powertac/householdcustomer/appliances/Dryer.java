@@ -16,13 +16,9 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.joda.time.Instant;
@@ -30,8 +26,11 @@ import org.powertac.common.Tariff;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Dryer appliances are utilized by the inhabitants to order to dry the freshly washed clothes. That means that the household should contain an washiung machine in order to have a dryer. Also, the
- * clothes should be placed in the washing machine shortly after the washing is finished. So this is a semi-shifting appliance.
+ * Dryer appliances are utilized by the inhabitants to order to dry the freshly
+ * washed clothes. That means that the household should contain an washiung
+ * machine in order to have a dryer. Also, the clothes should be placed in the
+ * washing machine shortly after the washing is finished. So this is a
+ * semi-shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -45,14 +44,9 @@ public class Dryer extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dryer";
     saturation = Double.parseDouble(conf.getProperty("DryerSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.DRYER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.DRYER_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.DRYER_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.DRYER_POWER_MEAN);
     cycleDuration = HouseholdConstants.DRYER_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.DRYER_POSSIBILITY_SEASON_1, HouseholdConstants.DRYER_POSSIBILITY_SEASON_2, HouseholdConstants.DRYER_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.DRYER_POSSIBILITY_DAY_1, HouseholdConstants.DRYER_POSSIBILITY_DAY_2, HouseholdConstants.DRYER_POSSIBILITY_DAY_3);
     times = Integer.parseInt(conf.getProperty("DryerWeeklyTimes")) + (int) (applianceOf.getMembers().size() / 2);
 
     // Inform the washing machine for the existence of the dryer
@@ -118,7 +112,8 @@ public class Dryer extends SemiShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
-      // The dishwasher needs for someone to be in the house at the beginning of its function
+      // The dishwasher needs for someone to be in the house at the beginning of
+      // its function
       if (applianceOf.isEmpty(day, j) == false)
         possibilityDailyOperation.add(true);
       else
@@ -129,7 +124,8 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   /**
-   * This function is utilized in order to find when the washing machine ends its function in order to put the dryer in use soon afterwards.
+   * This function is utilized in order to find when the washing machine ends
+   * its function in order to put the dryer in use soon afterwards.
    * 
    * @param weekday
    * @return
@@ -161,29 +157,9 @@ public class Dryer extends SemiShiftingAppliance
     // Printing basic variables
     log.info("Name = " + name);
     log.info("Saturation = " + saturation);
-    log.info("Consumption Share = " + consumptionShare);
-    log.info("Base Load Share = " + baseLoadShare);
     log.info("Power = " + power);
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
-    log.info("In Use = " + inUse);
-
-    // Printing probability variables variables
-    Set<Entry<String, Double>> set = probabilitySeason.entrySet();
-    Iterator<Entry<String, Double>> it = set.iterator();
-    log.info("Probability Season = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
-
-    set = probabilityWeekday.entrySet();
-    it = set.iterator();
-    log.info("Probability Weekday = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
 
     // Printing Function Day Vector
     ListIterator<Integer> iter = days.listIterator();
@@ -213,7 +189,8 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   /**
-   * In this function we take the days of function of the washing machine in order to make dryer work the same days.
+   * In this function we take the days of function of the washing machine in
+   * order to make dryer work the same days.
    * 
    * @param times
    * @return
