@@ -548,4 +548,112 @@ public class AuctionServiceTests
     assertEquals("mWh", -1.0, (Double)args[2], 1e-6);
     assertEquals("price", svc.getDefaultClearingPrice(), (Double)args[3], 1e-6);
   }
+  
+  // three asks, five bids, wide numeric range
+  @Test
+  public void testNumericRange ()
+  {
+    Order sell1 = new Order(s1, ts2, -0.036040484378997206, 20.0);
+    Order sell2 = new Order(s2, ts2, -0.3961457798682808, 21.8);
+    Order sell3 = new Order(s2, ts2, -26.185209758164312, 35.0);
+    Order buy1 = new Order(b1, ts2, 6.0, -35.0);
+    Order buy2 = new Order(b2, ts2, 0.35, -50.0);
+    Order buy3 = new Order(b2, ts2, 8.728125, null);
+    Order buy4 = new Order(b2, ts2, 0.0075, -37.0);
+    Order buy5 = new Order(b2, ts2, 7.875, -35.0);
+    svc.receiveMessage(sell1);
+    svc.receiveMessage(sell2);
+    svc.receiveMessage(sell3);
+    svc.receiveMessage(buy1);
+    svc.receiveMessage(buy2);
+    svc.receiveMessage(buy3);
+    svc.receiveMessage(buy4);
+    svc.receiveMessage(buy5);
+    assertEquals("eight orders received", 8, svc.getIncoming().size());
+    svc.activate(timeService.getCurrentTime(), 2);
+    assertEquals("accounting: 14 calls", 14, accountingArgs.size());
+    // first tx should be ask, second bid
+    // sell1, buy3, finish off sell1
+    Object[] args = accountingArgs.get(0);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -0.036040484378997206, (Double)args[2], 1e-6);
+    assertEquals("price", 35.0, (Double)args[3], 1e-6);
+
+    args = accountingArgs.get(1);
+    assertEquals("b2", b2, args[0]); // b2 had market order
+    assertEquals("mWh", 0.036040484378997206, (Double)args[2], 1e-6);
+    assertEquals("price", -35.0, (Double)args[3], 1e-6);
+
+    // sell2, buy3, finish off sell2
+    args = accountingArgs.get(2);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("mWh", -0.3961457798682808, (Double)args[2], 1e-6);
+    assertEquals("price", 35.0, (Double)args[3], 1e-6);
+
+    args = accountingArgs.get(3);
+    assertEquals("b2", b2, args[0]); // still working on buy3
+    assertEquals("mWh", 0.3961457798682808, (Double)args[2], 1e-6);
+    assertEquals("price", -35.0, (Double)args[3], 1e-6);
+
+    // sell3, buy3, finish off buy3
+    args = accountingArgs.get(4);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("mWh", -8.295938736, (Double)args[2], 1e-6);
+    assertEquals("price", 35.0, (Double)args[3], 1e-6);
+
+    args = accountingArgs.get(5);
+    assertEquals("b2", b2, args[0]); // finish up market order
+    assertEquals("mWh", 8.295938736, (Double)args[2], 1e-6);
+    assertEquals("price", -35.0, (Double)args[3], 1e-6);
+    
+    // sell3, buy2, finish off buy2
+    args = accountingArgs.get(6);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("mWh", -0.35, (Double)args[2], 1e-6);
+    assertEquals("price", 35.0, (Double)args[3], 1e-6);
+
+    args = accountingArgs.get(7);
+    assertEquals("b2", b2, args[0]); // finish up market order
+    assertEquals("mWh", 0.35, (Double)args[2], 1e-6);
+    assertEquals("price", -35.0, (Double)args[3], 1e-6);
+    
+    // sell3, buy4, finish off buy4
+    args = accountingArgs.get(8);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("mWh", -0.0075, (Double)args[2], 1e-6);
+    assertEquals("price", 35.0, (Double)args[3], 1e-6);
+
+    args = accountingArgs.get(9);
+    assertEquals("b2", b2, args[0]); // finish up market order
+    assertEquals("mWh", 0.0075, (Double)args[2], 1e-6);
+    assertEquals("price", -35.0, (Double)args[3], 1e-6);
+    
+    // sell3, buy1/5
+    args = accountingArgs.get(10);
+    Object[] buyArgs = accountingArgs.get(11);
+    Broker b11 = (Broker)buyArgs[0];
+    if (b11 == b2) {
+      // buy5
+      assertEquals("mWh", -7.875, (Double)args[2], 1e-6);
+    }
+    else {
+      // buy1
+      assertEquals("mWh", -6.0, (Double)args[2], 1e-6);
+    }
+    
+    // sell3, buy 1/5
+    args = accountingArgs.get(12);
+    buyArgs = accountingArgs.get(13);
+    Broker b13 = (Broker)buyArgs[0];
+    assertTrue("b1 != b2", b11 != b13);
+    if (b13 == b2) {
+      // buy5
+      assertEquals("mWh", -7.875, (Double)args[2], 1e-6);
+    }
+    else {
+      // buy1
+      assertEquals("mWh", -6.0, (Double)args[2], 1e-6);
+    }
+  }
+  
 }

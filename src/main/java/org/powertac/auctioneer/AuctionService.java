@@ -215,8 +215,8 @@ public class AuctionService
       else
         addAsk(sw);
     }
-    log.debug("activate: " + sortedAsks.size() + " asks, " +
-              sortedBids.size() + " bids");
+    log.debug("activate: asks in " + sortedAsks.size() + " timeslots, bids in " +
+              sortedBids.size() + " timeslots");
     
     // Iterate through the timeslots that were enabled at the end of the last
     // timeslot, and clear each one individually
@@ -270,9 +270,9 @@ public class AuctionService
         }
         log.debug("bid remaining=" + (bid.getMWh() - bid.executionMWh));
         log.debug("ask remaining=" + (ask.getMWh() - ask.executionMWh));
-        if (bid.getMWh() - bid.executionMWh <= epsilon)
+        if (Math.abs(bid.getMWh() - bid.executionMWh) <= epsilon)
           bids.remove(bid);
-        if (ask.getMWh() - ask.executionMWh >= -epsilon)
+        if (Math.abs(ask.getMWh() - ask.executionMWh) <= epsilon)
           asks.remove(ask);
       }
       double clearingPrice;
