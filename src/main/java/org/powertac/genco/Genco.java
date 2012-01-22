@@ -26,6 +26,8 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.common.MarketPosition;
+import org.powertac.common.config.ConfigurableInstance;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
@@ -39,6 +41,7 @@ import org.powertac.common.RandomSeed;
  * @author jcollins
  */
 @Domain
+@ConfigurableInstance
 public class Genco
   extends Broker
 {
@@ -102,6 +105,18 @@ public class Genco
   {
     return nominalCapacity;
   }
+  
+  /**
+   * Fluent setter for nominal capacity
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "nominal output capacity of this genco in MW")
+  @StateChange
+  public Genco withNominalCapacity (double capacity)
+  {
+    this.nominalCapacity = capacity;
+    return this;
+  }
 
   /**
    * Ask price for energy from this plant.
@@ -109,6 +124,58 @@ public class Genco
   public double getCost ()
   {
     return cost;
+  }
+  
+  /**
+   * Fluent setter for nominal capacity
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "minimum payment/mwh needed to operate this plant")
+  @StateChange
+  public Genco withCost (double cost)
+  {
+    this.cost = cost;
+    return this;
+  }
+  
+  /**
+   * Maximim amount by which capacity can change/timeslot in random walk.
+   */
+  public double getVariability ()
+  {
+    return variability;
+  }
+  
+  /**
+   * Fluent setter for variability.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "max ratio for a step in capacity random walk")
+  @StateChange
+  public Genco withVariability (double var)
+  {
+    this.variability = var;
+    return this;
+  }
+  
+  /**
+   * Probability that this plant will submit asks in any given timeslot
+   */
+  public double getReliability ()
+  {
+    return reliability;
+  }
+  
+  /**
+   * Fluent setter for reliability.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "probability that plant will participate in wholesale market")
+  @StateChange
+  public Genco withReliability (double reliability)
+  {
+    this.reliability = reliability;
+    return this;
   }
 
   /**
@@ -121,7 +188,40 @@ public class Genco
   {
     return commitmentLeadtime;
   }
-
+  
+  /**
+   * Fluent setter for commitment leadtime.
+   */
+  @ConfigurableValue(valueType = "Integer",
+      description = "minimum leadtime for first commitment, in hours")
+  @StateChange
+  public Genco withCommitmentLeadtime (int leadtime)
+  {
+    this.commitmentLeadtime = leadtime;
+    return this;
+  }
+  
+  /**
+   * Rate at which this plant emits carbon, relative to a coal-fired 
+   * thermal plant.
+   */
+  public double getCarbonEmissionRate ()
+  {
+    return carbonEmissionRate;
+  }
+  
+  /**
+   * Fluent setter for carbonEmissionRate.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "carbon emissions/mwh, relative to coal-fired plant")
+  @StateChange
+  public Genco withCarbonEmissionRate (double rate)
+  {
+    this.carbonEmissionRate = rate;
+    return this;
+  }
+  
   /**
    * Current capacity, varies by a mean-reverting random walk.
    */
