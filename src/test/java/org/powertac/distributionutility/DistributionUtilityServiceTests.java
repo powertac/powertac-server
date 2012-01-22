@@ -1,5 +1,6 @@
 package org.powertac.distributionutility;
 
+import static org.mockito.Mockito.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -17,15 +18,11 @@ import org.junit.runner.RunWith;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.PluginConfig;
-import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -33,7 +30,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.distributionutility.DistributionUtilityService.ChargeInfo;
-import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -54,12 +50,12 @@ public class DistributionUtilityServiceTests
 
   @Autowired
   private OrderbookRepo orderbookRepo;
+  
+  @Autowired
+  private Accounting accountingService;
 
   @Autowired
   private PluginConfigRepo pluginConfigRepo;
-
-  @Autowired
-  private TariffMarket tariffMarketService;
 
   @Autowired
   private DistributionUtilityService distributionUtilityService;
@@ -67,15 +63,12 @@ public class DistributionUtilityServiceTests
   @Autowired
   private DistributionUtilityInitializationService distributionUtilityInitializationService;
 
-  private Accounting accountingService;
   private TariffRepo tariffRepo;
   private Competition comp;
   private List<Broker> brokerList = new ArrayList<Broker>();
   private List<TariffSpecification> tariffSpecList = new ArrayList<TariffSpecification>();
   private List<Tariff> tariffList = new ArrayList<Tariff>();
-  private Instant exp;
   private DateTime start;
-  private CustomerInfo customerInfo;
 
   @Before
   public void setUp ()
@@ -87,7 +80,7 @@ public class DistributionUtilityServiceTests
     timeService.setCurrentTime(start.toInstant());
     timeslotRepo.makeTimeslot(start.toInstant());
     timeslotRepo.currentTimeslot().disable();// enabled: false);
-    exp = new Instant(start.getMillis() + TimeService.WEEK * 10);
+    reset(accountingService);
 
     // Create 3 test brokers
     Broker broker1 = new Broker("testBroker1");
@@ -101,18 +94,11 @@ public class DistributionUtilityServiceTests
     Broker broker3 = new Broker("testBroker3");
     brokerRepo.add(broker3);
     brokerList.add(broker3);
-
-    // Create customer
-    customerInfo = new CustomerInfo("Wilfred", 1);
   }
 
   @After
   public void tearDown ()
   {
-    // clear pending transactions list
-    accountingService = (Accounting) SpringApplicationContext.getBean("accountingService");
-    accountingService.activate(new Instant(), 1);
-
     // clear all repos
     timeslotRepo.recycle();
     brokerRepo.recycle();
@@ -140,55 +126,20 @@ public class DistributionUtilityServiceTests
   public void testGetMarketBalance ()
   {
     initializeService();
-    double balance = 0.0;
-
-    // Create two tariff specifications, one for consumption and one for
-    // production
-    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(-0.1));
-
-    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(0),
-                                                              PowerType.PRODUCTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(0.1));
-
-    // Create a tariff for each specification
-    Tariff tariff1 = new Tariff(tariffSpec1);
-    tariff1.init();
-
-    Tariff tariff2 = new Tariff(tariffSpec2);
-    tariff2.init();
-
-    // Subscribe customers to each tariff
-    TariffSubscription tsubConsume = tariffMarketService.subscribeToTariff(tariff1,
-                                                                           customerInfo,
-                                                                           1);
-    TariffSubscription tsubProduce = tariffMarketService.subscribeToTariff(tariff2,
-                                                                           customerInfo,
-                                                                           1);
-
-    tsubConsume.usePower(500.0);
-    balance -= 500.0;
+    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(1.0);
+    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-500.0);    
     assertEquals("correct balance",
-                 balance,
+                 500.0,
                  distributionUtilityService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-
-    tsubProduce.usePower(-500.0);
-    balance += 500.0;
+    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-1000.0);    
     assertEquals("correct balance",
-                 balance,
+                 0.0,
                  distributionUtilityService.getMarketBalance(brokerList.get(0)),
                  1e-6);
-
-    tsubConsume.usePower(50000);
-    balance -= 50000;
+    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-1500.0);    
     assertEquals("correct balance",
-                 balance,
+                 -500.0,
                  distributionUtilityService.getMarketBalance(brokerList.get(0)),
                  1e-6);
   }
@@ -197,63 +148,12 @@ public class DistributionUtilityServiceTests
   public void testNegImbalancedMarket ()
   {
     initializeService();
-    double powerUse = 50.0;
-
-    // Create a tariff specification for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec1);
-
-    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec2);
-
-    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec3);
-
-    // Create a tariff for each specification
-    Tariff tariff1 = new Tariff(tariffSpecList.get(0));
-    tariff1.init();
-    tariffList.add(tariff1);
-
-    Tariff tariff2 = new Tariff(tariffSpecList.get(1));
-    tariff2.init();
-    tariffList.add(tariff2);
-
-    Tariff tariff3 = new Tariff(tariffSpecList.get(2));
-    tariff3.init();
-    tariffList.add(tariff3);
-
-    // Subscribe customers to each tariff
-    TariffSubscription tsub1 = tariffMarketService.subscribeToTariff(tariffList.get(0),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub2 = tariffMarketService.subscribeToTariff(tariffList.get(1),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub3 = tariffMarketService.subscribeToTariff(tariffList.get(2),
-                                                                     customerInfo,
-                                                                     1);
-
-    // Negatively balance market, each broker has equal load (in kWh).
-    tsub1.usePower(powerUse);
-    tsub2.usePower(powerUse);
-    tsub3.usePower(powerUse);
-
-    double marketBalance = powerUse * -3; // Compute market balance
-
-    List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                                                    brokerList);
+    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
+    double marketBalance = -150.0; // Compute market balance
+    List<ChargeInfo> theChargeInfoList =
+        distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
+                                                   brokerList);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
@@ -266,60 +166,9 @@ public class DistributionUtilityServiceTests
   public void TestPosImbalancedMarket ()
   {
     initializeService();
-    double powerUse = -50.0;
-
-    // Create a production tariff specification for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(
-                                                              brokerList.get(0),
-                                                              PowerType.PRODUCTION).withExpiration(exp)
-                                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(0.1));
-    tariffSpecList.add(tariffSpec1);
-
-    TariffSpecification tariffSpec2 = new TariffSpecification(
-                                                              brokerList.get(1),
-                                                              PowerType.PRODUCTION).withExpiration(exp)
-                                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(0.1));
-    tariffSpecList.add(tariffSpec2);
-
-    TariffSpecification tariffSpec3 = new TariffSpecification(
-                                                              brokerList.get(2),
-                                                              PowerType.PRODUCTION).withExpiration(exp)
-                                                                                   .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(0.1));
-    tariffSpecList.add(tariffSpec3);
-
-    // Create a tariff for each specification
-    Tariff tariff1 = new Tariff(tariffSpecList.get(0));
-    tariff1.init();
-    tariffList.add(tariff1);
-
-    Tariff tariff2 = new Tariff(tariffSpecList.get(1));
-    tariff2.init();
-    tariffList.add(tariff2);
-
-    Tariff tariff3 = new Tariff(tariffSpecList.get(2));
-    tariff3.init();
-    tariffList.add(tariff3);
-
-    // Subscribe customers to each tariff
-    TariffSubscription tsub1 = tariffMarketService.subscribeToTariff(tariffList.get(0),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub2 = tariffMarketService.subscribeToTariff(tariffList.get(1),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub3 = tariffMarketService.subscribeToTariff(tariffList.get(2),
-                                                                     customerInfo,
-                                                                     1);
-
-    // Negatively balance market, each broker has equal load (in kWh).
-    tsub1.usePower(powerUse);
-    tsub2.usePower(powerUse);
-    tsub3.usePower(powerUse);
-
-    double marketBalance = powerUse * -3; // Compute market balance
+    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(50.0);    
+    double marketBalance = 150.0; // Compute market balance
 
     List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                                                     brokerList);
@@ -337,57 +186,10 @@ public class DistributionUtilityServiceTests
     initializeService();
     double balance = 0.0;
 
-    // Create tariff specifications for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(-0.1));
-
-    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(-0.1));
-
-    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(-0.1));
-
-    // Create a tariff for each specification
-    Tariff tariff1 = new Tariff(tariffSpec1);
-    tariff1.init();
-
-    Tariff tariff2 = new Tariff(tariffSpec2);
-    tariff2.init();
-
-    Tariff tariff3 = new Tariff(tariffSpec3);
-    tariff3.init();
-
-    // Subscribe customers to each tariff
-    TariffSubscription tsub1 = tariffMarketService.subscribeToTariff(tariff1,
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub2 = tariffMarketService.subscribeToTariff(tariff2,
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub3 = tariffMarketService.subscribeToTariff(tariff3,
-                                                                     customerInfo,
-                                                                     1);
-
-    // Create positively balanced broker
-    tsub1.usePower(19654852);
-    tsub1.usePower(-54862); // this probably should not work
-
-    // Create balanced broker
-    tsub2.usePower(500000);
-    tsub2.usePower(-500000);
-
-    // Create negatively balanced broker
-    tsub3.usePower(-8796542);
-    tsub3.usePower(5423);
+    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(-19599990.0);    
+    when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(8791119.0);    
 
     // Compute market balance
     for (Broker b : brokerList) {
@@ -420,61 +222,17 @@ public class DistributionUtilityServiceTests
   public void testScenario1BalancingCharges ()
   {
     initializeService();
-    // Create a tariff specification for each broker
-    TariffSpecification tariffSpec1 = new TariffSpecification(brokerList.get(0),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec1.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec1);
 
-    TariffSpecification tariffSpec2 = new TariffSpecification(brokerList.get(1),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec2.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec2);
-
-    TariffSpecification tariffSpec3 = new TariffSpecification(brokerList.get(2),
-                                                              PowerType.CONSUMPTION)
-      .withExpiration(exp)
-      .withMinDuration(TimeService.WEEK * 8);
-    tariffSpec3.addRate(new Rate().withValue(-0.1));
-    tariffSpecList.add(tariffSpec3);
-
-    // Create a tariff for each specification
-    Tariff tariff1 = new Tariff(tariffSpecList.get(0));
-    tariff1.init();
-    tariffList.add(tariff1);
-
-    Tariff tariff2 = new Tariff(tariffSpecList.get(1));
-    tariff2.init();
-    tariffList.add(tariff2);
-
-    Tariff tariff3 = new Tariff(tariffSpecList.get(2));
-    tariff3.init();
-    tariffList.add(tariff3);
-
-    // Subscribe customers to each tariff
-    TariffSubscription tsub1 = tariffMarketService.subscribeToTariff(tariffList.get(0),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub2 = tariffMarketService.subscribeToTariff(tariffList.get(1),
-                                                                     customerInfo,
-                                                                     1);
-    TariffSubscription tsub3 = tariffMarketService.subscribeToTariff(tariffList.get(2),
-                                                                     customerInfo,
-                                                                     1);
-
-    // Balance brokers such that balances are 2, -4, and 0 (MWh)
-    // respectively
-    tsub1.usePower(-200);
-    tsub2.usePower(400);
+    when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(200.0);    
+    when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(-400.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(0.0);    
 
     // List solution =
     // distributionUtilityService.computeNonControllableBalancingCharges(brokerList)
-    List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                                                    brokerList);
+    List<ChargeInfo> theChargeInfoList =
+        distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
+                                                   brokerList);
 
     // Correct solution list is [-4, 14, 2] (but negated)
     ChargeInfo ci = theChargeInfoList.get(0); // BalancingTransaction.findByBroker(brokerList.get(0));

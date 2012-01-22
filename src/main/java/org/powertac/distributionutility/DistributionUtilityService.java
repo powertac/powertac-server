@@ -31,7 +31,6 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
-import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
@@ -73,9 +72,6 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
   private Accounting accountingService;
 
   @Autowired
-  private CompetitionControl competitionControlService;
-
-  @Autowired
   private RandomSeedRepo randomSeedService;
   private RandomSeed randomGen;
 
@@ -110,6 +106,7 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
              + ", balancing cost = " + balancingCost);
   }
 
+  @Override
   public void activate (Instant time, int phaseNumber)
   {
     log.info("Activate");

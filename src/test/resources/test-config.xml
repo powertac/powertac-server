@@ -14,22 +14,24 @@
 	</bean>
 
 	<bean id="competitionControl" class="org.mockito.Mockito"
-		factory-method="mock">
-		<constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+	      factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
 	</bean>
+  
+        <bean id="accountingService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.Accounting" />
+        </bean>
+        
+        <bean id="tariffMarketService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+        </bean>
 
 	<context:annotation-config />
 
 	<bean id="springApplicationContext"
 	      class="org.powertac.common.spring.SpringApplicationContext" />
-
-	<bean id="accountingService"
-	      class="org.powertac.accounting.AccountingService">
-	</bean>
-
-        <bean id="tariffMarketService"
-              class="org.powertac.tariffmarket.TariffMarketService">
-        </bean>
 
 	<bean id="brokerRepo"
 	      class="org.powertac.common.repo.BrokerRepo">
