@@ -27,7 +27,7 @@ package org.powertac.common.interfaces;
  * <li>A file provided on the command-line as the value of the config
  * option.</li>
  * </ol>  
- * @author jcollins
+ * @author John Collins
  */
 public interface ServerProperties
 {
