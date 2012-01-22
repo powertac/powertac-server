@@ -43,6 +43,7 @@ public class ConfiguratorTest
     comp = Competition.newInstance("test");
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("common.competition.timeslotLength", "15");
+    map.put("common.competition.minimumTimeslotCount", "600");
     config = new MapConfiguration(map);
   }
 
@@ -53,6 +54,7 @@ public class ConfiguratorTest
     uut.setConfiguration(config);
     uut.configureSingleton(comp);
     assertEquals("correct timeslot length", 15, comp.getTimeslotLength());
+    assertEquals("correct min ts count", 600, comp.getMinimumTimeslotCount());
   }
 
 }

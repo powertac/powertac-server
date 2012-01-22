@@ -24,6 +24,8 @@ import java.util.TreeMap;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -177,6 +179,9 @@ public class Competition //implements Serializable
   /**
    * Fluent setter for competition description.
    */
+  @ConfigurableValue(
+      description = "user-readable description of the Competition",
+      valueType = "String")
   @StateChange
   public Competition withDescription (String description)
   {
@@ -225,29 +230,12 @@ public class Competition //implements Serializable
   /**
    * Fluent setter for minimumTimeslotCount.
    */
+  @ConfigurableValue(valueType = "Integer",
+      description = "minimum number of timeslots in simulation run")
   @StateChange
   public Competition withMinimumTimeslotCount (int minimumTimeslotCount)
   {
     this.minimumTimeslotCount = minimumTimeslotCount;
-    return this;
-  }
-
-  /**
-   * Number of timeslots in the bootstrap data report for a normal sim.
-   */
-  public int getBootstrapTimeslotCount ()
-  {
-    return bootstrapTimeslotCount;
-  }
-  
-  /**
-   * Fluent setter for the bootstrap timeslot count. It only makes sense to
-   * change this before running a bootstrap session.
-   */
-  @StateChange
-  public Competition withBootstrapTimeslotCount (int bootstrapTimeslotCount)
-  {
-    this.bootstrapTimeslotCount = bootstrapTimeslotCount;
     return this;
   }
   
@@ -262,6 +250,8 @@ public class Competition //implements Serializable
   /**
    * Fluent setter for the expected length of a normal sim session.
    */
+  @ConfigurableValue(valueType = "Integer",
+      description = "expected number of timeslots in simulation run")
   @StateChange
   public Competition withExpectedTimeslotCount (int expectedTimeslotCount)
   {
@@ -280,6 +270,8 @@ public class Competition //implements Serializable
   /**
    * Fluent setter for the open timeslot count. Default value is 24.
    */
+  @ConfigurableValue(valueType = "Integer",
+      description = "expected number of timeslots in simulation run")
   @StateChange
   public Competition withTimeslotsOpen (int timeslotsOpen)
   {
@@ -300,6 +292,8 @@ public class Competition //implements Serializable
    * Fluent setter for number of timeslots, starting with the current timeslot,
    * that are closed for trading.Default value is 1. 
    */
+  @ConfigurableValue(valueType = "Integer",
+      description = "expected number of timeslots in simulation run")
   @StateChange
   public Competition withDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
   {
@@ -324,20 +318,54 @@ public class Competition //implements Serializable
    * discarded data at the beginning, it is 15 days before the start of a
    * normal sim. 
    */
-  @StateChange
   public Competition withSimulationBaseTime (Instant simulationBaseTime)
   {
-    this.simulationBaseTime = simulationBaseTime;
-    return this;
+    return withSimulationBaseTime(simulationBaseTime.getMillis());
+  }
+  
+  /**
+   * Fluent setter for simulation base time that takes a String, interpreted
+   * as a standard DateTimeFormat as yyy-MM-dd.
+   */
+  @ConfigurableValue(valueType = "String",
+    description = "Scenario start time of the bootstrap portion of a simulation")
+  public Competition withSimulationBaseTime (String baseTime)
+  {
+    DateTimeZone.setDefault(DateTimeZone.UTC);
+    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+    return withSimulationBaseTime(fmt.parseDateTime(baseTime).toInstant().getMillis()); 
   }
   
   /**
    * Fluent setter for simulation base time that takes a long.
    */
+  @ConfigurableValue(valueType = "Long",
+    description = "Scenario start time of the bootstrap portion of a simulation")
   @StateChange
   public Competition withSimulationBaseTime (long baseTime)
   {
     this.simulationBaseTime = new Instant(baseTime);
+    return this;
+  }
+
+  /**
+   * Number of timeslots in the bootstrap data report for a normal sim.
+   */
+  public int getBootstrapTimeslotCount ()
+  {
+    return bootstrapTimeslotCount;
+  }
+  
+  /**
+   * Fluent setter for the bootstrap timeslot count. It only makes sense to
+   * change this before running a bootstrap session.
+   */
+  @ConfigurableValue(valueType = "Integer",
+    description = "Number of timeslots in bootstrap session during which data is collected")
+  @StateChange
+  public Competition withBootstrapTimeslotCount (int bootstrapTimeslotCount)
+  {
+    this.bootstrapTimeslotCount = bootstrapTimeslotCount;
     return this;
   }
   
@@ -353,6 +381,9 @@ public class Competition //implements Serializable
   /**
    * Fluent setter for bootstrap interval.
    */
+  @ConfigurableValue(valueType = "Integer",
+      description = "Number of timeslots in bootstrap session that are discarded" +
+                    "before data collection begins")
   @StateChange
   public Competition withBootstrapDiscardedTimeslots (int count)
   {
@@ -372,11 +403,34 @@ public class Competition //implements Serializable
    * Fluent setter for time compression ratio. Default value is 720, which
    * runs 1-hour timeslots in 5 real-time seconds.
    */
+  @ConfigurableValue(valueType = "Integer",
+    description = "Time compression ratio for simulation clock")
   @StateChange
   public Competition withSimulationRate (long simulationRate)
   {
     this.simulationRate = simulationRate;
     return this;
+  }
+  
+  /**
+   * Returns the number of seconds in wall-clock time per timeslot, truncated
+   * to an integer.
+   */
+  public int getSimulationTimeslotSeconds ()
+  {
+    return timeslotLength * 60 / (int)simulationRate;
+  }
+  
+  /**
+   * Fluent setter for controlling simulation rate by setting the number of
+   * wall-clock seconds per timeslot. Only integer values are allowed.
+   * Results may be strange if timeslotLength is changed after this is set.
+   */
+  @ConfigurableValue(valueType = "Integer",
+      description = "Time compression ratio for simulation clock")
+  public Competition withSimulationTimeslotSeconds (int seconds)
+  {
+    return withSimulationRate((long)(timeslotLength * 60 / seconds));
   }
 
   /**
@@ -395,6 +449,9 @@ public class Competition //implements Serializable
    * will not respond properly for values that are different from a timeslot
    * length. Default value is 3600000 msec.
    */
+  @ConfigurableValue(valueType = "Long",
+      description = "Size, in milliseconds, of a simulation clock tick." +
+                    "Normally, this is the same as a timeslot.")
   @StateChange
   public Competition withSimulationModulo (long simulationModulo)
   {

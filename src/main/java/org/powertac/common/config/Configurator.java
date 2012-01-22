@@ -15,26 +15,31 @@
  */
 package org.powertac.common.config;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
-import org.powertac.common.TimeService;
 
 /**
  * Fills in configured values from configuration source based on 
  * annotations in the source code.
- * 
+ * <p>
  * Configuration clauses are assumed to be of the form<br/>
  *   &nbsp; &nbsp; pkg.class[.instance].property = value<br/>
  * where pkg is the package name without org.powertac, class is the
  * classname, instance is the optional instance name, and property is the
- * property name.
+ * property name.</p>
+ * <p>
+ * In the server, an instance of this class is typically created by a service
+ * that collects configuration data, creates and initializes a Configurator,
+ * then waits for each service to ask for its configuration.</p>
  * @author John Collins
  */
 public class Configurator
@@ -79,17 +84,7 @@ public class Configurator
       return;
     }
     // Next, turn the remainder of the classname into a properties prefix.
-    // Note that the classname must be lower-cased.
-    StringBuilder sb = new StringBuilder();
-    for (int i = 2; i < (classnamePath.length - 1); i++) {
-      sb.append(classnamePath[i]).append(".");
-    }
-    sb.append(decapitalize(classnamePath[classnamePath.length - 1]));
-    String prefix = sb.toString();
-    log.debug("config prefix " + prefix);
-    // pull in the subset config starting with this prefix
-    Configuration subset = config.subset(prefix);
-    log.debug("config subset empty: " + subset.isEmpty());
+    Configuration subset = extractConfigForClass(classnamePath);
     // At this point, each key is either a property name, or an
     // instance name, or an instance name followed by a property name.
     // If they are all property names, we can proceed with the configuration.
@@ -101,11 +96,78 @@ public class Configurator
     }
   }
   
+  /**
+   * Creates and configures instances of the given class. In the configuration,
+   * we expect to see a property of the form pkg.class.instances = a, b, c, ...
+   * where a, b, c, etc. are the names of instances of the class to be created
+   * and configured. These names are provided to the instances through their
+   * constructors, and are expected to show up in the configuration as
+   * instance names in clauses of the form
+   * pkg.class.name.property = value.
+   * Returns null in case instances cannot be created.
+   */
+  public Collection<Object> configureInstances (Class<?> type)
+  {
+    // compute the key for the instance list
+    String classname = type.getName();
+    log.debug("configuring instances for type " + classname);
+    String[] classnamePath = classname.split("\\.");
+    if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
+      log.error("Cannot configure instances of type " + classname);
+      return null;
+    }
+    Configuration subset = extractConfigForClass(classnamePath);
+    // we should have a class with the key "instances" giving the item
+    // names, and a set of clauses for each item
+    List<?> names = subset.getList("instances");
+    if (names.size() == 0) {
+      log.error("No instance names specified for class " + classname);
+      return null;
+    }
+    // for each name, create an instance, add it to the result, and
+    // configure it.
+    HashMap<String, Object> itemMap = new HashMap<String, Object>();
+    for (Object name : names) {
+      try {
+        Constructor<?> constructor = type.getConstructor(String.class);
+        Object item = constructor.newInstance((String)name);
+        itemMap.put((String)name, item);
+      }
+      catch (Exception e) {
+        log.error("Unable to create instance " + name + " of class " + type +
+                  ": " + e.toString());
+      }
+    }
+    // We now have a map of names and items to be configured.
+    // We iterate through the map to avoid problems with items that did
+    // not get created, although that seems far-fetched.
+    for (String name : itemMap.keySet()) {
+      configureInstance(itemMap.get(name), subset.subset(name));
+    }
+    return itemMap.values();
+  }
+
+  private Configuration extractConfigForClass (String[] classnamePath)
+  {
+    // Note that the classname must be lower-cased.
+    StringBuilder sb = new StringBuilder();
+    for (int i = 2; i < (classnamePath.length - 1); i++) {
+      sb.append(classnamePath[i]).append(".");
+    }
+    sb.append(decapitalize(classnamePath[classnamePath.length - 1]));
+    String prefix = sb.toString();
+    log.debug("config prefix " + prefix);
+    // pull in the subset config starting with this prefix
+    Configuration subset = config.subset(prefix);
+    log.debug("config subset empty: " + subset.isEmpty());
+    return subset;
+  }
+  
   private boolean isSingletonConfig (Configuration conf)
   {
     boolean result = true;
-    for (Iterator<String> keys = conf.getKeys(); keys.hasNext() && result; ) {
-      String key = keys.next();
+    for (Iterator<?> keys = conf.getKeys(); keys.hasNext() && result; ) {
+      String key = (String)keys.next();
       if (key.contains("."))
         result = false;
     }
@@ -119,8 +181,8 @@ public class Configurator
   private void configureInstance (Object thing, Configuration conf)
   {
     Map<String, ConfigurableProperty> analysis = getAnalysis(thing.getClass());
-    for (Iterator<String> keys = conf.getKeys(); keys.hasNext(); ) {
-      String key = keys.next();
+    for (Iterator<?> keys = conf.getKeys(); keys.hasNext(); ) {
+      String key = (String)keys.next();
       log.debug("Configuring property " + key);
       // key is a property name. Let's find the property.
       ConfigurableProperty cp = analysis.get(key);
