@@ -23,9 +23,10 @@ import java.util.Vector;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Consumer Electronics are the appliances that are utilized mainly for work or enteratinment in the
- * household such as TV, DVD Players, Stereos and so on. They works only when someone is at home. So
- * it's a not shifting appliance.
+ * Consumer Electronics are the appliances that are utilized mainly for work or
+ * enteratinment in the household such as TV, DVD Players, Stereos and so on.
+ * They works only when someone is at home. So it's a not shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -38,17 +39,11 @@ public class ConsumerElectronics extends NotShiftingAppliance
     // Filling the base variables
     name = household + " ConsumerElectronics";
     saturation = Double.parseDouble(conf.getProperty("ConsumerElectronicsSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.CONSUMER_ELECTRONICS_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.CONSUMER_ELECTRONICS_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.CONSUMER_ELECTRONICS_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
     cycleDuration = HouseholdConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ConsumerElectronicsDailyTimes")) + applianceOf.getMembers().size();
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_SEASON_1, HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_SEASON_2,
-        HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_DAY_1, HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_DAY_2,
-        HouseholdConstants.CONSUMER_ELECTRONICS_POSSIBILITY_DAY_3);
+
     createWeeklyOperationVector(times, gen);
   }
 
@@ -103,7 +98,8 @@ public class ConsumerElectronics extends NotShiftingAppliance
 
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
-    // The consumers electronics can work each quarter someone is in the premises
+    // The consumers electronics can work each quarter someone is in the
+    // premises
     for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
       if (applianceOf.isEmpty(day, j) == false)
         possibilityDailyOperation.add(true);

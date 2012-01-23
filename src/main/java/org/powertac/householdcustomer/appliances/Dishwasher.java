@@ -16,13 +16,9 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.joda.time.Instant;
@@ -31,8 +27,10 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Dishwasher are used in order to wash easily the dishes after dinner. There are several programs that help you automate the procedure in order to start at a less costly time, without problem,
- * because it doesn't need emptying after utilization. So this is a semi-shifting appliance.
+ * Dishwasher are used in order to wash easily the dishes after dinner. There
+ * are several programs that help you automate the procedure in order to start
+ * at a less costly time, without problem, because it doesn't need emptying
+ * after utilization. So this is a semi-shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -41,7 +39,8 @@ public class Dishwasher extends SemiShiftingAppliance
 {
 
   /**
-   * The function mode of the dishwasher. For more info, read the details in the enumerations.Mode java file
+   * The function mode of the dishwasher. For more info, read the details in the
+   * enumerations.Mode java file
    **/
   // Mode mode = Mode.One
 
@@ -51,14 +50,9 @@ public class Dishwasher extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dishwasher";
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.DISHWASHER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.DISHWASHER_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.DISHWASHER_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.DISHWASHER_POWER_MEAN);
     cycleDuration = HouseholdConstants.DISHWASHER_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_1, HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_2, HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_1, HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_2, HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_3);
     times = Integer.parseInt(conf.getProperty("DishwasherWeeklyTimes")) + applianceOf.getMembers().size();
     createWeeklyOperationVector(times, gen);
   }
@@ -69,29 +63,9 @@ public class Dishwasher extends SemiShiftingAppliance
     // Printing basic variables
     log.info("Name = " + name);
     log.info("Saturation = " + saturation);
-    log.info("Consumption Share = " + consumptionShare);
-    log.info("Base Load Share = " + baseLoadShare);
     log.info("Power = " + power);
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
-    log.info("In Use = " + inUse);
-
-    // Printing probability variables variables
-    Set<Entry<String, Double>> set = probabilitySeason.entrySet();
-    Iterator<Entry<String, Double>> it = set.iterator();
-    log.info("Probability Season = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
-
-    set = probabilityWeekday.entrySet();
-    it = set.iterator();
-    log.info("Probability Weekday = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
 
     // Printing Function Day Vector
     ListIterator<Integer> iter = days.listIterator();
@@ -126,7 +100,8 @@ public class Dishwasher extends SemiShiftingAppliance
 
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
-    // The dishwasher needs for someone to be in the house at the beginning and the end of its
+    // The dishwasher needs for someone to be in the house at the beginning and
+    // the end of its
     // function
     for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
       if (checkHouse(day, j) == true)
@@ -176,7 +151,8 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   /**
-   * This function checks for the household to see when it is empty or not empty for the duration of the operation
+   * This function checks for the household to see when it is empty or not empty
+   * for the duration of the operation
    * 
    * @param weekday
    * @param quarter

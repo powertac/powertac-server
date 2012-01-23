@@ -22,9 +22,10 @@ import java.util.Vector;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Circulation Pump is the appliance that brings water to the household. It works most of the hours
- * of the day, but always when someone is at home in need of water. So it's a not shifting
- * appliance.
+ * Circulation Pump is the appliance that brings water to the household. It
+ * works most of the hours of the day, but always when someone is at home in
+ * need of water. So it's a not shifting appliance.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -32,8 +33,8 @@ public class CirculationPump extends NotShiftingAppliance
 {
 
   /**
-   * Variable that presents the mean possibility to utilize the appliance each quarter of the day
-   * that someone is present in the household.
+   * Variable that presents the mean possibility to utilize the appliance each
+   * quarter of the day that someone is present in the household.
    */
   double percentage;
 
@@ -46,15 +47,10 @@ public class CirculationPump extends NotShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
     percentage = Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
 
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.CIRCULATION_PUMP_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.CIRCULATION_PUMP_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.CIRCULATION_PUMP_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.CIRCULATION_PUMP_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.CIRCULATION_PUMP_POWER_MEAN);
     cycleDuration = HouseholdConstants.CIRCULATION_PUMP_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_SEASON_1, HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_SEASON_2,
-        HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_DAY_1, HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_DAY_2, HouseholdConstants.CIRCULATION_PUMP_POSSIBILITY_DAY_3);
+
   }
 
   @Override

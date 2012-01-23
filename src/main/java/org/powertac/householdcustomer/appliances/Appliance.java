@@ -17,13 +17,9 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -33,9 +29,11 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.householdcustomer.customers.Household;
 
 /**
- * A appliance domain instance represents a single appliance inside a household. There are different
- * kinds of appliances utilized by the persons inhabiting the premises. Some of them are functioning
- * automatically, some are used only by someone etc
+ * A appliance domain instance represents a single appliance inside a household.
+ * There are different kinds of appliances utilized by the persons inhabiting
+ * the premises. Some of them are functioning automatically, some are used only
+ * by someone etc
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -43,31 +41,26 @@ public class Appliance
 {
 
   /**
-   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
-   * log.debug() for output you want to see in testing or debugging.
+   * logger for trace logging -- use log.info(), log.warn(), and log.error()
+   * appropriately. Use log.debug() for output you want to see in testing or
+   * debugging.
    */
   static protected Logger log = Logger.getLogger(Appliance.class.getName());
 
-  /** the appliance name. It depends on the type of appliance and the household that contains it. */
+  /**
+   * the appliance name. It depends on the type of appliance and the household
+   * that contains it.
+   */
   protected String name;
 
   /** the household that the appliance is installed at. **/
   protected Household applianceOf;
 
-  /** this variable shows the possibility (%) that this appliance is contained in a house */
+  /**
+   * this variable shows the possibility (%) that this appliance is contained in
+   * a house
+   */
   protected double saturation;
-
-  /**
-   * the percentage (%) that this appliance utilizes of the total power consumption that is consumed
-   * in the household
-   */
-  protected double consumptionShare;
-
-  /**
-   * the percentage (%) that this appliance utilizes of the base power consumption that is consumed
-   * in the household
-   */
-  protected double baseLoadShare;
 
   /** this variable shows the Watt that are consumed by using this appliance */
   protected int power;
@@ -78,61 +71,52 @@ public class Appliance
   /** this is the occupancy dependence boolean variable */
   protected boolean od;
 
-  /** this variable is true if the appliance is currently in use (automatically or by the tenants */
-  protected boolean inUse;
-
   /**
-   * This variable contains the possibility that this appliance will work during a certain season of
-   * the year
-   */
-  protected HashMap<String, Double> probabilitySeason;
-
-  /** This variable contains the possibility that this appliance will work during a certain weekday */
-  protected HashMap<String, Double> probabilityWeekday;
-
-  /**
-   * This variable contains the possibility that this appliance will work during a certain hour of
-   * the day
-   */
-  protected HashMap<String, Double> probabilityDaytime;
-
-  /**
-   * This is a vector containing the quarters that the appliance should start functioning (before
-   * shifting)
+   * This is a vector containing the quarters that the appliance should start
+   * functioning (before shifting)
    */
   Vector<Vector<Boolean>> operationVector = new Vector<Vector<Boolean>>();
 
   /**
-   * This is a vector containing the quarters that the appliance could have started functioning
-   * (before shifting)
+   * This is a vector containing the quarters that the appliance could have
+   * started functioning (before shifting)
    */
   Vector<Vector<Boolean>> possibilityOperationVector = new Vector<Vector<Boolean>>();
 
-  /** This is a vector containing the load of consumption of the appliance during the day */
+  /**
+   * This is a vector containing the load of consumption of the appliance during
+   * the day
+   */
   Vector<Integer> loadVector = new Vector<Integer>();
 
   /**
-   * This is a vector that contains the operation days of each appliance for the competition's
-   * duration.
+   * This is a vector that contains the operation days of each appliance for the
+   * competition's duration.
    */
   Vector<Boolean> operationDaysVector = new Vector<Boolean>();
 
   /**
-   * This is a vector containing the daily operation of the appliance (after shifting due to any
-   * cause)
+   * This is a vector containing the daily operation of the appliance (after
+   * shifting due to any cause)
    */
   Vector<Boolean> dailyOperation = new Vector<Boolean>();
 
   /**
-   * This is a vector containing the weekly operation of the appliance (after shifting due to any
-   * cause)
+   * This is a vector containing the weekly operation of the appliance (after
+   * shifting due to any cause)
    */
   Vector<Vector<Boolean>> weeklyOperation = new Vector<Vector<Boolean>>();
 
-  /** This is a vector containing the weekly load of the appliance (after shifting due to any cause) */
+  /**
+   * This is a vector containing the weekly load of the appliance (after
+   * shifting due to any cause)
+   */
   Vector<Vector<Integer>> weeklyLoadVector = new Vector<Vector<Integer>>();
 
-  /** This variable contains the amount of times the appliance may work through the week or day */
+  /**
+   * This variable contains the amount of times the appliance may work through
+   * the week or day
+   */
   int times;
 
   /** This function returns the power variable of the appliance */
@@ -184,8 +168,10 @@ public class Appliance
   }
 
   /**
-   * This function is used to create the operation vector of the appliance for the week taking into
-   * consideration the times that this appliance has to function.
+   * This function is used to create the operation vector of the appliance for
+   * the week taking into consideration the times that this appliance has to
+   * function.
+   * 
    * @param times
    * @param gen
    * @return
@@ -196,8 +182,10 @@ public class Appliance
   }
 
   /**
-   * This function is used to create the daily possibility operation vector of each appliance for
-   * the week taking into consideration the day that this appliance could be able to function.
+   * This function is used to create the daily possibility operation vector of
+   * each appliance for the week taking into consideration the day that this
+   * appliance could be able to function.
+   * 
    * @param day
    * @return
    */
@@ -207,8 +195,10 @@ public class Appliance
   }
 
   /**
-   * This function is used to create the weekly possibility operation vector of each appliance for
-   * the week taking into consideration the times that this appliance could be able to function.
+   * This function is used to create the weekly possibility operation vector of
+   * each appliance for the week taking into consideration the times that this
+   * appliance could be able to function.
+   * 
    * @return
    */
   public void createWeeklyPossibilityOperationVector ()
@@ -218,25 +208,9 @@ public class Appliance
   }
 
   /**
-   * This function takes into consideration the year season, the weekday and the hour of day and
-   * returns the possibility for an appliance to be functioning.
-   * @param season
-   * @param day
-   * @param hour
-   * @return
-   */
-  double getProbability (String season, String day, int hour)
-  {
-
-    double pseason = (Double) probabilitySeason.get(season);
-    double pday = (Double) probabilityWeekday.get(day);
-    double phour = (Double) probabilityDaytime.get(hour);
-    return pseason * pday * phour;
-  }
-
-  /**
-   * This is the initialization function. It uses the variable values for the configuration file to
-   * create the appliance as it should for this type.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the appliance as it should for this type.
+   * 
    * @param household
    * @param conf
    * @param gen
@@ -248,8 +222,9 @@ public class Appliance
   }
 
   /**
-   * This is a complex function that changes the appliance's function in order to have the most cost
-   * effective operation load in a day schedule.
+   * This is a complex function that changes the appliance's function in order
+   * to have the most cost effective operation load in a day schedule.
+   * 
    * @param gen
    * @param tariff
    * @param now
@@ -262,8 +237,9 @@ public class Appliance
   }
 
   /**
-   * This is a simple function utilized for the creation of the function Vector that will be used in
-   * the shifting procedure.
+   * This is a simple function utilized for the creation of the function Vector
+   * that will be used in the shifting procedure.
+   * 
    * @param day
    * @return
    */
@@ -281,7 +257,9 @@ public class Appliance
   }
 
   /**
-   * This is the filling function of the HashMap for the Days of the Week possibilities.
+   * This is the filling function of the HashMap for the Days of the Week
+   * possibilities.
+   * 
    * @param sunday
    * @param workingday
    * @param saturday
@@ -302,8 +280,9 @@ public class Appliance
   }
 
   /**
-   * This function fills out all the quarters of the appliance functions for a single day of the
-   * week
+   * This function fills out all the quarters of the appliance functions for a
+   * single day of the week
+   * 
    * @param gen
    * @return
    */
@@ -313,7 +292,9 @@ public class Appliance
   }
 
   /**
-   * This function fills out all the days of the appliance functions for each day of the week
+   * This function fills out all the days of the appliance functions for each
+   * day of the week
+   * 
    * @param gen
    * @return
    */
@@ -323,7 +304,9 @@ public class Appliance
   }
 
   /**
-   * This function creates the weekly operation vector after the shifting for each day of the week
+   * This function creates the weekly operation vector after the shifting for
+   * each day of the week
+   * 
    * @param times
    * @param gen
    * @return
@@ -335,6 +318,7 @@ public class Appliance
 
   /**
    * This function creates the daily operation vector after the shifting
+   * 
    * @param times
    * @param gen
    * @return
@@ -345,7 +329,9 @@ public class Appliance
   }
 
   /**
-   * This is the filling function of the HashMap for the Seasons of the year possibilities.
+   * This is the filling function of the HashMap for the Seasons of the year
+   * possibilities.
+   * 
    * @param summer
    * @param winter
    * @param transition
@@ -361,7 +347,9 @@ public class Appliance
   }
 
   /**
-   * This is the filling function of the HashMap for the Hours of the Day possibilities.
+   * This is the filling function of the HashMap for the Hours of the Day
+   * possibilities.
+   * 
    * @return
    */
   void fillHour ()
@@ -370,8 +358,9 @@ public class Appliance
   }
 
   /**
-   * This is the function utilized to show the information regarding the appliance in question, its
-   * variables values etc.
+   * This is the function utilized to show the information regarding the
+   * appliance in question, its variables values etc.
+   * 
    * @return
    */
   public void showStatus ()
@@ -380,29 +369,9 @@ public class Appliance
     log.info("Name = " + name);
     log.info("Member Of = " + applianceOf.toString());
     log.info("Saturation = " + saturation);
-    log.info("Consumption Share = " + consumptionShare);
-    log.info("Base Load Share = " + baseLoadShare);
     log.info("Power = " + power);
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
-    log.info("In Use = " + inUse);
-
-    // Printing probability variables variables
-    Set<Entry<String, Double>> set = probabilitySeason.entrySet();
-    Iterator<Entry<String, Double>> it = set.iterator();
-    log.info("Probability Season = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
-
-    set = probabilityWeekday.entrySet();
-    it = set.iterator();
-    log.info("Probability Weekday = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
 
     // Printing weekly Operation Vector
     log.info("Weekly Operation Vector = ");
@@ -431,8 +400,10 @@ public class Appliance
   }
 
   /**
-   * At the end of each week the appliance models refresh their schedule. This way we have a
-   * realistic and dynamic model, changing function hours, consuming power and so on.
+   * At the end of each week the appliance models refresh their schedule. This
+   * way we have a realistic and dynamic model, changing function hours,
+   * consuming power and so on.
+   * 
    * @param conf
    * @param gen
    * @return
@@ -442,14 +413,16 @@ public class Appliance
   }
 
   /**
-   * This is an function to fill the maps utilized by Services in order to keep the vectors of each
-   * appliance during the runtime.
+   * This is an function to fill the maps utilized by Services in order to keep
+   * the vectors of each appliance during the runtime.
+   * 
    * @return
    */
   public void setOperationDays ()
   {
 
-    // Add the data values for each day of competition and each quarter of each day.
+    // Add the data values for each day of competition and each quarter of each
+    // day.
     for (int i = 0; i < weeklyOperation.size(); i++) {
       boolean function = false;
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {

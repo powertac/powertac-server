@@ -16,13 +16,9 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Iterator;
 import java.util.ListIterator;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
 import java.util.Vector;
 
 import org.joda.time.Instant;
@@ -31,8 +27,11 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Washing Machine is used to wash clothes easily. There are several programs that help you automate the procedure in order to start at a less costly time, without problem. The only restriction is
- * that must be emptied by the tenants after finishing and not work at night due to noise. So this is a semi-shifting appliance.
+ * Washing Machine is used to wash clothes easily. There are several programs
+ * that help you automate the procedure in order to start at a less costly time,
+ * without problem. The only restriction is that must be emptied by the tenants
+ * after finishing and not work at night due to noise. So this is a
+ * semi-shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -40,19 +39,24 @@ import org.powertac.common.configurations.HouseholdConstants;
 public class WashingMachine extends SemiShiftingAppliance
 {
 
-  /** This variable is utilized to show if there's a dryer in the household or not. */
+  /**
+   * This variable is utilized to show if there's a dryer in the household or
+   * not.
+   */
   public boolean dryerFlag = false;
 
   /** This variable is utilized to show the dryer's power load. */
   public int dryerPower = 0;
 
   /**
-   * The function mode of the washing machine. For more info, read the details in the enumerations.Mode java file
+   * The function mode of the washing machine. For more info, read the details
+   * in the enumerations.Mode java file
    **/
   // Mode mode = Mode.One
 
   /**
-   * The function reaction of the washing machine. For more info, read the details in the enumerations.Reaction java file
+   * The function reaction of the washing machine. For more info, read the
+   * details in the enumerations.Reaction java file
    **/
   // Reaction reaction = Reaction.Strong
 
@@ -62,14 +66,9 @@ public class WashingMachine extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Washing Machine";
     saturation = Double.parseDouble(conf.getProperty("WashingMachineSaturation"));
-    consumptionShare = (float) (HouseholdConstants.PERCENTAGE * (HouseholdConstants.DISHWASHER_CONSUMPTION_SHARE_VARIANCE * gen.nextGaussian() + HouseholdConstants.DISHWASHER_CONSUMPTION_SHARE_MEAN));
-    baseLoadShare = HouseholdConstants.PERCENTAGE * HouseholdConstants.DISHWASHER_BASE_LOAD_SHARE;
     power = (int) (HouseholdConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.DISHWASHER_POWER_MEAN);
     cycleDuration = HouseholdConstants.DISHWASHER_DURATION_CYCLE;
     od = false;
-    inUse = false;
-    probabilitySeason = fillSeason(HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_1, HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_2, HouseholdConstants.DISHWASHER_POSSIBILITY_SEASON_3);
-    probabilityWeekday = fillDay(HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_1, HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_2, HouseholdConstants.DISHWASHER_POSSIBILITY_DAY_3);
     times = Integer.parseInt(conf.getProperty("WashingMachineWeeklyTimes")) + (int) (applianceOf.getMembers().size() / 2);
     createWeeklyOperationVector(times, gen);
   }
@@ -115,7 +114,8 @@ public class WashingMachine extends SemiShiftingAppliance
 
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
-    // In order to function the washing machine needs someone to be there in the end of its
+    // In order to function the washing machine needs someone to be there in the
+    // end of its
     // operation
     for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
       if (checkHouse(day, j) == true)
@@ -127,7 +127,8 @@ public class WashingMachine extends SemiShiftingAppliance
   }
 
   /**
-   * This function checks for the household to see when it is empty or not empty for the duration of the operation
+   * This function checks for the household to see when it is empty or not empty
+   * for the duration of the operation
    * 
    * @param hour
    * @return
@@ -230,29 +231,9 @@ public class WashingMachine extends SemiShiftingAppliance
     // Printing basic variables
     log.info("Name = " + name);
     log.info("Saturation = " + saturation);
-    log.info("Consumption Share = " + consumptionShare);
-    log.info("Base Load Share = " + baseLoadShare);
     log.info("Power = " + power);
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
-    log.info("In Use = " + inUse);
-
-    // Printing probability variables variables
-    Set<Entry<String, Double>> set = probabilitySeason.entrySet();
-    Iterator<Entry<String, Double>> it = set.iterator();
-    log.info("Probability Season = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
-
-    set = probabilityWeekday.entrySet();
-    it = set.iterator();
-    log.info("Probability Weekday = ");
-    while (it.hasNext()) {
-      Map.Entry<String, Double> me = (Map.Entry<String, Double>) it.next();
-      log.info(me.getKey() + " : " + me.getValue());
-    }
 
     // Printing Function Day Vector
     ListIterator<Integer> iter = days.listIterator();

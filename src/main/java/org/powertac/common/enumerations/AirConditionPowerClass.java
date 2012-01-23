@@ -17,16 +17,16 @@
 package org.powertac.common.enumerations;
 
 /**
- * This enumerator defines the four different modes of semi-automatic appliances 
- * Mode one: the washing has to finish within five hours from the loading point.
- * Mode two: finish within five to ten hours.
- * Mode three: finish in more than ten hours, but at the same day.
- * Mode four: finish laundry between loading point and end of day.
+ * This enumerator defines the two different kinds of Air Conditions available.
+ * The one is the normal type and the second one is the Inverter type. This has
+ * an impact on their consumption and their duration cycle.
  * 
  * @author Antonios Chrysopoulos
  * @since 0.5
- * @version 1
- * Last Updated: 02.05.2010
+ * @version 1 Last Updated: 12.01.2012
  */
 
-public enum Mode { One , Two , Three , Four }
+public enum AirConditionPowerClass
+{
+  Small, Medium, Large
+}
