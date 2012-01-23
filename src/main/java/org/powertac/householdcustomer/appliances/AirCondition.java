@@ -28,9 +28,7 @@ import org.powertac.common.enumerations.AirConditionPowerClass;
 import org.powertac.common.enumerations.AirConditionType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It
- * works most of the hours of the day, but always when someone is at home in
- * need of water. So it's a not shifting appliance.
+ * Circulation pump is the appliance that brings water to the household. It works most of the hours of the day, but always when someone is at home in need of water. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -39,8 +37,7 @@ public class AirCondition extends NotShiftingAppliance
 {
 
   /**
-   * The type of the water heater. For more info, read the details in the
-   * enumerations.HeaterType java file
+   * The type of the water heater. For more info, read the details in the enumerations.HeaterType java file
    **/
   AirConditionType type;
   AirConditionClass acClass;
@@ -52,8 +49,8 @@ public class AirCondition extends NotShiftingAppliance
   int cycleOff;
   int powerOff;
   int powerStart;
-  float lowerLimit;
-  float upperLimit;
+  int lowerLimit;
+  int upperLimit;
 
   @Override
   public void initialize (String household, Properties conf, Random gen)
@@ -83,12 +80,12 @@ public class AirCondition extends NotShiftingAppliance
     }
 
     x = gen.nextInt(HouseholdConstants.PERCENTAGE + 1);
-    int classA = Integer.parseInt(conf.getProperty("AirConditionClassA"));
-    int classB = Integer.parseInt(conf.getProperty("AirConditionClassB"));
-    int classC = Integer.parseInt(conf.getProperty("AirConditionClassC"));
-    int classD = Integer.parseInt(conf.getProperty("AirConditionClassD"));
-    int classE = Integer.parseInt(conf.getProperty("AirConditionClassE"));
-    int classF = Integer.parseInt(conf.getProperty("AirConditionClassF"));
+    double classA = Double.parseDouble(conf.getProperty("AirConditionClassA"));
+    double classB = Double.parseDouble(conf.getProperty("AirConditionClassB"));
+    double classC = Double.parseDouble(conf.getProperty("AirConditionClassC"));
+    double classD = Double.parseDouble(conf.getProperty("AirConditionClassD"));
+    double classE = Double.parseDouble(conf.getProperty("AirConditionClassE"));
+    double classF = Double.parseDouble(conf.getProperty("AirConditionClassF"));
 
     if (x < classA) {
       acClass = AirConditionClass.A;
@@ -131,8 +128,8 @@ public class AirCondition extends NotShiftingAppliance
     }
 
     x = gen.nextInt(HouseholdConstants.PERCENTAGE + 1);
-    int powerA = Integer.parseInt(conf.getProperty("AirConditionPowerTypeSmall"));
-    int powerB = Integer.parseInt(conf.getProperty("AirConditionPowerTypeMedium"));
+    double powerA = Double.parseDouble(conf.getProperty("AirConditionPowerTypeSmall"));
+    double powerB = Double.parseDouble(conf.getProperty("AirConditionPowerTypeMedium"));
 
     powerOff = 0;
     powerStart = 0;
@@ -161,8 +158,8 @@ public class AirCondition extends NotShiftingAppliance
 
     }
 
-    lowerLimit = (float) (HouseholdConstants.AIR_CONDITION_LOW_LIMIT_VARIANCE * gen.nextGaussian() + HouseholdConstants.AIR_CONDITION_LOW_LIMIT_MEAN);
-    upperLimit = (float) (HouseholdConstants.AIR_CONDITION_UPPER_LIMIT_VARIANCE * gen.nextGaussian() + HouseholdConstants.AIR_CONDITION_UPPER_LIMIT_MEAN);
+    lowerLimit = (int) (HouseholdConstants.AIR_CONDITION_LOW_LIMIT_VARIANCE * gen.nextGaussian() + HouseholdConstants.AIR_CONDITION_LOW_LIMIT_MEAN);
+    upperLimit = (int) (HouseholdConstants.AIR_CONDITION_UPPER_LIMIT_VARIANCE * gen.nextGaussian() + HouseholdConstants.AIR_CONDITION_UPPER_LIMIT_MEAN);
 
   }
 
