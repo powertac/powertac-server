@@ -16,11 +16,9 @@
 package org.powertac.auctioneer;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -98,8 +96,8 @@ public class AuctionService
 
   private List<Order> incoming;
   
-  private HashMap<Timeslot, TreeSet<OrderWrapper>> sortedBids;
-  private HashMap<Timeslot, TreeSet<OrderWrapper>> sortedAsks;
+  private HashMap<Timeslot, ArrayList<OrderWrapper>> sortedBids;
+  private HashMap<Timeslot, ArrayList<OrderWrapper>> sortedAsks;
   private List<Timeslot> enabledTimeslots = null;
   
   public AuctionService ()
@@ -168,6 +166,7 @@ public class AuctionService
    * Receives, validates, and queues an incoming Order message. Processing the incoming
    * marketOrders happens during Phase 2 in each timeslot.
    */
+  @Override
   public void receiveMessage (Object msg)
   {
     if (msg != null && msg instanceof Order) {
@@ -195,6 +194,7 @@ public class AuctionService
    * Processes incoming Order instances for each timeslot, generating the appropriate
    * MarketTransactions, Orderbooks, and ClearedTrade instances.
    */
+  @Override
   public void activate (Instant time, int phaseNumber)
   {
     log.info("Activate");
@@ -207,13 +207,21 @@ public class AuctionService
       }
       incoming.clear();
     }
-    sortedAsks = new HashMap<Timeslot, TreeSet<OrderWrapper>>();
-    sortedBids = new HashMap<Timeslot, TreeSet<OrderWrapper>>();
+    sortedAsks = new HashMap<Timeslot, ArrayList<OrderWrapper>>();
+    sortedBids = new HashMap<Timeslot, ArrayList<OrderWrapper>>();
+    // add bids and asks to the appropriate lists
     for (OrderWrapper sw : orders) {
       if (sw.isBuyOrder())
         addBid(sw);
       else
         addAsk(sw);
+    }
+    // then sort the lists
+    for (ArrayList<OrderWrapper> list : sortedAsks.values()) {
+      Collections.sort(list);
+    }
+    for (ArrayList<OrderWrapper> list : sortedBids.values()) {
+      Collections.sort(list);
     }
     log.debug("activate: asks in " + sortedAsks.size() + " timeslots, bids in " +
               sortedBids.size() + " timeslots");
@@ -232,8 +240,8 @@ public class AuctionService
 
   private void clearTimeslot (Timeslot timeslot)
   {
-    SortedSet<OrderWrapper> bids = sortedBids.get(timeslot);
-    SortedSet<OrderWrapper> asks = sortedAsks.get(timeslot);
+    List<OrderWrapper> bids = sortedBids.get(timeslot);
+    List<OrderWrapper> asks = sortedAsks.get(timeslot);
     if (bids != null || asks != null) {
       // we have bids and/or asks to match up
       if (bids != null && asks != null)
@@ -246,13 +254,13 @@ public class AuctionService
       ArrayList<PendingTrade> pendingTrades = new ArrayList<PendingTrade>();
       while (bids != null && !bids.isEmpty() && 
              asks != null && !asks.isEmpty() &&
-             (bids.first().isMarketOrder() ||
-                 asks.first().isMarketOrder() ||
-                 -bids.first().getLimitPrice() >= asks.first().getLimitPrice())) {
+             (bids.get(0).isMarketOrder() ||
+                 asks.get(0).isMarketOrder() ||
+                 -bids.get(0).getLimitPrice() >= asks.get(0).getLimitPrice())) {
         // transfer from ask to bid, keep track of qty
-        OrderWrapper bid = bids.first();
+        OrderWrapper bid = bids.get(0);
         bidPrice = bid.getLimitPrice();
-        OrderWrapper ask = asks.first();
+        OrderWrapper ask = asks.get(0);
         askPrice = ask.getLimitPrice();
         // amount to transfer is minimum of remaining bid qty and remaining ask qty
         log.debug("ask: " + ask.executionMWh + " used out of " + ask.getMWh() +
@@ -330,14 +338,12 @@ public class AuctionService
       }
     }
   }
-  
-  // TODO - add cases for market orders on both sides
 
   private void addAsk (OrderWrapper marketOrder)
   {
     Timeslot timeslot = marketOrder.getTimeslot();
     if (sortedAsks.get(timeslot) == null) {
-      sortedAsks.put(timeslot, new TreeSet<OrderWrapper>());
+      sortedAsks.put(timeslot, new ArrayList<OrderWrapper>());
     }
     sortedAsks.get(timeslot).add(marketOrder);
   }
@@ -346,7 +352,7 @@ public class AuctionService
   {
     Timeslot timeslot = marketOrder.getTimeslot();
     if (sortedBids.get(timeslot) == null) {
-      sortedBids.put(timeslot, new TreeSet<OrderWrapper>());
+      sortedBids.put(timeslot, new ArrayList<OrderWrapper>());
     }
     sortedBids.get(timeslot).add(marketOrder);
   }
@@ -372,7 +378,7 @@ public class AuctionService
     }
   }
   
-  class OrderWrapper implements Comparable
+  class OrderWrapper implements Comparable<OrderWrapper>
   {
     Order order;
     double executionMWh = 0.0;
@@ -414,9 +420,8 @@ public class AuctionService
       return (order.getMWh() > 0.0);
     }
 
-    public int compareTo(Object o) {
-      if (!(o instanceof OrderWrapper)) 
-        return 1;
+    @Override
+    public int compareTo(OrderWrapper o) {
       OrderWrapper other = (OrderWrapper) o;
       if (this.isMarketOrder())
         if (other.isMarketOrder())
