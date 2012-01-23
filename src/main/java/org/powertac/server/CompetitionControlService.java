@@ -680,11 +680,12 @@ public class CompetitionControlService
   public void receiveMessage (PauseRequest msg)
   {
     if (pauseRequester != null) {
-      log.info("Pause request by ${msg.broker.username} rejected; already paused by ${pauseRequester}");
+      log.info("Pause request by " + msg.getBroker().getUsername() + 
+               " rejected; already paused by " + pauseRequester);
       return;
     }
     pauseRequester = msg.getBroker().getUsername();
-    log.info("Pause request by ${msg.broker.username}");
+    log.info("Pause request by " + msg.getBroker().getUsername());
     clock.requestPause();
   }
   
@@ -696,14 +697,16 @@ public class CompetitionControlService
   public void receiveMessage (PauseRelease msg)
   {
     if (pauseRequester == null) {
-      log.info("Release request by ${msg.broker.username}, but no pause currently requested");
+      log.info("Release request by " + msg.getBroker().getUsername() + 
+               ", but no pause currently requested");
       return;
     }
     if (pauseRequester != msg.getBroker().getUsername()) {
-      log.info("Release request by ${msg.broker.username}, but pause request was by ${pauseRequester}");
+      log.info("Release request by " + msg.getBroker().getUsername() + 
+               ", but pause request was by " + pauseRequester);
       return;
     }
-    log.info("Pause released by ${msg.broker.username}");
+    log.info("Pause released by " + msg.getBroker().getUsername());
     clock.releasePause();
     pauseRequester = null;
   }

@@ -27,7 +27,7 @@ public class ServerMessageReceiver implements MessageListener
   {
     if (message instanceof TextMessage) {
       try {
-        log.info("onMessage(Message) - receiving a message");
+        log.debug("onMessage(Message) - receiving a message");
         onMessage(((TextMessage) message).getText());
       } catch (JMSException e) {
         log.error("failed to extract text from TextMessage", e);
@@ -38,7 +38,7 @@ public class ServerMessageReceiver implements MessageListener
   private void onMessage (String xml) {
     log.info("onMessage(String) - received message:\n" + xml);
     Object message = converter.fromXML(xml);
-    log.info("onMessage(String) - received message of type " + message.getClass().getSimpleName());
+    log.debug("onMessage(String) - received message of type " + message.getClass().getSimpleName());
     brokerProxy.routeMessage(message);
   }
 }

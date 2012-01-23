@@ -91,7 +91,9 @@ public class BrokerProxyService implements BrokerProxy
     } 
     else {
       final String text = converter.toXML(messageObject);
-      log.info("sending text: \n" + text);
+      log.debug("send " + messageObject.toString() + 
+               " to " + broker.getUsername());
+      log.debug("sending text: \n" + text);
       final String queueName = broker.toQueueName();
 
       template.send(queueName, new MessageCreator() {
