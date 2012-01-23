@@ -38,8 +38,9 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The village domain class in this first version is a set of households that comprise a small village that consumes agreggated energy by the appliances installed in each household.Later on other
- * types of building will be added.
+ * The village domain class in this first version is a set of households that
+ * comprise a small village that consumes agreggated energy by the appliances
+ * installed in each household.Later on other types of building will be added.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -48,7 +49,9 @@ public class Village extends AbstractCustomer
 {
 
   /**
-   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use log.debug() for output you want to see in testing or debugging.
+   * logger for trace logging -- use log.info(), log.warn(), and log.error()
+   * appropriately. Use log.debug() for output you want to see in testing or
+   * debugging.
    */
   static protected Logger log = Logger.getLogger(Village.class.getName());
 
@@ -59,7 +62,8 @@ public class Village extends AbstractCustomer
   TimeslotRepo timeslotRepo;
 
   /**
-   * These are the vectors containing aggregated each day's base load from the appliances installed inside the households of each type.
+   * These are the vectors containing aggregated each day's base load from the
+   * appliances installed inside the households of each type.
    **/
   Vector<Vector<Long>> aggDailyBaseLoadNS = new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyBaseLoadRaS = new Vector<Vector<Long>>();
@@ -67,7 +71,8 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyBaseLoadSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the vectors containing aggregated each day's controllable load from the appliances installed inside the households.
+   * These are the vectors containing aggregated each day's controllable load
+   * from the appliances installed inside the households.
    **/
   Vector<Vector<Long>> aggDailyControllableLoadNS = new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyControllableLoadRaS = new Vector<Vector<Long>>();
@@ -75,7 +80,8 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyControllableLoadSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the agreggated vectors containing each day's base load of all the households in hours.
+   * These are the agreggated vectors containing each day's base load of all the
+   * households in hours.
    **/
   Vector<Vector<Long>> aggDailyBaseLoadInHoursNS = new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyBaseLoadInHoursRaS = new Vector<Vector<Long>>();
@@ -83,7 +89,8 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyBaseLoadInHoursSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the agreggated vectors containing each day's controllable load of all the households in hours.
+   * These are the agreggated vectors containing each day's controllable load of
+   * all the households in hours.
    **/
   Vector<Vector<Long>> aggDailyControllableLoadInHoursNS = new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyControllableLoadInHoursRaS = new Vector<Vector<Long>>();
@@ -91,20 +98,25 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyControllableLoadInHoursSS = new Vector<Vector<Long>>();
 
   /**
-   * This is an vector containing the days of the competition that the household model will use in order to check which of the tariffs that are available at any given moment are the optimal for their
-   * consumption or production.
+   * This is an vector containing the days of the competition that the household
+   * model will use in order to check which of the tariffs that are available at
+   * any given moment are the optimal for their consumption or production.
    **/
   Vector<Integer> daysList = new Vector<Integer>();
 
   /**
-   * This variable is utilized for the creation of the random numbers and is taken from the service.
+   * This variable is utilized for the creation of the random numbers and is
+   * taken from the service.
    */
   Random gen;
 
   /**
-   * These variables are mapping of the characteristics of the types of houses. The first is used to keep track of their subscription at any given time. The second is the inertia parameter for each
-   * type of houses. The third is the period that they are evaluating the available tariffs and choose the best for their type. The forth is setting the lamda variable for the possibility function of
-   * the evaluation.
+   * These variables are mapping of the characteristics of the types of houses.
+   * The first is used to keep track of their subscription at any given time.
+   * The second is the inertia parameter for each type of houses. The third is
+   * the period that they are evaluating the available tariffs and choose the
+   * best for their type. The forth is setting the lamda variable for the
+   * possibility function of the evaluation.
    */
   HashMap<String, TariffSubscription> subscriptionMap = new HashMap<String, TariffSubscription>();
   HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
@@ -112,9 +124,13 @@ public class Village extends AbstractCustomer
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
 
   /**
-   * These vectors contain the houses of type in the village. There are 4 types available: 1) Not Shifting Houses: They do not change the tariff subscriptions during the game. 2) Randomly Shifting
-   * Houses: They change their tariff subscriptions in a random way. 3) Regularly Shifting Houses: They change their tariff subscriptions during the game in regular time periods. 4) Smart Shifting
-   * Houses: They change their tariff subscriptions in a smart way in order to minimize their costs.
+   * These vectors contain the houses of type in the village. There are 4 types
+   * available: 1) Not Shifting Houses: They do not change the tariff
+   * subscriptions during the game. 2) Randomly Shifting Houses: They change
+   * their tariff subscriptions in a random way. 3) Regularly Shifting Houses:
+   * They change their tariff subscriptions during the game in regular time
+   * periods. 4) Smart Shifting Houses: They change their tariff subscriptions
+   * in a smart way in order to minimize their costs.
    */
   Vector<Household> notShiftingHouses = new Vector<Household>();
   Vector<Household> randomlyShiftingHouses = new Vector<Household>();
@@ -144,7 +160,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This is the initialization function. It uses the variable values for the configuration file to create the village with its households and then fill them with persons and appliances.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the village with its households and then fill
+   * them with persons and appliances.
    * 
    * @param conf
    * @param gen
@@ -217,7 +235,7 @@ public class Village extends AbstractCustomer
     */
   }
 
-  // =============================SUBSCRIPTION FUNCTIONS================================================= //
+  // =====SUBSCRIPTION FUNCTIONS===== //
 
   @Override
   public void subscribeDefault ()
@@ -238,7 +256,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * The first implementation of the changing subscription function. Here we just put the tariff we want to change and the whole population is moved to another random tariff.
+   * The first implementation of the changing subscription function. Here we
+   * just put the tariff we want to change and the whole population is moved to
+   * another random tariff.
    * 
    * @param tariff
    */
@@ -256,7 +276,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * The first implementation of the changing subscription function only for a portion of the households.
+   * The first implementation of the changing subscription function only for a
+   * portion of the households.
    * 
    * @param tariff
    */
@@ -274,7 +295,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * In this overloaded implementation of the changing subscription function, Here we just put the tariff we want to change and the whole population is moved to another random tariff.
+   * In this overloaded implementation of the changing subscription function,
+   * Here we just put the tariff we want to change and the whole population is
+   * moved to another random tariff.
    * 
    * @param tariff
    */
@@ -289,7 +312,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * In this overloaded implementation of the changing subscription function only for a portion of the households.
+   * In this overloaded implementation of the changing subscription function
+   * only for a portion of the households.
    * 
    * @param tariff
    */
@@ -304,7 +328,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used to update the subscriptionMap variable with the changes made.
+   * This function is used to update the subscriptionMap variable with the
+   * changes made.
    * 
    */
   private void updateSubscriptions (Tariff tariff, Tariff newTariff)
@@ -330,7 +355,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is overloading the previous one and is used when only certain portion of houses changed tariff.
+   * This function is overloading the previous one and is used when only certain
+   * portion of houses changed tariff.
    * 
    */
   private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type)
@@ -383,10 +409,11 @@ public class Village extends AbstractCustomer
     }
   }
 
-  // =============================LOAD FUNCTIONS=================================================
+  // =====LOAD FUNCTIONS===== //
 
   /**
-   * This function is used in order to fill each week day of the aggregated daily Load of the village households for each quarter of the hour.
+   * This function is used in order to fill each week day of the aggregated
+   * daily Load of the village households for each quarter of the hour.
    * 
    * @param type
    * @return
@@ -426,7 +453,40 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the aggregated daily Base Load of the village households for each quarter of the hour.
+   * This function is used in order to fill each week day of the aggregated
+   * daily Load of the village households for each quarter of the hour.
+   * 
+   * @param type
+   * @return
+   */
+  void updateAggDailyLoad (String type, int day)
+  {
+    if (type.equals("NS")) {
+      aggDailyBaseLoadNS.set(day, fillAggDailyBaseLoad(day, type));
+      aggDailyControllableLoadNS.set(day, fillAggDailyControllableLoad(day, type));
+      aggDailyBaseLoadInHoursNS.set(day, fillAggDailyBaseLoadInHours(day, type));
+      aggDailyControllableLoadInHoursNS.set(day, fillAggDailyControllableLoadInHours(day, type));
+    } else if (type.equals("RaS")) {
+      aggDailyBaseLoadRaS.set(day, fillAggDailyBaseLoad(day, type));
+      aggDailyControllableLoadRaS.set(day, fillAggDailyControllableLoad(day, type));
+      aggDailyBaseLoadInHoursRaS.set(day, fillAggDailyBaseLoadInHours(day, type));
+      aggDailyControllableLoadInHoursRaS.set(day, fillAggDailyControllableLoadInHours(day, type));
+    } else if (type.equals("ReS")) {
+      aggDailyBaseLoadReS.set(day, fillAggDailyBaseLoad(day, type));
+      aggDailyControllableLoadReS.set(day, fillAggDailyControllableLoad(day, type));
+      aggDailyBaseLoadInHoursReS.set(day, fillAggDailyBaseLoadInHours(day, type));
+      aggDailyControllableLoadInHoursReS.set(day, fillAggDailyControllableLoadInHours(day, type));
+    } else {
+      aggDailyBaseLoadSS.set(day, fillAggDailyBaseLoad(day, type));
+      aggDailyControllableLoadSS.set(day, fillAggDailyControllableLoad(day, type));
+      aggDailyBaseLoadInHoursSS.set(day, fillAggDailyBaseLoadInHours(day, type));
+      aggDailyControllableLoadInHoursSS.set(day, fillAggDailyControllableLoadInHours(day, type));
+    }
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily Base Load of
+   * the village households for each quarter of the hour.
    * 
    * @param day
    * @param type
@@ -460,7 +520,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the aggregated daily Controllable Load of the village households for each quarter of the hour.
+   * This function is used in order to fill the aggregated daily Controllable
+   * Load of the village households for each quarter of the hour.
    * 
    * @param day
    * @param type
@@ -494,7 +555,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the daily Base Load of the household for each hour.
+   * This function is used in order to fill the daily Base Load of the household
+   * for each hour.
    * 
    * @param day
    * @param type
@@ -540,7 +602,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the daily Base Load of the household for each hour.
+   * This function is used in order to fill the daily Base Load of the household
+   * for each hour.
    * 
    * @param day
    * @param type
@@ -586,7 +649,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to print the aggregated load of the village households.
+   * This function is used in order to print the aggregated load of the village
+   * households.
    * 
    * @param type
    * @return
@@ -627,7 +691,42 @@ public class Village extends AbstractCustomer
     }
   }
 
-  // =============================CONSUMPTION FUNCTIONS=================================================
+  /**
+   * This function is used in order to print the aggregated load of the village
+   * households.
+   * 
+   * @param type
+   * @return
+   */
+  void showAggDailyLoad (String type, int day)
+  {
+
+    log.info("Portion " + type + " Daily Aggregated Load");
+    log.info("Day " + day);
+
+    if (type.equals("NS")) {
+      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j));
+      }
+
+    } else if (type.equals("RaS")) {
+      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(day).get(j));
+      }
+
+    } else if (type.equals("ReS")) {
+      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(day).get(j));
+      }
+
+    } else {
+      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j));
+      }
+    }
+  }
+
+  // =====CONSUMPTION FUNCTIONS===== //
 
   @Override
   public void consumePower ()
@@ -651,7 +750,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This method takes as an input the timeslot serial number (in order to know in the current time) and estimates the consumption for this timeslot over the population under the Generic Consumer.
+   * This method takes as an input the timeslot serial number (in order to know
+   * in the current time) and estimates the consumption for this timeslot over
+   * the population under the Generic Consumer.
    */
   double getConsumptionByTimeslot (int serial, String type)
   {
@@ -667,7 +768,7 @@ public class Village extends AbstractCustomer
     return (double) summary / HouseholdConstants.THOUSAND;
   }
 
-  // =============================GETTER FUNCTIONS=================================================
+  // =====GETTER FUNCTIONS===== //
 
   /** This function returns the subscriptionMap variable of the village */
   public HashMap<String, TariffSubscription> getSubscriptionMap ()
@@ -687,7 +788,10 @@ public class Village extends AbstractCustomer
     return periodMap;
   }
 
-  /** This function returns the quantity of base load for a specific day and hour of that day for a specific type of houses */
+  /**
+   * This function returns the quantity of base load for a specific day and hour
+   * of that day for a specific type of houses
+   */
   long getBaseConsumptions (int day, int hour, String type)
   {
     long summaryBase = 0;
@@ -706,7 +810,10 @@ public class Village extends AbstractCustomer
     return summaryBase;
   }
 
-  /** This function returns the quantity of controllable load for a specific day and hour of that day for a specific type of houses */
+  /**
+   * This function returns the quantity of controllable load for a specific day
+   * and hour of that day for a specific type of houses
+   */
   long getControllableConsumptions (int day, int hour, String type)
   {
     long summaryControllable = 0;
@@ -726,7 +833,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns the quantity of controllable load for a specific day in form of a vector for a certain type of houses.
+   * This function returns the quantity of controllable load for a specific day
+   * in form of a vector for a certain type of houses.
    */
   Vector<Long> getControllableConsumptions (int day, String type)
   {
@@ -747,7 +855,30 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns a vector with all the houses of a certain type that are present in this village
+   * This function returns a vector with all the houses of a certain type that
+   * are present in this village
+   */
+  public Vector<Household> getHouses ()
+  {
+
+    Vector<Household> houses = new Vector<Household>();
+
+    for (Household house : notShiftingHouses)
+      houses.add(house);
+    for (Household house : regularlyShiftingHouses)
+      houses.add(house);
+    for (Household house : randomlyShiftingHouses)
+      houses.add(house);
+    for (Household house : smartShiftingHouses)
+      houses.add(house);
+
+    return houses;
+
+  }
+
+  /**
+   * This function returns a vector with all the houses of a certain type that
+   * are present in this village
    */
   public Vector<Household> getHouses (String type)
   {
@@ -776,11 +907,13 @@ public class Village extends AbstractCustomer
 
   }
 
-  // =============================EVALUATION FUNCTIONS=================================================
+  // =====EVALUATION FUNCTIONS===== //
 
   /**
-   * This is the basic evaluation function, taking into consideration the minimum cost without shifting the appliances' load but the tariff chosen is picked up randomly by using a possibility pattern.
-   * The better tariffs have more chances to be chosen.
+   * This is the basic evaluation function, taking into consideration the
+   * minimum cost without shifting the appliances' load but the tariff chosen is
+   * picked up randomly by using a possibility pattern. The better tariffs have
+   * more chances to be chosen.
    */
   public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs, String type)
   {
@@ -822,7 +955,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function estimates the overall cost, taking into consideration the fixed payments as well as the variable that are depending on the tariff rates
+   * This function estimates the overall cost, taking into consideration the
+   * fixed payments as well as the variable that are depending on the tariff
+   * rates
    */
   double costEstimation (Tariff tariff, String type)
   {
@@ -858,14 +993,16 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function estimates the fixed cost, comprised by fees, bonuses and penalties that are the same no matter how much you consume
+   * This function estimates the fixed cost, comprised by fees, bonuses and
+   * penalties that are the same no matter how much you consume
    */
   double estimateFixedTariffPayments (Tariff tariff)
   {
     double lifecyclePayment = -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
     double minDuration;
 
-    // When there is not a Minimum Duration of the contract, you cannot divide with the duration
+    // When there is not a Minimum Duration of the contract, you cannot divide
+    // with the duration
     // because you don't know it.
     if (tariff.getMinDuration() == 0)
       minDuration = HouseholdConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
@@ -877,7 +1014,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function estimates the variable cost, depending only to the load quantity you consume
+   * This function estimates the variable cost, depending only to the load
+   * quantity you consume
    */
   double estimateVariableTariffPayment (Tariff tariff, String type)
   {
@@ -886,8 +1024,7 @@ public class Village extends AbstractCustomer
 
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     Instant base = new Instant(timeService.getCurrentTime().getMillis() - serial * TimeService.HOUR);
-    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1; // this will be changed to
-                                                                         // one
+    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
 
     for (int day : daysList) {
       if (day < daylimit)
@@ -912,8 +1049,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This is the new function, used in order to find the most cost efficient tariff over the available ones. It is using Daily shifting in order to put the appliances operation in most suitable hours
-   * of the day.
+   * This is the new function, used in order to find the most cost efficient
+   * tariff over the available ones. It is using Daily shifting in order to put
+   * the appliances operation in most suitable hours of the day.
    * 
    * @param tariff
    * @return
@@ -925,7 +1063,7 @@ public class Village extends AbstractCustomer
 
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     Instant base = timeService.getCurrentTime().minus(serial * TimeService.HOUR);
-    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1; // this will be changed to
+    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
 
     for (int day : daysList) {
       if (day < daylimit)
@@ -949,7 +1087,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This is the function that realizes the mathematical possibility formula for the choice of tariff.
+   * This is the function that realizes the mathematical possibility formula for
+   * the choice of tariff.
    */
   int logitPossibilityEstimation (Vector<Double> estimation, String type)
   {
@@ -979,10 +1118,12 @@ public class Village extends AbstractCustomer
     return index;
   }
 
-  // =============================SHIFTING FUNCTIONS=================================================
+  // =====SHIFTING FUNCTIONS===== //
 
   /**
-   * This is the function that takes every household in the village and readies the shifted Controllable Consumption for the needs of the tariff evaluation.
+   * This is the function that takes every household in the village and readies
+   * the shifted Controllable Consumption for the needs of the tariff
+   * evaluation.
    * 
    * @param tariff
    * @param now
@@ -1022,10 +1163,11 @@ public class Village extends AbstractCustomer
     return newControllableLoad;
   }
 
-  // =============================STATUS FUNCTIONS=================================================
+  // =====STATUS FUNCTIONS===== //
 
   /**
-   * This function prints to the screen the daily load of the village's households for the weekday at hand.
+   * This function prints to the screen the daily load of the village's
+   * households for the weekday at hand.
    * 
    * @param day
    * @param type
@@ -1055,7 +1197,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function represents the function that shows the status of all the households in the village each moment in time.
+   * This function represents the function that shows the status of all the
+   * households in the village each moment in time.
    * 
    * @param day
    * @param quarter
@@ -1069,10 +1212,11 @@ public class Village extends AbstractCustomer
     }
   }
 
-  // =============================VECTOR CREATION=================================================
+  // =====VECTOR CREATION===== //
 
   /**
-   * This function is creating a certain number of random days that will be public vacation for the people living in the environment.
+   * This function is creating a certain number of random days that will be
+   * public vacation for the people living in the environment.
    * 
    * @param days
    * @param gen
@@ -1100,7 +1244,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is creating the list of days for each village that will be utilized for the tariff evaluation.
+   * This function is creating the list of days for each village that will be
+   * utilized for the tariff evaluation.
    * 
    * @param days
    * @param gen
@@ -1125,14 +1270,19 @@ public class Village extends AbstractCustomer
 
   }
 
-  // =============================STEP FUNCTIONS=================================================
+  // =====STEP FUNCTIONS===== //
 
   @Override
   public void step ()
   {
+
+    weatherCheck();
+
     checkRevokedSubscriptions();
     consumePower();
+
     if (timeService.getHourOfDay() == 23) {
+
       for (String type : subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
           log.info("Rescheduling " + type);
@@ -1144,14 +1294,45 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is utilized in order to reschedule the consumption load for the next day of the competition according to the tariff rates of the subscriptions under contract.
+   * This function is utilized in order to check the weather at each tick of the
+   * competition clock and reschedule the appliances that are weather sensitive
+   * to work.
+   */
+  void weatherCheck ()
+  {
+    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY);
+    int hour = timeService.getHourOfDay();
+    Instant now = new Instant(timeService.getCurrentTime().getMillis());
+
+    double temperature = 0;
+
+    Vector<Household> houses = getHouses();
+
+    for (Household house : houses) {
+      house.weatherCheck(day, hour, now, temperature);
+    }
+
+    for (String type : subscriptionMap.keySet()) {
+      updateAggDailyLoad(type, day);
+      updateAggDailyLoad(type, day + 1);
+      showAggDailyLoad(type, day);
+      showAggDailyLoad(type, day + 1);
+    }
+
+  }
+
+  /**
+   * This function is utilized in order to reschedule the consumption load for
+   * the next day of the competition according to the tariff rates of the
+   * subscriptions under contract.
    */
   void rescheduleNextDay (String type)
   {
-
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1; // this will be changed to one
+    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
     Instant now = new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
+
     Vector<Long> controllableVector = new Vector<Long>();
 
     TariffSubscription sub = subscriptionMap.get(type);

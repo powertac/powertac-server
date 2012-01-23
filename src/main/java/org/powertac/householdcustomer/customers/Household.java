@@ -26,6 +26,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.Status;
+import org.powertac.householdcustomer.appliances.AirCondition;
 import org.powertac.householdcustomer.appliances.Appliance;
 import org.powertac.householdcustomer.appliances.CirculationPump;
 import org.powertac.householdcustomer.appliances.ConsumerElectronics;
@@ -47,10 +48,11 @@ import org.powertac.householdcustomer.persons.Person;
 import org.powertac.householdcustomer.persons.RandomlyAbsentPerson;
 
 /**
- * The household is the domain instance represents a single house with the tenants living inside it
- * and fully equipped with appliances statistically distributed. There are different kinds of
- * appliances utilized by the persons inhabiting the premises and each person living has it's own
- * schedule.
+ * The household is the domain instance represents a single house with the
+ * tenants living inside it and fully equipped with appliances statistically
+ * distributed. There are different kinds of appliances utilized by the persons
+ * inhabiting the premises and each person living has it's own schedule.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -58,39 +60,45 @@ public class Household
 {
 
   /**
-   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
-   * log.debug() for output you want to see in testing or debugging.
+   * logger for trace logging -- use log.info(), log.warn(), and log.error()
+   * appropriately. Use log.debug() for output you want to see in testing or
+   * debugging.
    */
   static protected Logger log = Logger.getLogger(Household.class.getName());
 
-  /** the household name. It is different for each one to be able to tell them apart. */
+  /**
+   * the household name. It is different for each one to be able to tell them
+   * apart.
+   */
   String name;
 
   /**
-   * This is a vector containing each day's load from the appliances installed inside the household.
+   * This is a vector containing each day's load from the appliances installed
+   * inside the household.
    **/
   Vector<Integer> dailyBaseLoad = new Vector<Integer>();
 
   /**
-   * This is a vector containing each day's load from the appliances installed inside the household.
+   * This is a vector containing each day's load from the appliances installed
+   * inside the household.
    **/
   Vector<Integer> dailyControllableLoad = new Vector<Integer>();
 
   /**
-   * This is a vector containing the load from the appliances installed inside the household for all
-   * the week days.
+   * This is a vector containing the load from the appliances installed inside
+   * the household for all the week days.
    **/
   Vector<Vector<Integer>> weeklyBaseLoad = new Vector<Vector<Integer>>();
 
   /**
-   * This is a vector containing the load from the appliances installed inside the household for all
-   * the week days.
+   * This is a vector containing the load from the appliances installed inside
+   * the household for all the week days.
    **/
   Vector<Vector<Integer>> weeklyControllableLoad = new Vector<Vector<Integer>>();
 
   /**
-   * This is a statistical measure of the household, giving a general idea of the consumption level
-   * during a year.
+   * This is a statistical measure of the household, giving a general idea of
+   * the consumption level during a year.
    */
   int yearConsumption;
 
@@ -103,24 +111,30 @@ public class Household
   /** This is an agreggated vector containing the weekly base load in hours. **/
   Vector<Vector<Integer>> weeklyBaseLoadInHours = new Vector<Vector<Integer>>();
 
-  /** This is an agreggated vector containing the weekly controllable load in hours. **/
+  /**
+   * This is an agreggated vector containing the weekly controllable load in
+   * hours.
+   **/
   Vector<Vector<Integer>> weeklyControllableLoadInHours = new Vector<Vector<Integer>>();
 
-  /** This variable shows the current load of the house, for the current quarter or hour. **/
+  /**
+   * This variable shows the current load of the house, for the current quarter
+   * or hour.
+   **/
   int currentLoad;
 
   /** Helping variable for the correct refreshing of the schedules. */
   int week = 0;
 
   /**
-   * This is a vector containing the members of the household, the people that belong to each
-   * household
+   * This is a vector containing the members of the household, the people that
+   * belong to each household
    */
   Vector<Person> members = new Vector<Person>();
 
   /**
-   * This is a vector containing the members of the household, the people that belong to each
-   * household
+   * This is a vector containing the members of the household, the people that
+   * belong to each household
    */
   Vector<Appliance> appliances = new Vector<Appliance>();
 
@@ -130,8 +144,10 @@ public class Household
   public Village householdOf;
 
   /**
-   * This is the initialization function. It uses the variable values for the configuration file to
-   * create the household and then fill it with persons and appliances as it seems fit.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the household and then fill it with persons
+   * and appliances as it seems fit.
+   * 
    * @param HouseName
    * @param conf
    * @param publicVacationVector
@@ -157,12 +173,6 @@ public class Household
 
     fillAppliances(conf, gen);
 
-    /*
-        for (Appliance appliance : appliances) {
-          appliance.showStatus();
-        }
-    */
-
     for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
       dailyBaseLoad = fillDailyBaseLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
       dailyControllableLoad = fillDailyControllableLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
@@ -183,6 +193,10 @@ public class Household
       appliance.setOperationDays();
     }
     /*
+    for (Appliance appliance : appliances) {
+      appliance.showStatus();
+    }
+    
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
@@ -191,8 +205,9 @@ public class Household
   }
 
   /**
-   * This function is creating a random number of person (given by the next function) and add them
-   * to the current household, filling it up with life.
+   * This function is creating a random number of person (given by the next
+   * function) and add them to the current household, filling it up with life.
+   * 
    * @param counter
    * @param conf
    * @param publicVacationVector
@@ -241,8 +256,9 @@ public class Household
   }
 
   /**
-   * This is the function that utilizes the possibilities of the number of persons in a household
-   * and gives back a number randomly.
+   * This is the function that utilizes the possibilities of the number of
+   * persons in a household and gives back a number randomly.
+   * 
    * @param conf
    * @param gen
    * @return
@@ -282,8 +298,10 @@ public class Household
   }
 
   /**
-   * This function is using the appliance's saturation in order to make a possibility check and
-   * install or not the appliance in the current household.
+   * This function is using the appliance's saturation in order to make a
+   * possibility check and install or not the appliance in the current
+   * household.
+   * 
    * @param app
    * @param gen
    * @return
@@ -302,8 +320,10 @@ public class Household
   }
 
   /**
-   * This function is responsible for the filling of the household with the appliances and their
-   * schedule for the first week using a statistic formula and the members of the household.
+   * This function is responsible for the filling of the household with the
+   * appliances and their schedule for the first week using a statistic formula
+   * and the members of the household.
+   * 
    * @param conf
    * @param gen
    * @return
@@ -312,6 +332,13 @@ public class Household
   {
 
     // NOT SHIFTING ================================
+
+    // Air Condition
+    AirCondition ac = new AirCondition();
+    appliances.add(ac);
+    ac.setApplianceOf(this);
+    ac.initialize(this.name, conf, gen);
+    checkProbability(ac, gen);
 
     // Consumer Electronics
     ConsumerElectronics ce = new ConsumerElectronics();
@@ -417,7 +444,9 @@ public class Household
   }
 
   /**
-   * This function checks if all the inhabitants of the household are out of the household.
+   * This function checks if all the inhabitants of the household are out of the
+   * household.
+   * 
    * @param weekday
    * @param quarter
    * @return
@@ -435,8 +464,9 @@ public class Household
   }
 
   /**
-   * This is the function utilized to show the information regarding the household in question, its
-   * variables values etc.
+   * This is the function utilized to show the information regarding the
+   * household in question, its variables values etc.
+   * 
    * @return
    */
   void showStatus ()
@@ -480,8 +510,9 @@ public class Household
   }
 
   /**
-   * This function is used in order to fill the daily Base Load of the household for each quarter of
-   * the hour
+   * This function is used in order to fill the daily Base Load of the household
+   * for each quarter of the hour
+   * 
    * @param weekday
    * @return
    */
@@ -502,8 +533,9 @@ public class Household
   }
 
   /**
-   * This function is used in order to fill the daily Controllable Load of the household for each
-   * quarter of the hour.
+   * This function is used in order to fill the daily Controllable Load of the
+   * household for each quarter of the hour.
+   * 
    * @param weekday
    * @return
    */
@@ -524,16 +556,17 @@ public class Household
   }
 
   /**
-   * This function checks if all the inhabitants of the household are away on vacation on a certain
-   * quarter
+   * This function checks if all the inhabitants of the household are away on
+   * vacation on a certain quarter
+   * 
    * @param quarter
    * @return
    */
-  public boolean isOnVacation (int weekday, int quarter)
+  public boolean isOnVacation (int day)
   {
     boolean x = false;
     for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * HouseholdConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Vacation) {
+      if (member.getWeeklyRoutine().get(day).get(0) == Status.Vacation) {
         x = true;
       }
     }
@@ -541,8 +574,9 @@ public class Household
   }
 
   /**
-   * This function represents the function that shows the conditions in an household each moment in
-   * time.
+   * This function represents the function that shows the conditions in an
+   * household each moment in time.
+   * 
    * @param day
    * @param quarter
    * @return
@@ -569,8 +603,9 @@ public class Household
   }
 
   /**
-   * This function fills out the daily Base Load in hours vector taking in consideration the load
-   * per quarter of an hour.
+   * This function fills out the daily Base Load in hours vector taking in
+   * consideration the load per quarter of an hour.
+   * 
    * @return
    */
   Vector<Integer> fillDailyBaseLoadInHours ()
@@ -589,8 +624,9 @@ public class Household
   }
 
   /**
-   * This function fills out the daily Controllable Load in hours vector taking in consideration the
-   * load per quarter of an hour.
+   * This function fills out the daily Controllable Load in hours vector taking
+   * in consideration the load per quarter of an hour.
+   * 
    * @return
    */
   Vector<Integer> fillDailyControllableLoadInHours ()
@@ -609,7 +645,9 @@ public class Household
   }
 
   /**
-   * This function set the current load in accordance with the time of the competition
+   * This function set the current load in accordance with the time of the
+   * competition
+   * 
    * @param day
    * @param quarter
    * @return
@@ -620,8 +658,10 @@ public class Household
   }
 
   /**
-   * At the end of each week the household models refresh their schedule. This way we have a
-   * realistic and dynamic model, changing function hours, consuming power and so on.
+   * At the end of each week the household models refresh their schedule. This
+   * way we have a realistic and dynamic model, changing function hours,
+   * consuming power and so on.
+   * 
    * @param conf
    * @param gen
    * @return
@@ -655,9 +695,33 @@ public class Household
 
   }
 
+  public void weatherCheck (int day, int hour, Instant now, double temperature)
+  {
+
+    for (Appliance appliance : appliances) {
+
+      if (appliance instanceof SpaceHeater && hour == 23) {
+
+        appliance.weatherDailyFunction(day + 1, 0, temperature);
+
+        if (appliance.getWeeklyLoadVector().get(day + 1).get(0) > 0) {
+          // log.debug("Changed indeed");
+          dailyControllableLoad = fillDailyControllableLoad(day + 1);
+          weeklyControllableLoad.set(day + 1, dailyControllableLoad);
+          dailyControllableLoadInHours = fillDailyControllableLoadInHours();
+          weeklyControllableLoadInHours.set(day + 1, dailyControllableLoadInHours);
+        }
+      }
+
+    }
+
+  }
+
   /**
-   * This is the function that takes every appliance in the household and readies the shifted
-   * Controllable Consumption for the needs of the tariff evaluation.
+   * This is the function that takes every appliance in the household and
+   * readies the shifted Controllable Consumption for the needs of the tariff
+   * evaluation.
+   * 
    * @param tariff
    * @param now
    * @param day
@@ -674,7 +738,8 @@ public class Household
         Vector<Long> tempVector = new Vector<Long>();
         Vector<Long> controllableVector = new Vector<Long>();
         // log.info("Appliance " + appliance.toString());
-        // log.info("Load: " + appliance.getWeeklyLoadVector().get(day).toString());
+        // log.info("Load: " +
+        // appliance.getWeeklyLoadVector().get(day).toString());
 
         for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++)
           tempVector.add(temp[i]);
@@ -691,7 +756,9 @@ public class Household
   }
 
   /**
-   * This function prints to the screen the daily load of the household for the weekday at hand
+   * This function prints to the screen the daily load of the household for the
+   * weekday at hand
+   * 
    * @param weekday
    * @return
    */

@@ -39,7 +39,7 @@ public class ICT extends NotShiftingAppliance
   {
     // Filling the base variables
     name = household + " ICT";
-    saturation = Double.parseDouble(conf.getProperty("ICTSaturation"));
+    saturation = 1;
     power = (int) (HouseholdConstants.ICT_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.ICT_POWER_MEAN);
     cycleDuration = HouseholdConstants.ICT_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ICTDailyTimes")) + applianceOf.getMembers().size();
