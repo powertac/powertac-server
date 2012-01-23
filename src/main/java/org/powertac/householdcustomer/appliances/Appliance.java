@@ -16,7 +16,6 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.HashMap;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
@@ -257,29 +256,6 @@ public class Appliance
   }
 
   /**
-   * This is the filling function of the HashMap for the Days of the Week
-   * possibilities.
-   * 
-   * @param sunday
-   * @param workingday
-   * @param saturday
-   * @return
-   */
-  HashMap<String, Double> fillDay (double sunday, double workingday, double saturday)
-  {
-
-    HashMap<String, Double> hm = new HashMap<String, Double>();
-    hm.put("Saturday", new Double(saturday));
-    hm.put("Sunday", new Double(sunday));
-    hm.put("Monday", new Double(workingday));
-    hm.put("Tuesday", new Double(workingday));
-    hm.put("Wednesday", new Double(workingday));
-    hm.put("Thursday", new Double(workingday));
-    hm.put("Friday", new Double(workingday));
-    return hm;
-  }
-
-  /**
    * This function fills out all the quarters of the appliance functions for a
    * single day of the week
    * 
@@ -329,35 +305,6 @@ public class Appliance
   }
 
   /**
-   * This is the filling function of the HashMap for the Seasons of the year
-   * possibilities.
-   * 
-   * @param summer
-   * @param winter
-   * @param transition
-   * @return
-   */
-  HashMap<String, Double> fillSeason (double summer, double winter, double transition)
-  {
-    HashMap<String, Double> hm = new HashMap<String, Double>();
-    hm.put("Winter", new Double(winter));
-    hm.put("Transition", new Double(transition));
-    hm.put("Summer", new Double(summer));
-    return hm;
-  }
-
-  /**
-   * This is the filling function of the HashMap for the Hours of the Day
-   * possibilities.
-   * 
-   * @return
-   */
-  void fillHour ()
-  {
-
-  }
-
-  /**
    * This is the function utilized to show the information regarding the
    * appliance in question, its variables values etc.
    * 
@@ -373,18 +320,9 @@ public class Appliance
     log.info("Cycle Duration = " + cycleDuration);
     log.info("Occupancy Dependence = " + od);
 
-    // Printing weekly Operation Vector
-    log.info("Weekly Operation Vector = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      log.info("Day " + (i));
-      ListIterator<Boolean> iter = operationVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + "  " + iter.next());
-    }
-
     // Printing Weekly Function Vector and Load
     log.info("Weekly Operation Vector and Load = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
       log.info("Day " + (i));
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
@@ -394,9 +332,8 @@ public class Appliance
   }
 
   /** This function fills out the daily function of an appliance for the day. */
-  public Vector<Boolean> fillDailyFunction ()
+  public void weatherDailyFunction (int day, int hour, double temp)
   {
-    return new Vector<Boolean>();
   }
 
   /**

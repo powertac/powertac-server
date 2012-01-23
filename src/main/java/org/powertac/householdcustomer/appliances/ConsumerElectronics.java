@@ -38,7 +38,7 @@ public class ConsumerElectronics extends NotShiftingAppliance
   {
     // Filling the base variables
     name = household + " ConsumerElectronics";
-    saturation = Double.parseDouble(conf.getProperty("ConsumerElectronicsSaturation"));
+    saturation = 1;
     power = (int) (HouseholdConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
     cycleDuration = HouseholdConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ConsumerElectronicsDailyTimes")) + applianceOf.getMembers().size();

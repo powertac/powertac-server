@@ -196,6 +196,9 @@ public class HouseholdConstants
   public static final int SPACE_HEATER_POWER_VARIANCE = 300;
   public static final int SPACE_HEATER_DURATION_CYCLE = 14;
 
+  public static final int SPACE_HEATER_TEMPERATURE_MEAN = 13;
+  public static final int SPACE_HEATER_TEMPERATURE_VARIANCE = 3;
+
   public static final int SPACE_HEATER_PHASE_1 = 9;
   public static final int SPACE_HEATER_PHASE_2 = 16;
   public static final int SPACE_HEATER_PHASE_3 = 86;

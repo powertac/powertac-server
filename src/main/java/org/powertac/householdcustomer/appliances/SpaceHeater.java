@@ -42,6 +42,18 @@ public class SpaceHeater extends FullyShiftingAppliance
    */
   double percentage;
 
+  /**
+   * Variable that presents the temperature that is inconvenient enough for the
+   * inhabitants of the house in the start of the day in order to open the
+   * appliance.
+   */
+  int temperatureThreshold;
+
+  /**
+   * Variable utilized as a random number generator
+   */
+  Random generator;
+
   @Override
   public void initialize (String household, Properties conf, Random gen)
   {
@@ -49,9 +61,11 @@ public class SpaceHeater extends FullyShiftingAppliance
     name = household + " SpaceHeater";
     saturation = Double.parseDouble(conf.getProperty("SpaceHeaterSaturation"));
     percentage = Double.parseDouble(conf.getProperty("SpaceHeaterPercentage"));
+    temperatureThreshold = (int) (HouseholdConstants.SPACE_HEATER_TEMPERATURE_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_TEMPERATURE_MEAN);
     power = (int) (HouseholdConstants.SPACE_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_POWER_MEAN);
     cycleDuration = HouseholdConstants.SPACE_HEATER_DURATION_CYCLE;
     od = false;
+    generator = gen;
   }
 
   @Override
@@ -60,14 +74,26 @@ public class SpaceHeater extends FullyShiftingAppliance
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    if (applianceOf.isOnVacation(weekday, 0) || gen.nextFloat() > percentage) {
-      for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
-        loadVector.add(0);
-        dailyOperation.add(false);
-      }
-      weeklyLoadVector.add(loadVector);
-      weeklyOperation.add(dailyOperation);
-      operationVector.add(dailyOperation);
+    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      loadVector.add(0);
+      dailyOperation.add(false);
+    }
+    weeklyLoadVector.add(loadVector);
+    weeklyOperation.add(dailyOperation);
+    operationVector.add(dailyOperation);
+
+  }
+
+  @Override
+  public void weatherDailyFunction (int day, int hour, double temp)
+  {
+
+    double perc = generator.nextDouble();
+
+    System.out.println(this.toString() + " " + (applianceOf.isOnVacation(day)) + " " + (temp > temperatureThreshold) + " " + (perc > percentage));
+
+    if ((applianceOf.isOnVacation(day)) || (temp > temperatureThreshold) || (perc > percentage)) {
+
     } else {
       for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
         loadVector.add(0);
@@ -83,9 +109,10 @@ public class SpaceHeater extends FullyShiftingAppliance
         loadVector.set(i, loadVector.get(i - 1) + 2 * HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
       for (int i = HouseholdConstants.SPACE_HEATER_PHASE_4; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
         loadVector.set(i, power);
-      weeklyLoadVector.add(loadVector);
-      weeklyOperation.add(dailyOperation);
-      operationVector.add(dailyOperation);
+      weeklyLoadVector.set(day, loadVector);
+      weeklyOperation.set(day, dailyOperation);
+      operationVector.set(day, dailyOperation);
+      log.debug("Changed");
     }
   }
 
@@ -96,7 +123,7 @@ public class SpaceHeater extends FullyShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // In case the attenants are not in vacation, the spaceheater works all day
-    if (applianceOf.isOnVacation(day, 0)) {
+    if (applianceOf.isOnVacation(day)) {
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
         possibilityDailyOperation.add(false);
       }
@@ -119,6 +146,15 @@ public class SpaceHeater extends FullyShiftingAppliance
         newControllableLoad[i] += weeklyLoadVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + j);
     }
     return newControllableLoad;
+  }
+
+  @Override
+  public void showStatus ()
+  {
+
+    super.showStatus();
+    log.info("Percentage: " + percentage);
+    log.info("Temperature Threshold: " + temperatureThreshold);
   }
 
   @Override

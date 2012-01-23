@@ -187,6 +187,37 @@ public class AirCondition extends NotShiftingAppliance
   }
 
   @Override
+  public void weatherDailyFunction (int day, int hour, double temp)
+  {
+    /*
+        System.out.println(this.toString() + " " + (applianceOf.isOnVacation(day)) + " " + (temp > temperatureThreshold) + " " + (perc > percentage));
+
+        if ((applianceOf.isOnVacation(day)) || (temp > temperatureThreshold) || (perc > percentage)) {
+
+        } else {
+          for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+            loadVector.add(0);
+            dailyOperation.add(true);
+          }
+          for (int i = 0; i < HouseholdConstants.SPACE_HEATER_PHASE_1; i++)
+            loadVector.set(i, power);
+          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_1; i < HouseholdConstants.SPACE_HEATER_PHASE_2; i++)
+            loadVector.set(i, loadVector.get(i - 1) - HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
+          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_2; i < HouseholdConstants.SPACE_HEATER_PHASE_3; i++)
+            loadVector.set(i, loadVector.get(i - 1));
+          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_3; i < HouseholdConstants.SPACE_HEATER_PHASE_4; i++)
+            loadVector.set(i, loadVector.get(i - 1) + 2 * HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
+          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_4; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
+            loadVector.set(i, power);
+          weeklyLoadVector.set(day, loadVector);
+          weeklyOperation.set(day, dailyOperation);
+          operationVector.set(day, dailyOperation);
+          log.debug("Changed");
+        }
+    */
+  }
+
+  @Override
   Vector<Boolean> createDailyPossibilityOperationVector (int day)
   {
 
@@ -227,15 +258,6 @@ public class AirCondition extends NotShiftingAppliance
 
     log.info("Lower Limit = " + lowerLimit);
     log.info("Upper Limit = " + upperLimit);
-
-    // Printing Operation Vector
-    log.info("Operation Vector = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      log.info("Day " + (i + 1));
-      ListIterator<Boolean> iter3 = operationVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + "  " + iter3.next());
-    }
 
     // Printing Weekly Operation Vector and Load Vector
     log.info("Weekly Operation Vector and Load = ");
