@@ -670,9 +670,14 @@ public class HouseholdCustomerServiceTests
 
     // for (int i = 0; i < 10; i++) {
     timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 11));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-
+    /*
+        // for (int i = 0; i < 10; i++) {
+        timeService.setBase(now.getMillis());
+        timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 12));
+        householdCustomerService.activate(timeService.getCurrentTime(), 1);
+    */
     // }
 
   }

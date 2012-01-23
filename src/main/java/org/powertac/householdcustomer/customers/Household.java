@@ -42,6 +42,7 @@ import org.powertac.householdcustomer.appliances.SpaceHeater;
 import org.powertac.householdcustomer.appliances.Stove;
 import org.powertac.householdcustomer.appliances.WashingMachine;
 import org.powertac.householdcustomer.appliances.WaterHeater;
+import org.powertac.householdcustomer.appliances.WeatherSensitiveAppliance;
 import org.powertac.householdcustomer.persons.MostlyPresentPerson;
 import org.powertac.householdcustomer.persons.PeriodicPresentPerson;
 import org.powertac.householdcustomer.persons.Person;
@@ -85,16 +86,28 @@ public class Household
   Vector<Integer> dailyControllableLoad = new Vector<Integer>();
 
   /**
-   * This is a vector containing the load from the appliances installed inside
-   * the household for all the week days.
+   * This is a vector containing each day's load from the appliances that are
+   * sensitive to weather conditions.
+   **/
+  Vector<Integer> dailyWeatherSensitiveLoad = new Vector<Integer>();
+
+  /**
+   * This is a vector containing the base load from the appliances installed
+   * inside the household for all the week days.
    **/
   Vector<Vector<Integer>> weeklyBaseLoad = new Vector<Vector<Integer>>();
 
   /**
-   * This is a vector containing the load from the appliances installed inside
-   * the household for all the week days.
+   * This is a vector containing the controllable load from the appliances
+   * installed inside the household for all the week days.
    **/
   Vector<Vector<Integer>> weeklyControllableLoad = new Vector<Vector<Integer>>();
+
+  /**
+   * This is a vector containing the weather sensitive load from the appliances
+   * installed inside the household for all the week days.
+   **/
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoad = new Vector<Vector<Integer>>();
 
   /**
    * This is a statistical measure of the household, giving a general idea of
@@ -102,11 +115,20 @@ public class Household
    */
   int yearConsumption;
 
-  /** This is an agreggated vector containing each day's load in hours. **/
+  /** This is an agreggated vector containing each day's base load in hours. **/
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
 
-  /** This is an agreggated vector containing each day's load in hours. **/
+  /**
+   * This is an agreggated vector containing each day's controllable load in
+   * hours.
+   **/
   Vector<Integer> dailyControllableLoadInHours = new Vector<Integer>();
+
+  /**
+   * This is an agreggated vector containing each day's weather sensitive load
+   * in hours.
+   **/
+  Vector<Integer> dailyWeatherSensitiveLoadInHours = new Vector<Integer>();
 
   /** This is an agreggated vector containing the weekly base load in hours. **/
   Vector<Vector<Integer>> weeklyBaseLoadInHours = new Vector<Vector<Integer>>();
@@ -116,6 +138,12 @@ public class Household
    * hours.
    **/
   Vector<Vector<Integer>> weeklyControllableLoadInHours = new Vector<Vector<Integer>>();
+
+  /**
+   * This is an agreggated vector containing the weekly weather sensitive load
+   * in hours.
+   **/
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours = new Vector<Vector<Integer>>();
 
   /**
    * This variable shows the current load of the house, for the current quarter
@@ -176,13 +204,17 @@ public class Household
     for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
       dailyBaseLoad = fillDailyBaseLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
       dailyControllableLoad = fillDailyControllableLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
+      weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
 
       dailyBaseLoadInHours = fillDailyBaseLoadInHours();
       dailyControllableLoadInHours = fillDailyControllableLoadInHours();
+      dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
       weeklyBaseLoadInHours.add(dailyBaseLoadInHours);
       weeklyControllableLoadInHours.add(dailyControllableLoadInHours);
+      weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
     }
 
     for (week = 1; week < HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP; week++) {
@@ -192,11 +224,11 @@ public class Household
     for (Appliance appliance : appliances) {
       appliance.setOperationDays();
     }
-    /*
+
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
-    
+    /*
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
@@ -471,6 +503,7 @@ public class Household
    */
   void showStatus ()
   {
+
     // Printing basic variables
     log.info("HouseHold Name : " + name);
     log.info("HouseHold Yearly Consumption : " + yearConsumption);
@@ -490,22 +523,24 @@ public class Household
 
     // Printing daily load
     log.info(" Daily Load = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
       log.info("Day " + (i));
       ListIterator<Integer> iter2 = weeklyBaseLoad.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoad.get(i).listIterator();
+      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoad.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next());
+        log.info("Quarter : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
 
     // Printing daily load in hours
     log.info(" Load In Hours = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
       log.info("Day " + (i));
       ListIterator<Integer> iter2 = weeklyBaseLoadInHours.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoadInHours.get(i).listIterator();
+      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++)
-        log.info("Hours : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next());
+        log.info("Hours : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
   }
 
@@ -548,6 +583,29 @@ public class Household
       sum = 0;
       for (Appliance appliance : appliances) {
         if (!(appliance instanceof NotShiftingAppliance))
+          sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the daily weather sensitive load of
+   * the household for each quarter of the hour
+   * 
+   * @param weekday
+   * @return
+   */
+  Vector<Integer> fillDailyWeatherSensitiveLoad (int day)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.QUARTERS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Appliance appliance : appliances) {
+        if (appliance instanceof WeatherSensitiveAppliance)
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
       v.add(sum);
@@ -645,6 +703,27 @@ public class Household
   }
 
   /**
+   * This function fills out the daily weather sensitive Load in hours vector
+   * taking in consideration the load per quarter of an hour.
+   * 
+   * @return
+   */
+  Vector<Integer> fillDailyWeatherSensitiveLoadInHours ()
+  {
+
+    // Creating Auxiliary Variables
+    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.HOURS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      sum = 0;
+      sum = dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR) + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
+          + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
    * This function set the current load in accordance with the time of the
    * competition
    * 
@@ -685,18 +764,24 @@ public class Household
     for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
       dailyBaseLoad = fillDailyBaseLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
       dailyControllableLoad = fillDailyControllableLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
+      weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
+
       dailyBaseLoadInHours = fillDailyBaseLoadInHours();
       dailyControllableLoadInHours = fillDailyControllableLoadInHours();
+      dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
       weeklyBaseLoadInHours.add(dailyBaseLoadInHours);
       weeklyControllableLoadInHours.add(dailyControllableLoadInHours);
+      weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
     }
 
   }
 
   public void weatherCheck (int day, int hour, Instant now, double temperature)
   {
+    boolean flag = false;
 
     for (Appliance appliance : appliances) {
 
@@ -705,14 +790,27 @@ public class Household
         appliance.weatherDailyFunction(day + 1, 0, temperature);
 
         if (appliance.getWeeklyLoadVector().get(day + 1).get(0) > 0) {
-          // log.debug("Changed indeed");
-          dailyControllableLoad = fillDailyControllableLoad(day + 1);
-          weeklyControllableLoad.set(day + 1, dailyControllableLoad);
-          dailyControllableLoadInHours = fillDailyControllableLoadInHours();
-          weeklyControllableLoadInHours.set(day + 1, dailyControllableLoadInHours);
+          // log.debug("Changed Space Heater indeed");
+          dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day + 1);
+          weeklyWeatherSensitiveLoad.set(day + 1, dailyWeatherSensitiveLoad);
+          dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
+          weeklyWeatherSensitiveLoadInHours.set(day + 1, dailyWeatherSensitiveLoadInHours);
+          flag = true;
         }
       }
 
+      if ((appliance instanceof AirCondition) && (flag == false)) {
+
+        appliance.weatherDailyFunction(day, hour, temperature);
+
+        if (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR) > 0) {
+          log.debug("Changed Air Condition indeed");
+          dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day + 1);
+          weeklyWeatherSensitiveLoad.set(day + 1, dailyWeatherSensitiveLoad);
+          dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
+          weeklyWeatherSensitiveLoadInHours.set(day + 1, dailyWeatherSensitiveLoadInHours);
+        }
+      }
     }
 
   }
@@ -733,7 +831,7 @@ public class Household
     long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
 
     for (Appliance appliance : appliances) {
-      if (!(appliance instanceof NotShiftingAppliance)) {
+      if (!(appliance instanceof NotShiftingAppliance) && !(appliance instanceof WeatherSensitiveAppliance)) {
         long[] temp = appliance.dailyShifting(tariff, now, day, gen);
         Vector<Long> tempVector = new Vector<Long>();
         Vector<Long> controllableVector = new Vector<Long>();

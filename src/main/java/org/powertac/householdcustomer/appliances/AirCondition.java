@@ -33,7 +33,7 @@ import org.powertac.common.enumerations.AirConditionType;
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
-public class AirCondition extends NotShiftingAppliance
+public class AirCondition extends WeatherSensitiveAppliance
 {
 
   /**
@@ -52,6 +52,8 @@ public class AirCondition extends NotShiftingAppliance
   int lowerLimit;
   int upperLimit;
 
+  int cycleCounter;
+
   @Override
   public void initialize (String household, Properties conf, Random gen)
   {
@@ -65,6 +67,7 @@ public class AirCondition extends NotShiftingAppliance
 
     // Air Condition Specific Variables
     acOperation = AirConditionOperation.Off;
+    cycleCounter = 0;
 
     if (x < limit) {
       type = AirConditionType.Normal;
@@ -80,12 +83,12 @@ public class AirCondition extends NotShiftingAppliance
     }
 
     x = gen.nextInt(HouseholdConstants.PERCENTAGE + 1);
-    double classA = Double.parseDouble(conf.getProperty("AirConditionClassA"));
-    double classB = Double.parseDouble(conf.getProperty("AirConditionClassB"));
-    double classC = Double.parseDouble(conf.getProperty("AirConditionClassC"));
-    double classD = Double.parseDouble(conf.getProperty("AirConditionClassD"));
-    double classE = Double.parseDouble(conf.getProperty("AirConditionClassE"));
-    double classF = Double.parseDouble(conf.getProperty("AirConditionClassF"));
+    double classA = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassA"));
+    double classB = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassB"));
+    double classC = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassC"));
+    double classD = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassD"));
+    double classE = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassE"));
+    double classF = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassF"));
 
     if (x < classA) {
       acClass = AirConditionClass.A;
@@ -128,8 +131,8 @@ public class AirCondition extends NotShiftingAppliance
     }
 
     x = gen.nextInt(HouseholdConstants.PERCENTAGE + 1);
-    double powerA = Double.parseDouble(conf.getProperty("AirConditionPowerTypeSmall"));
-    double powerB = Double.parseDouble(conf.getProperty("AirConditionPowerTypeMedium"));
+    double powerA = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeSmall"));
+    double powerB = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeMedium"));
 
     powerOff = 0;
     powerStart = 0;
@@ -186,32 +189,19 @@ public class AirCondition extends NotShiftingAppliance
   @Override
   public void weatherDailyFunction (int day, int hour, double temp)
   {
-    /*
-        System.out.println(this.toString() + " " + (applianceOf.isOnVacation(day)) + " " + (temp > temperatureThreshold) + " " + (perc > percentage));
 
-        if ((applianceOf.isOnVacation(day)) || (temp > temperatureThreshold) || (perc > percentage)) {
+    if ((temp > upperLimit) || (temp < lowerLimit)) {
 
-        } else {
-          for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
-            loadVector.add(0);
-            dailyOperation.add(true);
-          }
-          for (int i = 0; i < HouseholdConstants.SPACE_HEATER_PHASE_1; i++)
-            loadVector.set(i, power);
-          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_1; i < HouseholdConstants.SPACE_HEATER_PHASE_2; i++)
-            loadVector.set(i, loadVector.get(i - 1) - HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
-          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_2; i < HouseholdConstants.SPACE_HEATER_PHASE_3; i++)
-            loadVector.set(i, loadVector.get(i - 1));
-          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_3; i < HouseholdConstants.SPACE_HEATER_PHASE_4; i++)
-            loadVector.set(i, loadVector.get(i - 1) + 2 * HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
-          for (int i = HouseholdConstants.SPACE_HEATER_PHASE_4; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
-            loadVector.set(i, power);
-          weeklyLoadVector.set(day, loadVector);
-          weeklyOperation.set(day, dailyOperation);
-          operationVector.set(day, dailyOperation);
-          log.debug("Changed");
-        }
-    */
+      boolean[] hourPresence = new boolean[HouseholdConstants.QUARTERS_OF_HOUR];
+
+      for (int i = 0; i < HouseholdConstants.QUARTERS_OF_HOUR; i++) {
+        // System.out.println("Day:" + day + " Hour: " + hour + " Quarter: " + hour * HouseholdConstants.QUARTERS_OF_HOUR + i);
+        hourPresence[i] = possibilityOperationVector.get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + i);
+        // System.out.println(hourPresence[i]);
+      }
+
+    }
+
   }
 
   @Override
