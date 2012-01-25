@@ -15,7 +15,6 @@
  */
 package org.powertac.householdcustomer.customers;
 
-import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
@@ -224,11 +223,11 @@ public class Household
     for (Appliance appliance : appliances) {
       appliance.setOperationDays();
     }
-
+    /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
-    /*
+    
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
@@ -508,39 +507,39 @@ public class Household
     log.info("HouseHold Name : " + name);
     log.info("HouseHold Yearly Consumption : " + yearConsumption);
     log.info("Number of Persons : " + members.size());
+    /*
+        // Printing members' status
+        Iterator<Person> iter = members.iterator();
+        while (iter.hasNext())
+          iter.next().showInfo();
 
-    // Printing members' status
-    Iterator<Person> iter = members.iterator();
-    while (iter.hasNext())
-      iter.next().showInfo();
-
-    // Printing appliances' status
-    Iterator<Appliance> itera = appliances.iterator();
-    log.info(" Number Of Appliances = ");
-    log.info(appliances.size());
-    while (itera.hasNext())
-      itera.next().showStatus();
-
+        // Printing appliances' status
+        Iterator<Appliance> itera = appliances.iterator();
+        log.info(" Number Of Appliances = ");
+        log.info(appliances.size());
+        while (itera.hasNext())
+          itera.next().showStatus();
+    */
     // Printing daily load
     log.info(" Daily Load = ");
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + (i));
+      log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoad.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoad.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoad.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Quarter : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
 
     // Printing daily load in hours
     log.info(" Load In Hours = ");
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + (i));
+      log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoadInHours.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoadInHours.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++)
-        log.info("Hours : " + (j + 1) + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Hours : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
   }
 
@@ -803,12 +802,17 @@ public class Household
 
         appliance.weatherDailyFunction(day, hour, temperature);
 
-        if (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR) > 0) {
-          log.debug("Changed Air Condition indeed");
-          dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day + 1);
-          weeklyWeatherSensitiveLoad.set(day + 1, dailyWeatherSensitiveLoad);
+        if ((appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 1) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 2) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 3) > 0)) {
+
+          // log.debug("Changed Air Condition indeed");
+          dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day);
+          weeklyWeatherSensitiveLoad.set(day, dailyWeatherSensitiveLoad);
           dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
-          weeklyWeatherSensitiveLoadInHours.set(day + 1, dailyWeatherSensitiveLoadInHours);
+          weeklyWeatherSensitiveLoadInHours.set(day, dailyWeatherSensitiveLoadInHours);
+
         }
       }
     }

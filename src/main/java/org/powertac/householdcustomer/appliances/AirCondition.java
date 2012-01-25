@@ -28,7 +28,9 @@ import org.powertac.common.enumerations.AirConditionPowerClass;
 import org.powertac.common.enumerations.AirConditionType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It works most of the hours of the day, but always when someone is at home in need of water. So it's a not shifting appliance.
+ * Circulation pump is the appliance that brings water to the household. It
+ * works most of the hours of the day, but always when someone is at home in
+ * need of water. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -37,7 +39,8 @@ public class AirCondition extends WeatherSensitiveAppliance
 {
 
   /**
-   * The type of the water heater. For more info, read the details in the enumerations.HeaterType java file
+   * The type of the water heater. For more info, read the details in the
+   * enumerations.HeaterType java file
    **/
   AirConditionType type;
   AirConditionClass acClass;
@@ -47,8 +50,13 @@ public class AirCondition extends WeatherSensitiveAppliance
   AirConditionOperation acOperation;
   int cycleOn;
   int cycleOff;
-  int powerOff;
-  int powerStart;
+  int BTU;
+  int powerHeating;
+  int powerCooling;
+  int powerOffHeating;
+  int powerOffCooling;
+  int powerStartHeating;
+  int powerStartCooling;
   int lowerLimit;
   int upperLimit;
 
@@ -134,30 +142,41 @@ public class AirCondition extends WeatherSensitiveAppliance
     double powerA = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeSmall"));
     double powerB = HouseholdConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeMedium"));
 
-    powerOff = 0;
-    powerStart = 0;
+    powerOffHeating = 0;
+    powerOffCooling = 0;
+    powerStartHeating = 0;
+    powerStartCooling = 0;
 
     if (x < powerA) {
       acPowerClass = AirConditionPowerClass.Small;
-      power = HouseholdConstants.AIR_CONDITION_POWER_MEAN_SMALL_NORMAL;
+      BTU = HouseholdConstants.AIR_CONDITION_BTU_SMALL;
+      powerCooling = (int) (BTU / (acClassEER * HouseholdConstants.QUARTERS_OF_HOUR));
+      powerHeating = (int) (BTU / (acClassCOP * HouseholdConstants.QUARTERS_OF_HOUR));
 
     } else if ((x >= powerA) & (x < powerA + powerB)) {
 
       acPowerClass = AirConditionPowerClass.Medium;
-      power = HouseholdConstants.AIR_CONDITION_POWER_MEAN_MEDIUM_NORMAL;
+      BTU = HouseholdConstants.AIR_CONDITION_BTU_MEDIUM;
+      powerCooling = (int) (BTU / acClassEER);
+      powerHeating = (int) (BTU / acClassCOP);
 
     } else {
 
-      power = HouseholdConstants.AIR_CONDITION_POWER_MEAN_LARGE_NORMAL;
+      BTU = HouseholdConstants.AIR_CONDITION_BTU_LARGE;
       acPowerClass = AirConditionPowerClass.Large;
+      powerCooling = (int) (BTU / acClassEER);
+      powerHeating = (int) (BTU / acClassCOP);
 
     }
 
     if (type == AirConditionType.Inverter) {
 
-      powerStart = (int) (power * (1 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      power = (int) (power * (0.5 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerOff = (int) (power * (0.5 - HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerStartHeating = (int) (powerHeating * (1 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerStartCooling = (int) (powerCooling * (1 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerOffHeating = (int) (powerHeating * (0.5 - HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerOffCooling = (int) (powerCooling * (0.5 - HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerHeating = (int) (powerHeating * (0.5 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerCooling = (int) (powerCooling * (0.5 + HouseholdConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
 
     }
 
@@ -179,27 +198,194 @@ public class AirCondition extends WeatherSensitiveAppliance
       dailyOperation.add(false);
       loadVector.add(0);
     }
-
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
     operationVector.add(operation);
-
   }
 
   @Override
-  public void weatherDailyFunction (int day, int hour, double temp)
+  public void weatherDailyFunction (int day, int hour, double temperature)
   {
+    int trueCounter = 0;
+    boolean open = true; // this is a variable to help separate cases of
+                         // operation
+    int start = 0, end = 0; // this variables are used to show the beginning or
+                            // the end of the operation cycle
+    boolean starting = true; // this shows if the air condition is starting or
+                             // ending
 
-    if ((temp > upperLimit) || (temp < lowerLimit)) {
+    // See what mode will the Air Condition will be on
+    if (temperature > upperLimit) {
+      acOperation = AirConditionOperation.Cooling;
+    } else if (temperature < lowerLimit) {
+      acOperation = AirConditionOperation.Heating;
+    } else
+      acOperation = AirConditionOperation.Off;
+
+    // If it is going to work because the temperature is out of limits
+    if (acOperation != AirConditionOperation.Off) {
 
       boolean[] hourPresence = new boolean[HouseholdConstants.QUARTERS_OF_HOUR];
 
       for (int i = 0; i < HouseholdConstants.QUARTERS_OF_HOUR; i++) {
-        // System.out.println("Day:" + day + " Hour: " + hour + " Quarter: " + hour * HouseholdConstants.QUARTERS_OF_HOUR + i);
         hourPresence[i] = possibilityOperationVector.get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + i);
-        // System.out.println(hourPresence[i]);
+        if (hourPresence[i] == true)
+          trueCounter++;
+        // log.debug("Day:" + day + " Hour: " + hour + " Quarter: " + (hour *
+        // HouseholdConstants.QUARTERS_OF_HOUR + i) + " Presence: " +
+        // hourPresence[i] + " " + trueCounter);
       }
 
+      if (trueCounter == HouseholdConstants.QUARTERS_OF_HOUR) {
+        start = 0;
+      } else if (trueCounter == HouseholdConstants.QUARTERS_OF_HOUR - 1) {
+        if (hourPresence[0] == false) {
+          start = 1;
+        } else if (hourPresence[3] == false) {
+          end = 3;
+          starting = false;
+        } else {
+          start = 0;
+        }
+      } else if (trueCounter == HouseholdConstants.QUARTERS_OF_HOUR - 2) {
+        if ((hourPresence[0] == false) && (hourPresence[1] == false)) {
+          start = 2;
+        } else if ((hourPresence[2] == false) && (hourPresence[3] == false)) {
+          end = 2;
+          starting = false;
+        } else
+          open = false;
+      } else
+        open = false;
+
+      /*
+            log.debug("Open:" + open + "  ");
+            if (starting)
+              log.debug("Start time:" + start);
+            else
+              log.debug("End time:" + end);
+      */
+
+      if (open) {
+        loadVector = weeklyLoadVector.get(day);
+        dailyOperation = weeklyOperation.get(day);
+
+        if (type == AirConditionType.Normal) { // Normal type of air condition
+
+          // If this is the start of the operation of air condition
+          if (starting) {
+
+            for (int i = start; i < HouseholdConstants.QUARTERS_OF_HOUR; i++) {
+              int time = cycleCounter % cycleDuration;
+              // log.debug("CycleCounter: " + cycleCounter);
+              // log.debug("CycleDuration: " + cycleDuration);
+              // log.debug("Time: " + time);
+
+              if (time < cycleOn) {
+                if (acOperation == AirConditionOperation.Cooling)
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                else
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerHeating);
+
+                dailyOperation.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, true);
+              }
+              cycleCounter++;
+            }
+
+            // log.debug("Changed");
+          } else {
+            for (int i = 0; i < end; i++) {
+              int time = cycleCounter % cycleDuration;
+              // log.debug("CycleCounter: " + cycleCounter);
+              // log.debug("CycleDuration: " + cycleDuration);
+              // log.debug("Time: " + time);
+
+              if (time < cycleOn) {
+                if (acOperation == AirConditionOperation.Cooling)
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                else
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerHeating);
+
+                dailyOperation.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, true);
+              }
+              cycleCounter++;
+            }
+            cycleCounter = 0;
+
+            // log.debug("Changed");
+          }
+        } else { // Inverter Case of Air Conditioning
+
+          // If this is the start of the operation of air condition
+          if (starting) {
+
+            for (int i = start; i < HouseholdConstants.QUARTERS_OF_HOUR; i++) {
+              int time = cycleCounter % cycleDuration;
+              // log.debug("CycleCounter: " + cycleCounter);
+              // log.debug("CycleDuration: " + cycleDuration);
+              // log.debug("Time: " + time);
+
+              if (time < cycleOn) {
+                if (acOperation == AirConditionOperation.Cooling) {
+                  if (cycleCounter == 0) {
+                    loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerStartCooling);
+                  } else {
+                    loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                  }
+                } else {
+                  if (cycleCounter == 0) {
+                    loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerStartHeating);
+                  } else {
+                    loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerHeating);
+                  }
+                }
+
+              } else {
+                if (acOperation == AirConditionOperation.Cooling)
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerOffCooling);
+                else
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerOffHeating);
+              }
+
+              dailyOperation.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, true);
+              cycleCounter++;
+            }
+
+            // log.debug("Changed");
+          } else {
+            for (int i = 0; i < end; i++) {
+              int time = cycleCounter % cycleDuration;
+              // log.debug("CycleCounter: " + cycleCounter);
+              // log.debug("CycleDuration: " + cycleDuration);
+              // log.debug("Time: " + time);
+
+              if (time < cycleOn) {
+                if (acOperation == AirConditionOperation.Cooling)
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                else
+                  loadVector.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, powerHeating);
+
+                dailyOperation.set(hour * HouseholdConstants.QUARTERS_OF_HOUR + i, true);
+              }
+              cycleCounter++;
+            }
+            cycleCounter = 0;
+
+            // log.debug("Changed");
+          }
+
+        }
+
+        weeklyLoadVector.set(day, loadVector);
+        weeklyOperation.set(day, dailyOperation);
+        operationVector.set(day, dailyOperation);
+        // log.debug("Changed");
+
+      } else
+        cycleCounter = 0;
+
+    } else {
+      cycleCounter = 0;
     }
 
   }
@@ -230,14 +416,18 @@ public class AirCondition extends WeatherSensitiveAppliance
     log.info("Occupancy Dependence = " + od);
     log.info("Air Condition Type = " + type);
     log.info("Air Condition Power Class = " + acPowerClass);
+    log.info("Air Condition BTU = " + BTU);
     log.info("Air Condition Class = " + acClass);
     log.info("Air Condition Class EER = " + acClassEER);
     log.info("Air Condition Class COP = " + acClassCOP);
     log.info("Air Condition Operation = " + acOperation);
 
-    log.info("Power Start = " + powerStart);
-    log.info("Power On = " + power);
-    log.info("Power Off = " + powerOff);
+    log.info("Power Start Heating = " + powerStartHeating);
+    log.info("Power Start Cooling = " + powerStartCooling);
+    log.info("Power Heating = " + powerHeating);
+    log.info("Power Cooling = " + powerCooling);
+    log.info("Power Off Heating = " + powerOffHeating);
+    log.info("Power Off Cooling = " + powerOffCooling);
 
     log.info("Cycle Duration On = " + cycleOn);
     log.info("Cycle Duration Off = " + cycleOff);
@@ -250,11 +440,11 @@ public class AirCondition extends WeatherSensitiveAppliance
     log.info("Weekly Operation Vector and Load = ");
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + (i + 1));
+      log.info("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + (j + 1) + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.info("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
     }
   }
 

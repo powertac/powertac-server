@@ -323,11 +323,11 @@ public class Appliance
     // Printing Weekly Function Vector and Load
     log.info("Weekly Operation Vector and Load = ");
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + (i));
+      log.info("Day " + i);
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + (j + 1) + " = " + iter.next() + "   Load = " + iter2.next());
+        log.info("Quarter " + j + " = " + iter.next() + "   Load = " + iter2.next());
     }
   }
 

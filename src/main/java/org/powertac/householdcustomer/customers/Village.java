@@ -802,7 +802,7 @@ public class Village extends AbstractCustomer
    * @param type
    * @return
    */
-  void showAggDailyLoad (String type, int day)
+  public void showAggDailyLoad (String type, int day)
   {
 
     log.info("Portion " + type + " Daily Aggregated Load");
@@ -1445,10 +1445,6 @@ public class Village extends AbstractCustomer
           rescheduleNextDay(type);
         }
 
-        updateAggDailyWeatherSensitiveLoad(type, day);
-        updateAggDailyWeatherSensitiveLoad(type, day + 1);
-        showAggDailyLoad(type, day);
-        showAggDailyLoad(type, day + 1);
       }
 
     }
@@ -1463,12 +1459,21 @@ public class Village extends AbstractCustomer
   void weatherCheck (int day, int hour, Instant now)
   {
 
-    double temperature = 20;
+    double temperature = 40 * gen.nextDouble();
+    // System.out.println("Day " + day + " Hour " + hour + " Temperature " +
+    // temperature);
 
     Vector<Household> houses = getHouses();
 
     for (Household house : houses) {
       house.weatherCheck(day, hour, now, temperature);
+    }
+
+    for (String type : subscriptionMap.keySet()) {
+      updateAggDailyWeatherSensitiveLoad(type, day);
+      updateAggDailyWeatherSensitiveLoad(type, day + 1);
+      // showAggDailyLoad(type, day);
+      // showAggDailyLoad(type, day + 1);
     }
 
   }
