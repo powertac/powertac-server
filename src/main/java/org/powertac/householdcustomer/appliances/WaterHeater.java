@@ -157,11 +157,11 @@ public class WaterHeater extends FullyShiftingAppliance
     log.info("Weekly Operation Vector and Load = ");
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + (i + 1));
+      log.info("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + (j + 1) + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.info("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
     }
   }
 

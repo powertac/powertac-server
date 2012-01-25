@@ -134,9 +134,10 @@ public class HouseholdConstants
   public static final int DRYER_THIRD_PHASE_LOAD = 250;
 
   // AIR CONDITION VARIABLES -----------------------------//
-  public static final int AIR_CONDITION_POWER_MEAN_SMALL_NORMAL = 9000;
-  public static final int AIR_CONDITION_POWER_MEAN_MEDIUM_NORMAL = 12000;
-  public static final int AIR_CONDITION_POWER_MEAN_LARGE_NORMAL = 18000;
+  public static final int AIR_CONDITION_BTU_SMALL = 9000;
+  public static final int AIR_CONDITION_BTU_MEDIUM = 12000;
+  public static final int AIR_CONDITION_BTU_LARGE = 18000;
+  public static final double AIR_CONDITION_COP_EER_RATIO = 3.412;
 
   public static final double AIR_CONDITION_POWER_OVER_START_INVERTER = 0.09;
   public static final double AIR_CONDITION_POWER_MEAN_INVERTER = 0.5;
@@ -160,7 +161,7 @@ public class HouseholdConstants
   public static final int AIR_CONDITION_DURATION_CYCLE_OFF_NORMAL = 2;
   public static final int AIR_CONDITION_DURATION_CYCLE_INVERTER = 1;
 
-  public static final int AIR_CONDITION_LOW_LIMIT_MEAN = 16;
+  public static final int AIR_CONDITION_LOW_LIMIT_MEAN = 14;
   public static final int AIR_CONDITION_LOW_LIMIT_VARIANCE = 2;
   public static final int AIR_CONDITION_UPPER_LIMIT_MEAN = 28;
   public static final int AIR_CONDITION_UPPER_LIMIT_VARIANCE = 2;
