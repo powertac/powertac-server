@@ -180,7 +180,7 @@ public class HouseholdCustomerServiceTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Two Consumers Created", 1, householdCustomerService.getVillageList().size());
+    assertEquals("Two Consumers Created", 2, householdCustomerService.getVillageList().size());
     for (Village customer : householdCustomerService.getVillageList()) {
 
       // capture subscription method args
