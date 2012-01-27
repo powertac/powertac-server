@@ -1466,22 +1466,23 @@ public class Village extends AbstractCustomer
   {
 
     WeatherReport wr = weatherReportRepo.currentWeatherReport();
-    double temperature = wr.getTemperature();
-    // log.debug("Temperature: " + temperature);
+    if (wr != null) {
+      double temperature = wr.getTemperature();
+      // log.debug("Temperature: " + temperature);
 
-    Vector<Household> houses = getHouses();
+      Vector<Household> houses = getHouses();
 
-    for (Household house : houses) {
-      house.weatherCheck(day, hour, now, temperature);
+      for (Household house : houses) {
+        house.weatherCheck(day, hour, now, temperature);
+      }
+
+      for (String type : subscriptionMap.keySet()) {
+        updateAggDailyWeatherSensitiveLoad(type, day);
+        updateAggDailyWeatherSensitiveLoad(type, day + 1);
+        // showAggDailyLoad(type, day);
+        // showAggDailyLoad(type, day + 1);
+      }
     }
-
-    for (String type : subscriptionMap.keySet()) {
-      updateAggDailyWeatherSensitiveLoad(type, day);
-      updateAggDailyWeatherSensitiveLoad(type, day + 1);
-      // showAggDailyLoad(type, day);
-      // showAggDailyLoad(type, day + 1);
-    }
-
   }
 
   /**
