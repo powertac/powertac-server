@@ -15,6 +15,8 @@
  */
 package org.powertac.common.interfaces;
 
+import java.util.Collection;
+
 /**
  * Support for annotation-driven configuration. Configurable services, including
  * services that create configurable instances (such as gencos or customer models),
@@ -28,8 +30,14 @@ public interface ServerConfiguration
 {
   /**
    * Configures a target object by matching configuration clauses with 
-   * @ConfigurableValue and @ConfigurableInstance annotations on the 
-   * target object.
+   * @ConfigurableValue annotations on the target object.
    */
-  public void configureMe(Object target);
+  public void configureMe (Object target);
+  
+  /**
+   * Creates and configures potentially multiple instances of a target class
+   * annotated as @ConfigurableInstance. Returns the created instances in 
+   * a list in no particular order.
+   */
+  public Collection<?> configureInstances (Class<?> target);
 }
