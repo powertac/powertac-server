@@ -48,6 +48,8 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
@@ -60,6 +62,7 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -103,6 +106,9 @@ public class HouseholdCustomerServiceTests
   private TimeslotRepo timeslotRepo;
 
   @Autowired
+  private WeatherReportRepo weatherReportRepo;
+
+  @Autowired
   private BrokerRepo brokerRepo;
 
   @Autowired
@@ -130,6 +136,7 @@ public class HouseholdCustomerServiceTests
     pluginConfigRepo.recycle();
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
+    weatherReportRepo.recycle();
     reset(mockTariffMarket);
     reset(mockAccounting);
 
@@ -676,12 +683,25 @@ public class HouseholdCustomerServiceTests
     // for (int i = 0; i < 10; i++) {
     timeService.setBase(now.getMillis());
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 5));
+
+    Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
+    // log.debug(ts1.toString());
+    double temperature = 40 * Math.random();
+    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
     for (int i = 0; i < 23; i++) {
       timeService.setBase(now.getMillis());
       timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 1));
+      ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
+      // log.debug(ts1.toString());
+      temperature = 40 * Math.random();
+      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
+
     for (Village customer : householdCustomerService.getVillageList()) {
       customer.showAggDailyLoad("SS", 0);
     }

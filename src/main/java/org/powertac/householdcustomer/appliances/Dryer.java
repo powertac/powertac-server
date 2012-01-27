@@ -155,27 +155,27 @@ public class Dryer extends SemiShiftingAppliance
   public void showStatus ()
   {
     // Printing basic variables
-    log.info("Name = " + name);
-    log.info("Saturation = " + saturation);
-    log.info("Power = " + power);
-    log.info("Cycle Duration = " + cycleDuration);
-    log.info("Occupancy Dependence = " + od);
+    log.debug("Name = " + name);
+    log.debug("Saturation = " + saturation);
+    log.debug("Power = " + power);
+    log.debug("Cycle Duration = " + cycleDuration);
+    log.debug("Occupancy Dependence = " + od);
 
     // Printing Function Day Vector
     ListIterator<Integer> iter = days.listIterator();
-    log.info("Days Vector = ");
+    log.debug("Days Vector = ");
     while (iter.hasNext())
-      log.info("Day  " + iter.next());
+      log.debug("Day  " + iter.next());
 
     // Printing Weekly Operation Vector and Load Vector
-    log.info("Weekly Operation Vector and Load = ");
+    log.debug("Weekly Operation Vector and Load = ");
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + i);
+      log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + j + " = " + iter3.next() + "  Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "  Load = " + iter4.next());
     }
   }
 

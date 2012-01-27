@@ -313,21 +313,21 @@ public class Appliance
   public void showStatus ()
   {
     // Printing base variables
-    log.info("Name = " + name);
-    log.info("Member Of = " + applianceOf.toString());
-    log.info("Saturation = " + saturation);
-    log.info("Power = " + power);
-    log.info("Cycle Duration = " + cycleDuration);
-    log.info("Occupancy Dependence = " + od);
+    log.debug("Name = " + name);
+    log.debug("Member Of = " + applianceOf.toString());
+    log.debug("Saturation = " + saturation);
+    log.debug("Power = " + power);
+    log.debug("Cycle Duration = " + cycleDuration);
+    log.debug("Occupancy Dependence = " + od);
 
     // Printing Weekly Function Vector and Load
-    log.info("Weekly Operation Vector and Load = ");
+    log.debug("Weekly Operation Vector and Load = ");
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + i);
+      log.debug("Day " + i);
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + j + " = " + iter.next() + "   Load = " + iter2.next());
+        log.debug("Quarter " + j + " = " + iter.next() + "   Load = " + iter2.next());
     }
   }
 

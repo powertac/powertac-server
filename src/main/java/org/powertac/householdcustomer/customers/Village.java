@@ -31,9 +31,11 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -60,6 +62,9 @@ public class Village extends AbstractCustomer
 
   @Autowired
   TimeslotRepo timeslotRepo;
+
+  @Autowired
+  WeatherReportRepo weatherReportRepo;
 
   /**
    * These are the vectors containing aggregated each day's base load from the
@@ -162,6 +167,7 @@ public class Village extends AbstractCustomer
 
     timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
@@ -263,13 +269,13 @@ public class Village extends AbstractCustomer
     List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(this.getCustomerInfo());
 
     if (subscriptions.size() > 0) {
-      // log.info(subscriptions.toString());
+      log.debug(subscriptions.toString());
 
       for (String type : subscriptionMap.keySet()) {
         subscriptionMap.put(type, subscriptions.get(0));
       }
-      // log.info(this.toString() + " Default");
-      // log.info(subscriptionMap.toString());
+      log.debug(this.toString() + " Default");
+      log.debug(subscriptionMap.toString());
     }
   }
 
@@ -393,9 +399,9 @@ public class Village extends AbstractCustomer
       subscriptionMap.put("SS", newTs);
     }
 
-    log.info(this.toString() + " Changing Only " + type);
-    log.info("Old:" + ts.toString() + "  New:" + newTs.toString());
-    log.info(subscriptionMap.toString());
+    log.debug(this.toString() + " Changing Only " + type);
+    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
+    log.debug(subscriptionMap.toString());
 
   }
 
@@ -404,21 +410,21 @@ public class Village extends AbstractCustomer
   {
     List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
 
-    // log.info(revoked.toString());
+    log.debug(revoked.toString());
     for (TariffSubscription revokedSubscription : revoked) {
       revokedSubscription.handleRevokedTariff();
 
       Tariff tariff = revokedSubscription.getTariff();
       Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
       Tariff defaultTariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
-      /*   
-            log.info("Tariff:" + tariff.toString());
-            if (newTariff != null)
-              log.info("New Tariff:" + newTariff.toString());
-            else
-              log.info("New Tariff is Null");
-            log.info("Default Tariff:" + defaultTariff.toString());
-      */
+
+      log.debug("Tariff:" + tariff.toString());
+      if (newTariff != null)
+        log.debug("New Tariff:" + newTariff.toString());
+      else
+        log.debug("New Tariff is Null");
+      log.debug("Default Tariff:" + defaultTariff.toString());
+
       if (newTariff == null)
         updateSubscriptions(tariff, defaultTariff);
       else
@@ -762,33 +768,33 @@ public class Village extends AbstractCustomer
 
     if (type.equals("NS")) {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.info("Day " + i);
+        log.debug("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j) + " Weather Sensitive Load: "
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j) + " Weather Sensitive Load: "
               + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
         }
       }
     } else if (type.equals("RaS")) {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.info("Day " + i);
+        log.debug("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j) + " Weather Sensitive Load: "
-              + aggDailyWeatherSensitiveLoadInHoursRaS.get(i).get(j));
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j)
+              + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursRaS.get(i).get(j));
         }
       }
     } else if (type.equals("ReS")) {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.info("Day " + i);
+        log.debug("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j) + " Weather Sensitive Load: "
-              + aggDailyWeatherSensitiveLoadInHoursReS.get(i).get(j));
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j)
+              + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursReS.get(i).get(j));
         }
       }
     } else {
       for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.info("Day " + i);
+        log.debug("Day " + i);
         for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-          log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j) + " Weather Sensitive Load: "
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j) + " Weather Sensitive Load: "
               + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
         }
       }
@@ -805,31 +811,31 @@ public class Village extends AbstractCustomer
   public void showAggDailyLoad (String type, int day)
   {
 
-    log.info("Portion " + type + " Daily Aggregated Load");
-    log.info("Day " + day);
+    log.debug("Portion " + type + " Daily Aggregated Load");
+    log.debug("Day " + day);
 
     if (type.equals("NS")) {
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j) + " Weather Sensitive Load: "
-            + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j)
+            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
       }
 
     } else if (type.equals("RaS")) {
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(day).get(j)
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(j));
       }
 
     } else if (type.equals("ReS")) {
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(day).get(j)
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(j));
       }
 
     } else {
       for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
-        log.info("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j) + " Weather Sensitive Load: "
-            + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j)
+            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
       }
     }
   }
@@ -845,7 +851,7 @@ public class Village extends AbstractCustomer
     for (String type : subscriptionMap.keySet()) {
       TariffSubscription sub = subscriptionMap.get(type);
       if (ts == null) {
-        log.error("Current timeslot is null");
+        log.debug("Current timeslot is null");
         int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
         summary = getConsumptionByTimeslot(serial, type);
       } else {
@@ -869,7 +875,7 @@ public class Village extends AbstractCustomer
     int hour = (int) (serial % HouseholdConstants.HOURS_OF_DAY);
     long summary = 0;
 
-    log.info("Serial : " + serial + " Day: " + day + " Hour: " + hour);
+    log.debug("Serial : " + serial + " Day: " + day + " Hour: " + hour);
 
     summary = (getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
 
@@ -914,7 +920,7 @@ public class Village extends AbstractCustomer
       summaryBase = aggDailyBaseLoadInHoursSS.get(day).get(hour);
     }
 
-    log.info("Base Load for " + type + ":" + summaryBase);
+    log.debug("Base Load for " + type + ":" + summaryBase);
     return summaryBase;
   }
 
@@ -936,7 +942,7 @@ public class Village extends AbstractCustomer
       summaryControllable = aggDailyControllableLoadInHoursSS.get(day).get(hour);
     }
 
-    log.info("Controllable Load for " + type + ":" + summaryControllable);
+    log.debug("Controllable Load for " + type + ":" + summaryControllable);
     return summaryControllable;
   }
 
@@ -958,7 +964,7 @@ public class Village extends AbstractCustomer
       summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(hour);
     }
 
-    log.info("WeatherSensitive Load for " + type + ":" + summaryWeatherSensitive);
+    log.debug("WeatherSensitive Load for " + type + ":" + summaryWeatherSensitive);
     return summaryWeatherSensitive;
   }
 
@@ -1086,7 +1092,7 @@ public class Village extends AbstractCustomer
 
     if (evaluationTariffs.size() > 1) {
       for (Tariff tariff : evaluationTariffs) {
-        log.info("Tariff : " + tariff.toString() + " Tariff Type : " + tariff.getTariffSpecification().getPowerType());
+        log.debug("Tariff : " + tariff.toString() + " Tariff Type : " + tariff.getTariffSpecification().getPowerType());
         if (tariff.isExpired() == false && tariff.getTariffSpecification().getPowerType() == PowerType.CONSUMPTION) {
           estimation.add(-(costEstimation(tariff, type)));
         } else
@@ -1097,9 +1103,9 @@ public class Village extends AbstractCustomer
 
       TariffSubscription sub = subscriptionMap.get(type);
 
-      log.info("Equality: " + sub.getTariff().getTariffSpec().toString() + " = " + evaluationTariffs.get(minIndex).getTariffSpec().toString());
+      log.debug("Equality: " + sub.getTariff().getTariffSpec().toString() + " = " + evaluationTariffs.get(minIndex).getTariffSpec().toString());
       if (!(sub.getTariff().getTariffSpec() == evaluationTariffs.get(minIndex).getTariffSpec())) {
-        log.info("Changing From " + sub.toString() + " After Evaluation");
+        log.debug("Changing From " + sub.toString() + " After Evaluation");
         changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex), type);
       }
 
@@ -1120,23 +1126,23 @@ public class Village extends AbstractCustomer
        In any other case shifting will be done. */
     if (type.equals("NS")) {
       // System.out.println("Simple Evaluation for " + type);
-      log.info("Simple Evaluation for " + type);
+      log.debug("Simple Evaluation for " + type);
       costVariable = estimateVariableTariffPayment(tariff, type);
     } else if (type.equals("RaS")) {
       Double rand = gen.nextDouble();
       // System.out.println(rand);
       if (rand < getInertiaMap().get(type)) {
         // System.out.println("Simple Evaluation for " + type);
-        log.info("Simple Evaluation for " + type);
+        log.debug("Simple Evaluation for " + type);
         costVariable = estimateShiftingVariableTariffPayment(tariff, type);
       } else {
         // System.out.println("Shifting Evaluation for " + type);
-        log.info("Shifting Evaluation for " + type);
+        log.debug("Shifting Evaluation for " + type);
         costVariable = estimateVariableTariffPayment(tariff, type);
       }
     } else {
       // System.out.println("Shifting Evaluation for " + type);
-      log.info("Shifting Evaluation for " + type);
+      log.debug("Shifting Evaluation for " + type);
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
 
@@ -1161,7 +1167,7 @@ public class Village extends AbstractCustomer
     else
       minDuration = tariff.getMinDuration();
 
-    log.info("Minimum Duration: " + minDuration);
+    log.debug("Minimum Duration: " + minDuration);
     return (-tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
   }
 
@@ -1252,8 +1258,8 @@ public class Village extends AbstractCustomer
 
     for (int i = 0; i < estimation.size(); i++) {
       summedEstimations += Math.pow(HouseholdConstants.EPSILON, lamda * estimation.get(i));
-      log.info("Cost variable: " + estimation.get(i));
-      log.info("Summary of Estimation: " + summedEstimations);
+      log.debug("Cost variable: " + estimation.get(i));
+      log.debug("Summary of Estimation: " + summedEstimations);
     }
 
     for (int i = 0; i < estimation.size(); i++) {
@@ -1263,10 +1269,10 @@ public class Village extends AbstractCustomer
       }
     }
 
-    log.info("Randomizer Vector: " + randomizer);
-    log.info("Possibility Vector: " + possibilities.toString());
+    log.debug("Randomizer Vector: " + randomizer);
+    log.debug("Possibility Vector: " + possibilities.toString());
     int index = randomizer.get((int) (randomizer.size() * rs1.nextDouble()));
-    log.info("Resulting Index = " + index);
+    log.debug("Resulting Index = " + index);
     return index;
   }
 
@@ -1340,7 +1346,7 @@ public class Village extends AbstractCustomer
       houses = smartShiftingHouses;
     }
 
-    log.info("Day " + day);
+    log.debug("Day " + day);
 
     for (Household house : houses) {
       house.printDailyLoad(day);
@@ -1459,9 +1465,9 @@ public class Village extends AbstractCustomer
   void weatherCheck (int day, int hour, Instant now)
   {
 
-    double temperature = 40 * gen.nextDouble();
-    // System.out.println("Day " + day + " Hour " + hour + " Temperature " +
-    // temperature);
+    WeatherReport wr = weatherReportRepo.currentWeatherReport();
+    double temperature = wr.getTemperature();
+    // log.debug("Temperature: " + temperature);
 
     Vector<Household> houses = getHouses();
 
@@ -1493,11 +1499,11 @@ public class Village extends AbstractCustomer
 
     TariffSubscription sub = subscriptionMap.get(type);
 
-    log.info("Old Consumption for day " + day + ": " + getControllableConsumptions(day, type).toString());
+    log.debug("Old Consumption for day " + day + ": " + getControllableConsumptions(day, type).toString());
     long[] newControllableLoad = dailyShifting(sub.getTariff(), now, day, type);
     for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++)
       controllableVector.add(newControllableLoad[i]);
-    log.info("New Consumption for day " + day + ": " + controllableVector.toString());
+    log.debug("New Consumption for day " + day + ": " + controllableVector.toString());
 
     if (type.equals("RaS")) {
       aggDailyBaseLoadInHoursRaS.set(day, controllableVector);

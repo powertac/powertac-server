@@ -43,6 +43,9 @@
   
   <bean id="timeslotRepo"
         class="org.powertac.common.repo.TimeslotRepo" />
+        
+  <bean id="weatherReportRepo"
+        class="org.powertac.common.repo.WeatherReportRepo" />
   
   <bean id="pluginConfigRepo"
         class="org.powertac.common.repo.PluginConfigRepo" />
