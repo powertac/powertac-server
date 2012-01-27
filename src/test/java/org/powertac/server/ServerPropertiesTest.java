@@ -17,21 +17,35 @@ package org.powertac.server;
 
 import static org.junit.Assert.*;
 
+import java.util.Collection;
+
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.genco.Genco;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * @author jcollins
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:cc-config.xml"})
+@DirtiesContext
 public class ServerPropertiesTest
 {
 
-  private ServerPropertiesService service;
+  @Autowired
+  private ServerPropertiesService serverPropertiesService;
   
   @Before
   public void setUp () throws Exception
   {
-    service = new ServerPropertiesService();
+    //serverPropertiesService = new ServerPropertiesService();
   }
 
   /**
@@ -40,9 +54,9 @@ public class ServerPropertiesTest
   @Test
   public void testGetPropertyString ()
   {
-    assertEquals("foo", service.getProperty("server.prop1"));
-    assertEquals("bar", service.getProperty("test.prop1"));
-    assertNull(service.getProperty("foo.bar"));
+    assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
+    assertEquals("bar", serverPropertiesService.getProperty("test.prop1"));
+    assertNull(serverPropertiesService.getProperty("foo.bar"));
   }
 
   /**
@@ -51,22 +65,33 @@ public class ServerPropertiesTest
   @Test
   public void testGetPropertyStringString ()
   {
-    assertEquals("xyzzy", service.getProperty("foo.bar", "xyzzy"));
-    assertEquals("foo", service.getProperty("server.prop1", "xyzzy"));
+    assertEquals("xyzzy", serverPropertiesService.getProperty("foo.bar", "xyzzy"));
+    assertEquals("foo", serverPropertiesService.getProperty("server.prop1", "xyzzy"));
   }
 
   /**
    * Test method for {@link org.powertac.server.ServerPropertiesService#setUserConfig(java.lang.String)}.
    */
   @Test
-  public void testSetUserConfig ()
+  public void testSetUserConfigLast ()
   {
-    assertEquals("foo", service.getProperty("server.prop1"));
-    assertNull(service.getProperty("test.prop2"));
-    service.setUserConfig("src/test/propfiles/server.properties");
-    assertEquals("foo", service.getProperty("server.prop1"));
-    assertEquals("bag", service.getProperty("test.prop2"));
-    assertEquals("baz", service.getProperty("test.prop1"));
+    assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
+    assertNull(serverPropertiesService.getProperty("test.prop2"));
+    serverPropertiesService.setUserConfig("file:src/test/propfiles/server.properties");
+    assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
+    assertEquals("bag", serverPropertiesService.getProperty("test.prop2"));
+    // when you set the user config after initialization, it's last priority
+    assertEquals("bar", serverPropertiesService.getProperty("test.prop1"));
+  }
+
+  @Test
+  public void testSetUserConfigFirst ()
+  {
+    serverPropertiesService.setUserConfig("file:src/test/propfiles/server.properties");
+    assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
+    assertEquals("bag", serverPropertiesService.getProperty("test.prop2"));
+    // when you set user config first, it's top priority
+    assertEquals("baz", serverPropertiesService.getProperty("test.prop1"));
   }
 
   /**
@@ -75,13 +100,43 @@ public class ServerPropertiesTest
   @Test
   public void testIntegerProperty ()
   {
-    assertEquals(42, (int)service.getIntegerProperty("server.int", 36));
+    assertEquals(42, (int)serverPropertiesService.getIntegerProperty("server.int", 36));
     assertEquals(42.42,
-                 (double)service.getDoubleProperty("server.double", 36.36),
+                 (double)serverPropertiesService.getDoubleProperty("server.double", 36.36),
                  1e-6);
-    assertEquals(36, (int)service.getIntegerProperty("server.prop1", 36));
+    assertEquals(36, (int)serverPropertiesService.getIntegerProperty("server.prop1", 36));
     assertEquals(36.36,
-                 (double)service.getDoubleProperty("test.prop1", 36.36),
+                 (double)serverPropertiesService.getDoubleProperty("test.prop1", 36.36),
                  1e-6);
+  }
+
+  @Test
+  public void testGencoConfig()
+  {
+    Collection<?> gencos = serverPropertiesService.configureInstances(Genco.class);
+    assertEquals("2 gencos generated", 2, gencos.size());
+    Genco nsp1 = null;
+    Genco nsp2 = null;
+    for (Object item : gencos) {
+      Genco genco = (Genco)item;
+      if ("nsp1".equals(genco.getUsername()))
+        nsp1 = genco;
+      else if ("nsp2".equals(genco.getUsername()))
+        nsp2 = genco;
+    }
+    assertNotNull("nsp1 created", nsp1);
+    assertEquals("nsp1 capacity", 20.0, nsp1.getNominalCapacity(), 1e-6);
+    assertEquals("nsp1 variability", 0.05, nsp1.getVariability(), 1e-6);
+    assertEquals("nsp1 reliability", 0.98, nsp1.getReliability(), 1e-6);
+    assertEquals("nsp1 cost", 20.0, nsp1.getCost(), 1e-6);
+    assertEquals("nsp1 emission", 1.0, nsp1.getCarbonEmissionRate(), 1e-6);
+    assertEquals("nsp1 leadtime", 8, nsp1.getCommitmentLeadtime());
+    assertNotNull("nsp2 created", nsp2);
+    assertEquals("nsp2 capacity", 30.0, nsp2.getNominalCapacity(), 1e-6);
+    assertEquals("nsp2 variability", 0.05, nsp2.getVariability(), 1e-6);
+    assertEquals("nsp2 reliability", 0.97, nsp2.getReliability(), 1e-6);
+    assertEquals("nsp2 cost", 30.0, nsp2.getCost(), 1e-6);
+    assertEquals("nsp2 emission", 0.95, nsp2.getCarbonEmissionRate(), 1e-6);
+    assertEquals("nsp2 leadtime", 6, nsp2.getCommitmentLeadtime());
   }
 }

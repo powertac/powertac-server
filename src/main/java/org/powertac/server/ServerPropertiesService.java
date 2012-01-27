@@ -15,14 +15,29 @@
  */
 package org.powertac.server;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
+import org.powertac.common.config.Configurator;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.ServerProperties;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,13 +45,14 @@ import org.springframework.stereotype.Service;
  * @author jcollins
  */
 @Service
-public class ServerPropertiesService implements ServerProperties
+public class ServerPropertiesService
+implements ServerProperties, ServerConfiguration, ApplicationContextAware
 {
   static private Logger log = Logger.getLogger(ServerProperties.class);
 
-  private Properties classpathProps = null;
-  private Properties defaultFileProps = null;
-  private Properties userFileProps = null;
+  private ApplicationContext context;
+  private CompositeConfiguration config;
+  private Configurator configurator;
   
   private boolean initialized = false;
   
@@ -46,70 +62,95 @@ public class ServerPropertiesService implements ServerProperties
   public ServerPropertiesService ()
   {
     super();
+    
+    // set up the config instance
+    config = new CompositeConfiguration();
+    configurator = new Configurator();
   }
   
   /**
    * Loads the properties from classpath, default config file,
    * and user-specified config file, just in case it's not already been
    * loaded. This is done when properties are first requested, to ensure
-   * that the logger has been initialized.
+   * that the logger has been initialized. Because the CompositeConfiguration
+   * treats its config sources in FIFO order, this should be called <i>after</i>
+   * any user-specified config is loaded.
    */
-  void init ()
+  void lazyInit ()
   {
+    // only do this once
     if (initialized)
       return;
     initialized = true;
+
+    // find and load the default properties file
+    try {
+      File defaultProps = new File("config/server.properties");
+      log.debug("adding " + defaultProps.getName());
+      config.addConfiguration(new PropertiesConfiguration(defaultProps));
+    }
+    catch (Exception e1) {
+      log.warn("config/server.properties not found: " + e1.toString());
+    }
     
     // set up the classpath props
-    classpathProps = new Properties();
-    InputStream propStream =
-        ClassLoader.getSystemResourceAsStream("server.properties");
-    if (propStream != null) {
-      try {
-        classpathProps.load(propStream);
-      }
-      catch (IOException ioe) {
-        log.error("Error loading server.properties: " + ioe.toString());
-      }
-    }
-    else {
-      log.error("Cannot find server.properties on classpath");
-    }
-    
-    // see if we can find the default config file
-    defaultFileProps = new Properties(classpathProps);
     try {
-      FileInputStream fileStream = new FileInputStream("config/server.properties");
-      defaultFileProps.load(fileStream);
+      Resource[] xmlResources = context.getResources("classpath:/**/properties.xml");
+      for (Resource xml : xmlResources) {
+        log.info("loading config from " + xml.getURI());
+        XMLConfiguration xconfig = new XMLConfiguration();
+        xconfig.load(xml.getInputStream());
+        config.addConfiguration(xconfig);
+      }
+      Resource[] propResources = context.getResources("classpath:/**/*.properties");
+      for (Resource prop : propResources) {
+        log.info("loading config from " + prop.getURI());
+        PropertiesConfiguration pconfig = new PropertiesConfiguration();
+        pconfig.load(prop.getInputStream());
+        config.addConfiguration(pconfig);
+      }
     }
-    catch (FileNotFoundException fnf) {
-      log.warn("Cannot find config/server.properties");
+    catch (ConfigurationException e) {
+      log.error("Error loading configuration: " + e.toString());
     }
-    catch (IOException e) {
-      log.error("Error loading file config/server.properties: " + e.toString());
+    catch (Exception e) {
+      log.error("Error loading configuration: " + e.toString());
     }
     
-    // set up user-specified config, but don't load it here
-    userFileProps = new Properties(defaultFileProps);
+    // set up the configurator
+    configurator.setConfiguration(config);
   }
   
-  public void setUserConfig (String userConfigFile)
+  public void setUserConfig (String userConfigURI)
   {
-    // make sure we are initialized
-    init();
-    
     // then load the user-specified config
     try {
-      FileInputStream fileStream = new FileInputStream(userConfigFile);
-      userFileProps.load(fileStream);
-    }
-    catch (FileNotFoundException fnf) {
-      log.error("Cannot find server config file " + userConfigFile);
+      URL uri = new URL(userConfigURI);
+      PropertiesConfiguration pconfig = new PropertiesConfiguration();
+      pconfig.load(uri.openStream());
+      config.addConfiguration(pconfig);
     }
     catch (IOException e) {
-      log.error("Error loading file " + userConfigFile + ": " + e.toString());
+      log.error("IO error loading " + userConfigURI + ": " + e.toString());
     }
-    
+    catch (ConfigurationException e) {
+      log.error("Config error loading " + userConfigURI + ": " + e.toString());
+    }
+    lazyInit();
+  }
+
+  @Override
+  public void configureMe (Object target)
+  {
+    lazyInit();
+    configurator.configureSingleton(target);    
+  }
+
+  @Override
+  public Collection<?> configureInstances (Class<?> target)
+  {
+    lazyInit();
+    return configurator.configureInstances(target);
   }
   
   /* (non-Javadoc)
@@ -118,8 +159,8 @@ public class ServerPropertiesService implements ServerProperties
   @Override
   public String getProperty (String name)
   {
-    init();
-    return userFileProps.getProperty(name);
+    lazyInit();
+    return config.getString(name);
   }
 
   /* (non-Javadoc)
@@ -128,50 +169,34 @@ public class ServerPropertiesService implements ServerProperties
   @Override
   public String getProperty (String name, String defaultValue)
   {
-    init();
-    return userFileProps.getProperty(name, defaultValue);
+    lazyInit();
+    return config.getString(name, defaultValue);
   }
 
   @Override
   public Integer getIntegerProperty (String name, Integer defaultValue)
   {
-    String value = getProperty(name);
-    // error check
-    Integer number = null;
-    if (value != null) {
-      try {
-        number = Integer.parseInt(value);
-      }
-      catch (NumberFormatException nfe) {
-        log.error("Cannot parse property " + name + "=" + value + " as Integer");
-      }
-    }
-    if (value == null || number == null) {
-      log.warn("property " + name + " not given in config");
-      return defaultValue;
-    }
-    return number;
+    lazyInit();
+    return config.getInteger(name, defaultValue);
   }
 
   @Override
   public Double getDoubleProperty (String name, Double defaultValue)
   {
-    String value = getProperty(name);
-    // error check
-    Double number = null;
-    if (value != null) {
-      try {
-        number = Double.parseDouble(value);
-      }
-      catch (NumberFormatException nfe) {
-        log.error("Cannot parse property " + name + "=" + value + " as Double");
-      }
-    }
-    if (value == null || number == null) {
-      log.warn("property " + name + " not given in config");
-      return defaultValue;
-    }
-    return number;
+    lazyInit();
+    return config.getDouble(name, defaultValue);
   }
 
+  @Override
+  public void setApplicationContext (ApplicationContext context)
+      throws BeansException
+  {
+     this.context = context;
+  }
+  
+  // test support
+  Configuration getConfig ()
+  {
+    return config;
+  }
 }
