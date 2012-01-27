@@ -411,40 +411,40 @@ public class AirCondition extends WeatherSensitiveAppliance
   public void showStatus ()
   {
     // Printing basic variables
-    log.info("Name = " + name);
-    log.info("Saturation = " + saturation);
-    log.info("Occupancy Dependence = " + od);
-    log.info("Air Condition Type = " + type);
-    log.info("Air Condition Power Class = " + acPowerClass);
-    log.info("Air Condition BTU = " + BTU);
-    log.info("Air Condition Class = " + acClass);
-    log.info("Air Condition Class EER = " + acClassEER);
-    log.info("Air Condition Class COP = " + acClassCOP);
-    log.info("Air Condition Operation = " + acOperation);
+    log.debug("Name = " + name);
+    log.debug("Saturation = " + saturation);
+    log.debug("Occupancy Dependence = " + od);
+    log.debug("Air Condition Type = " + type);
+    log.debug("Air Condition Power Class = " + acPowerClass);
+    log.debug("Air Condition BTU = " + BTU);
+    log.debug("Air Condition Class = " + acClass);
+    log.debug("Air Condition Class EER = " + acClassEER);
+    log.debug("Air Condition Class COP = " + acClassCOP);
+    log.debug("Air Condition Operation = " + acOperation);
 
-    log.info("Power Start Heating = " + powerStartHeating);
-    log.info("Power Start Cooling = " + powerStartCooling);
-    log.info("Power Heating = " + powerHeating);
-    log.info("Power Cooling = " + powerCooling);
-    log.info("Power Off Heating = " + powerOffHeating);
-    log.info("Power Off Cooling = " + powerOffCooling);
+    log.debug("Power Start Heating = " + powerStartHeating);
+    log.debug("Power Start Cooling = " + powerStartCooling);
+    log.debug("Power Heating = " + powerHeating);
+    log.debug("Power Cooling = " + powerCooling);
+    log.debug("Power Off Heating = " + powerOffHeating);
+    log.debug("Power Off Cooling = " + powerOffCooling);
 
-    log.info("Cycle Duration On = " + cycleOn);
-    log.info("Cycle Duration Off = " + cycleOff);
-    log.info("Cycle Duration = " + cycleDuration);
+    log.debug("Cycle Duration On = " + cycleOn);
+    log.debug("Cycle Duration Off = " + cycleOff);
+    log.debug("Cycle Duration = " + cycleDuration);
 
-    log.info("Lower Limit = " + lowerLimit);
-    log.info("Upper Limit = " + upperLimit);
+    log.debug("Lower Limit = " + lowerLimit);
+    log.debug("Upper Limit = " + upperLimit);
 
     // Printing Weekly Operation Vector and Load Vector
-    log.info("Weekly Operation Vector and Load = ");
+    log.debug("Weekly Operation Vector and Load = ");
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
-      log.info("Day " + i);
+      log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
     }
   }
 

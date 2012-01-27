@@ -25,8 +25,10 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
- * This is the instance of the person type that works. In addition to the simple persons they are
- * working certain hours a day and they have less time for leisure activities.
+ * This is the instance of the person type that works. In addition to the simple
+ * persons they are working certain hours a day and they have less time for
+ * leisure activities.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  **/
@@ -43,8 +45,10 @@ public class WorkingPerson extends Person
   int workingStartHour = 0;
 
   /**
-   * This function fills out the working days' vector of the person by choosing randomly days of the
-   * week, while the amount of days is different for each person type.
+   * This function fills out the working days' vector of the person by choosing
+   * randomly days of the week, while the amount of days is different for each
+   * person type.
+   * 
    * @param days
    * @param gen
    * @return
@@ -94,9 +98,11 @@ public class WorkingPerson extends Person
   }
 
   /**
-   * This function fills out the work vacation days' vector of the person by choosing randomly days
-   * of the year that the person chooses as vacations. He may choose to go on vacation for short
-   * periods, but the summary of the days must be in bounds.
+   * This function fills out the work vacation days' vector of the person by
+   * choosing randomly days of the year that the person chooses as vacations. He
+   * may choose to go on vacation for short periods, but the summary of the days
+   * must be in bounds.
+   * 
    * @param duration
    * @param gen
    * @return
@@ -123,8 +129,10 @@ public class WorkingPerson extends Person
   }
 
   /**
-   * This function chooses randomly the number of the working days of a person The percentages used
-   * where taken from a thesis on the subject, based on demographic data.
+   * This function chooses randomly the number of the working days of a person
+   * The percentages used where taken from a thesis on the subject, based on
+   * demographic data.
+   * 
    * @param conf
    * @param gen
    * @return
@@ -173,51 +181,51 @@ public class WorkingPerson extends Person
   public void showInfo ()
   {
     // Printing the base variable
-    log.info("Name = " + name);
-    log.info("Member Of = " + memberOf.toString());
+    log.debug("Name = " + name);
+    log.debug("Member Of = " + memberOf.toString());
 
     // Printing Sickness variables
-    log.info("Sickness Days = ");
+    log.debug("Sickness Days = ");
     ListIterator<Integer> iter = sicknessVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
+      log.debug(iter.next());
 
     // Printing Leisure variables
-    log.info("Leisure Days of Week = ");
+    log.debug("Leisure Days of Week = ");
     iter = leisureVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
-    log.info("Leisure Duration = " + leisureDuration);
+      log.debug(iter.next());
+    log.debug("Leisure Duration = " + leisureDuration);
 
     // Printing working variables
-    log.info("Working Days = ");
+    log.debug("Working Days = ");
     iter = workingDays.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
-    log.info("Working Duration = " + workingDuration);
-    log.info("Working Starting Hour = " + workingStartHour);
+      log.debug(iter.next());
+    log.debug("Working Duration = " + workingDuration);
+    log.debug("Working Starting Hour = " + workingStartHour);
 
     // Printing vacation variables
-    log.info("Vacation Duration = " + vacationDuration);
-    log.info("Vacation Days = ");
+    log.debug("Vacation Duration = " + vacationDuration);
+    log.debug("Vacation Days = ");
     iter = vacationVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
-    log.info("Public Vacation of Year = ");
+      log.debug(iter.next());
+    log.debug("Public Vacation of Year = ");
     iter = publicVacationVector.listIterator();
 
     while (iter.hasNext())
-      log.info(iter.next());
+      log.debug(iter.next());
 
     // Printing Weekly Schedule
-    log.info("Weekly Routine : ");
+    log.debug("Weekly Routine : ");
     ListIterator<Status> iter2 = weeklyRoutine.get(0).listIterator();
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      log.info("Day " + i);
+      log.debug("Day " + i);
       iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + " Status : " + iter2.next());
+        log.debug("Quarter : " + (j + 1) + " Status : " + iter2.next());
     }
   }
 

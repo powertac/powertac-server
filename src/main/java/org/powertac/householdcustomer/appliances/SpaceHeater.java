@@ -25,8 +25,10 @@ import org.powertac.common.Tariff;
 import org.powertac.common.configurations.HouseholdConstants;
 
 /**
- * Spaceheater is a electric appliance utilized to keep the rooms of a household warm when needed. These devices can work automatically in order to save as much energy as possible, knowing when the
- * room must be warm. So this is a fully shifting appliance.
+ * Spaceheater is a electric appliance utilized to keep the rooms of a household
+ * warm when needed. These devices can work automatically in order to save as
+ * much energy as possible, knowing when the room must be warm. So this is a
+ * fully shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
@@ -35,12 +37,15 @@ public class SpaceHeater extends WeatherSensitiveAppliance
 {
 
   /**
-   * Variable that presents the mean possibility to utilize the appliance each hour of the day that someone is present in the housesold.
+   * Variable that presents the mean possibility to utilize the appliance each
+   * hour of the day that someone is present in the housesold.
    */
   double percentage;
 
   /**
-   * Variable that presents the temperature that is inconvenient enough for the inhabitants of the house in the start of the day in order to open the appliance.
+   * Variable that presents the temperature that is inconvenient enough for the
+   * inhabitants of the house in the start of the day in order to open the
+   * appliance.
    */
   int temperatureThreshold;
 
@@ -85,7 +90,9 @@ public class SpaceHeater extends WeatherSensitiveAppliance
 
     double perc = generator.nextDouble();
 
-    // System.out.println(this.toString() + " " + (applianceOf.isOnVacation(day)) + " " + (temp > temperatureThreshold) + " " + (perc > percentage));
+    // System.out.println(this.toString() + " " +
+    // (applianceOf.isOnVacation(day)) + " " + (temp > temperatureThreshold) +
+    // " " + (perc > percentage));
 
     if ((applianceOf.isOnVacation(day)) || (temp > temperatureThreshold) || (perc > percentage)) {
 
@@ -148,8 +155,8 @@ public class SpaceHeater extends WeatherSensitiveAppliance
   {
 
     super.showStatus();
-    log.info("Percentage: " + percentage);
-    log.info("Temperature Threshold: " + temperatureThreshold);
+    log.debug("Percentage: " + percentage);
+    log.debug("Temperature Threshold: " + temperatureThreshold);
   }
 
   @Override

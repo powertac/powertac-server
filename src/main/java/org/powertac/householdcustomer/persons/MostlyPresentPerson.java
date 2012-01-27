@@ -25,9 +25,10 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
- * This is the instance of the person type that spents most of its time inside the house. Such types
- * are children or elderly people. These persons don't work at all, so they have more time for
- * leisure activities.
+ * This is the instance of the person type that spents most of its time inside
+ * the house. Such types are children or elderly people. These persons don't
+ * work at all, so they have more time for leisure activities.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  */
@@ -35,8 +36,9 @@ public class MostlyPresentPerson extends Person
 {
 
   /**
-   * This is the initialization function. It uses the variable values for the configuration file to
-   * create the person as it should for this type.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the person as it should for this type.
+   * 
    * @param AgentName
    * @param conf
    * @param publicVacationVector
@@ -66,37 +68,37 @@ public class MostlyPresentPerson extends Person
   public void showInfo ()
   {
     // Printing base variables
-    log.info("Name = " + name);
-    log.info("Member Of = " + memberOf.toString());
+    log.debug("Name = " + name);
+    log.debug("Member Of = " + memberOf.toString());
 
     // Printing Sickness variables
-    log.info("Sickness Days = ");
+    log.debug("Sickness Days = ");
     ListIterator<Integer> iter = sicknessVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
+      log.debug(iter.next());
 
     // Printing Leisure variables
     log.info("Leisure Days of Week = ");
     iter = leisureVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
+      log.debug(iter.next());
     log.info("Leisure Duration = " + leisureDuration);
 
     // Printing Public Vacation Variables
-    log.info("Public Vacation of Year = ");
+    log.debug("Public Vacation of Year = ");
     iter = publicVacationVector.listIterator();
     while (iter.hasNext())
-      log.info(iter.next());
+      log.debug(iter.next());
 
     // Printing Weekly Schedule
-    log.info("Weekly Routine Length : " + weeklyRoutine.size());
-    log.info("Weekly Routine : ");
+    log.debug("Weekly Routine Length : " + weeklyRoutine.size());
+    log.debug("Weekly Routine : ");
 
     for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      log.info("Day " + (i));
+      log.debug("Day " + (i));
       ListIterator<Status> iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + (j + 1) + " Status : " + iter2.next());
+        log.debug("Quarter : " + (j + 1) + " Status : " + iter2.next());
     }
   }
 
