@@ -16,14 +16,9 @@
 package org.powertac.server;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -63,9 +58,16 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
     super();
     
+    recycle();
+  }
+
+  // test support
+  void recycle ()
+  {
     // set up the config instance
     config = new CompositeConfiguration();
     configurator = new Configurator();
+    initialized = false;
   }
   
   /**
@@ -84,6 +86,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     initialized = true;
 
     // find and load the default properties file
+    log.debug("lazyInit");
     try {
       File defaultProps = new File("config/server.properties");
       log.debug("adding " + defaultProps.getName());
@@ -121,20 +124,21 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     configurator.setConfiguration(config);
   }
   
-  public void setUserConfig (String userConfigURI)
+  public void setUserConfig (String userConfigURL)
   {
     // then load the user-specified config
     try {
-      URL uri = new URL(userConfigURI);
+      URL url = new URL(userConfigURL);
       PropertiesConfiguration pconfig = new PropertiesConfiguration();
-      pconfig.load(uri.openStream());
+      pconfig.load(url.openStream());
       config.addConfiguration(pconfig);
+      log.debug("setUserConfig " + url.toExternalForm());
     }
     catch (IOException e) {
-      log.error("IO error loading " + userConfigURI + ": " + e.toString());
+      log.error("IO error loading " + userConfigURL + ": " + e.toString());
     }
     catch (ConfigurationException e) {
-      log.error("Config error loading " + userConfigURI + ": " + e.toString());
+      log.error("Config error loading " + userConfigURL + ": " + e.toString());
     }
     lazyInit();
   }

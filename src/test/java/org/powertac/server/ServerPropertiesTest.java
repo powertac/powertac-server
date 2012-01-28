@@ -45,7 +45,7 @@ public class ServerPropertiesTest
   @Before
   public void setUp () throws Exception
   {
-    //serverPropertiesService = new ServerPropertiesService();
+    serverPropertiesService.recycle();
   }
 
   /**
@@ -104,10 +104,11 @@ public class ServerPropertiesTest
     assertEquals(42.42,
                  (double)serverPropertiesService.getDoubleProperty("server.double", 36.36),
                  1e-6);
-    assertEquals(36, (int)serverPropertiesService.getIntegerProperty("server.prop1", 36));
-    assertEquals(36.36,
-                 (double)serverPropertiesService.getDoubleProperty("test.prop1", 36.36),
-                 1e-6);
+    assertEquals(42, (int)serverPropertiesService.getIntegerProperty("server.intCopy", 36));
+    assertEquals(36, (int)serverPropertiesService.getIntegerProperty("server.missing", 36));
+    //assertEquals(36.36,
+    //             (double)serverPropertiesService.getDoubleProperty("test.prop1", 36.36),
+    //             1e-6);
   }
 
   @Test
