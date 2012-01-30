@@ -15,7 +15,7 @@
  */
 package org.powertac.common.interfaces;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.powertac.common.msg.PauseRelease;
 import org.powertac.common.msg.PauseRequest;
@@ -55,7 +55,7 @@ public interface CompetitionControl
    * be called after completion of a simulation and before calling runOnce(). 
    * This is normally done immediately after calling preGame().
    */
-  public void setAuthorizedBrokerList (ArrayList<String> brokerList);
+  public void setAuthorizedBrokerList (List<String> brokerList);
   
   /**
    * Waits for broker login, then starts and runs a simulation.
