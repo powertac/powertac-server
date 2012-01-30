@@ -24,6 +24,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +41,10 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
+import joptsimple.OptionSpec;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeZone;
@@ -115,86 +121,15 @@ public class CompetitionSetupService
   void processCmdLine (String[] args)
   {
     // pick up and process the command-line arg if it's there
-    if (args.length == 1) {
-      // running from config file
-      try {
-        BufferedReader config = new BufferedReader(new FileReader(args[0]));
-        String input;
-        while ((input = config.readLine()) != null) {
-          String[] tokens = input.split("\\s+");
-          if ("bootstrap".equals(tokens[0])) {
-            // bootstrap mode - optional config fn is tokens[2]
-            if (tokens.length == 2 || tokens.length > 3) {
-              System.out.println("Bad input " + input);
-            }
-            else {
-              if (tokens.length == 3 && "--config".equals(tokens[1])) {
-                // explicit config file
-                serverProps.setUserConfig(tokens[2]);
-              }
-              String bootstrapFilename =
-                  serverProps.getProperty("server.bootstrapDataFile",
-                                          "/bd-noname.xml");
-              if (!(new File(bootstrapFilename))
-                    .getAbsoluteFile()
-                    .getParentFile()
-                    .canWrite()) {
-                System.out.println("Cannot write to bootstrap data file " +
-                    bootstrapFilename);                
-              }
-              else {
-                FileWriter bootWriter = new FileWriter(bootstrapFilename);
-                cc.init();
-                cc.setAuthorizedBrokerList(new ArrayList<String>());
-                preGame();
-                //cc.runOnce(bootWriter);
-                cc.runOnce(true);
-                saveBootstrapData(bootWriter);
-              }
-            }
-          }
-          else if ("sim".equals(tokens[0])) {
-            int brokerIndex = 1;
-            // sim mode, check for --config in tokens[1]
-            if (tokens.length > 2 && "--config".equals(tokens[1])) {
-              // explicit config file in tokens[2]
-              serverProps.setUserConfig(tokens[2]);
-              brokerIndex = 3;
-            }
-            log.info("In Simulation mode!!!");
-            String bootstrapFilename =
-                serverProps.getProperty("server.bootstrapDataFile",
-                                        "bd-noname.xml");
-            File bootFile = new File(bootstrapFilename);
-            if (!bootFile.canRead()) {
-              System.out.println("Cannot read bootstrap data file " +
-                                 bootstrapFilename);
-            }
-            else {
-              cc.init();
-              // collect broker names, hand to CC for login control
-              ArrayList<String> brokerList = new ArrayList<String>();
-              for (int i = brokerIndex; i < tokens.length; i++) {
-                brokerList.add(tokens[i]);
-              }
-              cc.setAuthorizedBrokerList(brokerList);
-
-              if (preGame(bootFile)) {
-                cc.setBootstrapDataset(processBootDataset(bootFile));
-                cc.runOnce(false);
-              }
-            }
-          }
-        }
-      }
-      catch (FileNotFoundException fnf) {
-        System.out.println("Cannot find file " + args[0]);
-      }
-      catch (IOException ioe ) {
-        System.out.println("Error reading file " + args[0]);
-      }
+    if (args.length > 1) {
+      // cli setup
+      processCli(args);
     }
-    else if (args.length == 0) {
+    else if (args.length == 1) {
+      // old-style script file
+      processScript(args);
+    }
+    else { // args.length == 0
       // running from web interface
       System.out.println("Server BootStrap");
       //participantManagementService.initialize();
@@ -205,15 +140,171 @@ public class CompetitionSetupService
         try {
           Thread.sleep(5000);
         } catch (InterruptedException e) {
-
+          // ignore this - it's how we exit
         }
       }
     }
-    else { // usage problem
-      System.out.println("Usage: powertac-server [filename]");
-    }
   }
   
+  // handles the server CLI as described at
+  // https://github.com/powertac/powertac-server/wiki/Server-configuration
+  private void processCli (String[] args)
+  {
+    // set up command-line options
+    OptionParser parser = new OptionParser();
+    OptionSpec<File> bootOutput = 
+        parser.accepts("boot").withRequiredArg().ofType(File.class);
+    OptionSpec<URL> controllerUrl =
+        parser.accepts("control").withRequiredArg().ofType(URL.class);
+    OptionSpec<URL> serverConfigUrl =
+        parser.accepts("server-config").withRequiredArg().ofType(URL.class);
+    OptionSpec<String> logSuffixOption =
+        parser.accepts("log-suffix").withRequiredArg();
+    parser.accepts("sim");
+    OptionSpec<URL> bootData =
+        parser.accepts("boot-data").withRequiredArg().ofType(URL.class);
+    OptionSpec<String> brokerList =
+        parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
+    
+    // do the parse
+    OptionSet options = parser.parse(args);
+    
+    try {
+      // process common options
+      String logSuffix = options.valueOf(logSuffixOption);
+      URL controller = options.valueOf(controllerUrl);
+      URL serverConfig = options.valueOf(serverConfigUrl);
+      if (serverConfig == null && controller != null) {
+        // offset from controller
+        serverConfig = new URL(controller, "server-config");
+      }
+      // process serverConfig now, because other options may override
+      // parts of it
+      serverProps.setUserConfig(serverConfig);
+      cc.init();
+
+      if (options.has(bootOutput)) {
+        // bootstrap session
+        setLogSuffix(logSuffix, "boot");
+        bootSession(options.valueOf(bootOutput));
+      }
+      else if (options.has("sim")) {
+        // sim session
+        setLogSuffix(logSuffix, "sim");
+        simSession(options.valuesOf(brokerList), serverConfig);
+      }
+    }
+    catch (MalformedURLException e) {
+      System.err.println("Cannot parse command line: " + e.toString());
+    }
+    catch (IOException e) {
+      System.err.println("I/O Error: " + e.toString());
+    }
+  }
+
+  // sets up the logfile name suffix
+  private void setLogSuffix (String logSuffix, String defaultSuffix)
+  {
+    if (logSuffix == null)
+      logSuffix = defaultSuffix;
+    serverProps.setProperty("server.logfileSuffix", logSuffix);
+  }
+
+  // handles the original script format. This capability can presumably
+  // be jettisoned eventually.
+  private void processScript (String[] args)
+  {
+    // running from config file
+    System.out.println("old-style scriptfile interface");
+    try {
+      BufferedReader config = new BufferedReader(new FileReader(args[0]));
+      String input;
+      while ((input = config.readLine()) != null) {
+        String[] tokens = input.split("\\s+");
+        if ("bootstrap".equals(tokens[0])) {
+          // bootstrap mode - optional config fn is tokens[2]
+          if (tokens.length == 2 || tokens.length > 3) {
+            System.out.println("Bad input " + input);
+          }
+          else {
+            if (tokens.length == 3 && "--config".equals(tokens[1])) {
+              // explicit config file - convert to URL format
+              serverProps.setUserConfig(new URL("file:" + tokens[2]));
+            }
+            String bootstrapFilename =
+                serverProps.getProperty("server.bootstrapDataFile",
+                                        "/bd-noname.xml");
+            cc.init();
+            bootSession(new File(bootstrapFilename));
+          }
+        }
+        else if ("sim".equals(tokens[0])) {
+          int brokerIndex = 1;
+          // sim mode, check for --config in tokens[1]
+          if (tokens.length > 2 && "--config".equals(tokens[1])) {
+            // explicit config file in tokens[2]
+            serverProps.setUserConfig(new URL("file:" + tokens[2]));
+            brokerIndex = 3;
+          }
+          log.info("In Simulation mode!!!");
+          cc.init();
+          String bootstrapFilename =
+              serverProps.getProperty("server.bootstrapDataFile",
+                                      "bd-noname.xml");
+          File bootFile = new File(bootstrapFilename);
+          if (!bootFile.canRead()) {
+            System.out.println("Cannot read bootstrap data file " +
+                               bootstrapFilename);
+          }
+          else {
+            // collect broker names, hand to CC for login control
+            ArrayList<String> brokerList = new ArrayList<String>();
+            for (int i = brokerIndex; i < tokens.length; i++) {
+              brokerList.add(tokens[i]);
+            }
+            URL bootDataset = new URL("file:" + bootFile);
+            simSession(brokerList, bootDataset);
+          }
+        }
+      }
+    }
+    catch (FileNotFoundException fnf) {
+      System.out.println("Cannot find file " + args[0]);
+    }
+    catch (IOException ioe ) {
+      System.out.println("Error reading file " + args[0]);
+    }
+  }
+
+  // Runs a bootstrap session
+  private void bootSession (File bootstrapFile) throws IOException
+  {
+    if (!bootstrapFile
+          .getAbsoluteFile()
+          .getParentFile()
+          .canWrite()) {
+      System.out.println("Cannot write to bootstrap data file " +
+          bootstrapFile);                
+    }
+    else {
+      FileWriter bootWriter = new FileWriter(bootstrapFile);
+      cc.setAuthorizedBrokerList(new ArrayList<String>());
+      preGame();
+      //cc.runOnce(bootWriter);
+      cc.runOnce(true);
+      saveBootstrapData(bootWriter);
+    }
+  }
+
+  // Runs a simulation session
+  private void simSession (List<String> list, URL bootDataset)
+  {
+    cc.setAuthorizedBrokerList(list);
+    if (preGame(bootDataset)) {
+      cc.setBootstrapDataset(processBootDataset(bootDataset));
+      cc.runOnce(false);
+    }
+  }  
 
   /**
    * Pre-game server setup - creates the basic configuration elements
@@ -255,75 +346,76 @@ public class CompetitionSetupService
   // configures a Competition from server.properties
   private void configureCompetition (Competition competition)
   {
-    // get game length
-    int minimumTimeslotCount =
-        serverProps.getIntegerProperty("competition.minimumTimeslotCount",
-                                       competition.getMinimumTimeslotCount());
-    int expectedTimeslotCount =
-        serverProps.getIntegerProperty("competition.expectedTimeslotCount",
-                                       competition.getExpectedTimeslotCount());
-    if (expectedTimeslotCount < minimumTimeslotCount) {
-      log.warn("competition expectedTimeslotCount " + expectedTimeslotCount
-               + " < minimumTimeslotCount " + minimumTimeslotCount);
-      expectedTimeslotCount = minimumTimeslotCount;
-    }
-    int bootstrapTimeslotCount =
-        serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
-                                       competition.getBootstrapTimeslotCount());
-    int bootstrapDiscardedTimeslots =
-        serverProps.getIntegerProperty("competition.bootstrapDiscardedTimeslots",
-                                       competition.getBootstrapDiscardedTimeslots());
-
-    // get trading parameters
-    int timeslotsOpen =
-        serverProps.getIntegerProperty("competition.timeslotsOpen",
-                                       competition.getTimeslotsOpen());
-    int deactivateTimeslotsAhead =
-        serverProps.getIntegerProperty("competition.deactivateTimeslotsAhead",
-                                       competition.getDeactivateTimeslotsAhead());
-
-    // get time parameters
-    int timeslotLength =
-        serverProps.getIntegerProperty("competition.timeslotLength",
-                                       competition.getTimeslotLength());
-    int simulationTimeslotSeconds =
-        timeslotLength * 60 / (int)competition.getSimulationRate();
-    simulationTimeslotSeconds =
-        serverProps.getIntegerProperty("competition.simulationTimeslotSeconds",
-                                       simulationTimeslotSeconds);
-    int simulationRate = timeslotLength * 60 / simulationTimeslotSeconds;
-    DateTimeZone.setDefault(DateTimeZone.UTC);
-    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    Instant start = null;
-    try {
-      start =
-        fmt.parseDateTime(serverProps.getProperty("competition.baseTime")).toInstant();
-    }
-    catch (Exception e) {
-      log.error("Exception reading base time: " + e.toString());
-    }
-    if (start == null)
-      start = competition.getSimulationBaseTime();
-
-    // populate the competition instance
-    competition
-      .withMinimumTimeslotCount(minimumTimeslotCount)
-      .withExpectedTimeslotCount(expectedTimeslotCount)
-      .withSimulationBaseTime(start)
-      .withSimulationRate(simulationRate)
-      .withTimeslotLength(timeslotLength)
-      .withSimulationModulo(timeslotLength * TimeService.MINUTE)
-      .withTimeslotsOpen(timeslotsOpen)
-      .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
-      .withBootstrapTimeslotCount(bootstrapTimeslotCount)
-      .withBootstrapDiscardedTimeslots(bootstrapDiscardedTimeslots);
-    
-    // bootstrap timeslot timing is a local parameter
-    int bootstrapTimeslotSeconds =
-        serverProps.getIntegerProperty("competition.bootstrapTimeslotSeconds",
-                                       (int)(cc.getBootstrapTimeslotMillis()
-                                             / TimeService.SECOND));
-    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
+    serverProps.configureMe(competition);
+//    // get game length
+//    int minimumTimeslotCount =
+//        serverProps.getIntegerProperty("competition.minimumTimeslotCount",
+//                                       competition.getMinimumTimeslotCount());
+//    int expectedTimeslotCount =
+//        serverProps.getIntegerProperty("competition.expectedTimeslotCount",
+//                                       competition.getExpectedTimeslotCount());
+//    if (expectedTimeslotCount < minimumTimeslotCount) {
+//      log.warn("competition expectedTimeslotCount " + expectedTimeslotCount
+//               + " < minimumTimeslotCount " + minimumTimeslotCount);
+//      expectedTimeslotCount = minimumTimeslotCount;
+//    }
+//    int bootstrapTimeslotCount =
+//        serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
+//                                       competition.getBootstrapTimeslotCount());
+//    int bootstrapDiscardedTimeslots =
+//        serverProps.getIntegerProperty("competition.bootstrapDiscardedTimeslots",
+//                                       competition.getBootstrapDiscardedTimeslots());
+//
+//    // get trading parameters
+//    int timeslotsOpen =
+//        serverProps.getIntegerProperty("competition.timeslotsOpen",
+//                                       competition.getTimeslotsOpen());
+//    int deactivateTimeslotsAhead =
+//        serverProps.getIntegerProperty("competition.deactivateTimeslotsAhead",
+//                                       competition.getDeactivateTimeslotsAhead());
+//
+//    // get time parameters
+//    int timeslotLength =
+//        serverProps.getIntegerProperty("competition.timeslotLength",
+//                                       competition.getTimeslotLength());
+//    int simulationTimeslotSeconds =
+//        timeslotLength * 60 / (int)competition.getSimulationRate();
+//    simulationTimeslotSeconds =
+//        serverProps.getIntegerProperty("competition.simulationTimeslotSeconds",
+//                                       simulationTimeslotSeconds);
+//    int simulationRate = timeslotLength * 60 / simulationTimeslotSeconds;
+//    DateTimeZone.setDefault(DateTimeZone.UTC);
+//    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
+//    Instant start = null;
+//    try {
+//      start =
+//        fmt.parseDateTime(serverProps.getProperty("competition.baseTime")).toInstant();
+//    }
+//    catch (Exception e) {
+//      log.error("Exception reading base time: " + e.toString());
+//    }
+//    if (start == null)
+//      start = competition.getSimulationBaseTime();
+//
+//    // populate the competition instance
+//    competition
+//      .withMinimumTimeslotCount(minimumTimeslotCount)
+//      .withExpectedTimeslotCount(expectedTimeslotCount)
+//      .withSimulationBaseTime(start)
+//      .withSimulationRate(simulationRate)
+//      .withTimeslotLength(timeslotLength)
+//      .withSimulationModulo(timeslotLength * TimeService.MINUTE)
+//      .withTimeslotsOpen(timeslotsOpen)
+//      .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
+//      .withBootstrapTimeslotCount(bootstrapTimeslotCount)
+//      .withBootstrapDiscardedTimeslots(bootstrapDiscardedTimeslots);
+//    
+//    // bootstrap timeslot timing is a local parameter
+//    int bootstrapTimeslotSeconds =
+//        serverProps.getIntegerProperty("competition.bootstrapTimeslotSeconds",
+//                                       (int)(cc.getBootstrapTimeslotMillis()
+//                                             / TimeService.SECOND));
+//    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
   }
 
   /**
@@ -332,7 +424,7 @@ public class CompetitionSetupService
    * if one or more PluginConfig instances cannot be used in the current
    * server setup.
    */
-  public boolean preGame (File bootFile)
+  public boolean preGame (URL bootFile)
   {
     log.info("preGame(File) - start");
     // run the basic pre-game setup
@@ -349,14 +441,14 @@ public class CompetitionSetupService
       // first grab the Competition
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/config/competition");
-      NodeList nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+      NodeList nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
                                      XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
       
       // then get the configs
       exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
-      nodes = (NodeList)exp.evaluate(new InputSource(new FileReader(bootFile)),
+      nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
                                      XPathConstants.NODESET);
       // Each node is a plugin-config
       for (int i = 0; i < nodes.getLength(); i++) {
@@ -441,14 +533,14 @@ public class CompetitionSetupService
   }
 
   // Extracts a bootstrap dataset from its file
-  private ArrayList<Object> processBootDataset (File datasetFile)
+  private ArrayList<Object> processBootDataset (URL bootDataset)
   {
     // Read and convert the bootstrap dataset
     ArrayList<Object> result = new ArrayList<Object>();
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
-      InputSource source = new InputSource(new FileReader(datasetFile));
+      InputSource source = new InputSource(bootDataset.openStream());
       // we want all the children of the bootstrap node
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/bootstrap/*");

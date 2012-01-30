@@ -17,6 +17,8 @@ package org.powertac.server;
 
 import static org.junit.Assert.*;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 
 import org.junit.Before;
@@ -77,7 +79,12 @@ public class ServerPropertiesTest
   {
     assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
     assertNull(serverPropertiesService.getProperty("test.prop2"));
-    serverPropertiesService.setUserConfig("file:src/test/propfiles/server.properties");
+    try {
+      serverPropertiesService.setUserConfig(new URL("file:src/test/propfiles/server.properties"));
+    }
+    catch (MalformedURLException e) {
+      fail(e.toString());
+    }
     assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
     assertEquals("bag", serverPropertiesService.getProperty("test.prop2"));
     // when you set the user config after initialization, it's last priority
@@ -87,7 +94,12 @@ public class ServerPropertiesTest
   @Test
   public void testSetUserConfigFirst ()
   {
-    serverPropertiesService.setUserConfig("file:src/test/propfiles/server.properties");
+    try {
+      serverPropertiesService.setUserConfig(new URL("file:src/test/propfiles/server.properties"));
+    }
+    catch (MalformedURLException e) {
+      fail(e.toString());
+    }
     assertEquals("foo", serverPropertiesService.getProperty("server.prop1"));
     assertEquals("bag", serverPropertiesService.getProperty("test.prop2"));
     // when you set user config first, it's top priority

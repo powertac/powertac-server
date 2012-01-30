@@ -124,15 +124,14 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     configurator.setConfiguration(config);
   }
   
-  public void setUserConfig (String userConfigURL)
+  public void setUserConfig (URL userConfigURL)
   {
     // then load the user-specified config
     try {
-      URL url = new URL(userConfigURL);
       PropertiesConfiguration pconfig = new PropertiesConfiguration();
-      pconfig.load(url.openStream());
+      pconfig.load(userConfigURL.openStream());
       config.addConfiguration(pconfig);
-      log.debug("setUserConfig " + url.toExternalForm());
+      log.debug("setUserConfig " + userConfigURL.toExternalForm());
     }
     catch (IOException e) {
       log.error("IO error loading " + userConfigURL + ": " + e.toString());
@@ -196,6 +195,14 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       throws BeansException
   {
      this.context = context;
+  }
+  
+  /**
+   * Changes the value of a property (or adds a property).
+   */
+  public void setProperty (String key, Object value)
+  {
+    config.setProperty(key, value);
   }
   
   // test support
