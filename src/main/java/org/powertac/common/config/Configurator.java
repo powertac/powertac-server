@@ -75,6 +75,12 @@ public class Configurator
    */
   public void configureSingleton (Object thing)
   {
+    // If we don't have a configuration, we cannot do much.
+    if (config == null) {
+      log.error("Cannot configure - not Configuration set");
+      return;
+    }
+    
     // first, compute the property prefix for things of this type
     String classname = thing.getClass().getName();
     log.debug("configuring object of type " + classname);
@@ -106,8 +112,14 @@ public class Configurator
    * pkg.class.name.property = value.
    * Returns null in case instances cannot be created.
    */
-  public Collection<Object> configureInstances (Class<?> type)
+  public Collection<?> configureInstances (Class<?> type)
   {
+    // If we don't have a configuration, we cannot do much.
+    if (config == null) {
+      log.error("Cannot configure - not Configuration set");
+      return null;
+    }
+    
     // compute the key for the instance list
     String classname = type.getName();
     log.debug("configuring instances for type " + classname);
