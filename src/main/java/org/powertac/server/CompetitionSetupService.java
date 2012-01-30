@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
@@ -42,6 +43,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -180,34 +182,68 @@ public class CompetitionSetupService
       }
       // process serverConfig now, because other options may override
       // parts of it
-      serverProps.setUserConfig(serverConfig);
+      if (serverConfig != null)
+        serverProps.setUserConfig(serverConfig);
       cc.init();
 
       if (options.has(bootOutput)) {
         // bootstrap session
-        setLogSuffix(logSuffix, "boot");
+        setLogSuffix(logSuffix, controller, "boot");
         bootSession(options.valueOf(bootOutput));
       }
       else if (options.has("sim")) {
         // sim session
-        setLogSuffix(logSuffix, "sim");
-        simSession(options.valuesOf(brokerList), serverConfig);
+        setLogSuffix(logSuffix, controller, "sim");
+        URL bootDataUrl = options.valueOf(bootData);
+        if (bootDataUrl == null && controller != null)
+          bootDataUrl = new URL(controller, "bootstrap-data");
+        if (bootDataUrl != null)
+          simSession(options.valuesOf(brokerList), bootDataUrl);
+        else {
+          System.err.println("Cannot run sim session without boot dataset");
+          System.exit(1);
+        }
       }
+      else {
+        // Must be either boot or sim
+        System.err.println("Must provide either --boot or --sim to run server");
+        System.exit(1);
+      }
+    }
+    catch (OptionException e) {
+      System.err.println("Bad command argument: " + e.toString());
     }
     catch (MalformedURLException e) {
       System.err.println("Cannot parse command line: " + e.toString());
+      System.exit(1);
     }
     catch (IOException e) {
       System.err.println("I/O Error: " + e.toString());
+      System.exit(1);
     }
   }
 
   // sets up the logfile name suffix
-  private void setLogSuffix (String logSuffix, String defaultSuffix)
+  private void setLogSuffix (String logSuffix,
+                             URL controlUrl,
+                             String defaultSuffix)
+                                 throws IOException
   {
+    if (logSuffix == null && controlUrl != null) {
+      URL suffixUrl = new URL(controlUrl, "log-suffix");
+      log.info("retrieving logSuffix from " + suffixUrl.toExternalForm());
+      InputStream stream = suffixUrl.openStream();
+      byte[] buffer = new byte[64];
+      int len = stream.read(buffer);
+      if (len > 0) {
+        logSuffix = new String(buffer, 0, len);
+        log.info("log suffix " + logSuffix + " retrieved");
+      }
+    }
     if (logSuffix == null)
       logSuffix = defaultSuffix;
     serverProps.setProperty("server.logfileSuffix", logSuffix);
+    String realSuffix = serverProps.getProperty("server.logfileSuffix");
   }
 
   // handles the original script format. This capability can presumably

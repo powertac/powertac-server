@@ -202,6 +202,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
    */
   public void setProperty (String key, Object value)
   {
+    lazyInit();
     config.setProperty(key, value);
   }
   
