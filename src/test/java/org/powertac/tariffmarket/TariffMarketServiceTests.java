@@ -716,7 +716,7 @@ public class TariffMarketServiceTests
     {
     }
 
-    public void setAuthorizedBrokerList (ArrayList<String> brokerList)
+    public void setAuthorizedBrokerList (List<String> brokerList)
     {
     }
 
