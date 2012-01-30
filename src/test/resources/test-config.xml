@@ -24,7 +24,7 @@
   <bean id="serverPropertiesService"
         class="org.mockito.Mockito"
         factory-method="mock">
-    <constructor-arg value="org.powertac.common.interfaces.ServerProperties" />
+    <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
   </bean>
 
   <!-- 

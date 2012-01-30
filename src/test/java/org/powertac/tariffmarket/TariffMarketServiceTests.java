@@ -18,16 +18,17 @@ package org.powertac.tariffmarket;
 
 import static org.junit.Assert.*;
 //import static org.powertac.util.ListTools.*;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -39,6 +40,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.Competition;
@@ -48,7 +50,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.NewTariffListener;
-import org.powertac.common.interfaces.ServerProperties;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffSpecification;
@@ -65,7 +67,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.TimeService;
-import org.powertac.common.PluginConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -88,9 +89,6 @@ public class TariffMarketServiceTests
   
   @Autowired
   private Accounting accountingService;
-
-  @Autowired
-  private TariffMarketInitializationService tariffMarketInitializationService;
   
   @Autowired
   private TariffRepo tariffRepo;
@@ -112,7 +110,7 @@ public class TariffMarketServiceTests
   private BrokerProxy mockProxy;
   
   @Autowired
-  private ServerProperties mockServerProperties;
+  private ServerConfiguration mockServerProperties;
   
   private TariffSpecification tariffSpec; // instance var
 
@@ -122,6 +120,7 @@ public class TariffMarketServiceTests
   //private List<Object> txs;
   private List<Object> msgs;
   private Competition comp;
+  private Configurator config;
 
   @SuppressWarnings("rawtypes")
   @Before
@@ -144,6 +143,7 @@ public class TariffMarketServiceTests
 
     // mock the brokerProxyService, capturing the messages sent out
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         msgs.add(args[1]);
@@ -152,6 +152,7 @@ public class TariffMarketServiceTests
     }).when(mockProxy).sendMessage(isA(Broker.class), anyObject());
 
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         for (Object msg : (List)args[1]) {
@@ -162,6 +163,7 @@ public class TariffMarketServiceTests
     }).when(mockProxy).sendMessages(isA(Broker.class), anyList());
 
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         msgs.add(args[0]);
@@ -170,6 +172,7 @@ public class TariffMarketServiceTests
     }).when(mockProxy).broadcastMessage(anyObject());
 
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         for (Object msg : (List)args[0]) {
@@ -180,19 +183,15 @@ public class TariffMarketServiceTests
     }).when(mockProxy).broadcastMessages(anyList());
 
     // Set up serverProperties mock
+    config = new Configurator();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        return args[1];
+        config.configureSingleton(args[0]);
+        return null;
       }
-    }).when(mockServerProperties).getIntegerProperty(anyString(), anyInt());
-
-    doAnswer(new Answer() {
-      public Object answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        return args[1];
-      }
-    }).when(mockServerProperties).getDoubleProperty(anyString(), anyDouble());
+    }).when(mockServerProperties).configureMe(anyObject());
     
     // init time service
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -214,45 +213,42 @@ public class TariffMarketServiceTests
   }
   
   @Test
-  public void initializeService () {
-    tariffMarketInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
-    config.getConfiguration().put("tariffPublicationFee", "42.0");
-    config.getConfiguration().put("tariffRevocationFee", "420.0");
-    // Set pub interval to 3 hours, offset = 0.
-    config.getConfiguration().put("publicationInterval", "3");
-    config.getConfiguration().put("publicationOffset", "0");
+  public void initializeService () 
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("tariffmarket.tariffMarketService.publicationFee", "-42.0");
+    map.put("tariffmarket.tariffMarketService.revocationFee", "-420.0");
+    map.put("tariffmarket.tariffMarketService.publicationInterval", "3");
+    map.put("tariffmarket.tariffMarketService.publicationOffset", "0");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("AccountingService");
-    tariffMarketInitializationService.initialize(comp, inits);
+    tariffMarketService.initialize(comp, inits);
+    assertEquals("correct publication fee", -42.0,
+                 tariffMarketService.getPublicationFee(), 1e-6);
+
   }
   
   @Test
   public void testNormalInitialization ()
   {
-    tariffMarketInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
-    assertNotNull("config created correctly", config);
     List<String> inits = new ArrayList<String>();
     inits.add("AccountingService");
-    String result = tariffMarketInitializationService.initialize(comp, inits);
+    String result = tariffMarketService.initialize(comp, inits);
     assertEquals("correct return value", "TariffMarket", result);
-    assertEquals("correct publication fee", -100.0, 
-                 tariffMarketService.getTariffPublicationFee(), 1e-6);
+    assertTrue("correct publication fee",
+               (-100.0 >= tariffMarketService.getPublicationFee() &&
+               tariffMarketService.getPublicationFee() >= -500.0));
   }
-  
+
   @Test
   public void testBogusInitialization ()
   {
-    PluginConfig config = pluginConfigRepo.findByRoleName("TariffMarket");
-    assertNull("config not created", config);
     List<String> inits = new ArrayList<String>();
-    String result = tariffMarketInitializationService.initialize(comp, inits);
+    String result = tariffMarketService.initialize(comp, inits);
     assertNull("needs AccountingService in the list", result);
     inits.add("AccountingService");
-    result = tariffMarketInitializationService.initialize(comp, inits);
-    assertEquals("failure return value", "fail", result);
-    tariffMarketInitializationService.setDefaults();
   }
   
   // bogus message, not an instance of TariffMessage
@@ -284,7 +280,7 @@ public class TariffMarketServiceTests
     assertNotNull("found a tariff", tf);
     // find and check the transaction
     verify(accountingService).addTariffTransaction(TariffTransaction.Type.PUBLISH,
-                                                   tf, null, 0, 0.0, 42.0);
+                                                   tf, null, 0, 0.0, -42.0);
   }
 
   // bogus expiration
@@ -693,20 +689,24 @@ public class TariffMarketServiceTests
     TimeslotPhaseProcessor processor;
     int timeslotPhase;
 
+    @Override
     public void registerTimeslotPhase (TimeslotPhaseProcessor thing, int phase)
     {
       processor = thing;
       timeslotPhase = phase;
     }
 
+    @Override
     public void receiveMessage (PauseRequest msg)
     {
     }
 
+    @Override
     public void receiveMessage (PauseRelease msg)
     {
     }
 
+    @Override
     public boolean isBootstrapMode ()
     {
       return false;
@@ -716,6 +716,7 @@ public class TariffMarketServiceTests
     {
     }
 
+    @Override
     public void setAuthorizedBrokerList (List<String> brokerList)
     {
     }
@@ -740,6 +741,7 @@ public class TariffMarketServiceTests
   {
     List<Tariff> publishedTariffs = new ArrayList<Tariff>();
     
+    @Override
     public void publishNewTariffs (List<Tariff> tariffs)
     {
       publishedTariffs = tariffs;

@@ -26,20 +26,24 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Broker;
-import org.powertac.common.PluginConfig;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffMessage;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.TariffExpire;
@@ -47,6 +51,7 @@ import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.VariableRateUpdate;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +66,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TariffMarketService
   extends TimeslotPhaseProcessor 
-  implements TariffMarket, BrokerMessageListener
+  implements TariffMarket, BrokerMessageListener, InitializationService
 {
   static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
 
@@ -79,13 +84,23 @@ public class TariffMarketService
   
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
+  
+  @Autowired
+  private ServerConfiguration serverProps;
+
+  @Autowired
+  private RandomSeedRepo randomSeedService;
 
   // maps power type to id of corresponding default tariff
   private HashMap<PowerType, Long> defaultTariff;
 
   // read this from plugin config
-  private double tariffPublicationFee = 0.0;
-  private double tariffRevocationFee = 0.0;
+  private double minPublicationFee = -100.0;
+  private double maxPublicationFee = -500.0;
+  private Double publicationFee = null;
+  private double minRevocationFee = -100.0;
+  private double maxRevocationFee = -500.0;
+  private Double revocationFee = null;
   private int publicationInterval = 6;
   private int publicationOffset = 0;
   private boolean firstPublication;
@@ -101,56 +116,162 @@ public class TariffMarketService
   /**
    * Reads configuration parameters, registers for timeslot phase activation.
    */
-  public void init (PluginConfig config)
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
   {
-    registrations.clear();
+    int index = completedInits.indexOf("AccountingService");
+    if (index == -1) {
+      return null;
+    }
+
 
     defaultTariff = new HashMap<PowerType, Long>();
     brokerProxyService.registerBrokerTariffListener(this);
-
-    tariffPublicationFee = config.getDoubleValue("tariffPublicationFee",
-                                                 tariffPublicationFee);
-    tariffRevocationFee = config.getDoubleValue("tariffRevocationFee", 
-                                                tariffRevocationFee);
-
-    // publication interval must be <= 24
-    publicationInterval = config.getIntegerValue("publicationInterval",
-                                                 publicationInterval);
-    if (publicationInterval > 24) {
-      log.error("tariff publication interval " + publicationInterval + " > 24 hr");
-      publicationInterval = 24;
-    }
-    
-    // publication offset must be < publicationInterval
-    int value = config.getIntegerValue("publicationOffset",
-                                       publicationOffset);
-    if (value >= publicationInterval) {
-      log.error("tariff publication offset " + publicationOffset
-                + " >= publication interval " + value);
-    }
-    else {
-      publicationOffset = value;      
-    }
     firstPublication = false;
+    registrations.clear();
+    publicationFee = null;
+    revocationFee = null;
+    
     super.init();
+
+    serverProps.configureMe(this);
+
+    // compute the fees
+    RandomSeed random =
+        randomSeedService.getRandomSeed("AccountingService",
+                                        0l, "interest");
+    if (publicationFee == null) {
+      // interest will be non-null in case it was overridden in the config
+      this.setPublicationFee(minPublicationFee +
+                             (random.nextDouble() *
+                                 (maxPublicationFee - minPublicationFee)));
+      log.info("set publication fee: " + publicationFee);
+    }
+    if (revocationFee == null) {
+      // interest will be non-null in case it was overridden in the config
+      this.setRevocationFee(minRevocationFee +
+                             (random.nextDouble() *
+                                 (maxRevocationFee - minRevocationFee)));
+      log.info("set revocation fee: " + revocationFee);
+    }
+    return "TariffMarket";
   }
 
-  // ----------------- Data access -------------------------
+  // ------------ Data access and configuration support ---------------
 
-  public double getTariffPublicationFee ()
+  // publication fee
+  public double getMinPublicationFee ()
   {
-    return tariffPublicationFee;
+    return minPublicationFee;
   }
 
-  public double getTariffRevocationFee ()
+  @ConfigurableValue(valueType = "Double",
+      description = "low end of tariff publication fee range")
+  public void setMinPublicationFee (double fee)
   {
-    return tariffRevocationFee;
+    minPublicationFee = fee;
+  }
+
+  public double getMaxPublicationFee ()
+  {
+    return maxPublicationFee;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of tariff publication fee range")
+  public void setMaxPublicationFee (double fee)
+  {
+    maxPublicationFee = fee;
+  }
+
+  public Double getPublicationFee ()
+  {
+    return publicationFee;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "set publication fee directly to override random selection")
+  public void setPublicationFee (Double fee)
+  {
+    publicationFee = fee;
+    log.debug("publicationFee = " + publicationFee);
+  }
+
+  // revocation fee
+  public double getMinRevocationFee ()
+  {
+    return minRevocationFee;
+  }
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "low end of tariff revocation fee range")
+  public void setMinRevocationFee (double fee)
+  {
+    minRevocationFee = fee;
+  }
+
+  public double getMaxRevocationFee ()
+  {
+    return maxRevocationFee;
+  }
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of tariff revocation fee range")
+  public void setMaxRevocationFee (double fee)
+  {
+    maxRevocationFee = fee;
+  }
+
+  public Double getRevocationFee ()
+  {
+    return revocationFee;
+  }
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "Set revocation fee directly to override random selection")
+  public void setRevocationFee (double fee)
+  {
+    revocationFee = fee;
+    log.debug("revocationFee = " + revocationFee);
   }
 
   public int getPublicationInterval ()
   {
     return publicationInterval;
-  }  
+  }
+  
+  @ConfigurableValue(valueType = "Integer",
+      description = "Number of timeslots between tariff publication events. " +
+                    "Must be at most 24.")
+  public void setPublicationInterval (int interval)
+  {
+    if (interval > 24) {
+      log.error("tariff publication interval " + interval + " > 24 hr");
+      interval = 24;
+    }
+    publicationInterval = interval;
+  }
+  
+  public int getPublicationOffset ()
+  {
+    return publicationOffset;
+  }
+  
+  @ConfigurableValue(valueType = "Integer",
+      description = "Number of timeslots from the first timeslot to delay " +
+          "the first publication event. It does not work well " +
+          "to make this zero, because brokers do not have an opportunity " +
+          "to post tariffs in timeslot 0.")
+  public void setPublicationOffset (int offset)
+  {
+    if (offset >= publicationInterval) {
+      log.error("tariff publication offset " + publicationOffset
+                + " >= publication interval " + offset);
+    }
+    else {
+      publicationOffset = offset;
+    }
+  }
 
   List<NewTariffListener> getRegistrations ()
   {
@@ -163,6 +284,7 @@ public class TariffMarketService
    * synchronously with the incoming message traffic, rather than on
    * the timeslot phase signal, to minimize latency for broker feedback.
    */
+  @Override
   public void receiveMessage (Object msg)
   {
     if (msg != null && msg instanceof TariffMessage) {
@@ -187,6 +309,7 @@ public class TariffMarketService
   /**
    * Processes a newly-published tariff.
    */
+  @Override
   public TariffStatus processTariff (TariffSpecification spec)
   {
     tariffRepo.addSpecification(spec);
@@ -195,7 +318,7 @@ public class TariffMarketService
     tariff.init();
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
-                                           tariff, null, 0, 0.0, tariffPublicationFee);
+                                           tariff, null, 0, 0.0, publicationFee);
     return new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.success);
   }
@@ -203,6 +326,7 @@ public class TariffMarketService
   /**
    * Handles changes in tariff expiration date.
    */
+  @Override
   public TariffStatus processTariff (TariffExpire update)
   {
     ValidationResult result = validateUpdate(update);
@@ -232,6 +356,7 @@ public class TariffMarketService
   /**
    * Handles tariff revocation.
    */
+  @Override
   public TariffStatus processTariff (TariffRevoke update)
   {
     ValidationResult result = validateUpdate(update);
@@ -258,7 +383,7 @@ public class TariffMarketService
         log.info("Revoked tariff has " + activeSubscriptions.size() + " active subscriptions");
         accountingService.addTariffTransaction(TariffTransaction.Type.REVOKE,
                                                result.tariff, null, 0, 0.0,
-                                               tariffRevocationFee);
+                                               revocationFee);
       }
     }
     return success(update);
@@ -267,6 +392,7 @@ public class TariffMarketService
   /**
    * Applies a new HourlyCharge to an existing Tariff with a variable Rate.
    */
+  @Override
   public TariffStatus processTariff (VariableRateUpdate update)
   {
     ValidationResult result = validateUpdate(update);
@@ -287,6 +413,7 @@ public class TariffMarketService
 
   private List<NewTariffListener> registrations = new ArrayList<NewTariffListener>();
 
+  @Override
   public void registerNewTariffListener (NewTariffListener listener)
   {
     registrations.add(listener);
@@ -294,6 +421,7 @@ public class TariffMarketService
 
   // Process queued messages, then
   // handle distribution of new tariffs to customers
+  @Override
   public void activate (Instant time, int phase)
   {
     log.info("Activate");
@@ -340,6 +468,7 @@ public class TariffMarketService
    * that from the TariffSubscription that represents the Tariff you want
    * to unsubscribe from.</p>
    */
+  @Override
   public TariffSubscription subscribeToTariff (Tariff tariff,
                                                CustomerInfo customer,
                                                int customerCount)
@@ -351,6 +480,7 @@ public class TariffMarketService
     return sub;
   }
 
+  @Override
   public List<Tariff> getActiveTariffList(PowerType type)
   {
     return tariffRepo.findActiveTariffs(type);
@@ -359,6 +489,7 @@ public class TariffMarketService
   /**
    * Returns the default tariff
    */
+  @Override
   public Tariff getDefaultTariff (PowerType type)
   {
     Long defaultId = defaultTariff.get(type);
@@ -367,6 +498,7 @@ public class TariffMarketService
     return tariffRepo.findTariffById(defaultId);
   }
 
+  @Override
   public boolean setDefaultTariff (TariffSpecification newSpec)
   {
     tariffRepo.addSpecification(newSpec);
@@ -409,5 +541,10 @@ public class TariffMarketService
       this.tariff = tariff;
       this.message = msg;
     }
+  }
+
+  @Override
+  public void setDefaults ()
+  {
   }
 }

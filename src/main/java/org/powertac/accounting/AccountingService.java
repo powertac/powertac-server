@@ -25,10 +25,14 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.*;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +45,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AccountingService
   extends TimeslotPhaseProcessor 
-  implements Accounting
+  implements Accounting, InitializationService
 {
   static private Logger log = Logger.getLogger(AccountingService.class.getName());
 
@@ -60,10 +64,19 @@ public class AccountingService
   @Autowired
   private BrokerProxy brokerProxyService;
 
+  @Autowired
+  private RandomSeedRepo randomSeedService;
+  
+  @Autowired
+  private ServerConfiguration serverProps;
+
   private ArrayList<BrokerTransaction> pendingTransactions;
 
-  // read this from plugin config
-  private double bankInterest = 0.0;
+  // read this from configuration
+  
+  private double minInterest = 0.04;
+  private double maxInterest = 0.12;
+  private Double bankInterest = null;
 
   private int simulationPhase = 3;
 
@@ -72,20 +85,37 @@ public class AccountingService
     super();
     pendingTransactions = new ArrayList<BrokerTransaction>();
   }
+
+  @Override
+  public void setDefaults ()
+  {    
+  }
+
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
+  {
+    pendingTransactions.clear();
+    super.init();
+    serverProps.configureMe(this);
+
+    RandomSeed random =
+        randomSeedService.getRandomSeed("AccountingService",
+                                        0l, "interest");
+    if (bankInterest == null) {
+      // interest will be non-null in case it was overridden in the config
+      this.setBankInterest(minInterest +
+                           (random.nextDouble() *
+                               (maxInterest - minInterest)));
+      log.info("bank interest: " + bankInterest);
+    }
+    return "AccountingService";
+  }
   
   /**
    * Sets parameters, registers for timeslot phase activation.
    */
   public void init(PluginConfig config) 
   {
-    pendingTransactions.clear();
-    bankInterest = config.getDoubleValue("bankInterest", bankInterest);
-    super.init();
-  }
-  
-  public double getBankInterest ()
-  {
-    return bankInterest;
   }
 
   public synchronized MarketTransaction 
@@ -313,8 +343,39 @@ public class AccountingService
   {
     return simulationPhase;
   }
+
+  public double getMinInterest ()
+  {
+    return minInterest;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "low end of bank interest rate range")
+  public void setMinInterest (double minInterest)
+  {
+    this.minInterest = minInterest;
+  }
+
+  public double getMaxInterest ()
+  {
+    return maxInterest;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of bank interest rate range")
+  public void setMaxInterest (double maxInterest)
+  {
+    this.maxInterest = maxInterest;
+  }
+
+  public Double getBankInterest ()
+  {
+    return bankInterest;
+  }
   
-  void setBankInterest (double value)
+  @ConfigurableValue(valueType = "Double",
+      description = "override random setting of bank interest rate")
+  public void setBankInterest (Double value)
   {
     bankInterest = value;
   }

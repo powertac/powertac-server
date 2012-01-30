@@ -25,7 +25,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -49,8 +52,10 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -72,9 +77,6 @@ public class AccountingServiceTests
   
   @Autowired
   private AccountingService accountingService;
-
-  @Autowired
-  private AccountingInitializationService accountingInitializationService;
   
   @Autowired
   private TariffRepo tariffRepo;
@@ -93,8 +95,9 @@ public class AccountingServiceTests
   private BrokerProxy mockProxy;
   
   @Autowired
-  private ServerProperties mockServerProperties;
+  private ServerConfiguration mockServerProperties;
 
+  private Configurator config;
   private Competition comp;
   private CustomerInfo customerInfo1;
   private CustomerInfo customerInfo2;
@@ -175,55 +178,74 @@ public class AccountingServiceTests
     timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
 
     // Set up serverProperties mock
+    config = new Configurator();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
-        return args[1];
+        config.configureSingleton(args[0]);
+        return null;
       }
-    }).when(mockServerProperties).getIntegerProperty(anyString(), anyInt());
-
-    doAnswer(new Answer() {
-      public Object answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        return args[1];
-      }
-    }).when(mockServerProperties).getDoubleProperty(anyString(), anyDouble());
+    }).when(mockServerProperties).configureMe(anyObject());
   }
   
   private void initializeService () 
   {
-    accountingInitializationService.setDefaults();
-    accountingInitializationService.initialize(comp, new ArrayList<String>());
+    String result = accountingService.initialize(comp, new ArrayList<String>());
+    assertEquals("correct return", "AccountingService", result);
   }
 
   @Test
   public void testAccountingServiceNotNull() 
   {
-    assertNotNull(accountingInitializationService);
     assertNotNull(accountingService);
   }
   
+  // initialization without a configuration
   @Test
   public void testNormalInitialization ()
   {
-    accountingInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("AccountingService");
-    assertNotNull("config created correctly", config);
-    String result = accountingInitializationService.initialize(comp, new ArrayList<String>());
+    String result = accountingService.initialize(comp, new ArrayList<String>());
     assertEquals("correct return value", "AccountingService", result);
     assertTrue("correct bank interest",
-       accountingInitializationService.getMinInterest() <= accountingService.getBankInterest());
+       accountingService.getMinInterest() <= accountingService.getBankInterest());
     assertTrue("correct bank interest",
-       accountingInitializationService.getMaxInterest() >= accountingService.getBankInterest());
+       accountingService.getMaxInterest() >= accountingService.getBankInterest());
   }
   
+  // config max/min
   @Test
-  public void testBogusInitialization ()
+  public void testMaxMinInitialization ()
   {
-    PluginConfig config = pluginConfigRepo.findByRoleName("AccountingService");
-    assertNull("config not created", config);
-    String result = accountingInitializationService.initialize(comp, new ArrayList<String>());
-    assertEquals("failure return value", "fail", result);
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("accounting.accountingService.minInterest", "0.01");
+    map.put("accounting.accountingService.maxInterest", "0.20");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+
+    String result = accountingService.initialize(comp, new ArrayList<String>());
+    assertEquals("correct return value", "AccountingService", result);
+    assertEquals("correct min value", 0.01, accountingService.getMinInterest(), 1e-6);
+    assertEquals("correct max value", 0.20, accountingService.getMaxInterest(), 1e-6);
+    assertTrue("correct bank interest",
+       accountingService.getMinInterest() <= accountingService.getBankInterest());
+    assertTrue("correct bank interest",
+       accountingService.getMaxInterest() >= accountingService.getBankInterest());
+  }
+  
+  // config interest rate directly
+  @Test
+  public void testInterestInitialization ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("accounting.accountingService.minInterest", "0.01");
+    map.put("accounting.accountingService.maxInterest", "0.20");
+    map.put("accounting.accountingService.bankInterest", "0.008");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+
+    accountingService.initialize(comp, new ArrayList<String>());
+    assertEquals("correct bank interest", 0.008, accountingService.getBankInterest(), 1e-6);
   }
 
   @Test
