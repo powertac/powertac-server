@@ -25,7 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.config.Configurator;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,8 +40,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
 public class GencoConfigTest
 {
-  
-  Configuration config;
+  private Configuration config;
 
   /**
    *
@@ -54,11 +55,11 @@ public class GencoConfigTest
   }
 
   @Test
-  public void test ()
+  public void testConfigurator ()
   {
     Configurator processor = new Configurator();
     processor.setConfiguration(config);
-    Collection<Object> gencos = processor.configureInstances(Genco.class);
+    Collection<?> gencos = processor.configureInstances(Genco.class);
     assertEquals("2 gencos generated", 2, gencos.size());
     Genco nsp1 = null;
     Genco nsp2 = null;
@@ -84,5 +85,4 @@ public class GencoConfigTest
     assertEquals("nsp2 emission", 0.95, nsp2.getCarbonEmissionRate(), 1e-6);
     assertEquals("nsp2 leadtime", 6, nsp2.getCommitmentLeadtime());
   }
-
 }
