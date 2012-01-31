@@ -495,7 +495,7 @@ public class CompetitionSetupService
       }
     }
     catch (XPathExpressionException xee) {
-      log.error("preGame: Error reading config file: " + xee.toString());
+      log.error("preGame: Error reading boot dataset: " + xee.toString());
       return false;
     }
     catch (IOException ioe) {
