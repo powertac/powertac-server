@@ -35,16 +35,19 @@ import org.powertac.common.Rate;
 import org.powertac.common.Order;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
+import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -63,7 +66,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class DefaultBrokerService
-  implements BootstrapDataCollector
+  implements BootstrapDataCollector, InitializationService
 {
   static private Logger log = Logger.getLogger(DefaultBrokerService.class.getName());
   
@@ -81,10 +84,16 @@ public class DefaultBrokerService
   
   @Autowired
   private CustomerRepo customerRepo;
+
+  @Autowired
+  private BrokerRepo brokerRepo;
   
   @Autowired
   private RandomSeedRepo randomSeedRepo;
   
+  @Autowired
+  private ServerConfiguration serverPropertiesService;
+
   private LocalBroker face;
   
   /** parameters */
@@ -126,14 +135,27 @@ public class DefaultBrokerService
   {
     super();
   }
-  
+
+  @Override
+  public void setDefaults ()
+  {
+    // create the default broker instance, register it with the repo
+    brokerRepo.add(createBroker("default broker"));
+  }
+
   /**
    * Called by initialization service once at the beginning of each game.
-   * Sets up and publishes default tariffs.
-   * Question: when do customers subscribe to default tariff?
+   * Configures parameters, sets up and publishes default tariffs.
    */
-  void init (PluginConfig config)
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
   {
+    // defer for TariffMarket initialization
+    int index = completedInits.indexOf("TariffMarket");
+    if (index == -1) {
+      return null;
+    }
+
     // log in to ccs
     competitionControlService.loginBroker(face.getUsername());
     
@@ -156,35 +178,25 @@ public class DefaultBrokerService
       weather = new ArrayList<WeatherReport>();
     }
 
+    // pull down configuration
+    serverPropertiesService.configureMe(this);
+
     // create and publish default tariffs
-    double consumption = (config.getDoubleValue("consumptionRate",
-                                                defaultConsumptionRate));
     defaultConsumption = new TariffSpecification(face, PowerType.CONSUMPTION)
-        .addRate(new Rate().withValue(consumption));
+        .addRate(new Rate().withValue(defaultConsumptionRate));
     tariffMarketService.setDefaultTariff(defaultConsumption);
     customerSubscriptions.put(defaultConsumption,
                               new HashMap<CustomerInfo, CustomerRecord>());
 
-    double production = (config.getDoubleValue("productionRate",
-                                                defaultProductionRate));
     defaultProduction = new TariffSpecification(face, PowerType.PRODUCTION)
-        .addRate(new Rate().withValue(production));
+        .addRate(new Rate().withValue(defaultProductionRate));
     tariffMarketService.setDefaultTariff(defaultProduction);
     customerSubscriptions.put(defaultProduction,
                               new HashMap<CustomerInfo, CustomerRecord>());
-    
-    // Other setup parameters
-    initialBidKWh = config.getDoubleValue("initialBidKWh", initialBidKWh);
-    buyLimitPriceMin = config.getDoubleValue("buyLimitPriceMin",
-                                             buyLimitPriceMin);
-    buyLimitPriceMax = config.getDoubleValue("buyLimitPriceMax",
-                                             buyLimitPriceMax);
-    sellLimitPriceMin = config.getDoubleValue("sellLimitPriceMin",
-                                              sellLimitPriceMin);
-    sellLimitPriceMax = config.getDoubleValue("sellLimitPriceMax",
-                                              sellLimitPriceMax);
+
+    return "DefaultBroker";
   }
-  
+
   /**
    * Creates the internal Broker instance that can receive messages intended
    * for local Brokers. It would be a Really Bad Idea to call this at any time
@@ -533,6 +545,7 @@ public class DefaultBrokerService
    * demand, market price, and weather records for the bootstrap period. Note
    * that the customer and weather info is flattened.
    */
+  @Override
   public List<Object> collectBootstrapData (int maxTimeslots)
   {
     ArrayList<Object> result = new ArrayList<Object>();
@@ -612,6 +625,92 @@ public class DefaultBrokerService
     }
     return weather;
   }
+  
+  // ------------------ Property access for configuration ------------------
+
+  public double getConsumptionRate ()
+  {
+    return defaultConsumptionRate;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Fixed price/kwh for default consumption tariff")
+  public void setConsumptionRate (double defaultConsumptionRate)
+  {
+    this.defaultConsumptionRate = defaultConsumptionRate;
+  }
+
+  public double getProductionRate ()
+  {
+    return defaultProductionRate;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Fixed price/kwh for default production tariff")
+  public void setProductionRate (double defaultProductionRate)
+  {
+    this.defaultProductionRate = defaultProductionRate;
+  }
+
+  public double getInitialBidKWh ()
+  {
+    return initialBidKWh;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Quantity to buy in day-ahead market before seeing actual customer data")
+  public void setInitialBidKWh (double initialBidKWh)
+  {
+    this.initialBidKWh = initialBidKWh;
+  }
+
+  public double getBuyLimitPriceMax ()
+  {
+    return buyLimitPriceMax;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Initial limit price/mwh for bids in day-ahead market")
+  public void setBuyLimitPriceMax (double buyLimitPriceMax)
+  {
+    this.buyLimitPriceMax = buyLimitPriceMax;
+  }
+
+  public double getBuyLimitPriceMin ()
+  {
+    return buyLimitPriceMin;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Final limit price/mwh for bids in day-ahead market")
+  public void setBuyLimitPriceMin (double buyLimitPriceMin)
+  {
+    this.buyLimitPriceMin = buyLimitPriceMin;
+  }
+
+  public double getSellLimitPriceMax ()
+  {
+    return sellLimitPriceMax;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Initial limit price/mwh for asks in day-ahead market")
+  public void setSellLimitPriceMax (double sellLimitPriceMax)
+  {
+    this.sellLimitPriceMax = sellLimitPriceMax;
+  }
+
+  public double getSellLimitPriceMin ()
+  {
+    return sellLimitPriceMin;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Final limit price/mwh for asks in day-ahead market")
+  public void setSellLimitPriceMin (double sellLimitPriceMin)
+  {
+    this.sellLimitPriceMin = sellLimitPriceMin;
+  }
 
   // ------------------- LocalBroker implementation -----------------------
   /**
@@ -630,6 +729,7 @@ public class DefaultBrokerService
      * Receives a message intended for the broker, forwards it to the
      * message handler in the enclosing service.
      */
+    @Override
     public void receiveMessage(Object object) 
     {
       receiveBrokerMessage(object);

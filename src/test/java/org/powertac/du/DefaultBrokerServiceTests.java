@@ -16,13 +16,17 @@
 package org.powertac.du;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -42,18 +46,17 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.du.DefaultBrokerInitializationService;
-import org.powertac.du.DefaultBrokerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,7 +82,7 @@ public class DefaultBrokerServiceTests
   private CompetitionControl mockCompetitionControl;
   
   @Autowired
-  private PluginConfigRepo pluginConfigRepo;
+  private ServerConfiguration serverPropertiesService;
   
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -92,19 +95,18 @@ public class DefaultBrokerServiceTests
   
   private TariffMarket mockMarket; // not autowired
   private RandomSeedRepo mockRandom; // not autowired
-  
-  private DefaultBrokerInitializationService initializer;
+
   private DefaultBrokerService service;
   private CustomerInfo customer1;
   private CustomerInfo customer2;
   private Competition competition;
+  private Configurator config;
   private Instant start;
 
   @Before
   public void setUp () throws Exception
   {
     // clean up from previous tests
-    pluginConfigRepo.recycle();
     timeslotRepo.recycle();
     reset(mockProxy);
     reset(mockCompetitionControl);
@@ -114,16 +116,6 @@ public class DefaultBrokerServiceTests
     customer2 = new CustomerInfo("village", 200);
     
     service = new DefaultBrokerService();
-    initializer = new DefaultBrokerInitializationService();
-    ReflectionTestUtils.setField(initializer,
-                                 "defaultBrokerService",
-                                 service);
-    ReflectionTestUtils.setField(initializer,
-                                 "brokerRepo",
-                                 brokerRepo);
-    ReflectionTestUtils.setField(initializer,
-                                 "pluginConfigRepo",
-                                 pluginConfigRepo);
     mockMarket = mock(TariffMarket.class);
     mockRandom = mock(RandomSeedRepo.class);
     when(mockRandom.getRandomSeed(anyString(), anyInt(), anyString()))
@@ -134,7 +126,21 @@ public class DefaultBrokerServiceTests
     ReflectionTestUtils.setField(service, "tariffMarketService", mockMarket);
     ReflectionTestUtils.setField(service, "brokerProxyService", mockProxy);
     ReflectionTestUtils.setField(service, "timeslotRepo", timeslotRepo);
+    ReflectionTestUtils.setField(service, "brokerRepo", brokerRepo);
+    ReflectionTestUtils.setField(service, "serverPropertiesService",
+                                 serverPropertiesService);
     ReflectionTestUtils.setField(service, "randomSeedRepo", mockRandom);
+
+    // Set up serverProperties mock
+    config = new Configurator();
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(serverPropertiesService).configureMe(anyObject());
     
     competition = Competition.newInstance("broker-test");
     createTimeslots();
@@ -142,15 +148,25 @@ public class DefaultBrokerServiceTests
 
   private Broker init ()
   {
-    initializer.setDefaults();
+    service.setDefaults();
     List<String> completedInits = new ArrayList<String>();
     completedInits.add("TariffMarket");
-    initializer.initialize(competition, completedInits);
+    String answer = service.initialize(competition, completedInits);
+    assertEquals("correct response", "DefaultBroker", answer);
     Broker face = brokerRepo.findByUsername("default broker");
     face.setEnabled(true);
     return face;
   }
 
+  @Test
+  public void testBogusInit ()
+  {
+    service.setDefaults();
+    List<String> completedInits = new ArrayList<String>();
+    String answer = service.initialize(competition, completedInits);
+    assertNull("cannot proceed", answer);
+  }
+  
   @Test
   public void testService ()
   {
@@ -159,6 +175,41 @@ public class DefaultBrokerServiceTests
     assertEquals("correct face", face, service.getFace());
     assertTrue("face is enabled", face.isEnabled());
     assertFalse("not bootstrap mode", service.isBootstrapMode());
+  }
+  
+  @Test
+  public void testInit ()
+  {
+    Broker face = init();
+    assertNotNull("found face", face);
+    assertEquals("correct consumption rate", -1.0,
+                 service.getConsumptionRate(), 1e-6);
+    assertEquals("correct production rate", 0.01,
+                 service.getProductionRate(), 1e-6);
+    assertEquals("correct initial kwh", 500.0,
+                 service.getInitialBidKWh(), 1e-6);
+  }
+  
+  @Test
+  public void testConfig ()
+  {
+    service.setDefaults();
+    List<String> completedInits = new ArrayList<String>();
+    completedInits.add("TariffMarket");
+    
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("du.defaultBrokerService.consumptionRate", "-0.50");
+    map.put("du.defaultBrokerService.productionRate", "0.02");
+    map.put("du.defaultBrokerService.initialBidKWh", "1000.0");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    service.initialize(competition, completedInits);
+    assertEquals("correct consumption rate", -0.5,
+                 service.getConsumptionRate(), 1e-6);
+    assertEquals("correct production rate", 0.02,
+                 service.getProductionRate(), 1e-6);
+    assertEquals("correct initial kwh", 1000.0,
+                 service.getInitialBidKWh(), 1e-6);
   }
   
   @SuppressWarnings("rawtypes")
@@ -189,7 +240,7 @@ public class DefaultBrokerServiceTests
         List<Rate> rates = spec.getRates();
         assertEquals("just one rate", 1, rates.size());
         assertTrue("fixed rate", rates.get(0).isFixed());
-        assertEquals("correct rate", -0.5, rates.get(0).getValue(), 1e-6);
+        assertEquals("correct rate", -1.0, rates.get(0).getValue(), 1e-6);
       }
       else if (spec.getPowerType() == PowerType.PRODUCTION) {
         foundProduction = true;
@@ -197,7 +248,7 @@ public class DefaultBrokerServiceTests
         List<Rate> rates = spec.getRates();
         assertEquals("just one rate", 1, rates.size());
         assertTrue("fixed rate", rates.get(0).isFixed());
-        assertEquals("correct rate", 0.02, rates.get(0).getValue(), 1e-6);
+        assertEquals("correct rate", 0.01, rates.get(0).getValue(), 1e-6);
       }
     }
     assertTrue("found a consumption tariff", foundConsumption);
@@ -471,7 +522,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(23),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", (-5 -95.0/22.0), order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-1 - 99.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -528,7 +579,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(24),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", (-5.0 -95.0/22.0), order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-1.0 - 99.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
@@ -574,7 +625,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(25),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    assertEquals("correct price", (-5.0 -95.0/21.0), order.getLimitPrice(), 1e-6);
+    assertEquals("correct price", (-1.0 - 99.0/21.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
   }
   
