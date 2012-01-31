@@ -272,9 +272,11 @@ public class Configurator
               if (getter != null) {
                 // check for type compatibility
                 Class<?> valueClass = Class.forName("java.lang." + cv.valueType());
-                if (!valueClass.isAssignableFrom(getter.getReturnType())) {
-                  log.warn("Type mismatch: cannot use default value for " +
-                           cv.name());
+                if (!getter.getReturnType().isPrimitive() &&
+                    !valueClass.isAssignableFrom(getter.getReturnType())) {
+                  log.warn("Type mismatch: cannot use default value (" +  
+                           getter.getReturnType().getName() + ") for " +
+                           cv.name() + " (" + valueClass.getName() + ")");
                   getter = null;
                 }
               }
