@@ -333,14 +333,14 @@ public class Competition //implements Serializable
   {
     DateTimeZone.setDefault(DateTimeZone.UTC);
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-    return withSimulationBaseTime(fmt.parseDateTime(baseTime).toInstant().getMillis()); 
+    return withSimulationBaseTime(fmt.parseDateTime(baseTime).toInstant()); 
   }
   
   /**
    * Fluent setter for simulation base time that takes a long.
    */
-  @ConfigurableValue(valueType = "Long",
-    description = "Scenario start time of the bootstrap portion of a simulation")
+//  @ConfigurableValue(valueType = "Long",
+//    description = "Scenario start time of the bootstrap portion of a simulation")
   @StateChange
   public Competition withSimulationBaseTime (long baseTime)
   {

@@ -116,7 +116,7 @@ public class Configurator
   {
     // If we don't have a configuration, we cannot do much.
     if (config == null) {
-      log.error("Cannot configure - not Configuration set");
+      log.error("Cannot configure - no Configuration set");
       return null;
     }
     
@@ -208,7 +208,9 @@ public class Configurator
         String type = cv.valueType();
         try { // lots of exceptions possible here
           Class<?> clazz = Class.forName("java.lang." + type);
-          Object defaultValue = cp.getter.invoke(thing);
+          Object defaultValue = null;
+          if (cp.getter != null)
+            defaultValue = cp.getter.invoke(thing);
           String extractorName = "get" + type;
           Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
           Object configValue = extractor.invoke(conf, key, defaultValue);
@@ -267,10 +269,22 @@ public class Configurator
             log.debug("getter name " + getterName);
             try {
               getter = clazz.getMethod(getterName);
+              if (getter != null) {
+                // check for type compatibility
+                Class<?> valueClass = Class.forName("java.lang." + cv.valueType());
+                if (!valueClass.isAssignableFrom(getter.getReturnType())) {
+                  log.warn("Type mismatch: cannot use default value for " +
+                           cv.name());
+                  getter = null;
+                }
+              }
             }
             catch (NoSuchMethodException nsm) {
               log.error("No getter method " + getterName +
                         " for " + clazz.getName());
+            }
+            catch (ClassNotFoundException e) {
+              log.error("Could not find value class: " + e.toString());
             }
           }
           result.put(propertyName,

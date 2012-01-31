@@ -21,6 +21,9 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Competition;
@@ -44,6 +47,7 @@ public class ConfiguratorTest
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("common.competition.timeslotLength", "15");
     map.put("common.competition.minimumTimeslotCount", "600");
+    map.put("common.competition.simulationBaseTime", "2009-10-10");
     config = new MapConfiguration(map);
   }
 
@@ -55,6 +59,17 @@ public class ConfiguratorTest
     uut.configureSingleton(comp);
     assertEquals("correct timeslot length", 15, comp.getTimeslotLength());
     assertEquals("correct min ts count", 600, comp.getMinimumTimeslotCount());
+    Instant inst = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    assertEquals("correct base time", inst, comp.getSimulationBaseTime());
   }
 
+  @Test
+  public void testNoInit ()
+  {
+    Configurator uut = new Configurator();
+    //uut.setConfiguration(config);
+    uut.configureSingleton(comp);
+    assertEquals("correct timeslot length", 60, comp.getTimeslotLength());
+    assertEquals("correct min ts count", 480, comp.getMinimumTimeslotCount());    
+  }
 }
