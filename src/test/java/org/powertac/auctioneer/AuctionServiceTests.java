@@ -3,13 +3,15 @@ package org.powertac.auctioneer;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -25,10 +27,11 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.ServerProperties;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,10 +46,7 @@ public class AuctionServiceTests
 {
   @Autowired
   private AuctionService svc;
-  
-  @Autowired
-  private AuctionInitializationService auctionInitializationService;
-  
+
   @Autowired
   private TimeService timeService;
 
@@ -67,9 +67,10 @@ public class AuctionServiceTests
   private CompetitionControl mockControl;
   
   @Autowired
-  private ServerProperties mockServerProps;
+  private ServerConfiguration mockServerProps;
   
   private Competition competition;
+  private Configurator config;
   private Broker b1;
   private Broker b2;
   private Broker s1;
@@ -100,17 +101,17 @@ public class AuctionServiceTests
     competition = Competition.newInstance("auctioneer-test");
 
     // mock the ServerProperties
-    doAnswer(new Answer<Double>() {
-      public Double answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        return (Double)args[1];
-      }
-    }).when(mockServerProps).getDoubleProperty(anyString(), anyDouble());
 
-    // Configure the AuctionService
-    auctionInitializationService.setDefaults();
-    auctionInitializationService.initialize(competition,
-                                            new ArrayList<String>());
+    // Set up serverProperties mock
+    config = new Configurator();
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(mockServerProps).configureMe(anyObject());
     
     // Create some brokers who can trade
     b1 = new Broker("Buyer #1");
@@ -131,6 +132,7 @@ public class AuctionServiceTests
     
     // mock the AccountingService, capture args
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         accountingArgs.add(args);
@@ -142,12 +144,22 @@ public class AuctionServiceTests
                                                     anyDouble());
     // mock the Broker Proxy, capture messages
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         brokerMsgs.add(args[0]);
         return null;
       }
     }).when(mockProxy).broadcastMessage(anyObject());
+
+    // Configure the AuctionService
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("auctioneer.auctionService.sellerSurplusRatio", "0.5");
+    map.put("auctioneer.auctionService.defaultMargin", "0.2");
+    map.put("auctioneer.auctionService.defaultClearingPrice", "40.0");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    svc.initialize(competition, new ArrayList<String>());
   }
 
   @Test

@@ -24,19 +24,22 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
+import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.state.StateChange;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +69,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuctionService
   extends TimeslotPhaseProcessor
-  implements BrokerMessageListener
+  implements BrokerMessageListener, InitializationService
 {
   static private Logger log = Logger.getLogger(AuctionService.class.getName());
 
@@ -87,6 +90,9 @@ public class AuctionService
   
   @Autowired
   private OrderbookRepo orderbookRepo;
+  
+  @Autowired
+  private ServerConfiguration serverProps;
   
   private double defaultSellerSurplus = 0.5;
   private double defaultMargin = 0.05; // used when one side has no limit price
@@ -111,12 +117,16 @@ public class AuctionService
    */
   public void init (PluginConfig config)
   {
+  }
+
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
+  {
     incoming.clear();
-    setSellerSurplusRatio(config.getDoubleValue("sellerSurplus",
-                                                defaultSellerSurplus));
-    setDefaultMargin(config.getDoubleValue("defaultMargin", defaultMargin));
+    serverProps.configureMe(this);
     brokerProxyService.registerBrokerMarketListener(this);
     super.init();
+    return "Auctioneer";
   }
 
   public double getDefaultSellerSurplus ()
@@ -134,8 +144,9 @@ public class AuctionService
     return sellerSurplusRatio;
   }
 
-  @StateChange
-  private void setSellerSurplusRatio (Double number)
+  @ConfigurableValue(valueType = "Double",
+      description = "Proportion of market surplus allocated to the seller")
+  public void setSellerSurplusRatio (Double number)
   {
     sellerSurplusRatio = number;
   }
@@ -145,8 +156,9 @@ public class AuctionService
     return defaultMargin;
   }
   
-  @StateChange
-  private void setDefaultMargin (Double number)
+  @ConfigurableValue(valueType = "Double",
+      description = "Default margin when matching market order with limit order")
+  public void setDefaultMargin (Double number)
   {
     defaultMargin = number;
   }
@@ -154,6 +166,13 @@ public class AuctionService
   public double getDefaultClearingPrice ()
   {
     return defaultClearingPrice;
+  }
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "Default price/mwh when matching only market orders")
+  public void setDefaultClearingPrice (Double number)
+  {
+    defaultClearingPrice = number;
   }
 
   List<Order> getIncoming ()
@@ -435,5 +454,10 @@ public class AuctionService
                 (other.getLimitPrice()) ? 0 :
                   (this.getLimitPrice() < other.getLimitPrice() ? -1 : 1));
     }
+  }
+
+  @Override
+  public void setDefaults ()
+  {
   }
 }

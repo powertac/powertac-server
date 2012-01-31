@@ -24,7 +24,7 @@
   <bean id="serverPropertiesService"
         class="org.mockito.Mockito"
         factory-method="mock">
-    <constructor-arg value="org.powertac.common.interfaces.ServerProperties" />
+    <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
   </bean>
 
   <context:annotation-config />
@@ -34,10 +34,6 @@
         <property name="timeslotPhase">
                 <value>1</value>
         </property>
-  </bean>
-
-  <bean id="auctionInitializationService"
-        class="org.powertac.auctioneer.AuctionInitializationService">
   </bean>
 
   <bean id="timeService"
