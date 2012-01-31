@@ -1,5 +1,6 @@
 package org.powertac.distributionutility;
 
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -7,7 +8,10 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -15,17 +19,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -53,18 +59,16 @@ public class DistributionUtilityServiceTests
   
   @Autowired
   private Accounting accountingService;
-
+  
   @Autowired
-  private PluginConfigRepo pluginConfigRepo;
+  private ServerConfiguration serverPropertiesService;
 
   @Autowired
   private DistributionUtilityService distributionUtilityService;
 
-  @Autowired
-  private DistributionUtilityInitializationService distributionUtilityInitializationService;
-
   private TariffRepo tariffRepo;
   private Competition comp;
+  private Configurator config;
   private List<Broker> brokerList = new ArrayList<Broker>();
   private List<TariffSpecification> tariffSpecList = new ArrayList<TariffSpecification>();
   private List<Tariff> tariffList = new ArrayList<Tariff>();
@@ -94,6 +98,17 @@ public class DistributionUtilityServiceTests
     Broker broker3 = new Broker("testBroker3");
     brokerRepo.add(broker3);
     brokerList.add(broker3);
+
+    // Set up serverProperties mock
+    config = new Configurator();
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(serverPropertiesService).configureMe(anyObject());
   }
 
   @After
@@ -114,12 +129,19 @@ public class DistributionUtilityServiceTests
 
   private void initializeService ()
   {
-    distributionUtilityInitializationService.setDefaults();
-    PluginConfig duConfig = pluginConfigRepo.findByRoleName("DistributionUtility");
-    duConfig.addConfiguration("balancingCostMin", "-0.06")
-            .addConfiguration("balancingCostMax", "-0.06");
-    distributionUtilityInitializationService.initialize(comp,
-                                                        new ArrayList<String>());
+    distributionUtilityService.setDefaults();
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("distributionutility.distributionUtilityService.balancingCostMin", "-0.06");
+    map.put("distributionutility.distributionUtilityService.balancingCostMax", "-0.06");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    distributionUtilityService.initialize(comp, new ArrayList<String>());
+    assertEquals("correct setting", -0.06,
+                 distributionUtilityService.getBalancingCostMin(), 1e-6);
+    assertEquals("correct setting", -0.06,
+                 distributionUtilityService.getBalancingCostMax(), 1e-6);
+    assertEquals("correct setting", -0.06,
+                 distributionUtilityService.getBalancingCost(), 1e-6);
   }
 
   @Test

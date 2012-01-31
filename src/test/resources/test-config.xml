@@ -27,6 +27,11 @@
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
         </bean>
+        
+        <bean id="serverPropertiesService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+        </bean>
 
 	<context:annotation-config />
 
@@ -35,10 +40,6 @@
 
 	<bean id="brokerRepo"
 	      class="org.powertac.common.repo.BrokerRepo">
-	</bean>
-	
-	<bean id="distributionUtilityInitializationService"
-	      class="org.powertac.distributionutility.DistributionUtilityInitializationService">
 	</bean>
         
         <bean id="distributionUtilityService"
@@ -67,9 +68,5 @@
 
 	<bean id="timeslotRepo"
 	      class="org.powertac.common.repo.TimeslotRepo">
-	</bean>
-
-	<bean id="pluginConfigRepo"
-	      class="org.powertac.common.repo.PluginConfigRepo">
 	</bean>
 </beans>

@@ -25,8 +25,12 @@ import org.ojalgo.matrix.BasicMatrix;
 import org.ojalgo.matrix.BigMatrix;
 import org.ojalgo.optimisation.quadratic.QuadraticSolver;
 import org.ojalgo.type.StandardType;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
+import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
@@ -40,23 +44,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class DistributionUtilityService extends TimeslotPhaseProcessor
+public class DistributionUtilityService
+extends TimeslotPhaseProcessor
+implements InitializationService
 {
-  public class ChargeInfo
-  {
-    public String itsBrokerName = "";
-    public double itsNetLoadKWh = 0.0;
-    public double itsBalanceCharge = 0.0;
-
-    public ChargeInfo (String inBrokerName, double inNetLoadKWh,
-                       double inBalanceCharge)
-    {
-      itsBrokerName = inBrokerName;
-      itsNetLoadKWh = inNetLoadKWh;
-      itsBalanceCharge = inBalanceCharge;
-    }
-  }
-
   Logger log = Logger.getLogger(this.getClass().getName());
 
   @Autowired
@@ -70,40 +61,52 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
 
   @Autowired
   private Accounting accountingService;
+  
+  @Autowired
+  private ServerConfiguration serverProps;
 
   @Autowired
   private RandomSeedRepo randomSeedService;
   private RandomSeed randomGen;
 
-  long id = 0;
   // fees and prices should be negative, because they are debits against brokers
-  private double distributionFee = -0.01;
-  private double balancingCost = -0.06;
+  private double distributionFeeMin = -0.005;
+  private double distributionFeeMax = -0.15;
+  private Double distributionFee = null;
+  private double balancingCostMin = -0.04;
+  private double balancingCostMax = -0.08;
+  private Double balancingCost = null;
   private double defaultSpotPrice = -30.0; // per mwh
+
+  @Override
+  public void setDefaults ()
+  {
+  }
 
   /**
    * Computes actual distribution and balancing costs by random selection
    */
-  public void init(PluginConfig config)
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
   {
-    double distributionFeeMin =
-        config.getDoubleValue("distributionFeeMin", -0.005);
-    double distributionFeeMax = 
-        config.getDoubleValue("distributionFeeMax", -0.15);
-    double balancingCostMin = 
-        config.getDoubleValue("balancingCostMin", -0.04);
-    double balancingCostMax =
-        config.getDoubleValue("balancingCostMax", -0.08);
-
-    randomGen = randomSeedService.getRandomSeed("DistributionUtilityService",
-                                                id, "model");
-    distributionFee = (distributionFeeMin + randomGen.nextDouble()
-        * (distributionFeeMax - distributionFeeMin));
-    balancingCost = (balancingCostMin + randomGen.nextDouble()
-        * (balancingCostMax - balancingCostMin));
     super.init();
+    distributionFee = null;
+    balancingCost = null;
+
+    serverProps.configureMe(this);
+    
+    // compute randomly-generated values if not overridden
+    randomGen = randomSeedService.getRandomSeed("DistributionUtilityService",
+                                                0, "model");
+    if (null == distributionFee)
+      distributionFee = (distributionFeeMin + randomGen.nextDouble()
+                         * (distributionFeeMax - distributionFeeMin));
+    if (null == balancingCost)
+      balancingCost = (balancingCostMin + randomGen.nextDouble()
+                       * (balancingCostMax - balancingCostMin));
     log.info("Configured DU: distro fee = " + distributionFee
              + ", balancing cost = " + balancingCost);
+    return "DistributionUtility";
   }
 
   @Override
@@ -322,4 +325,106 @@ public class DistributionUtilityService extends TimeslotPhaseProcessor
     return solutionList;
   }
 
+  // ---------- Getters and setters for configuration support ---------
+  public double getDistributionFeeMin ()
+  {
+    return distributionFeeMin;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Low end of distribution fee range")
+  public void setDistributionFeeMin (double distributionFeeMin)
+  {
+    this.distributionFeeMin = distributionFeeMin;
+  }
+
+  public double getDistributionFeeMax ()
+  {
+    return distributionFeeMax;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "High end of distribution fee range")
+  public void setDistributionFeeMax (double distributionFeeMax)
+  {
+    this.distributionFeeMax = distributionFeeMax;
+  }
+
+  public Double getDistributionFee ()
+  {
+    return distributionFee;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Distribution fee: overrides random value selection")
+  public void setDistributionFee (Double distributionFee)
+  {
+    this.distributionFee = distributionFee;
+  }
+
+  public double getBalancingCostMin ()
+  {
+    return balancingCostMin;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Low end of balancing cost range")
+  public void setBalancingCostMin (double balancingCostMin)
+  {
+    this.balancingCostMin = balancingCostMin;
+  }
+
+  public double getBalancingCostMax ()
+  {
+    return balancingCostMax;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "High end of balancing cost range")
+  public void setBalancingCostMax (double balancingCostMax)
+  {
+    this.balancingCostMax = balancingCostMax;
+  }
+
+  public Double getBalancingCost ()
+  {
+    return balancingCost;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Balancing cost: overrides random value selection")
+  public void setBalancingCost (Double balancingCost)
+  {
+    this.balancingCost = balancingCost;
+  }
+
+  public double getDefaultSpotPrice ()
+  {
+    return defaultSpotPrice;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Spot price/mwh used if unavailable from wholesale market")
+  public void setDefaultSpotPrice (double defaultSpotPrice)
+  {
+    this.defaultSpotPrice = defaultSpotPrice;
+  }
+
+  /**
+   * Data structure for keeping track of brokers and balance
+   */
+  class ChargeInfo
+  {
+    String itsBrokerName = "";
+    double itsNetLoadKWh = 0.0;
+    double itsBalanceCharge = 0.0;
+
+    ChargeInfo (String inBrokerName, double inNetLoadKWh,
+                double inBalanceCharge)
+    {
+      itsBrokerName = inBrokerName;
+      itsNetLoadKWh = inNetLoadKWh;
+      itsBalanceCharge = inBalanceCharge;
+    }
+  }
 }
