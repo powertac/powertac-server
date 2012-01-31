@@ -447,11 +447,11 @@ public class CompetitionSetupService
 //      .withBootstrapDiscardedTimeslots(bootstrapDiscardedTimeslots);
 //    
 //    // bootstrap timeslot timing is a local parameter
-//    int bootstrapTimeslotSeconds =
-//        serverProps.getIntegerProperty("competition.bootstrapTimeslotSeconds",
-//                                       (int)(cc.getBootstrapTimeslotMillis()
-//                                             / TimeService.SECOND));
-//    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
+    int bootstrapTimeslotSeconds =
+        serverProps.getIntegerProperty("server.bootstrapTimeslotSeconds",
+                                       (int)(cc.getBootstrapTimeslotMillis()
+                                             / TimeService.SECOND));
+    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
   }
 
   /**
