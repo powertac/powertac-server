@@ -86,10 +86,13 @@ public class Dryer extends SemiShiftingAppliance
               break;
           }
           for (int k = i + HouseholdConstants.DRYER_SECOND_PHASE; k < i + HouseholdConstants.DRYER_THIRD_PHASE; k++) {
+            if (k >= HouseholdConstants.QUARTERS_OF_DAY) {
+              // System.out.println("K out of bounds " + k);
+              break;
+            }
             loadVector.set(k, loadVector.get(k - 1) - HouseholdConstants.DRYER_THIRD_PHASE_LOAD);
             dailyOperation.set(k, true);
-            if (k == HouseholdConstants.QUARTERS_OF_DAY - 1)
-              break;
+
           }
           i = HouseholdConstants.QUARTERS_OF_DAY;
         }

@@ -113,7 +113,6 @@ public class SpaceHeater extends WeatherSensitiveAppliance
         loadVector.set(i, power);
       weeklyLoadVector.set(day, loadVector);
       weeklyOperation.set(day, dailyOperation);
-      operationVector.set(day, dailyOperation);
       log.debug("Changed");
     }
   }

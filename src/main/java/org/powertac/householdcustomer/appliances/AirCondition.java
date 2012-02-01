@@ -378,7 +378,6 @@ public class AirCondition extends WeatherSensitiveAppliance
 
         weeklyLoadVector.set(day, loadVector);
         weeklyOperation.set(day, dailyOperation);
-        operationVector.set(day, dailyOperation);
         // log.debug("Changed");
 
       } else

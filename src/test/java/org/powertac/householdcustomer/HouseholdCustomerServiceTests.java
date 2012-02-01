@@ -691,7 +691,7 @@ public class HouseholdCustomerServiceTests
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    for (int i = 0; i < 23; i++) {
+    for (int i = 0; i < 1000; i++) {
       timeService.setBase(now.getMillis());
       timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());

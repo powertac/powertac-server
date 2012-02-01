@@ -25,8 +25,10 @@ import org.powertac.common.configurations.HouseholdConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
- * This is the instance of the person type that works in shifts that may vary form week to week or
- * from month to month. The consequence is that he has little time for leisure activities.
+ * This is the instance of the person type that works in shifts that may vary
+ * form week to week or from month to month. The consequence is that he has
+ * little time for leisure activities.
+ * 
  * @author Antonios Chrysopoulos
  * @version 1, 13/02/2011
  **/
@@ -34,8 +36,9 @@ public class RandomlyAbsentPerson extends WorkingPerson
 {
 
   /**
-   * This is the initialization function. It uses the variable values for the configuration file to
-   * create the person as it should for this type.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the person as it should for this type.
+   * 
    * @param AgentName
    * @param conf
    * @param publicVacationVector
@@ -77,8 +80,9 @@ public class RandomlyAbsentPerson extends WorkingPerson
   }
 
   /**
-   * This function selects the shift of the worker. There three different shifts: 00:00 - 08:00
-   * 08:00 - 16:00 and 16:00 - 24:00.
+   * This function selects the shift of the worker. There three different
+   * shifts: 00:00 - 08:00 08:00 - 16:00 and 16:00 - 24:00.
+   * 
    * @param gen
    * @return
    */
@@ -89,7 +93,9 @@ public class RandomlyAbsentPerson extends WorkingPerson
   }
 
   /**
-   * This function fills out the leisure activities in the daily schedule of the person in question.
+   * This function fills out the leisure activities in the daily schedule of the
+   * person in question.
+   * 
    * @param weekday
    * @param gen
    * @return
@@ -102,7 +108,7 @@ public class RandomlyAbsentPerson extends WorkingPerson
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
         int start = workingStartHour + workingDuration;
-        if (workingStartHour == HouseholdConstants.SHIFT_START_1) {
+        if (workingStartHour == HouseholdConstants.SHIFT_START_1 && ((HouseholdConstants.LEISURE_WINDOW + 1) - start > 0)) {
           int startq = gen.nextInt((HouseholdConstants.LEISURE_WINDOW + 1) - start) + (start + HouseholdConstants.SHIFT_START_2);
           for (int i = startq; i < startq + leisureDuration; i++) {
             st = Status.Leisure;

@@ -1443,7 +1443,7 @@ public class Village extends AbstractCustomer
     checkRevokedSubscriptions();
     consumePower();
 
-    if (hour == 23) {
+    if (hour == 23 && (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION)) {
 
       for (String type : subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
@@ -1478,7 +1478,9 @@ public class Village extends AbstractCustomer
 
       for (String type : subscriptionMap.keySet()) {
         updateAggDailyWeatherSensitiveLoad(type, day);
-        updateAggDailyWeatherSensitiveLoad(type, day + 1);
+        if (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION) {
+          updateAggDailyWeatherSensitiveLoad(type, day + 1);
+        }
         // showAggDailyLoad(type, day);
         // showAggDailyLoad(type, day + 1);
       }
