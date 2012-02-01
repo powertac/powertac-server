@@ -250,13 +250,18 @@ public class DefaultBrokerService
     }
     
     // Once we have 24 hours of records, assume we need enough to meet 
-    // what we used 24 hours earlier
+    // the mean of what we have used at this time of day so far
     else if (current.getSerialNumber() <= usageRecordLength) {
-      double neededKWh = 0.0;
       for (Timeslot timeslot : timeslotRepo.enabledTimeslots()) {
+        double neededKWh = 0.0;
         int index = (timeslot.getSerialNumber()) % 24;
-        neededKWh = collectUsage(index);
-        submitOrder(neededKWh, timeslot);
+        int count = 0;
+        while (index <= current.getSerialNumber()) {
+          neededKWh += collectUsage(index);
+          index += 24;
+          count += 1;
+        }
+        submitOrder((neededKWh / count), timeslot);
       }      
     }
     
@@ -281,6 +286,7 @@ public class DefaultBrokerService
         result += record.getUsage(index);
       }
     }
+    log.debug("Usage(" + index + ")=" + result);
     return -result; // convert to needed energy account balance
   }
 
