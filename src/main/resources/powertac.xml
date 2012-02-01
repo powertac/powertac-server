@@ -12,26 +12,46 @@
   <context:component-scan base-package="org.powertac" />
 
 	<!-- Embedded ActiveMQ Broker -->
-  <amq:broker id="broker" useJmx="true" persistent="false">
+<!--   <amq:broker id="broker" useJmx="true" persistent="false">
     <amq:transportConnectors>
   	  <amq:transportConnector uri="tcp://localhost:61616" />
     </amq:transportConnectors>
   </amq:broker>
-
+ -->
+ 
   <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
-  <amq:connectionFactory id="jmsFactory" brokerURL="tcp://localhost:61616" />
-
+<!--   <amq:connectionFactory id="jmsFactory" brokerURL="tcp://localhost:61616" />
+ -->
   <!-- JMS Producer Configuration -->
-  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+<!--   <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
     <property name="connectionFactory">
-      <!-- lets wrap in a pool to avoid creating a connection per send -->
+      lets wrap in a pool to avoid creating a connection per send
       <bean class="org.springframework.jms.connection.SingleConnectionFactory">
         <property name="targetConnectionFactory">
           <ref local="jmsFactory" />
         </property>
       </bean>
     </property>
+  </bean> -->
+  
+  <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" destroy-method="stop">
+    <property name="connectionFactory">
+      <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL">
+          <value>tcp://localhost:61616</value> <!--  placeholder, will get overriden by configuration -->
+        </property>
+      </bean>
+    </property>
   </bean>
+
+  <!-- Spring JMS Template -->
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <property name="connectionFactory">
+      <ref local="jmsFactory"/>
+    </property>
+  </bean>
+  
+  
   
   <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
   

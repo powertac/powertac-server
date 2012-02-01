@@ -105,6 +105,9 @@ public class CompetitionSetupService
 
   @Autowired
   private LogService logService;
+  
+  @Autowired
+  private JmsManagementService jmsManagementService;
 
   private Competition competition;
   
@@ -184,7 +187,7 @@ public class CompetitionSetupService
       // parts of it
       if (serverConfig != null)
         serverProps.setUserConfig(serverConfig);
-      cc.init();
+      cc.init();      
 
       if (options.has(bootOutput)) {
         // bootstrap session
@@ -351,7 +354,8 @@ public class CompetitionSetupService
    */
   @Override
   public void preGame ()
-  {
+  {    
+    
     log.info("preGame() - start");
     // Create default competition
     competition = Competition.newInstance("defaultCompetition");
@@ -377,6 +381,9 @@ public class CompetitionSetupService
     for (InitializationService init : initializers) {
       init.setDefaults();
     }
+    
+    // start JMS here???
+    jmsManagementService.start();
   }
   
   // configures a Competition from server.properties
