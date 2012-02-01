@@ -18,6 +18,10 @@
   <bean id="tariffMarketService" name="mockTariffMarket" class="org.mockito.Mockito" factory-method="mock">
         <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
   </bean>	
+  
+  <bean id="serverPropertiesService" name="mockServerProperties" class="org.mockito.Mockito" factory-method="mock">
+	 <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>
 
   <bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
@@ -46,10 +50,7 @@
         
   <bean id="weatherReportRepo"
         class="org.powertac.common.repo.WeatherReportRepo" />
-  
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo" />
-        
+          
   <bean id="randomSeedRepo"
         class="org.powertac.common.repo.RandomSeedRepo" />
         
@@ -66,8 +67,5 @@
         </property> 
   </bean>
   
-  <bean id="householdCustomerInitializationService"
-        class="org.powertac.householdcustomer.HouseholdCustomerInitializationService" />  
-            
   
 </beans>

@@ -23,13 +23,16 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerMessageListener;
+import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -46,7 +49,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 // allows this service to be autowired into other services
-public class HouseholdCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
+public class HouseholdCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener, InitializationService
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -59,15 +62,16 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private TariffMarket tariffMarketService;
 
   @Autowired
+  private ServerConfiguration serverPropertiesService;
+
+  @Autowired
   private RandomSeedRepo randomSeedRepo;
 
   /** Random Number Generator */
   private RandomSeed rs1;
 
-  /** read this normally from plugin config */
-  // private String configFile =
-  // "../household-customer/src/main/resources/Household.properties";
-  private String configFile = "Household.properties";
+  // read this from configurator
+  private String configFile = null;
 
   /**
    * This is the configuration file that will be utilized to pass the parameters
@@ -97,23 +101,37 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
    * service. Here is where you do per-game setup. This will create a listener
    * for our service, in order to get the new tariff as well as create the
    * generic Consumers that will be running in the game.
-   * 
-   * @throws IOException
    */
-  void init (PluginConfig config) throws IOException
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
   {
+    int index = completedInits.indexOf("DefaultBroker");
+    if (index == -1) {
+      return null;
+    }
+
+    serverPropertiesService.configureMe(this);
+
     villageList.clear();
     tariffMarketService.registerNewTariffListener(this);
     rs1 = randomSeedRepo.getRandomSeed("HouseholdCustomerService", 1, "Household Customer Models");
 
-    configFile = config.getConfigurationValue("configFile");
+    if (configFile == null) {
+      System.out.println("No Config File for Household Customer Taken");
+      configFile = "Household.properties";
+    }
     super.init();
 
     InputStream cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
     cfgFile = ClassLoader.getSystemResourceAsStream(configFile);
-    configuration.load(cfgFile);
-    cfgFile.close();
+    try {
+      configuration.load(cfgFile);
+      cfgFile.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
 
     int numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
 
@@ -132,6 +150,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
       village.subscribeDefault();
     }
 
+    return "HouseholdCustomer";
   }
 
   @Override
@@ -172,17 +191,16 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
   // ----------------- Data access -------------------------
 
+  /** Getter method for the configuration file */
   public String getConfigFile ()
   {
     return configFile;
   }
 
-  /**
-   * Allows Spring to set the configuration file for the household models length
-   */
-  public void setConfigFile (String file)
+  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  public void setConfigFile (String config)
   {
-    configFile = file;
+    configFile = config;
   }
 
   public List<Village> getVillageList ()
@@ -225,6 +243,11 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     // If you need to handle a number of different message types, it may make
     // make sense to use a reflection-based dispatcher. Both
     // TariffMarketService and AccountingService work this way.
+  }
+
+  @Override
+  public void setDefaults ()
+  {
   }
 
 }

@@ -18,9 +18,11 @@ package org.powertac.householdcustomer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
@@ -28,7 +30,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -41,7 +46,6 @@ import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
@@ -50,14 +54,15 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
@@ -68,6 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Antonios Chrysopoulos
@@ -88,10 +94,10 @@ public class HouseholdCustomerServiceTests
   private TariffMarket mockTariffMarket;
 
   @Autowired
-  private HouseholdCustomerService householdCustomerService;
+  private ServerConfiguration mockServerProperties;
 
   @Autowired
-  private HouseholdCustomerInitializationService householdCustomerInitializationService;
+  private HouseholdCustomerService householdCustomerService;
 
   @Autowired
   private TariffRepo tariffRepo;
@@ -114,12 +120,9 @@ public class HouseholdCustomerServiceTests
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
-
+  private Configurator config;
   private Instant exp;
   private Broker broker1;
-  private Broker broker2;
   private Instant now;
   private TariffSpecification defaultTariffSpec;
   private Tariff defaultTariff;
@@ -133,18 +136,17 @@ public class HouseholdCustomerServiceTests
     brokerRepo.recycle();
     tariffRepo.recycle();
     tariffSubscriptionRepo.recycle();
-    pluginConfigRepo.recycle();
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
     weatherReportRepo.recycle();
     reset(mockTariffMarket);
     reset(mockAccounting);
+    reset(mockServerProperties);
 
     // create a Competition, needed for initialization
     comp = Competition.newInstance("household-customer-test");
 
     broker1 = new Broker("Joe");
-    broker2 = new Broker("Anna");
 
     now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(now);
@@ -171,16 +173,72 @@ public class HouseholdCustomerServiceTests
       }
     }).when(mockAccounting).addTariffTransaction(isA(TariffTransaction.Type.class), isA(Tariff.class), isA(CustomerInfo.class), anyInt(), anyDouble(), anyDouble());
 
+    // Set up serverProperties mock
+
+    ReflectionTestUtils.setField(householdCustomerService, "serverPropertiesService", mockServerProperties);
+    config = new Configurator();
+
+    doAnswer(new Answer()
+    {
+      @Override
+      public Object answer (InvocationOnMock invocation)
+      {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(mockServerProperties).configureMe(anyObject());
+
   }
 
   public void initializeService ()
   {
-    householdCustomerInitializationService.setDefaults();
-    PluginConfig config = pluginConfigRepo.findByRoleName("HouseholdCustomer");
-    config.getConfiguration().put("configFile", "Household.properties");
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("householdcustomer.householdCustomerService.configFile", "Household.properties");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
-    householdCustomerInitializationService.initialize(comp, inits);
+    householdCustomerService.initialize(comp, inits);
+    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
+
+  }
+
+  @Test
+  public void testNormalInitialization ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("householdcustomer.householdCustomerService.configFile", "Household.properties");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    List<String> inits = new ArrayList<String>();
+    inits.add("DefaultBroker");
+    String result = householdCustomerService.initialize(comp, inits);
+    assertEquals("correct return value", "HouseholdCustomer", result);
+    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
+  }
+
+  @Test
+  public void testNormalInitializationWithoutConfig ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("householdcustomer.householdCustomerService.configFile", null);
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    List<String> inits = new ArrayList<String>();
+    inits.add("DefaultBroker");
+    String result = householdCustomerService.initialize(comp, inits);
+    assertEquals("correct return value", "HouseholdCustomer", result);
+    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
+  }
+
+  @Test
+  public void testBogusInitialization ()
+  {
+    List<String> inits = new ArrayList<String>();
+    String result = householdCustomerService.initialize(comp, inits);
+    assertNull("return null value", result);
+    inits.add("DefaultBroker");
   }
 
   @Test
