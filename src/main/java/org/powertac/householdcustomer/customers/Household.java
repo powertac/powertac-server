@@ -784,7 +784,7 @@ public class Household
 
     for (Appliance appliance : appliances) {
 
-      if (appliance instanceof SpaceHeater && hour == 23) {
+      if (appliance instanceof SpaceHeater && hour == 23 && (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION)) {
 
         appliance.weatherDailyFunction(day + 1, 0, temperature);
 
