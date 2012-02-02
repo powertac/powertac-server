@@ -43,7 +43,7 @@ import org.springframework.stereotype.Service;
 public class ServerPropertiesService
 implements ServerProperties, ServerConfiguration, ApplicationContextAware
 {
-  static private Logger log = Logger.getLogger(ServerProperties.class);
+  static private Logger log = Logger.getLogger(ServerPropertiesService.class);
 
   private ApplicationContext context;
   private CompositeConfiguration config;
@@ -98,19 +98,23 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     
     // set up the classpath props
     try {
-      Resource[] xmlResources = context.getResources("classpath:/**/properties.xml");
+      Resource[] xmlResources = context.getResources("classpath*:/**/properties.xml");
       for (Resource xml : xmlResources) {
-        log.info("loading config from " + xml.getURI());
-        XMLConfiguration xconfig = new XMLConfiguration();
-        xconfig.load(xml.getInputStream());
-        config.addConfiguration(xconfig);
+        if (validXmlResource(xml)) {
+          log.info("loading config from " + xml.getURI());
+          XMLConfiguration xconfig = new XMLConfiguration();
+          xconfig.load(xml.getInputStream());
+          config.addConfiguration(xconfig);
+        }
       }
-      Resource[] propResources = context.getResources("classpath:/**/*.properties");
+      Resource[] propResources = context.getResources("classpath*:*.properties");
       for (Resource prop : propResources) {
-        log.info("loading config from " + prop.getURI());
-        PropertiesConfiguration pconfig = new PropertiesConfiguration();
-        pconfig.load(prop.getInputStream());
-        config.addConfiguration(pconfig);
+        if (validPropResource(prop)) {
+          log.info("loading config from " + prop.getURI());
+          PropertiesConfiguration pconfig = new PropertiesConfiguration();
+          pconfig.load(prop.getInputStream());
+          config.addConfiguration(pconfig);
+        }
       }
     }
     catch (ConfigurationException e) {
@@ -204,6 +208,32 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
     lazyInit();
     config.setProperty(key, value);
+  }
+  
+  // -- valid configuration resources --
+  private String[] excludedPaths =
+    {".*/test-classes/.*", ".*/log4j.properties"};
+  
+  private boolean validXmlResource (Resource xml)
+  {
+    try {
+      String path = xml.getFile().getPath();
+      for (String regex : excludedPaths) {
+        if (path.matches(regex)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    catch (IOException e) {
+      log.error("Should not happen: " + e.toString());
+      return false;
+    }
+  }
+  
+  private boolean validPropResource (Resource prop)
+  {
+    return validXmlResource(prop);
   }
   
   // test support
