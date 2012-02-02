@@ -16,11 +16,15 @@
 package org.powertac.genco;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.TreeMap;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -35,7 +39,9 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 
@@ -57,6 +63,8 @@ public class GencoTests
   private Instant start;
   private RandomSeedRepo mockSeedRepo;
   private RandomSeed seed;
+  private ServerConfiguration serverConfig;
+  private Configurator config;
   
   @Before
   public void setUp () throws Exception
@@ -72,6 +80,18 @@ public class GencoTests
     genco = new Genco("Test");
     genco.init(mockProxy, mockSeedRepo);
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+
+    // Set up serverProperties mock
+    serverConfig = mock(ServerConfiguration.class);
+    config = new Configurator();
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        config.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(serverConfig).configureMe(anyObject());
   }
 
   @Test
@@ -93,8 +113,6 @@ public class GencoTests
   public void testUpdateModel ()
   {
     when(seed.nextDouble()).thenReturn(0.5);
-    PluginConfig config = new PluginConfig("Genco", "");
-    genco.configure(config); // all defaults
     assertEquals("correct initial capacity",
                  100.0, genco.getCurrentCapacity(), 1e-6);
     assertTrue("initially in operation", genco.isInOperation());
@@ -108,8 +126,6 @@ public class GencoTests
   public void testGenerateOrders ()
   {
     // set up the genco
-    PluginConfig config = new PluginConfig("Genco", "");
-    genco.configure(config); // all defaults
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
@@ -147,9 +163,11 @@ public class GencoTests
   public void testGenerateOrders2 ()
   {
     // set up the genco with commitment leadtime=3
-    PluginConfig config = new PluginConfig("Genco", "")
-      .addConfiguration("commitmentLeadtime", "3");
-    genco.configure(config); // all defaults
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("genco.genco.commitmentLeadtime", "3");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(genco);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
@@ -188,9 +206,11 @@ public class GencoTests
   public void testGenerateOrders3 ()
   {
     // set up the genco with commitment leadtime=3
-    PluginConfig config = new PluginConfig("Genco", "")
-      .addConfiguration("commitmentLeadtime", "3");
-    genco.configure(config); // all defaults
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("genco.genco.commitmentLeadtime", "3");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(genco);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {

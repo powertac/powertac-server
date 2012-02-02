@@ -22,6 +22,8 @@ import org.joda.time.Instant;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.state.StateChange;
 
 /**
  * This is a simple buyer that provides some amount of market liquidity, as
@@ -61,11 +63,31 @@ public class Buyer extends Genco
       brokerProxyService.routeMessage(offer);
     }
   }
-  
-  @Override
-  void configure (PluginConfig config)
+
+  // ---- getters and setters for configuration access -----
+  public double getPriceBeta ()
   {
-    priceBeta = config.getDoubleValue("priceBeta", priceBeta);
-    mwh = config.getDoubleValue("mwh", mwh);
+    return priceBeta;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Mean offer price for exponential distribution")
+  @StateChange
+  public void setPriceBeta (double priceBeta)
+  {
+    this.priceBeta = priceBeta;
+  }
+
+  public double getMwh ()
+  {
+    return mwh;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Offer quantity for price = 1.0")
+  @StateChange
+  public void setMwh (double mwh)
+  {
+    this.mwh = mwh;
   }
 }

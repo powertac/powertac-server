@@ -89,6 +89,7 @@ public class Genco
     log.info("init " + getUsername());
     this.brokerProxyService = proxy;
     this.seed = randomSeedRepo.getRandomSeed(Genco.class.getName(), id, "update");
+    currentCapacity = nominalCapacity;
   }
 
   /** True if plant is currently operating */
@@ -115,6 +116,7 @@ public class Genco
   public Genco withNominalCapacity (double capacity)
   {
     this.nominalCapacity = capacity;
+    this.currentCapacity = capacity;
     return this;
   }
 
@@ -305,22 +307,5 @@ public class Genco
   private void setInOperation (boolean op)
   {
     inOperation = op;
-  }
-
-  /**
-   * Configures a Genco from a PluginConfig, presumably one that was
-   * created by GencoInitializationService.
-   */
-  void configure (PluginConfig config)
-  {
-    //this.config = config
-    nominalCapacity = config.getDoubleValue("nominalCapacity", nominalCapacity);
-    currentCapacity = nominalCapacity;
-    variability = config.getDoubleValue("variability", variability);
-    reliability = config.getDoubleValue("reliability", reliability);
-    cost = config.getDoubleValue("cost", cost);
-    commitmentLeadtime = config.getIntegerValue("commitmentLeadtime",
-                                                commitmentLeadtime);
-    carbonEmissionRate = config.getDoubleValue("carbonEmissionRate", carbonEmissionRate);
   }
 }

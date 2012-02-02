@@ -26,6 +26,12 @@
         factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
   </bean>
+  
+  <bean id="serverConfigurationService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>
 
   <context:annotation-config />
 
@@ -39,10 +45,6 @@
 
   <bean id="brokerRepo"
         class="org.powertac.common.repo.BrokerRepo">
-  </bean>
-  
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo">
   </bean>
 
   <bean id="springApplicationContext"

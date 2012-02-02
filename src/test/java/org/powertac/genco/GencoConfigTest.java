@@ -49,7 +49,7 @@ public class GencoConfigTest
   public void setUp () throws Exception
   {
     ApplicationContext context = SpringApplicationContext.getContext();
-    Resource props = context.getResource("genco.properties");
+    Resource props = context.getResource("genco-test.properties");
     // this probably won't work if tests are packaged in a jarfile
     config = new PropertiesConfiguration(props.getFile());
   }
