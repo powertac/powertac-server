@@ -49,10 +49,6 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import org.apache.log4j.Logger;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.TimeService;
@@ -105,9 +101,6 @@ public class CompetitionSetupService
 
   @Autowired
   private LogService logService;
-  
-  @Autowired
-  private JmsManagementService jmsManagementService;
 
   private Competition competition;
   
@@ -187,8 +180,7 @@ public class CompetitionSetupService
       // parts of it
       if (serverConfig != null)
         serverProps.setUserConfig(serverConfig);
-      cc.init();      
-
+            
       if (options.has(bootOutput)) {
         // bootstrap session
         setLogSuffix(logSuffix, controller, "boot");
@@ -273,7 +265,6 @@ public class CompetitionSetupService
             String bootstrapFilename =
                 serverProps.getProperty("server.bootstrapDataFile",
                                         "/bd-noname.xml");
-            cc.init();
             bootSession(new File(bootstrapFilename));
           }
         }
@@ -286,7 +277,6 @@ public class CompetitionSetupService
             brokerIndex = 3;
           }
           log.info("In Simulation mode!!!");
-          cc.init();
           String bootstrapFilename =
               serverProps.getProperty("server.bootstrapDataFile",
                                       "bd-noname.xml");
@@ -362,11 +352,11 @@ public class CompetitionSetupService
     //competitionId = competition.getId();
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
     logService.startLog(suffix);
-
+    
     // Set up all the plugin configurations
     log.info("pre-game initialization");
-    configureCompetition(competition);
-
+    configureCompetition(competition);  
+        
     // Handle pre-game initializations by clearing out the repos,
     // then creating the PluginConfig instances
     List<DomainRepo> repos =
@@ -381,9 +371,6 @@ public class CompetitionSetupService
     for (InitializationService init : initializers) {
       init.setDefaults();
     }
-    
-    // start JMS here???
-    jmsManagementService.start();
   }
   
   // configures a Competition from server.properties
