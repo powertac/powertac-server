@@ -152,6 +152,10 @@ public class CompetitionControlService
     jmsManagementService.initializeServerQueue(serverQueueName);
     jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
     
+    // create broker queues
+    String[] brokerArray = new String[authorizedBrokerList.size()];
+    jmsManagementService.initializeBrokersQueues(authorizedBrokerList.toArray(brokerArray));
+    
     // broker message registration for clock-control messages
     brokerProxyService.registerSimListener(this);
   }
@@ -179,8 +183,6 @@ public class CompetitionControlService
     for (String broker : list) {
       authorizedBrokerList.add(broker);
     }
-    String[] brokerArray = new String[authorizedBrokerList.size()];
-    jmsManagementService.initializeBrokersQueues(authorizedBrokerList.toArray(brokerArray));
   }
   
   /**
