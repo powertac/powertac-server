@@ -15,12 +15,17 @@
  */
 package org.powertac.server;
 
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.Date;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.concurrent.Semaphore;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.TimeService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Timer-based clock management for the Power TAC simulator. This is a
@@ -53,6 +58,8 @@ import org.powertac.common.TimeService;
  */
 public class SimulationClockControl
 {
+  static private Logger log = Logger.getLogger(SimulationClockControl.class);
+
   public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
   
   private static final long postPauseDelay = 500l; // 500 msec
@@ -75,6 +82,8 @@ public class SimulationClockControl
   
   private Timer theTimer;
   private WatchdogAction currentWatchdog;
+  
+  private Set<Semaphore> waitUntilStopSemaphores;
   
   // ------------- Singleton methods -------------
   private static SimulationClockControl instance;
@@ -108,6 +117,8 @@ public class SimulationClockControl
     this.rate = timeService.getRate();
     this.modulo = timeService.getModulo();
     theTimer = new Timer();
+    this.waitUntilStopSemaphores = Collections.synchronizedSet(new HashSet<Semaphore>());
+
   }
   
   // --------------- external api ----------------
@@ -177,6 +188,24 @@ public class SimulationClockControl
     if (currentWatchdog != null) {
       currentWatchdog.cancel();
       currentWatchdog = null;
+    }
+    for (Semaphore sem : waitUntilStopSemaphores) {
+      sem.release();
+    }
+    waitUntilStopSemaphores.clear();
+  }
+  
+  public void waitUntilStop() {
+    Status state = getState();
+    if (state != Status.STOPPED) {
+      Semaphore sem = new Semaphore(0);
+      waitUntilStopSemaphores.add(sem);
+      try {
+        sem.acquire();
+      }
+      catch (InterruptedException e) {
+        log.info("Who dares wake me up??", e);
+      }
     }
   }
   
