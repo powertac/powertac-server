@@ -248,10 +248,12 @@ public class CompetitionControlService
     // wrap up
     shutDown();
     simRunning = false;
-
-    jmsManagementService.stop();    
     
     logService.stopLog();
+    
+    // need to wait for wait for clock control stop before shutting down JMS provider
+    clock.waitUntilStop();
+    jmsManagementService.stop();
   }
 
   // ------------------ simulation setup -------------------
