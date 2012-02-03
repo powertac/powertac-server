@@ -33,12 +33,12 @@ public class JmsManagementService
 
   @Autowired
   private Executor taskExecutor;
-  
+
   @Autowired
   private ServerPropertiesService serverPropertiesService;
 
   private Map<MessageListener, AbstractMessageListenerContainer> listenerContainerMap = new HashMap<MessageListener, AbstractMessageListenerContainer>();
-  
+
   // configurable parameters
   private boolean servingJms = true;
   private String jmsBrokerUrl = "tcp://localhost:61616";
@@ -49,19 +49,21 @@ public class JmsManagementService
     // create server queue
     createQueue(serverQueueName);
   }
-  
-  public void start() {
-    // pull down configuration - this will later change when configuration available from web-app
-    serverPropertiesService.configureMe(this); 
+
+  public void start ()
+  {
+    // pull down configuration - this will later change when configuration
+    // available from web-app
+    serverPropertiesService.configureMe(this);
 
     if (isServingJms()) {
       startProvider();
     }
-    
+
     initializeClientInterface();
   }
 
-  public void startProvider()
+  public void startProvider ()
   {
     BrokerService brokerService = BrokerRegistry.getInstance()
             .lookup(getJmsBrokerName());
@@ -75,9 +77,25 @@ public class JmsManagementService
       brokerService.setBrokerName(getJmsBrokerName());
       brokerService.addConnector(getJmsBrokerUrl());
       brokerService.start();
+      brokerService.waitUntilStarted();
     }
     catch (Exception e) {
       log.error("Failed to start JMS Server", e);
+    }
+  }
+
+  public void stop ()
+  {
+    unregisterAllMessageListeners();
+    if (isServingJms()) {
+      try {
+        // let's wait a few seconds before shutting down
+        Thread.sleep(3000);
+      }
+      catch (InterruptedException e) {
+        log.info("Hey, why did you bother me??", e);
+      }
+      stopProvider();
     }
   }
 
@@ -93,13 +111,14 @@ public class JmsManagementService
     }
   }
 
-  public void stopProvider()
+  public void stopProvider ()
   {
     BrokerService brokerService = BrokerRegistry.getInstance()
             .lookup(getJmsBrokerName());
     try {
       if (brokerService != null) {
         brokerService.stop();
+        brokerService.waitUntilStopped();
       }
       else {
         log.info("Could not stop ActiveMQ broker.  It was never started");
@@ -150,27 +169,45 @@ public class JmsManagementService
     listenerContainerMap.put(listener, container);
   }
 
+  public void unregisterMessageListener (MessageListener listener)
+  {
+    DefaultMessageListenerContainer container = (DefaultMessageListenerContainer) listenerContainerMap
+            .get(listener);
+    if (container != null) {
+      container.shutdown();
+    }
+    listenerContainerMap.remove(listener);
+  }
+
+  public void unregisterAllMessageListeners ()
+  {
+    for (Map.Entry<MessageListener, AbstractMessageListenerContainer> entry: listenerContainerMap
+            .entrySet()) {
+      unregisterMessageListener(entry.getKey());
+    }
+  }
+
   /**
    * @return the servingJms
-   */ 
+   */
   public boolean isServingJms ()
   {
     return servingJms;
   }
-  
+
   /**
    * @return the servingJms
-   */ 
+   */
   public boolean getServingJms ()
   {
     return servingJms;
-  }  
+  }
 
   /**
-   * @param servingJms the servingJms to set
+   * @param servingJms
+   *          the servingJms to set
    */
-  @ConfigurableValue(valueType = "Boolean",
-          description = "Flag to indicate if this sim server is also the JMS provider")  
+  @ConfigurableValue(valueType = "Boolean", description = "Flag to indicate if this sim server is also the JMS provider")
   public void setServingJms (boolean servingJms)
   {
     this.servingJms = servingJms;
@@ -185,10 +222,10 @@ public class JmsManagementService
   }
 
   /**
-   * @param jmsBrokerUrl the jmsBrokerUrl to set
+   * @param jmsBrokerUrl
+   *          the jmsBrokerUrl to set
    */
-  @ConfigurableValue(valueType = "String",
-          description = "JMS broker URL to serve and/or use by sim server")  
+  @ConfigurableValue(valueType = "String", description = "JMS broker URL to serve and/or use by sim server")
   public void setJmsBrokerUrl (String jmsBrokerUrl)
   {
     this.jmsBrokerUrl = jmsBrokerUrl;
@@ -203,10 +240,10 @@ public class JmsManagementService
   }
 
   /**
-   * @param jmsBrokerName the jmsBrokerName to set
+   * @param jmsBrokerName
+   *          the jmsBrokerName to set
    */
-  @ConfigurableValue(valueType = "String",
-          description = "JMS broker name for looking up JMS provider")
+  @ConfigurableValue(valueType = "String", description = "JMS broker name for looking up JMS provider")
   public void setJmsBrokerName (String jmsBrokerName)
   {
     this.jmsBrokerName = jmsBrokerName;

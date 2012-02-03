@@ -217,6 +217,12 @@ public class CompetitionControlService
     this.bootstrapMode = bootstrapMode;
     competition = Competition.currentCompetition();
     
+
+    // start JMS provider
+    jmsManagementService.start();    
+   
+    init();    
+    
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
     if (simRunning) {
@@ -240,6 +246,9 @@ public class CompetitionControlService
     // wrap up
     shutDown();
     simRunning = false;
+
+    jmsManagementService.stop();    
+    
     logService.stopLog();
   }
 
