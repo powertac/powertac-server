@@ -161,6 +161,8 @@ public class CompetitionSetupService
     parser.accepts("sim");
     OptionSpec<URL> bootData =
         parser.accepts("boot-data").withRequiredArg().ofType(URL.class);
+    OptionSpec<String> jmsUrl =
+        parser.accepts("jms-url").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
     
@@ -180,6 +182,12 @@ public class CompetitionSetupService
       // parts of it
       if (serverConfig != null)
         serverProps.setUserConfig(serverConfig);
+      // override jms url if provided in command line
+      String jmsBrokerUrl = options.valueOf(jmsUrl);
+      if (jmsBrokerUrl != null) {
+        serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
+                                jmsBrokerUrl);
+      }
             
       if (options.has(bootOutput)) {
         // bootstrap session
