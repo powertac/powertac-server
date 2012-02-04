@@ -86,11 +86,13 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     initialized = true;
 
     // find and load the default properties file
-    log.debug("lazyInit");
+    log.info("lazyInit");
     try {
       File defaultProps = new File("config/server.properties");
-      log.debug("adding " + defaultProps.getName());
-      config.addConfiguration(new PropertiesConfiguration(defaultProps));
+      if (defaultProps.canRead()) {
+        log.debug("adding " + defaultProps.getName());
+        config.addConfiguration(new PropertiesConfiguration(defaultProps));
+      }
     }
     catch (Exception e1) {
       log.warn("config/server.properties not found: " + e1.toString());

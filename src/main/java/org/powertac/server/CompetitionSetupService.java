@@ -354,12 +354,12 @@ public class CompetitionSetupService
   public void preGame ()
   {    
     
-    log.info("preGame() - start");
-    // Create default competition
-    competition = Competition.newInstance("defaultCompetition");
     //competitionId = competition.getId();
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
     logService.startLog(suffix);
+    log.info("preGame() - start");
+    // Create default competition
+    competition = Competition.newInstance("defaultCompetition");
     
     // Set up all the plugin configurations
     log.info("pre-game initialization");
