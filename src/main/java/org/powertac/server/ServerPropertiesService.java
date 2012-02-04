@@ -220,6 +220,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       String path = xml.getFile().getPath();
       for (String regex : excludedPaths) {
         if (path.matches(regex)) {
+          log.debug("invalid path " + path);
           return false;
         }
       }
@@ -234,6 +235,12 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private boolean validPropResource (Resource prop)
   {
     return validXmlResource(prop);
+  }
+  
+  // call this to allow test-classes to be included in valid paths
+  void allowTestPaths ()
+  {
+    excludedPaths = new String[] { ".*/log4j.properties" };
   }
   
   // test support

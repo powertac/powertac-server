@@ -249,11 +249,11 @@ public class CompetitionControlService
     shutDown();
     simRunning = false;
     
-    logService.stopLog();
-    
-    // need to wait for wait for clock control stop before shutting down JMS provider
+    // need to wait for clock control stop before shutting down JMS provider
     clock.waitUntilStop();
     jmsManagementService.stop();
+    
+    logService.stopLog();
   }
 
   // ------------------ simulation setup -------------------

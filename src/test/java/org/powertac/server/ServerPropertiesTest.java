@@ -48,6 +48,7 @@ public class ServerPropertiesTest
   public void setUp () throws Exception
   {
     serverPropertiesService.recycle();
+    serverPropertiesService.allowTestPaths();
   }
 
   /**
