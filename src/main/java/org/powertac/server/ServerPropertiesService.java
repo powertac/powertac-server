@@ -32,6 +32,7 @@ import org.powertac.common.interfaces.ServerProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -98,7 +99,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     
     // set up the classpath props
     try {
-      Resource[] xmlResources = context.getResources("classpath*:/**/properties.xml");
+      Resource[] xmlResources = context.getResources("classpath*:config/properties.xml");
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
@@ -107,7 +108,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
           config.addConfiguration(xconfig);
         }
       }
-      Resource[] propResources = context.getResources("classpath*:*.properties");
+      Resource[] propResources = context.getResources("classpath*:config/*.properties");
       for (Resource prop : propResources) {
         if (validPropResource(prop)) {
           log.info("loading config from " + prop.getURI());
@@ -216,8 +217,9 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   
   private boolean validXmlResource (Resource xml)
   {
+    log.debug("resource class: " + xml.getClass().getName());
     try {
-      String path = xml.getFile().getPath();
+      String path = xml.getURI().toString();
       for (String regex : excludedPaths) {
         if (path.matches(regex)) {
           log.debug("invalid path " + path);
