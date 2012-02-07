@@ -33,30 +33,58 @@ Before you run the server, note that it runs in two different modes:
   in simulated time immediately following the end of the bootstrap
   period. Many sims can be run with the same bootstrap dataset.
 
-The server is configured by a simple script file; each line specifies
-either a bootstrap run or a sim run, along with an optional
-configuration file and (for sim runs) a list of authorized brokers.
-Each line of the script is in one of two forms:
-  bootstrap [--config boot-config.properties]
-  sim [--config sim-config.properties] broker ...
+To run the server in bootstrap mode, the command is of the form
+
+  mvn exec:exec -Dexec.args="--boot bootstrap-data [options]"
+
 where
 
-- boot-config.properties and sim-config.properties are the names of
-  properties files that specify the server setup. A sample properties
-  file is provided in config/test.properties. The commented-out
-  properties show the default values. Note that some properties, such
-  as the length of the bootstrap session, are set in a bootstrap
-  session and cannot be overridded in a sim session.
+bootstrap-data
+  is the name (not a URL) of the xml file that will be written with
+  the results of the bootstrap run.
 
-- broker ... is a space-separated list of broker usernames. Once the
-  sim starts up and initializes itself, it will stall until exactly
-  those brokers have logged in. Logins from other brokers will be
-  rejected; logins prior to the start of the initialization process
-  will be ignored.
+Options include:
+--control controller-url
+  gives the url of the Tournament Scheduler api, from which the server
+  can request a configuration and a log-prefix string.
+--config server-config
+  gives the URL of a properties file that overrides the standard
+  server configuration. If this option is missing and the --control
+  option is given, the server configuration is retrieved from
+  controller-url/server-config.
+--log-suffix suffix
+  gives the root name for the log files, and defaults to "boot"; two
+  log files are produced: powertac-suffix.trace and
+  powertac-suffix.state. If this option is missing and --control is
+  given, the logfile prefix will be retrieved from
+  controller-url/log-suffix.
 
-To run the server with the script file config/bootstrap.txt, the command is
+To run the server in sim mode, the command is of the form
 
-  mvn exec:exec -Dexec.args="config/bootstrap.txt"
+    mvn exec:exec -Dexec.args="--sim [options]"
+
+where options include the --config, --log-suffix, and --control
+options as in bootstrap mode, as well as
+--boot-data bootstrap-data
+  gives the URL of the xml file from which a bootstrap record can be
+  read. If this option is missing and the --control option is given,
+  then the URL for the bootstrap record will be
+  controller-url/bootstrap-data. Note: the server will not start if
+  one of these two sources does not produce a valid bootstrap
+  dataset.
+--jms-url url
+  gives the URL of the jms message broker, which is typically, but not
+  necessarily, instantiated inside the server. The default value is
+  tcp://localhost:61616.
+--brokers broker,...
+  is a comma-separated list of broker usernames that are expected to
+  log in to the simulation before it starts. If this option is missing
+  and --control is provided, then the broker list will be retrieved
+  from controller-url/broker-list.
+--log-suffix defaults to "sim" rather than "boot".
+
+The server can also still be configured by a simple script file, as in
+the previous version.
 
 Access to code resources
 ------------------------
@@ -83,7 +111,7 @@ Please let us know what you think of the Power TAC system, and how we
 can improve our software and processes.
 
 John Collins, Wolf Ketter, and the Power TAC development team:
-Jurica Babic, Antonios Chrysopoulos, Travis Daudelin, David Dauer,
-Josh Edeen, Ryan Finneman, Chris Flath, Adis Mustedanagic, Nguyen
-Nguyen, Erik Onarheim, Markus Peters, Prashant Reddy, Philippe Souza
-Moraes Ribeiro, Daniel Schnurr, and Konstantina Valogianni
+Jurica Babic, Antonios Chrysopoulos, Travis Daudelin,
+Josh Edeen, Ryan Finneman, Nguyen Nguyen, Erik Onarheim, Markus
+Peters, Vedran Podobnik, Prashant Reddy, Philippe Souza
+Moraes Ribeiro, Andreas Symeonidis, and Konstantina Valogianni
