@@ -172,12 +172,12 @@ public class TariffSubscription
       }
     }
     customersCommitted -= customerCount;
-    // Post early-withdrawal penalties
-    if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
+    // Post withdrawal and possible penalties
+    //if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
       accountingService.addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer, customerCount, 0.0,
           penaltyCount * -tariff.getEarlyWithdrawPayment());
-    }
+    //}
   }
   
   /**

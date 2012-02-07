@@ -171,7 +171,7 @@ public class AbstractCustomer
                          int customerCount)
   {
     tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
-    log.info(this.toString() + " was subscribed to tariff " + tariff.getId() + " successfully.");
+    log.info(this.toString() + ": " + customerCount + " were subscribed to tariff " + tariff.getId());
   }
 
   /** Unsubscribing a certain population amount from a certain subscription */
@@ -179,7 +179,8 @@ public class AbstractCustomer
                            int customerCount)
   {
     subscription.unsubscribe(customerCount);
-    log.info(this.toString() + " was unsubscribed from tariff " + subscription.getTariff().getId() + " successfully.");
+    log.info(this.toString() + ": " + customerCount + " were unsubscribed from tariff " + 
+             subscription.getTariff().getId());
   }
 
   // =============================CONSUMPTION-PRODUCTION=================================================
