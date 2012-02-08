@@ -323,13 +323,12 @@ public class CompetitionControlService
 
     // sim length for bootstrap mode comes from the competition instance;
     // for non-bootstrap mode, it is computed from competition parameters.
+    timeslotCount = competition.getBootstrapTimeslotCount()
+                    + competition.getBootstrapDiscardedTimeslots();
     if (!bootstrapMode) {
-      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
-                                        competition.getExpectedTimeslotCount());
-    }
-    else {
-      timeslotCount = competition.getBootstrapTimeslotCount()
-                      + competition.getBootstrapDiscardedTimeslots();
+      // #486 - add bootstrap count to computed game length
+      timeslotCount += computeGameLength(competition.getMinimumTimeslotCount(),
+                                         competition.getExpectedTimeslotCount());
     }
 
     // Send out the first timeslot update
