@@ -40,4 +40,12 @@ public interface ServerConfiguration
    * a list in no particular order.
    */
   public Collection<?> configureInstances (Class<?> target);
+  
+  /**
+   * Gathers public configuration data for publication to brokers. Data is gathered
+   * from @ConfigurableValue properties with publish=true. Note that such properties
+   * must either have a "standard" getter, or must specify a getter that produces
+   * the value as a String.
+   */
+  public void publishConfiguration (Object target);
 }
