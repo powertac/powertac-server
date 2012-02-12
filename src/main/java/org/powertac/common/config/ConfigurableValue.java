@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.FIELD})
 public @interface ConfigurableValue
 {
   /** Name for this property. If not given, it's extracted from the method
@@ -48,4 +48,7 @@ public @interface ConfigurableValue
   
   /** Constraint expression */
   String constraintExpression() default "";
+  
+  /** True if value must be published to brokers */
+  boolean publish() default false;
 }

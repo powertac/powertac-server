@@ -16,6 +16,7 @@
 package org.powertac.common.config;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
 
 /**
@@ -77,18 +79,15 @@ public class Configurator
   {
     // If we don't have a configuration, we cannot do much.
     if (config == null) {
-      log.error("Cannot configure - not Configuration set");
+      log.error("Cannot configure - no Configuration set");
       return;
     }
     
     // first, compute the property prefix for things of this type
-    String classname = thing.getClass().getName();
-    log.debug("configuring object of type " + classname);
-    String[] classnamePath = classname.split("\\.");
-    if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
-      log.error("Cannot set properties for instance of type " + classname);
+    String[] classnamePath = extractClassnamePath(thing);
+    if (classnamePath == null)
       return;
-    }
+
     // Next, turn the remainder of the classname into a properties prefix.
     Configuration subset = extractConfigForClass(classnamePath);
     // At this point, each key is either a property name, or an
@@ -99,7 +98,20 @@ public class Configurator
     }
     else {
       // multi-instance config - should not get here
+      log.error("Attempt to configure Singleton with multi-instance config data");
     }
+  }
+
+  private String[] extractClassnamePath (Object thing)
+  {
+    String classname = thing.getClass().getName();
+    log.debug("configuring object of type " + classname);
+    String[] classnamePath = classname.split("\\.");
+    if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
+      log.error("Cannot set properties for instance of type " + classname);
+      return null;
+    }
+    return classnamePath;
   }
   
   /**
@@ -159,10 +171,24 @@ public class Configurator
     return itemMap.values();
   }
 
+  /**
+   * Pulls the "published" ConfigurableValues out of object thing, adds them to
+   * config.
+   */
+  public void gatherPublishedConfiguration (Object thing, XMLConfiguration config)
+  {
+    // first, compute the property prefix for things of this type
+    String[] classnamePath = extractClassnamePath(thing);
+    if (classnamePath == null)
+      return;
+    
+  }
+
   private Configuration extractConfigForClass (String[] classnamePath)
   {
     // Note that the classname must be lower-cased.
     StringBuilder sb = new StringBuilder();
+    // discard the "org" and "powertac" elements
     for (int i = 2; i < (classnamePath.length - 1); i++) {
       sb.append(classnamePath[i]).append(".");
     }
@@ -207,14 +233,24 @@ public class Configurator
         ConfigurableValue cv = cp.cv;
         String type = cv.valueType();
         try { // lots of exceptions possible here
-          Class<?> clazz = Class.forName("java.lang." + type);
           Object defaultValue = null;
-          if (cp.getter != null)
-            defaultValue = cp.getter.invoke(thing);
-          String extractorName = "get" + type;
-          Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
-          Object configValue = extractor.invoke(conf, key, defaultValue);
-          cp.setter.invoke(thing, configValue);
+          if (cp.field != null) {
+            // handle configurable field
+            cp.field.setAccessible(true);
+            defaultValue = cp.field.get(thing);
+            Object configValue = extractConfigValue(conf, key, type, defaultValue);
+            cp.field.set(thing, configValue);
+          }
+          else if (cp.setter != null) {
+            if (cp.getter != null)
+              defaultValue = cp.getter.invoke(thing);
+            Object configValue = extractConfigValue(conf, key, type, defaultValue);
+            cp.setter.invoke(thing, configValue);
+          }
+          else {
+            // no field, no setter - should not happen
+            log.error("No field, no method for cv " + key);
+          }
         }
         catch (ClassNotFoundException cnf) {
           log.error("Class " + type + " not found");
@@ -235,6 +271,17 @@ public class Configurator
     }
   }
   
+  private Object extractConfigValue (Configuration conf, String key,
+                                     String type, Object defaultValue)
+    throws ClassNotFoundException, NoSuchMethodException,
+    IllegalArgumentException, IllegalAccessException, InvocationTargetException
+  {
+    Class<?> clazz = Class.forName("java.lang." + type);
+    String extractorName = "get" + type;
+    Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
+    return extractor.invoke(conf, key, defaultValue);
+  }
+  
   /**
    * Analyzes a class by mapping its configurable properties.
    */
@@ -247,17 +294,36 @@ public class Configurator
       annotationMap.put(clazz, result);
       // here's where we do the analysis
       log.debug("Analyzing class " + clazz.getName());
+      
+      // extract configurable fields
+      Field[] fields = clazz.getDeclaredFields();
+      for (Field field : fields) {
+        ConfigurableValue cv = field.getAnnotation(ConfigurableValue.class);
+        if (cv != null) {
+          // found an annotated field
+          log.debug("ConfigurableValue field " + field.getName());
+          String propertyName = cv.name();
+          if ("".equals(propertyName)) {
+            // property name not in annotation, use field name
+            propertyName = field.getName();
+          }
+          result.put(propertyName,
+                     new ConfigurableProperty(field, cv));
+        }
+      }
+      
+      // then extract configurable methods
       Method[] methods = clazz.getMethods();
       Method getter = null;
-      for (int i = 0; i < methods.length; i++) {
-        ConfigurableValue cv = methods[i].getAnnotation(ConfigurableValue.class);
+      for (Method method : methods) {
+        ConfigurableValue cv = method.getAnnotation(ConfigurableValue.class);
         if (cv != null) {
           // This method is annotated
-          log.debug("ConfigurableValue method found on " + methods[i].getName());
+          log.debug("ConfigurableValue method found on " + method.getName());
           String propertyName = cv.name();
           if ("".equals(propertyName)) {
             // property name not in annotation, extract from method name
-            propertyName = extractPropertyName(methods[i]);            
+            propertyName = extractPropertyName(method);
           }
           // locate the getter
           String getterName = cv.getter();
@@ -290,7 +356,7 @@ public class Configurator
             }
           }
           result.put(propertyName,
-                     new ConfigurableProperty(methods[i], getter, cv));
+                     new ConfigurableProperty(method, getter, cv));
         }
       }
     }
@@ -333,8 +399,10 @@ public class Configurator
   // Data holder - association between Method and ConfigurableValue
   class ConfigurableProperty
   {
+    
     Method setter;
     Method getter;
+    Field field;
     ConfigurableValue cv;
     
     ConfigurableProperty (Method setter, Method getter, ConfigurableValue cv)
@@ -342,6 +410,16 @@ public class Configurator
       super();
       this.setter = setter;
       this.getter = getter;
+      this.field = null;
+      this.cv = cv;
+    }
+    
+    ConfigurableProperty (Field field, ConfigurableValue cv)
+    {
+      super();
+      this.setter = null;
+      this.getter = null;
+      this.field = field;
       this.cv = cv;
     }
   }
