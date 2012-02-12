@@ -74,11 +74,17 @@ public class AccountingService
 
   // read this from configuration
   
+  @ConfigurableValue(valueType = "Double",
+          description = "low end of bank interest rate range")
   private double minInterest = 0.04;
-  private double maxInterest = 0.12;
-  private Double bankInterest = null;
 
-  private int simulationPhase = 3;
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of bank interest rate range")
+  private double maxInterest = 0.12;
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "override random setting of bank interest rate")
+  private Double bankInterest = null;
 
   public AccountingService ()
   {
@@ -103,11 +109,12 @@ public class AccountingService
                                         0l, "interest");
     if (bankInterest == null) {
       // interest will be non-null in case it was overridden in the config
-      this.setBankInterest(minInterest +
+      bankInterest = (minInterest +
                            (random.nextDouble() *
                                (maxInterest - minInterest)));
       log.info("bank interest: " + bankInterest);
     }
+    serverProps.publishConfiguration(this);
     return "AccountingService";
   }
   
@@ -338,22 +345,10 @@ public class AccountingService
   {
     return pendingTransactions;
   }
-  
-  int getSimulationPhase ()
-  {
-    return simulationPhase;
-  }
 
   public double getMinInterest ()
   {
     return minInterest;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "low end of bank interest rate range")
-  public void setMinInterest (double minInterest)
-  {
-    this.minInterest = minInterest;
   }
 
   public double getMaxInterest ()
@@ -361,22 +356,14 @@ public class AccountingService
     return maxInterest;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "high end of bank interest rate range")
-  public void setMaxInterest (double maxInterest)
-  {
-    this.maxInterest = maxInterest;
-  }
-
   public Double getBankInterest ()
   {
     return bankInterest;
   }
   
-  @ConfigurableValue(valueType = "Double",
-      description = "override random setting of bank interest rate")
-  public void setBankInterest (Double value)
+  // test support
+  void setBankInterest (Double interest)
   {
-    bankInterest = value;
+    bankInterest = interest;
   }
 }
