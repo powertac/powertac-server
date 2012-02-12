@@ -32,7 +32,6 @@ import org.powertac.common.interfaces.ServerProperties;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +48,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private ApplicationContext context;
   private CompositeConfiguration config;
   private Configurator configurator;
+  private XMLConfiguration publishedConfig;
   
   private boolean initialized = false;
   
@@ -58,7 +58,6 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   public ServerPropertiesService ()
   {
     super();
-    
     recycle();
   }
 
@@ -68,6 +67,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     // set up the config instance
     config = new CompositeConfiguration();
     configurator = new Configurator();
+    publishedConfig = new XMLConfiguration();
     initialized = false;
   }
   
@@ -159,6 +159,13 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
     lazyInit();
     return configurator.configureInstances(target);
+  }
+
+  @Override
+  public void publishConfiguration (Object target)
+  {
+    lazyInit();
+    configurator.gatherPublishedConfiguration(target, publishedConfig);
   }
   
   /* (non-Javadoc)
