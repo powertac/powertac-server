@@ -48,6 +48,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private ApplicationContext context;
   private CompositeConfiguration config;
   private Configurator configurator;
+  private XMLConfiguration publishedConfig;
   
   private boolean initialized = false;
   
@@ -57,7 +58,6 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   public ServerPropertiesService ()
   {
     super();
-    
     recycle();
   }
 
@@ -67,6 +67,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     // set up the config instance
     config = new CompositeConfiguration();
     configurator = new Configurator();
+    publishedConfig = new XMLConfiguration();
     initialized = false;
   }
   
@@ -100,7 +101,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     
     // set up the classpath props
     try {
-      Resource[] xmlResources = context.getResources("classpath*:/**/properties.xml");
+      Resource[] xmlResources = context.getResources("classpath*:config/properties.xml");
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
@@ -109,7 +110,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
           config.addConfiguration(xconfig);
         }
       }
-      Resource[] propResources = context.getResources("classpath*:*.properties");
+      Resource[] propResources = context.getResources("classpath*:config/*.properties");
       for (Resource prop : propResources) {
         if (validPropResource(prop)) {
           log.info("loading config from " + prop.getURI());
@@ -160,6 +161,13 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
     lazyInit();
     return configurator.configureInstances(target);
+  }
+
+  @Override
+  public void publishConfiguration (Object target)
+  {
+    lazyInit();
+    configurator.gatherPublishedConfiguration(target, publishedConfig);
   }
   
   /* (non-Javadoc)
@@ -218,8 +226,9 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   
   private boolean validXmlResource (Resource xml)
   {
+    log.debug("resource class: " + xml.getClass().getName());
     try {
-      String path = xml.getFile().getPath();
+      String path = xml.getURI().toString();
       for (String regex : excludedPaths) {
         if (path.matches(regex)) {
           log.debug("invalid path " + path);
