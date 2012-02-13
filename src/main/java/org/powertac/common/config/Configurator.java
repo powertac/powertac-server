@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -175,16 +176,62 @@ public class Configurator
    * Pulls the "published" ConfigurableValues out of object thing, adds them to
    * config.
    */
-  public void gatherPublishedConfiguration (Object thing, XMLConfiguration config)
+  public void gatherPublishedConfiguration (Object thing,
+                                            ConfigurationRecorder recorder)
   {
-    // first, compute the property prefix for things of this type
-    String[] classnamePath = extractClassnamePath(thing);
-    if (classnamePath == null)
-      return;
-    
+    String prefix =
+        extractClassnamePrefix(thing.getClass().getName().split("\\."));
+    Map<String, ConfigurableProperty> analysis = getAnalysis(thing.getClass());
+    for (Iterator<Entry<String, ConfigurableProperty>> props = analysis.entrySet().iterator();
+        props.hasNext(); ) {
+      Map.Entry<String, ConfigurableProperty> prop = props.next();
+      ConfigurableProperty cp = prop.getValue();
+      if (!cp.cv.publish())
+        continue;
+      String key = prefix + "." + prop.getKey();
+      log.debug("Recording property " + key);
+      Object value = null;
+      try {
+        if (cp.field != null) {
+          // extract value from field
+          cp.field.setAccessible(true);
+          value = cp.field.get(thing);
+        }
+        else if (cp.getter != null) {
+          value = cp.getter.invoke(thing);
+        }
+        else {
+          // cannot do much
+          throw new Exception("field and getter both null");
+        }
+        recorder.recordItem(key, value);
+      }
+      catch (IllegalArgumentException e) {
+        log.error("cannot read published value: " + e.toString());
+      }
+      catch (IllegalAccessException e) {
+        log.error("cannot read published value: " + e.toString());
+      }
+      catch (InvocationTargetException e) {
+        log.error("cannot read published value: " + e.toString());
+      }
+      catch (Exception e) {
+        log.error("cannot read published value: " + e.toString());
+      }
+    }
   }
 
   private Configuration extractConfigForClass (String[] classnamePath)
+  {
+    String prefix = extractClassnamePrefix(classnamePath);
+    log.debug("config prefix " + prefix);
+    // pull in the subset config starting with this prefix
+    Configuration subset = config.subset(prefix);
+    log.debug("config subset empty: " + subset.isEmpty());
+    return subset;
+  }
+
+  private String extractClassnamePrefix (String[] classnamePath)
   {
     // Note that the classname must be lower-cased.
     StringBuilder sb = new StringBuilder();
@@ -194,11 +241,7 @@ public class Configurator
     }
     sb.append(decapitalize(classnamePath[classnamePath.length - 1]));
     String prefix = sb.toString();
-    log.debug("config prefix " + prefix);
-    // pull in the subset config starting with this prefix
-    Configuration subset = config.subset(prefix);
-    log.debug("config subset empty: " + subset.isEmpty());
-    return subset;
+    return prefix;
   }
   
   private boolean isSingletonConfig (Configuration conf)
