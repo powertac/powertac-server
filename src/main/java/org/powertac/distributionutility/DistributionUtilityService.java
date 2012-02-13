@@ -70,12 +70,35 @@ implements InitializationService
   private RandomSeed randomGen;
 
   // fees and prices should be negative, because they are debits against brokers
+  @ConfigurableValue(valueType = "Double",
+      description = "Low end of distribution fee range")
   private double distributionFeeMin = -0.005;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "High end of distribution fee range")
   private double distributionFeeMax = -0.15;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Distribution fee: overrides random value selection")
   private Double distributionFee = null;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Low end of balancing cost range")
   private double balancingCostMin = -0.04;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "High end of balancing cost range")
   private double balancingCostMax = -0.08;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Balancing cost: overrides random value selection")
   private Double balancingCost = null;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Spot price/mwh used if unavailable from wholesale market")
   private double defaultSpotPrice = -30.0; // per mwh
 
   @Override
@@ -106,6 +129,7 @@ implements InitializationService
                        * (balancingCostMax - balancingCostMin));
     log.info("Configured DU: distro fee = " + distributionFee
              + ", balancing cost = " + balancingCost);
+    serverProps.publishConfiguration(this);
     return "DistributionUtility";
   }
 
@@ -331,23 +355,9 @@ implements InitializationService
     return distributionFeeMin;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Low end of distribution fee range")
-  public void setDistributionFeeMin (double distributionFeeMin)
-  {
-    this.distributionFeeMin = distributionFeeMin;
-  }
-
   public double getDistributionFeeMax ()
   {
     return distributionFeeMax;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "High end of distribution fee range")
-  public void setDistributionFeeMax (double distributionFeeMax)
-  {
-    this.distributionFeeMax = distributionFeeMax;
   }
 
   public Double getDistributionFee ()
@@ -355,23 +365,9 @@ implements InitializationService
     return distributionFee;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Distribution fee: overrides random value selection")
-  public void setDistributionFee (Double distributionFee)
-  {
-    this.distributionFee = distributionFee;
-  }
-
   public double getBalancingCostMin ()
   {
     return balancingCostMin;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Low end of balancing cost range")
-  public void setBalancingCostMin (double balancingCostMin)
-  {
-    this.balancingCostMin = balancingCostMin;
   }
 
   public double getBalancingCostMax ()
@@ -379,35 +375,14 @@ implements InitializationService
     return balancingCostMax;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "High end of balancing cost range")
-  public void setBalancingCostMax (double balancingCostMax)
-  {
-    this.balancingCostMax = balancingCostMax;
-  }
-
   public Double getBalancingCost ()
   {
     return balancingCost;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Balancing cost: overrides random value selection")
-  public void setBalancingCost (Double balancingCost)
-  {
-    this.balancingCost = balancingCost;
-  }
-
   public double getDefaultSpotPrice ()
   {
     return defaultSpotPrice;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Spot price/mwh used if unavailable from wholesale market")
-  public void setDefaultSpotPrice (double defaultSpotPrice)
-  {
-    this.defaultSpotPrice = defaultSpotPrice;
   }
 
   /**
