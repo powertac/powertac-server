@@ -83,6 +83,7 @@ public class AccountingService
   private double maxInterest = 0.12;
   
   @ConfigurableValue(valueType = "Double",
+      publish = true,
       description = "override random setting of bank interest rate")
   private Double bankInterest = null;
 

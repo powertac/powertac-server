@@ -94,13 +94,34 @@ public class TariffMarketService
   // maps power type to id of corresponding default tariff
   private HashMap<PowerType, Long> defaultTariff;
 
-  // read this from plugin config
+  // configuration
+  @ConfigurableValue(valueType = "Double",
+      description = "low end of tariff publication fee range")
   private double minPublicationFee = -100.0;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of tariff publication fee range")
   private double maxPublicationFee = -500.0;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "set publication fee directly to override random selection")
   private Double publicationFee = null;
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "low end of tariff revocation fee range")
   private double minRevocationFee = -100.0;
+  
+  @ConfigurableValue(valueType = "Double",
+      description = "high end of tariff revocation fee range")
   private double maxRevocationFee = -500.0;
+  
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Set revocation fee directly to override random selection")
   private Double revocationFee = null;
+
+  // these properties are constrained, so we provide explicit setters for them
   private int publicationInterval = 6;
   private int publicationOffset = 0;
   private boolean firstPublication;
@@ -142,18 +163,19 @@ public class TariffMarketService
                                         0l, "interest");
     if (publicationFee == null) {
       // interest will be non-null in case it was overridden in the config
-      this.setPublicationFee(minPublicationFee +
+      publicationFee = (minPublicationFee +
                              (random.nextDouble() *
                                  (maxPublicationFee - minPublicationFee)));
       log.info("set publication fee: " + publicationFee);
     }
     if (revocationFee == null) {
       // interest will be non-null in case it was overridden in the config
-      this.setRevocationFee(minRevocationFee +
+      revocationFee = (minRevocationFee +
                              (random.nextDouble() *
                                  (maxRevocationFee - minRevocationFee)));
       log.info("set revocation fee: " + revocationFee);
     }
+    serverProps.publishConfiguration(this);
     return "TariffMarket";
   }
 
@@ -165,23 +187,9 @@ public class TariffMarketService
     return minPublicationFee;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "low end of tariff publication fee range")
-  public void setMinPublicationFee (double fee)
-  {
-    minPublicationFee = fee;
-  }
-
   public double getMaxPublicationFee ()
   {
     return maxPublicationFee;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "high end of tariff publication fee range")
-  public void setMaxPublicationFee (double fee)
-  {
-    maxPublicationFee = fee;
   }
 
   public Double getPublicationFee ()
@@ -189,50 +197,20 @@ public class TariffMarketService
     return publicationFee;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      description = "set publication fee directly to override random selection")
-  public void setPublicationFee (Double fee)
-  {
-    publicationFee = fee;
-    log.debug("publicationFee = " + publicationFee);
-  }
-
   // revocation fee
   public double getMinRevocationFee ()
   {
     return minRevocationFee;
-  }
-  
-  @ConfigurableValue(valueType = "Double",
-      description = "low end of tariff revocation fee range")
-  public void setMinRevocationFee (double fee)
-  {
-    minRevocationFee = fee;
   }
 
   public double getMaxRevocationFee ()
   {
     return maxRevocationFee;
   }
-  
-  @ConfigurableValue(valueType = "Double",
-      description = "high end of tariff revocation fee range")
-  public void setMaxRevocationFee (double fee)
-  {
-    maxRevocationFee = fee;
-  }
 
   public Double getRevocationFee ()
   {
     return revocationFee;
-  }
-  
-  @ConfigurableValue(valueType = "Double",
-      description = "Set revocation fee directly to override random selection")
-  public void setRevocationFee (double fee)
-  {
-    revocationFee = fee;
-    log.debug("revocationFee = " + revocationFee);
   }
 
   public int getPublicationInterval ()
