@@ -111,6 +111,9 @@ public class CompetitionControlService
 
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private ServerPropertiesService configService;
 
   @Autowired
   private ServerMessageReceiver serverMessageReceiver;
@@ -315,7 +318,8 @@ public class CompetitionControlService
     // and finally broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
-    brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
+    //brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
+    brokerProxyService.broadcastMessage(configService.getPublishedConfiguration());
     if (!bootstrapMode) {
       brokerProxyService.broadcastMessages(bootstrapDataset);
     }

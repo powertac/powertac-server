@@ -17,8 +17,10 @@ package org.powertac.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Properties;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
@@ -26,6 +28,8 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
+import org.powertac.common.PluginConfig;
+import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.ServerProperties;
@@ -48,7 +52,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private ApplicationContext context;
   private CompositeConfiguration config;
   private Configurator configurator;
-  private XMLConfiguration publishedConfig;
+  private ConfigurationPublisher publisher;
   
   private boolean initialized = false;
   
@@ -67,7 +71,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     // set up the config instance
     config = new CompositeConfiguration();
     configurator = new Configurator();
-    publishedConfig = new XMLConfiguration();
+    publisher = new ConfigurationPublisher();
     initialized = false;
   }
   
@@ -167,9 +171,18 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   public void publishConfiguration (Object target)
   {
     lazyInit();
-    configurator.gatherPublishedConfiguration(target, publishedConfig);
+    configurator.gatherPublishedConfiguration(target, publisher);
   }
-  
+
+  /**
+   * Returns the published configuration as a string
+   */
+  public Properties getPublishedConfiguration ()
+  {
+    log.debug("published config: " + publisher.getConfig());
+    return publisher.getConfig();
+  }
+
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.ServerProperties#getProperty(java.lang.String)
    */
@@ -258,5 +271,29 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   Configuration getConfig ()
   {
     return config;
+  }
+  
+  /**
+   * Configuration recorder for publishing config info to brokers
+   */
+  class ConfigurationPublisher implements ConfigurationRecorder
+  {
+    Properties publishedConfig;
+    
+    ConfigurationPublisher ()
+    {
+      publishedConfig = new Properties();
+    }
+
+    @Override
+    public void recordItem (String key, Object value)
+    {
+      publishedConfig.put(key, value);      
+    }
+    
+    Properties getConfig ()
+    {
+      return publishedConfig;
+    }
   }
 }
