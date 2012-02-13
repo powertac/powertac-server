@@ -30,7 +30,8 @@ public interface ServerConfiguration
 {
   /**
    * Configures a target object by matching configuration clauses with 
-   * @ConfigurableValue annotations on the target object.
+   * @ConfigurableValue annotations on the target object. This is typically
+   * called in the initialize() method.
    */
   public void configureMe (Object target);
   
@@ -44,8 +45,9 @@ public interface ServerConfiguration
   /**
    * Gathers public configuration data for publication to brokers. Data is gathered
    * from @ConfigurableValue properties with publish=true. Note that such properties
-   * must either have a "standard" getter, or must specify a getter that produces
-   * the value as a String.
+   * must either be fields, or have a "standard" getter, or must specify a getter
+   * that produces the value as a String. This is typically called at the end of
+   * the initialize() method.
    */
   public void publishConfiguration (Object target);
 }
