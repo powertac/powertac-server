@@ -40,7 +40,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 /**
- * Implementation of the ServerProperties interface.
+ * Implementation of the ServerProperties and ServerConfiguration interfaces.
  * @author jcollins
  */
 @Service
