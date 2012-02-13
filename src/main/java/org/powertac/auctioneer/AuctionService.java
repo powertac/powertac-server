@@ -94,10 +94,21 @@ public class AuctionService
   @Autowired
   private ServerConfiguration serverProps;
   
-  private double defaultSellerSurplus = 0.5;
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Default margin when matching market order with limit order")
   private double defaultMargin = 0.05; // used when one side has no limit price
+  
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Default price/mwh when matching only market orders")
   private double defaultClearingPrice = 40.00; // used when no limit prices
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Proportion of market surplus allocated to the seller")
   private double sellerSurplusRatio;
+
   private double epsilon = 1e-6; // position balance less than this is ignored
 
   private List<Order> incoming;
@@ -126,29 +137,13 @@ public class AuctionService
     serverProps.configureMe(this);
     brokerProxyService.registerBrokerMarketListener(this);
     super.init();
+    serverProps.publishConfiguration(this);
     return "Auctioneer";
-  }
-
-  public double getDefaultSellerSurplus ()
-  {
-    return defaultSellerSurplus;
-  }
-
-  void setDefaultSellerSurplus (double defaultSellerSurplus)
-  {
-    this.defaultSellerSurplus = defaultSellerSurplus;
   }
 
   public double getSellerSurplusRatio ()
   {
     return sellerSurplusRatio;
-  }
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Proportion of market surplus allocated to the seller")
-  public void setSellerSurplusRatio (Double number)
-  {
-    sellerSurplusRatio = number;
   }
   
   public double getDefaultMargin ()
@@ -156,23 +151,9 @@ public class AuctionService
     return defaultMargin;
   }
   
-  @ConfigurableValue(valueType = "Double",
-      description = "Default margin when matching market order with limit order")
-  public void setDefaultMargin (Double number)
-  {
-    defaultMargin = number;
-  }
-  
   public double getDefaultClearingPrice ()
   {
     return defaultClearingPrice;
-  }
-  
-  @ConfigurableValue(valueType = "Double",
-      description = "Default price/mwh when matching only market orders")
-  public void setDefaultClearingPrice (Double number)
-  {
-    defaultClearingPrice = number;
   }
 
   List<Order> getIncoming ()
