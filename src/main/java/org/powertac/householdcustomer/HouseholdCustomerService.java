@@ -71,7 +71,10 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private RandomSeed rs1;
 
   // read this from configurator
-  private String configFile = null;
+  private String configFile1 = null;
+  private String configFile2 = null;
+  private String configFile3 = null;
+  private String configFile4 = null;
 
   /**
    * This is the configuration file that will be utilized to pass the parameters
@@ -116,15 +119,30 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     tariffMarketService.registerNewTariffListener(this);
     rs1 = randomSeedRepo.getRandomSeed("HouseholdCustomerService", 1, "Household Customer Models");
 
-    if (configFile == null) {
-      System.out.println("No Config File for Household Customer Taken");
-      configFile = "Household.properties";
+    if (configFile1 == null) {
+      log.info("No Config File for VillageType1 Taken");
+      configFile1 = "VillageDefault.properties";
     }
+    if (configFile2 == null) {
+      log.info("No Config File for VillageType2 Taken");
+      configFile2 = "VillageDefault.properties";
+    }
+    if (configFile3 == null) {
+      log.info("No Config File for VillageType3 Taken");
+      configFile3 = "VillageDefault.properties";
+    }
+    if (configFile4 == null) {
+      log.info("No Config File for VillageType4 Taken");
+      configFile4 = "VillageDefault.properties";
+    }
+
     super.init();
+
+    // =======FIRST VILLAGE TYPE=========//
 
     InputStream cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = ClassLoader.getSystemResourceAsStream(configFile);
+    cfgFile = ClassLoader.getSystemResourceAsStream(configFile1);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
@@ -143,7 +161,97 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     int villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("Household " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo = new CustomerInfo("VillageType1 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
+      Village village = new Village(villageInfo);
+      village.initialize(configuration, rs1);
+      villageList.add(village);
+      village.subscribeDefault();
+    }
+
+    // =======SECOND VILLAGE TYPE=========//
+
+    cfgFile = null;
+    // cfgFile = new FileInputStream(configFile);
+    cfgFile = ClassLoader.getSystemResourceAsStream(configFile2);
+    try {
+      configuration.load(cfgFile);
+      cfgFile.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+
+    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+
+    villagePopulation = nshouses + rashouses + reshouses + sshouses;
+
+    for (int i = 1; i < numberOfVillages + 1; i++) {
+      CustomerInfo villageInfo = new CustomerInfo("VillageType2 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
+      Village village = new Village(villageInfo);
+      village.initialize(configuration, rs1);
+      villageList.add(village);
+      village.subscribeDefault();
+    }
+
+    // =======THIRD VILLAGE TYPE=========//
+
+    cfgFile = null;
+    // cfgFile = new FileInputStream(configFile);
+    cfgFile = ClassLoader.getSystemResourceAsStream(configFile3);
+    try {
+      configuration.load(cfgFile);
+      cfgFile.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+
+    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+
+    villagePopulation = nshouses + rashouses + reshouses + sshouses;
+
+    for (int i = 1; i < numberOfVillages + 1; i++) {
+      CustomerInfo villageInfo = new CustomerInfo("VillageType3 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
+      Village village = new Village(villageInfo);
+      village.initialize(configuration, rs1);
+      villageList.add(village);
+      village.subscribeDefault();
+    }
+
+    // =======FOURTH VILLAGE TYPE=========//
+
+    cfgFile = null;
+    // cfgFile = new FileInputStream(configFile);
+    cfgFile = ClassLoader.getSystemResourceAsStream(configFile4);
+    try {
+      configuration.load(cfgFile);
+      cfgFile.close();
+    } catch (IOException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+
+    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+
+    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+
+    villagePopulation = nshouses + rashouses + reshouses + sshouses;
+
+    for (int i = 1; i < numberOfVillages + 1; i++) {
+      CustomerInfo villageInfo = new CustomerInfo("VillageType4 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
       Village village = new Village(villageInfo);
       village.initialize(configuration, rs1);
       villageList.add(village);
@@ -192,20 +300,64 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   // ----------------- Data access -------------------------
 
   /** Getter method for the configuration file */
-  public String getConfigFile ()
+  public String getConfigFile1 ()
   {
-    return configFile;
+    return configFile1;
   }
 
   @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
-  public void setConfigFile (String config)
+  public void setConfigFile1 (String config)
   {
-    configFile = config;
+    configFile1 = config;
+  }
+
+  /** Getter method for the configuration file */
+  public String getConfigFile2 ()
+  {
+    return configFile2;
+  }
+
+  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  public void setConfigFile2 (String config)
+  {
+    configFile2 = config;
+  }
+
+  /** Getter method for the configuration file */
+  public String getConfigFile3 ()
+  {
+    return configFile3;
+  }
+
+  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  public void setConfigFile3 (String config)
+  {
+    configFile3 = config;
+  }
+
+  /** Getter method for the configuration file */
+  public String getConfigFile4 ()
+  {
+    return configFile4;
+  }
+
+  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  public void setConfigFile4 (String config)
+  {
+    configFile4 = config;
   }
 
   public List<Village> getVillageList ()
   {
     return villageList;
+  }
+
+  public void clearConfiguration ()
+  {
+    configFile1 = null;
+    configFile2 = null;
+    configFile3 = null;
+    configFile4 = null;
   }
 
   /**
