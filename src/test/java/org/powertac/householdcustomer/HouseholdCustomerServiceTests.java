@@ -139,7 +139,7 @@ public class HouseholdCustomerServiceTests
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
     weatherReportRepo.recycle();
-    reset(mockTariffMarket);
+    householdCustomerService.clearConfiguration();
     reset(mockAccounting);
     reset(mockServerProperties);
 
@@ -194,42 +194,61 @@ public class HouseholdCustomerServiceTests
   public void initializeService ()
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("householdcustomer.householdCustomerService.configFile", "Household.properties");
+    map.put("householdcustomer.householdCustomerService.configFile1", "VillageType1.properties");
+    map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
+    map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
+    map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerService.initialize(comp, inits);
-    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
-
+    assertEquals("correct first configuration file", "VillageType1.properties", householdCustomerService.getConfigFile1());
+    assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
+    assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
+    assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
   }
 
   @Test
   public void testNormalInitialization ()
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("householdcustomer.householdCustomerService.configFile", "Household.properties");
+    map.put("householdcustomer.householdCustomerService.configFile1", "VillageType1.properties");
+    map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
+    map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
+    map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
+    assertEquals("correct configuration file", "VillageType1.properties", householdCustomerService.getConfigFile1());
+    assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
+    assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
+    assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
+
   }
 
   @Test
   public void testNormalInitializationWithoutConfig ()
   {
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("householdcustomer.householdCustomerService.configFile", null);
-    Configuration mapConfig = new MapConfiguration(map);
+
+    TreeMap<String, String> map2 = new TreeMap<String, String>();
+    map2.put("householdcustomer.householdCustomerService.configFile1", null);
+    map2.put("householdcustomer.householdCustomerService.configFile2", null);
+    map2.put("householdcustomer.householdCustomerService.configFile3", null);
+    map2.put("householdcustomer.householdCustomerService.configFile4", null);
+    Configuration mapConfig = new MapConfiguration(map2);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "Household.properties", householdCustomerService.getConfigFile());
+    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile1());
+    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile2());
+    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile3());
+    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile4());
   }
 
   @Test
@@ -245,7 +264,7 @@ public class HouseholdCustomerServiceTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Two Consumers Created", 2, householdCustomerService.getVillageList().size());
+    assertEquals("Two Consumers Created", 8, householdCustomerService.getVillageList().size());
     for (Village customer : householdCustomerService.getVillageList()) {
 
       // capture subscription method args
@@ -763,13 +782,15 @@ public class HouseholdCustomerServiceTests
     for (Village customer : householdCustomerService.getVillageList()) {
       customer.showAggDailyLoad("SS", 0);
     }
-    /*
+
     // for (int i = 0; i < 10; i++) {
-      timeService.setBase(now.getMillis());
-      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 12));
-      householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    */
+    // timeService.setBase(now.getMillis());
+    // timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR
+    // * 12));
+    // householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
     // }
 
   }
+
 }
