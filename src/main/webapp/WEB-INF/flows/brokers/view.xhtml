@@ -1,121 +1,136 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
 	<ui:define name="title">Brokers</ui:define>
 
 	<ui:define name="headIncludes">
+	<h:outputStylesheet library="css" name="customersBubble.css" />
 		<script type="text/javascript">
 	var cashChartGlobal;
 	var subscriptionsPieChart;
-</script>
+		</script>
 
 	</ui:define>
 
 	<ui:define name="content">
-		<h:form>
-			
-				<p:accordionPanel id="brokersAccordion" multiple="true">
-					<p:tab title="Overview">
+		<h:form rendered="#{not empty brokersClone}">
 
-						<p:layout id="overviewLayout" style="width:1600px;height:500px">
-							<p:layoutUnit position="west" size="600">
-								<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
-							</p:layoutUnit>
-							<p:layoutUnit position="center" size="500">
-								<!-- Global Cash Chart -->
-								<div id="cashChartGlobal" style="height: 300px; width: 500px;float:left"></div>
-								<script type="text/javascript">
-									
-		 							if (window.cashChartGlobal) {
-										window.cashChartGlobal.destroy();
+
+
+			<p:accordionPanel id="brokersAccordion" multiple="true">
+				<p:tab title="Overview">
+
+					<p:panel id="overviewPanel" styleClass="noBorderPanel">
+						<p:panel styleClass="tableBrokersPanel">
+							<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+						</p:panel>
+						
+							<!-- Global Cash Chart -->
+							<div id="cashChartGlobal"
+								style="height: 300px; width: 500px; float: left;"></div>
+							<script type="text/javascript">
+							if (window.cashChartGlobal != null) {
+								window.cashChartGlobal.destroy();
+							}
+							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{visualizerBean.brokerCashBalancesJSONText}, 
+									{
+									title: 'Cash balance', 
+									seriesColors: #{visualizerBean.brokerSeriesColors},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+									            label: "timeslot",
+									            pad: 0},
+									    yaxis: {
+									            label: "cash/&euro;"}},
+									   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
 									}
-									window.cashChartGlobal = $.jqplot('cashChartGlobal', [ #{visualizerBean.brokerCashBalancesJSONText} ], 
-										{
-										title: 'Cash balance', 
-										axesDefaults: {
-										        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-										axes: {
-											xaxis: {
-										            label: "timeslot",
-										            pad: 0},
-										    yaxis: {
-										            label: "cash"}},
-										   
-										series:[#{visualizerBean.brokerSeriesOptions}],									
-												
-										seriesDefaults: {
-											showMarker: false
-										}
-									}); 	
+								}); 	
+						
 								</script>
-								<!-- Subscriptions PieChart -->
-								<div id="subscriptionsPieChart" style="height: 300px; width: 300px; float:left;text-align:left;"></div>
-								<script type="text/javascript">
-									
-								if (window.subscriptionsPieChart) {
-									window.subscriptionsPieChart.destroy();
-								}
-								window.subscriptionsPieChart = jQuery.jqplot ('subscriptionsPieChart', [#{visualizerBean.subscriptionsPieChartJSONText}],
-									    {
-										title: 'Number of subscriptions for each broker',
-										seriesColors: #{visualizerBean.brokerSeriesColors},
-								        highlighter: { show: false },
-									   	seriesDefaults: {
-									        // Make this a pie chart.
-									        renderer: jQuery.jqplot.PieRenderer,
-									        rendererOptions: {
-									        	fill: false,
-									          // Put data labels on the pie slices.
-									          // By default, labels show the percentage of the slice.
-									          showDataLabels: true,
-									          
-									          // stroke the slices with a little thicker line.
-									          lineWidth: 4
-									        }
-									      },
-									     
-									     legend: { show:false, location: 's' }
-									    }
-									  );
+							<!--	lineChartGlobal('cashChartGlobal', #{visualizerBean.brokerCashBalancesJSONText}, 'Cash balance', "timeslot", "cash", #{visualizerBean.brokerSeriesColors})-->
 
+							<!-- Subscriptions PieChart -->
+							<div id="subscriptionsPieChart"
+								style="height: 300px; width: 300px; text-align: left; float: left;"></div>
+							<script type="text/javascript">
+							if (window.subscriptionsPieChart != null) {
+								window.subscriptionsPieChart.destroy();
+							}
+							window.subscriptionsPieChart=jQuery.jqplot ('subscriptionsPieChart', [#{visualizerBean.subscriptionsPieChartJSONText}],
+								    {
+									title: 'Number of subscriptions for each broker',
+									seriesColors: #{visualizerBean.brokerSeriesColors},
+							        highlighter: { show: false },
+								   	seriesDefaults: {
+								        // Make this a pie chart.
+								        renderer: jQuery.jqplot.PieRenderer,
+								        rendererOptions: {
+								        	fill: false,
+								          // Put data labels on the pie slices.
+								          // By default, labels show the percentage of the slice.
+								          showDataLabels: true,
+								          
+								          // stroke the slices with a little thicker line.
+								          lineWidth: 4
+								        }
+								      },
+								     
+								     legend: { show:false, location: 's' }
+								    }
+								  );
 								</script>
-								
-								
-								<h:outputText value="DEBUG: #{visualizerBean.subscriptionsPieChartJSONText} #{visualizerBean.brokerSeriesColors}" />
-								
-							</p:layoutUnit>
 
-							
-								
+							<!-- 	<h:outputText
+							value="DEBUG: #{visualizerBean.subscriptionsPieChartJSONText} #{visualizerBean.brokerSeriesColors}" /> -->
+						</p:panel>
+					
+				</p:tab>
+				<p:tab title="Individual">
 
-							
-
-			
-
-
-
-						</p:layout>
-
-
-					</p:tab>
-					<p:tab title="Individual">
-
-						<ui:include src="/WEB-INF/tags/brokers.xhtml" />
+					<ui:include src="/WEB-INF/tags/brokers.xhtml" />
 
 
 
 
-					</p:tab>
-				</p:accordionPanel>
-			
+				</p:tab>
+			</p:accordionPanel>
+
+			<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+
+				<h:outputText value="Daily Values " />
+				<p:selectBooleanCheckbox
+					value="#{selectedBrokerChartsBean.dailyValues}" />
+				<h:outputText value="Daily Average Values " />
+				<p:selectBooleanCheckbox
+					value="#{selectedBrokerChartsBean.dailyAVGValues}" />
+				<h:outputText value="All Timeslots " />
+				<p:selectBooleanCheckbox
+					value="#{selectedBrokerChartsBean.allTimeslots}" />
+				<h:outputText value="Current Day Values " />
+				<p:selectBooleanCheckbox
+					value="#{selectedBrokerChartsBean.currentDayValues}" />
+
+			</h:panelGrid>
+
+
 
 			<p:poll autoStart="true" interval="5"
-				update=":competitionInfoForm,brokersAccordion:overviewLayout,brokersAccordion:tabBrokers" />
+				update="brokersAccordion:overviewPanel,brokersAccordion:tabBrokers" />
 
-			<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" rendered="false" />
-			
+			<p:lineChart style="height: 1px; width: 1px;"
+				value="#{imageControl.fakeChart}" rendered="false" />
+
 		</h:form>
 
 

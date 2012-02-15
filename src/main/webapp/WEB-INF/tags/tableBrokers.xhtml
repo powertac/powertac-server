@@ -7,26 +7,31 @@
 <h:body>
 	<ui:fragment>
 		
-			<p:dataTable value="#{visualizerBean.brokers}" var="broker" type="ordered" >
+			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" style="width:600px;" >
 				<f:facet name="header">  
-            			List of Brokers:  
+            			Live info:  
         	</f:facet>
 
-				<p:column headerText="Icon">
-					<p:graphicImage value="${broker.appearance.iconLocation}" width="65" height="65" />
+				<p:column sortBy="${broker.appearance.iconLocation}" headerText="Icon" style="height: 50px; width: 50px;">
+					<p:graphicImage value="${broker.appearance.iconLocation}" width="50" height="50" />
 				</p:column>
 
-				<p:column headerText="Name">
+				<p:column sortBy="#{broker.name}" headerText="Name">
 					<h:outputText value="#{broker.name}" style="font-weight: bold" />
 				</p:column>
 
-				<p:column headerText="Cash balance">
-					<h:outputText value="#{broker.cashBalance}" style="font-weight: bold" />
+				<p:column sortBy="${broker.cashBalance}" headerText="Cash balance">
+					<h:outputText value="#{broker.cashBalance} &euro;" style="font-weight: bold;" />
 				</p:column>
 
-				<p:column headerText="Energy balance">
-					<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
+				<p:column sortBy="${broker.energyBalance}" headerText="Energy balance">
+					<h:outputText value="#{broker.energyBalance} kWh" style="font-weight: bold" />
 				</p:column>
+				
+				<p:column sortBy="${broker.customerCount}" headerText="Subscription count:">
+					<h:outputText value="#{broker.customerCount}" style="font-weight: bold" />
+				</p:column>
+				
 
 			</p:dataTable>
 	</ui:fragment>

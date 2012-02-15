@@ -1,24 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
 
 <h:head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>PowerTAC Visualizer</title>
-		<ui:insert name="headIncludes" />
+	<ui:insert name="headIncludes" />
+	<h:outputScript library="js" name="scripts.js" />
+	<h:outputStylesheet library="css" name="visualizer.css" />
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true">
-		<p:layoutUnit id="north" position="north" size="140">
+	<p:layout id="mainLayout" fullPage="true" stateful="true">
+		<p:layoutUnit id="north" position="north" size="140"
+			collapsible="true" header="LOL" styleClass="custom">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
 			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
-
+			<h:form>
+			<p:poll autoStart="true" interval="5" update=":competitionInfoForm"/>
+			</h:form>
 		</p:layoutUnit>
 
 		<p:layoutUnit position="center">
-			<h2 class="alt">
+			<h2 class="alt" style="text-align: center;">
 
 				<ui:insert name="title"></ui:insert>
 
@@ -30,16 +38,21 @@
 
 		<p:layoutUnit position="south" size="70">
 			<p:dock>
-				<p:menuitem value="General" icon="/app/resources/images/dock/home.png" url="general" />
-				<p:menuitem value="Brokers" icon="/app/resources/images/dock/music.png" url="brokers" />
-				<p:menuitem value="Customers" icon="/app/resources/images/dock/video.png" url="customers" />
-				<p:menuitem value="GenCos" icon="/app/resources/images/dock/music.png" url="gencos" />
-				<p:menuitem value="Wholesale" icon="/app/resources/images/dock/email.png" url="wholesale" />
+				<p:menuitem value="Game Overview"
+					icon="/app/resources/resources/images/dock/general.png" url="gameoverview" />
+				<p:menuitem value="Brokers"
+					icon="/app/resources/resources/images/dock/brokers.png" url="brokers" />
+				<p:menuitem value="Customers"
+					icon="/app/resources/resources/images/dock/users.png" url="customers" />
+				<p:menuitem value="GenCos"
+					icon="/app/resources/resources/images/dock/music.png" url="gencos" />
+				<p:menuitem value="Wholesale"
+					icon="/app/resources/resources/images/dock/email.png" url="wholesale" />
 			</p:dock>
 		</p:layoutUnit>
 
 	</p:layout>
-
+		
 </h:body>
 
 </html>

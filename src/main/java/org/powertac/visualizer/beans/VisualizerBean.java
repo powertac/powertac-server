@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.visualizer.domain.*;
 
 import org.powertac.common.Competition;
@@ -37,7 +38,10 @@ public class VisualizerBean implements Serializable {
 	private int messageCounter;
 	private int visualizerRunCount;
 
+	private DayOverview dayOverview;
+
 	private Competition competition;
+	private Instant firstTimeslot;
 	private List<CustomerInfo> customers;
 	private List<BrokerModel> brokers;
 	private TimeslotUpdate timeslotUpdate;
@@ -47,18 +51,18 @@ public class VisualizerBean implements Serializable {
 	private int timeslotIndex;
 	private List<GencoModel> gencos;
 	private int relativeTimeslotIndex;
-	private int firstTimeslotIndex;
 	// JSON stuff
 	private String brokerSeriesOptions;
 	private String brokerSeriesColors;
+	private JSONArray subscriptionsPieChartJSON;
+	private JSONArray brokerCashBalancesJSON;
 	// convinient variable for holding the sum of all customers:
 	private CustomerModel customerModel;
 	@Autowired
 	private AppearanceListBean appearanceList;
 
 	public VisualizerBean() {
-		messageCounter = 0;
-		visualizerRunCount = 0;
+		init();
 
 	}
 
@@ -75,12 +79,21 @@ public class VisualizerBean implements Serializable {
 	 * properties and increments Visualizer counter.
 	 */
 	public void newRun() {
-		messageCounter = 0;
-		visualizerRunCount++;
-		competition = null;
-		brokers = null;
+		init();
 		appearanceList.resetAvailableList(); // so broker appearances will be
 												// free for the next competition
+	}
+
+	public void init() {
+		messageCounter = 0;
+		visualizerRunCount++;
+		
+		dayOverview=null;
+		
+		competition = null;
+		brokers = new ArrayList<BrokerModel>();
+
+		firstTimeslot = null;
 		customers = null;
 		timeslotUpdate = null;
 		simulationStatus = null;
@@ -89,11 +102,11 @@ public class VisualizerBean implements Serializable {
 		timeslotIndex = 0;
 		gencos = new ArrayList<GencoModel>();
 		relativeTimeslotIndex = -1;
-		firstTimeslotIndex = -1;
 		brokerSeriesOptions = "";
 		brokerSeriesColors = "";
+		subscriptionsPieChartJSON = new JSONArray();
+		brokerCashBalancesJSON = new JSONArray();
 		customerModel = new CustomerModel();
-
 	}
 
 	public int getVisualizerRunCount() {
@@ -124,10 +137,11 @@ public class VisualizerBean implements Serializable {
 			seriesOptions.append(brokerModel.getSeriesOptions());
 			// build colors:
 			brokerSeriesColors.put(brokerModel.getAppearance().getColorCode());
+			this.brokers.add(brokerModel);
 		}
 		this.brokerSeriesOptions = seriesOptions.toString();
 		this.brokerSeriesColors = brokerSeriesColors.toString();
-		this.brokers = brokers;
+		// this.brokers = brokers;
 		log.info("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:"
 				+ brokerSeriesColors.toString());
 
@@ -191,25 +205,21 @@ public class VisualizerBean implements Serializable {
 		return timeslotIndex;
 	}
 
-	public void setTimeslotIndex(int timeslotIndex) {
-		if (firstTimeslotIndex == -1) {// first time: set firstTimeslotIndex
-			firstTimeslotIndex = timeslotIndex;
-		}
-		this.timeslotIndex = timeslotIndex;
-		// update relative timeslot index
-		relativeTimeslotIndex = timeslotIndex - firstTimeslotIndex;
-	}
-
 	public List<GencoModel> getGencos() {
 		return gencos;
 	}
 
-	public int getRelativeTimeslotIndex() {
-		return relativeTimeslotIndex;
+	/**
+	 * Should be called
+	 * @param relativeTimeslotIndex
+	 */
+	public void setRelativeTimeslotIndex(int relativeTimeslotIndex) {
+		this.relativeTimeslotIndex = relativeTimeslotIndex;
+		
 	}
 
-	public int getFirstTimeslotIndex() {
-		return firstTimeslotIndex;
+	public int getRelativeTimeslotIndex() {
+		return relativeTimeslotIndex;
 	}
 
 	public CustomerModel getCustomerModel() {
@@ -222,35 +232,53 @@ public class VisualizerBean implements Serializable {
 	}
 
 	public String getBrokerCashBalancesJSONText() {
-		StringBuilder cash = new StringBuilder();
-		String prefix = "";
-		if (brokers != null) {
-			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-				BrokerModel broker = (BrokerModel) iterator.next();
-				cash.append(prefix);
-				prefix = ",";
-				cash.append(broker.getCashBalanceJSONText());
+		return brokerCashBalancesJSON.toString();
+	}
 
-			}
-
-			return cash.toString();
-		} else
-			return "";
+	public void setBrokerCashBalancesJSON(JSONArray brokerCashBalancesJSON) {
+		this.brokerCashBalancesJSON = brokerCashBalancesJSON;
 	}
 
 	public String getSubscriptionsPieChartJSONText() {
-		JSONArray marketShare = new JSONArray();
-		if (brokers != null) {
-			for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-				BrokerModel broker = (BrokerModel) iterator.next();
-				marketShare.put(broker.getCustomerCount());
-			}
-			return marketShare.toString();
-		} else
-			return null;
+		return subscriptionsPieChartJSON.toString();
+	}
+
+	public void setSubscriptionsPieChartJSON(JSONArray subscriptionsPieChartJSON) {
+		this.subscriptionsPieChartJSON = subscriptionsPieChartJSON;
 	}
 
 	public String getBrokerSeriesColors() {
 		return brokerSeriesColors;
 	}
+
+	public void setFirstTimeslot(Instant firstTimeslot) {
+		this.firstTimeslot = firstTimeslot;
+	}
+
+	public Instant getFirstTimeslot() {
+		return firstTimeslot;
+	}
+
+	/**
+	 * Shallow copy of brokers collection.
+	 * 
+	 * @return
+	 */
+	public List<BrokerModel> getBrokersClone() {
+		List<BrokerModel> brokersClone = new ArrayList<BrokerModel>(brokers.size());
+		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
+			BrokerModel brokerModel = (BrokerModel) iterator.next();
+			brokersClone.add(brokerModel);
+		}
+		return brokersClone;
+	}
+
+	public DayOverview getDayOverview() {
+		return dayOverview;
+	}
+	
+	public void setDayOverview(DayOverview dayOverview) {
+		this.dayOverview = dayOverview;
+	}
+
 }

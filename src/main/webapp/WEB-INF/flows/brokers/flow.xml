@@ -5,12 +5,11 @@
 	parent="parent-flow">
 
 	<!-- Also see ../parent-flow.xml. -->
-
-
-
-
-
-
+	
+	<on-start>
+	<evaluate expression="visualizerBean.getBrokersClone()" result="conversationScope.brokersClone"></evaluate>
+	</on-start>
+	
 	<view-state id="view">
 
 	<on-render>

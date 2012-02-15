@@ -87,14 +87,21 @@ public class CustomerModel {
 
 	private void updateEnergy(double kWh) {
 
-		energyProduction += kWh;
-
+		if (kWh > 0) {
+			energyProduction += kWh;
+		} else {
+			energyConsumption += kWh;
+		}
 		log.info("\n energy consumption:" + energyConsumption + " energy production:" + energyProduction);
 	}
 
 	private void updateCash(double charge) {
 
-		cashOutflow += charge;
+		if (charge > 0) {
+			cashInflow += charge;
+		} else {
+			cashOutflow += charge;
+		}
 		log.info("\n CashInflow:" + cashInflow + " CashOutflow:" + cashOutflow);
 	}
 
@@ -118,7 +125,7 @@ public class CustomerModel {
 		return cashOutflow;
 	}
 
-	public synchronized double getCashBalance() {
+	public synchronized double getTotalCash() {
 		return cashInflow + cashOutflow;
 	}
 
@@ -130,15 +137,19 @@ public class CustomerModel {
 		return energyProduction;
 	}
 
-	public synchronized double getEnergyBalance() {
+	public synchronized double getTotalEnergy() {
 		return energyProduction + energyConsumption;
 	}
+	
+	
+	
+	
 
-//	public synchronized double getCustomerShare() {
-//		if (customerInfo.getPopulation() != 0) {
-//			return (100.0)*customerCount / customerInfo.getPopulation();
-//		} else
-//			return 0;
-//	}
+	// public synchronized double getCustomerShare() {
+	// if (customerInfo.getPopulation() != 0) {
+	// return (100.0)*customerCount / customerInfo.getPopulation();
+	// } else
+	// return 0;
+	// }
 
 }

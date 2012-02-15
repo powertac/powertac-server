@@ -21,18 +21,20 @@ import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.Helper;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
+import org.primefaces.model.chart.BubbleChartModel;
+import org.primefaces.model.chart.BubbleChartSeries;
 import org.primefaces.model.chart.CartesianChartModel;
 import org.primefaces.model.chart.ChartSeries;
 import org.primefaces.model.chart.LineChartSeries;
 import org.primefaces.model.chart.MeterGaugeChartModel;
 
-public class BrokerModel implements VisualBroker {
+public class BrokerModel implements VisualBroker, DisplayableBroker {
 
 	Logger log = Logger.getLogger(BrokerModel.class);
 	// basic
 	private String name;
 	private Appearance appearance;
-	private int currentTimeslotIndex = -1;
+	private int currentTimeslotIndex = 0;
 	private String id;
 	private String fakeChart;
 	// customers
@@ -40,20 +42,36 @@ public class BrokerModel implements VisualBroker {
 	// balance
 	private double cashBalance;
 	private double energyBalance; // kWh
+	private HashMap<Integer, DayState> dayStates = new HashMap<Integer, DayState>();
+	//
+	private DayState currentDayState;
+	private DayState displayableDayState;
 
 	private List<TariffSpecification> tariffSpecifications;
 	private List<TariffTransaction> tariffTransactions;
 	private List<BalancingTransaction> balancingTransactions;
 	// customers
 	private Set<CustomerModel> customerModels;
+	private JSONArray customersBubbleJson;
 	// JSON:
+	// hourly values (all timeslots):
 	private JSONArray cashBalanceJson;
 	private JSONArray energyBalanceJson;
-	private String seriesOptions;
-	// array of names for each customer
+	// daily values (end of day values):
+	private JSONArray cashBalanceDailyJson;
+	private JSONArray energyBalanceDailyJson;
+	// daily average values
+	private JSONArray cashBalanceDailyAVGJson;
+	private JSONArray energyBalanceDailyAVGJson;
+	// currentDay values
+	private JSONArray cashBalanceCurrentDayJson;
+	private JSONArray energyBalanceCurrentDayJson;
+
 	private JSONArray customerTicks;
-	// array of broker's share in each customer, in percentages:
-	private JSONArray customerCountByTypes;
+
+	private String seriesOptions;
+
+	// array of names for each customer
 
 	public BrokerModel(String name, Appearance appearance) {
 		this.name = name;
@@ -69,62 +87,48 @@ public class BrokerModel implements VisualBroker {
 		// JSON:
 		cashBalanceJson = new JSONArray();
 		energyBalanceJson = new JSONArray();
-		//
-		// JSONArray point = new JSONArray();
-		// try {
-		// point.put(0).put(0);
-		// cashBalanceJson.put(0, point);
-		// energyBalanceJson.put(0, point);
-		// } catch (JSONException e) {
-		// log.warn("Problems with cashBalance JSON for broker:" + name);
-		// }
+		// daily values (end of day values):
+		cashBalanceDailyJson = new JSONArray();
+		Helper.updateJSON(cashBalanceDailyJson, 0, 0);
+		energyBalanceDailyJson = new JSONArray();
+		Helper.updateJSON(energyBalanceDailyJson, 0, 0);
+		// daily average values
+		cashBalanceDailyAVGJson = new JSONArray();
+		Helper.updateJSON(cashBalanceDailyAVGJson, 0, 0);
+		energyBalanceDailyAVGJson = new JSONArray();
+		Helper.updateJSON(energyBalanceDailyAVGJson, 0, 0);
+
+		// currentDay values
+		cashBalanceCurrentDayJson = new JSONArray();
+		energyBalanceCurrentDayJson = new JSONArray();
+
 		StringBuilder options = new StringBuilder();
 		options.append("{color: '").append(appearance.getColorCode()).append("', label: '").append(name).append("'}");
 		seriesOptions = options.toString();
 		log.info(seriesOptions);
 		customerTicks = new JSONArray();
-		customerCountByTypes = new JSONArray();
-
-		// TODO: delete this line (for testing only!)
-		// customerCount = (int) (Math.random() * 10000);
 
 	}
 
 	public void updateCashBalance(double balance) {
-		this.cashBalance = new BigDecimal(balance).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();;
-		// TODO:JSON
-		updateJSON(cashBalanceJson, currentTimeslotIndex, cashBalance);
-
+		this.cashBalance = new BigDecimal(balance).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
+	/**
+	 * Method for updating energy balance in case broker didn't receive
+	 * balancing transaction
+	 * 
+	 * @param balance
+	 */
 	public void updateEnergyBalance(double balance) {
-		updateJSON(energyBalanceJson, currentTimeslotIndex, energyBalance);
+		this.energyBalance = new BigDecimal(balance).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public void addBalancingTransaction(BalancingTransaction balancingTransaction) {
-		this.energyBalance = new BigDecimal(balancingTransaction.getKWh()).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
-
-		// TODO:JSON
-		updateJSON(energyBalanceJson, currentTimeslotIndex, energyBalance);
-
+		this.energyBalance = new BigDecimal(balancingTransaction.getKWh()).setScale(2, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
 		balancingTransactions.add(balancingTransaction);
-	}
-
-	private void updateJSON(JSONArray array, int x, double y) {
-		int decimal_points=2;
-		
-		JSONArray point = new JSONArray();
-		BigDecimal bd = new BigDecimal(y);
-		bd.setScale(decimal_points, BigDecimal.ROUND_HALF_UP);
-		try {
-			point.put(x).put(bd.doubleValue());
-			array.put(x, point);
-		} catch (JSONException e) {
-			log.warn("Problems with JSON for broker:" + name);
-		}
-
-		log.info(array.toString());
-
+		currentDayState.addBalancingTransaction(balancingTransaction);
 	}
 
 	public void addTariffSpecification(TariffSpecification tariffSpecification) {
@@ -149,26 +153,13 @@ public class BrokerModel implements VisualBroker {
 		// manage customer count
 		int customerCount = Helper.getCustomerCount(tariffTransaction);
 		this.customerCount += customerCount;
-		if (customerCount != 0) {
-			// broker's portfolio is changed
-			buildCustomerCountByTypes();
-		}
 
-	}
-
-	private void buildCustomerCountByTypes() {
-		customerCountByTypes = new JSONArray();
-		for (Iterator iterator = customerModels.iterator(); iterator.hasNext();) {
-			CustomerModel customerModel = (CustomerModel) iterator.next();
-			
-				customerCountByTypes.put(customerModel.getCustomerCount());
-		}
+		currentDayState.addTariffTransaction(tariffTransaction);
 
 	}
 
 	public void setCustomerModels(Set<CustomerModel> customerModels) {
 		this.customerModels = customerModels;
-		buildCustomerCountByTypes();
 		buildCustomerTicks();
 	}
 
@@ -203,15 +194,88 @@ public class BrokerModel implements VisualBroker {
 	}
 
 	public void setCurrentTimeslotIndex(int currentTimeslotIndex) {
+		final int DAY_FIX = 1; // to avoid array-like displaying of days (day
+								// one should be 1, not 0)
+
+		int newDay = currentTimeslotIndex / 24 + DAY_FIX;
+		int oldDay = this.currentTimeslotIndex / 24 + DAY_FIX;
+		// if dayState for the specified day not exists:
+		if (!dayStates.containsKey(newDay)) {
+
+			// create new daystate:
+			currentDayState = new DayState(newDay, this);
+			dayStates.put(newDay, currentDayState);
+
+			// setup new currentDay JSON Arrays:
+			cashBalanceCurrentDayJson = currentDayState.getDayCashBalancesJson();
+			energyBalanceCurrentDayJson = currentDayState.getDayEnergyBalancesJson();
+		}
+		// add cashbalance and energybalance:
+		int hour = currentTimeslotIndex % 24;
+		currentDayState.addTimeslotValues(hour, cashBalance, energyBalance);
+
+		// JSON:
+		// all timeslots:
+		Helper.updateJSON(cashBalanceJson, currentTimeslotIndex, cashBalance);
+		Helper.updateJSON(energyBalanceJson, currentTimeslotIndex, energyBalance);
+		// daily action:
+		if (currentTimeslotIndex % 24 == 0) {
+			// average:
+			Helper.updateJSON(cashBalanceDailyAVGJson, oldDay, dayStates.get(oldDay).getAvgCashBalance());
+			Helper.updateJSON(energyBalanceDailyAVGJson, oldDay, dayStates.get(oldDay).getAvgEnergyBalance());
+			// end of day values:
+			Helper.updateJSON(cashBalanceDailyJson, oldDay, cashBalance);
+			Helper.updateJSON(energyBalanceDailyJson, oldDay, energyBalance);
+
+			// make oldDay state displayable, but only if currentTimeslotIndex
+			// is not 0 (because we have nothing to show yet)
+			if (currentTimeslotIndex != 0) {
+				displayableDayState = dayStates.get(oldDay);
+			}
+		}
+
+		buildCustomersBubble();
+
+		// now update:
 		this.currentTimeslotIndex = currentTimeslotIndex;
+	}
+
+	/**
+	 * Builds customers bubble JSON Array. Visibility is set to public to enhance testability.
+	 */
+	public void buildCustomersBubble() {
+		// create new customer bubble JSON:
+		JSONArray newCustomersBubbleJSONArray = new JSONArray();
+		for (Iterator<CustomerModel> iterator = customerModels.iterator(); iterator.hasNext();) {
+			JSONArray customerBubbleJson = new JSONArray();
+			CustomerModel customer = (CustomerModel) iterator.next();
+
+			customerBubbleJson.put((int) customer.getTotalCash()).put((int) customer.getTotalEnergy())
+					.put(customer.getCustomerCount()).put(customer.getCustomerInfo().getName());
+			newCustomersBubbleJSONArray.put(customerBubbleJson);
+		}
+		customersBubbleJson = newCustomersBubbleJSONArray;
+
 	}
 
 	public double getCashBalance() {
 		return cashBalance;
 	}
 
+	public void setCashBalance(double cashBalance) {
+		this.cashBalance = cashBalance;
+	}
+
 	public double getEnergyBalance() {
 		return energyBalance;
+	}
+
+	public void setEnergyBalance(double energyBalance) {
+		this.energyBalance = energyBalance;
+	}
+
+	public DayState getDisplayableDayState() {
+		return displayableDayState;
 	}
 
 	public long getOfferedTarrifsCount() {
@@ -232,6 +296,10 @@ public class BrokerModel implements VisualBroker {
 
 	public Set<CustomerModel> getCustomerModels() {
 		return customerModels;
+	}
+
+	public HashMap<Integer, DayState> getDayStates() {
+		return dayStates;
 	}
 
 	public String getId() {
@@ -266,6 +334,73 @@ public class BrokerModel implements VisualBroker {
 
 	}
 
+	// daily values:
+	public JSONArray getCashBalanceDailyJson() {
+		return cashBalanceDailyJson;
+	}
+
+	public String getCashBalanceDailyJsonText() {
+		return cashBalanceDailyJson.toString();
+	}
+
+	public JSONArray getEnergyBalanceDailyJson() {
+		return energyBalanceDailyJson;
+	}
+
+	public String getEnergyBalanceDailyJsonText() {
+		return energyBalanceDailyJson.toString();
+	}
+
+	// daily average values:
+	public JSONArray getCashBalanceDailyAVGJson() {
+		return cashBalanceDailyAVGJson;
+	}
+
+	public String getCashBalanceDailyAVGJsonText() {
+		return cashBalanceDailyAVGJson.toString();
+	}
+
+	public void setCashBalanceDailyAVGJson(JSONArray cashBalanceDailyAVGJson) {
+		this.cashBalanceDailyAVGJson = cashBalanceDailyAVGJson;
+	}
+
+	public JSONArray getEnergyBalanceDailyAVGJson() {
+		return energyBalanceDailyAVGJson;
+	}
+
+	public String getEnergyBalanceDailyAVGJsonText() {
+		return energyBalanceDailyAVGJson.toString();
+	}
+
+	public void setEnergyBalanceDailyAVGJson(JSONArray energyBalanceDailyAVGJson) {
+		this.energyBalanceDailyAVGJson = energyBalanceDailyAVGJson;
+	}
+
+	// current day values:
+	public JSONArray getCashBalanceCurrentDayJson() {
+		return cashBalanceCurrentDayJson;
+	}
+
+	public String getCashBalanceCurrentDayJsonText() {
+		return cashBalanceCurrentDayJson.toString();
+	}
+
+	public void setCashBalanceCurrentDayJson(JSONArray cashBalanceCurrentDayJson) {
+		this.cashBalanceCurrentDayJson = cashBalanceCurrentDayJson;
+	}
+
+	public JSONArray getEnergyBalanceCurrentDayJson() {
+		return energyBalanceCurrentDayJson;
+	}
+
+	public String getEnergyBalanceCurrentDayJsonText() {
+		return energyBalanceCurrentDayJson.toString();
+	}
+
+	public void setEnergyBalanceCurrentDayJson(JSONArray energyBalanceCurrentDayJson) {
+		this.energyBalanceCurrentDayJson = energyBalanceCurrentDayJson;
+	}
+
 	public String getSeriesOptions() {
 		return seriesOptions;
 	}
@@ -278,7 +413,12 @@ public class BrokerModel implements VisualBroker {
 		return customerTicks.toString();
 	}
 
-	public String getCustomerCountByTypesJSONText() {
-		return customerCountByTypes.toString();
+	public DayState getCurrentDayState() {
+		return currentDayState;
 	}
+
+	public String getCustomersBubbleJsonText() {
+		return customersBubbleJson.toString();
+	}
+
 }

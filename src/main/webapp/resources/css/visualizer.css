@@ -1,0 +1,26 @@
+.ui-widget,.ui-widget .ui-widget {
+	font-size: 95% !important;
+}
+
+/*custom layout unit for Visualizer logo. Header should not be visible.*/
+.custom .ui-layout-unit-header {
+	font-size: 0%;
+	border: 0px solid #d4ccb0
+}
+
+.ui-ring-item {
+	height: "200px";
+	width: "300px";
+	cursor: pointer;
+}
+/*centered no border*/
+.tableBrokersPanel.ui-panel{
+	margin-left: auto;
+	margin-right: auto;
+	width:500px;
+	border: 0;
+}
+
+.noBorderPanel.ui-panel{
+	border:0;
+}

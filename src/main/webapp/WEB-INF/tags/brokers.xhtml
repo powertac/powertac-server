@@ -1,50 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
 
 
 <h:body>
 	<ui:fragment>
 
-		<ui:repeat var="broker" value="#{visualizerBean.brokers}">
+		<ui:repeat var="broker" value="#{brokersClone}">
 			<script type="text/javascript">
 	var cashChart#{broker.id}=null;
 	var energyChart#{broker.id}=null;
 	var customerSharesBarhChart#{broker.id}=null;
+	
+	var cashLineChartDaily#{broker.id}=null;
+	var energyLineChartDaily#{broker.id}=null;
+	
+	var cashLineChartDailyAVG#{broker.id}=null;
+	var energyLineChartDailyAVG#{broker.id}=null;
+	
+	var cashLineChartCurrentDay#{broker.id}=null;
+	var energyLineChartCurrentDay#{broker.id}=null;
+	
+	var customersBubble#{broker.id}=null;
+	
 	</script>
 		</ui:repeat>
 
-		<p:tabView id="tabBrokers" var="broker" value="#{visualizerBean.brokers}" dynamic="true" cache="true">
+
+		<p:tabView id="tabBrokers" var="broker" value="#{brokersClone}"
+			dynamic="true" cache="true">
 
 			<p:tab title="#{broker.name}">
 
 				<h:panelGrid columns="3" cellpadding="10">
-					<p:graphicImage value="${broker.appearance.iconLocation}" width="85" height="85" />
-
+					<p:graphicImage value="${broker.appearance.iconLocation}"
+						width="85" height="85" />
 					<h:panelGrid columns="2" cellpadding="10">
-						<h:outputText value="Name: " />
-						<h:outputText value="#{broker.name}" style="font-weight: bold" />
-
 						<h:outputText value="Cash balance: " />
-						<h:outputText value="#{broker.cashBalance}" style="font-weight: bold" />
+						<h:outputText value="#{broker.cashBalance} &euro;"
+							style="font-weight: bold" />
 
 						<h:outputText value="Energy balance: " />
-						<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
+						<h:outputText value="#{broker.energyBalance} kWh"
+							style="font-weight: bold" />
 
-						<h:outputText value="Customer count: " />
-						<h:outputText value="#{broker.customerCount}" style="font-weight: bold" />
-
-
-
-
+						<h:outputText value="Subscription count: " />
+						<h:outputText value="#{broker.customerCount}"
+							style="font-weight: bold" />
 					</h:panelGrid>
 
 				</h:panelGrid>
-				<!-- Cash line chart for a specific broker -->
-				<div id="cashChart#{broker.id}" style="width: 700px; height: 250px"></div>
 
-				<script type="text/javascript">
+				<p:tabView dynamic="true" cache="true">
+					<p:tab title="Cash">
+
+						<p:panel rendered="#{selectedBrokerChartsBean.allTimeslots}">
+							<!-- Cash line chart for a specific broker (all timeslots)-->
+							<div id="cashChart#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
 				
 		 			if (window.cashChart#{broker.id}!=null) {
 						window.cashChart#{broker.id}.destroy();					
@@ -58,7 +76,67 @@
 						            label: "timeslot",
 						            pad: 0},
 						    yaxis: {
-						            label: "cash"}},
+						            label: "cash/&euro;"}},
+						seriesDefaults: {
+							showMarker: false
+						},
+						
+						series:[#{broker.seriesOptions}],
+						
+						}); 
+					</script>
+						</p:panel>
+
+						<!--....................................................... DAILY VALUES .................................... -->
+						<p:panel rendered="#{selectedBrokerChartsBean.dailyValues}">
+							<!-- Cash line chart for a specific broker (end of day values)-->
+							<div id="cashLineChartDaily#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.cashLineChartDaily#{broker.id}!=null) {
+						window.cashLineChartDaily#{broker.id}.destroy();					
+					}
+					window.cashLineChartDaily#{broker.id} = $.jqplot('cashLineChartDaily#{broker.id}', [ #{broker.cashBalanceDailyJsonText} ],{
+						title: 'Daily Cash balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "day",
+						            pad: 0},
+						    yaxis: {
+						            label: "cash/&euro;"}},
+						seriesDefaults: {
+							showMarker: false
+						},
+						
+						series:[#{broker.seriesOptions}],
+						
+						}); 
+					</script>
+						</p:panel>
+
+						<!--....................................................... DAILY AVG VALUES .................................... -->
+						<p:panel rendered="#{selectedBrokerChartsBean.dailyAVGValues}">
+							<!-- Cash line chart for a specific broker (24 timeslot average value)-->
+							<div id="cashLineChartDailyAVG#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.cashLineChartDailyAVG#{broker.id}!=null) {
+						window.cashLineChartDailyAVG#{broker.id}.destroy();					
+					}
+					window.cashLineChartDailyAVG#{broker.id} = $.jqplot('cashLineChartDailyAVG#{broker.id}', [ #{broker.cashBalanceDailyAVGJsonText} ],{
+						title: 'Daily Average Cash balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "day",
+						            pad: 0},
+						    yaxis: {
+						            label: "cash/&euro;"}},
 						seriesDefaults: {
 							showMarker: false
 						},
@@ -68,9 +146,45 @@
 						}); 
 					</script>
 
-				<!-- Energy chart for a specific broker -->
-				<div id="energyChart#{broker.id}" style="width: 700px; height: 250px"></div>
-				<script type="text/javascript">
+						</p:panel>
+
+						<p:panel rendered="#{selectedBrokerChartsBean.currentDayValues}">
+							<!-- Cash line chart for a specific broker (Current day)-->
+							<div id="cashLineChartCurrentDay#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.cashLineChartCurrentDay#{broker.id}!=null) {
+						window.cashLineChartCurrentDay#{broker.id}.destroy();					
+					}
+					window.cashLineChartCurrentDay#{broker.id} = $.jqplot('cashLineChartCurrentDay#{broker.id}', [ #{broker.cashBalanceCurrentDayJsonText} ],{
+						title: 'Current Day Cash balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "cash/&euro;"}},
+						seriesDefaults: {
+							showMarker: false
+						},
+						
+						series:[#{broker.seriesOptions}],
+						
+						}); 
+					</script>
+						</p:panel>
+
+					</p:tab>
+
+					<p:tab title="Energy">
+						<p:panel rendered="#{selectedBrokerChartsBean.allTimeslots}">
+							<!-- Energy chart for a specific broker (all timeslots) -->
+							<div id="energyChart#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
 				
 		 			if (window.energyChart#{broker.id}!=null) {
 						window.energyChart#{broker.id}.destroy();
@@ -92,58 +206,170 @@
 						
 						}); 
 				</script>
+						</p:panel>
 
-				<!--  -->
-				<div id="customerSharesBarhChart#{broker.id}" style="width: 1500px; height: 250px"></div>
-				<script type="text/javascript">
+						<!--....................................................... DAILY VALUES .................................... -->
+						<p:panel rendered="#{selectedBrokerChartsBean.dailyValues}">
+							<!-- Energy chart for a specific broker (end of day values) -->
+							<div id="energyLineChartDaily#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
 				
-		 			if (window.customerSharesBarhChart#{broker.id}!=null) {
-						window.customerSharesBarhChart#{broker.id}.destroy();
+		 			if (energyLineChartDaily#{broker.id}!=null) {
+						window.energyLineChartDaily#{broker.id}.destroy();
 						}
-		 				 		     
-		 		    window.customerSharesBarhChart#{broker.id} = $.jqplot('customerSharesBarhChart#{broker.id}', [#{broker.customerCountByTypesJSONText}], {
-		 		        // The "seriesDefaults" option is an options object that will
-		 		        // be applied to all series in the chart.
-		 		        title: 'Customer count for each customer type',
-		 		        seriesDefaults:{
-		 		            renderer:$.jqplot.BarRenderer,
-		 		            rendererOptions: {fillToZero: true	}
-		 		        },
-		 		        series:[
-		 		            {label:'Count'}		 		         
-		 		        ],
-		 		        legend: {
-		 		            show: true,
-		 		            placement: 'outsideGrid'
-		 		        },
-		 		        axes: {
-		 		            // Use a category axis on the x axis and use our custom ticks.
-		 		            xaxis: {
-		 		                renderer: $.jqplot.CategoryAxisRenderer,
-		 		                ticks: #{broker.customerTicksJSONText}
-		 		               
-		 		            },
-		 		            // Pad the y axis just a little so bars can get close to, but
-		 		            // not touch, the grid boundaries.  1.2 is the default padding.
-		 		            yaxis: {
-		 		                pad: 1.05,
-		 		               label: "count",
-		 		               min : 0
-		 		               
-		 		            }
-		 		        }
-		 		    });
-		 		    
-		 		   </script>
-		 		   <p:barChart rendered="false" value="fake" xaxisAngle="30"/>
-		 		   
-		 		   <p:panel>
-		 		   <h:outputText value="debug output:    shares: #{broker.customerCountByTypesJSONText} ticks: #{broker.customerTicksJSONText}"/>
-		 		   </p:panel>
+					window.energyLineChartDaily#{broker.id} = $.jqplot('energyLineChartDaily#{broker.id}', [ #{broker.energyBalanceDailyJsonText} ],{
+						title: 'Daily Energy balance', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "day",
+						            pad: 0},
+						    yaxis: {
+						            label: "energy/kWh"}},
+						seriesDefaults: {
+										showMarker: false
+										},
+						series:[#{broker.seriesOptions}]
+						
+						}); 
+				</script>
+						</p:panel>
+						<!--....................................................... DAILY AVG VALUES .................................... -->
+						<p:panel rendered="#{selectedBrokerChartsBean.dailyAVGValues}">
+							<!-- Energy chart for a specific broker (24 timeslot average value) -->
+							<div id="energyLineChartDailyAVG#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 						if (energyLineChartDailyAVG#{broker.id}!=null) {
+								window.energyLineChartDailyAVG#{broker.id}.destroy();
+								}
+								window.energyLineChartDailyAVG#{broker.id} = $.jqplot('energyLineChartDailyAVG#{broker.id}', [ #{broker.energyBalanceDailyAVGJsonText} ],{
+									title: 'Daily Average Energy balance', 
+									axesDefaults: {
+						    		    labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+										axes: {
+											xaxis: {
+						 			           label: "day",
+						        			    pad: 0},
+						  				    yaxis: {
+						         			   label: "energy/kWh"}},
+									    	seriesDefaults: {
+												showMarker: false
+											},
+										series:[#{broker.seriesOptions}]
+						
+									}); 
+							</script>
+						</p:panel>
+
+						<!--....................................................... Current day VALUES .................................... -->
+						<p:panel rendered="#{selectedBrokerChartsBean.currentDayValues}">
+							<!-- Energy chart for a specific broker (24 timeslot average value) -->
+							<div id="energyLineChartCurrentDay#{broker.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 						if (energyLineChartCurrentDay#{broker.id}!=null) {
+								window.energyLineChartCurrentDay#{broker.id}.destroy();
+								}
+								window.energyLineChartCurrentDay#{broker.id} = $.jqplot('energyLineChartCurrentDay#{broker.id}', [ #{broker.energyBalanceCurrentDayJsonText} ],{
+								title: 'Current Day Energy balance', 
+								axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+								axes: {
+									xaxis: {
+						        	    label: "timeslot",
+						            	pad: 0},
+						 	   		yaxis: {
+							       		label: "energy/kWh"}},
+									seriesDefaults: {
+										showMarker: false
+										},
+								series:[#{broker.seriesOptions}]
+						
+								}); 
+							</script>
+						</p:panel>
+					</p:tab>
+
+					<p:tab title="Customers">
+
+
+						<table style="margin-left: auto; margin-right: auto;">
+							<tr>
+								<td>
+									<!-- Customers bubble chart for a specific broker  -->
+									<div id="customersBubble#{broker.id}"
+										style="width: 750px; height: 450px" />
+								</td>
+								<td><div style="height: 340px;">
+										<table id="customersBubbleTable#{broker.id}" class="bubbleTable">
+											<tr>
+												<th>Customer</th>
+												<th>Subscription count</th>
+												<th>Total energy [kWh]</th>
+												<th>Total cash [&euro;]</th>
+											</tr>
+										</table>
+									</div></td>
+							</tr>
+						</table>
+
+						<script type="text/javascript">
+				
+		 						if (customersBubble#{broker.id}!=null) {
+								window.customersBubble#{broker.id}.destroy();
+								}
+		 						var arr = #{broker.customersBubbleJsonText};                                          
+                                           
+								window.customersBubble#{broker.id} = $.jqplot('customersBubble#{broker.id}',[arr],{
+								                                                            title: 'Customers',
+								                                                            seriesDefaults:{
+								                                                              renderer: $.jqplot.BubbleRenderer,
+								                                                              rendererOptions: {
+								                                                                bubbleAlpha: 0.6,
+								                                                                highlightAlpha: 0.8,
+								                                                                showLabels: true
+								                                                              },
+								                                                              shadow: true,
+								                                                              shadowAlpha: 0.05
+								                                                            },
+								                                                            axes:{
+								                                                                xaxis:{
+								                                                                  label:'cash/&euro;',
+								                                                                  labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+								                                                                },
+								                                                                yaxis:{
+								                                                                  label:'energy/kWh',
+								                                                                  labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+								                                                                }
+								                                                              }
+								                                                          });
+								 $.each(arr, function(index, val) {
+									    $('#customersBubbleTable#{broker.id}').append('<tr><td>'+val[3]+'</td><td>'+val[2]+'</td><td>'+val[1]+'</td><td>'+val[0]+'</td></tr>');
+									  });
+								 
+								 
+							
+								 
+								
+								
+								
+							</script>
+
+					</p:tab>
+
+				</p:tabView>
 
 
 
 
+
+
+				<p:bubbleChart rendered="false"  xaxisAngle="30" />
 
 
 

@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -109,9 +110,8 @@ public class WebCompetitionControlService {
 			serverProps = (ServerPropertiesService) context.getBeansOfType(ServerProperties.class).values().toArray()[0];
 
 			// set user config
-			String testPropertiesPath = resourceLoader.getResource("WEB-INF/config/test.properties").getFile()
-					.getCanonicalPath();
-
+			URL testPropertiesPath = resourceLoader.getResource("WEB-INF/config/test.properties").getURL();
+			
 			serverProps.setUserConfig(testPropertiesPath);
 
 			// UPDATE FOR NEW SIMULATOR VERSION
@@ -125,11 +125,13 @@ public class WebCompetitionControlService {
 			if (!bootFile.canRead()) {
 				System.out.println("Cannot read bootstrap data file " + bootstrapFilename);
 			} else {
-				cc.init();
 				// collect broker names, hand to CC for login control
 				ArrayList<String> brokerList = new ArrayList<String>();
 				brokerList.add("Sample");
 				cc.setAuthorizedBrokerList(brokerList);
+				
+				cc.init();
+				
 
 				if (preGame(bootFile)) {
 					cc.setBootstrapDataset(processBootDataset(bootFile));
@@ -155,18 +157,14 @@ public class WebCompetitionControlService {
 	class CompetitionStartThread implements Runnable {
 
 		public void run() {
-			try {
 				
 				simRunning = true;
 				cc.runOnce(false);
 				context.close();
 				simRunning = false;
 				// start new competition
-				runSim();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			//runSim();
+			
 		}
 
 	}

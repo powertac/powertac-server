@@ -15,8 +15,11 @@ import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.BrokerModel;
 import org.powertac.visualizer.domain.CustomerModel;
+import org.powertac.visualizer.domain.DayOverview;
+import org.powertac.visualizer.domain.DayState;
 import org.powertac.visualizer.domain.GencoModel;
 import org.powertac.visualizer.domain.VisualBroker;
+import org.primefaces.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -113,8 +116,12 @@ public class VisualizerMessageHandlerHelperService {
 	}
 
 	public int computeRelativeTimeslotIndex(Instant timeslot) {
-		int timeslotIndex = visualizerBean.getCompetition().computeTimeslotIndex(timeslot);
-		return timeslotIndex-visualizerBean.getFirstTimeslotIndex();
+//		int timeslotIndex = visualizerBean.getCompetition().computeTimeslotIndex(timeslot);
+//		return timeslotIndex-visualizerBean.getFirstTimeslotIndex();
+//	}
+		long millisDifference = timeslot.getMillis()-visualizerBean.getFirstTimeslot().getMillis();
+		long numberOfHours = millisDifference / (1000*60*60);
+		return (int) numberOfHours; //<- will be a relative number of timeslots.
 	}
 
 	public void updateTimeslotIndex(int relativeTimeslotIndex) {
@@ -129,6 +136,43 @@ public class VisualizerMessageHandlerHelperService {
 			GencoModel gencoModel = (GencoModel) iterator.next();
 			gencoModel.setCurrentTimeslotIndex(relativeTimeslotIndex);
 		}
+	}
+
+	public void updateGlobalCharts() {
+
+		//cash lineChart:
+		JSONArray cashChartArray = new JSONArray();
+		//subscription pieChart:
+		JSONArray customerCountArray = new JSONArray();
+		
+		
+		if (visualizerBean.getBrokers() != null) {
+			for (Iterator iterator = visualizerBean.getBrokers().iterator(); iterator.hasNext();) {
+				BrokerModel broker = (BrokerModel) iterator.next();
+				customerCountArray.put(broker.getCustomerCount());
+				cashChartArray.put(broker.getCashBalanceJson());
+			}
+			visualizerBean.setSubscriptionsPieChartJSON(customerCountArray);
+			visualizerBean.setBrokerCashBalancesJSON(cashChartArray);
+		} 
+
+		
+	}
+
+	/**
+	 * Builds day overview object for VisualizerBean. Should be called after visualizerBean and brokers have been informed about the new timeslot index.
+	 */
+	public void buildDayOverview() {
+		//build displayable dayStates list:
+		ArrayList<DayState> dayStates = new ArrayList<DayState>();
+		for (Iterator<BrokerModel> iterator = visualizerBean.getBrokers().iterator(); iterator.hasNext();) {
+			BrokerModel broker = (BrokerModel) iterator.next();
+			dayStates.add(broker.getDisplayableDayState());
+		}
+		int day = visualizerBean.getRelativeTimeslotIndex()/24;
+		
+		visualizerBean.setDayOverview(new DayOverview(dayStates,day));	
+		
 	}
 	
 	

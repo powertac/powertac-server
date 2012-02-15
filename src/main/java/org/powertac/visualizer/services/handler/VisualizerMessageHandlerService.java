@@ -1,5 +1,6 @@
 package org.powertac.visualizer.services.handler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -28,6 +29,8 @@ import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.BrokerModel;
+import org.powertac.visualizer.domain.DayOverview;
+import org.powertac.visualizer.domain.DayState;
 import org.powertac.visualizer.domain.GencoModel;
 import org.powertac.visualizer.domain.VisualBroker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,11 +85,24 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
 		visualizerBean.setTimeslotUpdate(timeslotUpdate);
-		visualizerBean.getCompetition().computeTimeslotIndex(timeslotUpdate.getPostedTime());
-		visualizerBean.setTimeslotIndex(visualizerBean.getCompetition().computeTimeslotIndex(
-				timeslotUpdate.getPostedTime()));
+		
+		//for first timeslot:
+		if(visualizerBean.getFirstTimeslot()==null)
+			visualizerBean.setFirstTimeslot(timeslotUpdate.getPostedTime());
+		
 		int relativeTimeslotIndex = helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
+		//for all brokers and gencos:
 		helper.updateTimeslotIndex(relativeTimeslotIndex);
+		//update for visualizerBean:
+		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
+		
+		//new day? if so, make new day overview:
+		if(relativeTimeslotIndex!=0 && relativeTimeslotIndex % 24 == 0){
+				helper.buildDayOverview();			
+		}
+		
+		//update global charts each timeslot:
+		helper.updateGlobalCharts();
 
 		log.info("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
 	}
