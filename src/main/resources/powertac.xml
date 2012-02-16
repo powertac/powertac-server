@@ -79,7 +79,7 @@
   <bean id="householdCustomerService"
         class="org.powertac.householdcustomer.HouseholdCustomerService">
     <property name="timeslotPhase" value="2" />
-    <property name="configFile" value="../household-customer/src/main/resources/Household.properties" />
+    <!-- <property name="configFile" value="../household-customer/src/main/resources/Household.properties" />  -->
   </bean>
   
   <bean id="factoredCustomerService"
