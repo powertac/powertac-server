@@ -134,6 +134,7 @@ public class BrokerModel implements VisualBroker, DisplayableBroker {
 	public void addTariffSpecification(TariffSpecification tariffSpecification) {
 		tariffSpecifications.add(tariffSpecification);
 		log.info("\n" + name + ": my tariffSpec: +\n" + tariffSpecification.toString());
+		currentDayState.addTariffSpecification(tariffSpecification);
 	}
 
 	public void addTariffTransaction(TariffTransaction tariffTransaction) {

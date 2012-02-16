@@ -81,15 +81,18 @@ public class DayState {
 		
 		switch (tariffTransaction.getTxType()) {
 		case SIGNUP:
-			signupCustomersCount += tariffTransaction.getCustomerCount();			
+			signupCustomersCount += tariffTransaction.getCustomerCount();	
+			break;
 		case REVOKE:
 		case WITHDRAW:		
 			withdrawCustomersCount += tariffTransaction.getCustomerCount();
+			break;
 		case CONSUME:
 		case PERIODIC:
 		case PRODUCE:
 		case PUBLISH:
 		default:
+			break;
 		}
 		
 		
@@ -101,7 +104,7 @@ public class DayState {
 		totalBalancingCharge+=new BigDecimal(balancingTransaction.getCharge()).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		totalBalancingCharge=new BigDecimal(totalBalancingCharge).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		
-		totalBalancingKWh+=new BigDecimal(balancingTransaction.getCharge()).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+		totalBalancingKWh+=new BigDecimal(balancingTransaction.getKWh()).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		totalBalancingKWh=new BigDecimal(totalBalancingKWh).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
