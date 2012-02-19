@@ -228,6 +228,7 @@ public class RateTests
         // applies from 6:00-8:00
         .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
         .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
+        .withMaxCurtailment(0.4)
         .withTierThreshold(100.0);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     Instant now = timeService.getCurrentTime();
@@ -250,6 +251,7 @@ public class RateTests
     assertNotNull("deserialized something", xr);
     ReflectionTestUtils.setField(xr, "timeService", timeService);
     assertEquals("correct value", 0.10, xr.getValue(), 1e-6);
+    assertEquals("correct curtailment", 0.4, xr.getMaxCurtailment(), 1e-6);
     assertEquals("correct tier threshold", 100.0, xr.getTierThreshold(), 1e-6);
     assertEquals("correct value tomorrow at 6:00", 0.22, xr.getValue(now.plus(TimeService.HOUR * 23)), 1e-6);
     assertEquals("correct value tomorrow at 7:00", 0.18, xr.getValue(now.plus(TimeService.HOUR * 24)), 1e-6);
