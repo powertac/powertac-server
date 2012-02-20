@@ -24,10 +24,15 @@ import org.joda.time.Instant;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
+import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Tariff;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerMessageListener;
+import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.factoredcustomer.CustomerFactory.Customer;
@@ -42,128 +47,149 @@ import org.springframework.stereotype.Service;
  * @author Prashant Reddy
  */
 @Service  // allow autowiring
-public class FactoredCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener
+public class FactoredCustomerService
+extends TimeslotPhaseProcessor
+implements InitializationService, BrokerMessageListener, NewTariffListener
 {
-    private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
+  private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
-    @Autowired
-    private TariffMarket tariffMarketService;
+  @Autowired
+  private TariffMarket tariffMarketService;
+  
+  @Autowired
+  private ServerConfiguration serverConfig;
 
-    private String configResource = null;
-    
-    private List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
-    private List<Customer> customers = new ArrayList<Customer>();
-    private CustomerFactory customerFactory = new CustomerFactory();
-        
-    
-    public FactoredCustomerService()
-    {
-        super();
+  @ConfigurableValue(valueType = "String",
+      description = "Resource name for configuration data")
+  private String configResource = null;
+
+  private List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
+  private List<Customer> customers = new ArrayList<Customer>();
+  private CustomerFactory customerFactory = new CustomerFactory();
+
+
+  public FactoredCustomerService()
+  {
+    super();
+  }
+
+  @Override
+  public void setDefaults ()
+  {
+  }
+
+
+  /**
+   * This is called once at the beginning of each game.
+   */
+  @Override
+  public String initialize (Competition competition,
+                            List<String> completedInits)
+  {
+    if (! completedInits.contains("DefaultBroker") ||
+        ! completedInits.contains("TariffMarket")) {
+      log.debug("Waiting for DefaultBroker to initialize");
+      return null;
     }
 
-    /**
-     * This is called once at the beginning of each game by the initialization service. 
-     */
-    void init(PluginConfig config) 
-    {
-        customerProfiles.clear();
-        customers.clear();
+    customerProfiles.clear();
+    customers.clear();
 
-        super.init();
+    super.init();
+    serverConfig.configureMe(this);
 
-        tariffMarketService.registerNewTariffListener(this);
+    tariffMarketService.registerNewTariffListener(this);
 
-        configResource = config.getConfigurationValue("configResource");
-        loadCustomerProfiles(configResource);
-        
-        customerFactory.registerDefaultCreator(FactoredCustomer.getCreator());
-        
-        log.info("Creating factored customers from configuration profiles.");
-        for (CustomerProfile customerProfile: customerProfiles) { 
-            Customer customer = customerFactory.processProfile(customerProfile);
-            if (customer != null) {
-                customers.add(customer);
-            } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
-        }
-        log.info("Successfully initialized factored customers from configuration profiles.");     
+    loadCustomerProfiles(configResource);
+
+    customerFactory.registerDefaultCreator(FactoredCustomer.getCreator());
+
+    log.info("Creating factored customers from configuration profiles.");
+    for (CustomerProfile customerProfile: customerProfiles) { 
+      Customer customer = customerFactory.processProfile(customerProfile);
+      if (customer != null) {
+        customers.add(customer);
+      } else throw new Error("Could not create factored customer for profile: " + customerProfile.name);
     }
+    log.info("Successfully initialized factored customers from configuration profiles.");     
+    return "FactoredCustomer";
+  }
 
-    protected void loadCustomerProfiles(String configResource)
-    {
-        log.info("Attempting to load factored customer profiles from config resource: " + configResource);
-        try {
-            InputStream configStream = ClassLoader.getSystemClassLoader().getResourceAsStream(configResource);
-            
-            DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-            Document doc = docBuilder.parse(configStream);
+  protected void loadCustomerProfiles(String configResource)
+  {
+    log.info("Attempting to load factored customer profiles from config resource: " + configResource);
+    try {
+      InputStream configStream = ClassLoader.getSystemClassLoader().getResourceAsStream(configResource);
 
-            NodeList profileNodes = doc.getElementsByTagName("customer");
-            int numProfiles = profileNodes.getLength();
-            log.info("Loading " + numProfiles + " factored customer profiles.");
-          
-            for (int i = 0; i < numProfiles; ++i) {
-                Element profileElement = (Element) profileNodes.item(i);
-                CustomerProfile profile = new CustomerProfile(profileElement);
-                customerProfiles.add(profile);
-            }
-        } catch (Exception e) {
-            log.error("Error loading factored customer profiles from config resourcee: " + configResource + 
-                      "; exception = " + e.toString());
-            throw new Error(e);
-        }
-        log.info("Successfully loaded factored customer profiles.");
-    }
+      DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(configStream);
 
-    /**
-     * @Override @code{NewTariffListener}
-     **/
-    public void publishNewTariffs(List<Tariff> tariffs)
-    {
-        for (Customer customer : customers) {
-            customer.handleNewTariffs(tariffs);
-        }
-    }
+      NodeList profileNodes = doc.getElementsByTagName("customer");
+      int numProfiles = profileNodes.getLength();
+      log.info("Loading " + numProfiles + " factored customer profiles.");
 
-    /**
-     * @Override @code{TimeslotPhaseProcessor}
-     */
-    public void activate(Instant now, int phase)
-    {
-        for (Customer customer : customers) {
-            customer.handleNewTimeslot();
-        }
+      for (int i = 0; i < numProfiles; ++i) {
+        Element profileElement = (Element) profileNodes.item(i);
+        CustomerProfile profile = new CustomerProfile(profileElement);
+        customerProfiles.add(profile);
+      }
+    } catch (Exception e) {
+      log.error("Error loading factored customer profiles from config resourcee: " + configResource + 
+                "; exception = " + e.toString());
+      throw new Error(e);
     }
+    log.info("Successfully loaded factored customer profiles.");
+  }
 
-    /**
-     * @Override @code{BrokerMessageListener}
-     */
-    public void receiveMessage(Object msg)
-    {
-        // Implement per-message behavior here. Note that incoming messages
-        // from brokers arrive in a JMS thread, so you need to synchronize
-        // access to shared data structures. See AuctionService for an example.
+  /**
+   * @Override @code{NewTariffListener}
+   **/
+  public void publishNewTariffs(List<Tariff> tariffs)
+  {
+    for (Customer customer : customers) {
+      customer.handleNewTariffs(tariffs);
+    }
+  }
 
-        // If you need to handle a number of different message types, it may
-        // make sense to use a reflection-based dispatcher. Both
-        // TariffMarketService and AccountingService work this way.
-        
-        log.warn("Ignoring received message: " + msg);
+  /**
+   * @Override @code{TimeslotPhaseProcessor}
+   */
+  public void activate(Instant now, int phase)
+  {
+    for (Customer customer : customers) {
+      customer.handleNewTimeslot();
     }
+  }
 
-    String getConfigResource() 
-    {
-        return configResource;
-    }
-    
-    void setConfigResource(String resource) 
-    {
-        configResource = resource;
-    }
-    
-    List<Customer> getCustomers() 
-    {
-        return customers;
-    }
-    
+  /**
+   * @Override @code{BrokerMessageListener}
+   */
+  public void receiveMessage(Object msg)
+  {
+    // Implement per-message behavior here. Note that incoming messages
+    // from brokers arrive in a JMS thread, so you need to synchronize
+    // access to shared data structures. See AuctionService for an example.
+
+    // If you need to handle a number of different message types, it may
+    // make sense to use a reflection-based dispatcher. Both
+    // TariffMarketService and AccountingService work this way.
+
+    log.warn("Ignoring received message: " + msg);
+  }
+
+  String getConfigResource() 
+  {
+    return configResource;
+  }
+
+  void setConfigResource(String resource) 
+  {
+    configResource = resource;
+  }
+
+  List<Customer> getCustomers() 
+  {
+    return customers;
+  }    
 }

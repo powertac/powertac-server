@@ -25,6 +25,12 @@
   <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
   </bean> 	
+  
+  <bean id="serverPropertiesService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>
 
   <context:annotation-config />
 
@@ -62,8 +68,5 @@
         class="org.powertac.factoredcustomer.FactoredCustomerService">
         <property name="timeslotPhase"><value>2</value></property> 
   </bean>
-  
-  <bean id="factoredCustomerInitializationService"
-        class="org.powertac.factoredcustomer.FactoredCustomerInitializationService" />  
             
 </beans>

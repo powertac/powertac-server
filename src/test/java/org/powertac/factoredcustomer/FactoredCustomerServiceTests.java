@@ -22,12 +22,17 @@ import static org.junit.Assert.assertEquals;
 //import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
+
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -40,18 +45,18 @@ import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
+import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
@@ -83,9 +88,6 @@ public class FactoredCustomerServiceTests
     private FactoredCustomerService factoredCustomerService;
 
     @Autowired
-    private FactoredCustomerInitializationService factoredCustomerInitializationService;
-
-    @Autowired
     private TariffRepo tariffRepo;
 
     @Autowired
@@ -102,9 +104,9 @@ public class FactoredCustomerServiceTests
 
     @Autowired
     private RandomSeedRepo randomSeedRepo;
-
+    
     @Autowired
-    private PluginConfigRepo pluginConfigRepo;
+    private ServerConfiguration mockServerProperties;
 
     private Instant exp;
     private Instant now;
@@ -115,6 +117,7 @@ public class FactoredCustomerServiceTests
     private Tariff defaultProductionTariff;
     private Competition comp;
     private List<Object[]> accountingArgs;
+    private Configurator config;
 
     @Before
     public void setUp()
@@ -123,7 +126,6 @@ public class FactoredCustomerServiceTests
         brokerRepo.recycle();
         tariffRepo.recycle();
         tariffSubscriptionRepo.recycle();
-        pluginConfigRepo.recycle();
         randomSeedRepo.recycle();
         timeslotRepo.recycle();
         reset(mockTariffMarket);
@@ -165,16 +167,30 @@ public class FactoredCustomerServiceTests
                 isA(TariffTransaction.Type.class), isA(Tariff.class),
                 isA(CustomerInfo.class), anyInt(), anyDouble(), anyDouble());
 
+
+        // Set up serverProperties mock
+        config = new Configurator();
+        doAnswer(new Answer() {
+          @Override
+          public Object answer(InvocationOnMock invocation) {
+            Object[] args = invocation.getArguments();
+            config.configureSingleton(args[0]);
+            return null;
+          }
+        }).when(mockServerProperties).configureMe(anyObject());
     }
 
     public void initializeService()
     {
-        factoredCustomerInitializationService.setDefaults();
-        PluginConfig config = pluginConfigRepo.findByRoleName("FactoredCustomer");
-        config.getConfiguration().put("configFile", "../factored-customer/src/main/resources/FactoredCustomers.xml");
+      TreeMap<String, String> map = new TreeMap<String, String>();
+      map.put("factoredcustomer.factoredCustomerService.configResource",
+              "FactoredCustomers.xml");
+      Configuration mapConfig = new MapConfiguration(map);
+      config.setConfiguration(mapConfig);
         List<String> inits = new ArrayList<String>();
         inits.add("DefaultBroker");
-        factoredCustomerInitializationService.initialize(comp, inits);
+        inits.add("TariffMarket");
+        factoredCustomerService.initialize(comp, inits);
     }
 
     @Test
