@@ -105,13 +105,9 @@ public class CompetitionControlServiceTests
     XPath xPath = factory.newXPath();
     try {
       XPathExpression exp = 
-        xPath.compile("/powertac-bootstrap-data/config/plugin-config[@roleName='weatherService']/configuration/entry/string");
+        xPath.compile("/powertac-bootstrap-data/bootstrap/customer-bootstrap-data/netUsage");
       NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
-      assertEquals("two entries", 8, nodes.getLength());
-      assertEquals("node 2", "forecastHorizon", nodes.item(2).getTextContent());
-      String num = nodes.item(3).getTextContent();
-      int hours= Integer.parseInt(num);
-      assertEquals("24 hour", 24, hours);
+      assertEquals("two entries", 2, nodes.getLength());
     }
     catch (XPathExpressionException xee) {
       fail("XPath trouble: " + xee.toString());
