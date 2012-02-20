@@ -18,6 +18,7 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
@@ -35,7 +36,7 @@ public class JmsManagementService
   private Executor taskExecutor;
 
   @Autowired
-  private ServerPropertiesService serverPropertiesService;
+  private ServerConfiguration serverPropertiesService;
 
   private Map<MessageListener, AbstractMessageListenerContainer> listenerContainerMap = new HashMap<MessageListener, AbstractMessageListenerContainer>();
 

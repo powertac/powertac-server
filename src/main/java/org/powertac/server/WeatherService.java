@@ -40,55 +40,66 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.WeatherForecast;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 //TODO: Create issue Asynchronous and Blocking modes that expose the flags
-//TODO: Create log messages in weatherService
-//TODO: Implement WeatherTests with some default data
-//TODO: XML serialization test for WeatherReport and WeatherForecast WeatherForecastPrediction, see org.powertac.common.msg tests (JUnit4 tests)
-//TODO: Repo tests copy those
+//xTODO: Create log messages in weatherService
+//TxODO: Implement WeatherTests with some default data
+//xTODO: XML serialization test for WeatherReport and WeatherForecast WeatherForecastPrediction, see org.powertac.common.msg tests (JUnit4 tests)
+//xTODO: Repo tests copy those
 //XTODO: WeatherService Tests BEEANS!!
-//TODO: Pull request Tests, WeatherService, Repos
+//xTODO: Pull request Tests, WeatherService, Repos
 //xTODO: Basic JSF MVC application
 //XTODO: Switch implements to extends in timeslotphaseprocessor
 //XTODO: Plugin Config object for weatherServers indicating location and date range, place in PluginConfigRepo
 
 @Service
-public class WeatherService
-  extends TimeslotPhaseProcessor
-  implements InitializationService
+public class WeatherService 
+extends TimeslotPhaseProcessor 
+implements InitializationService
 {
 
   static private Logger log = Logger.getLogger(WeatherService.class.getName());
-  // private int simulationPhase = 1;
+  private boolean requestFailed = false;
+
+  // Read from configuration
+  @ConfigurableValue(valueType = "Integer",
+      description = "Timeslot interval to make requests")
   private int weatherReqInterval = 12;
-  private int daysOut = 1;
+
+  //private int daysOut = 1;
   private int currentWeatherId = 1;
+
+  @ConfigurableValue(valueType = "String",
+                     description = "Location of weather server")
   private String serverUrl = "http://tac06.cs.umn.edu:8080/"
                              + "powertac-weather-server/weatherSet/weatherRequest?"
                              + "id=0&setname=default&weather_days=1&weather_id=";
-  private boolean requestFailed = false;
 
   // If network requests should be made asynchronously or not.
+  @ConfigurableValue(valueType = "Boolean",
+                     description = "If network calls to weather server should block until finished")
   private boolean blocking = true;
-  
+
   // length of forecasts
+  @ConfigurableValue(valueType = "Integer",
+                     description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
 
   @Autowired
   private TimeslotRepo timeslotRepo;
 
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
+  // @Autowired
+  // private PluginConfigRepo pluginConfigRepo;
 
   @Autowired
   private WeatherReportRepo weatherReportRepo;
@@ -99,27 +110,46 @@ public class WeatherService
   @Autowired
   private BrokerProxy brokerProxyService;
 
-  // TODO Actually load configuration
-  public void init (PluginConfig config)
+  @Autowired
+  private ServerConfiguration serverProps;
+
+  public int getWeatherReqInterval ()
   {
-    super.init();
-    forecastHorizon = config.getIntegerValue("forecastHorizon", forecastHorizon);
+    return weatherReqInterval;
+  }
+
+  public String getServerUrl ()
+  {
+    return serverUrl;
+  }
+
+  public boolean isBlocking ()
+  {
+    return blocking;
+  }
+
+  public int getForecastHorizon ()
+  {
+    return forecastHorizon;
   }
 
   // Make actual web request to the weather-server
+  @Override
   public void activate (Instant time, int phaseNumber)
   {
     // Error check the request interval
-    if (weatherReqInterval > 24) {
+    if (getWeatherReqInterval() > 24) {
       // log.error("weather request interval ${weatherRequestInterval} > 24 hr"
       weatherReqInterval = 24;
     }
 
     // request weather data periodically
     long msec = time.getMillis();// timeService.getCurrentTime().getMillis();
-    if (msec % (weatherReqInterval * TimeService.HOUR) == 0) {
-      log.info("Timeslot " + timeslotRepo.currentTimeslot().getId() + " WeatherService reports time to make network request for weather data in blocking = "
-               + blocking + " mode.");
+    if (msec % (getWeatherReqInterval() * TimeService.HOUR) == 0) {
+      log.info("Timeslot "
+               + timeslotRepo.currentTimeslot().getId()
+               + " WeatherService reports time to make network request for weather data in blocking = "
+               + isBlocking() + " mode.");
 
       // time to publish
       // log.info "Requesting Weather from " + serverUrl + "=" +
@@ -132,7 +162,7 @@ public class WeatherService
         // currentWeatherId+=(2*weatherReqInterval) // 2 weather
         // reports per hour
         webRequest(timeslotRepo.currentTimeslot(), 1);
-        currentWeatherId+=(2*weatherReqInterval);
+        currentWeatherId += (2 * getWeatherReqInterval());
         requestFailed = false;
 
       }
@@ -150,7 +180,7 @@ public class WeatherService
     brokerProxyService.broadcastMessage(report);
     WeatherForecast forecast = weatherForecastRepo.currentWeatherForecast();
     brokerProxyService.broadcastMessage(forecast);
-    
+
   }
 
   // Forecasts are random and must be repeatable from the same seed
@@ -164,7 +194,7 @@ public class WeatherService
 
     try {
       // Create a URLConnection object for a URL and send request
-      URL url = new URL(serverUrl + currentWeatherId);
+      URL url = new URL(getServerUrl() + currentWeatherId);
 
       URLConnection conn = url.openConnection();
 
@@ -192,7 +222,8 @@ public class WeatherService
           weatherValue = tmpLine.split(", ");
 
           for (int i = 0; i < weatherValue.length; i++) {
-            // System.out.println("Parsing: "+ i + " " + weatherValue[i]);
+            // System.out.println("Parsing: "+ i + " " +
+            // weatherValue[i]);
             weatherValue[i] = weatherValue[i].split(":")[1].trim();
           }
           // System.out.println("FIF: "+ weatherValue[4]);
@@ -235,9 +266,9 @@ public class WeatherService
 
     List<WeatherForecastPrediction> currentPredictions;
     String[] currentPred;
-    for (int i = 1; i <= 2 * weatherReqInterval; i++) {
+    for (int i = 1; i <= 2 * getWeatherReqInterval(); i++) {
       currentPredictions = new ArrayList<WeatherForecastPrediction>();
-      for (int j = 1; j <= forecastHorizon; j++) {
+      for (int j = 1; j <= getForecastHorizon(); j++) {
         currentPred = forecastValues.get(i + j);
         currentPredictions.add(new WeatherForecastPrediction(
                                                              j,
@@ -263,28 +294,16 @@ public class WeatherService
     return true;
   }
 
+  @Override
   public void setDefaults ()
   {
-    pluginConfigRepo.makePluginConfig("weatherService", "init")
-                    .addConfiguration("server", "url")
-                    .addConfiguration("location", "Minneapolis")
-                    .addConfiguration("dateRange", "10-10-2009::10-12-2009")
-                    .addConfiguration("forecastHorizon", "24")
-                    .asPrivileged();
   }
 
+  @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
-    PluginConfig weatherServiceConfig = pluginConfigRepo.findByRoleName("weatherService");
-    if (weatherServiceConfig == null) {
-      log.error("PluginConfig for WeatherService does not exist");
-    }
-    else {
-      this.init(weatherServiceConfig);
-      return "WeatherService";
-    }
-    return "fail";
-
+    super.init();
+    serverProps.configureMe(this);
+    return "WeatherService";
   }
-
 }

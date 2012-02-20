@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mockito="http://www.mockito.org/spring/mockito"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	       http://www.springframework.org/schema/beans/spring-beans.xsd
+	       http://www.springframework.org/schema/context 
+	       http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	       >
+	       
+  <bean id="brokerProxy"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
+  </bean>
+
+  <bean id="serverConfigService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>	       
+               
+  <bean id="competitionControlService"
+                class="org.mockito.Mockito"
+                factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+  </bean>
+
+<!-- 
+  <bean id="jmsManagementService"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.server.JmsManagementService"/>
+  </bean>
+  
+  <bean id="jmsFactory"
+        class="org.mockito.Mockito"
+        factory-method="mock" autowire="byName">
+    <constructor-arg value="javax.jms.ConnectionFactory"/>
+  </bean>
+
+  <bean id="serverMessageReceiver"
+                class="org.mockito.Mockito"
+                factory-method="mock">
+    <constructor-arg value="org.powertac.server.ServerMessageReceiver" />               
+  </bean>
+
+  <bean id="defaultBroker"
+        class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.BootstrapDataCollector"/>
+  </bean>
+ -->
+  
+  <context:annotation-config />
+ 
+  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/> 
+
+  <bean id="timeService"
+        class="org.powertac.common.TimeService">
+  </bean>
+  
+  <bean id="logService"
+        class="org.powertac.server.LogService" >
+  </bean>
+
+  <bean id="timeslotRepo"
+        class="org.powertac.common.repo.TimeslotRepo">
+  </bean>
+  
+  <bean id="brokerRepo"
+        class="org.powertac.common.repo.BrokerRepo">
+  </bean>
+  
+  <bean id="customerRepo"
+        class="org.powertac.common.repo.CustomerRepo">
+  </bean>
+  
+  <bean id="randomSeedRepo"
+        class="org.powertac.common.repo.RandomSeedRepo">
+  </bean>
+  
+  <!-- 
+  <bean id="xmlMessageConverter"
+        class="org.powertac.common.XMLMessageConverter">
+  </bean>
+
+  <bean id="competitionSetupService"
+        class="org.powertac.server.CompetitionSetupService">
+  </bean>
+   -->  
+  
+  <bean id="weatherReportRepo"
+        class="org.powertac.common.repo.WeatherReportRepo">
+  </bean>
+  
+  <bean id="weatherForecastRepo"
+        class="org.powertac.common.repo.WeatherForecastRepo">
+  </bean>
+  
+  <bean id="weatherService"
+  	class="org.powertac.server.WeatherService">
+  </bean>
+  
+
+  <bean id="springApplicationContext"
+        class="org.powertac.common.spring.SpringApplicationContext" />
+
+</beans>
