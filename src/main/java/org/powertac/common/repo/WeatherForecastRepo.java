@@ -96,6 +96,6 @@ public class WeatherForecastRepo implements DomainRepo
 
 	  public void recycle ()
 	  {
-	    
+            indexedWeatherForecasts.clear(); 
 	  }
 }
