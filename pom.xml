@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <!-- prevents local resolution - you must install the parent locally
          if it is not in the central or snapshot repo -->
     <relativePath /> 
@@ -11,6 +11,7 @@
 
   <artifactId>server-interface</artifactId>
   <name>Power TAC server interface</name>
+  <version>0.2.0-SNAPSHOT</version>
   <description>
     interfaces and domain types shared by multiple server components
   </description>
