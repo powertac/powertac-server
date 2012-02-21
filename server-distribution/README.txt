@@ -1,4 +1,4 @@
-December 2011
+February 2012
 
 Welcome to the 0.1.0 release of the Power TAC server. This is a
 limited release, containing the server only. It is intended to support
@@ -86,6 +86,11 @@ options as in bootstrap mode, as well as
   controller-url/bootstrap-data. Note: the server will not start if
   one of these two sources does not produce a valid bootstrap
   dataset.
+
+  --jms-url url
+  gives the URL of the jms message broker, which is typically, but not
+  necessarily, instantiated inside the server. The default value is
+  tcp://localhost:61616.
 
   --brokers broker,...
   is a comma-separated list of broker usernames that are expected to
