@@ -25,6 +25,7 @@ import org.joda.time.base.AbstractInstant;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.*;
 
@@ -36,9 +37,11 @@ import com.thoughtworks.xstream.annotations.*;
  * are communicated to Customers and to Brokers when tariffs are published.
  * @author jcollins
  */
-@Domain
+@Domain (fields = {"tariffId", "weeklyBegin", "weeklyEnd", "dailyBegin", "dailyEnd",
+                   "tierThreshold", "fixed", "minValue", "maxValue",
+                   "noticeInterval", "expectedMean"})
 @XStreamAlias("rate")
-public class Rate //implements Serializable
+public class Rate extends XStreamStateLoggable
 {
   static private Logger log = Logger.getLogger(Rate.class.getName());
 

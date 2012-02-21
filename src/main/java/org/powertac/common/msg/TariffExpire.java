@@ -28,7 +28,7 @@ import com.thoughtworks.xstream.annotations.*;
  * have retroactive effect. Created by brokers.
  * @author jcollins
  */
-@Domain
+@Domain (fields = {"broker", "tariffId", "newExpiration"})
 @XStreamAlias("tariff-exp")
 public class TariffExpire extends TariffUpdate
 {

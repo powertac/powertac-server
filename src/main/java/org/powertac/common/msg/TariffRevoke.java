@@ -25,7 +25,7 @@ import com.thoughtworks.xstream.annotations.*;
  * Message created by a broker to request revocation of an existing tariff.
  * @author jcollins
  */
-@Domain
+@Domain (fields = {"broker", "tariffId"})
 @XStreamAlias("tariff-rev")
 public class TariffRevoke extends TariffUpdate
 {

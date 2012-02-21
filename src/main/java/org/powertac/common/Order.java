@@ -40,7 +40,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  *
  * @author Carsten Block, John Collins
  */
-@Domain(fields = {"broker","timeslot", "MWh", "limitPrice"})
+@Domain(fields = {"broker", "timeslot", "MWh", "limitPrice"})
 @XStreamAlias("order")
 public class Order extends XStreamStateLoggable
 {  
