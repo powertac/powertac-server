@@ -17,10 +17,13 @@
 package org.powertac.common;
 
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 import org.powertac.common.xml.TimeslotConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A Order instance represents a market (no price specified) or a limit
@@ -37,9 +40,9 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, John Collins
  */
-@Domain
+@Domain(fields = {"broker","timeslot", "MWh", "limitPrice"})
 @XStreamAlias("order")
-public class Order
+public class Order extends XStreamStateLoggable
 {  
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
@@ -56,7 +59,7 @@ public class Order
   /** product quantity in mWh - positive to buy, negative to sell */
   @XStreamAsAttribute
   private double mWh;
-
+  
   /**
    * Limit price/mWh -- max. acceptable buy or sell price. A positive value
    * indicates payment to the broker; a negative value indicates payment to
@@ -86,7 +89,7 @@ public class Order
     this.mWh = mWh;
     this.limitPrice = limitPrice;
   }
-
+  
   public long getId ()
   {
     return id;
