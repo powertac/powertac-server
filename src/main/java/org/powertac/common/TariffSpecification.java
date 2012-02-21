@@ -44,7 +44,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * associated HourlyCharge instances.</p>
  * @author John Collins
  */
-@Domain
+@Domain(fields = {"broker", "powerType", "minDuration", "signupPayment", "earlyWithdrawPayment", "periodicPayment"})
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
