@@ -169,23 +169,23 @@ public class OrderTests
     
     // open the state file and check the last entry
     String item = null;
-    try {
-      BufferedReader input =
-          new BufferedReader(new FileReader("log/OrderTests.state"));
-      String test = input.readLine();
-      while (test != null) {
-        // looking for the last line
-        item = test;
-        test = input.readLine();
-      }
-    }
-    catch (FileNotFoundException e) {
-      fail("cannot find state file: " + e.toString());
-    }
-    catch (IOException e) {
-      fail(e.toString());
-    }
-    // the rest works when running the individual test, but not as a suite
+//    try {
+//      BufferedReader input =
+//          new BufferedReader(new FileReader("log/OrderTests.state"));
+//      String test = input.readLine();
+//      while (test != null) {
+//        // looking for the last line
+//        item = test;
+//        test = input.readLine();
+//      }
+//    }
+//    catch (FileNotFoundException e) {
+//      fail("cannot find state file: " + e.toString());
+//    }
+//    catch (IOException e) {
+//      fail(e.toString());
+//    }
+//    // the rest works when running the individual test, but not as a suite
 //    if (item != null) {
 //      // should not get here if item == null
 //      String[] items = item.split("::");
