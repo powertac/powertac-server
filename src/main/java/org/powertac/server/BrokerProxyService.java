@@ -79,6 +79,12 @@ public class BrokerProxyService implements BrokerProxy
   // copies of broadcast messages
   private void localSendMessage (Broker broker, Object messageObject)
   {
+    // don't send null messages
+    if (messageObject == null) {
+      log.error("null message ignored");
+      return;
+    }
+    
     // don't communicate with non-enabled brokers
     if (!broker.isEnabled()) {
       log.warn("broker " + broker.getUsername() + " is disabled");

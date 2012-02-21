@@ -179,8 +179,10 @@ implements InitializationService
     WeatherReport report = weatherReportRepo.currentWeatherReport();
     brokerProxyService.broadcastMessage(report);
     WeatherForecast forecast = weatherForecastRepo.currentWeatherForecast();
-    brokerProxyService.broadcastMessage(forecast);
-
+    if (forecast == null)
+      log.error("null forecast");
+    else
+      brokerProxyService.broadcastMessage(forecast);
   }
 
   // Forecasts are random and must be repeatable from the same seed
