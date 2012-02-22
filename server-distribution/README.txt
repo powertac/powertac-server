@@ -1,7 +1,8 @@
 February 2012
 
-Welcome to the 0.1.0 release of the Power TAC server. This is a
-limited release, containing the server only. It is intended to support
+Welcome to the 0.2.0 release of the Power TAC server. This release
+contains the server only, although there is a compatible sample
+broker distributed separately. This release is intended to support
 broker development and simple experiments.
 
 Release notes are available at
@@ -56,14 +57,14 @@ bootstrap-data is the name (not a URL) of the xml file that will be
 options include:
 
   --control controller-url 
-  gives the url of the Tournament Scheduler api, from which the server
+  gives the URL of the Tournament Scheduler api, from which the server
   can request a configuration and a log-prefix string.
 
   --config server-config
-  gives the URL of a properties file that overrides the standard
-  server configuration. If this option is missing and the --control
-  option is given, the server configuration is retrieved from
-  controller-url/server-config.
+  gives the URL (not a filename) of a properties file that overrides
+  the standard server configuration. If this option is missing and the
+  --control option is given, the server configuration is retrieved
+  from controller-url/server-config.
 
   --log-suffix suffix
   gives the root name for the log files, and defaults to "boot"; two
@@ -102,10 +103,10 @@ options as in bootstrap mode, as well as
   defaults to "sim" rather than "boot".
   
 If you want to override some aspect of server configuration that is
-not directly supported by command-line options, you will need to dig
-out the default configuration from the source distribution, (it's in
-server-main/src/main/resources/server.properties), edit it, and specify
-it as the argument to the --config option.
+not directly supported by command-line options, you will need to edit
+the sample server configuration file given in
+config/server.properties, and then specify it, presumably using a
+file: URL, as the argument to the --config option.
 
 Access to code resources
 ------------------------
