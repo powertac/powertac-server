@@ -6,8 +6,8 @@
 
 <h:body>
 	<ui:fragment>
-		
-			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" style="width:600px;" >
+		<h:form id="tableBrokersForm">
+			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" style="width:400px;" >
 				<f:facet name="header">  
             			Live info:  
         	</f:facet>
@@ -34,6 +34,7 @@
 				
 
 			</p:dataTable>
+			</h:form>
 	</ui:fragment>
 </h:body>
 

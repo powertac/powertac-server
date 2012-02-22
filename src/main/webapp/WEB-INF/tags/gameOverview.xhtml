@@ -1,21 +1,22 @@
-<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:p="http://primefaces.org/ui"
-	template="/WEB-INF/layouts/visualizer/master.xhtml">
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
 
-	<ui:define name="title">Game overview</ui:define>
+<h:head>
+<h:outputStylesheet library="css" name="gameOverview.css" />
+	<h:outputScript library="js" name="gameOverview.js" />
+</h:head>
 
-	<ui:define name="headIncludes">
-		<h:outputStylesheet library="css" name="gameOverview.css" />
-		<h:outputScript library="js" name="gameOverview.js" />
-	</ui:define>
+<h:body>
+	<ui:fragment>
+	
+	<h2 class="alt" style="text-align: center;">Game overview</h2>
 
-	<ui:define name="content">
-		
-		<h:form id="animationForm">
+	<h:form id="animationForm">
 		<div id="wrapper">
 		<div id="content">
 			<!-- default elements: -->
@@ -32,7 +33,7 @@
 			</script>
 			<ui:repeat var="dayState" value="#{visualizerBean.dayOverview.dayStates}">
 				
-				<div id="broker#{dayState.broker.id}" style="" class="brokerDiv"><p:graphicImage value="${dayState.broker.appearance.iconLocation}" width="80px" height="80px" /><div>#{dayState.broker.name}</div></div>
+				<div id="broker#{dayState.broker.id}"  class="brokerDiv"><p:graphicImage value="${dayState.broker.appearance.iconLocation}" width="80px" height="80px" /><div>#{dayState.broker.name}</div></div>
 				<div id="cashBalance#{dayState.broker.id}" class="cashBalanceDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/cashBalance.png"/><div>#{dayState.totalCashBalance} &euro;</div></div>
 				<div id="newTariff#{dayState.broker.id}" class="newTariffDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/envelope.png"/><div>x #{dayState.tariffSpecificationsCount}</div></div>
 			    <div id="signupCustomers#{dayState.broker.id}" class="signupCustomersDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/signupCustomers.png"/><div>x #{dayState.signupCustomersCount}</div></div>
@@ -65,6 +66,8 @@
 	<p:poll autoStart="true" interval="120" update=":animationForm"/>
 	</h:form>
 
-	</ui:define>
+	</ui:fragment>
+</h:body>
 
-</ui:composition>
+</html>
+

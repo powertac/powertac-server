@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:p="http://primefaces.org/ui">
+
+
+<h:body>
+	<ui:fragment>
+		<h:form id="cashChartGlobalForm">
+			<!-- Global Cash Chart -->
+							<div id="cashChartGlobal"
+								style="height: 300px; width: 500px;"></div>
+							<script type="text/javascript">
+							if (window.cashChartGlobal != null) {
+								window.cashChartGlobal.destroy();
+							}
+							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{visualizerBean.brokerCashBalancesJSONText}, 
+									{
+									title: 'Cash balance', 
+									seriesColors: #{visualizerBean.brokerSeriesColors},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+									            label: "timeslot",
+									            pad: 0},
+									    yaxis: {
+									            label: "cash/&euro;"}},
+									   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
+									}
+								}); 	
+						
+								</script>
+			</h:form>
+	</ui:fragment>
+</h:body>
+
+</html>
+

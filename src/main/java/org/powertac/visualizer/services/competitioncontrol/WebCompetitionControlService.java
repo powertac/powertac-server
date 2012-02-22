@@ -77,7 +77,7 @@ public class WebCompetitionControlService {
 	private CompetitionControlService cc;
 
 	@Autowired
-	private VisualizerService visualizerService;
+	private VisualizerService visualizerService; 
 
 	private AbstractApplicationContext context;
 	private ServerPropertiesService serverProps;
@@ -136,7 +136,7 @@ public class WebCompetitionControlService {
 				if (preGame(bootFile)) {
 					cc.setBootstrapDataset(processBootDataset(bootFile));
 					//cc.runOnce(false);
-				}
+				} 
 			}
 
 			// time to initialize Visualizer:

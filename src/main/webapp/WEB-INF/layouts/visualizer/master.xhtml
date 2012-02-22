@@ -12,20 +12,23 @@
 	<ui:insert name="headIncludes" />
 	<h:outputScript library="js" name="scripts.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
+	<script type="text/javascript">
+		var cashChartGlobal;
+		var subscriptionsPieChart;
+	</script>
+	
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true" stateful="true">
+	<p:layout id="mainLayout" fullPage="true">
 		<p:layoutUnit id="north" position="north" size="140"
 			collapsible="true" header="LOL" styleClass="custom">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
 			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
-			<h:form>
-			<p:poll autoStart="true" interval="5" update=":competitionInfoForm"/>
-			</h:form>
+			
 		</p:layoutUnit>
 
-		<p:layoutUnit position="center">
+		<p:layoutUnit position="center" size="1000">
 			<h2 class="alt" style="text-align: center;">
 
 				<ui:insert name="title"></ui:insert>
@@ -34,6 +37,14 @@
 
 			<ui:insert name="content" />
 
+		</p:layoutUnit>
+		
+		<p:layoutUnit position="east" size="600">
+			
+				<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+				<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml"/>
+				<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml"/>
+								
 		</p:layoutUnit>
 
 		<p:layoutUnit position="south" size="70">
@@ -52,6 +63,10 @@
 		</p:layoutUnit>
 
 	</p:layout>
+	
+	<h:form>
+			<p:poll autoStart="true" interval="5" update=":tableBrokersForm,:competitionInfoForm, :cashChartGlobalForm, :subscriptionsPieChartForm"/>
+	</h:form>
 		
 </h:body>
 

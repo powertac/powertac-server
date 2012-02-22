@@ -23,7 +23,7 @@
     <amq:transportConnectors>
   	  <amq:transportConnector uri="tcp://localhost:61616" />
     </amq:transportConnectors>
-  </amq:broker>
+  </amq:broker> 
  
  
   <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML 
