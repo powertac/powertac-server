@@ -4,12 +4,13 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <relativePath />
   </parent>
 
   <artifactId>server-main</artifactId>
   <name>Power TAC server main</name>
+  <version>0.2.0-SNAPSHOT</version>
   <description>Top-level module of the Power TAC simulation server</description>
 
   <dependencies>
@@ -63,42 +64,42 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>accounting</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>auctioneer</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>default-broker</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>distribution-utility</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>genco</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>household-customer</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>factored-customer</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
   </dependencies>
 
