@@ -4,12 +4,13 @@
   <parent>
     <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.2.0</version>
     <relativePath />
   </parent>
   
   <artifactId>distribution-utility</artifactId>
   <name>Power TAC distribution utility</name>
+  <version>0.2.0-SNAPSHOT</version>
   <description>
     Balances supply and demand in the current timeslot
   </description>
@@ -26,7 +27,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.2.0-SNAPSHOT</version>
+      <version>0.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.ojalgo</groupId>
