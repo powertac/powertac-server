@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Dishwasher are used in order to wash easily the dishes after dinner. There
@@ -33,7 +33,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * after utilization. So this is a semi-shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Dishwasher extends SemiShiftingAppliance
 {
@@ -50,8 +50,8 @@ public class Dishwasher extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dishwasher";
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
-    power = (int) (HouseholdConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.DISHWASHER_POWER_MEAN);
-    cycleDuration = HouseholdConstants.DISHWASHER_DURATION_CYCLE;
+    power = (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
+    cycleDuration = VillageConstants.DISHWASHER_DURATION_CYCLE;
     od = false;
     times = Integer.parseInt(conf.getProperty("DishwasherWeeklyTimes")) + applianceOf.getMembers().size();
     createWeeklyOperationVector(times, gen);
@@ -76,11 +76,11 @@ public class Dishwasher extends SemiShiftingAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
     }
   }
@@ -94,7 +94,7 @@ public class Dishwasher extends SemiShiftingAppliance
     // The dishwasher needs for someone to be in the house at the beginning and
     // the end of its
     // function
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       if (checkHouse(day, j) == true)
         possibilityDailyOperation.add(false);
       else
@@ -111,25 +111,25 @@ public class Dishwasher extends SemiShiftingAppliance
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
     Vector<Boolean> operation = operationVector.get(weekday);
-    for (int l = 0; l < HouseholdConstants.QUARTERS_OF_DAY; l++) {
+    for (int l = 0; l < VillageConstants.QUARTERS_OF_DAY; l++) {
       loadVector.add(0);
       dailyOperation.add(false);
     }
 
     // Check all quarters of the day
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (operation.get(i) == true) {
         boolean flag = true;
-        while (flag && i < (HouseholdConstants.QUARTERS_OF_DAY - HouseholdConstants.DISHWASHER_DURATION_CYCLE + 1)) {
+        while (flag && i < (VillageConstants.QUARTERS_OF_DAY - VillageConstants.DISHWASHER_DURATION_CYCLE + 1)) {
           boolean empty = checkHouse(weekday, i);
           if (empty == false) {
-            for (int k = i; k < i + HouseholdConstants.DISHWASHER_DURATION_CYCLE; k++) {
+            for (int k = i; k < i + VillageConstants.DISHWASHER_DURATION_CYCLE; k++) {
               loadVector.set(k, power);
               dailyOperation.set(k, true);
-              if (k == HouseholdConstants.QUARTERS_OF_DAY - 1)
+              if (k == VillageConstants.QUARTERS_OF_DAY - 1)
                 break;
             }
-            i = HouseholdConstants.QUARTERS_OF_DAY;
+            i = VillageConstants.QUARTERS_OF_DAY;
             flag = false;
           } else {
             i++;
@@ -152,10 +152,10 @@ public class Dishwasher extends SemiShiftingAppliance
   boolean checkHouse (int weekday, int quarter)
   {
 
-    if (quarter + HouseholdConstants.DISHWASHER_DURATION_CYCLE >= HouseholdConstants.QUARTERS_OF_DAY)
+    if (quarter + VillageConstants.DISHWASHER_DURATION_CYCLE >= VillageConstants.QUARTERS_OF_DAY)
       return true;
     else
-      return applianceOf.isEmpty(weekday, quarter + HouseholdConstants.DISHWASHER_DURATION_CYCLE);
+      return applianceOf.isEmpty(weekday, quarter + VillageConstants.DISHWASHER_DURATION_CYCLE);
 
   }
 
@@ -163,7 +163,7 @@ public class Dishwasher extends SemiShiftingAppliance
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     if (operationDaysVector.get(day)) {
       int minindex = 0;
@@ -174,7 +174,7 @@ public class Dishwasher extends SemiShiftingAppliance
         Vector<Integer> possibleHours = new Vector<Integer>();
 
         // find the all the available functioning hours of the appliance
-        for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
           if (functionMatrix[i] && functionMatrix[i + 1]) {
             possibleHours.add(i);
           }
@@ -194,7 +194,7 @@ public class Dishwasher extends SemiShiftingAppliance
         Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
 
         // find the all the available functioning hours of the appliance
-        for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
           if (functionMatrix[i] && functionMatrix[i + 1]) {
             if (minvalue >= tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0)) {
               minvalue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0);
@@ -205,8 +205,8 @@ public class Dishwasher extends SemiShiftingAppliance
           hour2 = new Instant(hour2.getMillis() + TimeService.HOUR);
         }
       }
-      newControllableLoad[minindex] = HouseholdConstants.QUARTERS_OF_HOUR * power;
-      newControllableLoad[minindex + 1] = HouseholdConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[minindex + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
     }
     return newControllableLoad;
   }

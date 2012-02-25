@@ -1,5 +1,5 @@
 /*
-* Copyright 2009-2010 the original author or authors.
+* Copyright 2009-2012 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package org.powertac.common.enumerations;
 
 /**
  * This enumerator defines the two different kinds of Water Heater appliances
- * Instant Heater: Utilized when in need from the house tenants and closed afterwards
- * Storage Heater: Always having warm water inside. In the beginning is working to boil the water
- *                 and then works on stand-by to keep it warm.
+ * Instant Heater: Utilized when in need from the house tenants and closed
+ * afterwards Storage Heater: Always having warm water inside. In the beginning
+ * is working to boil the water and then works on stand-by to keep it warm.
  * 
  * @author Antonios Chrysopoulos
- * @since 0.5
- * @version 1
- * Last Updated: 02.05.2010
+ * @version 1.5, Date: 2.25.12
  */
 
-
-public enum HeaterType { InstantHeater, StorageHeater }
+public enum HeaterType
+{
+  InstantHeater, StorageHeater
+}

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,20 @@
  * governing permissions and limitations under the License.
  */
 
-
 package org.powertac.common.enumerations;
 
 /**
  * This enumerator defines the state of a person. The available states are
- * Normal: Person is in the house
- * Working: Person is out of house and at work
- * Leisure: Person is out of house and doing a leisure activity
- * Vacation: Person is out of house and in vacation
- * Sleeping: Person is in the house and sleeping
+ * Normal: Person is in the house Working: Person is out of house and at work
+ * Leisure: Person is out of house and doing a leisure activity Vacation: Person
+ * is out of house and in vacation Sleeping: Person is in the house and sleeping
  * Sick: Person is in the house and sick
  * 
  * @author Antonios Chrysopoulos
- * @since 0.5
- * @version 1
- * Last Updated: 02.05.2010
+ * @version 1.5, Date: 2.25.12
  */
 
-
-public enum Status { Normal, Working, Leisure, Vacation, Sleeping, Sick };
+public enum Status
+{
+  Normal, Working, Leisure, Vacation, Sleeping, Sick
+};

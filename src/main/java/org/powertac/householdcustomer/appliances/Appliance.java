@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Household;
 
 /**
@@ -34,7 +34,7 @@ import org.powertac.householdcustomer.customers.Household;
  * by someone etc
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Appliance
 {
@@ -202,7 +202,7 @@ public class Appliance
    */
   public void createWeeklyPossibilityOperationVector ()
   {
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
       possibilityOperationVector.add(createDailyPossibilityOperationVector(i));
   }
 
@@ -232,7 +232,7 @@ public class Appliance
    */
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
-    return new long[HouseholdConstants.HOURS_OF_DAY];
+    return new long[VillageConstants.HOURS_OF_DAY];
   }
 
   /**
@@ -245,11 +245,11 @@ public class Appliance
   boolean[] createShiftingOperationMatrix (int day)
   {
 
-    boolean[] shiftingOperationMatrix = new boolean[HouseholdConstants.HOURS_OF_DAY];
+    boolean[] shiftingOperationMatrix = new boolean[VillageConstants.HOURS_OF_DAY];
 
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
-      boolean function = possibilityOperationVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) || possibilityOperationVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-          || possibilityOperationVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) || possibilityOperationVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+      boolean function = possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+          || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       shiftingOperationMatrix[i] = function;
     }
     return shiftingOperationMatrix;
@@ -322,11 +322,11 @@ public class Appliance
 
     // Printing Weekly Function Vector and Load
     log.debug("Weekly Operation Vector and Load = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter " + j + " = " + iter.next() + "   Load = " + iter2.next());
     }
   }
@@ -362,7 +362,7 @@ public class Appliance
     // day.
     for (int i = 0; i < weeklyOperation.size(); i++) {
       boolean function = false;
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
         function = function || weeklyOperation.get(i).get(j);
       }
       operationDaysVector.add(function);

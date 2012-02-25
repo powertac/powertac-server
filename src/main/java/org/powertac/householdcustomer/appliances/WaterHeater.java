@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.HeaterType;
 
 /**
@@ -33,7 +33,7 @@ import org.powertac.common.enumerations.HeaterType;
  * need of water. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class WaterHeater extends FullyShiftingAppliance
 {
@@ -54,11 +54,11 @@ public class WaterHeater extends FullyShiftingAppliance
 
     if (type == HeaterType.InstantHeater) {
       operation = operationVector.get(weekday);
-      for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
         if (operation.get(i) == true) {
           boolean flag = true;
           int counter = 0;
-          while ((flag) && (i < HouseholdConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
+          while ((flag) && (i < VillageConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
             if (applianceOf.isEmpty(weekday, i) == false) {
               loadVector.add(power);
               dailyOperation.add(true);
@@ -69,7 +69,7 @@ public class WaterHeater extends FullyShiftingAppliance
               loadVector.add(0);
               dailyOperation.add(false);
               i++;
-              if (i < HouseholdConstants.QUARTERS_OF_DAY && operation.get(i) == true)
+              if (i < VillageConstants.QUARTERS_OF_DAY && operation.get(i) == true)
                 counter++;
             }
           }
@@ -86,29 +86,29 @@ public class WaterHeater extends FullyShiftingAppliance
       int start = 0;
       int temp = 0;
 
-      for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
         operation.add(false);
         dailyOperation.add(false);
         loadVector.add(0);
       }
 
-      if (gen.nextFloat() > HouseholdConstants.STORAGE_HEATER_POSSIBILITY)
-        start = (HouseholdConstants.STORAGE_HEATER_START + 1) + gen.nextInt(HouseholdConstants.STORAGE_HEATER_START - 1);
+      if (gen.nextFloat() > VillageConstants.STORAGE_HEATER_POSSIBILITY)
+        start = (VillageConstants.STORAGE_HEATER_START + 1) + gen.nextInt(VillageConstants.STORAGE_HEATER_START - 1);
       else
-        start = 1 + gen.nextInt(HouseholdConstants.STORAGE_HEATER_START);
+        start = 1 + gen.nextInt(VillageConstants.STORAGE_HEATER_START);
 
-      for (int i = start; i < start + HouseholdConstants.STORAGE_HEATER_PHASE_LOAD; i++) {
+      for (int i = start; i < start + VillageConstants.STORAGE_HEATER_PHASE_LOAD; i++) {
         operation.set(i, true);
         dailyOperation.set(i, true);
         loadVector.set(i, power);
       }
 
-      temp = start + HouseholdConstants.STORAGE_HEATER_PHASE_LOAD;
+      temp = start + VillageConstants.STORAGE_HEATER_PHASE_LOAD;
 
-      for (int j = 0; j < HouseholdConstants.STORAGE_HEATER_PHASES - 1; j++) {
-        operation.set((temp + HouseholdConstants.STORAGE_HEATER_PHASES * j), true);
-        dailyOperation.set((temp + HouseholdConstants.STORAGE_HEATER_PHASES * j), true);
-        loadVector.set((temp + HouseholdConstants.STORAGE_HEATER_PHASES * j), power);
+      for (int j = 0; j < VillageConstants.STORAGE_HEATER_PHASES - 1; j++) {
+        operation.set((temp + VillageConstants.STORAGE_HEATER_PHASES * j), true);
+        dailyOperation.set((temp + VillageConstants.STORAGE_HEATER_PHASES * j), true);
+        loadVector.set((temp + VillageConstants.STORAGE_HEATER_PHASES * j), power);
       }
       weeklyLoadVector.add(loadVector);
       weeklyOperation.add(dailyOperation);
@@ -125,7 +125,7 @@ public class WaterHeater extends FullyShiftingAppliance
     // If the heater is instant Heater
     if (type == HeaterType.InstantHeater) {
       // It can operate each quarter someone is at home to turn it on
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
         if (applianceOf.isEmpty(day, j) == false)
           possibilityDailyOperation.add(true);
         else
@@ -135,7 +135,7 @@ public class WaterHeater extends FullyShiftingAppliance
     // If heater is storage
     else {
       // It can operate all quarters of day
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
         possibilityDailyOperation.add(true);
       }
     }
@@ -156,11 +156,11 @@ public class WaterHeater extends FullyShiftingAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
     }
   }
@@ -169,15 +169,15 @@ public class WaterHeater extends FullyShiftingAppliance
   public void initialize (String household, Properties conf, Random gen)
   {
     // Creating Auxiliary Variables
-    int x = 1 + gen.nextInt(HouseholdConstants.PERCENTAGE);
+    int x = 1 + gen.nextInt(VillageConstants.PERCENTAGE);
     int limit = Integer.parseInt(conf.getProperty("InstantHeater"));
     // Filling the base variables
     name = household + " WaterHeater";
     saturation = Double.parseDouble(conf.getProperty("WaterHeaterSaturation"));
     // If the heater is instant Heater
     if (x < limit) {
-      power = (int) (HouseholdConstants.INSTANT_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.INSTANT_HEATER_POWER_MEAN);
-      cycleDuration = HouseholdConstants.INSTANT_HEATER_DURATION_CYCLE;
+      power = (int) (VillageConstants.INSTANT_HEATER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.INSTANT_HEATER_POWER_MEAN);
+      cycleDuration = VillageConstants.INSTANT_HEATER_DURATION_CYCLE;
       od = false;
       type = HeaterType.InstantHeater;
       times = Integer.parseInt(conf.getProperty("InstantHeaterDailyTimes")) + (int) (applianceOf.getMembers().size() / 2);
@@ -185,8 +185,8 @@ public class WaterHeater extends FullyShiftingAppliance
     }
     // If heater is storage
     else {
-      power = (int) (HouseholdConstants.STORAGE_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.STORAGE_HEATER_POWER_MEAN);
-      cycleDuration = HouseholdConstants.STORAGE_HEATER_DURATION_CYCLE;
+      power = (int) (VillageConstants.STORAGE_HEATER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.STORAGE_HEATER_POWER_MEAN);
+      cycleDuration = VillageConstants.STORAGE_HEATER_DURATION_CYCLE;
       od = false;
       type = HeaterType.StorageHeater;
     }
@@ -196,7 +196,7 @@ public class WaterHeater extends FullyShiftingAppliance
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     // If the heater is instant Heater
     if (type == HeaterType.InstantHeater) {
@@ -212,7 +212,7 @@ public class WaterHeater extends FullyShiftingAppliance
           Vector<Integer> possibleHours = new Vector<Integer>();
 
           // find the all the available functioning hours of the appliance
-          for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+          for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
             if (functionMatrix[i]) {
               possibleHours.add(i);
             }
@@ -229,7 +229,7 @@ public class WaterHeater extends FullyShiftingAppliance
           Instant hour1 = now;
 
           // find the all the available functioning hours of the appliance
-          for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+          for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
             if (functionMatrix[i]) {
               if (minvalue >= tariff.getUsageCharge(hour1, 1, 0)) {
                 minvalue = tariff.getUsageCharge(hour1, 1, 0);
@@ -254,7 +254,7 @@ public class WaterHeater extends FullyShiftingAppliance
         if ((tariff.getTariffSpec().getRates().size() == 1) && (tariff.getTariffSpec().getRates().get(0).isFixed())) {
           Vector<Integer> possibleHours = new Vector<Integer>();
           // find the all the available functioning hours of the appliance
-          for (int i = 0; i < HouseholdConstants.STORAGE_HEATER_SHIFTING_END; i++) {
+          for (int i = 0; i < VillageConstants.STORAGE_HEATER_SHIFTING_END; i++) {
             if (functionMatrix[i]) {
               possibleHours.add(i);
             }
@@ -270,7 +270,7 @@ public class WaterHeater extends FullyShiftingAppliance
           Instant hour1 = now;
 
           // find the all the available functioning hours of the appliance
-          for (int i = 0; i < HouseholdConstants.STORAGE_HEATER_SHIFTING_END; i++) {
+          for (int i = 0; i < VillageConstants.STORAGE_HEATER_SHIFTING_END; i++) {
             if (functionMatrix[i]) {
               if (minvalue >= tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(new Instant(hour1.getMillis() + TimeService.HOUR), 1, 0)
                   + tariff.getUsageCharge(new Instant(hour1.getMillis() + 2 * TimeService.HOUR), 1, 0) + tariff.getUsageCharge(new Instant(hour1.getMillis() + 3 * TimeService.HOUR), 1, 0)
@@ -284,12 +284,12 @@ public class WaterHeater extends FullyShiftingAppliance
             hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
           }
         }
-        for (int i = 0; i <= HouseholdConstants.STORAGE_HEATER_PHASES; i++) {
-          newControllableLoad[minindex + i] = HouseholdConstants.QUARTERS_OF_HOUR * power;
+        for (int i = 0; i <= VillageConstants.STORAGE_HEATER_PHASES; i++) {
+          newControllableLoad[minindex + i] = VillageConstants.QUARTERS_OF_HOUR * power;
         }
 
-        for (int i = 1; i < HouseholdConstants.STORAGE_HEATER_PHASES; i++) {
-          newControllableLoad[HouseholdConstants.STORAGE_HEATER_PHASES + minindex + i] = power;
+        for (int i = 1; i < VillageConstants.STORAGE_HEATER_PHASES; i++) {
+          newControllableLoad[VillageConstants.STORAGE_HEATER_PHASES + minindex + i] = power;
         }
       }
     }

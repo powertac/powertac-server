@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * installed in each household.Later on other types of building will be added.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Village extends AbstractCustomer
 {
@@ -203,7 +203,7 @@ public class Village extends AbstractCustomer
 
     gen = generator;
 
-    createCostEstimationDaysList(HouseholdConstants.RANDOM_DAYS_NUMBER);
+    createCostEstimationDaysList(VillageConstants.RANDOM_DAYS_NUMBER);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -446,7 +446,7 @@ public class Village extends AbstractCustomer
   {
 
     if (type.equals("NS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_WEEK * (VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadNS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadNS.add(fillAggDailyControllableLoad(i, type));
         aggDailyWeatherSensitiveLoadNS.add(fillAggDailyWeatherSensitiveLoad(i, type));
@@ -455,7 +455,7 @@ public class Village extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursNS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
     } else if (type.equals("RaS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_WEEK * (VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadRaS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadRaS.add(fillAggDailyControllableLoad(i, type));
         aggDailyWeatherSensitiveLoadRaS.add(fillAggDailyWeatherSensitiveLoad(i, type));
@@ -464,7 +464,7 @@ public class Village extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursRaS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
     } else if (type.equals("ReS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_WEEK * (VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadReS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadReS.add(fillAggDailyControllableLoad(i, type));
         aggDailyWeatherSensitiveLoadReS.add(fillAggDailyWeatherSensitiveLoad(i, type));
@@ -473,7 +473,7 @@ public class Village extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursReS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK * (HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP); i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_WEEK * (VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadSS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadSS.add(fillAggDailyControllableLoad(i, type));
         aggDailyWeatherSensitiveLoadSS.add(fillAggDailyWeatherSensitiveLoad(i, type));
@@ -493,18 +493,19 @@ public class Village extends AbstractCustomer
    */
   void updateAggDailyWeatherSensitiveLoad (String type, int day)
   {
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
     if (type.equals("NS")) {
-      aggDailyWeatherSensitiveLoadNS.set(day, fillAggDailyWeatherSensitiveLoad(day, type));
-      aggDailyWeatherSensitiveLoadInHoursNS.set(day, fillAggDailyWeatherSensitiveLoadInHours(day, type));
+      aggDailyWeatherSensitiveLoadNS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursNS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
     } else if (type.equals("RaS")) {
-      aggDailyWeatherSensitiveLoadRaS.set(day, fillAggDailyWeatherSensitiveLoad(day, type));
-      aggDailyWeatherSensitiveLoadInHoursRaS.set(day, fillAggDailyWeatherSensitiveLoadInHours(day, type));
+      aggDailyWeatherSensitiveLoadRaS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursRaS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
     } else if (type.equals("ReS")) {
-      aggDailyWeatherSensitiveLoadReS.set(day, fillAggDailyWeatherSensitiveLoad(day, type));
-      aggDailyWeatherSensitiveLoadInHoursReS.set(day, fillAggDailyWeatherSensitiveLoadInHours(day, type));
+      aggDailyWeatherSensitiveLoadReS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursReS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
     } else {
-      aggDailyWeatherSensitiveLoadSS.set(day, fillAggDailyWeatherSensitiveLoad(day, type));
-      aggDailyWeatherSensitiveLoadInHoursSS.set(day, fillAggDailyWeatherSensitiveLoadInHours(day, type));
+      aggDailyWeatherSensitiveLoadSS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursSS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
     }
   }
 
@@ -531,9 +532,9 @@ public class Village extends AbstractCustomer
       houses = smartShiftingHouses;
     }
 
-    Vector<Long> v = new Vector<Long>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Long> v = new Vector<Long>(VillageConstants.QUARTERS_OF_DAY);
     long sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Household house : houses) {
         sum = sum + house.weeklyBaseLoad.get(day).get(i);
@@ -566,9 +567,9 @@ public class Village extends AbstractCustomer
       houses = smartShiftingHouses;
     }
 
-    Vector<Long> v = new Vector<Long>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Long> v = new Vector<Long>(VillageConstants.QUARTERS_OF_DAY);
     long sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Household house : houses) {
         sum = sum + house.weeklyControllableLoad.get(day).get(i);
@@ -589,6 +590,8 @@ public class Village extends AbstractCustomer
   Vector<Long> fillAggDailyWeatherSensitiveLoad (int day, String type)
   {
 
+    // int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP +
+    // VillageConstants.DAYS_OF_COMPETITION);
     Vector<Household> houses = new Vector<Household>();
 
     if (type.equals("NS")) {
@@ -601,9 +604,9 @@ public class Village extends AbstractCustomer
       houses = smartShiftingHouses;
     }
 
-    Vector<Long> v = new Vector<Long>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Long> v = new Vector<Long>(VillageConstants.QUARTERS_OF_DAY);
     long sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Household house : houses) {
         sum = sum + house.weeklyWeatherSensitiveLoad.get(day).get(i);
@@ -628,31 +631,31 @@ public class Village extends AbstractCustomer
     long sum = 0;
 
     if (type.equals("NS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyBaseLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("RaS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyBaseLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("ReS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyBaseLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyBaseLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -675,31 +678,31 @@ public class Village extends AbstractCustomer
     long sum = 0;
 
     if (type.equals("NS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyControllableLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadNS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("RaS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyControllableLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadRaS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("ReS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyControllableLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadReS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyControllableLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadSS.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -718,35 +721,36 @@ public class Village extends AbstractCustomer
   Vector<Long> fillAggDailyWeatherSensitiveLoadInHours (int day, String type)
   {
 
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
     Vector<Long> daily = new Vector<Long>();
     long sum = 0;
 
     if (type.equals("NS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadNS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("RaS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadRaS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyWeatherSensitiveLoadRaS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadRaS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadRaS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadRaS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else if (type.equals("ReS")) {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadReS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyWeatherSensitiveLoadReS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadReS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadReS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadReS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadSS.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+        sum = aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR) + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -767,33 +771,33 @@ public class Village extends AbstractCustomer
     log.info("Portion " + type + " Weekly Aggregated Load");
 
     if (type.equals("NS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
-        for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
           log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j) + " Weather Sensitive Load: "
               + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
         }
       }
     } else if (type.equals("RaS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
-        for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
           log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(i).get(j)
               + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursRaS.get(i).get(j));
         }
       }
     } else if (type.equals("ReS")) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
-        for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
           log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(i).get(j)
               + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursReS.get(i).get(j));
         }
       }
     } else {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP; i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
-        for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
           log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j) + " Weather Sensitive Load: "
               + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
         }
@@ -815,25 +819,25 @@ public class Village extends AbstractCustomer
     log.debug("Day " + day);
 
     if (type.equals("NS")) {
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
         log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
       }
 
     } else if (type.equals("RaS")) {
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
         log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursRaS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursRaS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(j));
       }
 
     } else if (type.equals("ReS")) {
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
         log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursReS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursReS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(j));
       }
 
     } else {
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
         log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j)
             + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
       }
@@ -871,15 +875,15 @@ public class Village extends AbstractCustomer
   double getConsumptionByTimeslot (int serial, String type)
   {
 
-    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY);
-    int hour = (int) (serial % HouseholdConstants.HOURS_OF_DAY);
+    int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
+    int hour = (int) (serial % VillageConstants.HOURS_OF_DAY);
     long summary = 0;
 
     log.debug("Serial : " + serial + " Day: " + day + " Hour: " + hour);
 
     summary = (getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
 
-    return (double) summary / HouseholdConstants.THOUSAND;
+    return (double) summary / VillageConstants.THOUSAND;
   }
 
   // =====GETTER FUNCTIONS===== //
@@ -909,15 +913,16 @@ public class Village extends AbstractCustomer
   long getBaseConsumptions (int day, int hour, String type)
   {
     long summaryBase = 0;
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      summaryBase = aggDailyBaseLoadInHoursNS.get(day).get(hour);
+      summaryBase = aggDailyBaseLoadInHoursNS.get(dayTemp).get(hour);
     } else if (type.equals("RaS")) {
-      summaryBase = aggDailyBaseLoadInHoursRaS.get(day).get(hour);
+      summaryBase = aggDailyBaseLoadInHoursRaS.get(dayTemp).get(hour);
     } else if (type.equals("ReS")) {
-      summaryBase = aggDailyBaseLoadInHoursReS.get(day).get(hour);
+      summaryBase = aggDailyBaseLoadInHoursReS.get(dayTemp).get(hour);
     } else {
-      summaryBase = aggDailyBaseLoadInHoursSS.get(day).get(hour);
+      summaryBase = aggDailyBaseLoadInHoursSS.get(dayTemp).get(hour);
     }
 
     log.debug("Base Load for " + type + ":" + summaryBase);
@@ -931,15 +936,16 @@ public class Village extends AbstractCustomer
   long getControllableConsumptions (int day, int hour, String type)
   {
     long summaryControllable = 0;
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      summaryControllable = aggDailyControllableLoadInHoursNS.get(day).get(hour);
+      summaryControllable = aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
     } else if (type.equals("RaS")) {
-      summaryControllable = aggDailyControllableLoadInHoursRaS.get(day).get(hour);
+      summaryControllable = aggDailyControllableLoadInHoursRaS.get(dayTemp).get(hour);
     } else if (type.equals("ReS")) {
-      summaryControllable = aggDailyControllableLoadInHoursReS.get(day).get(hour);
+      summaryControllable = aggDailyControllableLoadInHoursReS.get(dayTemp).get(hour);
     } else {
-      summaryControllable = aggDailyControllableLoadInHoursSS.get(day).get(hour);
+      summaryControllable = aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
     }
 
     log.debug("Controllable Load for " + type + ":" + summaryControllable);
@@ -953,15 +959,16 @@ public class Village extends AbstractCustomer
   long getWeatherSensitiveConsumptions (int day, int hour, String type)
   {
     long summaryWeatherSensitive = 0;
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(hour);
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
     } else if (type.equals("RaS")) {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(hour);
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursRaS.get(dayTemp).get(hour);
     } else if (type.equals("ReS")) {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(hour);
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursReS.get(dayTemp).get(hour);
     } else {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(hour);
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
     }
 
     log.debug("WeatherSensitive Load for " + type + ":" + summaryWeatherSensitive);
@@ -976,15 +983,16 @@ public class Village extends AbstractCustomer
   {
 
     Vector<Long> controllableVector = new Vector<Long>();
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      controllableVector = aggDailyControllableLoadInHoursNS.get(day);
+      controllableVector = aggDailyControllableLoadInHoursNS.get(dayTemp);
     } else if (type.equals("RaS")) {
-      controllableVector = aggDailyControllableLoadInHoursRaS.get(day);
+      controllableVector = aggDailyControllableLoadInHoursRaS.get(dayTemp);
     } else if (type.equals("ReS")) {
-      controllableVector = aggDailyControllableLoadInHoursReS.get(day);
+      controllableVector = aggDailyControllableLoadInHoursReS.get(dayTemp);
     } else {
-      controllableVector = aggDailyControllableLoadInHoursSS.get(day);
+      controllableVector = aggDailyControllableLoadInHoursSS.get(dayTemp);
     }
 
     return controllableVector;
@@ -998,15 +1006,16 @@ public class Village extends AbstractCustomer
   {
 
     Vector<Long> weatherSensitiveVector = new Vector<Long>();
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursNS.get(day);
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp);
     } else if (type.equals("RaS")) {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursRaS.get(day);
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursRaS.get(dayTemp);
     } else if (type.equals("ReS")) {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursReS.get(day);
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursReS.get(dayTemp);
     } else {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursSS.get(day);
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp);
     }
 
     return weatherSensitiveVector;
@@ -1147,7 +1156,7 @@ public class Village extends AbstractCustomer
     }
 
     double costFixed = estimateFixedTariffPayments(tariff);
-    return (costVariable + costFixed) / HouseholdConstants.MILLION;
+    return (costVariable + costFixed) / VillageConstants.MILLION;
   }
 
   /**
@@ -1163,7 +1172,7 @@ public class Village extends AbstractCustomer
     // with the duration
     // because you don't know it.
     if (tariff.getMinDuration() == 0)
-      minDuration = HouseholdConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
+      minDuration = VillageConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
     else
       minDuration = tariff.getMinDuration();
 
@@ -1182,16 +1191,16 @@ public class Village extends AbstractCustomer
 
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     Instant base = new Instant(timeService.getCurrentTime().getMillis() - serial * TimeService.HOUR);
-    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
+    int daylimit = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
 
     for (int day : daysList) {
       if (day < daylimit)
-        day = (int) (day + (daylimit / HouseholdConstants.RANDOM_DAYS_NUMBER));
+        day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
       Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
 
-      for (int hour = 0; hour < HouseholdConstants.HOURS_OF_DAY; hour++) {
+      for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
 
         summary = getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type);
 
@@ -1203,7 +1212,7 @@ public class Village extends AbstractCustomer
       log.debug("Variable Cost Summary: " + finalCostSummary);
       finalCostSummary += costSummary;
     }
-    return finalCostSummary / HouseholdConstants.RANDOM_DAYS_NUMBER;
+    return finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -1221,18 +1230,18 @@ public class Village extends AbstractCustomer
 
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     Instant base = timeService.getCurrentTime().minus(serial * TimeService.HOUR);
-    int daylimit = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
+    int daylimit = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
 
     for (int day : daysList) {
       if (day < daylimit)
-        day = (int) (day + (daylimit / HouseholdConstants.RANDOM_DAYS_NUMBER));
+        day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
       Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
 
       long[] newControllableLoad = dailyShifting(tariff, now, day, type);
 
-      for (int hour = 0; hour < HouseholdConstants.HOURS_OF_DAY; hour++) {
+      for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
         summary = getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
         cumulativeSummary += summary;
         costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
@@ -1241,7 +1250,7 @@ public class Village extends AbstractCustomer
       log.debug("Variable Cost Summary: " + finalCostSummary);
       finalCostSummary += costSummary;
     }
-    return finalCostSummary / HouseholdConstants.RANDOM_DAYS_NUMBER;
+    return finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -1257,13 +1266,13 @@ public class Village extends AbstractCustomer
     Vector<Integer> possibilities = new Vector<Integer>();
 
     for (int i = 0; i < estimation.size(); i++) {
-      summedEstimations += Math.pow(HouseholdConstants.EPSILON, lamda * estimation.get(i));
+      summedEstimations += Math.pow(VillageConstants.EPSILON, lamda * estimation.get(i));
       log.debug("Cost variable: " + estimation.get(i));
       log.debug("Summary of Estimation: " + summedEstimations);
     }
 
     for (int i = 0; i < estimation.size(); i++) {
-      possibilities.add((int) (HouseholdConstants.PERCENTAGE * (Math.pow(HouseholdConstants.EPSILON, lamda * estimation.get(i)) / summedEstimations)));
+      possibilities.add((int) (VillageConstants.PERCENTAGE * (Math.pow(VillageConstants.EPSILON, lamda * estimation.get(i)) / summedEstimations)));
       for (int j = 0; j < possibilities.get(i); j++) {
         randomizer.add(i);
       }
@@ -1292,7 +1301,8 @@ public class Village extends AbstractCustomer
   long[] dailyShifting (Tariff tariff, Instant now, int day, String type)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     Vector<Household> houses = new Vector<Household>();
 
@@ -1307,14 +1317,14 @@ public class Village extends AbstractCustomer
     }
 
     for (Household house : houses) {
-      long[] temp = house.dailyShifting(tariff, now, day, gen);
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++)
+      long[] temp = house.dailyShifting(tariff, now, dayTemp, gen);
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
         newControllableLoad[j] += temp[j];
     }
 
     log.debug("New Controllable Load of Village " + toString() + " type " + type + " for Tariff " + tariff.toString());
 
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0) + " Load For Type " + type + " : " + newControllableLoad[i]);
       now = new Instant(now.getMillis() + TimeService.HOUR);
     }
@@ -1335,6 +1345,7 @@ public class Village extends AbstractCustomer
   {
 
     Vector<Household> houses = new Vector<Household>();
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
       houses = notShiftingHouses;
@@ -1349,7 +1360,7 @@ public class Village extends AbstractCustomer
     log.debug("Day " + day);
 
     for (Household house : houses) {
-      house.printDailyLoad(day);
+      house.printDailyLoad(dayTemp);
     }
 
   }
@@ -1364,9 +1375,10 @@ public class Village extends AbstractCustomer
    */
   void stepStatus (int day, int quarter, String type)
   {
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
     Vector<Household> houses = getHouses(type);
     for (Household house : houses) {
-      house.stepStatus(day, quarter);
+      house.stepStatus(dayTemp, quarter);
     }
   }
 
@@ -1386,7 +1398,7 @@ public class Village extends AbstractCustomer
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP);
+      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -1413,7 +1425,7 @@ public class Village extends AbstractCustomer
   {
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION + HouseholdConstants.DAYS_OF_BOOTSTRAP);
+      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = daysList.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -1434,7 +1446,7 @@ public class Village extends AbstractCustomer
   public void step ()
   {
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY);
+    int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
     int hour = timeService.getHourOfDay();
     Instant now = new Instant(timeService.getCurrentTime().getMillis());
 
@@ -1443,7 +1455,7 @@ public class Village extends AbstractCustomer
     checkRevokedSubscriptions();
     consumePower();
 
-    if (hour == 23 && (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION)) {
+    if (hour == 23) {
 
       for (String type : subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
@@ -1465,6 +1477,7 @@ public class Village extends AbstractCustomer
   void weatherCheck (int day, int hour, Instant now)
   {
 
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
     WeatherReport wr = weatherReportRepo.currentWeatherReport();
     if (wr != null) {
       double temperature = wr.getTemperature();
@@ -1473,16 +1486,16 @@ public class Village extends AbstractCustomer
       Vector<Household> houses = getHouses();
 
       for (Household house : houses) {
-        house.weatherCheck(day, hour, now, temperature);
+        house.weatherCheck(dayTemp, hour, now, temperature);
       }
 
       for (String type : subscriptionMap.keySet()) {
         updateAggDailyWeatherSensitiveLoad(type, day);
-        if (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION) {
-          updateAggDailyWeatherSensitiveLoad(type, day + 1);
+        if (dayTemp + 1 < VillageConstants.DAYS_OF_COMPETITION) {
+          updateAggDailyWeatherSensitiveLoad(type, dayTemp + 1);
         }
-        // showAggDailyLoad(type, day);
-        // showAggDailyLoad(type, day + 1);
+        // showAggDailyLoad(type, dayTemp);
+        // showAggDailyLoad(type, dayTemp + 1);
       }
     }
   }
@@ -1495,25 +1508,27 @@ public class Village extends AbstractCustomer
   void rescheduleNextDay (String type)
   {
     int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    int day = (int) (serial / HouseholdConstants.HOURS_OF_DAY) + 1;
+    int day = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
     Instant now = new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
+
+    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     Vector<Long> controllableVector = new Vector<Long>();
 
     TariffSubscription sub = subscriptionMap.get(type);
 
-    log.debug("Old Consumption for day " + day + ": " + getControllableConsumptions(day, type).toString());
-    long[] newControllableLoad = dailyShifting(sub.getTariff(), now, day, type);
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++)
+    log.debug("Old Consumption for day " + day + ": " + getControllableConsumptions(dayTemp, type).toString());
+    long[] newControllableLoad = dailyShifting(sub.getTariff(), now, dayTemp, type);
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++)
       controllableVector.add(newControllableLoad[i]);
     log.debug("New Consumption for day " + day + ": " + controllableVector.toString());
 
     if (type.equals("RaS")) {
-      aggDailyBaseLoadInHoursRaS.set(day, controllableVector);
+      aggDailyBaseLoadInHoursRaS.set(dayTemp, controllableVector);
     } else if (type.equals("ReS")) {
-      aggDailyBaseLoadInHoursReS.set(day, controllableVector);
+      aggDailyBaseLoadInHoursReS.set(dayTemp, controllableVector);
     } else {
-      aggDailyBaseLoadInHoursSS.set(day, controllableVector);
+      aggDailyBaseLoadInHoursSS.set(dayTemp, controllableVector);
     }
 
   }

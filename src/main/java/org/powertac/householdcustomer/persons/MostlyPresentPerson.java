@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
@@ -30,7 +30,7 @@ import org.powertac.common.enumerations.Status;
  * work at all, so they have more time for leisure activities.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.122
  */
 public class MostlyPresentPerson extends Person
 {
@@ -94,10 +94,10 @@ public class MostlyPresentPerson extends Person
     log.debug("Weekly Routine Length : " + weeklyRoutine.size());
     log.debug("Weekly Routine : ");
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       log.debug("Day " + (i));
       ListIterator<Status> iter2 = weeklyRoutine.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter : " + (j + 1) + " Status : " + iter2.next());
     }
   }
@@ -115,7 +115,7 @@ public class MostlyPresentPerson extends Person
     int x = (int) (gen.nextGaussian() + MPLeisure);
     leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     leisureVector = createLeisureVector(x, gen);
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       fillDailyRoutine(i, vacationAbsence, gen);
       weeklyRoutine.add(dailyRoutine);
     }

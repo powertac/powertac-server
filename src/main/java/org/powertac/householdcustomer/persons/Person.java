@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,31 +22,34 @@ import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 import org.powertac.householdcustomer.customers.Household;
 
 /**
- * A person domain instance represents a single person in its real life activities The person is
- * living in a house, it may work, it goes to the movies, it is sick, it goes on a vacation trip. In
- * order to make the models as realistic as possible we have them to live their lives as part of a
- * bigger community.
+ * A person domain instance represents a single person in its real life
+ * activities The person is living in a house, it may work, it goes to the
+ * movies, it is sick, it goes on a vacation trip. In order to make the models
+ * as realistic as possible we have them to live their lives as part of a bigger
+ * community.
+ * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 
 public class Person
 {
 
   /**
-   * logger for trace logging -- use log.info(), log.warn(), and log.error() appropriately. Use
-   * log.debug() for output you want to see in testing or debugging.
+   * logger for trace logging -- use log.info(), log.warn(), and log.error()
+   * appropriately. Use log.debug() for output you want to see in testing or
+   * debugging.
    */
   static protected Logger log = Logger.getLogger(Person.class.getName());
 
   /**
-   * the person's name in the community. Usually it includes the household he is living in or its
-   * type of person
+   * the person's name in the community. Usually it includes the household he is
+   * living in or its type of person
    */
   String name;
 
@@ -63,21 +66,30 @@ public class Person
   Vector<Integer> vacationVector = new Vector<Integer>();
 
   /**
-   * Vector of the public vacation days of the person's community, such as Christmas, Easter and so
-   * on.
+   * Vector of the public vacation days of the person's community, such as
+   * Christmas, Easter and so on.
    **/
   Vector<Integer> publicVacationVector = new Vector<Integer>();
 
-  /** This is a vector of the days that the person is sick and will stay in the house **/
+  /**
+   * This is a vector of the days that the person is sick and will stay in the
+   * house
+   **/
   Vector<Integer> sicknessVector = new Vector<Integer>();
 
   /** The duration each of the person's leisure activity takes **/
   int leisureDuration = 0;
 
-  /** This is a vector of the day's quarter's and the status of the person in each one of them **/
+  /**
+   * This is a vector of the day's quarter's and the status of the person in
+   * each one of them
+   **/
   Vector<Status> dailyRoutine = new Vector<Status>();
 
-  /** This is a vector containing the days of the week that the person has leisure time **/
+  /**
+   * This is a vector containing the days of the week that the person has
+   * leisure time
+   **/
   Vector<Integer> leisureVector = new Vector<Integer>();
 
   /** The weekly schedule and status of the person **/
@@ -85,6 +97,7 @@ public class Person
 
   /**
    * This function checks if the person is sleeping.
+   * 
    * @return
    */
   boolean isSleeping ()
@@ -97,6 +110,7 @@ public class Person
 
   /**
    * This function checks if the person is at work.
+   * 
    * @return
    */
   boolean isAtWork ()
@@ -109,6 +123,7 @@ public class Person
 
   /**
    * This function checks if the person is doing a leisure activity.
+   * 
    * @return
    */
   boolean isLeisure ()
@@ -121,6 +136,7 @@ public class Person
 
   /**
    * This function checks if the person is on vacation.
+   * 
    * @return
    */
   boolean isVacation ()
@@ -133,6 +149,7 @@ public class Person
 
   /**
    * This function checks if the person is sick.
+   * 
    * @return
    */
   boolean isSick ()
@@ -156,8 +173,10 @@ public class Person
   }
 
   /**
-   * This function fills out the leisure days' vector of the person by choosing randomly days of the
-   * week, while the amount of days is different for each person type.
+   * This function fills out the leisure days' vector of the person by choosing
+   * randomly days of the week, while the amount of days is different for each
+   * person type.
+   * 
    * @param counter
    * @param gen
    * @return
@@ -169,7 +188,7 @@ public class Person
 
     // Loop for the amount of days
     for (int i = 0; i < counter; i++) {
-      int day = gen.nextInt(HouseholdConstants.DAYS_OF_WEEK);
+      int day = gen.nextInt(VillageConstants.DAYS_OF_WEEK);
       v.add(day);
     }
     java.util.Collections.sort(v);
@@ -177,8 +196,10 @@ public class Person
   }
 
   /**
-   * This function fills out the daily routine of the person, taking into account the different
-   * variables and occupations, if he is sick or working etc.
+   * This function fills out the daily routine of the person, taking into
+   * account the different variables and occupations, if he is sick or working
+   * etc.
+   * 
    * @param mean
    * @param dev
    * @param gen
@@ -192,7 +213,7 @@ public class Person
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION) + 1;
+      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION) + 1;
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -214,8 +235,10 @@ public class Person
   }
 
   /**
-   * This function fills out the daily routine of the person, taking into account the different
-   * variables and occupations, if he is sick or working etc
+   * This function fills out the daily routine of the person, taking into
+   * account the different variables and occupations, if he is sick or working
+   * etc
+   * 
    * @param day
    * @param vacationAbsence
    * @param gen
@@ -226,14 +249,14 @@ public class Person
     // Create auxiliary variable
     Status st;
 
-    int weekday = day % HouseholdConstants.DAYS_OF_WEEK;
+    int weekday = day % VillageConstants.DAYS_OF_WEEK;
     dailyRoutine = new Vector<Status>();
     if (sicknessVector.contains(day)) {
       fillSick();
     } else {
       if (publicVacationVector.contains(day) || (this instanceof WorkingPerson && vacationVector.contains(day))) {
         if (gen.nextDouble() < vacationAbsence) {
-          for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+          for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
             st = Status.Vacation;
             dailyRoutine.add(st);
           }
@@ -259,8 +282,9 @@ public class Person
   }
 
   /**
-   * This function fills out the daily routine with the leisure activity of the day, if there is one
-   * for the person in question.
+   * This function fills out the daily routine with the leisure activity of the
+   * day, if there is one for the person in question.
+   * 
    * @param weekday
    * @param gen
    * @return
@@ -273,11 +297,11 @@ public class Person
 
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
-        int start = HouseholdConstants.START_OF_LEISURE + gen.nextInt(HouseholdConstants.LEISURE_WINDOW);
+        int start = VillageConstants.START_OF_LEISURE + gen.nextInt(VillageConstants.LEISURE_WINDOW);
         for (int i = start; i < start + leisureDuration; i++) {
           st = Status.Leisure;
           dailyRoutine.set(i, st);
-          if (i == HouseholdConstants.QUARTERS_OF_DAY - 1)
+          if (i == VillageConstants.QUARTERS_OF_DAY - 1)
             break;
         }
       }
@@ -285,7 +309,9 @@ public class Person
   }
 
   /**
-   * This function fills out the leisure activities in the daily schedule of the person in question.
+   * This function fills out the leisure activities in the daily schedule of the
+   * person in question.
+   * 
    * @param weekday
    * @param gen
    * @return
@@ -296,51 +322,56 @@ public class Person
   }
 
   /**
-   * This function fills out the daily routine of the person as if he stays in the house all day
-   * long.
+   * This function fills out the daily routine of the person as if he stays in
+   * the house all day long.
+   * 
    * @return
    */
   void normalFill ()
   {
     Status st;
-    for (int i = HouseholdConstants.START_OF_SLEEPING_1; i < HouseholdConstants.END_OF_SLEEPING_1; i++) {
+    for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
       st = Status.Sleeping;
       dailyRoutine.add(st);
     }
-    for (int i = HouseholdConstants.END_OF_SLEEPING_1; i < HouseholdConstants.START_OF_SLEEPING_2; i++) {
+    for (int i = VillageConstants.END_OF_SLEEPING_1; i < VillageConstants.START_OF_SLEEPING_2; i++) {
       st = Status.Normal;
       dailyRoutine.add(st);
     }
-    for (int i = HouseholdConstants.START_OF_SLEEPING_2; i < HouseholdConstants.END_OF_SLEEPING_2; i++) {
+    for (int i = VillageConstants.START_OF_SLEEPING_2; i < VillageConstants.END_OF_SLEEPING_2; i++) {
       st = Status.Sleeping;
       dailyRoutine.add(st);
     }
   }
 
   /**
-   * This function fills out the daily routine of the person that is sick for the day.
+   * This function fills out the daily routine of the person that is sick for
+   * the day.
+   * 
    * @return
    */
   void fillSick ()
   {
     Status st;
-    for (int i = HouseholdConstants.START_OF_SLEEPING_1; i < HouseholdConstants.END_OF_SLEEPING_1; i++) {
+    for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
       st = Status.Sleeping;
       dailyRoutine.add(st);
     }
-    for (int i = HouseholdConstants.END_OF_SLEEPING_1; i < HouseholdConstants.START_OF_SLEEPING_2; i++) {
+    for (int i = VillageConstants.END_OF_SLEEPING_1; i < VillageConstants.START_OF_SLEEPING_2; i++) {
       st = Status.Sick;
       dailyRoutine.add(st);
     }
-    for (int i = HouseholdConstants.START_OF_SLEEPING_2; i < HouseholdConstants.END_OF_SLEEPING_2; i++) {
+    for (int i = VillageConstants.START_OF_SLEEPING_2; i < VillageConstants.END_OF_SLEEPING_2; i++) {
       st = Status.Sleeping;
       dailyRoutine.add(st);
     }
   }
 
   /**
-   * This function fill the daily program of the person with the suitable working activities taking
-   * in consideration the working habits, duration and shifts.
+   * This function fill the daily program of the person with the suitable
+   * working activities taking in consideration the working habits, duration and
+   * shifts.
+   * 
    * @return
    */
   void fillWork ()
@@ -349,8 +380,9 @@ public class Person
   }
 
   /**
-   * This is the function utilized to show the information regarding the person in question, its
-   * variables values etc.
+   * This is the function utilized to show the information regarding the person
+   * in question, its variables values etc.
+   * 
    * @return
    */
   public void showInfo ()
@@ -359,8 +391,10 @@ public class Person
   }
 
   /**
-   * At the end of each week the person models refresh their schedule. This way we have a realistic
-   * and dynamic model, changing working hours, leisure activities and so on.
+   * At the end of each week the person models refresh their schedule. This way
+   * we have a realistic and dynamic model, changing working hours, leisure
+   * activities and so on.
+   * 
    * @param conf
    * @param gen
    * @return

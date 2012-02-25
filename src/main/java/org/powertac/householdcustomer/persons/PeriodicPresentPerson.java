@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,24 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
- * This is the instance of the person type that works in a regular basis for a number of days in the
- * . The standard program gives space for some leisure activities.
+ * This is the instance of the person type that works in a regular basis for a
+ * number of days in the . The standard program gives space for some leisure
+ * activities.
+ * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  **/
 public class PeriodicPresentPerson extends WorkingPerson
 {
 
   /**
-   * This is the initialization function. It uses the variable values for the configuration file to
-   * create the person as it should for this type.
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the person as it should for this type.
+   * 
    * @param AgentName
    * @param conf
    * @param publicVacationVector
@@ -67,7 +70,7 @@ public class PeriodicPresentPerson extends WorkingPerson
     leisureVector = createLeisureVector(x, gen);
     leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     // Filling Working variables
-    workingStartHour = HouseholdConstants.START_OF_WORK;
+    workingStartHour = VillageConstants.START_OF_WORK;
     int work = workingDaysRandomizer(conf, gen);
     workingDays = createWorkingDaysVector(work, gen);
     workingDuration = (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
@@ -87,11 +90,11 @@ public class PeriodicPresentPerson extends WorkingPerson
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
         int start = workingStartHour + workingDuration;
-        int startq = gen.nextInt(Math.max(1, HouseholdConstants.LEISURE_END_WINDOW - start)) + start;
+        int startq = gen.nextInt(Math.max(1, VillageConstants.LEISURE_END_WINDOW - start)) + start;
         for (int i = startq; i < startq + leisureDuration; i++) {
           st = Status.Leisure;
           dailyRoutine.set(i, st);
-          if (i == HouseholdConstants.QUARTERS_OF_DAY - 1)
+          if (i == VillageConstants.QUARTERS_OF_DAY - 1)
             break;
         }
       }
@@ -121,7 +124,7 @@ public class PeriodicPresentPerson extends WorkingPerson
     int x = (int) (gen.nextGaussian() + PPLeisure);
     leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     leisureVector = createLeisureVector(x, gen);
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       fillDailyRoutine(i, vacationAbsence, gen);
       weeklyRoutine.add(dailyRoutine);
     }

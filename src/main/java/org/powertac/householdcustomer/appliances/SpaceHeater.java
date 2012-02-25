@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Vector;
 
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Spaceheater is a electric appliance utilized to keep the rooms of a household
@@ -31,7 +31,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * fully shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class SpaceHeater extends WeatherSensitiveAppliance
 {
@@ -61,9 +61,9 @@ public class SpaceHeater extends WeatherSensitiveAppliance
     name = household + " SpaceHeater";
     saturation = Double.parseDouble(conf.getProperty("SpaceHeaterSaturation"));
     percentage = Double.parseDouble(conf.getProperty("SpaceHeaterPercentage"));
-    temperatureThreshold = (int) (HouseholdConstants.SPACE_HEATER_TEMPERATURE_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_TEMPERATURE_MEAN);
-    power = (int) (HouseholdConstants.SPACE_HEATER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.SPACE_HEATER_POWER_MEAN);
-    cycleDuration = HouseholdConstants.SPACE_HEATER_DURATION_CYCLE;
+    temperatureThreshold = (int) (VillageConstants.SPACE_HEATER_TEMPERATURE_VARIANCE * gen.nextGaussian() + VillageConstants.SPACE_HEATER_TEMPERATURE_MEAN);
+    power = (int) (VillageConstants.SPACE_HEATER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.SPACE_HEATER_POWER_MEAN);
+    cycleDuration = VillageConstants.SPACE_HEATER_DURATION_CYCLE;
     od = false;
     generator = gen;
   }
@@ -74,7 +74,7 @@ public class SpaceHeater extends WeatherSensitiveAppliance
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       loadVector.add(0);
       dailyOperation.add(false);
     }
@@ -97,19 +97,19 @@ public class SpaceHeater extends WeatherSensitiveAppliance
     if ((applianceOf.isOnVacation(day)) || (temp > temperatureThreshold) || (perc > percentage)) {
 
     } else {
-      for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
         loadVector.add(0);
         dailyOperation.add(true);
       }
-      for (int i = 0; i < HouseholdConstants.SPACE_HEATER_PHASE_1; i++)
+      for (int i = 0; i < VillageConstants.SPACE_HEATER_PHASE_1; i++)
         loadVector.set(i, power);
-      for (int i = HouseholdConstants.SPACE_HEATER_PHASE_1; i < HouseholdConstants.SPACE_HEATER_PHASE_2; i++)
-        loadVector.set(i, loadVector.get(i - 1) - HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
-      for (int i = HouseholdConstants.SPACE_HEATER_PHASE_2; i < HouseholdConstants.SPACE_HEATER_PHASE_3; i++)
+      for (int i = VillageConstants.SPACE_HEATER_PHASE_1; i < VillageConstants.SPACE_HEATER_PHASE_2; i++)
+        loadVector.set(i, loadVector.get(i - 1) - VillageConstants.SPACE_HEATER_PHASE_LOAD);
+      for (int i = VillageConstants.SPACE_HEATER_PHASE_2; i < VillageConstants.SPACE_HEATER_PHASE_3; i++)
         loadVector.set(i, loadVector.get(i - 1));
-      for (int i = HouseholdConstants.SPACE_HEATER_PHASE_3; i < HouseholdConstants.SPACE_HEATER_PHASE_4; i++)
-        loadVector.set(i, loadVector.get(i - 1) + 2 * HouseholdConstants.SPACE_HEATER_PHASE_LOAD);
-      for (int i = HouseholdConstants.SPACE_HEATER_PHASE_4; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
+      for (int i = VillageConstants.SPACE_HEATER_PHASE_3; i < VillageConstants.SPACE_HEATER_PHASE_4; i++)
+        loadVector.set(i, loadVector.get(i - 1) + 2 * VillageConstants.SPACE_HEATER_PHASE_LOAD);
+      for (int i = VillageConstants.SPACE_HEATER_PHASE_4; i < VillageConstants.QUARTERS_OF_DAY; i++)
         loadVector.set(i, power);
       weeklyLoadVector.set(day, loadVector);
       weeklyOperation.set(day, dailyOperation);
@@ -125,11 +125,11 @@ public class SpaceHeater extends WeatherSensitiveAppliance
 
     // In case the attenants are not in vacation, the spaceheater works all day
     if (applianceOf.isOnVacation(day)) {
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
         possibilityDailyOperation.add(false);
       }
     } else {
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
         possibilityDailyOperation.add(true);
       }
     }
@@ -139,12 +139,12 @@ public class SpaceHeater extends WeatherSensitiveAppliance
   @Override
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     // In this case the daily shifting is useless because it works all day
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_HOUR; j++)
-        newControllableLoad[i] += weeklyLoadVector.get(day).get(i * HouseholdConstants.QUARTERS_OF_HOUR + j);
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_HOUR; j++)
+        newControllableLoad[i] += weeklyLoadVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + j);
     }
     return newControllableLoad;
   }

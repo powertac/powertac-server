@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,6 +77,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Antonios Chrysopoulos
+ * @version 1.5, Date: 2.25.12
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:test-config.xml" })
@@ -198,6 +199,7 @@ public class HouseholdCustomerServiceTests
     map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
     map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
     map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
+    map.put("householdcustomer.householdCustomerService.daysOfCompetition", "70");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
@@ -207,6 +209,7 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
+    assertEquals("correct days of competition", 70, householdCustomerService.getDaysOfCompetition());
   }
 
   @Test
@@ -217,6 +220,7 @@ public class HouseholdCustomerServiceTests
     map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
     map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
     map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
+    map.put("householdcustomer.householdCustomerService.daysOfCompetition", "8");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
@@ -227,6 +231,7 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
+    assertEquals("correct days of competition", 14, householdCustomerService.getDaysOfCompetition());
 
   }
 
@@ -239,6 +244,7 @@ public class HouseholdCustomerServiceTests
     map2.put("householdcustomer.householdCustomerService.configFile2", null);
     map2.put("householdcustomer.householdCustomerService.configFile3", null);
     map2.put("householdcustomer.householdCustomerService.configFile4", null);
+    map2.put("householdcustomer.householdCustomerService.daysOfCompetition", "0");
     Configuration mapConfig = new MapConfiguration(map2);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
@@ -249,6 +255,7 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile4());
+    assertEquals("correct days of competition", 63, householdCustomerService.getDaysOfCompetition());
   }
 
   @Test
@@ -282,7 +289,8 @@ public class HouseholdCustomerServiceTests
 
       // System.out.println(tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff().toString());
       assertEquals("one subscription for our customer", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-      assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
+      assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)),
+          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
     }
   }
 
@@ -368,7 +376,10 @@ public class HouseholdCustomerServiceTests
       // tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).toString());
 
       customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
-      assertFalse("Changed from default tariff", tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+      assertFalse(
+          "Changed from default tariff",
+          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes()
+              .get(0)));
 
       // System.out.println("Subscriptions: " +
       // tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).toString());
@@ -382,7 +393,10 @@ public class HouseholdCustomerServiceTests
 
       defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
 
-      assertTrue("Changed to default tariff", tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+      assertTrue(
+          "Changed to default tariff",
+          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes()
+              .get(0)));
 
       sub.subscribe(customer.getHouses("SS").size());
 
@@ -793,4 +807,58 @@ public class HouseholdCustomerServiceTests
 
   }
 
+  @Test
+  public void testAfterDaysOfCompetition ()
+  {
+    initializeService();
+
+    // capture subscription method args
+    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+
+    for (Village customer : householdCustomerService.getVillageList()) {
+
+      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
+      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+      assertEquals("one subscription", 1, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+    }
+
+    for (Village customer : householdCustomerService.getVillageList()) {
+      customer.showAggDailyLoad("SS", 0);
+    }
+
+    timeService.setBase(now.getMillis());
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.DAY * 1020));
+    householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
+    householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
+    Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
+    // log.debug(ts1.toString());
+    double temperature = 40 * Math.random();
+    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    weatherReportRepo.add(wr);
+    householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
+    for (int i = 0; i < 2000; i++) {
+      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 1));
+      ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
+      // log.debug(ts1.toString());
+      if (i > 1700) {
+        temperature = 40 * Math.random();
+        wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+        weatherReportRepo.add(wr);
+        householdCustomerService.activate(timeService.getCurrentTime(), 1);
+      }
+    }
+
+  }
 }

@@ -1,5 +1,5 @@
 /*
-* Copyright 2009-2010 the original author or authors.
+* Copyright 2009-2012 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -22,8 +22,7 @@ package org.powertac.common.enumerations;
  * an impact on their consumption and their duration cycle.
  * 
  * @author Antonios Chrysopoulos
- * @since 0.5
- * @version 1 Last Updated: 12.01.2012
+ * @version 1.5, Date: 2.25.12
  */
 
 public enum AirConditionClass

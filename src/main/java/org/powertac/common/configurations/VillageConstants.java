@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors. Licensed under the Apache
+ * Copyright 2009-2012 the original author or authors. Licensed under the Apache
  * License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
@@ -16,9 +16,9 @@ package org.powertac.common.configurations;
  * models.
  * 
  * @author Antonios Chrysopoulos
- * @version 1.0, Date: 13.12.10
+ * @version 1.5, Date: 2.25.12
  */
-public class HouseholdConstants
+public class VillageConstants
 {
 
   // GENERAL VARIABLES -----------------------------//
@@ -32,8 +32,8 @@ public class HouseholdConstants
   public static final double EPSILON = 2.7;
 
   // TIME VARIABLES -----------------------------//
-  public static final int DAYS_OF_COMPETITION = 63;
-  public static final int WEEKS_OF_COMPETITION = 9;
+  public static int DAYS_OF_COMPETITION;
+  public static int WEEKS_OF_COMPETITION;
   public static final int DAYS_OF_BOOTSTRAP = 14;
   public static final int WEEKS_OF_BOOTSTRAP = 2;
   public static final int DAYS_OF_WEEK = 7;
@@ -222,4 +222,13 @@ public class HouseholdConstants
 
   // COST ESTIMATION VARIABLES ------------------------//
   public static final int RANDOM_DAYS_NUMBER = 3;
+
+  public static void setDaysOfCompetition (int days)
+  {
+    WEEKS_OF_COMPETITION = (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));
+    DAYS_OF_COMPETITION = WEEKS_OF_COMPETITION * DAYS_OF_WEEK;
+
+    // System.out.println("Days:" + DAYS_OF_COMPETITION + " Weeks:" +
+    // WEEKS_OF_COMPETITION);
+  }
 }
