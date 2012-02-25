@@ -1,5 +1,6 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 * @author Antonios Chrysopoulos
+ * @version 1.5, Date: 2.25.12 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +24,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 import org.powertac.householdcustomer.appliances.AirCondition;
 import org.powertac.householdcustomer.appliances.Appliance;
@@ -54,7 +55,7 @@ import org.powertac.householdcustomer.persons.RandomlyAbsentPerson;
  * inhabiting the premises and each person living has it's own schedule.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Household
 {
@@ -190,7 +191,7 @@ public class Household
       addPerson(i + 1, conf, publicVacationVector, gen);
 
     for (Person member : members) {
-      for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+      for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
         member.fillDailyRoutine(i, va, gen);
         member.getWeeklyRoutine().add(member.getDailyRoutine());
         member.setMemberOf(this);
@@ -200,10 +201,10 @@ public class Household
 
     fillAppliances(conf, gen);
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
+      dailyBaseLoad = fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad = fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -216,7 +217,7 @@ public class Household
       weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
     }
 
-    for (week = 1; week < HouseholdConstants.WEEKS_OF_COMPETITION + HouseholdConstants.WEEKS_OF_BOOTSTRAP; week++) {
+    for (week = 1; week < VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP; week++) {
       refresh(conf, gen);
     }
 
@@ -251,7 +252,7 @@ public class Household
     int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
     int mp = Integer.parseInt(conf.getProperty("MostlyPresent"));
 
-    int x = gen.nextInt(HouseholdConstants.PERCENTAGE);
+    int x = gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < pp) {
       PeriodicPresentPerson ppp = new PeriodicPresentPerson();
       ppp.initialize("PPP" + counter, conf, publicVacationVector, gen);
@@ -302,25 +303,25 @@ public class Household
     int four = Integer.parseInt(conf.getProperty("FourPersons"));
     int returnValue;
 
-    int x = gen.nextInt(HouseholdConstants.PERCENTAGE);
+    int x = gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < one) {
       yearConsumption = Integer.parseInt(conf.getProperty("OnePersonConsumption"));
-      returnValue = HouseholdConstants.ONE_PERSON;
+      returnValue = VillageConstants.ONE_PERSON;
     } else {
       if (x >= one & x < (one + two)) {
         yearConsumption = Integer.parseInt(conf.getProperty("TwoPersonsConsumption"));
-        returnValue = HouseholdConstants.TWO_PERSONS;
+        returnValue = VillageConstants.TWO_PERSONS;
       } else {
         if (x >= (one + two) & x < (one + two + three)) {
           yearConsumption = Integer.parseInt(conf.getProperty("ThreePersonsConsumption"));
-          returnValue = HouseholdConstants.THREE_PERSONS;
+          returnValue = VillageConstants.THREE_PERSONS;
         } else {
           if (x >= (one + two + three) & x < (one + two + three + four)) {
             yearConsumption = Integer.parseInt(conf.getProperty("FourPersonsConsumption"));
-            returnValue = HouseholdConstants.FOUR_PERSONS;
+            returnValue = VillageConstants.FOUR_PERSONS;
           } else {
             yearConsumption = Integer.parseInt(conf.getProperty("FivePersonsConsumption"));
-            returnValue = HouseholdConstants.FIVE_PERSONS;
+            returnValue = VillageConstants.FIVE_PERSONS;
           }
         }
       }
@@ -341,8 +342,8 @@ public class Household
   {
     // Creating auxiliary variables
 
-    int x = gen.nextInt(HouseholdConstants.PERCENTAGE);
-    int threshold = (int) (app.getSaturation() * HouseholdConstants.PERCENTAGE);
+    int x = gen.nextInt(VillageConstants.PERCENTAGE);
+    int threshold = (int) (app.getSaturation() * VillageConstants.PERCENTAGE);
     if (x < threshold) {
       app.fillWeeklyFunction(gen);
       app.createWeeklyPossibilityOperationVector();
@@ -486,8 +487,8 @@ public class Household
   {
     boolean x = true;
     for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * HouseholdConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
-          || member.getWeeklyRoutine().get(week * HouseholdConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Sick) {
+      if (member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
+          || member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Sick) {
         x = false;
       }
     }
@@ -522,23 +523,23 @@ public class Household
     */
     // Printing daily load
     log.info(" Daily Load = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoad.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoad.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoad.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.info("Quarter : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
 
     // Printing daily load in hours
     log.info(" Load In Hours = ");
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoadInHours.get(i).listIterator();
       ListIterator<Integer> iter3 = weeklyControllableLoadInHours.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
         log.info("Hours : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
     }
   }
@@ -553,9 +554,9 @@ public class Household
   Vector<Integer> fillDailyBaseLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.QUARTERS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Appliance appliance : appliances) {
         if (appliance instanceof NotShiftingAppliance)
@@ -576,9 +577,9 @@ public class Household
   Vector<Integer> fillDailyControllableLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.QUARTERS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Appliance appliance : appliances) {
         if (!(appliance instanceof NotShiftingAppliance))
@@ -599,9 +600,9 @@ public class Household
   Vector<Integer> fillDailyWeatherSensitiveLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.QUARTERS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
       for (Appliance appliance : appliances) {
         if (appliance instanceof WeatherSensitiveAppliance)
@@ -669,12 +670,12 @@ public class Household
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.HOURS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.HOURS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyBaseLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR) + dailyBaseLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-          + dailyBaseLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + dailyBaseLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+      sum = dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1) + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+          + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -690,12 +691,12 @@ public class Household
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.HOURS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.HOURS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyControllableLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR) + dailyControllableLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-          + dailyControllableLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + dailyControllableLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+      sum = dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+          + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -711,12 +712,12 @@ public class Household
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(HouseholdConstants.HOURS_OF_DAY);
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.HOURS_OF_DAY);
     int sum = 0;
-    for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR) + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 1)
-          + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 2) + dailyWeatherSensitiveLoad.get(i * HouseholdConstants.QUARTERS_OF_HOUR + 3);
+      sum = dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+          + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -760,10 +761,10 @@ public class Household
 
     }
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * HouseholdConstants.DAYS_OF_WEEK + i);
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
+      dailyBaseLoad = fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad = fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -784,7 +785,7 @@ public class Household
 
     for (Appliance appliance : appliances) {
 
-      if (appliance instanceof SpaceHeater && hour == 23 && (day + 1 < HouseholdConstants.DAYS_OF_COMPETITION)) {
+      if (appliance instanceof SpaceHeater && hour == 23 && (day + 1 < VillageConstants.DAYS_OF_COMPETITION)) {
 
         appliance.weatherDailyFunction(day + 1, 0, temperature);
 
@@ -802,10 +803,10 @@ public class Household
 
         appliance.weatherDailyFunction(day, hour, temperature);
 
-        if ((appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 1) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 2) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * HouseholdConstants.QUARTERS_OF_HOUR + 3) > 0)) {
+        if ((appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 1) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 2) > 0)
+            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 3) > 0)) {
 
           // log.debug("Changed Air Condition indeed");
           dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day);
@@ -832,7 +833,7 @@ public class Household
   long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     for (Appliance appliance : appliances) {
       if (!(appliance instanceof NotShiftingAppliance) && !(appliance instanceof WeatherSensitiveAppliance)) {
@@ -843,11 +844,11 @@ public class Household
         // log.info("Load: " +
         // appliance.getWeeklyLoadVector().get(day).toString());
 
-        for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++)
+        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++)
           tempVector.add(temp[i]);
         // log.info("Temp: " + tempVector.toString());
 
-        for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++) {
+        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
           newControllableLoad[j] += temp[j];
           controllableVector.add(newControllableLoad[j]);
         }
@@ -869,7 +870,7 @@ public class Household
     ListIterator<Integer> iter = weeklyBaseLoadInHours.get(day).listIterator();
     ListIterator<Integer> iter2 = weeklyControllableLoadInHours.get(day).listIterator();
     log.info("Summary of Daily Load of House " + name);
-    for (int j = 0; j < HouseholdConstants.HOURS_OF_DAY; j++)
+    for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
       log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next());
   }
 

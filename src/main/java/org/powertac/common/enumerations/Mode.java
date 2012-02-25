@@ -1,5 +1,5 @@
 /*
-* Copyright 2009-2010 the original author or authors.
+* Copyright 2009-2012 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,16 +17,17 @@
 package org.powertac.common.enumerations;
 
 /**
- * This enumerator defines the four different modes of semi-automatic appliances 
+ * This enumerator defines the four different modes of semi-automatic appliances
  * Mode one: the washing has to finish within five hours from the loading point.
- * Mode two: finish within five to ten hours.
- * Mode three: finish in more than ten hours, but at the same day.
- * Mode four: finish laundry between loading point and end of day.
+ * Mode two: finish within five to ten hours. Mode three: finish in more than
+ * ten hours, but at the same day. Mode four: finish laundry between loading
+ * point and end of day.
  * 
  * @author Antonios Chrysopoulos
- * @since 0.5
- * @version 1
- * Last Updated: 02.05.2010
+ * @version 1.5, Date: 2.25.12
  */
 
-public enum Mode { One , Two , Three , Four }
+public enum Mode
+{
+  One, Two, Three, Four
+}

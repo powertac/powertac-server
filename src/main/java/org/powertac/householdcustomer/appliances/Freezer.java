@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Freezer is the utilized in combination with the fridge in the household. This
@@ -32,14 +32,14 @@ import org.powertac.common.configurations.HouseholdConstants;
  * shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Freezer extends FullyShiftingAppliance
 {
 
   public void fillWeeklyFunction (Random gen)
   {
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
       fillDailyFunction(i, gen);
   }
 
@@ -50,8 +50,8 @@ public class Freezer extends FullyShiftingAppliance
     // Filling the base variables
     name = household + " Freezer";
     saturation = Double.parseDouble(conf.getProperty("FreezerSaturation"));
-    power = (int) (HouseholdConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.FREEZER_POWER_MEAN);
-    cycleDuration = HouseholdConstants.FREEZER_DURATION_CYCLE;
+    power = (int) (VillageConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.FREEZER_POWER_MEAN);
+    cycleDuration = VillageConstants.FREEZER_DURATION_CYCLE;
     od = false;
 
   }
@@ -63,7 +63,7 @@ public class Freezer extends FullyShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // Freezer can work anytime
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       possibilityDailyOperation.add(true);
     }
 
@@ -77,7 +77,7 @@ public class Freezer extends FullyShiftingAppliance
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
 
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (i % cycleDuration == 0) {
         loadVector.add(power);
         dailyOperation.add(true);
@@ -95,24 +95,24 @@ public class Freezer extends FullyShiftingAppliance
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     Instant now2 = now;
 
     // Daily operation is seperated in shifting periods
-    for (int i = 0; i < HouseholdConstants.FREEZER_SHIFTING_PERIODS; i++) {
+    for (int i = 0; i < VillageConstants.FREEZER_SHIFTING_PERIODS; i++) {
       double minvalue = Double.POSITIVE_INFINITY;
       int minindex = 0;
 
       // For each shifting period we search the best value
-      for (int j = 0; j < HouseholdConstants.FREEZER_SHIFTING_INTERVAL; j++) {
-        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > HouseholdConstants.HALF)) {
+      for (int j = 0; j < VillageConstants.FREEZER_SHIFTING_INTERVAL; j++) {
+        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.HALF)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }
         now2 = new Instant(now2.getMillis() + TimeService.HOUR);
       }
-      newControllableLoad[HouseholdConstants.FREEZER_SHIFTING_INTERVAL * i + minindex] = HouseholdConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[VillageConstants.FREEZER_SHIFTING_INTERVAL * i + minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
     }
     return newControllableLoad;
   }

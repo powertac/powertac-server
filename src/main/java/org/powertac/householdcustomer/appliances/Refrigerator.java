@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Refrigerator is the fridge we all use in our households. This appliance can
@@ -31,7 +31,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * problem without tenants manipulation. So this is a fully shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Refrigerator extends FullyShiftingAppliance
 {
@@ -43,8 +43,8 @@ public class Refrigerator extends FullyShiftingAppliance
     // Filling the base variables
     name = household + " Refrigerator";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
-    power = (int) (HouseholdConstants.REFRIGERATOR_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.REFRIGERATOR_POWER_MEAN);
-    cycleDuration = HouseholdConstants.REFRIGERATOR_DURATION_CYCLE;
+    power = (int) (VillageConstants.REFRIGERATOR_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.REFRIGERATOR_POWER_MEAN);
+    cycleDuration = VillageConstants.REFRIGERATOR_DURATION_CYCLE;
     od = false;
   }
 
@@ -55,7 +55,7 @@ public class Refrigerator extends FullyShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // Freezer can work anytime
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       possibilityDailyOperation.add(true);
     }
 
@@ -69,7 +69,7 @@ public class Refrigerator extends FullyShiftingAppliance
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
 
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (i % cycleDuration == 0) {
         loadVector.add(power);
         dailyOperation.add(true);
@@ -87,24 +87,24 @@ public class Refrigerator extends FullyShiftingAppliance
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     Instant now2 = now;
 
     // Daily operation is seperated in shifting periods
-    for (int i = 0; i < HouseholdConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
+    for (int i = 0; i < VillageConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
       double minvalue = Double.POSITIVE_INFINITY;
       int minindex = 0;
 
       // For each shifting period we search the best value
-      for (int j = 0; j < HouseholdConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
-        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > HouseholdConstants.HALF)) {
+      for (int j = 0; j < VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
+        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.HALF)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }
         now2 = new Instant(now2.getMillis() + TimeService.HOUR);
       }
-      newControllableLoad[HouseholdConstants.REFRIGERATOR_SHIFTING_INTERVAL * i + minindex] = HouseholdConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL * i + minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
     }
     return newControllableLoad;
   }

@@ -1,5 +1,5 @@
 /*
-* Copyright 2009-2010 the original author or authors.
+* Copyright 2009-2012 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -17,21 +17,22 @@
 package org.powertac.common.enumerations;
 
 /**
- * This enumerator defines the four different reaction patterns of washing machine 
- * By loading the machine in the morning, a task that might have been
- * done at another time of the day and selecting shifting interval the
- * household resident shows a strong reaction.
+ * This enumerator defines the four different reaction patterns of washing
+ * machine By loading the machine in the morning, a task that might have been
+ * done at another time of the day and selecting shifting interval the household
+ * resident shows a strong reaction.
  * 
- * Loading the machine at the same time as before but still selecting a
- * shifting interval is a responsive reaction.
+ * Loading the machine at the same time as before but still selecting a shifting
+ * interval is a responsive reaction.
  * 
  * Loading and starting the machine at the same time as before is an
  * unresponsive reaction.
  * 
  * @author Antonios Chrysopoulos
- * @since 0.5
- * @version 1
- * Last Updated: 02.05.2010
+ * @version 1.5, Date: 2.25.12
  */
 
-public enum Reaction { Strong, Responsive, Unresponsive };
+public enum Reaction
+{
+  Strong, Responsive, Unresponsive
+};

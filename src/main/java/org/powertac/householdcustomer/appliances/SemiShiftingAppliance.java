@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,16 @@ import java.util.ListIterator;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
- * This is the class for the appliance domain instances that can change / shift their load but need
- * to be programmed by the tenants or require them to be there when start / end functioning. That's
- * the reason it has restricted shifting capabilities.
+ * This is the class for the appliance domain instances that can change / shift
+ * their load but need to be programmed by the tenants or require them to be
+ * there when start / end functioning. That's the reason it has restricted
+ * shifting capabilities.
+ * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 class SemiShiftingAppliance extends Appliance
 {
@@ -39,13 +41,13 @@ class SemiShiftingAppliance extends Appliance
   Vector<Boolean> createDailyOperationVector (int weekday, Random gen)
   {
     // Creating Auxiliary Variables
-    Vector<Boolean> v = new Vector<Boolean>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Boolean> v = new Vector<Boolean>(VillageConstants.QUARTERS_OF_DAY);
 
     // First initialize all to false
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++)
       v.add(false);
     if (days.contains(weekday) && ((this instanceof Dryer) == false)) {
-      int quarter = gen.nextInt(HouseholdConstants.END_OF_FUNCTION);
+      int quarter = gen.nextInt(VillageConstants.END_OF_FUNCTION);
       v.set(quarter, true);
     }
     return v;
@@ -61,27 +63,28 @@ class SemiShiftingAppliance extends Appliance
   void createWeeklyOperationVector (int times, Random gen)
   {
     fillDays(times, gen);
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
       operationVector.add(createDailyOperationVector(i, gen));
   }
 
   @Override
   public void fillWeeklyFunction (Random gen)
   {
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
       fillDailyFunction(i, gen);
   }
 
   /**
-   * This function fills out the vector that contains the days of the week that the appliance is
-   * functioning.
+   * This function fills out the vector that contains the days of the week that
+   * the appliance is functioning.
+   * 
    * @param times
    * @return
    */
   void fillDays (int times, Random gen)
   {
     for (int i = 0; i < times; i++) {
-      int day = gen.nextInt(HouseholdConstants.DAYS_OF_WEEK - 1);
+      int day = gen.nextInt(VillageConstants.DAYS_OF_WEEK - 1);
       ListIterator<Integer> iter = days.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();

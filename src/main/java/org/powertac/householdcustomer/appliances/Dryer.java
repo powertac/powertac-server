@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Vector;
 
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Dryer appliances are utilized by the inhabitants to order to dry the freshly
@@ -33,7 +33,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * semi-shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Dryer extends SemiShiftingAppliance
 {
@@ -44,8 +44,8 @@ public class Dryer extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dryer";
     saturation = Double.parseDouble(conf.getProperty("DryerSaturation"));
-    power = (int) (HouseholdConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.DRYER_POWER_MEAN);
-    cycleDuration = HouseholdConstants.DRYER_DURATION_CYCLE;
+    power = (int) (VillageConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DRYER_POWER_MEAN);
+    cycleDuration = VillageConstants.DRYER_DURATION_CYCLE;
     od = false;
     times = Integer.parseInt(conf.getProperty("DryerWeeklyTimes")) + (int) (applianceOf.getMembers().size() / 2);
 
@@ -69,32 +69,32 @@ public class Dryer extends SemiShiftingAppliance
     dailyOperation = new Vector<Boolean>();
     Vector<Boolean> operation = operationVector.get(weekday);
 
-    for (int l = 0; l < HouseholdConstants.QUARTERS_OF_DAY; l++) {
+    for (int l = 0; l < VillageConstants.QUARTERS_OF_DAY; l++) {
       loadVector.add(0);
       dailyOperation.add(false);
     }
 
     int start = washingEnds(weekday);
     if (start > 0) {
-      for (int i = start; i < HouseholdConstants.QUARTERS_OF_DAY - 1; i++) {
+      for (int i = start; i < VillageConstants.QUARTERS_OF_DAY - 1; i++) {
         if (applianceOf.isEmpty(weekday, i) == false) {
           operation.set(i, true);
-          for (int j = i; j < i + HouseholdConstants.DRYER_SECOND_PHASE; j++) {
+          for (int j = i; j < i + VillageConstants.DRYER_SECOND_PHASE; j++) {
             loadVector.set(j, power);
             dailyOperation.set(j, true);
-            if (j == HouseholdConstants.QUARTERS_OF_DAY - 1)
+            if (j == VillageConstants.QUARTERS_OF_DAY - 1)
               break;
           }
-          for (int k = i + HouseholdConstants.DRYER_SECOND_PHASE; k < i + HouseholdConstants.DRYER_THIRD_PHASE; k++) {
-            if (k >= HouseholdConstants.QUARTERS_OF_DAY) {
+          for (int k = i + VillageConstants.DRYER_SECOND_PHASE; k < i + VillageConstants.DRYER_THIRD_PHASE; k++) {
+            if (k >= VillageConstants.QUARTERS_OF_DAY) {
               // System.out.println("K out of bounds " + k);
               break;
             }
-            loadVector.set(k, loadVector.get(k - 1) - HouseholdConstants.DRYER_THIRD_PHASE_LOAD);
+            loadVector.set(k, loadVector.get(k - 1) - VillageConstants.DRYER_THIRD_PHASE_LOAD);
             dailyOperation.set(k, true);
 
           }
-          i = HouseholdConstants.QUARTERS_OF_DAY;
+          i = VillageConstants.QUARTERS_OF_DAY;
         }
       }
 
@@ -114,7 +114,7 @@ public class Dryer extends SemiShiftingAppliance
 
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       // The dishwasher needs for someone to be in the house at the beginning of
       // its function
       if (applianceOf.isEmpty(day, j) == false)
@@ -145,7 +145,7 @@ public class Dryer extends SemiShiftingAppliance
       if (appliance instanceof WashingMachine)
         v = appliance.getWeeklyOperation().get(weekday);
 
-    for (int i = (HouseholdConstants.QUARTERS_OF_DAY - 1); i > 0; i--) {
+    for (int i = (VillageConstants.QUARTERS_OF_DAY - 1); i > 0; i--) {
       if (v.get(i) == true) {
         start = i + 1;
         i = 0;
@@ -173,11 +173,11 @@ public class Dryer extends SemiShiftingAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter " + j + " = " + iter3.next() + "  Load = " + iter4.next());
     }
   }
@@ -208,7 +208,7 @@ public class Dryer extends SemiShiftingAppliance
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
     // Dryer's daily shifting is done by the washing machine for safety
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     return newControllableLoad;
   }

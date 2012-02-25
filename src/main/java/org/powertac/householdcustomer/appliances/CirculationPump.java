@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Circulation Pump is the appliance that brings water to the household. It
@@ -27,7 +27,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * need of water. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class CirculationPump extends NotShiftingAppliance
 {
@@ -47,8 +47,8 @@ public class CirculationPump extends NotShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
     percentage = Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
 
-    power = (int) (HouseholdConstants.CIRCULATION_PUMP_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.CIRCULATION_PUMP_POWER_MEAN);
-    cycleDuration = HouseholdConstants.CIRCULATION_PUMP_DURATION_CYCLE;
+    power = (int) (VillageConstants.CIRCULATION_PUMP_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CIRCULATION_PUMP_POWER_MEAN);
+    cycleDuration = VillageConstants.CIRCULATION_PUMP_DURATION_CYCLE;
     od = false;
 
   }
@@ -60,7 +60,7 @@ public class CirculationPump extends NotShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // The pump can work each quarter someone is in the premises
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       if (applianceOf.isEmpty(day, j) == false)
         possibilityDailyOperation.add(true);
       else
@@ -80,7 +80,7 @@ public class CirculationPump extends NotShiftingAppliance
     Vector<Boolean> v = new Vector<Boolean>();
 
     // For each quarter of a day
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (applianceOf.isEmpty(weekday, i) == false && (gen.nextFloat() > percentage)) {
         loadVector.add(power);
         dailyOperation.add(true);

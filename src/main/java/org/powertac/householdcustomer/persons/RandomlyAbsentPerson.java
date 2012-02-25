@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
@@ -30,7 +30,7 @@ import org.powertac.common.enumerations.Status;
  * little time for leisure activities.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  **/
 public class RandomlyAbsentPerson extends WorkingPerson
 {
@@ -88,8 +88,8 @@ public class RandomlyAbsentPerson extends WorkingPerson
    */
   int createWorkingStartHour (Random gen)
   {
-    int x = gen.nextInt(HouseholdConstants.NUMBER_OF_SHIFTS);
-    return (x * HouseholdConstants.HOURS_OF_SHIFT_WORK * HouseholdConstants.QUARTERS_OF_HOUR);
+    int x = gen.nextInt(VillageConstants.NUMBER_OF_SHIFTS);
+    return (x * VillageConstants.HOURS_OF_SHIFT_WORK * VillageConstants.QUARTERS_OF_HOUR);
   }
 
   /**
@@ -108,29 +108,29 @@ public class RandomlyAbsentPerson extends WorkingPerson
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
         int start = workingStartHour + workingDuration;
-        if (workingStartHour == HouseholdConstants.SHIFT_START_1 && ((HouseholdConstants.LEISURE_WINDOW + 1) - start > 0)) {
-          int startq = gen.nextInt((HouseholdConstants.LEISURE_WINDOW + 1) - start) + (start + HouseholdConstants.SHIFT_START_2);
+        if (workingStartHour == VillageConstants.SHIFT_START_1 && ((VillageConstants.LEISURE_WINDOW + 1) - start > 0)) {
+          int startq = gen.nextInt((VillageConstants.LEISURE_WINDOW + 1) - start) + (start + VillageConstants.SHIFT_START_2);
           for (int i = startq; i < startq + leisureDuration; i++) {
             st = Status.Leisure;
             dailyRoutine.set(i, st);
-            if (i == HouseholdConstants.QUARTERS_OF_DAY - 1)
+            if (i == VillageConstants.QUARTERS_OF_DAY - 1)
               break;
           }
         } else {
-          if (workingStartHour == HouseholdConstants.SHIFT_START_2) {
-            int startq = start + gen.nextInt(HouseholdConstants.LEISURE_WINDOW_SHIFT - start);
+          if (workingStartHour == VillageConstants.SHIFT_START_2) {
+            int startq = start + gen.nextInt(VillageConstants.LEISURE_WINDOW_SHIFT - start);
             for (int i = startq; i < startq + leisureDuration; i++) {
               st = Status.Leisure;
               dailyRoutine.set(i, st);
-              if (i == HouseholdConstants.QUARTERS_OF_DAY - 1)
+              if (i == VillageConstants.QUARTERS_OF_DAY - 1)
                 break;
             }
           } else {
-            int startq = HouseholdConstants.SHIFT_START_2 + gen.nextInt(HouseholdConstants.SHIFT_START_3 - (HouseholdConstants.LEISURE_WINDOW - 1));
+            int startq = VillageConstants.SHIFT_START_2 + gen.nextInt(VillageConstants.SHIFT_START_3 - (VillageConstants.LEISURE_WINDOW - 1));
             for (int i = startq; i < startq + leisureDuration; i++) {
               st = Status.Leisure;
               dailyRoutine.set(i, st);
-              if (i == HouseholdConstants.QUARTERS_OF_DAY - 1)
+              if (i == VillageConstants.QUARTERS_OF_DAY - 1)
                 break;
             }
           }
@@ -144,63 +144,63 @@ public class RandomlyAbsentPerson extends WorkingPerson
   {
     // Create auxiliary variables
     Status st;
-    if (workingStartHour == HouseholdConstants.SHIFT_START_1) {
-      for (int i = HouseholdConstants.SHIFT_START_1; i < workingDuration; i++) {
+    if (workingStartHour == VillageConstants.SHIFT_START_1) {
+      for (int i = VillageConstants.SHIFT_START_1; i < workingDuration; i++) {
         st = Status.Working;
         dailyRoutine.set(i, st);
       }
-      for (int i = workingDuration; i < workingDuration + HouseholdConstants.SHIFT_START_2; i++) {
+      for (int i = workingDuration; i < workingDuration + VillageConstants.SHIFT_START_2; i++) {
         st = Status.Sleeping;
         dailyRoutine.set(i, st);
       }
-      for (int i = workingDuration + HouseholdConstants.SHIFT_START_2; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+      for (int i = workingDuration + VillageConstants.SHIFT_START_2; i < VillageConstants.QUARTERS_OF_DAY; i++) {
         st = Status.Normal;
         dailyRoutine.set(i, st);
       }
     } else {
-      if (workingStartHour == HouseholdConstants.SHIFT_START_2) {
-        for (int i = HouseholdConstants.START_OF_SLEEPING_1; i < HouseholdConstants.END_OF_SLEEPING_1; i++) {
+      if (workingStartHour == VillageConstants.SHIFT_START_2) {
+        for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
           st = Status.Sleeping;
           dailyRoutine.set(i, st);
         }
-        for (int i = HouseholdConstants.END_OF_SLEEPING_1; i < HouseholdConstants.SHIFT_START_2; i++) {
+        for (int i = VillageConstants.END_OF_SLEEPING_1; i < VillageConstants.SHIFT_START_2; i++) {
           st = Status.Normal;
           dailyRoutine.set(i, st);
         }
-        for (int i = HouseholdConstants.SHIFT_START_2; i < workingDuration + HouseholdConstants.SHIFT_START_2; i++) {
+        for (int i = VillageConstants.SHIFT_START_2; i < workingDuration + VillageConstants.SHIFT_START_2; i++) {
           st = Status.Working;
           dailyRoutine.set(i, st);
         }
-        for (int i = workingDuration + HouseholdConstants.SHIFT_START_2; i < HouseholdConstants.START_OF_SLEEPING_1; i++) {
+        for (int i = workingDuration + VillageConstants.SHIFT_START_2; i < VillageConstants.START_OF_SLEEPING_1; i++) {
           st = Status.Normal;
           dailyRoutine.set(i, st);
         }
-        for (int i = HouseholdConstants.START_OF_SLEEPING_1; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+        for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.QUARTERS_OF_DAY; i++) {
           st = Status.Sleeping;
           dailyRoutine.set(i, st);
         }
       } else {
-        for (int i = HouseholdConstants.START_OF_SLEEPING_1; i < HouseholdConstants.END_OF_SLEEPING_1; i++) {
+        for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
           st = Status.Sleeping;
           dailyRoutine.set(i, st);
         }
-        for (int i = HouseholdConstants.END_OF_SLEEPING_1; i < HouseholdConstants.SHIFT_START_3; i++) {
+        for (int i = VillageConstants.END_OF_SLEEPING_1; i < VillageConstants.SHIFT_START_3; i++) {
           st = Status.Normal;
           dailyRoutine.set(i, st);
         }
-        if (workingDuration > HouseholdConstants.HOURS_OF_SHIFT_WORK * HouseholdConstants.QUARTERS_OF_HOUR) {
-          for (int i = HouseholdConstants.SHIFT_START_3; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+        if (workingDuration > VillageConstants.HOURS_OF_SHIFT_WORK * VillageConstants.QUARTERS_OF_HOUR) {
+          for (int i = VillageConstants.SHIFT_START_3; i < VillageConstants.QUARTERS_OF_DAY; i++) {
             st = Status.Working;
             dailyRoutine.set(i, st);
           }
         } else {
-          for (int i = HouseholdConstants.SHIFT_START_3; i < HouseholdConstants.SHIFT_START_3 + workingDuration; i++) {
-            if (i >= HouseholdConstants.QUARTERS_OF_DAY)
+          for (int i = VillageConstants.SHIFT_START_3; i < VillageConstants.SHIFT_START_3 + workingDuration; i++) {
+            if (i >= VillageConstants.QUARTERS_OF_DAY)
               break;
             st = Status.Working;
             dailyRoutine.set(i, st);
           }
-          for (int i = HouseholdConstants.SHIFT_START_3 + workingDuration; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+          for (int i = VillageConstants.SHIFT_START_3 + workingDuration; i < VillageConstants.QUARTERS_OF_DAY; i++) {
             st = Status.Sleeping;
             dailyRoutine.set(i, st);
           }
@@ -226,7 +226,7 @@ public class RandomlyAbsentPerson extends WorkingPerson
     leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     leisureVector = createLeisureVector(x, gen);
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       fillDailyRoutine(i, vacationAbsence, gen);
       weeklyRoutine.add(dailyRoutine);
     }

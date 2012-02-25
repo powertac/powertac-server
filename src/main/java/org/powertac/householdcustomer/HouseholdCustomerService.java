@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2010-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.InitializationService;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Service;
  * interests, shift its load in order to minimize its costs and many others.
  * 
  * @author Antonios Chrysopoulos
+ * @version 1.5, Date: 2.25.12
  */
 @Service
 // allows this service to be autowired into other services
@@ -75,6 +77,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   private String configFile2 = null;
   private String configFile3 = null;
   private String configFile4 = null;
+  private int daysOfCompetition = 0;
 
   /**
    * This is the configuration file that will be utilized to pass the parameters
@@ -136,7 +139,15 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
       configFile4 = "VillageDefault.properties";
     }
 
+    if (daysOfCompetition == 0) {
+      log.info("No Days Of Competition Taken");
+      daysOfCompetition = 63;
+    }
+
     super.init();
+
+    VillageConstants.setDaysOfCompetition(daysOfCompetition);
+    daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
 
     // =======FIRST VILLAGE TYPE=========//
 
@@ -298,6 +309,18 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   // ----------------- Data access -------------------------
+
+  /** Getter method for the configuration file */
+  public int getDaysOfCompetition ()
+  {
+    return daysOfCompetition;
+  }
+
+  @ConfigurableValue(valueType = "Integer", description = "The competition duration in days")
+  public void setDaysOfCompetition (int days)
+  {
+    daysOfCompetition = days;
+  }
 
   /** Getter method for the configuration file */
   public String getConfigFile1 ()

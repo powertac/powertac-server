@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.Status;
 
 /**
@@ -30,7 +30,7 @@ import org.powertac.common.enumerations.Status;
  * leisure activities.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  **/
 public class WorkingPerson extends Person
 {
@@ -58,9 +58,9 @@ public class WorkingPerson extends Person
     // Creating an auxiliary variables
     Vector<Integer> v = new Vector<Integer>(days);
 
-    if (days < HouseholdConstants.WEEKDAYS) {
+    if (days < VillageConstants.WEEKDAYS) {
       for (int i = 0; i < days; i++) {
-        int x = (gen.nextInt(1) * (HouseholdConstants.WEEKDAYS - 1)) + 1;
+        int x = (gen.nextInt(1) * (VillageConstants.WEEKDAYS - 1)) + 1;
         ListIterator<Integer> iter = v.listIterator();
         while (iter.hasNext()) {
           int temp = (int) iter.next();
@@ -74,21 +74,21 @@ public class WorkingPerson extends Person
       java.util.Collections.sort(v);
       return v;
     } else {
-      v.add(HouseholdConstants.MONDAY);
-      v.add(HouseholdConstants.TUESDAY);
-      v.add(HouseholdConstants.WEDNESDAY);
-      v.add(HouseholdConstants.THURSDAY);
-      v.add(HouseholdConstants.FRIDAY);
-      if (days == HouseholdConstants.WEEKDAYS) {
+      v.add(VillageConstants.MONDAY);
+      v.add(VillageConstants.TUESDAY);
+      v.add(VillageConstants.WEDNESDAY);
+      v.add(VillageConstants.THURSDAY);
+      v.add(VillageConstants.FRIDAY);
+      if (days == VillageConstants.WEEKDAYS) {
       } else {
-        if (days == HouseholdConstants.DAYS_OF_WEEK) {
-          v.add(HouseholdConstants.SATURDAY);
-          v.add(HouseholdConstants.SUNDAY);
+        if (days == VillageConstants.DAYS_OF_WEEK) {
+          v.add(VillageConstants.SATURDAY);
+          v.add(VillageConstants.SUNDAY);
         } else {
           if (gen.nextFloat() > 0.5) {
-            v.add(HouseholdConstants.SATURDAY);
+            v.add(VillageConstants.SATURDAY);
           } else {
-            v.add(HouseholdConstants.SUNDAY);
+            v.add(VillageConstants.SUNDAY);
           }
         }
       }
@@ -115,7 +115,7 @@ public class WorkingPerson extends Person
     int counter = duration;
     int counter2 = 0;
     while (counter > 0) {
-      int x = (int) gen.nextInt(HouseholdConstants.DAYS_OF_COMPETITION - 1) + 1;
+      int x = (int) gen.nextInt(VillageConstants.DAYS_OF_COMPETITION - 1) + 1;
       counter2 = 1 + (int) (gen.nextInt(counter));
       while (counter2 > 0) {
         v.add(x);
@@ -147,26 +147,26 @@ public class WorkingPerson extends Person
     int sixDays = Integer.parseInt(conf.getProperty("SixDays"));
     int sevenDays = Integer.parseInt(conf.getProperty("SevenDays"));
 
-    int x = (int) gen.nextInt(HouseholdConstants.PERCENTAGE);
+    int x = (int) gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < fiveDays) {
-      returnValue = HouseholdConstants.FIVE_WORKING_DAYS;
+      returnValue = VillageConstants.FIVE_WORKING_DAYS;
     } else {
       if (x >= fiveDays & x < (fiveDays + sixDays)) {
-        returnValue = HouseholdConstants.SIX_WORKING_DAYS;
+        returnValue = VillageConstants.SIX_WORKING_DAYS;
       } else {
         if (x >= (fiveDays + sixDays) & x < (fiveDays + sixDays + fourDays)) {
-          returnValue = HouseholdConstants.FOUR_WORKING_DAYS;
+          returnValue = VillageConstants.FOUR_WORKING_DAYS;
         } else {
           if (x >= (fiveDays + sixDays + fourDays) & x < (fiveDays + sixDays + fourDays + threeDays)) {
-            returnValue = HouseholdConstants.THREE_WORKING_DAYS;
+            returnValue = VillageConstants.THREE_WORKING_DAYS;
           } else {
             if (x >= (fiveDays + sixDays + fourDays + threeDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays)) {
-              returnValue = HouseholdConstants.TWO_WORKING_DAYS;
+              returnValue = VillageConstants.TWO_WORKING_DAYS;
             } else {
               if (x >= (fiveDays + sixDays + fourDays + threeDays + twoDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays + sevenDays)) {
-                returnValue = HouseholdConstants.SEVEN_WORKING_DAYS;
+                returnValue = VillageConstants.SEVEN_WORKING_DAYS;
               } else {
-                returnValue = HouseholdConstants.ONE_WORKING_DAY;
+                returnValue = VillageConstants.ONE_WORKING_DAY;
               }
             }
           }
@@ -221,10 +221,10 @@ public class WorkingPerson extends Person
     log.debug("Weekly Routine : ");
     ListIterator<Status> iter2 = weeklyRoutine.get(0).listIterator();
 
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       log.debug("Day " + i);
       iter2 = weeklyRoutine.get(i).listIterator();
-      for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++)
+      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
         log.debug("Quarter : " + (j + 1) + " Status : " + iter2.next());
     }
   }

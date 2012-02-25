@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Consumer Electronics are the appliances that are utilized mainly for work or
@@ -28,7 +28,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * They works only when someone is at home. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class ConsumerElectronics extends NotShiftingAppliance
 {
@@ -39,8 +39,8 @@ public class ConsumerElectronics extends NotShiftingAppliance
     // Filling the base variables
     name = household + " ConsumerElectronics";
     saturation = 1;
-    power = (int) (HouseholdConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
-    cycleDuration = HouseholdConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
+    power = (int) (VillageConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
+    cycleDuration = VillageConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ConsumerElectronicsDailyTimes")) + applianceOf.getMembers().size();
     od = false;
 
@@ -56,11 +56,11 @@ public class ConsumerElectronics extends NotShiftingAppliance
     Vector<Boolean> operation = operationVector.get(weekday);
 
     // For each quarter of a day
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (operation.get(i) == true) {
         boolean flag = true;
         int counter = 0;
-        while ((flag) && (i < HouseholdConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
+        while ((flag) && (i < VillageConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
           if (applianceOf.isEmpty(weekday, i) == false) {
             loadVector.add(power);
             dailyOperation.add(true);
@@ -71,7 +71,7 @@ public class ConsumerElectronics extends NotShiftingAppliance
             loadVector.add(0);
             dailyOperation.add(false);
             i++;
-            if (i < HouseholdConstants.QUARTERS_OF_DAY && operation.get(i) == true)
+            if (i < VillageConstants.QUARTERS_OF_DAY && operation.get(i) == true)
               counter++;
           }
         }
@@ -100,7 +100,7 @@ public class ConsumerElectronics extends NotShiftingAppliance
 
     // The consumers electronics can work each quarter someone is in the
     // premises
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       if (applianceOf.isEmpty(day, j) == false)
         possibilityDailyOperation.add(true);
       else

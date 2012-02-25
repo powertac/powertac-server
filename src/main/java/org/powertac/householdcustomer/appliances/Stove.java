@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.HouseholdConstants;
+import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Stove is the kitchen utility we use for cooking. It is use at least twice a
@@ -31,7 +31,7 @@ import org.powertac.common.configurations.HouseholdConstants;
  * functioning so this is a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
- * @version 1, 13/02/2011
+ * @version 1.5, Date: 2.25.12
  */
 public class Stove extends SemiShiftingAppliance
 {
@@ -42,8 +42,8 @@ public class Stove extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Stove";
     saturation = Double.parseDouble(conf.getProperty("StoveSaturation"));
-    power = (int) (HouseholdConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + HouseholdConstants.STOVE_POWER_MEAN);
-    cycleDuration = HouseholdConstants.STOVE_DURATION_CYCLE;
+    power = (int) (VillageConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.STOVE_POWER_MEAN);
+    cycleDuration = VillageConstants.STOVE_DURATION_CYCLE;
     od = false;
     times = Integer.parseInt(conf.getProperty("StoveDailyTimes"));
     createWeeklyOperationVector(times, gen);
@@ -54,13 +54,13 @@ public class Stove extends SemiShiftingAppliance
   Vector<Boolean> createDailyOperationVector (int times, Random gen)
   {
     // Creating Auxiliary Variables
-    Vector<Boolean> v = new Vector<Boolean>(HouseholdConstants.QUARTERS_OF_DAY);
+    Vector<Boolean> v = new Vector<Boolean>(VillageConstants.QUARTERS_OF_DAY);
 
     // First initialize all to false
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++)
       v.add(false);
     for (int i = 0; i < times; i++) {
-      int quarter = gen.nextInt(HouseholdConstants.QUARTERS_OF_DAY - cycleDuration);
+      int quarter = gen.nextInt(VillageConstants.QUARTERS_OF_DAY - cycleDuration);
       if (v.get(quarter) == false)
         v.set(quarter, true);
       else
@@ -72,7 +72,7 @@ public class Stove extends SemiShiftingAppliance
   @Override
   void createWeeklyOperationVector (int times, Random gen)
   {
-    for (int i = 0; i < HouseholdConstants.DAYS_OF_WEEK; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
       operationVector.add(createDailyOperationVector(times, gen));
   }
 
@@ -86,11 +86,11 @@ public class Stove extends SemiShiftingAppliance
     Vector<Boolean> operation = operationVector.get(weekday);
 
     // Check all quarters of the day
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++) {
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       if (operation.get(i) == true) {
         boolean flag = true;
         int counter = 0;
-        while ((flag) && (i < HouseholdConstants.QUARTERS_OF_DAY - 1) && (counter >= 0)) {
+        while ((flag) && (i < VillageConstants.QUARTERS_OF_DAY - 1) && (counter >= 0)) {
           if (applianceOf.isEmpty(weekday, i) == false && applianceOf.isEmpty(weekday, i + 1) == false) {
             loadVector.add(power);
             dailyOperation.add(true);
@@ -104,7 +104,7 @@ public class Stove extends SemiShiftingAppliance
             loadVector.add(0);
             dailyOperation.add(false);
             i++;
-            if (i < HouseholdConstants.QUARTERS_OF_DAY && operation.get(i) == true)
+            if (i < VillageConstants.QUARTERS_OF_DAY && operation.get(i) == true)
               counter++;
           }
         }
@@ -128,7 +128,7 @@ public class Stove extends SemiShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // In order for stove to work someone must be in the house for half hour
-    for (int j = 0; j < HouseholdConstants.QUARTERS_OF_DAY - 1; j++) {
+    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY - 1; j++) {
       if (applianceOf.isEmpty(day, j) == false && applianceOf.isEmpty(day, j + 1) == false)
         possibilityDailyOperation.add(true);
       else
@@ -143,7 +143,7 @@ public class Stove extends SemiShiftingAppliance
   @Override
   public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
   {
-    long[] newControllableLoad = new long[HouseholdConstants.HOURS_OF_DAY];
+    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
     int minindex = 0;
     double minvalue = Double.POSITIVE_INFINITY;
@@ -152,7 +152,7 @@ public class Stove extends SemiShiftingAppliance
     long sumPower = 0;
 
     // Gather the Load Summary of the day
-    for (int i = 0; i < HouseholdConstants.QUARTERS_OF_DAY; i++)
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++)
       sumPower += weeklyLoadVector.get(day).get(i);
 
     // If we have a fixed tariff rate
@@ -160,7 +160,7 @@ public class Stove extends SemiShiftingAppliance
       Vector<Integer> possibleHours = new Vector<Integer>();
 
       // find the all the available functioning hours of the appliance
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         if (functionMatrix[i])
           possibleHours.add(i);
       }
@@ -172,7 +172,7 @@ public class Stove extends SemiShiftingAppliance
     // case of variable tariff rate
     else {
       // find the all the available functioning hours of the appliance
-      for (int i = 0; i < HouseholdConstants.HOURS_OF_DAY; i++) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         if (functionMatrix[i]) {
           if (minvalue >= tariff.getUsageCharge(hour1, 1, 0)) {
             minvalue = tariff.getUsageCharge(hour1, 1, 0);
