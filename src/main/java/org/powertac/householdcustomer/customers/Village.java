@@ -40,9 +40,9 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * The village domain class in this first version is a set of households that
- * comprise a small village that consumes agreggated energy by the appliances
- * installed in each household.Later on other types of building will be added.
+ * The village domain class is a set of households that comprise a small village
+ * that consumes aggregated energy by the appliances installed in each
+ * household.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
@@ -94,7 +94,7 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the agreggated vectors containing each day's base load of all the
+   * These are the aggregated vectors containing each day's base load of all the
    * households in hours.
    **/
   Vector<Vector<Long>> aggDailyBaseLoadInHoursNS = new Vector<Vector<Long>>();
@@ -103,7 +103,7 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyBaseLoadInHoursSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the agreggated vectors containing each day's controllable load of
+   * These are the aggregated vectors containing each day's controllable load of
    * all the households in hours.
    **/
   Vector<Vector<Long>> aggDailyControllableLoadInHoursNS = new Vector<Vector<Long>>();
@@ -112,7 +112,7 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyControllableLoadInHoursSS = new Vector<Vector<Long>>();
 
   /**
-   * These are the agreggated vectors containing each day's weather sensitive
+   * These are the aggregated vectors containing each day's weather sensitive
    * load of all the households in hours.
    **/
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursNS = new Vector<Vector<Long>>();
@@ -300,8 +300,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * The first implementation of the changing subscription function only for a
-   * portion of the households.
+   * The second implementation of the changing subscription function only for
+   * certain type of the households.
    * 
    * @param tariff
    */
@@ -337,7 +337,7 @@ public class Village extends AbstractCustomer
 
   /**
    * In this overloaded implementation of the changing subscription function
-   * only for a portion of the households.
+   * only certain type of the households.
    * 
    * @param tariff
    */
@@ -380,7 +380,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function is overloading the previous one and is used when only certain
-   * portion of houses changed tariff.
+   * types of houses changed tariff.
    * 
    */
   private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type)
@@ -485,8 +485,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill each week day of the aggregated
-   * daily Load of the village households for each quarter of the hour.
+   * This function is used in order to update the daily aggregated Load in case
+   * there are changes in the weather sensitive loads of the village's
+   * households.
    * 
    * @param type
    * @return
@@ -511,7 +512,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function is used in order to fill the aggregated daily Base Load of
-   * the village households for each quarter of the hour.
+   * the village's households for each quarter of the hour.
    * 
    * @param day
    * @param type
@@ -546,7 +547,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function is used in order to fill the aggregated daily Controllable
-   * Load of the village households for each quarter of the hour.
+   * Load of the village's households for each quarter of the hour.
    * 
    * @param day
    * @param type
@@ -580,8 +581,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the aggregated daily Base Load of
-   * the village households for each quarter of the hour.
+   * This function is used in order to fill the aggregated daily weather
+   * sensitive Load of the village's households for each quarter of the hour.
    * 
    * @param day
    * @param type
@@ -590,8 +591,6 @@ public class Village extends AbstractCustomer
   Vector<Long> fillAggDailyWeatherSensitiveLoad (int day, String type)
   {
 
-    // int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP +
-    // VillageConstants.DAYS_OF_COMPETITION);
     Vector<Household> houses = new Vector<Household>();
 
     if (type.equals("NS")) {
@@ -618,7 +617,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function is used in order to fill the daily Base Load of the household
-   * for each hour.
+   * for each hour for a certain type of households.
    * 
    * @param day
    * @param type
@@ -664,8 +663,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to fill the daily Base Load of the household
-   * for each hour.
+   * This function is used in order to fill the daily Controllable Load of the
+   * household for each hour for a certain type of households.
    * 
    * @param day
    * @param type
@@ -712,7 +711,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function is used in order to fill the daily weather sensitive Load of
-   * the household for each hour.
+   * the household for each hour for a certain type of households.
    * 
    * @param day
    * @param type
@@ -759,8 +758,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to print the aggregated load of the village
-   * households.
+   * This function is used in order to print the aggregated hourly load of the
+   * village's households.
    * 
    * @param type
    * @return
@@ -806,8 +805,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is used in order to print the aggregated load of the village
-   * households.
+   * This function is used in order to print the aggregated hourly load of the
+   * village households for a certain type of households.
    * 
    * @param type
    * @return
@@ -868,9 +867,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This method takes as an input the timeslot serial number (in order to know
-   * in the current time) and estimates the consumption for this timeslot over
-   * the population under the Generic Consumer.
+   * This method takes as an input the time-slot serial number (in order to know
+   * in the current time) and estimates the consumption for this time-slot over
+   * the population under the Village Household Consumer.
    */
   double getConsumptionByTimeslot (int serial, String type)
   {
@@ -888,19 +887,19 @@ public class Village extends AbstractCustomer
 
   // =====GETTER FUNCTIONS===== //
 
-  /** This function returns the subscriptionMap variable of the village */
+  /** This function returns the subscription Map variable of the village. */
   public HashMap<String, TariffSubscription> getSubscriptionMap ()
   {
     return subscriptionMap;
   }
 
-  /** This function returns the subscriptionMap variable of the village */
+  /** This function returns the inertia Map variable of the village. */
   public HashMap<String, Double> getInertiaMap ()
   {
     return inertiaMap;
   }
 
-  /** This function returns the subscriptionMap variable of the village */
+  /** This function returns the period Map variable of the village. */
   public HashMap<String, Integer> getPeriodMap ()
   {
     return periodMap;
@@ -908,7 +907,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function returns the quantity of base load for a specific day and hour
-   * of that day for a specific type of houses
+   * of that day for a specific type of households.
    */
   long getBaseConsumptions (int day, int hour, String type)
   {
@@ -931,7 +930,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function returns the quantity of controllable load for a specific day
-   * and hour of that day for a specific type of houses
+   * and hour of that day for a specific type of households.
    */
   long getControllableConsumptions (int day, int hour, String type)
   {
@@ -953,8 +952,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns the quantity of controllable load for a specific day
-   * and hour of that day for a specific type of houses
+   * This function returns the quantity of weather sensitive load for a specific
+   * day and hour of that day for a specific type of household.
    */
   long getWeatherSensitiveConsumptions (int day, int hour, String type)
   {
@@ -977,7 +976,7 @@ public class Village extends AbstractCustomer
 
   /**
    * This function returns the quantity of controllable load for a specific day
-   * in form of a vector for a certain type of houses.
+   * in form of a vector for a certain type of households.
    */
   Vector<Long> getControllableConsumptions (int day, String type)
   {
@@ -999,8 +998,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns the quantity of controllable load for a specific day
-   * in form of a vector for a certain type of houses.
+   * This function returns the quantity of weather sensitive load for a specific
+   * day in form of a vector for a certain type of households.
    */
   Vector<Long> getWeatherSensitiveConsumptions (int day, String type)
   {
@@ -1022,8 +1021,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns a vector with all the houses of a certain type that
-   * are present in this village
+   * This function returns a vector with all the houses that are present in this
+   * village.
    */
   public Vector<Household> getHouses ()
   {
@@ -1044,8 +1043,8 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns a vector with all the houses of a certain type that
-   * are present in this village
+   * This function returns a vector with all the households of a certain type
+   * that are present in this village.
    */
   public Vector<Household> getHouses (String type)
   {
@@ -1218,7 +1217,7 @@ public class Village extends AbstractCustomer
   /**
    * This is the new function, used in order to find the most cost efficient
    * tariff over the available ones. It is using Daily shifting in order to put
-   * the appliances operation in most suitable hours of the day.
+   * the appliances operation in most suitable hours (less costly) of the day.
    * 
    * @param tariff
    * @return
@@ -1288,7 +1287,7 @@ public class Village extends AbstractCustomer
   // =====SHIFTING FUNCTIONS===== //
 
   /**
-   * This is the function that takes every household in the village and readies
+   * This is the function that takes every household in the village and reads
    * the shifted Controllable Consumption for the needs of the tariff
    * evaluation.
    * 
@@ -1470,9 +1469,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function is utilized in order to check the weather at each tick of the
-   * competition clock and reschedule the appliances that are weather sensitive
-   * to work.
+   * This function is utilized in order to check the weather at each time tick
+   * of the competition clock and reschedule the appliances that are weather
+   * sensitive to work.
    */
   void weatherCheck (int day, int hour, Instant now)
   {
@@ -1533,6 +1532,7 @@ public class Village extends AbstractCustomer
 
   }
 
+  @Override
   public String toString ()
   {
     return customerInfo.toString();

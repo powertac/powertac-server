@@ -22,8 +22,8 @@ import java.util.Vector;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Lights are utilized when the persons inhabiting the house have need for
- * them.So it's a not shifting appliance.
+ * Lights are utilized when the persons inhabiting the house have need for them
+ * to light the rooms they are in. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

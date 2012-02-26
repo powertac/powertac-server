@@ -26,9 +26,10 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Refrigerator is the fridge we all use in our households. This appliance can
- * automatically change the freezing cyles in order to save energy, without
- * problem without tenants manipulation. So this is a fully shifting appliance.
+ * Refrigerator is in use in all the households in order to keep food preserved.
+ * This appliance can automatically change the freezing cycles in order to save
+ * energy, without problem without tenants manipulation. So this is a fully
+ * shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

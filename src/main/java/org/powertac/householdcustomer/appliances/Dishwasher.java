@@ -27,7 +27,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Dishwasher are used in order to wash easily the dishes after dinner. There
+ * Dishwashers are used in order to wash easily the dishes after eating. There
  * are several programs that help you automate the procedure in order to start
  * at a less costly time, without problem, because it doesn't need emptying
  * after utilization. So this is a semi-shifting appliance.
@@ -142,8 +142,8 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   /**
-   * This function checks for the household to see when it is empty or not empty
-   * for the duration of the operation
+   * This function checks for the household to see when it is empty or not for
+   * in order to choose the time of operation.
    * 
    * @param weekday
    * @param quarter

@@ -17,9 +17,9 @@
 package org.powertac.common.enumerations;
 
 /**
- * This enumerator defines the two different kinds of Air Conditions available.
- * The one is the normal type and the second one is the Inverter type. This has
- * an impact on their consumption and their duration cycle.
+ * This enumerator defines the three power classes available for households.
+ * They differ only in the BTU produced while the operation cycle is the same
+ * for all of them.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

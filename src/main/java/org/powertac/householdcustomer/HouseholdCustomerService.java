@@ -42,15 +42,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * Implements the Generic Consumer abstraction. It creates an Consumer that can
- * subscribe to tariffs, evaluate them in order to choose the best one for its
- * interests, shift its load in order to minimize its costs and many others.
+ * Implements the Household Consumer Model. It creates Household Consumers that
+ * can subscribe to tariffs, evaluate them in order to choose the best one for
+ * its interests, shift their load in order to minimize their costs and many
+ * others. They contain different types of households with respect to the way
+ * they choose the tariffs and they shift their loads.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
 @Service
-// allows this service to be autowired into other services
 public class HouseholdCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener, InitializationService
 {
   /**
@@ -85,13 +86,16 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
    */
   Properties configuration = new Properties();
 
-  /** List of the Generic Customers in the competition */
+  /** List of the Household Customers in the competition */
   ArrayList<Village> villageList;
 
-  /** The Tariffs that will receive the New Tariff Listener */
+  /** The Tariffs that will receive while registered as New Tariff Listener */
   List<Tariff> publishedTariffs = new ArrayList<Tariff>();
 
-  /** Counter of the publishing periods */
+  /**
+   * Counter of the publishing periods, useful for customers that won't check
+   * for tariffs each time they are published.
+   */
   int publishingPeriods;
 
   /** This is the constructor of the Household Consumer Service. */
@@ -103,10 +107,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   /**
-   * This is called once at the beginning of each game by the initialization
-   * service. Here is where you do per-game setup. This will create a listener
-   * for our service, in order to get the new tariff as well as create the
-   * generic Consumers that will be running in the game.
+   * This function called once at the beginning of each game by the server
+   * initialization service. Here is where you do pre-game setup. This will read
+   * the server properties file to take the competition input variables needed
+   * (configuration files, days of competition), create a listener for our
+   * service, in order to get the new tariff, as well as create the household
+   * Consumers that will be running in the game.
    */
   @Override
   public String initialize (Competition competition, List<String> completedInits)
@@ -310,7 +316,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
   // ----------------- Data access -------------------------
 
-  /** Getter method for the configuration file */
+  /** Getter method for the days of competition */
   public int getDaysOfCompetition ()
   {
     return daysOfCompetition;
@@ -322,59 +328,67 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     daysOfCompetition = days;
   }
 
-  /** Getter method for the configuration file */
+  /** Getter method for the first configuration file */
   public String getConfigFile1 ()
   {
     return configFile1;
   }
 
-  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  @ConfigurableValue(valueType = "String", description = "first configuration file of the household customers")
   public void setConfigFile1 (String config)
   {
     configFile1 = config;
   }
 
-  /** Getter method for the configuration file */
+  /** Getter method for the second configuration file */
   public String getConfigFile2 ()
   {
     return configFile2;
   }
 
-  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  @ConfigurableValue(valueType = "String", description = "second configuration file of the household customers")
   public void setConfigFile2 (String config)
   {
     configFile2 = config;
   }
 
-  /** Getter method for the configuration file */
+  /** Getter method for the third configuration file */
   public String getConfigFile3 ()
   {
     return configFile3;
   }
 
-  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  @ConfigurableValue(valueType = "String", description = "third configuration file of the household customers")
   public void setConfigFile3 (String config)
   {
     configFile3 = config;
   }
 
-  /** Getter method for the configuration file */
+  /** Getter method for the forth configuration file */
   public String getConfigFile4 ()
   {
     return configFile4;
   }
 
-  @ConfigurableValue(valueType = "String", description = "configuration file of the household customers")
+  @ConfigurableValue(valueType = "String", description = "forth configuration file of the household customers")
   public void setConfigFile4 (String config)
   {
     configFile4 = config;
   }
 
+  /**
+   * This function returns the list of the villages created at the beginning of
+   * the game by the service
+   */
   public List<Village> getVillageList ()
   {
     return villageList;
   }
 
+  /**
+   * This function cleans the configuration files in case they have not been
+   * cleaned at the beginning of the game
+   */
   public void clearConfiguration ()
   {
     configFile1 = null;
@@ -384,8 +398,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   /**
-   * This function finds all the available Generic Consumers in the competition
-   * and creates a list of their customerInfo.
+   * This function finds all the available Household Consumers in the
+   * competition and creates a list of their customerInfo.
    * 
    * @return List<CustomerInfo>
    */
@@ -409,6 +423,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     }
   }
 
+  @Override
   public void receiveMessage (Object msg)
   {
     // TODO Implement per-message behavior. Note that incoming messages

@@ -25,10 +25,10 @@ import org.powertac.common.Tariff;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Spaceheater is a electric appliance utilized to keep the rooms of a household
- * warm when needed. These devices can work automatically in order to save as
- * much energy as possible, knowing when the room must be warm. So this is a
- * fully shifting appliance.
+ * Space Heater is a electric appliance utilized to keep the rooms of a
+ * household warm when needed. These devices can work automatically in order to
+ * save as much energy as possible, knowing when the room must be warm. So this
+ * is a fully shifting appliance.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
@@ -38,7 +38,7 @@ public class SpaceHeater extends WeatherSensitiveAppliance
 
   /**
    * Variable that presents the mean possibility to utilize the appliance each
-   * hour of the day that someone is present in the housesold.
+   * hour of the day that someone is present in the household.
    */
   double percentage;
 

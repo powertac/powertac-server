@@ -26,7 +26,7 @@ import org.powertac.common.enumerations.Status;
 
 /**
  * This is the instance of the person type that works in a regular basis for a
- * number of days in the . The standard program gives space for some leisure
+ * number of days in the week. The standard program gives space for some leisure
  * activities.
  * 
  * @author Antonios Chrysopoulos
@@ -35,16 +35,7 @@ import org.powertac.common.enumerations.Status;
 public class PeriodicPresentPerson extends WorkingPerson
 {
 
-  /**
-   * This is the initialization function. It uses the variable values for the
-   * configuration file to create the person as it should for this type.
-   * 
-   * @param AgentName
-   * @param conf
-   * @param publicVacationVector
-   * @param gen
-   * @return
-   */
+  @Override
   public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
   {
     // Variables Taken from the configuration file

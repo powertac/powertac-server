@@ -28,9 +28,10 @@ import org.powertac.common.enumerations.AirConditionPowerClass;
 import org.powertac.common.enumerations.AirConditionType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It
- * works most of the hours of the day, but always when someone is at home in
- * need of water. So it's a not shifting appliance.
+ * Air Condition is the most common used electrical appliance to date that keeps
+ * the household environment in the desired temperature. Usually, it can be used
+ * either for cooling or for heating.Thus, it is utilized when people are
+ * present in the household.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
@@ -39,27 +40,69 @@ public class AirCondition extends WeatherSensitiveAppliance
 {
 
   /**
-   * The type of the water heater. For more info, read the details in the
-   * enumerations.HeaterType java file
+   * The type of the air condition unit. For more info, read the details in the
+   * enumerations.AirConditionType java file
    **/
   AirConditionType type;
+
+  /**
+   * The class of the air condition unit. For more info, read the details in the
+   * enumerations.AirConditionClass java file
+   **/
   AirConditionClass acClass;
+
+  /**
+   * These variables are the consumption efficiency ratios for both heating and
+   * cooling operations.
+   */
   double acClassEER;
   double acClassCOP;
+
+  /**
+   * The power class of the air condition unit. For more info, read the details
+   * in the enumerations.AirConditionPowerClass java file
+   **/
   AirConditionPowerClass acPowerClass;
+
+  /**
+   * The operation status of the air condition unit. For more info, read the
+   * details in the enumerations.AirConditionOperation java file
+   **/
   AirConditionOperation acOperation;
+
+  /**
+   * These variables are the cycle durations of the on/off operation of the air
+   * condition.
+   */
   int cycleOn;
   int cycleOff;
+
+  /**
+   * The variable that shows the BTUs of operation of the air condition unit.
+   * The value is dependent of the Air Condition Power Class.
+   */
   int BTU;
+
+  /**
+   * The variables that present the power consumption of the air condition unit
+   * while heating or cooling operation, depending on Power Class, Class and
+   * Type.
+   */
   int powerHeating;
   int powerCooling;
   int powerOffHeating;
   int powerOffCooling;
   int powerStartHeating;
   int powerStartCooling;
+
+  /**
+   * Those are the upper and lower thresholds, responsible for starting the
+   * heating or cooling operation of the air condition accordingly.
+   */
   int lowerLimit;
   int upperLimit;
 
+  /** Auxiliary variable to keep the current cycle of operation. */
   int cycleCounter;
 
   @Override
