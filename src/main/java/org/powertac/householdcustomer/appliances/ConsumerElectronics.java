@@ -24,7 +24,7 @@ import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Consumer Electronics are the appliances that are utilized mainly for work or
- * enteratinment in the household such as TV, DVD Players, Stereos and so on.
+ * entertainment in the household such as TV, DVD Players, Stereos and so on.
  * They works only when someone is at home. So it's a not shifting appliance.
  * 
  * @author Antonios Chrysopoulos
