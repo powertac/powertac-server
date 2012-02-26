@@ -28,9 +28,9 @@ import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.HeaterType;
 
 /**
- * Circulation pump is the appliance that brings water to the household. It
- * works most of the hours of the day, but always when someone is at home in
- * need of water. So it's a not shifting appliance.
+ * Water Heater is an appliance utilized to provide with hot water when we need
+ * to bathe. There are two different types each having each own way of working
+ * so we have to see to them seperately.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

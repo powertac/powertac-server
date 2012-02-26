@@ -35,16 +35,7 @@ import org.powertac.common.enumerations.Status;
 public class RandomlyAbsentPerson extends WorkingPerson
 {
 
-  /**
-   * This is the initialization function. It uses the variable values for the
-   * configuration file to create the person as it should for this type.
-   * 
-   * @param AgentName
-   * @param conf
-   * @param publicVacationVector
-   * @param gen
-   * @return
-   */
+  @Override
   public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
   {
     // Variables Taken from the configuration file

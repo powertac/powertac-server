@@ -48,21 +48,24 @@ public class Person
   static protected Logger log = Logger.getLogger(Person.class.getName());
 
   /**
-   * the person's name in the community. Usually it includes the household he is
-   * living in or its type of person
+   * The person's name in the community. It includes the household he is living
+   * in or its type of person.
    */
   String name;
 
-  /** the person's name at anytime. He may be sleeping, working, having fun etc. **/
+  /**
+   * The person's status at each time step. He may be sleeping, working, having
+   * fun etc.
+   **/
   Status status;
 
-  /** the household that the person lives in. **/
+  /** The household that the person lives in. **/
   Household memberOf;
 
-  /** A vector the contains the working days of the week **/
+  /** A vector the contains the working days of the week. **/
   Vector<Integer> workingDays = new Vector<Integer>();
 
-  /** This is a vector of the working vacation days of the year for this person **/
+  /** This is a vector of the working vacation days of the year for this person. **/
   Vector<Integer> vacationVector = new Vector<Integer>();
 
   /**
@@ -72,8 +75,7 @@ public class Person
   Vector<Integer> publicVacationVector = new Vector<Integer>();
 
   /**
-   * This is a vector of the days that the person is sick and will stay in the
-   * house
+   * This is a vector of the days that the person is sick and will stay home.
    **/
   Vector<Integer> sicknessVector = new Vector<Integer>();
 
@@ -81,19 +83,32 @@ public class Person
   int leisureDuration = 0;
 
   /**
-   * This is a vector of the day's quarter's and the status of the person in
-   * each one of them
+   * This is a vector of the person's status in quarterly fashion.
    **/
   Vector<Status> dailyRoutine = new Vector<Status>();
 
   /**
    * This is a vector containing the days of the week that the person has
-   * leisure time
+   * leisure time.
    **/
   Vector<Integer> leisureVector = new Vector<Integer>();
 
-  /** The weekly schedule and status of the person **/
+  /** The weekly schedule and status of the person. **/
   Vector<Vector<Status>> weeklyRoutine = new Vector<Vector<Status>>();
+
+  /**
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the person as it should for this type.
+   * 
+   * @param AgentName
+   * @param conf
+   * @param publicVacationVector
+   * @param gen
+   * @return
+   */
+  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  {
+  }
 
   /**
    * This function checks if the person is sleeping.
@@ -160,13 +175,13 @@ public class Person
       return false;
   }
 
-  /** This function returns the weekly routine of a person */
+  /** This function returns the weekly routine of a person. */
   public Vector<Vector<Status>> getWeeklyRoutine ()
   {
     return weeklyRoutine;
   }
 
-  /** This function returns the daily routine of a person */
+  /** This function returns the daily routine of a person. */
   public Vector<Status> getDailyRoutine ()
   {
     return dailyRoutine;
@@ -196,9 +211,8 @@ public class Person
   }
 
   /**
-   * This function fills out the daily routine of the person, taking into
-   * account the different variables and occupations, if he is sick or working
-   * etc.
+   * This function fills out the vector containing the days that the person is
+   * going to be sick. When a person is sick he stays in the household.
    * 
    * @param mean
    * @param dev
@@ -228,7 +242,7 @@ public class Person
     return v;
   }
 
-  /** This function sets the household in which the person is living in */
+  /** This function sets the household in which the person is living in. */
   public void setMemberOf (Household house)
   {
     memberOf = house;
@@ -237,7 +251,7 @@ public class Person
   /**
    * This function fills out the daily routine of the person, taking into
    * account the different variables and occupations, if he is sick or working
-   * etc
+   * etc.
    * 
    * @param day
    * @param vacationAbsence
@@ -283,7 +297,7 @@ public class Person
 
   /**
    * This function fills out the daily routine with the leisure activity of the
-   * day, if there is one for the person in question.
+   * day, if there is one for the person in question for the certain weekday.
    * 
    * @param weekday
    * @param gen
@@ -404,6 +418,7 @@ public class Person
 
   }
 
+  @Override
   public String toString ()
   {
     return name;

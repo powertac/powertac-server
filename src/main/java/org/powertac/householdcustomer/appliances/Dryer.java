@@ -27,7 +27,7 @@ import org.powertac.common.configurations.VillageConstants;
 
 /**
  * Dryer appliances are utilized by the inhabitants to order to dry the freshly
- * washed clothes. That means that the household should contain an washiung
+ * washed clothes. That means that the household should contain an washing
  * machine in order to have a dryer. Also, the clothes should be placed in the
  * washing machine shortly after the washing is finished. So this is a
  * semi-shifting appliance.
@@ -128,7 +128,7 @@ public class Dryer extends SemiShiftingAppliance
 
   /**
    * This function is utilized in order to find when the washing machine ends
-   * its function in order to put the dryer in use soon afterwards.
+   * its function to fill the dryer and start its operation soon afterwards.
    * 
    * @param weekday
    * @return

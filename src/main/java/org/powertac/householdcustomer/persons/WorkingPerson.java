@@ -35,13 +35,13 @@ import org.powertac.common.enumerations.Status;
 public class WorkingPerson extends Person
 {
 
-  /** This variable describes the duration of the work procedure **/
+  /** This variable describes the duration of the work procedure. **/
   int workingDuration = 0;
 
-  /** This variables shows how many days are working vacation for this person **/
+  /** This variables shows how many days are working vacation for this person. **/
   int vacationDuration = 0;
 
-  /** The time of the day that the person begins to work **/
+  /** The time of the day that the person begins to work. **/
   int workingStartHour = 0;
 
   /**

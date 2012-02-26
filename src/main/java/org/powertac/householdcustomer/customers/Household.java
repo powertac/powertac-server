@@ -68,26 +68,26 @@ public class Household
   static protected Logger log = Logger.getLogger(Household.class.getName());
 
   /**
-   * the household name. It is different for each one to be able to tell them
+   * The household name. It is different for each one to be able to tell them
    * apart.
    */
   String name;
 
   /**
-   * This is a vector containing each day's load from the appliances installed
-   * inside the household.
+   * This is a vector containing each day's base load from the appliances
+   * installed inside the household.
    **/
   Vector<Integer> dailyBaseLoad = new Vector<Integer>();
 
   /**
-   * This is a vector containing each day's load from the appliances installed
-   * inside the household.
+   * This is a vector containing each day's controllable load from the
+   * appliances installed inside the household.
    **/
   Vector<Integer> dailyControllableLoad = new Vector<Integer>();
 
   /**
-   * This is a vector containing each day's load from the appliances that are
-   * sensitive to weather conditions.
+   * This is a vector containing each day's weather sensitive load from the
+   * appliances that are sensitive to weather conditions.
    **/
   Vector<Integer> dailyWeatherSensitiveLoad = new Vector<Integer>();
 
@@ -115,32 +115,32 @@ public class Household
    */
   int yearConsumption;
 
-  /** This is an agreggated vector containing each day's base load in hours. **/
+  /** This is an aggregated vector containing each day's base load in hours. **/
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
 
   /**
-   * This is an agreggated vector containing each day's controllable load in
+   * This is an aggregated vector containing each day's controllable load in
    * hours.
    **/
   Vector<Integer> dailyControllableLoadInHours = new Vector<Integer>();
 
   /**
-   * This is an agreggated vector containing each day's weather sensitive load
+   * This is an aggregated vector containing each day's weather sensitive load
    * in hours.
    **/
   Vector<Integer> dailyWeatherSensitiveLoadInHours = new Vector<Integer>();
 
-  /** This is an agreggated vector containing the weekly base load in hours. **/
+  /** This is an aggregated vector containing the weekly base load in hours. **/
   Vector<Vector<Integer>> weeklyBaseLoadInHours = new Vector<Vector<Integer>>();
 
   /**
-   * This is an agreggated vector containing the weekly controllable load in
+   * This is an aggregated vector containing the weekly controllable load in
    * hours.
    **/
   Vector<Vector<Integer>> weeklyControllableLoadInHours = new Vector<Vector<Integer>>();
 
   /**
-   * This is an agreggated vector containing the weekly weather sensitive load
+   * This is an aggregated vector containing the weekly weather sensitive load
    * in hours.
    **/
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours = new Vector<Vector<Integer>>();
@@ -151,18 +151,20 @@ public class Household
    **/
   int currentLoad;
 
-  /** Helping variable for the correct refreshing of the schedules. */
+  /**
+   * Helping variable showing the current week of competition for the correct
+   * refreshing of the schedules.
+   */
   int week = 0;
 
   /**
-   * This is a vector containing the members of the household, the people that
-   * belong to each household
+   * This is a vector containing the members of the household, the persons that
+   * belong to each household.
    */
   Vector<Person> members = new Vector<Person>();
 
   /**
-   * This is a vector containing the members of the household, the people that
-   * belong to each household
+   * This is a vector containing the appliances installed in the household.
    */
   Vector<Appliance> appliances = new Vector<Appliance>();
 
@@ -546,7 +548,7 @@ public class Household
 
   /**
    * This function is used in order to fill the daily Base Load of the household
-   * for each quarter of the hour
+   * for each quarter of the hour.
    * 
    * @param weekday
    * @return
@@ -592,7 +594,7 @@ public class Household
 
   /**
    * This function is used in order to fill the daily weather sensitive load of
-   * the household for each quarter of the hour
+   * the household for each quarter of the hour.
    * 
    * @param weekday
    * @return
@@ -724,8 +726,8 @@ public class Household
   }
 
   /**
-   * This function set the current load in accordance with the time of the
-   * competition
+   * This function set the current load in accordance with the time step of the
+   * competition.
    * 
    * @param day
    * @param quarter
@@ -779,6 +781,11 @@ public class Household
 
   }
 
+  /**
+   * This function is checking the current weather conditions and the existence
+   * of weather sensitive appliances and if the temperature is over/under a
+   * certain threshold, the appliances begin or stop their operation.
+   */
   public void weatherCheck (int day, int hour, Instant now, double temperature)
   {
     boolean flag = false;
@@ -821,8 +828,8 @@ public class Household
   }
 
   /**
-   * This is the function that takes every appliance in the household and
-   * readies the shifted Controllable Consumption for the needs of the tariff
+   * This is the function that takes every appliance in the household and reads
+   * the shifted Controllable Consumption for the needs of the tariff
    * evaluation.
    * 
    * @param tariff
@@ -860,7 +867,7 @@ public class Household
 
   /**
    * This function prints to the screen the daily load of the household for the
-   * weekday at hand
+   * weekday at hand.
    * 
    * @param weekday
    * @return
@@ -874,6 +881,7 @@ public class Household
       log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next());
   }
 
+  @Override
   public String toString ()
   {
     return name;

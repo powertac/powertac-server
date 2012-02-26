@@ -24,7 +24,7 @@ import org.powertac.common.configurations.VillageConstants;
 /**
  * This is the class for the appliance domain instances that cannot change /
  * shift their load at all. Most of them are appliance that require the tenant's
- * presence in order to begin functioning
+ * presence in order to begin functioning.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

@@ -34,8 +34,14 @@ import org.powertac.common.configurations.VillageConstants;
 class SemiShiftingAppliance extends Appliance
 {
 
-  /** This vector contains the weekdays that the appliance will be functioning */
+  /** This vector contains the weekdays that the appliance will be functioning. */
   Vector<Integer> days = new Vector<Integer>();
+
+  /** This function returns days vector of the appliance */
+  public Vector<Integer> getDays ()
+  {
+    return days;
+  }
 
   @Override
   Vector<Boolean> createDailyOperationVector (int weekday, Random gen)
@@ -51,12 +57,6 @@ class SemiShiftingAppliance extends Appliance
       v.set(quarter, true);
     }
     return v;
-  }
-
-  /** This function returns days vector of the appliance */
-  public Vector<Integer> getDays ()
-  {
-    return days;
   }
 
   @Override

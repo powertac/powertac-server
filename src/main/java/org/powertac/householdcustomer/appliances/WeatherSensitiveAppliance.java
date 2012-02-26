@@ -22,9 +22,10 @@ import java.util.Vector;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * This is the class for the appliance domain instances that can change / shift
- * their load without the need for the inhabitants interference. They see when
- * it is best to shift their load for the minimum cost of usage.
+ * This is the class for the appliance domain instances that start their
+ * operation when the weather conditions impose to do so. So, the current
+ * temperature, rain etc. is the condition that can make these appliances start
+ * and stop.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

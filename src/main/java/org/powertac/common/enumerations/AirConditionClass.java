@@ -17,9 +17,9 @@
 package org.powertac.common.enumerations;
 
 /**
- * This enumerator defines the two different kinds of Air Conditions available.
- * The one is the normal type and the second one is the Inverter type. This has
- * an impact on their consumption and their duration cycle.
+ * This enumerator defines the different classes of Air Conditions available.
+ * Each has each own performance ratio with A having the most efficient behavior
+ * up to G which is the most consuming class. *
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12

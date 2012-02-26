@@ -26,9 +26,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Freezer is the utilized in combination with the fridge in the household. This
- * appliance can automatically change the freezing cyles in order to save
- * energy, without problem without tenants manipulation. So this is a fully
+ * Freezer is the utilized in combination with the refrigerator in the
+ * household. This appliance can automatically change the freezing cycles in
+ * order to save energy, without tenants manipulation. So this is a fully
  * shifting appliance.
  * 
  * @author Antonios Chrysopoulos

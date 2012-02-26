@@ -22,7 +22,7 @@ import java.util.Vector;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
- * Circulation Pump is the appliance that brings water to the household. It
+ * Circulation Pump is the appliance that brings hot water to the household. It
  * works most of the hours of the day, but always when someone is at home in
  * need of water. So it's a not shifting appliance.
  * 

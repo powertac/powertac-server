@@ -223,6 +223,10 @@ public class VillageConstants
   // COST ESTIMATION VARIABLES ------------------------//
   public static final int RANDOM_DAYS_NUMBER = 3;
 
+  /**
+   * This is the function utilized in order to estimate the days of Competition
+   * for precomputing the model's behavior
+   **/
   public static void setDaysOfCompetition (int days)
   {
     WEEKS_OF_COMPETITION = (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));

@@ -30,8 +30,8 @@ import org.powertac.householdcustomer.customers.Household;
 /**
  * A appliance domain instance represents a single appliance inside a household.
  * There are different kinds of appliances utilized by the persons inhabiting
- * the premises. Some of them are functioning automatically, some are used only
- * by someone etc
+ * the premises. Some of them are functioning automatically, some are only used
+ * when someone is present etc.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
@@ -47,44 +47,50 @@ public class Appliance
   static protected Logger log = Logger.getLogger(Appliance.class.getName());
 
   /**
-   * the appliance name. It depends on the type of appliance and the household
-   * that contains it.
+   * The appliance name. Appliances are named after the type of appliance and
+   * the household that contains it.
    */
   protected String name;
 
-  /** the household that the appliance is installed at. **/
+  /** The household that the appliance is installed at. **/
   protected Household applianceOf;
 
   /**
-   * this variable shows the possibility (%) that this appliance is contained in
-   * a house
+   * This variable shows the possibility (%) that this appliance is contained in
+   * a house.
    */
   protected double saturation;
 
-  /** this variable shows the Watt that are consumed by using this appliance */
+  /**
+   * This variable shows the power (in Watts) that are consumed when using this
+   * appliance.
+   */
   protected int power;
 
-  /** this variable equals the duration of the operation cycle of the appliance */
+  /** This variable equals the duration of the operation cycle of the appliance. */
   protected int cycleDuration;
 
-  /** this is the occupancy dependence boolean variable */
+  /**
+   * This is the occupancy dependence boolean variable. Shows if the appliance
+   * needs the presence of an inhabitant in order to start operating.
+   */
   protected boolean od;
 
   /**
    * This is a vector containing the quarters that the appliance should start
-   * functioning (before shifting)
+   * functioning (before shifting).
    */
   Vector<Vector<Boolean>> operationVector = new Vector<Vector<Boolean>>();
 
   /**
-   * This is a vector containing the quarters that the appliance could have
-   * started functioning (before shifting)
+   * This is a vector containing the quarters that the appliance can start
+   * functioning.
    */
   Vector<Vector<Boolean>> possibilityOperationVector = new Vector<Vector<Boolean>>();
 
   /**
-   * This is a vector containing the load of consumption of the appliance during
-   * the day
+   * This is a vector containing the consumption load of the appliance during
+   * the day.
    */
   Vector<Integer> loadVector = new Vector<Integer>();
 
@@ -95,72 +101,72 @@ public class Appliance
   Vector<Boolean> operationDaysVector = new Vector<Boolean>();
 
   /**
-   * This is a vector containing the daily operation of the appliance (after
-   * shifting due to any cause)
+   * This is a vector containing the final daily operation of the appliance
+   * (after shifting due to any cause).
    */
   Vector<Boolean> dailyOperation = new Vector<Boolean>();
 
   /**
-   * This is a vector containing the weekly operation of the appliance (after
-   * shifting due to any cause)
+   * This is a vector containing the final weekly operation of the appliance
+   * (after shifting due to any cause).
    */
   Vector<Vector<Boolean>> weeklyOperation = new Vector<Vector<Boolean>>();
 
   /**
-   * This is a vector containing the weekly load of the appliance (after
-   * shifting due to any cause)
+   * This is a vector containing the final weekly load of the appliance (after
+   * shifting due to any cause).
    */
   Vector<Vector<Integer>> weeklyLoadVector = new Vector<Vector<Integer>>();
 
   /**
    * This variable contains the amount of times the appliance may work through
-   * the week or day
+   * the week or day.
    */
   int times;
 
-  /** This function returns the power variable of the appliance */
+  /** This function returns the power variable of the appliance. */
   public int getPower ()
   {
     return power;
   }
 
-  /** This function returns the household where the appliance is installed */
+  /** This function returns the household where the appliance is installed. */
   public Household getApplianceOf ()
   {
     return applianceOf;
   }
 
-  /** This function returns the saturation variable of the appliance */
+  /** This function returns the saturation variable of the appliance. */
   public double getSaturation ()
   {
     return saturation;
   }
 
-  /** This function returns the duration variable of the appliance */
+  /** This function returns the duration variable of the appliance. */
   public int getDuration ()
   {
     return cycleDuration;
   }
 
-  /** This function returns the weekly operation vector of the appliance */
+  /** This function returns the weekly operation vector of the appliance. */
   public Vector<Vector<Boolean>> getWeeklyOperation ()
   {
     return weeklyOperation;
   }
 
-  /** This function returns the weekly load vector of the appliance */
+  /** This function returns the weekly load vector of the appliance. */
   public Vector<Vector<Integer>> getWeeklyLoadVector ()
   {
     return weeklyLoadVector;
   }
 
-  /** This function helps to set the operation vector vector of the appliance */
+  /** This function helps to set the operation vector of the appliance. */
   public void setOperationVector (Vector<Vector<Boolean>> v)
   {
     operationVector = v;
   }
 
-  /** This function sets the household in which the appliance is installed in */
+  /** This function sets the household in which the appliance is installed in. */
   public void setApplianceOf (Household house)
   {
     applianceOf = house;
@@ -182,7 +188,7 @@ public class Appliance
 
   /**
    * This function is used to create the daily possibility operation vector of
-   * each appliance for the week taking into consideration the day that this
+   * each appliance for the week taking into consideration the days that this
    * appliance could be able to function.
    * 
    * @param day
@@ -195,8 +201,8 @@ public class Appliance
 
   /**
    * This function is used to create the weekly possibility operation vector of
-   * each appliance for the week taking into consideration the times that this
-   * appliance could be able to function.
+   * each appliance taking into consideration the times that this appliance
+   * could be able to function.
    * 
    * @return
    */
@@ -257,7 +263,7 @@ public class Appliance
 
   /**
    * This function fills out all the quarters of the appliance functions for a
-   * single day of the week
+   * single day of the week.
    * 
    * @param gen
    * @return
@@ -269,7 +275,7 @@ public class Appliance
 
   /**
    * This function fills out all the days of the appliance functions for each
-   * day of the week
+   * day of the week.
    * 
    * @param gen
    * @return
@@ -280,8 +286,8 @@ public class Appliance
   }
 
   /**
-   * This function creates the weekly operation vector after the shifting for
-   * each day of the week
+   * This function creates the weekly operation vector after the procedure of
+   * shifting for each day of the week.
    * 
    * @param times
    * @param gen
@@ -294,6 +300,7 @@ public class Appliance
 
   /**
    * This function creates the daily operation vector after the shifting
+   * procedure.
    * 
    * @param times
    * @param gen
