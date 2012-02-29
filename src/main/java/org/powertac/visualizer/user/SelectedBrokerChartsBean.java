@@ -9,7 +9,7 @@ public class SelectedBrokerChartsBean implements Serializable {
 	private static final long serialVersionUID = 3310169029425905901L;
 	private boolean dailyValues;
 	private boolean dailyAVGValues;
-	private boolean allTimeslots;
+	private boolean allTimeslots = true;
 	private boolean currentDayValues = true; //default true, display currentDayValues;
 	
 	public boolean isDailyValues() {

@@ -21,6 +21,7 @@ import static org.powertac.util.MessageDispatcher.dispatch;
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
+import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.services.handler.VisualizerMessageHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,7 +77,7 @@ public class VisualizerService implements VisualizerMessageListener {
 		+ ", Got message: " + msg.getClass().getName());
 
 	if (msg != null) {
-	    dispatch(visualizerMessageHandler, "handleMessage", msg);
+	    Helper.dispatch(visualizerMessageHandler, "handleMessage", msg);
 	}
 
     }

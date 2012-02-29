@@ -15,7 +15,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<h:form rendered="#{not empty brokersClone}">
+		<h:form id="brokerForm" rendered="#{not empty brokersClone}">
 
 			<ui:include src="/WEB-INF/tags/brokers.xhtml" />
 
@@ -38,13 +38,12 @@
 
 			</h:panelGrid>
 
-
-			<p:lineChart style="height: 1px; width: 1px;"
-				value="#{imageControl.fakeChart}" rendered="false" />
-
 		</h:form>
 
-
+	<h:form>
+	<p:poll autoStart="true" update=":brokerForm:tabBrokers" interval="5" />
+	
+	</h:form>
 
 	</ui:define>
 

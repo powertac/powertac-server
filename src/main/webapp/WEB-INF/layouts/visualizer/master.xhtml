@@ -25,7 +25,6 @@
 			collapsible="true" header="LOL" styleClass="custom">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
 			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
-			
 		</p:layoutUnit>
 
 		<p:layoutUnit position="center" size="1000">
@@ -44,6 +43,8 @@
 				<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 				<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml"/>
 				<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml"/>
+				<p:lineChart style="height: 1px; width: 1px;"
+				value="#{imageControl.fakeChart}" rendered="false" />
 								
 		</p:layoutUnit>
 
