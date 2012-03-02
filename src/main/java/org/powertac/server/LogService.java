@@ -19,7 +19,10 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.FileAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.PropertyConfigurator;
@@ -116,11 +119,21 @@ public class LogService
     stopLogger(Logger.getLogger("State"));
   }
   
-  @SuppressWarnings("unchecked")
   private void stopLogger (Logger logger)
   {
-    for (Enumeration<Appender> apps = logger.getAllAppenders(); apps.hasMoreElements(); ) {
-      apps.nextElement().close();
-    }
+    LogManager.shutdown();
+    reset();
+  }
+  
+  private void reset() {
+    Logger root = Logger.getRootLogger();
+    Logger state = getStateLogger();
+    root.removeAllAppenders();
+    state.removeAllAppenders();
+
+    ConsoleAppender appender = new ConsoleAppender();
+    appender.setThreshold(Level.OFF);
+    root.addAppender(appender);
+    state.addAppender(appender);
   }
 }
