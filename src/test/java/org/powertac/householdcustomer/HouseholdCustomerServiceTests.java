@@ -271,7 +271,7 @@ public class HouseholdCustomerServiceTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Two Consumers Created", 8, householdCustomerService.getVillageList().size());
+    assertEquals("Eight Consumers Created", 8, householdCustomerService.getVillageList().size());
     for (Village customer : householdCustomerService.getVillageList()) {
 
       // capture subscription method args
