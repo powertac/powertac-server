@@ -18,6 +18,7 @@ package org.powertac.common;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -31,9 +32,11 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author jcollins
  */
-@Domain
+@Domain (fields = {"rateId", "value", "atTime"})
 @XStreamAlias("charge")
-public class HourlyCharge implements Comparable<HourlyCharge>
+public class HourlyCharge
+extends XStreamStateLoggable
+implements Comparable<HourlyCharge>
 {
   @XStreamAsAttribute
   private long id = IdGenerator.createId();

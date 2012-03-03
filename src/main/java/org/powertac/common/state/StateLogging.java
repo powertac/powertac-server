@@ -16,9 +16,12 @@
 package org.powertac.common.state;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.Signature;
@@ -45,6 +48,7 @@ import org.aspectj.lang.annotation.Pointcut;
 @Aspect
 public class StateLogging
 {
+  static private Logger log = Logger.getLogger(StateLogging.class);
   private Logger stateLog = Logger.getLogger("State");
 
   // state-change methods
@@ -56,7 +60,13 @@ public class StateLogging
   //public pointcut newState() :
   //  execution ((@Domain *).new (..));
   @Pointcut ("execution ((@Domain *).new (..))")
-  public void newState () {}
+  public void domainConstructor() {}
+    
+  @Pointcut ("execution (Object XStreamStateLoggable.readResolve())")
+  public void readResolveMethod() {} 
+  
+  @Pointcut ("domainConstructor() || readResolveMethod()")
+  public void newState() {}
   
   @AfterReturning ("setState()")
   public void setstate (JoinPoint jp)
@@ -73,8 +83,39 @@ public class StateLogging
   {
     Object thing = jp.getTarget();
     Object[] args = jp.getArgs();
+    Signature sig = jp.getSignature();
     Long id = findId(thing);
+    if ("readResolve".equals(sig.getName())) {
+      args = collectProperties(thing);
+    }
     writeLog(thing.getClass().getName(), id, "new", args);
+  }
+  
+  private Object[] collectProperties(Object thing) {
+    ArrayList<Object> properties = new ArrayList<Object>();
+    try {
+      //TODO: 
+      // - use XStream annotation to figure out fields to log instead
+      // - cache fields list to reduce lookup
+      Domain domain = thing.getClass().getAnnotation(Domain.class);
+      if (domain instanceof Domain) {
+        String[] fields = domain.fields();
+        for (String field : fields) { 
+          Object obj = PropertyUtils.getSimpleProperty(thing, field);
+          properties.add(obj);
+        }
+      }
+    }
+    catch (IllegalAccessException e) {
+      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+    }
+    catch (InvocationTargetException e) {
+      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+    }
+    catch (NoSuchMethodException e) {
+      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+    }
+    return properties.toArray();
   }
 
   private void writeLog (String className, Long id,

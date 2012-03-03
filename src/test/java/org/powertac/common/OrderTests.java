@@ -2,7 +2,11 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringWriter;
 
 import org.joda.time.DateTime;
@@ -128,7 +132,6 @@ public class OrderTests
     XStream xstream = new XStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
-    //xstream.processAnnotations(Broker.class);
     xstream.processAnnotations(Timeslot.class);
     xstream.aliasSystemAttribute(null, "class");
     StringWriter serialized = new StringWriter();
@@ -141,6 +144,58 @@ public class OrderTests
     assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
     assertEquals("correct quantity", 0.5, xmo1.getMWh(), 1e-6);
     assertEquals("correct price", -12.0, xmo1.getLimitPrice(), 1e-6);
+  }
+  
+  @Test
+  public void stateLogTest ()
+  {
+    DummyBroker db = new DummyBroker("Dummy", false, false);
+    brokerRepo.add(db);
+    String xml = "<order id=\"200000394\" timeslot=\""
+        + timeslot.getSerialNumber()
+        + "\" mWh=\"22.7\" limitPrice=\"-70.0\">"
+        + "<broker>Dummy</broker> </order>";
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Order.class);
+    xstream.processAnnotations(Broker.class);
+    xstream.processAnnotations(Timeslot.class);
+    xstream.aliasSystemAttribute(null, "class");
+    Order xmo1 = (Order)xstream.fromXML(xml);
+    assertNotNull("deserialized something", xmo1);
+    assertEquals("correct broker", db, xmo1.getBroker());
+    assertEquals("correct timeslot", timeslot, xmo1.getTimeslot());
+    assertEquals("correct quantity", 22.7, xmo1.getMWh(), 1e-6);
+    assertEquals("correct price", -70.0, xmo1.getLimitPrice(), 1e-6);
+    
+    // open the state file and check the last entry
+    String item = null;
+//    try {
+//      BufferedReader input =
+//          new BufferedReader(new FileReader("log/OrderTests.state"));
+//      String test = input.readLine();
+//      while (test != null) {
+//        // looking for the last line
+//        item = test;
+//        test = input.readLine();
+//      }
+//    }
+//    catch (FileNotFoundException e) {
+//      fail("cannot find state file: " + e.toString());
+//    }
+//    catch (IOException e) {
+//      fail(e.toString());
+//    }
+//    // the rest works when running the individual test, but not as a suite
+//    if (item != null) {
+//      // should not get here if item == null
+//      String[] items = item.split("::");
+//      assertEquals("class", "org.powertac.common.Order", items[1]);
+//      assertEquals("id", "200000394", items[2]);
+//      assertEquals("broker id", db.getId(), Long.parseLong(items[4]));
+//      assertEquals("timeslot id", timeslot.getId(), Long.parseLong(items[5]));
+//      assertEquals("mwh", 22.7, Double.parseDouble(items[6]), 1e-6);
+//      assertEquals("price", -70.0, Double.parseDouble(items[7]), 1e-6);
+//    }
   }
   
   class DummyBroker extends Broker

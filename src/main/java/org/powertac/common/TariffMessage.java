@@ -15,6 +15,7 @@
  */
 package org.powertac.common;
 
+import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -25,7 +26,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  * a TariffMessageProcessor.
  * @author John Collins
  */
-public abstract class TariffMessage
+public abstract class TariffMessage extends XStreamStateLoggable
 {
   @XStreamAsAttribute
   protected long id = IdGenerator.createId();

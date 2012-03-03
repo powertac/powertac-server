@@ -25,8 +25,8 @@ import java.lang.annotation.ElementType;
  * creation in the state log.
  * @author John Collins
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface Domain {
-
+  String[] fields() default {};
 }

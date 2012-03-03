@@ -28,7 +28,7 @@ import com.thoughtworks.xstream.annotations.*;
  * needs to be added to its Rate.
  * @author jcollins
  */
-@Domain
+@Domain (fields = {"broker", "tariffId", "hourlyChargeId", "rateId"})
 @XStreamAlias("tariff-vru")
 public class VariableRateUpdate extends TariffUpdate
 {
@@ -47,6 +47,11 @@ public class VariableRateUpdate extends TariffUpdate
   public HourlyCharge getHourlyCharge ()
   {
     return payload;
+  }
+  
+  public long getHourlyChargeId ()
+  {
+    return payload.getId();
   }
 
   public long getRateId ()
