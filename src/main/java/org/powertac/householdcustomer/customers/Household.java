@@ -109,12 +109,6 @@ public class Household
    **/
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoad = new Vector<Vector<Integer>>();
 
-  /**
-   * This is a statistical measure of the household, giving a general idea of
-   * the consumption level during a year.
-   */
-  int yearConsumption;
-
   /** This is an aggregated vector containing each day's base load in hours. **/
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
 
@@ -307,22 +301,17 @@ public class Household
 
     int x = gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < one) {
-      yearConsumption = Integer.parseInt(conf.getProperty("OnePersonConsumption"));
       returnValue = VillageConstants.ONE_PERSON;
     } else {
       if (x >= one & x < (one + two)) {
-        yearConsumption = Integer.parseInt(conf.getProperty("TwoPersonsConsumption"));
         returnValue = VillageConstants.TWO_PERSONS;
       } else {
         if (x >= (one + two) & x < (one + two + three)) {
-          yearConsumption = Integer.parseInt(conf.getProperty("ThreePersonsConsumption"));
           returnValue = VillageConstants.THREE_PERSONS;
         } else {
           if (x >= (one + two + three) & x < (one + two + three + four)) {
-            yearConsumption = Integer.parseInt(conf.getProperty("FourPersonsConsumption"));
             returnValue = VillageConstants.FOUR_PERSONS;
           } else {
-            yearConsumption = Integer.parseInt(conf.getProperty("FivePersonsConsumption"));
             returnValue = VillageConstants.FIVE_PERSONS;
           }
         }
@@ -508,7 +497,6 @@ public class Household
 
     // Printing basic variables
     log.info("HouseHold Name : " + name);
-    log.info("HouseHold Yearly Consumption : " + yearConsumption);
     log.info("Number of Persons : " + members.size());
     /*
         // Printing members' status
@@ -617,18 +605,17 @@ public class Household
 
   /**
    * This function checks if all the inhabitants of the household are away on
-   * vacation on a certain quarter
+   * vacation on a certain day
    * 
    * @param quarter
    * @return
    */
   public boolean isOnVacation (int day)
   {
-    boolean x = false;
+    boolean x = true;
     for (Person member : members) {
-      if (member.getWeeklyRoutine().get(day).get(0) == Status.Vacation) {
-        x = true;
-      }
+      if (member.getWeeklyRoutine().get(day).get(0) != Status.Vacation)
+        x = false;
     }
     return x;
   }
@@ -735,7 +722,7 @@ public class Household
    */
   void setCurrentLoad (int day, int quarter)
   {
-    currentLoad = weeklyBaseLoad.get(day).get(quarter) + weeklyControllableLoad.get(day).get(quarter);
+    currentLoad = weeklyBaseLoad.get(day).get(quarter) + weeklyControllableLoad.get(day).get(quarter) + weeklyWeatherSensitiveLoad.get(day).get(quarter);
   }
 
   /**
@@ -876,9 +863,10 @@ public class Household
   {
     ListIterator<Integer> iter = weeklyBaseLoadInHours.get(day).listIterator();
     ListIterator<Integer> iter2 = weeklyControllableLoadInHours.get(day).listIterator();
+    ListIterator<Integer> iter3 = weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
     log.info("Summary of Daily Load of House " + name);
     for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
-      log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next());
+      log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next() + " Weather Sensitive Load : " + iter3.next());
   }
 
   @Override

@@ -40,8 +40,8 @@ public class Others extends NotShiftingAppliance
     // Filling the base variables
     name = household + " Others";
     saturation = 1;
-    power = (int) (VillageConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
-    cycleDuration = VillageConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
+    power = (int) (VillageConstants.OTHERS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.OTHERS_POWER_MEAN);
+    cycleDuration = VillageConstants.OTHERS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("OthersDailyTimes")) + applianceOf.getMembers().size();
     createWeeklyOperationVector(times, gen);
 
