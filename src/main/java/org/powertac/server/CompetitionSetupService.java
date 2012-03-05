@@ -155,7 +155,7 @@ public class CompetitionSetupService
     OptionSpec<URL> controllerUrl =
         parser.accepts("control").withRequiredArg().ofType(URL.class);
     OptionSpec<URL> serverConfigUrl =
-        parser.accepts("server-config").withRequiredArg().ofType(URL.class);
+        parser.accepts("config").withRequiredArg().ofType(URL.class);
     OptionSpec<String> logSuffixOption =
         parser.accepts("log-suffix").withRequiredArg();
     parser.accepts("sim");

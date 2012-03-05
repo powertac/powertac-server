@@ -41,6 +41,7 @@ import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
@@ -99,9 +100,6 @@ public class CompetitionControlService
 
   @Autowired
   private LogService logService;
-
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
 
   @Autowired
   private BrokerRepo brokerRepo;
@@ -333,6 +331,7 @@ public class CompetitionControlService
       // #486 - add bootstrap count to computed game length
       timeslotCount += computeGameLength(competition.getMinimumTimeslotCount(),
                                          competition.getExpectedTimeslotCount());
+      log.info("timeslotCount = " + timeslotCount);
     }
 
     // Send out the first timeslot update
@@ -549,7 +548,8 @@ public class CompetitionControlService
   {
     Instant time = timeService.getCurrentTime();
     Date started = new Date();
-    activateNextTimeslot();
+
+    int ts = activateNextTimeslot();
     log.info("step at " + time.toString());
     for (int index = 0; index < phaseRegistrations.size(); index++) {
       log.info("activate phase " + (index + 1));
@@ -557,6 +557,9 @@ public class CompetitionControlService
         fn.activate(time, index + 1);
       }
     }
+    TimeslotComplete msg = new TimeslotComplete(ts);
+    brokerProxyService.broadcastMessage(msg);
+    
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
     if (--timeslotCount <= 0) {
@@ -565,8 +568,9 @@ public class CompetitionControlService
     }
   }
 
-  // activates the next timeslot - called once/timeslot
-  private void activateNextTimeslot ()
+  // activates the next timeslot - called once/timeslot. Returns the index
+  // of the current timeslot
+  private int activateNextTimeslot ()
   {
     long timeslotMillis = competition.getTimeslotDuration();
     TimeslotUpdate msg;
@@ -576,7 +580,7 @@ public class CompetitionControlService
     Timeslot current = timeslotRepo.currentTimeslot();
     if (current == null) {
       log.error("current timeslot is null at " + timeService.getCurrentTime());
-      return;
+      return -1;
     }
     if (current.getSerialNumber() != currentSlot + currentSlotOffset) {
       log.error("current timeslot serial is " + current.getSerialNumber() +
@@ -606,6 +610,7 @@ public class CompetitionControlService
     msg = new TimeslotUpdate(timeService.getCurrentTime(),
                              timeslotRepo.enabledTimeslots());
     brokerProxyService.broadcastMessage(msg);
+    return current.getSerialNumber();
   }
 
   // ------------ simulation shutdown ------------

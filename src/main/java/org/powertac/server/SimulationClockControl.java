@@ -25,6 +25,9 @@ import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.TimeService;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -62,14 +65,18 @@ public class SimulationClockControl
 
   public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
   
-  private static final long postPauseDelay = 500l; // 500 msec
-  private static final long watchdogSlack = 200l; // 200 msec
+  //private static final long postPauseDelay = 500l; // 500 msec
+  //private static final long watchdogSlack = 200l; // 200 msec
   
-  @Autowired
   private TimeService timeService;
   
-  @Autowired
   private CompetitionControlService competitionControl;
+    
+  @ConfigurableValue(valueType = "Integer",
+      publish = true,
+      description = "Minimum agent time per timeslot in msec")
+  private Integer minAgentWindow = 1000;
+
 
   private long base;
   private long start;
@@ -95,6 +102,9 @@ public class SimulationClockControl
                                  TimeService timeService)
   {
     instance = new SimulationClockControl(competitionControl, timeService);
+    ServerConfiguration serverConfig =
+        (ServerConfiguration) SpringApplicationContext.getBean("serverPropertiesService");
+    serverConfig.configureMe(instance);
   }
   
   /**
@@ -295,7 +305,7 @@ public class SimulationClockControl
   {
     //System.out.println("resume()");
     long originalNextTick = computeNextTickTime();
-    long actualNextTick = new Date().getTime() + postPauseDelay;
+    long actualNextTick = new Date().getTime() + minAgentWindow;
     start += actualNextTick - originalNextTick;
     timeService.setStart(start);
     competitionControl.resume(start);
@@ -357,7 +367,7 @@ public class SimulationClockControl
       //System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
       scc.setState(Status.CLEAR);
-      long wdTime = computeNextTickTime() - watchdogSlack;
+      long wdTime = computeNextTickTime() - minAgentWindow;
       //System.out.println("watchdog set for " + wdTime);
       currentWatchdog = new WatchdogAction(scc);
       theTimer.schedule(currentWatchdog, new Date(wdTime));
