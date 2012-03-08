@@ -63,7 +63,6 @@
 	</bean>
 	
 	<!-- ......USER SESSION BEANS:..................... -->
-	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
-
+  	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
 </beans>
 	

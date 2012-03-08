@@ -7,16 +7,19 @@
 <h:body>
 	<ui:fragment>
 		<h:form id="tableBrokersForm">
-			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" style="width:400px;" >
+			<p:panel styleClass="noBorderPanel" >
+			
+			
+			<p:dataTable value="#{brokersClone}" var="broker" type="ordered">
 				<f:facet name="header">  
             			Live info:  
         	</f:facet>
 
-				<p:column sortBy="${broker.appearance.iconLocation}" headerText="Icon" style="height: 50px; width: 50px;">
+				<p:column sortBy="${broker.appearance.iconLocation}" headerText="Icon">
 					<p:graphicImage value="${broker.appearance.iconLocation}" width="50" height="50" />
 				</p:column>
-
-				<p:column sortBy="#{broker.name}" headerText="Name">
+				
+				<p:column sortBy="#{broker.name}" headerText="Name" >
 					<h:outputText value="#{broker.name}" style="font-weight: bold" />
 				</p:column>
 
@@ -28,12 +31,13 @@
 					<h:outputText value="#{broker.energyBalance} kWh" style="font-weight: bold" />
 				</p:column>
 				
-				<p:column sortBy="${broker.customerCount}" headerText="Subscription count:">
+				<p:column sortBy="${broker.customerCount}" headerText="Subscriptions">
 					<h:outputText value="#{broker.customerCount}" style="font-weight: bold" />
 				</p:column>
 				
 
 			</p:dataTable>
+			</p:panel>
 			</h:form>
 	</ui:fragment>
 </h:body>

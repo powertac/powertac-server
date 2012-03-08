@@ -16,8 +16,6 @@
 
 package org.powertac.visualizer.services;
 
-import static org.powertac.util.MessageDispatcher.dispatch;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
@@ -73,11 +71,15 @@ public class VisualizerService implements VisualizerMessageListener {
 
 	visualizerBean.incrementMessageCounter();
 
-	log.info("Counter: " + visualizerBean.getMessageCount()
-		+ ", Got message: " + msg.getClass().getName());
+	
 
 	if (msg != null) {
+		log.info("Counter: " + visualizerBean.getMessageCount()
+				+ ", Got message: " + msg.getClass().getName());
 	    Helper.dispatch(visualizerMessageHandler, "handleMessage", msg);
+	} else {
+		
+		log.warn("Counter:"+visualizerBean.getMessageCount()+" Received message is NULL!");
 	}
 
     }

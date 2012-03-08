@@ -119,8 +119,8 @@ public class VisualizerMessageHandlerHelperService {
 //		int timeslotIndex = visualizerBean.getCompetition().computeTimeslotIndex(timeslot);
 //		return timeslotIndex-visualizerBean.getFirstTimeslotIndex();
 //	}
-		long millisDifference = timeslot.getMillis()-visualizerBean.getFirstTimeslot().getMillis();
-		long numberOfHours = millisDifference / (1000*60*60);
+		long millisDifference = timeslot.getMillis()-visualizerBean.getFirstTimeslotInstant().getMillis();
+		long numberOfHours = millisDifference / (1000*60*60); 
 		return (int) numberOfHours; //<- will be a relative number of timeslots.
 	}
 

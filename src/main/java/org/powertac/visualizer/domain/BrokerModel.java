@@ -142,14 +142,16 @@ public class BrokerModel implements VisualBroker, DisplayableBroker {
 		tariffTransactions.add(tariffTransaction);
 
 		// find customer of this transaction:
+		if(tariffTransaction.getCustomerInfo()!=null){
 		for (Iterator<CustomerModel> iterator = customerModels.iterator(); iterator.hasNext();) {
 			CustomerModel customerModel = (CustomerModel) iterator.next();
-			if (customerModel.getCustomerInfo().getId() == tariffTransaction.getCustomerInfo().getId()) {
+				if (customerModel.getCustomerInfo().getId() == tariffTransaction.getCustomerInfo().getId()) {
 
 				// add transaction to a customer
 				customerModel.addTariffTransaction(tariffTransaction);
 				break;
 			}
+		}
 		}
 		// manage customer count
 		int customerCount = Helper.getCustomerCount(tariffTransaction);

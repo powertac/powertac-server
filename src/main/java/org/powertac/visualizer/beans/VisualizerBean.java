@@ -9,6 +9,8 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.visualizer.domain.*;
+import org.powertac.visualizer.wholesale.WholesaleModel;
+import org.powertac.visualizer.wholesale.WholesaleSnapshot;
 
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -39,9 +41,13 @@ public class VisualizerBean implements Serializable {
 	private int visualizerRunCount;
 
 	private DayOverview dayOverview;
-
+	
+	//wholesale:
+	private WholesaleModel wholesaleModel;
+	private WholesaleSnapshot currentWholesaleSnapshot;
+		
 	private Competition competition;
-	private Instant firstTimeslot;
+	private Instant firstTimeslotInstant;
 	private List<CustomerInfo> customers;
 	private List<BrokerModel> brokers;
 	private TimeslotUpdate timeslotUpdate;
@@ -93,7 +99,7 @@ public class VisualizerBean implements Serializable {
 		competition = null;
 		brokers = new ArrayList<BrokerModel>();
 
-		firstTimeslot = null;
+		firstTimeslotInstant = null;
 		customers = null;
 		timeslotUpdate = null;
 		simulationStatus = null;
@@ -107,6 +113,8 @@ public class VisualizerBean implements Serializable {
 		subscriptionsPieChartJSON = new JSONArray();
 		brokerCashBalancesJSON = new JSONArray();
 		customerModel = new CustomerModel();
+		wholesaleModel = new WholesaleModel();
+		currentWholesaleSnapshot = null;
 	}
 
 	public int getVisualizerRunCount() {
@@ -175,6 +183,14 @@ public class VisualizerBean implements Serializable {
 
 	public void setTimeslotUpdate(TimeslotUpdate timeslotUpdate) {
 		this.timeslotUpdate = timeslotUpdate;
+	}
+	
+	public int getCurrentFirstEnabledTimeslotSerialNumber(){
+		if (timeslotUpdate!=null)
+		return timeslotUpdate.getEnabled().get(0).getSerialNumber();
+		else{
+			return -1;
+		}
 	}
 
 	public String getSimulationStatus() {
@@ -251,12 +267,12 @@ public class VisualizerBean implements Serializable {
 		return brokerSeriesColors;
 	}
 
-	public void setFirstTimeslot(Instant firstTimeslot) {
-		this.firstTimeslot = firstTimeslot;
+	public void setFirstTimeslotInstant(Instant firstTimeslot) {
+		this.firstTimeslotInstant = firstTimeslot;
 	}
 
-	public Instant getFirstTimeslot() {
-		return firstTimeslot;
+	public Instant getFirstTimeslotInstant() {
+		return firstTimeslotInstant;
 	}
 
 	/**
@@ -279,6 +295,18 @@ public class VisualizerBean implements Serializable {
 	
 	public void setDayOverview(DayOverview dayOverview) {
 		this.dayOverview = dayOverview;
+	}
+	
+	public void setCurrentWholesaleSnapshot(WholesaleSnapshot currentWholesaleSnapshot) {
+		this.currentWholesaleSnapshot = currentWholesaleSnapshot;
+	}
+	
+	public WholesaleSnapshot getCurrentWholesaleSnapshot() {
+		return currentWholesaleSnapshot;
+	}
+	
+	public WholesaleModel getWholesaleModel() {
+		return wholesaleModel;
 	}
 
 }

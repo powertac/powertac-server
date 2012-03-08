@@ -3,6 +3,9 @@ package org.powertac.visualizer.services.handler;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.log4j.Logger;
@@ -18,8 +21,10 @@ import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.PluginConfig;
+import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
+import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.msg.SimPause;
@@ -33,8 +38,13 @@ import org.powertac.visualizer.domain.DayOverview;
 import org.powertac.visualizer.domain.DayState;
 import org.powertac.visualizer.domain.GencoModel;
 import org.powertac.visualizer.domain.VisualBroker;
+import org.powertac.visualizer.wholesale.WholesaleMarket;
+import org.powertac.visualizer.wholesale.WholesaleModel;
+import org.powertac.visualizer.wholesale.WholesaleSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.sun.xml.bind.v2.runtime.unmarshaller.LocatorEx.Snapshot;
 
 @Service
 public class VisualizerMessageHandlerService {
@@ -85,26 +95,58 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
 		visualizerBean.setTimeslotUpdate(timeslotUpdate);
-		
-		//for first timeslot:
-		if(visualizerBean.getFirstTimeslot()==null)
-			visualizerBean.setFirstTimeslot(timeslotUpdate.getPostedTime());
-		
-		int relativeTimeslotIndex = helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
-		//for all brokers and gencos:
-		helper.updateTimeslotIndex(relativeTimeslotIndex);
-		//update for visualizerBean:
-		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
-		
-		//new day? if so, make new day overview:
-		if(relativeTimeslotIndex!=0 && relativeTimeslotIndex % 24 == 0){
-				helper.buildDayOverview();			
+
+		// for the first timeslot:
+		if (visualizerBean.getFirstTimeslotInstant() == null)
+			visualizerBean.setFirstTimeslotInstant(timeslotUpdate.getPostedTime());
+
+		ArrayList<Timeslot> enabledTimeslots = timeslotUpdate.getEnabled();
+
+		StringBuilder builder = new StringBuilder();
+		builder.append("Enabled timeslots:");
+		for (Iterator<Timeslot> iterator = enabledTimeslots.iterator(); iterator.hasNext();) {
+			Timeslot timeslot = (Timeslot) iterator.next();
+			builder.append(" ").append(timeslot.getSerialNumber());
 		}
 		
-		//update global charts each timeslot:
+		WholesaleModel model = visualizerBean.getWholesaleModel();
+		
+		WholesaleMarket market = model.findWholesaleMarket(visualizerBean.getTimeslotUpdate().getEnabled().get(0).getSerialNumber());
+		if(market!=null){
+		Map<Integer, WholesaleSnapshot> map = market.getSnapshots();
+		
+		Set<Entry<Integer, WholesaleSnapshot>> entrySet = map.entrySet();
+		
+		
+		builder.append("\n-----------------------\nWholesale snapshots for first enabled timeslot:").append(visualizerBean.getTimeslotUpdate().getEnabled().get(0).getSerialNumber());
+		for (Iterator iterator = entrySet.iterator(); iterator.hasNext();) {
+			Entry<Integer, WholesaleSnapshot> entry = (Entry<Integer, WholesaleSnapshot>) iterator.next();
+			builder.append("\nrelative index: ").append(entry.getKey()+"\n").append(entry.getValue().toString()).append("\n");
+			
+		}
+		}
+		
+
+		log.info(builder+"\n");
+
+		int relativeTimeslotIndex = helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
+		// for all brokers and gencos:
+		helper.updateTimeslotIndex(relativeTimeslotIndex);
+		// update for visualizerBean:
+		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
+
+		// new day? if so, make new day overview:
+		if (relativeTimeslotIndex != 0 && relativeTimeslotIndex % 24 == 0) {
+			helper.buildDayOverview();
+		}
+
+		// update global charts each timeslot:
 		helper.updateGlobalCharts();
 
 		log.info("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
+
+		// wholesale update:
+
 	}
 
 	public void handleMessage(SimStart simStart) {
@@ -118,8 +160,13 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(WeatherReport weatherReport) {
-		log.info("\nStart Instant: " + weatherReport.getCurrentTimeslot().getStartInstant());
-		visualizerBean.setWeatherReport(weatherReport);
+
+		if (weatherReport.getCurrentTimeslot() != null) {
+			log.info("\nStart Instant: " + weatherReport.getCurrentTimeslot().getStartInstant());
+			visualizerBean.setWeatherReport(weatherReport);
+		} else {
+			log.warn("Timeslot for Weather report object is null!!");
+		}
 
 	}
 
@@ -138,7 +185,20 @@ public class VisualizerMessageHandlerService {
 				+ tariffSpecification.getEarlyWithdrawPayment() + " PeriodicPayment: "
 				+ tariffSpecification.getPeriodicPayment() + " SignupPayment" + tariffSpecification.getSignupPayment()
 				+ " Expiration: " + tariffSpecification.getExpiration() + " PowerType: "
-				+ tariffSpecification.getPowerType());
+				+ tariffSpecification.getPowerType() + " ID: "+tariffSpecification.getId());
+		
+		if(tariffSpecification.getSupersedes()!=null){
+			log.info("NO of tariffspec:"+tariffSpecification.getSupersedes().size());
+		}
+		
+		List<Rate> rates = tariffSpecification.getRates();
+		String ispis="";
+		for (Iterator iterator = rates.iterator(); iterator.hasNext();) {
+			Rate rate = (Rate) iterator.next();
+			ispis+=""+rate.toString();
+		}
+		log.info("RATE:\n"+ispis);
+		
 
 		// find matching broker and add received tariff spec. to its history.
 		BrokerModel brokerModel = helper.findBrokerModel(tariffSpecification.getBroker());
@@ -177,17 +237,27 @@ public class VisualizerMessageHandlerService {
 		log.info("\nBroker: " + order.getBroker() + "\nLimit Price: " + order.getLimitPrice() + "\nMWh: "
 				+ order.getMWh() + " Timeslot\n Serial Number: " + order.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(order.getTimeslot().getStartInstant()));
-		// TODO
+
+		Timeslot orderTimeslot = order.getTimeslot();
+
+		// wholesale model:
+		WholesaleModel model = visualizerBean.getWholesaleModel();
+		model.addOrder(order, visualizerBean.getRelativeTimeslotIndex());
 	}
 
 	public void handleMessage(ClearedTrade clearedTrade) {
 		int dateExecuted = helper.computeRelativeTimeslotIndex(clearedTrade.getDateExecuted());
-		log.info("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index:"
+		log.info("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(clearedTrade.getTimeslot().getStartInstant())
 				+ "\nExecutionPrice:" + clearedTrade.getExecutionPrice() + " ExecutionMWh"
 				+ clearedTrade.getExecutionMWh() + " DateExecuted (timeslot index):" + dateExecuted);
-		// TODO
 
+		// wholesale model:
+		// orderbook and cleared trade are received one timeslot later than
+		// correspondent orders:
+		int targetRelativeTimeslotIndex = visualizerBean.getRelativeTimeslotIndex() - 1;
+		WholesaleModel model = visualizerBean.getWholesaleModel();
+		model.setClearedTrade(clearedTrade, targetRelativeTimeslotIndex);
 	}
 
 	public void handleMessage(MarketTransaction marketTransaction) {
@@ -235,6 +305,13 @@ public class VisualizerMessageHandlerService {
 				+ dateExecutedTimeslotIndex + "\nTimeslot\n Serial Number: "
 				+ orderbook.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(orderbook.getTimeslot().getStartInstant()));
+
+		// wholesale model:
+		// orderbook and cleared trade are received one timeslot later than
+		// correspondent orders:
+		int targetRelativeTimeslotIndex = visualizerBean.getRelativeTimeslotIndex() - 1;
+		WholesaleModel model = visualizerBean.getWholesaleModel();
+		model.setOrderbook(orderbook, targetRelativeTimeslotIndex);
 
 		log.info(builder.toString());
 

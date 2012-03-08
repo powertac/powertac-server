@@ -128,8 +128,8 @@ public class WebCompetitionControlService {
 				// collect broker names, hand to CC for login control
 				ArrayList<String> brokerList = new ArrayList<String>();
 				brokerList.add("Sample");
-				brokerList.add("dragec");
-				brokerList.add("markec");
+				brokerList.add("Dragec");
+				brokerList.add("Markec");
 				cc.setAuthorizedBrokerList(brokerList);
 				
 				cc.init();

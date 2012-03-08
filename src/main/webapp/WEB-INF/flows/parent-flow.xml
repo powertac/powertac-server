@@ -5,8 +5,7 @@
         http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
 
 	
-
-	<input name="tab" value="flowScope.tab" required="false" />
+ 	<input name="tab" value="flowScope.tab" required="false" />
 	
 	<on-start>
 		<evaluate expression="visualizerBean.getBrokersClone()"
