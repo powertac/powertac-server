@@ -39,7 +39,7 @@ import com.thoughtworks.xstream.annotations.*;
  */
 @Domain (fields = {"tariffId", "weeklyBegin", "weeklyEnd", "dailyBegin", "dailyEnd",
                    "tierThreshold", "fixed", "minValue", "maxValue",
-                   "noticeInterval", "expectedMean"})
+                   "noticeInterval", "expectedMean", "maxCurtailment"})
 @XStreamAlias("rate")
 public class Rate extends XStreamStateLoggable
 {
