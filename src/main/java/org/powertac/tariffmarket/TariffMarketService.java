@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,8 @@
  */
 package org.powertac.tariffmarket;
 
-import static org.powertac.util.MessageDispatcher.dispatch;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +38,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -66,7 +64,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TariffMarketService
   extends TimeslotPhaseProcessor 
-  implements TariffMarket, BrokerMessageListener, InitializationService
+  implements TariffMarket, InitializationService
 {
   static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
 
@@ -137,6 +135,7 @@ public class TariffMarketService
   /**
    * Reads configuration parameters, registers for timeslot phase activation.
    */
+  @SuppressWarnings("unchecked")
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
@@ -146,7 +145,13 @@ public class TariffMarketService
     }
 
     defaultTariff = new HashMap<PowerType, Long>();
-    brokerProxyService.registerBrokerTariffListener(this);
+    //brokerProxyService.registerBrokerMessageListener(this);
+    for (Class<?> messageType: Arrays.asList(TariffSpecification.class,
+                                             TariffExpire.class,
+                                             TariffRevoke.class,
+                                             VariableRateUpdate.class)) {
+      brokerProxyService.registerBrokerMessageListener(this, messageType);
+    }
     firstPublication = false;
     registrations.clear();
     publicationFee = null;
@@ -256,38 +261,14 @@ public class TariffMarketService
   }
 
   // ----------------- Broker message API --------------------
-  /**
-   * Receives and dispatches an incoming broker message. We do this
-   * synchronously with the incoming message traffic, rather than on
-   * the timeslot phase signal, to minimize latency for broker feedback.
-   */
-  @Override
-  public void receiveMessage (Object msg)
-  {
-    if (msg != null && msg instanceof TariffMessage) {
-      // dispatch incoming message, using reflection to keep the 
-      // message types clean.
-      TariffMessage message = (TariffMessage)msg;
-      TariffStatus result = 
-        (TariffStatus)dispatch(this, "processTariff", new Object[]{message});
-      // Check result, send error message if we know who the broker was
-      if (result == null) {
-        result = new TariffStatus(message.getBroker(), 
-                                  0l, message.getId(),
-                                  TariffStatus.Status.illegalOperation);
-      }
-      // if we have something to send back to the broker, then send it
-      if (result != null) {
-        brokerProxyService.sendMessage(result.getBroker(), result);
-      }
-    }
-  }  
+  // Receive incoming broker messages. We do this
+  // synchronously with the incoming message traffic, rather than on
+  // the timeslot phase signal, to minimize latency for broker feedback.
 
   /**
    * Processes a newly-published tariff.
    */
-  @Override
-  public TariffStatus processTariff (TariffSpecification spec)
+  public void handleMessage (TariffSpecification spec)
   {
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
@@ -296,19 +277,20 @@ public class TariffMarketService
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
                                            tariff, null, 0, 0.0, publicationFee);
-    return new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.success);
+    send(new TariffStatus(spec.getBroker(),
+                          spec.getId(),
+                          spec.getId(),
+                          TariffStatus.Status.success));
   }
 
   /**
    * Handles changes in tariff expiration date.
    */
-  @Override
-  public TariffStatus processTariff (TariffExpire update)
+  public void handleMessage (TariffExpire update)
   {
     ValidationResult result = validateUpdate(update);
     if (result.tariff == null)
-      return result.message;
+      send(result.message);
     else {
       Instant newExp = update.getNewExpiration();
       if (newExp != null && newExp.isBefore(timeService.getCurrentTime())) {
@@ -316,16 +298,18 @@ public class TariffMarketService
         log.warn("attempt to set expiration for tariff " +
                  result.tariff.getId() + " in the past:" +
                  newExp.toString());
-        return new TariffStatus(update.getBroker(), update.getTariffId(), update.getId(),
-                                TariffStatus.Status.invalidUpdate)
-            .withMessage("attempt to set expiration in the past");
+        send(new TariffStatus(update.getBroker(),
+                              update.getTariffId(),
+                              update.getId(),
+                              TariffStatus.Status.invalidUpdate)
+             .withMessage("attempt to set expiration in the past"));
       }
       else {
         // update expiration date
         result.tariff.setExpiration(newExp);
         log.info("Tariff " + update.getTariffId() + 
                  "now expires at " + new DateTime(result.tariff.getExpiration(), DateTimeZone.UTC).toString());
-        return success(update);
+        success(update);
       }
     }
   }
@@ -333,12 +317,11 @@ public class TariffMarketService
   /**
    * Handles tariff revocation.
    */
-  @Override
-  public TariffStatus processTariff (TariffRevoke update)
+  public void handleMessage (TariffRevoke update)
   {
     ValidationResult result = validateUpdate(update);
     if (result.tariff == null)
-      return result.message;
+      send(result.message);
     else {
       result.tariff.setState(Tariff.State.KILLED);
       log.info("Revoke tariff " + update.getTariffId());
@@ -363,26 +346,27 @@ public class TariffMarketService
                                                revocationFee);
       }
     }
-    return success(update);
+    success(update);
   }
 
   /**
    * Applies a new HourlyCharge to an existing Tariff with a variable Rate.
    */
-  @Override
-  public TariffStatus processTariff (VariableRateUpdate update)
+  public void handleMessage (VariableRateUpdate update)
   {
     ValidationResult result = validateUpdate(update);
     if (result.tariff == null)
-      return result.message;
+      send(result.message);
     else if (result.tariff.addHourlyCharge(update.getHourlyCharge(), update.getRateId())) {
-      return success(update);
+      success(update);
     }
     else {
       // failed to add hourly charge
-      return new TariffStatus(update.getBroker(), update.getTariffId(), update.getId(),
-                              TariffStatus.Status.invalidUpdate)
-          .withMessage("update: could not add hourly charge");
+      send(new TariffStatus(update.getBroker(),
+                            update.getTariffId(),
+                            update.getId(),
+                            TariffStatus.Status.invalidUpdate)
+          .withMessage("update: could not add hourly charge"));
     }
   }
 
@@ -486,11 +470,24 @@ public class TariffMarketService
     return true;
   }
 
-  private TariffStatus success (TariffUpdate update)
+  private void success (TariffUpdate update)
   {
     Broker broker = update.getBroker();
-    return new TariffStatus(broker, update.getTariffId(), update.getId(),
-                            TariffStatus.Status.success);
+    send(new TariffStatus(broker,
+                          update.getTariffId(),
+                          update.getId(),
+                          TariffStatus.Status.success));
+  }
+  
+  // sends a message to the broker
+  private void send (TariffMessage msg)
+  {
+    if (null == msg) {
+      log.debug("null outgoing message");
+    }
+    else {
+      brokerProxyService.sendMessage(msg.getBroker(), msg);
+    }
   }
 
   private ValidationResult validateUpdate (TariffUpdate update)
