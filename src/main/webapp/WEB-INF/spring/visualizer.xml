@@ -64,5 +64,6 @@
 	
 	<!-- ......USER SESSION BEANS:..................... -->
   	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
+	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="request"></bean>
 </beans>
 	

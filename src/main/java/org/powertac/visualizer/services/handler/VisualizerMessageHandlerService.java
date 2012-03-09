@@ -299,11 +299,15 @@ public class VisualizerMessageHandlerService {
 		snapshot.close();
 		log.info("Snapshot "+snapshot.getTimeslotSerialNumber()+"@"+snapshot.getRelativeTimeslotIndex()+" is closed");
 		//what about market? should be closed when all of its snapshots have been closed and when its timeslot equals the current timeslot
-		int offset = market.getTimeslotSerialNumber() - targetRelativeTimeslotIndex;
+		int offset = market.getTimeslotSerialNumber() - visualizerBean.getRelativeTimeslotIndex();
+		log.info(offset);
 		if(offset==timeslotOffset){
 			market.close();
 			log.info("Market: TS serial num:"+market.getTimeslotSerialNumber()+"Total traded quantity:"+market.getTotalTradedQuantityMWh()+" is closed");
-			
+			//add market node to root:
+			market.getMarketNode().setParent(model.getRoot());
+			//update model:
+			model.addTradedQuantityMWh(market.getTotalTradedQuantityMWh());
 		}
 		}
 		log.debug(builder.toString());
@@ -332,11 +336,16 @@ public class VisualizerMessageHandlerService {
 		snapshot.close();
 		log.info("Snapshot "+snapshot.getTimeslotSerialNumber()+"@"+snapshot.getRelativeTimeslotIndex()+" is closed");
 		//what about market? should be closed when all of its snapshots have been closed and when its timeslot equals the current timeslot
-				int offset = market.getTimeslotSerialNumber() - targetRelativeTimeslotIndex;
+				int offset = market.getTimeslotSerialNumber() - visualizerBean.getRelativeTimeslotIndex();
+				log.info(offset);
 				if(offset==timeslotOffset){
 					market.close();
 					log.info("Market: TS serial num:"+market.getTimeslotSerialNumber()+"Total traded quantity:"+market.getTotalTradedQuantityMWh()+" is closed");
-					//PROVJERITI!!!
+					//add market node to root:
+					market.getMarketNode().setParent(model.getRoot());
+					//update model:
+					model.addTradedQuantityMWh(market.getTotalTradedQuantityMWh());
+			
 				}
 		
 		

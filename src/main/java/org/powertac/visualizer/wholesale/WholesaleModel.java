@@ -12,20 +12,23 @@ import org.powertac.common.Timeslot;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
-public class WholesaleModel implements Serializable {
+public class WholesaleModel implements Serializable, WholesaleTreeView {
 	
 	private static final long serialVersionUID = 1L;
 
 	private Map<Integer, WholesaleMarket> wholesaleMarkets;
 	
 	private TreeNode root;
+	
+	
 			
-	private double totalTradedQuantity;
+	private double totalTradedQuantityMWh;
 
 		
 	public WholesaleModel() {
 		wholesaleMarkets = new TreeMap<Integer, WholesaleMarket>();
-		root = new DefaultTreeNode("Root", null); 
+		root = new DefaultTreeNode(this, null); 
+		
 	}
 	
 	public WholesaleMarket findWholesaleMarket(Integer timeslotSerialNumber){
@@ -36,9 +39,28 @@ public class WholesaleModel implements Serializable {
 		return wholesaleMarkets;
 	}
 	
-	public double getTotalTradedQuantity() {
-		return totalTradedQuantity;
+	public double getTotalTradedQuantityMWh() {
+		return totalTradedQuantityMWh;
 	}
 	
+	public void addTradedQuantityMWh(double quantity){
+		totalTradedQuantityMWh+=quantity;
+	}
+	
+	public TreeNode getRoot() {
+		return root;
+	}
+
+	public String getName() {
+		return "Root";
+	}
+
+	public String getType() {
+		return "wholesale model";
+	}
+
+	public String getTotalTradedQuantity() {
+		return ""+totalTradedQuantityMWh;
+	}	
 	
 }

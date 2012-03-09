@@ -19,8 +19,67 @@
 	<ui:define name="content">
 
 		<p:panel>
-			<h:outputText value="Total quantity traded: #{visualizerBean.wholesaleModel.totalTradedQuantity} MWh"/>
+			<h:form id="form">
+			
+				
+				 <p:outputPanel id="documentPanel">
+						<h:panelGrid columns="2" cellpadding="5"
+							rendered="#{not empty wholesaleBean.selectedNode}">
+							<h:outputText id="name"
+								value="#{wholesaleBean.selectedNode.data.name}"
+								style="font-weight:bold" />
+
+							<h:outputText id="type"
+								value="#{wholesaleBean.selectedNode.data.type}"
+								style="font-weight:bold" />
+
+							<h:outputText id="ttq"
+								value="#{wholesaleBean.selectedNode.data.totalTradedQuantity}"
+								style="font-weight:bold" />
+						</h:panelGrid> 
+						
+					</p:outputPanel>
+			
+				<p:treeTable value="#{visualizerBean.wholesaleModel.root}"
+					var="document" selection="#{wholesaleBean.selectedNode}"
+					selectionMode="single">
+
+					<f:facet name="header">  
+            Wholesale  
+        </f:facet>
+
+					<p:column style="width:150px">
+						<f:facet name="header">  
+                Name  
+            </f:facet>
+						<h:outputText value="#{document.name}" />
+					</p:column>
+
+					<p:column style="width:100px">
+						<f:facet name="header">  
+                Type  
+            </f:facet>
+						<h:outputText value="#{document.type}" />
+					</p:column>
+
+					<p:column style="width:100px">
+						<f:facet name="header">  
+                Total traded quantity (MWh):  
+            </f:facet>
+						<h:outputText value="#{document.totalTradedQuantity}" />
+					</p:column>
+
+					<f:facet name="footer">
+						<p:commandButton value="View" icon="ui-icon-search"
+							update=":form:documentPanel" />
+					</f:facet>
+				</p:treeTable>
+				
 					
+				
+			
+
+			</h:form>
 		</p:panel>
 
 	</ui:define>

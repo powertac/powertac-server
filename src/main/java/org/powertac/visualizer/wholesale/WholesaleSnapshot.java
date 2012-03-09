@@ -12,6 +12,8 @@ import org.powertac.common.OrderbookOrder;
 import org.powertac.common.Timeslot;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
+import org.primefaces.model.DefaultTreeNode;
+import org.primefaces.model.TreeNode;
 
 /**
  * Represents the wholesale market per-timeslot snapshot for one timeslot.
@@ -19,7 +21,7 @@ import org.primefaces.json.JSONException;
  * @author Jurica Babic
  * 
  */
-public class WholesaleSnapshot {
+public class WholesaleSnapshot implements WholesaleTreeView {
 	Logger log = Logger.getLogger(WholesaleSnapshot.class.getName());
 	// relative index in which snapshot was created.
 	private int relativeTimeslotIndex;
@@ -44,6 +46,8 @@ public class WholesaleSnapshot {
 	private OrderbookOrder marketAskOrder;
 	private OrderbookOrder marketBidOrder;
 
+	private TreeNode snapshotNode;
+
 	private boolean closed;
 
 	public WholesaleSnapshot(Timeslot timeslot, int relativeTimeslotIndex) {
@@ -51,6 +55,8 @@ public class WholesaleSnapshot {
 		orders = new Orderbook(timeslot, null, null);
 		this.timeslot = timeslot;
 		this.relativeTimeslotIndex = relativeTimeslotIndex;
+
+		snapshotNode = new DefaultTreeNode(this, null);
 	}
 
 	public void addOrder(Order order) {
@@ -106,6 +112,14 @@ public class WholesaleSnapshot {
 
 	public int getRelativeTimeslotIndex() {
 		return relativeTimeslotIndex;
+	}
+
+	public TreeNode getSnapshotNode() {
+		return snapshotNode;
+	}
+
+	public WholesaleMarketJSON getWholesaleMarketJSON() {
+		return wholesaleMarketJSON;
 	}
 
 	@Override
@@ -177,44 +191,35 @@ public class WholesaleSnapshot {
 		double askOffset = 0;
 		if (marketAskOrder != null) {
 			OrderbookOrder newMarketAskOrder = modifyMarketOrder(marketAskOrder, asks);
-			askOffset = buildLine(
-					Math.abs(newMarketAskOrder.getMWh()),
-							Math.abs(newMarketAskOrder.getLimitPrice()), graphDataBeforeClearing,
-					seriesColorsBeforeClearing, askOffset, "#FF0000");
+			askOffset = buildLine(Math.abs(newMarketAskOrder.getMWh()), Math.abs(newMarketAskOrder.getLimitPrice()),
+					graphDataBeforeClearing, seriesColorsBeforeClearing, askOffset, "#FF0000");
 		}
 		for (Iterator iterator = asks.iterator(); iterator.hasNext();) {
 			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
-			
-			askOffset = buildLine(
-					Math.abs(orderbookOrder.getMWh()),
-							Math.abs(orderbookOrder.getLimitPrice()), graphDataBeforeClearing,
-					seriesColorsBeforeClearing, askOffset, "#00FF00");
-			
+
+			askOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
+					graphDataBeforeClearing, seriesColorsBeforeClearing, askOffset, "#00FF00");
+
 		}
-		
 
 		SortedSet<OrderbookOrder> bids = orders.getBids();
 		double bidOffset = 0;
 		if (marketBidOrder != null) {
 			OrderbookOrder newMarketAskOrder = modifyMarketOrder(marketBidOrder, bids);
-			bidOffset = buildLine(
-					Math.abs(newMarketAskOrder.getMWh()),
-							Math.abs(newMarketAskOrder.getLimitPrice()), graphDataBeforeClearing,
-					seriesColorsBeforeClearing, bidOffset,"#FF0000");
+			bidOffset = buildLine(Math.abs(newMarketAskOrder.getMWh()), Math.abs(newMarketAskOrder.getLimitPrice()),
+					graphDataBeforeClearing, seriesColorsBeforeClearing, bidOffset, "#FF0000");
 		}
-		
+
 		for (Iterator iterator = bids.iterator(); iterator.hasNext();) {
 			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
-			bidOffset = buildLine(
-					Math.abs(orderbookOrder.getMWh()),
-							Math.abs(orderbookOrder.getLimitPrice()), graphDataBeforeClearing,
-					seriesColorsBeforeClearing, bidOffset, "#0000FF");
-			
+			bidOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
+					graphDataBeforeClearing, seriesColorsBeforeClearing, bidOffset, "#0000FF");
+
 		}
-		
-		WholesaleMarketJSON json = new WholesaleMarketJSON(graphDataBeforeClearing,seriesColorsBeforeClearing);
-		System.out.println(json.getGraphDataBeforeClearing().toString()+json.getSeriesColorsBeforeClearing().toString());
-		wholesaleMarketJSON= json;
+
+		WholesaleMarketJSON json = new WholesaleMarketJSON(graphDataBeforeClearing, seriesColorsBeforeClearing);
+		// System.out.println(json.getGraphDataBeforeClearing().toString()+json.getSeriesColorsBeforeClearing().toString());
+		wholesaleMarketJSON = json;
 
 	}
 
@@ -244,21 +249,37 @@ public class WholesaleSnapshot {
 			leftCoordData.put(leftX_Axis).put(y);
 			offset += x;
 			rightCoordData.put(offset).put(y);
-			
+
 			// make line:
 			lineData.put(leftCoordData).put(rightCoordData);
 			// add it to graphData:
 			graphData.put(lineData);
-			
-			//color:
+
+			// color:
 			seriesColors.put(color);
-			
+
 			return offset;
 
 		} catch (JSONException e) {
 			log.info("Building JSON Array failed.");
 		}
 		return 0;
+	}
+
+	public String getName() {
+		return "Snapshot" + relativeTimeslotIndex;
+	}
+
+	public String getType() {
+		return "Wholsale snapshot";
+	}
+
+	public String getTotalTradedQuantity() {
+		if (clearedTrade != null) {
+			return "" + clearedTrade.getExecutionMWh();
+		} else {
+			return "0";
+		}
 	}
 
 }

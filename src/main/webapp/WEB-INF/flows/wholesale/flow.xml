@@ -7,15 +7,12 @@
 	<!-- Also see ../parent-flow.xml. -->
 
 
-
-
-
-
 	<view-state id="view">
 
 	<on-render>
 	<evaluate expression="trainingService.increment()"></evaluate>
 	</on-render>
+	
 
 
 	</view-state>
