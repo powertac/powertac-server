@@ -39,7 +39,7 @@ import com.thoughtworks.xstream.annotations.*;
  */
 @Domain (fields = {"tariffId", "weeklyBegin", "weeklyEnd", "dailyBegin", "dailyEnd",
                    "tierThreshold", "fixed", "minValue", "maxValue",
-                   "noticeInterval", "expectedMean"})
+                   "noticeInterval", "expectedMean", "maxCurtailment"})
 @XStreamAlias("rate")
 public class Rate extends XStreamStateLoggable
 {
@@ -69,6 +69,9 @@ public class Rate extends XStreamStateLoggable
   private long noticeInterval = 0; // notice interval for variable rate in hours
   @XStreamAsAttribute
   private double expectedMean = 0.0; // expected mean value for variable rate
+  @XStreamAsAttribute
+  private double maxCurtailment = 0.0; // maximum curtailment for controllable capacity
+
   private TreeSet<HourlyCharge> rateHistory; // history of values for variable rate
 
   // depends on TimeService
@@ -395,6 +398,27 @@ public class Rate extends XStreamStateLoggable
   public Rate withMaxValue (double maxValue)
   {
     this.maxValue = maxValue;
+    return this;
+  }
+  
+  /**
+   * Returns the maximum proportion of offered load or supply that can be 
+   * curtailed in a given timeslot.
+   */
+  public double getMaxCurtailment ()
+  {
+    return maxCurtailment;
+  }
+  
+  /**
+   * Sets the maximum proportion of offered load or supply that can be
+   * curtailed. Must be between 0.0 and 1.0. Values > 0.0 are only meaningful
+   * for controllable capacities.
+   */
+  @StateChange
+  public Rate withMaxCurtailment (double value)
+  {
+    maxCurtailment = Math.min(1.0, Math.max(0.0, value));
     return this;
   }
   
