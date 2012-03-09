@@ -1,6 +1,9 @@
 <!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
 	<ui:define name="title">Wholesale market</ui:define>
@@ -8,171 +11,17 @@
 	<ui:define name="headIncludes">
 
 		<script type="text/javascript">
-	
-	var #{imageControl.fakeId};
-	var a#{imageControl.fakeId};
-	
-</script>
+			
+		</script>
 
 	</ui:define>
 
 	<ui:define name="content">
-		<!--
-		
-			<div id="chart1" style="height: 1000px; width: 1000px;"></div>
-			<script type="text/javascript">
-				$(document).ready(function(){
-				    var s1 = [200, 600, 700, 1000];
-				    var s2 = [460, -210, 690, 820];
-				    var s3 = [-260, -440, 320, 200];
-				    // Can specify a custom tick Array.
-				    // Ticks should match up one for each y value (category) in the series.
-				    var ticks = ['May', 'June', 'July', 'August'];
-				     
-				    var plot1 = $.jqplot('chart1', [s1, s2, s3], {
-				        // The "seriesDefaults" option is an options object that will
-				        // be applied to all series in the chart.
-				        seriesDefaults:{
-				            renderer:$.jqplot.BarRenderer,
-				            rendererOptions: {fillToZero: true}
-				        },
-				        // Custom labels for the series are specified with the "label"
-				        // option on the series option.  Here a series option object
-				        // is specified for each series.
-				        series:[
-				            {label:'Hotel'},
-				            {label:'Event Regristration'},
-				            {label:'Airfare'}
-				        ],
-				        // Show the legend and put it outside the grid, but inside the
-				        // plot container, shrinking the grid to accomodate the legend.
-				        // A value of "outside" would not shrink the grid and allow
-				        // the legend to overflow the container.
-				        legend: {
-				            show: true,
-				            placement: 'outsideGrid'
-				        },
-				        axes: {
-				            // Use a category axis on the x axis and use our custom ticks.
-				            xaxis: {
-				                renderer: $.jqplot.CategoryAxisRenderer,
-				                ticks: ticks
-				            },
-				            // Pad the y axis just a little so bars can get close to, but
-				            // not touch, the grid boundaries.  1.2 is the default padding.
-				            yaxis: {
-				                pad: 1.05,
-				                tickOptions: {formatString: '$%d'}
-				            }
-				        }
-				    });
-				});
-</script>
 
-		
-
-		<h:form>
-			<p:panel id="panelici">
-
-				<p:accordionPanel>
-					<p:tab title="Godfather Part I">
-						<p:tabView>
-
-							<p:tab title="Godfather Part I">
-								<h:panelGrid columns="2" cellpadding="10">
-									<p:graphicImage value="/images/godfather/godfather1.jpg" />
-									<h:outputText value="The story begins as Don Vi" />
-
-
-
-									<div id="#{imageControl.fakeId}" style="height: 400px; width: 300px;"></div>
-
-									<script language="javascript" type="text/javascript">
-										
-									if (window.#{imageControl.fakeId}) {
-									window.#{imageControl.fakeId}.destroy();
-											
-									}
-									window.#{imageControl.fakeId} = $.jqplot('#{imageControl.fakeId}', [ #{imageControl.fakeValues} ]);
-				</script>
-								</h:panelGrid>
-							</p:tab>
-							<p:tab title="Godfather Part II">
-								<h:panelGrid columns="2" cellpadding="10">
-									<p:graphicImage value="/images/godfather/godfather1.jpg" />
-									<h:outputText value="The story begins as Don Vi" />
-									<div id="a#{imageControl.fakeId}" style="height: 400px; width: 300px;"></div>
-
-									<script language="javascript" type="text/javascript">
-										
-									if (window.a#{imageControl.fakeId}) {
-									window.a#{imageControl.fakeId}.destroy();
-						
-					
-									}
-					window.a#{imageControl.fakeId} = $.jqplot('a#{imageControl.fakeId}', [[[-5,0]],[[-5,0]], #{imageControl.fakeValues} ]);
-				</script>
-								</h:panelGrid>
-							</p:tab>
-						</p:tabView>
-
-					</p:tab>
-
-					<p:tab>
-						<h:outputText value="#{imageControl.fakeValues}"></h:outputText>
-					</p:tab>
-
-				</p:accordionPanel>
-
-
-				<p:commandButton value="LOL" onclick="loler()">
-				</p:commandButton>
-			</p:panel>
-			<p:poll autoStart="true" interval="3" update="panelici" />
-
-		</h:form>
 		<p:panel>
-
-
-
-
-			<div id="tabs">
-				<ul>
-					<li><a href="#panel1">Nunc tincidunt</a></li>
-					<li><a href="#panel2">Proin dolor</a></li>
-					<li><a href="#panel3">Aenean lacinia</a></li>
-				</ul>
-				<div id="panel1">
-					<p>Proin elit arcu</p>
-				</div>
-				<div id="panel2">
-					<p>Morbi tincidunt</p>
-
-				</div>
-				<div id="panel3">
-					<p>Mauris eleifend est et turpis</p>
-				</div>
-
-
-
-
-			</div>  -->
-
-		<!-- CRUCIAL: fake chart so primefaces can include jqplot library -->
-		<!-- 		<p:lineChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" rendered="false" />
-			<p:barChart style="height: 1px; width: 1px;" value="#{imageControl.fakeChart}" rendered="false" enhancedLegend="true" shadow="true"/>
-
-
-			<h3>JFreeChart on-the-fly</h3>
-			<p:graphicImage value="#{imageControl.chart}" />
-
-			<h3>GraphicText on-the-fly</h3>
-			<p:graphicImage value="#{imageControl.graphicText}" />
+			<h:outputText value="Total quantity traded: #{visualizerBean.wholesaleModel.totalTradedQuantity} MWh"/>
+					
 		</p:panel>
-
-
-
- -->
 
 	</ui:define>
 

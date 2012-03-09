@@ -13,7 +13,7 @@ import org.powertac.common.Timeslot;
 
 /**
  * 
- * WholesaleMarket contains information about the wholesale for one timeslot.
+ * WholesaleMarket contains information about the wholesale market for one timeslot.
  * 
  * @author Jurica Babic
  * 
@@ -21,15 +21,16 @@ import org.powertac.common.Timeslot;
 public class WholesaleMarket {
 
 	private int timeslotSerialNumber;
-	private int relativeTimeslotIndex;
 	private Map<Integer,WholesaleSnapshot> snapshots = new TreeMap<Integer, WholesaleSnapshot>(); 
 	private ClearedTrade lastClearedTrade;
-	private double totalQuantityTradedMWh;
+	private double totalTradedQuantityMWh;
+	private boolean closed;
+	
 
 		
-	public WholesaleMarket(Integer timeslotSerialNumber, int relativeTimeslotIndex) {
+	public WholesaleMarket(Integer timeslotSerialNumber) {
 		this.timeslotSerialNumber = timeslotSerialNumber;
-		this.relativeTimeslotIndex = relativeTimeslotIndex;
+		
 	}
 	
 	public int getTimeslotSerialNumber() {
@@ -49,40 +50,32 @@ public class WholesaleMarket {
 	public Map<Integer, WholesaleSnapshot> getSnapshots() {
 		return snapshots;
 	}
-
-	public void addOrder(Order order, int relativeTimeslotIndex) {
-		if(!snapshots.containsKey(relativeTimeslotIndex)){
-			snapshots.put(relativeTimeslotIndex, new WholesaleSnapshot());
-		}
-		findSnapshot(relativeTimeslotIndex).addOrder(order);
-	}
-
-	public void setClearedTrade(ClearedTrade clearedTrade, int relativeTimeslotIndex) {
-		findSnapshot(relativeTimeslotIndex).setClearedTrade(clearedTrade);
-		lastClearedTrade=clearedTrade;
-		totalQuantityTradedMWh+=clearedTrade.getExecutionMWh();
-	}
-
-	public void setOrderbook(Orderbook orderbook, int relativeTimeslotIndex) {
-		findSnapshot(relativeTimeslotIndex).setOrderbook(orderbook);
-	}
 	
 	public ClearedTrade getLastClearedTrade() {
 		return lastClearedTrade;
 	}
 	
-	public double getTotalQuantityTradedMWh() {
-		return totalQuantityTradedMWh;
+	public double getTotalTradedQuantityMWh() {
+		return totalTradedQuantityMWh;
+	}
+		
+	public boolean isClosed() {
+		return closed;
+	}
+
+	/**
+	 * Wholesale Market should be closed when all of its snapshots have been closed and the current relative index is equal to market's relative index.
+	 */
+	public void close() {
+		finish();
+		closed = true;
+		
+	}
+
+	private void finish() {
+		// TODO 
+		
 	}
 	
-	public int getRelativeTimeslotIndex() {
-		return relativeTimeslotIndex;
-	}
-	
-//	public WholesaleSnapshot getLastClosedWholesaleSnapshot(){
-//		TreeMap<Integer, WholesaleSnapshot> fake = new TreeMap<Integer, WholesaleSnapshot>();
-//		
-//		
-//	}
 
 }

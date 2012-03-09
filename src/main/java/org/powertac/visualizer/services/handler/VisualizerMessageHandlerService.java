@@ -56,6 +56,9 @@ public class VisualizerMessageHandlerService {
 	private VisualizerMessageHandlerHelperService helper;
 	@Autowired
 	private AppearanceListBean appearanceListBean;
+	
+	//relative index = timeslot's serial number - 360; because game actually starts at 360th timeslot number.
+	private static final int timeslotOffset = 360;
 
 	public void handleMessage(Competition competition) {
 
@@ -167,6 +170,8 @@ public class VisualizerMessageHandlerService {
 		} else {
 			log.warn("Timeslot for Weather report object is null!!");
 		}
+		
+		log.info("CLOUD COVER: "+weatherReport.getCloudCover()+" TEMP: "+ weatherReport.getTemperature()+ "W DIR:"+weatherReport.getWindDirection()+"W SPEED:"+weatherReport.getWindSpeed());
 
 	}
 
@@ -238,52 +243,26 @@ public class VisualizerMessageHandlerService {
 				+ order.getMWh() + " Timeslot\n Serial Number: " + order.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(order.getTimeslot().getStartInstant()));
 
-		Timeslot orderTimeslot = order.getTimeslot();
-
+		
+		
+		
+		int relativeTimeslotIndex =  visualizerBean.getRelativeTimeslotIndex();
 		// wholesale model:
-		WholesaleModel model = visualizerBean.getWholesaleModel();
-		model.addOrder(order, visualizerBean.getRelativeTimeslotIndex());
+		WholesaleModel wholesaleModel = visualizerBean.getWholesaleModel();
+		int timeslotSerialNumber = order.getTimeslot().getSerialNumber();
+		//create new wholesale market if it doesn't exists
+		if(!wholesaleModel.getWholesaleMarkets().containsKey(timeslotSerialNumber)){
+			wholesaleModel.getWholesaleMarkets().put(timeslotSerialNumber, new WholesaleMarket(timeslotSerialNumber));
+		}
+		WholesaleMarket wholesaleMarket = wholesaleModel.findWholesaleMarket(timeslotSerialNumber);
+		// same stuff for the snapshot:
+		if(!wholesaleMarket.getSnapshots().containsKey(relativeTimeslotIndex)){
+			wholesaleMarket.getSnapshots().put(relativeTimeslotIndex, new WholesaleSnapshot(order.getTimeslot(),relativeTimeslotIndex));
+		}
+		WholesaleSnapshot snapshot = wholesaleMarket.findSnapshot(relativeTimeslotIndex);
+		snapshot.addOrder(order);
 	}
-
-	public void handleMessage(ClearedTrade clearedTrade) {
-		int dateExecuted = helper.computeRelativeTimeslotIndex(clearedTrade.getDateExecuted());
-		log.info("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index: "
-				+ helper.computeRelativeTimeslotIndex(clearedTrade.getTimeslot().getStartInstant())
-				+ "\nExecutionPrice:" + clearedTrade.getExecutionPrice() + " ExecutionMWh"
-				+ clearedTrade.getExecutionMWh() + " DateExecuted (timeslot index):" + dateExecuted);
-
-		// wholesale model:
-		// orderbook and cleared trade are received one timeslot later than
-		// correspondent orders:
-		int targetRelativeTimeslotIndex = visualizerBean.getRelativeTimeslotIndex() - 1;
-		WholesaleModel model = visualizerBean.getWholesaleModel();
-		model.setClearedTrade(clearedTrade, targetRelativeTimeslotIndex);
-	}
-
-	public void handleMessage(MarketTransaction marketTransaction) {
-		log.info("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh()
-				+ "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime()
-				+ " Timeslot\n Serial Number: " + marketTransaction.getTimeslot().getSerialNumber() + " Index: "
-				+ helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
-
-		// TODO
-
-	}
-
-	public void handleMessage(MarketPosition marketPosition) {
-
-		log.info("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance()
-				+ "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber()
-				+ " Timeslot\n Serial Number: " + marketPosition.getTimeslot().getSerialNumber() + " Index: "
-				+ helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
-		// TODO
-
-	}
-
-	public void handleMessage(SimResume simResume) {
-		// TODO
-
-	}
+	
 
 	public void handleMessage(Orderbook orderbook) {
 
@@ -311,13 +290,83 @@ public class VisualizerMessageHandlerService {
 		// correspondent orders:
 		int targetRelativeTimeslotIndex = visualizerBean.getRelativeTimeslotIndex() - 1;
 		WholesaleModel model = visualizerBean.getWholesaleModel();
-		model.setOrderbook(orderbook, targetRelativeTimeslotIndex);
-
-		log.info(builder.toString());
+		
+		WholesaleMarket market = model.findWholesaleMarket(orderbook.getTimeslot().getSerialNumber());
+		WholesaleSnapshot snapshot = market.findSnapshot(targetRelativeTimeslotIndex);
+		snapshot.setOrderbook(orderbook);
+		//the end for this snapshot if there is null clearing price:
+		if(orderbook.getClearingPrice()==null){
+		snapshot.close();
+		log.info("Snapshot "+snapshot.getTimeslotSerialNumber()+"@"+snapshot.getRelativeTimeslotIndex()+" is closed");
+		//what about market? should be closed when all of its snapshots have been closed and when its timeslot equals the current timeslot
+		int offset = market.getTimeslotSerialNumber() - targetRelativeTimeslotIndex;
+		if(offset==timeslotOffset){
+			market.close();
+			log.info("Market: TS serial num:"+market.getTimeslotSerialNumber()+"Total traded quantity:"+market.getTotalTradedQuantityMWh()+" is closed");
+			
+		}
+		}
+		log.debug(builder.toString());
 
 		// TODO
 
 	}
+
+	public void handleMessage(ClearedTrade clearedTrade) {
+		int dateExecuted = helper.computeRelativeTimeslotIndex(clearedTrade.getDateExecuted());
+		log.info("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index: "
+				+ helper.computeRelativeTimeslotIndex(clearedTrade.getTimeslot().getStartInstant())
+				+ "\nExecutionPrice:" + clearedTrade.getExecutionPrice() + " ExecutionMWh"
+				+ clearedTrade.getExecutionMWh() + " DateExecuted (timeslot index):" + dateExecuted);
+
+		// wholesale model:
+		// orderbook and cleared trade are received one timeslot later than
+		// correspondent orders:
+		int targetRelativeTimeslotIndex = visualizerBean.getRelativeTimeslotIndex() - 1;
+		WholesaleModel model = visualizerBean.getWholesaleModel();
+		
+		WholesaleMarket market = model.findWholesaleMarket(clearedTrade.getTimeslot().getSerialNumber());
+		WholesaleSnapshot snapshot = market.findSnapshot(targetRelativeTimeslotIndex);
+		snapshot.setClearedTrade(clearedTrade);
+		//the end for this snapshot:
+		snapshot.close();
+		log.info("Snapshot "+snapshot.getTimeslotSerialNumber()+"@"+snapshot.getRelativeTimeslotIndex()+" is closed");
+		//what about market? should be closed when all of its snapshots have been closed and when its timeslot equals the current timeslot
+				int offset = market.getTimeslotSerialNumber() - targetRelativeTimeslotIndex;
+				if(offset==timeslotOffset){
+					market.close();
+					log.info("Market: TS serial num:"+market.getTimeslotSerialNumber()+"Total traded quantity:"+market.getTotalTradedQuantityMWh()+" is closed");
+					//PROVJERITI!!!
+				}
+		
+		
+	}
+
+	public void handleMessage(MarketTransaction marketTransaction) {
+		log.info("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh()
+				+ "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime()
+				+ " Timeslot\n Serial Number: " + marketTransaction.getTimeslot().getSerialNumber() + " Index: "
+				+ helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
+
+		// TODO
+
+	}
+
+	public void handleMessage(MarketPosition marketPosition) {
+
+		log.info("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance()
+				+ "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber()
+				+ " Timeslot\n Serial Number: " + marketPosition.getTimeslot().getSerialNumber() + " Index: "
+				+ helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
+		// TODO
+
+	}
+
+	public void handleMessage(SimResume simResume) {
+		// TODO
+
+	}
+
 
 	public void handleMessage(TariffTransaction tariffTransaction) {
 		log.info("Broker: " + tariffTransaction.getBroker() + " Charge: " + tariffTransaction.getCharge()
