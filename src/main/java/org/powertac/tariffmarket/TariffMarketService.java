@@ -145,7 +145,6 @@ public class TariffMarketService
       return null;
     }
 
-
     defaultTariff = new HashMap<PowerType, Long>();
     brokerProxyService.registerBrokerTariffListener(this);
     firstPublication = false;
