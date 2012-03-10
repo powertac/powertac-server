@@ -29,7 +29,6 @@ import org.powertac.common.Competition;
 import org.powertac.common.PluginConfig;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -49,7 +48,7 @@ import org.springframework.stereotype.Service;
 @Service  // allow autowiring
 public class FactoredCustomerService
 extends TimeslotPhaseProcessor
-implements InitializationService, BrokerMessageListener, NewTariffListener
+implements InitializationService, NewTariffListener
 {
   private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
@@ -160,22 +159,6 @@ implements InitializationService, BrokerMessageListener, NewTariffListener
     for (Customer customer : customers) {
       customer.handleNewTimeslot();
     }
-  }
-
-  /**
-   * @Override @code{BrokerMessageListener}
-   */
-  public void receiveMessage(Object msg)
-  {
-    // Implement per-message behavior here. Note that incoming messages
-    // from brokers arrive in a JMS thread, so you need to synchronize
-    // access to shared data structures. See AuctionService for an example.
-
-    // If you need to handle a number of different message types, it may
-    // make sense to use a reflection-based dispatcher. Both
-    // TariffMarketService and AccountingService work this way.
-
-    log.warn("Ignoring received message: " + msg);
   }
 
   String getConfigResource() 
