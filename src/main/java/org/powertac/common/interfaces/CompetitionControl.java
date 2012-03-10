@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2010 the original author or authors.
+ * Copyright 2009-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 package org.powertac.common.interfaces;
 
 import java.util.List;
-
-import org.powertac.common.msg.PauseRelease;
-import org.powertac.common.msg.PauseRequest;
 
 /**
  * This is the core of the Power TAC simulation framework, responsible
@@ -61,11 +58,4 @@ public interface CompetitionControl
    * Waits for broker login, then starts and runs a simulation.
    */
   public void runOnce (boolean bootstrapMode);
-  
-  /**
-   * Processes simulation pause messages
-   */
-  public void receiveMessage (PauseRequest msg);
-  
-  public void receiveMessage (PauseRelease msg);
 }

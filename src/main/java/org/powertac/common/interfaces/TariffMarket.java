@@ -41,31 +41,6 @@ import org.powertac.common.msg.VariableRateUpdate;
  */
 public interface TariffMarket {
 
-  // --------------- Broker API ---------------------
-  /**
-   * Processes incoming {@link TariffSpecification} of a broker, 
-   * turns it into a Tariff instance, and validates it. Returns a TariffStatus 
-   * instance that can be routed back to the originating broker.
-   */
-  public TariffStatus processTariff(TariffSpecification spec);
-
-  /**
-   * Processes incoming {@link TariffUpdateCmd} from a broker that can be used
-   * to revoke a tariff or change its expiration date.
-   */
-  public TariffStatus processTariff(TariffExpire update);
-
-  /**
-   * Processes incoming {@link TariffUpdateCmd} from a broker that can be used
-   * to revoke a tariff or change its expiration date.
-   */
-  public TariffStatus processTariff(TariffRevoke update);
-
-  /**
-   * Processes HourlyCharge updates for variable rates.
-   */
-  public TariffStatus processTariff(VariableRateUpdate update);
-
   // -------------------- Customer API ------------------------
   /**
    * Subscribes a block of Customers from a single Customer model to
