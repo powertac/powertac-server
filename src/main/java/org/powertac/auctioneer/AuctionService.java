@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011, 2012 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -69,7 +68,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuctionService
   extends TimeslotPhaseProcessor
-  implements BrokerMessageListener, InitializationService
+  implements InitializationService
 {
   static private Logger log = Logger.getLogger(AuctionService.class.getName());
 
@@ -135,7 +134,7 @@ public class AuctionService
   {
     incoming.clear();
     serverProps.configureMe(this);
-    brokerProxyService.registerBrokerMarketListener(this);
+    brokerProxyService.registerBrokerMessageListener(this, Order.class);
     super.init();
     serverProps.publishConfiguration(this);
     return "Auctioneer";
@@ -166,15 +165,12 @@ public class AuctionService
    * Receives, validates, and queues an incoming Order message. Processing the incoming
    * marketOrders happens during Phase 2 in each timeslot.
    */
-  @Override
-  public void receiveMessage (Object msg)
+  public void handleMessage (Order msg)
   {
-    if (msg != null && msg instanceof Order) {
-      if (validateOrder((Order)msg)) {
-        // queue incoming message
-        synchronized(incoming) {
-          incoming.add((Order)msg);
-        }
+    if (validateOrder((Order)msg)) {
+      // queue incoming message
+      synchronized(incoming) {
+        incoming.add((Order)msg);
       }
     }
   }

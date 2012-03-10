@@ -173,20 +173,16 @@ public class AuctionServiceTests
   @Test
   public void testInit ()
   {
-    verify(mockProxy).registerBrokerMarketListener(svc);
+    verify(mockProxy).registerBrokerMessageListener(svc, Order.class);
     verify(mockControl).registerTimeslotPhase(svc, 1);
   }
 
   @Test
   public void testReceiveMessage ()
   {
-    // first try a bogus message
-    Object bogus = new Object();
-    svc.receiveMessage(bogus);
-    assertEquals("nothing received", 0, svc.getIncoming().size());
     // try a good one
     Order good = new Order(b1, ts1, 1.0, -22.0);
-    svc.receiveMessage(good);
+    svc.handleMessage(good);
     assertEquals("one order received", 1, svc.getIncoming().size());
   }
 
@@ -207,8 +203,8 @@ public class AuctionServiceTests
   {
     Order sell = new Order(s1, ts1, -1.0, 20.0);
     Order buy = new Order(b1, ts1, 1.0, -22.0);
-    svc.receiveMessage(sell);
-    svc.receiveMessage(buy);
+    svc.handleMessage(sell);
+    svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting called twice", 2, accountingArgs.size());
@@ -244,8 +240,8 @@ public class AuctionServiceTests
   {
     Order sell = new Order(s1, ts1, -1.0, 23.0);
     Order buy = new Order(b1, ts1, 1.0, -22.0);
-    svc.receiveMessage(sell);
-    svc.receiveMessage(buy);
+    svc.handleMessage(sell);
+    svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting not called", 0, accountingArgs.size());
@@ -272,8 +268,8 @@ public class AuctionServiceTests
   {
     Order sell = new Order(s1, ts1, -1.0, 23.0);
     Order buy = new Order(b1, ts2, 1.0, -22.0);
-    svc.receiveMessage(sell);
-    svc.receiveMessage(buy);
+    svc.handleMessage(sell);
+    svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting not called", 0, accountingArgs.size());
@@ -309,9 +305,9 @@ public class AuctionServiceTests
     Order sell = new Order(s1, ts1, -1.0, 20.0);
     Order buy1 = new Order(b1, ts1, 0.6, -21.0);
     Order buy2 = new Order(b2, ts1, 0.6, -22.0);
-    svc.receiveMessage(sell);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
+    svc.handleMessage(sell);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
     assertEquals("three orders received", 3, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 4 calls", 4, accountingArgs.size());
@@ -369,11 +365,11 @@ public class AuctionServiceTests
     Order sell3 = new Order(s2, ts2, -1.0, 21.5);
     Order buy1 = new Order(b1, ts2, 1.4, -21.0);
     Order buy2 = new Order(b2, ts2, 0.6, -22.0);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(sell2);
-    svc.receiveMessage(sell3);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(sell3);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
     assertEquals("five orders received", 5, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 6 calls", 6, accountingArgs.size());
@@ -447,10 +443,10 @@ public class AuctionServiceTests
     Order sell2 = new Order(s2, ts2, -1.0, null);
     Order buy1 = new Order(b1, ts2, 1.4, -21.0);
     Order buy2 = new Order(b2, ts2, 0.6, -22.0);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(sell2);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
     assertEquals("four orders received", 4, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 6 calls", 6, accountingArgs.size());
@@ -474,10 +470,10 @@ public class AuctionServiceTests
     Order sell2 = new Order(s2, ts2, -1.0, 20.0);
     Order buy1 = new Order(b1, ts2, 1.4, -21.0);
     Order buy2 = new Order(b2, ts2, 0.6, null);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(sell2);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
     assertEquals("four orders received", 4, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 6 calls", 6, accountingArgs.size());
@@ -505,9 +501,9 @@ public class AuctionServiceTests
     Order sell1 = new Order(s1, ts2, -0.9, 18.0);
     Order sell2 = new Order(s2, ts2, -1.0, 20.0);
     Order buy1 = new Order(b1, ts2, 1.4, null);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(sell2);
-    svc.receiveMessage(buy1);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(buy1);
     assertEquals("three orders received", 3, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 4 calls", 4, accountingArgs.size());
@@ -527,9 +523,9 @@ public class AuctionServiceTests
     Order sell1 = new Order(s1, ts2, -1.0, null);
     Order buy1 = new Order(b1, ts2, 1.4, -21.0);
     Order buy2 = new Order(b2, ts2, 0.6, -22.0);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
+    svc.handleMessage(sell1);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
     assertEquals("three orders received", 3, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 4 calls", 4, accountingArgs.size());
@@ -548,8 +544,8 @@ public class AuctionServiceTests
   {
     Order sell1 = new Order(s1, ts2, -1.0, null);
     Order buy1 = new Order(b1, ts2, 1.4, null);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(buy1);
+    svc.handleMessage(sell1);
+    svc.handleMessage(buy1);
     assertEquals("two orders received", 2, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 2 calls", 2, accountingArgs.size());
@@ -573,14 +569,14 @@ public class AuctionServiceTests
     Order buy3 = new Order(b2, ts2, 8.728125, null);
     Order buy4 = new Order(b2, ts2, 0.0075, -37.0);
     Order buy5 = new Order(b2, ts2, 7.875, -35.0);
-    svc.receiveMessage(sell1);
-    svc.receiveMessage(sell2);
-    svc.receiveMessage(sell3);
-    svc.receiveMessage(buy1);
-    svc.receiveMessage(buy2);
-    svc.receiveMessage(buy3);
-    svc.receiveMessage(buy4);
-    svc.receiveMessage(buy5);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(sell3);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy2);
+    svc.handleMessage(buy3);
+    svc.handleMessage(buy4);
+    svc.handleMessage(buy5);
     assertEquals("eight orders received", 8, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 14 calls", 14, accountingArgs.size());
