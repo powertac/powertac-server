@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2012 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.powertac.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -27,7 +28,6 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
@@ -44,7 +44,6 @@ import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -78,7 +77,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CompetitionControlService
-  implements CompetitionControl, BrokerMessageListener//, ApplicationContextAware
+  implements CompetitionControl
 {
   static private Logger log = Logger.getLogger(CompetitionControlService.class);
 
@@ -144,6 +143,7 @@ public class CompetitionControlService
   /**
    * Initializes the service in preparation for a new simulation
    */
+  @SuppressWarnings("unchecked")
   public void init ()
   {
     phaseRegistrations = null;
@@ -158,7 +158,12 @@ public class CompetitionControlService
     jmsManagementService.initializeBrokersQueues(authorizedBrokerList.toArray(brokerArray));
     
     // broker message registration for clock-control messages
-    brokerProxyService.registerSimListener(this);
+    //brokerProxyService.registerSimListener(this);
+    for (Class<?> messageType: Arrays.asList(BrokerAuthentication.class,
+                                             PauseRequest.class,
+                                             PauseRelease.class)) {
+      brokerProxyService.registerBrokerMessageListener(this, messageType);
+    }
   }
   
   /**
@@ -193,21 +198,6 @@ public class CompetitionControlService
   {
     bootstrapDataset = dataset;
   }
-  
-//  /**
-//   * Sets the number of timeslots to discard at the beginning of a bootstrap
-//   * run. Length of the sim will be the bootstrap length plus this length.
-//   * Default value is 24.
-//   */
-//  public void setBootstrapDiscardedTimeslots (int count)
-//  {
-//    bootstrapDiscardedTimeslots = count;
-//  }
-//  
-//  int getBootstrapDiscardedTimeslots ()
-//  {
-//    return bootstrapDiscardedTimeslots;
-//  }
   
   /**
    * Runs a simulation that is already set up. This is intended to be called
@@ -697,8 +687,7 @@ public class CompetitionControlService
    * cycle has finished, or immediately if no simulation cycle is currently
    * in progress.
    */
-  @Override
-  public void receiveMessage (PauseRequest msg)
+  public void handleMessage (PauseRequest msg)
   {
     if (pauseRequester != null) {
       log.info("Pause request by " + msg.getBroker().getUsername() + 
@@ -714,8 +703,7 @@ public class CompetitionControlService
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
    */
-  @Override
-  public void receiveMessage (PauseRelease msg)
+  public void handleMessage (PauseRelease msg)
   {
     if (pauseRequester == null) {
       log.info("Release request by " + msg.getBroker().getUsername() + 
@@ -736,7 +724,7 @@ public class CompetitionControlService
    * Authenticate Broker.
    * TODO: add auth-token processing
    */
-  public void receiveMessage(BrokerAuthentication msg) {
+  public void handleMessage(BrokerAuthentication msg) {
     log.info("receiveMessage(BrokerAuthentication) - start");
     String username = msg.getUsername();
     loginBroker(username);
@@ -799,23 +787,6 @@ public class CompetitionControlService
       // simulation is complete
       log.info("Stop simulation");
       clock.stop();
-    }
-  }
-
-  /* (non-Javadoc)
-   * @see org.powertac.common.interfaces.BrokerMessageListener#receiveMessage(java.lang.Object)
-   */
-  @Override
-  public void receiveMessage(Object msg)
-  {
-    if (msg instanceof PauseRelease) {
-      receiveMessage((PauseRelease)msg);
-    } else if (msg instanceof PauseRequest) {
-      receiveMessage((PauseRequest)msg);
-    } else if (msg instanceof BrokerAuthentication) {
-      receiveMessage((BrokerAuthentication)msg);
-    } else {
-      log.error("receiveMessage - unexpected message:" + msg);
     }
   }
 }

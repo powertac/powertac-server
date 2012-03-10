@@ -15,7 +15,6 @@ import javax.jms.TextMessage;
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.common.repo.BrokerRepo;
@@ -40,9 +39,6 @@ public class BrokerProxyService implements BrokerProxy
 
   @Autowired
   private MessageRouter router;
-
-  @Autowired
-  private MessageListenerRegistrar registrar;
   
   @Autowired
   private VisualizerProxy visualizerProxyService;
@@ -186,43 +182,10 @@ public class BrokerProxyService implements BrokerProxy
     }
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.powertac.common.interfaces.BrokerProxy#registerBrokerMarketListener
-   * (org.powertac.common.interfaces.BrokerMessageListener)
-   */
   @Override
-  public void registerBrokerMarketListener (BrokerMessageListener listener)
+  public void registerBrokerMessageListener (Object listener, Class<?> msgType)
   {
-    registrar.registerBrokerMarketListener(listener);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.powertac.common.interfaces.BrokerProxy#registerBrokerTariffListener
-   * (org.powertac.common.interfaces.BrokerMessageListener)
-   */
-  @Override
-  public void registerBrokerTariffListener (BrokerMessageListener listener)
-  {
-    registrar.registerBrokerTariffListener(listener);
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see
-   * org.powertac.common.interfaces.BrokerProxy#registerSimListener(org.powertac
-   * .common.interfaces.BrokerMessageListener)
-   */
-  @Override
-  public void registerSimListener (BrokerMessageListener listener)
-  {
-    registrar.registerSimListener(listener);
+    router.registerBrokerMessageListener(listener, msgType);
   }
 
   /*

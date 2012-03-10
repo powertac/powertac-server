@@ -15,45 +15,67 @@
  */
 package org.powertac.server;
 
+import static org.powertac.util.MessageDispatcher.dispatch;
+
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
-import org.powertac.common.HourlyCharge;
-import org.powertac.common.Rate;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.interfaces.BrokerMessageListener;
+import org.powertac.common.Competition;
+import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.msg.BrokerAuthentication;
-import org.powertac.common.msg.PauseRelease;
-import org.powertac.common.msg.PauseRequest;
-import org.powertac.common.msg.TariffExpire;
-import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffUpdate;
-import org.powertac.common.msg.VariableRateUpdate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MessageRouter
+public class MessageRouter implements InitializationService
 {
   static private Logger log = Logger.getLogger(MessageRouter.class);
 
-  @Autowired
-  private MessageListenerRegistrar registrar;
+  // Routing data
+  private HashMap<Class<?>, Set<Object>> registrations;
+
+  /**
+   * returns the registrations for the given message
+   */
+  public Set<Object> getRegistrations(Object message)
+  {
+    return registrations.get(message.getClass());
+  }
   
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  Set<?> tariffMessageTypes = new HashSet<Class>(Arrays.asList(TariffSpecification.class,
-      Rate.class, HourlyCharge.class, TariffUpdate.class, TariffExpire.class,
-      TariffRevoke.class, VariableRateUpdate.class));
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  Set<?> simMessageTypes = new HashSet<Class>(Arrays.asList(PauseRequest.class, 
-      PauseRelease.class, BrokerAuthentication.class));
+  /* (non-Javadoc)
+   * @see org.powertac.common.interfaces.BrokerProxy#registerBrokerMarketListener(org.powertac.common.interfaces.BrokerMessageListener)
+   */
+  public void registerBrokerMessageListener(Object listener, Class<?> clazz) {
+    Set<Object> targetSet= registrations.get(clazz);
+    if (null == targetSet) {
+      targetSet = new HashSet<Object>();
+      registrations.put(clazz, targetSet);
+    }
+    targetSet.add(listener);
+  }
+
+  /**
+   * Initializes the message listener registrations at the pre-game phase,
+   * once per game.
+   */
+  @Override
+  public void setDefaults ()
+  {
+    // initialize the registrations
+    registrations = new HashMap<Class<?>, Set<Object>>();
+  }
+
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
+  {
+    // nothing to see here folks, please move on.
+    return null;
+  }
 
   public boolean route(Object message) {
     boolean routed = false;
@@ -79,24 +101,18 @@ public class MessageRouter
     }
     if (byPassed || (broker != null && broker.isEnabled())) {     
       log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + username);
-      routed = true;
-      if (tariffMessageTypes.contains(message.getClass())) {
-        for (BrokerMessageListener tariffMessageListener : registrar.getTariffRegistrations()) {
-          tariffMessageListener.receiveMessage(message);
+      Set<Object> targets = registrations.get(message);
+      if (targets == null) {
+        log.warn("no targets for message of type " + message.getClass().getSimpleName());
+      }
+      else {
+        for (Object target: targets) {
+          dispatch(target, "handleMessage", message);
         }
-      } else if (simMessageTypes.contains(message.getClass())) {
-        for (BrokerMessageListener simMessageListener : registrar.getSimRegistrations()) {
-          simMessageListener.receiveMessage(message);
-        }
-      } else {
-        for (BrokerMessageListener marketMessageListener : registrar.getMarketRegistrations()) {
-          marketMessageListener.receiveMessage(message);
-        }
-      }   
+        routed = true;
+      }
     }
-
     log.debug("route(Object) - routed:" + routed);
-    
     return routed;
   }
 }
