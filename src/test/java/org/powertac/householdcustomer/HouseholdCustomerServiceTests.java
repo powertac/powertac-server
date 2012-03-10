@@ -461,8 +461,8 @@ public class HouseholdCustomerServiceTests
     assertNotNull("third tariff found", tariff3);
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    TariffStatus st = new TariffStatus(broker1, tariff2.getId(), tariff2.getId(), TariffStatus.Status.success);
-    when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
+    //TariffStatus st = new TariffStatus(broker1, tariff2.getId(), tariff2.getId(), TariffStatus.Status.success);
+    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
 
     for (Village customer : householdCustomerService.getVillageList()) {
 
@@ -488,10 +488,10 @@ public class HouseholdCustomerServiceTests
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
-    TariffStatus status = mockTariffMarket.processTariff(tex);
+    //TariffStatus status = mockTariffMarket.processTariff(tex);
     tariff2.setState(Tariff.State.KILLED);
-    assertNotNull("non-null status", status);
-    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    //assertNotNull("non-null status", status);
+    //assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
@@ -500,13 +500,13 @@ public class HouseholdCustomerServiceTests
     }
 
     TariffStatus st2 = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
-    when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st2);
+    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st2);
 
     TariffRevoke tex2 = new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
-    TariffStatus status2 = mockTariffMarket.processTariff(tex2);
+    //TariffStatus status2 = mockTariffMarket.processTariff(tex2);
     tariff3.setState(Tariff.State.KILLED);
-    assertNotNull("non-null status", status2);
-    assertEquals("success", TariffStatus.Status.success, status2.getStatus());
+    //assertNotNull("non-null status", status2);
+    //assertEquals("success", TariffStatus.Status.success, status2.getStatus());
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
@@ -630,15 +630,15 @@ public class HouseholdCustomerServiceTests
     // Test the function with different inputs, in order to get the same result.
     householdCustomerService.publishNewTariffs(tclist);
 
-    TariffStatus st = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
-    when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
+    //TariffStatus st = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
+    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
-    TariffStatus status = mockTariffMarket.processTariff(tex);
+    //TariffStatus status = mockTariffMarket.processTariff(tex);
     tariff3.setState(Tariff.State.KILLED);
-    assertNotNull("non-null status", status);
-    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    //assertNotNull("non-null status", status);
+    //assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));

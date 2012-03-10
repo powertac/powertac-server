@@ -30,7 +30,6 @@ import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.BrokerMessageListener;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -52,7 +51,9 @@ import org.springframework.stereotype.Service;
  * @version 1.5, Date: 2.25.12
  */
 @Service
-public class HouseholdCustomerService extends TimeslotPhaseProcessor implements BrokerMessageListener, NewTariffListener, InitializationService
+public class HouseholdCustomerService
+extends TimeslotPhaseProcessor
+implements NewTariffListener, InitializationService
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -423,9 +424,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     }
   }
 
-  @Override
-  public void receiveMessage (Object msg)
-  {
+  //@Override
+  //public void receiveMessage (Object msg)
+  //{
     // TODO Implement per-message behavior. Note that incoming messages
     // from brokers arrive in a JMS thread, so you need to synchronize
     // access to shared data structures. See AuctionService for an example.
@@ -433,7 +434,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     // If you need to handle a number of different message types, it may make
     // make sense to use a reflection-based dispatcher. Both
     // TariffMarketService and AccountingService work this way.
-  }
+  //}
 
   @Override
   public void setDefaults ()
