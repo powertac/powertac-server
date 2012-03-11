@@ -11,6 +11,8 @@
 	<ui:define name="headIncludes">
 
 		<script type="text/javascript">
+		var beforeClearingWholesaleGraph;
+		var afterClearingWholesaleGraph;
 			
 		</script>
 
@@ -18,69 +20,138 @@
 
 	<ui:define name="content">
 
-		<p:panel>
-			<h:form id="form">
-			
-				
-				 <p:outputPanel id="documentPanel">
-						<h:panelGrid columns="2" cellpadding="5"
-							rendered="#{not empty wholesaleBean.selectedNode}">
-							<h:outputText id="name"
-								value="#{wholesaleBean.selectedNode.data.name}"
-								style="font-weight:bold" />
+		<p:layout fullPage="false" style="width:800px;height:550px" stateful="true">
+			<p:layoutUnit position="west" size="500" collapsible="true"
+				header="LOL" styleClass="custom">
+				<h:form id="wholesaleTableForm">
 
-							<h:outputText id="type"
-								value="#{wholesaleBean.selectedNode.data.type}"
-								style="font-weight:bold" />
+					<p:dataTable var="market" value="#{wholesaleBean.markets}"
+						paginator="true" rows="15">
 
-							<h:outputText id="ttq"
-								value="#{wholesaleBean.selectedNode.data.totalTradedQuantity}"
-								style="font-weight:bold" />
-						</h:panelGrid> 
+						<f:facet name="header">  
+          				   Expand rows to see detailed information  
+     			   </f:facet>
+
+						<p:column style="width:20px">
+							<p:rowToggler />
+						</p:column>
+
+						<p:column style="width:100px" headerText="Name">
+							<h:outputText value="#{market.name}" />
+						</p:column>
+
+						<p:column style="width:80px" headerText="TTQ (MWh)">
+							<h:outputText value="#{market.totalTradedQuantityMWh}" />
+						</p:column>
+
+						<p:rowExpansion>
+
+							<p:dataTable var="snapshot" value="#{market.snapshots}"
+								selectionMode="single"
+								selection="#{wholesaleBean.selectedSnapshot}"
+								rowKey="#{snapshot.timeslotSerialNumberCreated}">
+								<p:ajax event="rowSelect" update=":wholesaleGraphsForm" />
+
+								<p:column style="width:250px">
+									<h:outputText value="#{snapshot.name}" />
+								</p:column>
+
+								<p:column style="width:250px">
+									<h:outputText value="#{snapshot.totalTradedQuantity}" />
+								</p:column>
+
+							</p:dataTable>
+						</p:rowExpansion>
+						<f:facet name="footer">
+						Total traded quantity: #{wholesaleBean.totalTradedQuantityMWh} MWh
+						</f:facet>
+					</p:dataTable>
+
+				</h:form>
+
+			</p:layoutUnit>
+
+			<p:layoutUnit position="center" id="wholesaleCenterUnit">
+				<h:form id="wholesaleGraphsForm">
+
+					<!-- Before clearing graph -->
+					<div id="beforeClearingWholesaleGraph"
+						style="height: 300px; width: 600px;"></div>
+					<script type="text/javascript">
+							if (window.beforeClearingWholesaleGraph != null) {
+								window.beforeClearingWholesaleGraph.destroy();
+							}
+							window.beforeClearingWholesaleGraph=$.jqplot('beforeClearingWholesaleGraph',  #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.graphDataBeforeClearing}, 
+									{
+									title: 'Before clearing graph', 
+									seriesColors: #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.seriesColorsBeforeClearing},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+									            label: "Quantity/MWh",
+									            pad: 0,
+									            max: 150,
+									            min: 0
+									            },
+									    yaxis: {
+									            label: "Price[&euro;]/MWh"},
+									            max: 120,
+									            min: 0
+									            },
+									   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
+									}
+								}); 	
 						
-					</p:outputPanel>
+								</script>
+
+					<!-- After clearing graph -->
+					<div id="afterClearingWholesaleGraph"
+						style="height: 300px; width: 600px;"></div>
+					<script type="text/javascript">
+							if (window.afterClearingWholesaleGraph != null) {
+								window.afterClearingWholesaleGraph.destroy();
+							}
+							window.afterClearingWholesaleGraph=$.jqplot('afterClearingWholesaleGraph',  #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.graphDataAfterClearing}, 
+									{
+									title: 'After clearing graph', 
+									seriesColors: #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.seriesColorsAfterClearing},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+								            label: "Quantity/MWh",
+								            pad: 0,
+								            max: 150,
+								            min: 0
+								            },
+								    yaxis: {
+								            label: "Price[&euro;]/MWh"},
+								            max: 120,
+								            min: 0
+								            },
+								   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
+									}
+								}); 	
+						
+								</script>
+
 			
-				<p:treeTable value="#{visualizerBean.wholesaleModel.root}"
-					var="document" selection="#{wholesaleBean.selectedNode}"
-					selectionMode="single">
+				</h:form>
 
-					<f:facet name="header">  
-            Wholesale  
-        </f:facet>
+			</p:layoutUnit>
 
-					<p:column style="width:150px">
-						<f:facet name="header">  
-                Name  
-            </f:facet>
-						<h:outputText value="#{document.name}" />
-					</p:column>
+		</p:layout>
 
-					<p:column style="width:100px">
-						<f:facet name="header">  
-                Type  
-            </f:facet>
-						<h:outputText value="#{document.type}" />
-					</p:column>
 
-					<p:column style="width:100px">
-						<f:facet name="header">  
-                Total traded quantity (MWh):  
-            </f:facet>
-						<h:outputText value="#{document.totalTradedQuantity}" />
-					</p:column>
-
-					<f:facet name="footer">
-						<p:commandButton value="View" icon="ui-icon-search"
-							update=":form:documentPanel" />
-					</f:facet>
-				</p:treeTable>
-				
-					
-				
-			
-
-			</h:form>
-		</p:panel>
 
 	</ui:define>
 

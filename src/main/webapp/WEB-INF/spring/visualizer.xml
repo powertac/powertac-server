@@ -24,7 +24,7 @@
 		<property name="moneyPath" value="/app/resources/resources/images/money_icon.png"/>
 	</bean>
 		
-	<bean id="visualizerBean" class="org.powertac.visualizer.beans.VisualizerBean" />
+	<bean id="visualizerBean" class="org.powertac.visualizer.beans.VisualizerBean"/>
 	
 	<bean id="customerBackingBean" class="org.powertac.visualizer.beans.backing.CustomerBackingBean" scope="request" />
 	<bean id="competitionInfoDashboard" class="org.powertac.visualizer.beans.backing.CompetitionInfoDashboard" scope="request" />
@@ -64,6 +64,8 @@
 	
 	<!-- ......USER SESSION BEANS:..................... -->
   	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
-	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="request"></bean>
+	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="request">
+		<constructor-arg name="visualizerBean" ref="visualizerBean"/>
+	</bean>
 </beans>
 	

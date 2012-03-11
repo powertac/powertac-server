@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.Iterator;
 import java.util.List;
 
+import org.joda.time.field.OffsetDateTimeField;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.ClearedTrade;
@@ -26,10 +27,10 @@ public class WholesaleMarketTest {
 		
 		for(int i=0; i<5; i++){
 			timeslot = new Timeslot(360+i, null, null);
-			snapshot = new WholesaleSnapshot(timeslot, 0);
+			snapshot = new WholesaleSnapshot(timeslot, 0,360+i);
 			snapshot.setClearedTrade(new ClearedTrade(timeslot,10,i,null));
 			snapshot.close();
-			market.getSnapshots().put(i, snapshot);
+			market.getSnapshotsMap().put(i, snapshot);
 		}
 		
 	}
@@ -38,14 +39,7 @@ public class WholesaleMarketTest {
 		
 		market.close();
 		
-		
-		List<TreeNode> nodes = market.getMarketNode().getChildren();
-		
-		for (Iterator iterator = nodes.iterator(); iterator.hasNext();) {
-			TreeNode treeNode = (TreeNode) iterator.next();
-			System.out.println("Treenode: "+treeNode.getData());
-		}
-		
+				
 		System.out.println(market.toString());
 		
 	}

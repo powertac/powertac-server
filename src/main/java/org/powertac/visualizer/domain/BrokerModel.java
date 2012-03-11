@@ -1,32 +1,19 @@
 package org.powertac.visualizer.domain;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
-import org.powertac.common.CashPosition;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
-import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.Helper;
 import org.primefaces.json.JSONArray;
-import org.primefaces.json.JSONException;
-import org.primefaces.model.chart.BubbleChartModel;
-import org.primefaces.model.chart.BubbleChartSeries;
-import org.primefaces.model.chart.CartesianChartModel;
-import org.primefaces.model.chart.ChartSeries;
-import org.primefaces.model.chart.LineChartSeries;
-import org.primefaces.model.chart.MeterGaugeChartModel;
 
 public class BrokerModel implements VisualBroker, DisplayableBroker {
 
@@ -111,7 +98,7 @@ public class BrokerModel implements VisualBroker, DisplayableBroker {
 	}
 
 	public void updateCashBalance(double balance) {
-		this.cashBalance = new BigDecimal(balance).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+		this.cashBalance = Helper.roundNumberTwoDecimal(balance);
 	}
 
 	/**
@@ -121,12 +108,11 @@ public class BrokerModel implements VisualBroker, DisplayableBroker {
 	 * @param balance
 	 */
 	public void updateEnergyBalance(double balance) {
-		this.energyBalance = new BigDecimal(balance).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+		this.energyBalance = Helper.roundNumberTwoDecimal(balance);
 	}
 
 	public void addBalancingTransaction(BalancingTransaction balancingTransaction) {
-		this.energyBalance = new BigDecimal(balancingTransaction.getKWh()).setScale(2, BigDecimal.ROUND_HALF_UP)
-				.doubleValue();
+		this.energyBalance = Helper.roundNumberTwoDecimal(balancingTransaction.getKWh());
 		balancingTransactions.add(balancingTransaction);
 		currentDayState.addBalancingTransaction(balancingTransaction);
 	}

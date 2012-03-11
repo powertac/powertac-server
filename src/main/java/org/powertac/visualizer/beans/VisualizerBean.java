@@ -43,7 +43,7 @@ public class VisualizerBean implements Serializable {
 	private DayOverview dayOverview;
 	
 	//wholesale:
-	private WholesaleModel wholesaleModel;
+	private WholesaleModel wholesaleModel; 
 	private WholesaleSnapshot currentWholesaleSnapshot;
 		
 	private Competition competition;

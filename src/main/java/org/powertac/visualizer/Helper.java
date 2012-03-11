@@ -54,6 +54,10 @@ public class Helper {
 	
 	}
 	
+	public static double roundNumberTwoDecimal(double number){
+		return new BigDecimal(number).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+	
 	
 
 		

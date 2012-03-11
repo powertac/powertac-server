@@ -10,7 +10,7 @@
 			<p:panel styleClass="noBorderPanel" >
 			
 			
-			<p:dataTable value="#{brokersClone}" var="broker" type="ordered">
+			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" sortBy="${broker.cashBalance}" sortOrder="descending">
 				<f:facet name="header">  
             			Live info:  
         	</f:facet>
@@ -27,7 +27,7 @@
 					<h:outputText value="#{broker.cashBalance} &euro;" style="font-weight: bold;" />
 				</p:column>
 
-				<p:column sortBy="${broker.energyBalance}" headerText="Energy balance">
+				<p:column sortBy="${broker.energyBalance}" headerText="Energy balance" >
 					<h:outputText value="#{broker.energyBalance} kWh" style="font-weight: bold" />
 				</p:column>
 				

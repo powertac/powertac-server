@@ -14,7 +14,7 @@ public class WholesaleSnapshotTest {
 
 	@Before
 	public void setUp() throws Exception {
-		wholesaleSnapshot = new WholesaleSnapshot(timeslot, 0);
+		wholesaleSnapshot = new WholesaleSnapshot(timeslot, 0,360 + 0);
 		
 	
 	}

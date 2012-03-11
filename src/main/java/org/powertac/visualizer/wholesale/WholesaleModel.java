@@ -1,33 +1,35 @@
 package org.powertac.visualizer.wholesale;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
+import org.powertac.visualizer.Helper;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 
-public class WholesaleModel implements Serializable, WholesaleTreeView {
+public class WholesaleModel implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
 	private Map<Integer, WholesaleMarket> wholesaleMarkets;
-	
-	private TreeNode root;
-	
-	
-			
+				
 	private double totalTradedQuantityMWh;
 
 		
 	public WholesaleModel() {
-		wholesaleMarkets = new TreeMap<Integer, WholesaleMarket>();
-		root = new DefaultTreeNode(this, null); 
+		wholesaleMarkets = new ConcurrentSkipListMap<Integer, WholesaleMarket>();
 		
 	}
 	
@@ -45,12 +47,9 @@ public class WholesaleModel implements Serializable, WholesaleTreeView {
 	
 	public void addTradedQuantityMWh(double quantity){
 		totalTradedQuantityMWh+=quantity;
+		totalTradedQuantityMWh = Helper.roundNumberTwoDecimal(totalTradedQuantityMWh);
 	}
 	
-	public TreeNode getRoot() {
-		return root;
-	}
-
 	public String getName() {
 		return "Root";
 	}
@@ -62,5 +61,7 @@ public class WholesaleModel implements Serializable, WholesaleTreeView {
 	public String getTotalTradedQuantity() {
 		return ""+totalTradedQuantityMWh;
 	}	
+	
+	
 	
 }
