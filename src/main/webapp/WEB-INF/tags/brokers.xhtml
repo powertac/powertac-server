@@ -117,9 +117,9 @@
 					</script>
 						</p:panel>
 
-						<!--....................................................... DAILY AVG VALUES .................................... -->
+						<!--....................................................... DAILY AVG VALUES ........Cash line chart for a specific broker (24 timeslot average value)............................ 
 						<p:panel rendered="#{selectedBrokerChartsBean.dailyAVGValues}">
-							<!-- Cash line chart for a specific broker (24 timeslot average value)-->
+							
 							<div id="cashLineChartDailyAVG#{broker.id}"
 								style="width: 700px; height: 250px"></div>
 							<script type="text/javascript">
@@ -144,9 +144,9 @@
 						series:[#{broker.seriesOptions}],
 						
 						}); 
-					</script>
+					</script> 
 
-						</p:panel>
+						</p:panel>-->
 
 						<p:panel rendered="#{selectedBrokerChartsBean.currentDayValues}">
 							<!-- Cash line chart for a specific broker (Current day)-->
@@ -208,9 +208,9 @@
 				</script>
 						</p:panel>
 
-						<!--....................................................... DAILY VALUES .................................... -->
+						<!--....................................................... DAILY VALUES ........  Energy chart for a specific broker (end of day values) ............................ 
 						<p:panel rendered="#{selectedBrokerChartsBean.dailyValues}">
-							<!-- Energy chart for a specific broker (end of day values) -->
+							
 							<div id="energyLineChartDaily#{broker.id}"
 								style="width: 700px; height: 250px"></div>
 							<script type="text/javascript">
@@ -235,7 +235,7 @@
 						
 						}); 
 				</script>
-						</p:panel>
+						</p:panel>-->
 						<!--....................................................... DAILY AVG VALUES .................................... -->
 						<p:panel rendered="#{selectedBrokerChartsBean.dailyAVGValues}">
 							<!-- Energy chart for a specific broker (24 timeslot average value) -->
