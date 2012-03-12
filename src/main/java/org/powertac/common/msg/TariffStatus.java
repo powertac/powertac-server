@@ -16,10 +16,9 @@
 package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
+import org.powertac.common.TariffMessage;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.BrokerConverter;
-import org.powertac.common.IdGenerator;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -29,16 +28,10 @@ import com.thoughtworks.xstream.annotations.*;
  */
 @Domain
 @XStreamAlias("tariff-status")
-public class TariffStatus //implements Serializable
+public class TariffStatus extends TariffMessage
 {
   public enum Status {success, noSuchTariff, noSuchUpdate, illegalOperation,
     invalidTariff, invalidUpdate}
-
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
 
   @XStreamAsAttribute
   private long tariffId;
@@ -54,8 +47,7 @@ public class TariffStatus //implements Serializable
   public TariffStatus (Broker broker, long tariffId, 
                        long updateId, Status status)
   {
-    super();
-    this.broker = broker;
+    super(broker);
     this.tariffId = tariffId;
     this.updateId = updateId;
     this.status = status;
@@ -71,16 +63,6 @@ public class TariffStatus //implements Serializable
   {
     this.message = message;
     return this;
-  }
-
-  public long getId ()
-  {
-    return id;
-  }
-
-  public Broker getBroker ()
-  {
-    return broker;
   }
 
   public long getTariffId ()
