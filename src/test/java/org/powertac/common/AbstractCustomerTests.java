@@ -272,8 +272,8 @@ public class AbstractCustomerTests
 
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    TariffStatus st = new TariffStatus(broker1, tariff2.getId(), tariff2.getId(), TariffStatus.Status.success);
-    when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
+    //TariffStatus st = new TariffStatus(broker1, tariff2.getId(), tariff2.getId(), TariffStatus.Status.success);
+    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
     TariffSubscription tsd = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(defaultTariff, customer.getCustomerInfo());
 
     assertNotNull("not null", tsd);
@@ -290,10 +290,10 @@ public class AbstractCustomerTests
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc2.broker, tsc2);
-    TariffStatus status = mockTariffMarket.processTariff(tex);
+    //TariffStatus status = mockTariffMarket.processTariff(tex);
     tariff2.setState(Tariff.State.KILLED);
-    assertNotNull("non-null status", status);
-    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    //assertNotNull("non-null status", status);
+    //assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tariff2.isRevoked());
 
   }

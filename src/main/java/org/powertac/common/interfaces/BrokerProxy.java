@@ -58,17 +58,7 @@ public interface BrokerProxy {
   /**
    * Sets up a dispatch listener for market messages
    */
-  public void registerBrokerMarketListener (BrokerMessageListener listener);
-
-  /**
-   * Sets up a dispatch listener for tariff messages
-   */
-  public void registerBrokerTariffListener (BrokerMessageListener listener);
-
-  /**
-   * Sets up a dispatch listener for simulator messages
-   */
-  public void registerSimListener (BrokerMessageListener listener);
+  public void registerBrokerMessageListener (Object listener, Class<?> msgType);
 
   /**
    * Holds up message transmission when true
