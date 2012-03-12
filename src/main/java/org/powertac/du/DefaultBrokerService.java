@@ -47,6 +47,7 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -493,10 +494,7 @@ public class DefaultBrokerService
 
   /**
    * CashPosition is the last message sent by Accounting.
-   * This is normally when any broker would submit its bids, so that's when
-   * the DefaultBroker will do it. Any earlier, and we will find ourselves
-   * unable to trade in the furthest slot, because it will not yet have 
-   * been enabled. In bootstrapMode, this is when we collect customer
+   * In bootstrapMode, this is when we collect customer
    * usage data.
    */
   public void handleMessage (CashPosition cp)
@@ -507,6 +505,17 @@ public class DefaultBrokerService
       // purchased power in the current timeslot.
       recordDeliveredPrice();
     }
+  }
+  
+  /**
+   * TimeslotComplete is the last message sent in each timeslot.
+   * This is normally when any broker would submit its bids, so that's when
+   * the DefaultBroker will do it. Any earlier, and we will find ourselves
+   * unable to trade in the furthest slot, because it will not yet have 
+   * been enabled. 
+   */
+  public void handleMessage (TimeslotComplete tc)
+  {
     this.activate();
   }
 

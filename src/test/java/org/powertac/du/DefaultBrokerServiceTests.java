@@ -53,6 +53,7 @@ import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -103,6 +104,7 @@ public class DefaultBrokerServiceTests
   private Configurator config;
   private Instant start;
 
+  @SuppressWarnings("rawtypes")
   @Before
   public void setUp () throws Exception
   {
@@ -218,6 +220,7 @@ public class DefaultBrokerServiceTests
   {
     final ArrayList<TariffSpecification> specs = new ArrayList<TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         specs.add((TariffSpecification)args[0]);
@@ -264,6 +267,7 @@ public class DefaultBrokerServiceTests
     final HashMap<PowerType, TariffSpecification> specs = 
       new HashMap<PowerType, TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         TariffSpecification spec =(TariffSpecification)args[0];
@@ -297,6 +301,7 @@ public class DefaultBrokerServiceTests
     final HashMap<PowerType, TariffSpecification> specs = 
       new HashMap<PowerType, TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         TariffSpecification spec =(TariffSpecification)args[0];
@@ -360,6 +365,7 @@ public class DefaultBrokerServiceTests
     final HashMap<PowerType, TariffSpecification> specs = 
       new HashMap<PowerType, TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         TariffSpecification spec =(TariffSpecification)args[0];
@@ -423,6 +429,7 @@ public class DefaultBrokerServiceTests
     assertEquals("current timeslot has serial 0", 0, current.getSerialNumber());
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -448,6 +455,7 @@ public class DefaultBrokerServiceTests
     final HashMap<PowerType, TariffSpecification> specs = 
       new HashMap<PowerType, TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         TariffSpecification spec =(TariffSpecification)args[0];
@@ -459,6 +467,7 @@ public class DefaultBrokerServiceTests
     // collect orders when they are submitted
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -505,8 +514,8 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
-    CashPosition cp = new CashPosition(face, 0.0);
-    face.receiveMessage(cp); // last message in ts0
+    TimeslotComplete tc = new TimeslotComplete(0);
+    face.receiveMessage(tc); // last message in ts0
     assertEquals("23 orders", 23, orderList.size());
     assertEquals("23 orders ts1", 23, orderList.size());
     Order order = orderList.get(0);
@@ -556,7 +565,7 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               30.0, -0.15));
     // accounting runs ts1
-    face.receiveMessage(cp);
+    face.receiveMessage(tc);
     // broker sends bids for ts2...ts24
     assertEquals("23 orders ts1", 23, orderList.size());
     order = orderList.get(0);
@@ -602,7 +611,7 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               40.0, -0.15));
     // accounting runs ts2
-    face.receiveMessage(cp);
+    face.receiveMessage(tc);
     // broker sends bids for ts3...ts25
     assertEquals("23 orders ts2", 23, orderList.size());
     order = orderList.get(0);
@@ -638,6 +647,7 @@ public class DefaultBrokerServiceTests
     final HashMap<PowerType, TariffSpecification> specs = 
       new HashMap<PowerType, TariffSpecification>();
     doAnswer(new Answer() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         TariffSpecification spec =(TariffSpecification)args[0];
@@ -767,6 +777,7 @@ public class DefaultBrokerServiceTests
                               timeslotRepo.enabledTimeslots());
   }
   
+  @SuppressWarnings("serial")
   class MockRandomSeed extends RandomSeed
   {
 
@@ -775,6 +786,7 @@ public class DefaultBrokerServiceTests
       super(classname, requesterId, purpose);
     }
     
+    @Override
     public double nextDouble ()
     {
       return 0.5;
