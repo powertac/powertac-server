@@ -252,20 +252,20 @@ public class TariffMarketServiceTests
   }
   
   // bogus message, not an instance of TariffMessage
-  @Test
-  public void testBogusMessage1 ()
-  {
-    initializeService();
-    tariffMarketService.receiveMessage(broker);
-    assertEquals("no messages sent", 0, msgs.size());
-  }
+//  @Test
+//  public void testBogusMessage1 ()
+//  {
+//    initializeService();
+//    tariffMarketService.receiveMessage(broker);
+//    assertEquals("no messages sent", 0, msgs.size());
+//  }
   
   // valid tariffSpec
   @Test
   public void testProcessTariffSpec ()
   {
     initializeService();
-    tariffMarketService.receiveMessage(tariffSpec);
+    tariffMarketService.handleMessage(tariffSpec);
     assertEquals("one message sent", 1, msgs.size());
     TariffStatus status = (TariffStatus)msgs.get(0);
     // check the status return
@@ -288,7 +288,8 @@ public class TariffMarketServiceTests
   public void testProcessTariffExpireBogus ()
   {
     initializeService();
-    TariffStatus status = tariffMarketService.processTariff(tariffSpec);
+    tariffMarketService.handleMessage(tariffSpec);
+    TariffStatus status = (TariffStatus)msgs.get(0);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals("Correct expiration", exp, tf.getExpiration());
@@ -297,7 +298,8 @@ public class TariffMarketServiceTests
         .addRate(new Rate().withValue(0.121));
     Instant newExp = new DateTime(2011, 3, 1, 10, 0, 0, 0, DateTimeZone.UTC).toInstant();
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), unpublished, newExp);
-    status = tariffMarketService.processTariff(tex);
+    tariffMarketService.handleMessage(tex);
+    status = (TariffStatus)msgs.get(1);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("No such tariff", TariffStatus.Status.noSuchTariff, status.getStatus());
@@ -309,7 +311,8 @@ public class TariffMarketServiceTests
   public void testProcessTariffExpirePast ()
   {
     initializeService();
-    TariffStatus status = tariffMarketService.processTariff(tariffSpec);
+    tariffMarketService.handleMessage(tariffSpec);
+    TariffStatus status = (TariffStatus)msgs.get(0);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals("Correct expiration", exp, tf.getExpiration());
@@ -317,7 +320,8 @@ public class TariffMarketServiceTests
     //timeService.setCurrentTime(newExp);
     Instant newExp = timeService.getCurrentTime().minus(TimeService.HOUR);
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec, newExp);
-    status = tariffMarketService.processTariff(tex);
+    tariffMarketService.handleMessage(tex);
+    status = (TariffStatus)msgs.get(1);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("invalid", TariffStatus.Status.invalidUpdate, status.getStatus());
@@ -328,13 +332,15 @@ public class TariffMarketServiceTests
   public void testProcessTariffExpire ()
   {
     initializeService();
-    TariffStatus status = tariffMarketService.processTariff(tariffSpec);
+    tariffMarketService.handleMessage(tariffSpec);
+    TariffStatus status = (TariffStatus)msgs.get(0);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertEquals("Correct expiration", exp, tf.getExpiration());
     Instant newExp = new DateTime(2011, 3, 1, 10, 0, 0, 0, DateTimeZone.UTC).toInstant();
     TariffExpire tex = new TariffExpire(tariffSpec.getBroker(), tariffSpec, newExp);
-    status = tariffMarketService.processTariff(tex);
+    tariffMarketService.handleMessage(tex);
+    status = (TariffStatus)msgs.get(1);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
@@ -351,12 +357,14 @@ public class TariffMarketServiceTests
   public void testProcessTariffRevoke ()
   {
     initializeService();
-    TariffStatus status = tariffMarketService.processTariff(tariffSpec);
+    tariffMarketService.handleMessage(tariffSpec);
+    TariffStatus status = (TariffStatus)msgs.get(0);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
     assertFalse("not revoked", tf.isRevoked());
     TariffRevoke tex = new TariffRevoke(tariffSpec.getBroker(), tariffSpec);
-    status = tariffMarketService.processTariff(tex);
+    tariffMarketService.handleMessage(tex);
+    status = (TariffStatus)msgs.get(1);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
@@ -386,8 +394,10 @@ public class TariffMarketServiceTests
     r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07), true);    
 
     // send to market
-    TariffStatus status1 = tariffMarketService.processTariff(tariffSpec);
-    TariffStatus status2 = tariffMarketService.processTariff(ts2);
+    tariffMarketService.handleMessage(tariffSpec);
+    tariffMarketService.handleMessage(ts2);
+    TariffStatus status1 = (TariffStatus)msgs.get(0);
+    TariffStatus status2 = (TariffStatus)msgs.get(1);
 
     // check the status return2
     assertNotNull("non-null status 1", status1);
@@ -417,7 +427,8 @@ public class TariffMarketServiceTests
     assertEquals("correct hc start", start, hc.getAtTime());
     assertEquals("correct current time", start, timeService.getCurrentTime());
     
-    TariffStatus vrs = tariffMarketService.processTariff(vru);
+    tariffMarketService.handleMessage(vru);
+    TariffStatus vrs = (TariffStatus)msgs.get(2);
     assertNotNull("non-null vru status", vrs);
     assertEquals("success vru", TariffStatus.Status.success, vrs.getStatus());
     assertEquals("correct current time", start, timeService.getCurrentTime());
@@ -456,9 +467,9 @@ public class TariffMarketServiceTests
           .withExpiration(start.plus(TimeService.DAY * 3))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
-    tariffMarketService.processTariff(tsc1);
-    tariffMarketService.processTariff(tsc2);
-    tariffMarketService.processTariff(tsc3);
+    tariffMarketService.handleMessage(tsc1);
+    tariffMarketService.handleMessage(tsc2);
+    tariffMarketService.handleMessage(tsc3);
     TariffSpecification tsp1 = new TariffSpecification(broker, PowerType.PRODUCTION)
           .withExpiration(start.plus(TimeService.DAY))
           .withMinDuration(TimeService.WEEK* 8)
@@ -467,8 +478,8 @@ public class TariffMarketServiceTests
           .withExpiration(start.plus(TimeService.DAY * 2))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.119));
-    tariffMarketService.processTariff(tsp1);
-    tariffMarketService.processTariff(tsp2);
+    tariffMarketService.handleMessage(tsp1);
+    tariffMarketService.handleMessage(tsp2);
     assertEquals("five tariffs", 5, tariffRepo.findAllTariffs().size());
     
     // make sure all tariffs are active
@@ -524,12 +535,12 @@ public class TariffMarketServiceTests
         .withExpiration(start.plus(TimeService.DAY))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
-    tariffMarketService.processTariff(tsc1);
+    tariffMarketService.handleMessage(tsc1);
     TariffSpecification tsc1a = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(start.plus(TimeService.DAY))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.223));
-    tariffMarketService.processTariff(tsc1a);
+    tariffMarketService.handleMessage(tsc1a);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 13:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
@@ -539,12 +550,12 @@ public class TariffMarketServiceTests
         .withExpiration(start.plus(TimeService.DAY * 2))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
-    tariffMarketService.processTariff(tsc2);
+    tariffMarketService.handleMessage(tsc2);
     TariffSpecification tsc3 = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(start.plus(TimeService.DAY * 3))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.222));
-    tariffMarketService.processTariff(tsc3);
+    tariffMarketService.handleMessage(tsc3);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 14:00
     tariffMarketService.activate(timeService.getCurrentTime(), 2);
@@ -558,12 +569,12 @@ public class TariffMarketServiceTests
         .withExpiration(start.plus(TimeService.DAY * 2))
         .withMinDuration(TimeService.WEEK * 8)
         .addRate(new Rate().withValue(0.119));
-    tariffMarketService.processTariff(tsp1);
-    tariffMarketService.processTariff(tsp2);
+    tariffMarketService.handleMessage(tsp1);
+    tariffMarketService.handleMessage(tsp2);
     assertEquals("six tariffs", 6, tariffRepo.findAllTariffs().size());
     
     TariffRevoke tex = new TariffRevoke(tsc1a.getBroker(), tsc1a);
-    tariffMarketService.processTariff(tex);
+    tariffMarketService.handleMessage(tex);
 
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 15:00 - time to publish
@@ -591,9 +602,9 @@ public class TariffMarketServiceTests
           .withExpiration(start.plus(TimeService.DAY * 9))
           .withMinDuration(TimeService.WEEK * 8)
           .addRate(new Rate().withValue(0.222));
-    tariffMarketService.processTariff(tsc1);
-    tariffMarketService.processTariff(tsc2);
-    tariffMarketService.processTariff(tsc3);
+    tariffMarketService.handleMessage(tsc1);
+    tariffMarketService.handleMessage(tsc2);
+    tariffMarketService.handleMessage(tsc3);
     Tariff tc1 = tariffRepo.findTariffById(tsc1.getId());
     assertNotNull("first tariff found", tc1);
     Tariff tc2 = tariffRepo.findTariffById(tsc2.getId());
@@ -628,7 +639,9 @@ public class TariffMarketServiceTests
     // forward an hour, revoke the second tariff
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tc2.getBroker(), tsc2);
-    TariffStatus status = tariffMarketService.processTariff(tex);
+    int index = msgs.size();
+    tariffMarketService.handleMessage(tex);
+    TariffStatus status = (TariffStatus)msgs.get(index);
     assertNotNull("non-null status", status);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tc2.isRevoked());
@@ -694,16 +707,6 @@ public class TariffMarketServiceTests
     {
       processor = thing;
       timeslotPhase = phase;
-    }
-
-    @Override
-    public void receiveMessage (PauseRequest msg)
-    {
-    }
-
-    @Override
-    public void receiveMessage (PauseRelease msg)
-    {
     }
 
     @Override
