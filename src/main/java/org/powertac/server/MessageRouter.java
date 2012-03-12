@@ -74,7 +74,7 @@ public class MessageRouter implements InitializationService
   public String initialize (Competition competition, List<String> completedInits)
   {
     // nothing to see here folks, please move on.
-    return null;
+    return "Router";
   }
 
   public boolean route(Object message) {
@@ -101,7 +101,7 @@ public class MessageRouter implements InitializationService
     }
     if (byPassed || (broker != null && broker.isEnabled())) {     
       log.debug("route(Object) - routing " + message.getClass().getSimpleName() + " from " + username);
-      Set<Object> targets = registrations.get(message);
+      Set<Object> targets = registrations.get(message.getClass());
       if (targets == null) {
         log.warn("no targets for message of type " + message.getClass().getSimpleName());
       }

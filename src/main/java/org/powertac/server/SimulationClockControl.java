@@ -76,7 +76,8 @@ public class SimulationClockControl
       publish = true,
       description = "Minimum agent time per timeslot in msec")
   private Integer minAgentWindow = 1000;
-
+  private int minWindow = 50;
+  private int minPauseInterval = 100; // min time before pause
 
   private long base;
   private long start;
@@ -140,6 +141,9 @@ public class SimulationClockControl
   {
     this.start = start;
     timeService.setStart(start);
+    if (!competitionControl.isBootstrapMode()) {
+      minWindow = minAgentWindow;
+    }
   }
 
   /**
@@ -261,6 +265,7 @@ public class SimulationClockControl
   }
 
   // ------------------------- internal methods ------------------
+  
   /**
    * notifies the waiting thread (if any).
    */
@@ -305,7 +310,7 @@ public class SimulationClockControl
   {
     //System.out.println("resume()");
     long originalNextTick = computeNextTickTime();
-    long actualNextTick = new Date().getTime() + minAgentWindow;
+    long actualNextTick = new Date().getTime() + minWindow;
     start += actualNextTick - originalNextTick;
     timeService.setStart(start);
     competitionControl.resume(start);
@@ -367,7 +372,10 @@ public class SimulationClockControl
       //System.out.println("TickAction.run() " + new Date().getTime());
       timeService.updateTime();
       scc.setState(Status.CLEAR);
-      long wdTime = computeNextTickTime() - minAgentWindow;
+      long earliestPause = new Date().getTime() + minPauseInterval;
+      long wdTime = computeNextTickTime() - minWindow;
+      if (wdTime < earliestPause)
+        wdTime = earliestPause;
       //System.out.println("watchdog set for " + wdTime);
       currentWatchdog = new WatchdogAction(scc);
       theTimer.schedule(currentWatchdog, new Date(wdTime));
