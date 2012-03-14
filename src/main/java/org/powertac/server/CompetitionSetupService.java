@@ -101,6 +101,9 @@ public class CompetitionSetupService
 
   @Autowired
   private LogService logService;
+  
+  @Autowired
+  private TournamentSchedulerService tss;
 
   private Competition competition;
   
@@ -154,6 +157,8 @@ public class CompetitionSetupService
         parser.accepts("boot").withRequiredArg().ofType(File.class);
     OptionSpec<URL> controllerUrl =
         parser.accepts("control").withRequiredArg().ofType(URL.class);
+    OptionSpec<Integer> gameId = 
+    	parser.accepts("game-id").withRequiredArg().ofType(Integer.class);
     OptionSpec<URL> serverConfigUrl =
         parser.accepts("config").withRequiredArg().ofType(URL.class);
     OptionSpec<String> logSuffixOption =
@@ -173,11 +178,20 @@ public class CompetitionSetupService
       // process common options
       String logSuffix = options.valueOf(logSuffixOption);
       URL controller = options.valueOf(controllerUrl);
+      Integer game = options.valueOf(gameId);
       URL serverConfig = options.valueOf(serverConfigUrl);
       if (serverConfig == null && controller != null) {
         // offset from controller
         serverConfig = new URL(controller, "server-config");
       }
+      
+      // process tournament scheduler based info
+      if (controller != null && game != null){
+          tss.setTournamentSchedulerUrl(controller.toString());
+          tss.setGameId(game);
+      }
+      
+      
       // process serverConfig now, because other options may override
       // parts of it
       if (serverConfig != null)

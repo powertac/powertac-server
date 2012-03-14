@@ -117,6 +117,9 @@ public class CompetitionControlService
 
   @Autowired
   private JmsManagementService jmsManagementService;
+  
+  @Autowired
+  private TournamentSchedulerService tss;
 
   // Server JMS Queue Name
   private String serverQueueName = "serverInput";
@@ -291,8 +294,12 @@ public class CompetitionControlService
       competition.addCustomer(customer);
     }
 
+    // Send ready message to tournament scheduler
+    tss.ready();
+    
     // get brokers logged in
     //jmsManagementService.createQueues()
+
     waitForBrokerLogin();
 
     // Publish Competition object at right place - after plugins
