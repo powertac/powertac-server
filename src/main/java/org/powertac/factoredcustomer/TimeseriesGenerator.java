@@ -84,7 +84,7 @@ final class TimeseriesGenerator
             throw new Error("Unknown builtin model parameters with name: " + paramsName);
             // break;
         case CLASSPATH:
-            paramsStream = ClassLoader.getSystemClassLoader().getResourceAsStream(paramsName);
+            paramsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(paramsName);
             break;
         case FILEPATH:
             try {
@@ -124,7 +124,7 @@ final class TimeseriesGenerator
             throw new Error("Unknown builtin series name: " + seriesName);
             // break;
         case CLASSPATH:
-            refStream = ClassLoader.getSystemClassLoader().getResourceAsStream(seriesName);
+            refStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(seriesName);
             break;
         case FILEPATH:
             try {
