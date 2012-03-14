@@ -160,7 +160,7 @@ implements NewTariffListener, InitializationService
 
     InputStream cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = ClassLoader.getSystemResourceAsStream(configFile1);
+    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile1);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
@@ -190,7 +190,7 @@ implements NewTariffListener, InitializationService
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = ClassLoader.getSystemResourceAsStream(configFile2);
+    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile2);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
@@ -220,7 +220,7 @@ implements NewTariffListener, InitializationService
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = ClassLoader.getSystemResourceAsStream(configFile3);
+    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile3);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
@@ -250,7 +250,7 @@ implements NewTariffListener, InitializationService
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = ClassLoader.getSystemResourceAsStream(configFile4);
+    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile4);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
