@@ -16,10 +16,7 @@
 	</on-start>
 
 	<view-state id="view">
-		<transition on="run">
-			<evaluate expression="webCompetitionControlService.runSim()" result="requestScope.message"></evaluate>
-		</transition>
-		
+			
 		<transition on="run2">
 			<evaluate expression="webCompetitionControl2Service.runSim()" result="requestScope.message"></evaluate>
 		</transition>	

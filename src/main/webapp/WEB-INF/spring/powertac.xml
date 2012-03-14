@@ -86,10 +86,10 @@
   <bean id="householdCustomerService"
         class="org.powertac.householdcustomer.HouseholdCustomerService">
     <property name="timeslotPhase" value="2" />
-    <property name="configFile1" value="../household-customer/src/main/resources/VillageType1.properties" />
+ <!--    <property name="configFile1" value="../household-customer/src/main/resources/VillageType1.properties" />
     <property name="configFile2" value="../household-customer/src/main/resources/VillageType1.properties" />
     <property name="configFile3" value="../household-customer/src/main/resources/VillageType1.properties" />
-    <property name="configFile4" value="../household-customer/src/main/resources/VillageType1.properties" />
+    <property name="configFile4" value="../household-customer/src/main/resources/VillageType1.properties" />  -->
   </bean>
   
   <bean id="factoredCustomerService"

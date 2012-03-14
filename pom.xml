@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion> 
+	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.powertac</groupId>
 	<artifactId>visualizer</artifactId>
 	<name>PowerTAC Visualizer</name>
@@ -18,16 +18,16 @@
 
 	<dependencies>
 
-		<dependency> 
+		<dependency>
 			<groupId>org.powertac</groupId>
 			<artifactId>server-main</artifactId>
 			<version>0.5.0-SNAPSHOT</version>
 		</dependency>
 
- 
 
 
-		<!-- Spring -->
+
+		<!-- Spring --> 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
@@ -60,23 +60,12 @@
 			<version>${springsecurity-version}</version>
 		</dependency>
 		<!-- Logging -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${org.slf4j-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${org.slf4j-version}</version>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${org.slf4j-version}</version>
-			<scope>runtime</scope>
-		</dependency>
+		<!--<dependency> <groupId>org.slf4j</groupId> <artifactId>slf4j-api</artifactId> 
+			<version>${org.slf4j-version}</version> </dependency> <dependency> <groupId>org.slf4j</groupId> 
+			<artifactId>jcl-over-slf4j</artifactId> <version>${org.slf4j-version}</version> 
+			<scope>runtime</scope> </dependency> <dependency> <groupId>org.slf4j</groupId> 
+			<artifactId>slf4j-log4j12</artifactId> <version>${org.slf4j-version}</version> 
+			<scope>runtime</scope> </dependency> -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
@@ -119,11 +108,11 @@
 			<version>2.0.3</version>
 		</dependency>
 		<!-- PrimeFaces component library -->
-	 	<dependency>
+		<dependency>
 			<groupId>org.primefaces</groupId>
 			<artifactId>primefaces</artifactId>
 			<version>3.1.1</version>
-		</dependency>  
+		</dependency>
 		<!-- Primefaces theme -->
 		<dependency>
 			<groupId>org.primefaces.themes</groupId>
@@ -258,6 +247,18 @@
 				<artifactId>tomcat-maven-plugin</artifactId>
 				<version>1.0-beta-1</version>
 			</plugin>
+
+			<!-- jetty-maven-plugin -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>maven-jetty-plugin</artifactId>
+
+				<configuration>
+					<webApp>${basedir}/target/mycustom.war</webApp>
+					<contextPath>/visualizer9</contextPath>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 </project>

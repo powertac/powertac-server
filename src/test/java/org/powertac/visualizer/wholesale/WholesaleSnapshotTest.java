@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Order;
+import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
 
 public class WholesaleSnapshotTest {
@@ -29,7 +30,7 @@ public class WholesaleSnapshotTest {
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 4.0, -4.0));
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 5.0, null));
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 6.0, -6.0));
-		
+		wholesaleSnapshot.setOrderbook(new Orderbook(timeslot, 0.0, null));
 		
 		wholesaleSnapshot.close();
 		 

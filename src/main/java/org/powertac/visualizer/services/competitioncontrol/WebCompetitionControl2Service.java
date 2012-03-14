@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -101,11 +102,21 @@ public class WebCompetitionControl2Service {
 			log.info("In Simulation mode!!!");
 			
 			URL bootstrapURL = resourceLoader.getResource("WEB-INF/config/boot-data.xml").getURL();
-			
+			log.info("BOOTSTRAP:"+bootstrapURL);
+
 			List<String> argList = new ArrayList<String>();
 			argList.add("--sim");
 			argList.add("--boot-data="+bootstrapURL.toString());
 			argList.add("--brokers=Markec");
+			
+						
+			String userConfURL = resourceLoader.getResource("WEB-INF/config/banana.txt").getURL().toString();
+			
+			
+			
+			log.info("USERCONF:"+userConfURL);
+			
+			argList.add("--config="+userConfURL);
 			
 			args=(String[]) argList.toArray(new String [argList.size()]);
 			
