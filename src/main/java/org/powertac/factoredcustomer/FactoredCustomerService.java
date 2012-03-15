@@ -118,7 +118,7 @@ implements InitializationService, NewTariffListener
   {
     log.info("Attempting to load factored customer profiles from config resource: " + configResource);
     try {
-      InputStream configStream = ClassLoader.getSystemClassLoader().getResourceAsStream(configResource);
+      InputStream configStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configResource);
 
       DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
