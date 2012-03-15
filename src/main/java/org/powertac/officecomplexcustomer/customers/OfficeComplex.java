@@ -1,0 +1,1321 @@
+/*
+ * Copyright 2009-2012 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an
+ * "AS IS" BASIS,  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ */
+package org.powertac.officecomplexcustomer.customers;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Vector;
+
+import org.apache.log4j.Logger;
+import org.joda.time.Instant;
+import org.powertac.common.AbstractCustomer;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
+import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+
+/**
+ * The office complex domain class is a set of offices that comprise a office
+ * building that consumes aggregated energy by the appliances installed in each
+ * office.
+ * 
+ * @author Antonios Chrysopoulos
+ * @version 1.5, Date: 2.25.12
+ */
+public class OfficeComplex extends AbstractCustomer
+{
+
+  /**
+   * logger for trace logging -- use log.info(), log.warn(), and log.error()
+   * appropriately. Use log.debug() for output you want to see in testing or
+   * debugging.
+   */
+  static protected Logger log = Logger.getLogger(OfficeComplex.class.getName());
+
+  @Autowired
+  TimeService timeService;
+
+  @Autowired
+  TimeslotRepo timeslotRepo;
+
+  @Autowired
+  WeatherReportRepo weatherReportRepo;
+
+  /**
+   * These are the vectors containing aggregated each day's base load from the
+   * appliances installed inside the offices of each type.
+   **/
+  Vector<Vector<Long>> aggDailyBaseLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyBaseLoadSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's controllable load
+   * from the appliances installed inside the offices.
+   **/
+  Vector<Vector<Long>> aggDailyControllableLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyControllableLoadSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's weather sensitive
+   * load from the appliances installed inside the offices.
+   **/
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the aggregated vectors containing each day's base load of all the
+   * offices in hours.
+   **/
+  Vector<Vector<Long>> aggDailyBaseLoadInHoursNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyBaseLoadInHoursSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the aggregated vectors containing each day's controllable load of
+   * all the offices in hours.
+   **/
+  Vector<Vector<Long>> aggDailyControllableLoadInHoursNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyControllableLoadInHoursSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the aggregated vectors containing each day's weather sensitive
+   * load of all the offices in hours.
+   **/
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS = new Vector<Vector<Long>>();
+
+  /**
+   * This is an vector containing the days of the competition that the office
+   * complex model will use in order to check which of the tariffs that are
+   * available at any given moment are the optimal for their consumption or
+   * production.
+   **/
+  Vector<Integer> daysList = new Vector<Integer>();
+
+  /**
+   * This variable is utilized for the creation of the random numbers and is
+   * taken from the service.
+   */
+  Random gen;
+
+  /**
+   * These variables are mapping of the characteristics of the types of offices.
+   * The first is used to keep track of their subscription at any given time.
+   * The second is the inertia parameter for each type of offices. The third is
+   * the period that they are evaluating the available tariffs and choose the
+   * best for their type. The forth is setting the lamda variable for the
+   * possibility function of the evaluation.
+   */
+  HashMap<String, TariffSubscription> subscriptionMap = new HashMap<String, TariffSubscription>();
+  HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
+  HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
+  HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
+
+  /**
+   * These vectors contain the offices of type in the office complex. There are
+   * 2 types available: 1) Not Shifting offices: They do not change the tariff
+   * subscriptions during the game. 2) Smart Shifting offices: They change their
+   * tariff subscriptions in a smart way in order to minimize their costs.
+   */
+  Vector<Office> notShiftingoffices = new Vector<Office>();
+  Vector<Office> smartShiftingoffices = new Vector<Office>();
+
+  /** This is the constructor function of the OfficeComplex customer */
+  public OfficeComplex (CustomerInfo customerInfo)
+  {
+    super(customerInfo);
+
+    timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+
+    ArrayList<String> typeList = new ArrayList<String>();
+    typeList.add("NS");
+    typeList.add("SS");
+
+    for (String type : typeList) {
+      subscriptionMap.put(type, null);
+      inertiaMap.put(type, null);
+      periodMap.put(type, null);
+      lamdaMap.put(type, null);
+    }
+  }
+
+  /**
+   * This is the initialization function. It uses the variable values for the
+   * configuration file to create the office complex with its offices and then
+   * fill them with persons and appliances.
+   * 
+   * @param conf
+   * @param gen
+   */
+  public void initialize (Properties conf, Random generator)
+  {
+    // Initializing variables
+
+    int nsoffices = Integer.parseInt(conf.getProperty("NotShiftingCustomers"));
+    int ssoffices = Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
+    int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
+
+    gen = generator;
+
+    createCostEstimationDaysList(OfficeComplexConstants.RANDOM_DAYS_NUMBER);
+
+    Vector<Integer> publicVacationVector = createPublicVacationVector(days);
+
+    for (int i = 0; i < nsoffices; i++) {
+      log.info("Initializing " + customerInfo.toString() + " NSoffice " + i);
+      Office of = new Office();
+      of.initialize(customerInfo.toString() + " NSoffice" + i, conf, publicVacationVector, gen);
+      notShiftingoffices.add(of);
+      of.officeOf = this;
+    }
+
+    for (int i = 0; i < ssoffices; i++) {
+      log.info("Initializing " + customerInfo.toString() + " SSoffice " + i);
+      Office hh = new Office();
+      hh.initialize(customerInfo.toString() + " SSoffice" + i, conf, publicVacationVector, gen);
+      smartShiftingoffices.add(hh);
+      hh.officeOf = this;
+    }
+
+    for (String type : subscriptionMap.keySet()) {
+      fillAggWeeklyLoad(type);
+      inertiaMap.put(type, Double.parseDouble(conf.getProperty(type + "Inertia")));
+      periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
+      lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
+    }
+    /*
+        System.out.println("Subscriptions:" + subscriptionMap.toString());
+        System.out.println("Inertia:" + inertiaMap.toString());
+        System.out.println("Period:" + periodMap.toString());
+        System.out.println("Lamda:" + lamdaMap.toString());
+    
+    for (String type : subscriptionMap.keySet()) {
+      showAggLoad(type);
+    }
+    */
+  }
+
+  // =====SUBSCRIPTION FUNCTIONS===== //
+
+  @Override
+  public void subscribeDefault ()
+  {
+    super.subscribeDefault();
+
+    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(this.getCustomerInfo());
+
+    if (subscriptions.size() > 0) {
+      log.debug(subscriptions.toString());
+
+      for (String type : subscriptionMap.keySet()) {
+        subscriptionMap.put(type, subscriptions.get(0));
+      }
+      log.debug(this.toString() + " Default");
+      log.debug(subscriptionMap.toString());
+    }
+  }
+
+  /**
+   * The first implementation of the changing subscription function. Here we
+   * just put the tariff we want to change and the whole population is moved to
+   * another random tariff.
+   * 
+   * @param tariff
+   */
+  public void changeSubscription (Tariff tariff)
+  {
+
+    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
+    int populationCount = ts.getCustomersCommitted();
+    unsubscribe(ts, populationCount);
+
+    Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
+    subscribe(newTariff, populationCount);
+
+    updateSubscriptions(tariff, newTariff);
+  }
+
+  /**
+   * The second implementation of the changing subscription function only for
+   * certain type of the offices.
+   * 
+   * @param tariff
+   */
+  public void changeSubscription (Tariff tariff, String type)
+  {
+    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
+    int populationCount = getOffices(type).size();
+    unsubscribe(ts, populationCount);
+
+    Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
+    subscribe(newTariff, populationCount);
+
+    updateSubscriptions(tariff, newTariff, type);
+
+  }
+
+  /**
+   * In this overloaded implementation of the changing subscription function,
+   * Here we just put the tariff we want to change and the whole population is
+   * moved to another random tariff.
+   * 
+   * @param tariff
+   */
+  public void changeSubscription (Tariff tariff, Tariff newTariff)
+  {
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    int populationCount = ts.getCustomersCommitted();
+    unsubscribe(ts, populationCount);
+    subscribe(newTariff, populationCount);
+
+    updateSubscriptions(tariff, newTariff);
+  }
+
+  /**
+   * In this overloaded implementation of the changing subscription function
+   * only certain type of the offices.
+   * 
+   * @param tariff
+   */
+  public void changeSubscription (Tariff tariff, Tariff newTariff, String type)
+  {
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    int populationCount = getOffices(type).size();
+    unsubscribe(ts, populationCount);
+    subscribe(newTariff, populationCount);
+
+    updateSubscriptions(tariff, newTariff, type);
+  }
+
+  /**
+   * This function is used to update the subscriptionMap variable with the
+   * changes made.
+   * 
+   */
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff)
+  {
+
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
+
+    log.info(this.toString() + " Changing");
+    log.info("Old:" + ts.toString() + "  New:" + newTs.toString());
+
+    if (subscriptionMap.get("NS") == ts)
+      subscriptionMap.put("NS", newTs);
+    if (subscriptionMap.get("SS") == ts)
+      subscriptionMap.put("SS", newTs);
+
+    log.info(subscriptionMap.toString());
+
+  }
+
+  /**
+   * This function is overloading the previous one and is used when only certain
+   * types of offices changed tariff.
+   * 
+   */
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type)
+  {
+
+    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
+
+    if (type.equals("NS")) {
+      subscriptionMap.put("NS", newTs);
+    } else {
+      subscriptionMap.put("SS", newTs);
+    }
+
+    log.debug(this.toString() + " Changing Only " + type);
+    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
+    log.debug(subscriptionMap.toString());
+
+  }
+
+  @Override
+  public void checkRevokedSubscriptions ()
+  {
+    List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
+
+    log.debug(revoked.toString());
+    for (TariffSubscription revokedSubscription : revoked) {
+      revokedSubscription.handleRevokedTariff();
+
+      Tariff tariff = revokedSubscription.getTariff();
+      Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
+      Tariff defaultTariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
+
+      log.debug("Tariff:" + tariff.toString());
+      if (newTariff != null)
+        log.debug("New Tariff:" + newTariff.toString());
+      else
+        log.debug("New Tariff is Null");
+      log.debug("Default Tariff:" + defaultTariff.toString());
+
+      if (newTariff == null)
+        updateSubscriptions(tariff, defaultTariff);
+      else
+        updateSubscriptions(tariff, newTariff);
+
+    }
+  }
+
+  // =====LOAD FUNCTIONS===== //
+
+  /**
+   * This function is used in order to fill each week day of the aggregated
+   * daily Load of the office complex offices for each quarter of the hour.
+   * 
+   * @param type
+   * @return
+   */
+  void fillAggWeeklyLoad (String type)
+  {
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
+        aggDailyBaseLoadNS.add(fillAggDailyBaseLoad(i, type));
+        aggDailyControllableLoadNS.add(fillAggDailyControllableLoad(i, type));
+        aggDailyWeatherSensitiveLoadNS.add(fillAggDailyWeatherSensitiveLoad(i, type));
+        aggDailyBaseLoadInHoursNS.add(fillAggDailyBaseLoadInHours(i, type));
+        aggDailyControllableLoadInHoursNS.add(fillAggDailyControllableLoadInHours(i, type));
+        aggDailyWeatherSensitiveLoadInHoursNS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+      }
+    } else {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
+        aggDailyBaseLoadSS.add(fillAggDailyBaseLoad(i, type));
+        aggDailyControllableLoadSS.add(fillAggDailyControllableLoad(i, type));
+        aggDailyWeatherSensitiveLoadSS.add(fillAggDailyWeatherSensitiveLoad(i, type));
+        aggDailyBaseLoadInHoursSS.add(fillAggDailyBaseLoadInHours(i, type));
+        aggDailyControllableLoadInHoursSS.add(fillAggDailyControllableLoadInHours(i, type));
+        aggDailyWeatherSensitiveLoadInHoursSS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+      }
+    }
+  }
+
+  /**
+   * This function is used in order to update the daily aggregated Load in case
+   * there are changes in the weather sensitive loads of the office complex's
+   * offices.
+   * 
+   * @param type
+   * @return
+   */
+  void updateAggDailyWeatherSensitiveLoad (String type, int day)
+  {
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    if (type.equals("NS")) {
+      aggDailyWeatherSensitiveLoadNS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursNS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
+    } else {
+      aggDailyWeatherSensitiveLoadSS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursSS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
+    }
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily Base Load of
+   * the office complex's offices for each quarter of the hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyBaseLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    } else {
+      offices = smartShiftingoffices;
+    }
+
+    Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Office office : offices) {
+        sum = sum + office.weeklyBaseLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily Controllable
+   * Load of the office complex's offices for each quarter of the hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyControllableLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    } else {
+      offices = smartShiftingoffices;
+    }
+
+    Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Office office : offices) {
+        sum = sum + office.weeklyControllableLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily weather
+   * sensitive Load of the office complex's offices for each quarter of the
+   * hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyWeatherSensitiveLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    } else {
+      offices = smartShiftingoffices;
+    }
+
+    Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Office office : offices) {
+        sum = sum + office.weeklyWeatherSensitiveLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the daily Base Load of the office
+   * for each hour for a certain type of offices.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyBaseLoadInHours (int day, String type)
+  {
+
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    } else {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to fill the daily Controllable Load of the
+   * office for each hour for a certain type of offices.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyControllableLoadInHours (int day, String type)
+  {
+
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    } else {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to fill the daily weather sensitive Load of
+   * the office for each hour for a certain type of offices.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyWeatherSensitiveLoadInHours (int day, String type)
+  {
+
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    } else {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum = aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to print the aggregated hourly load of the
+   * office complex's offices.
+   * 
+   * @param type
+   * @return
+   */
+  void showAggLoad (String type)
+  {
+
+    log.info("Portion " + type + " Weekly Aggregated Load");
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+        log.debug("Day " + i);
+        for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j) + " Weather Sensitive Load: "
+              + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
+        }
+      }
+    } else {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+        log.debug("Day " + i);
+        for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j) + " Weather Sensitive Load: "
+              + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
+        }
+      }
+    }
+  }
+
+  /**
+   * This function is used in order to print the aggregated hourly load of the
+   * office complex offices for a certain type of offices.
+   * 
+   * @param type
+   * @return
+   */
+  public void showAggDailyLoad (String type, int day)
+  {
+
+    log.debug("Portion " + type + " Daily Aggregated Load");
+    log.debug("Day " + day);
+
+    if (type.equals("NS")) {
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j)
+            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
+      }
+    } else {
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j)
+            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
+      }
+    }
+  }
+
+  // =====CONSUMPTION FUNCTIONS===== //
+
+  @Override
+  public void consumePower ()
+  {
+    Timeslot ts = timeslotRepo.currentTimeslot();
+    double summary = 0;
+
+    for (String type : subscriptionMap.keySet()) {
+      TariffSubscription sub = subscriptionMap.get(type);
+      if (ts == null) {
+        log.debug("Current timeslot is null");
+        int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+        summary = getConsumptionByTimeslot(serial, type);
+      } else {
+        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type);
+      }
+      log.info("Consumption Load for " + type + ": " + summary);
+      sub.usePower(summary);
+    }
+
+  }
+
+  /**
+   * This method takes as an input the time-slot serial number (in order to know
+   * in the current time) and estimates the consumption for this time-slot over
+   * the population under the OfficeComplex Office Consumer.
+   */
+  double getConsumptionByTimeslot (int serial, String type)
+  {
+
+    int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
+    int hour = (int) (serial % OfficeComplexConstants.HOURS_OF_DAY);
+    long summary = 0;
+
+    log.debug("Serial : " + serial + " Day: " + day + " Hour: " + hour);
+
+    summary = (getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
+
+    return (double) summary / OfficeComplexConstants.THOUSAND;
+  }
+
+  // =====GETTER FUNCTIONS===== //
+
+  /** This function returns the subscription Map variable of the office complex. */
+  public HashMap<String, TariffSubscription> getSubscriptionMap ()
+  {
+    return subscriptionMap;
+  }
+
+  /** This function returns the inertia Map variable of the office complex. */
+  public HashMap<String, Double> getInertiaMap ()
+  {
+    return inertiaMap;
+  }
+
+  /** This function returns the period Map variable of the office complex. */
+  public HashMap<String, Integer> getPeriodMap ()
+  {
+    return periodMap;
+  }
+
+  /**
+   * This function returns the quantity of base load for a specific day and hour
+   * of that day for a specific type of offices.
+   */
+  long getBaseConsumptions (int day, int hour, String type)
+  {
+    long summaryBase = 0;
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      summaryBase = aggDailyBaseLoadInHoursNS.get(dayTemp).get(hour);
+    } else {
+      summaryBase = aggDailyBaseLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("Base Load for " + type + ":" + summaryBase);
+    return summaryBase;
+  }
+
+  /**
+   * This function returns the quantity of controllable load for a specific day
+   * and hour of that day for a specific type of offices.
+   */
+  long getControllableConsumptions (int day, int hour, String type)
+  {
+    long summaryControllable = 0;
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      summaryControllable = aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
+    } else {
+      summaryControllable = aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("Controllable Load for " + type + ":" + summaryControllable);
+    return summaryControllable;
+  }
+
+  /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day and hour of that day for a specific type of office.
+   */
+  long getWeatherSensitiveConsumptions (int day, int hour, String type)
+  {
+    long summaryWeatherSensitive = 0;
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
+    } else {
+      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("WeatherSensitive Load for " + type + ":" + summaryWeatherSensitive);
+    return summaryWeatherSensitive;
+  }
+
+  /**
+   * This function returns the quantity of controllable load for a specific day
+   * in form of a vector for a certain type of offices.
+   */
+  Vector<Long> getControllableConsumptions (int day, String type)
+  {
+
+    Vector<Long> controllableVector = new Vector<Long>();
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      controllableVector = aggDailyControllableLoadInHoursNS.get(dayTemp);
+    } else {
+      controllableVector = aggDailyControllableLoadInHoursSS.get(dayTemp);
+    }
+
+    return controllableVector;
+  }
+
+  /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day in form of a vector for a certain type of offices.
+   */
+  Vector<Long> getWeatherSensitiveConsumptions (int day, String type)
+  {
+
+    Vector<Long> weatherSensitiveVector = new Vector<Long>();
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp);
+    } else {
+      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp);
+    }
+
+    return weatherSensitiveVector;
+  }
+
+  /**
+   * This function returns a vector with all the offices that are present in
+   * this office complex.
+   */
+  public Vector<Office> getOffices ()
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    for (Office office : notShiftingoffices)
+      offices.add(office);
+    for (Office office : smartShiftingoffices)
+      offices.add(office);
+
+    return offices;
+
+  }
+
+  /**
+   * This function returns a vector with all the offices of a certain type that
+   * are present in this office complex.
+   */
+  public Vector<Office> getOffices (String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      for (Office office : notShiftingoffices) {
+        offices.add(office);
+      }
+    } else {
+      for (Office office : smartShiftingoffices) {
+        offices.add(office);
+      }
+    }
+
+    return offices;
+
+  }
+
+  // =====EVALUATION FUNCTIONS===== //
+
+  /**
+   * This is the basic evaluation function, taking into consideration the
+   * minimum cost without shifting the appliances' load but the tariff chosen is
+   * picked up randomly by using a possibility pattern. The better tariffs have
+   * more chances to be chosen.
+   */
+  public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs, String type)
+  {
+
+    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(this.getCustomerInfo());
+
+    if (subscriptions == null || subscriptions.size() == 0) {
+      subscribeDefault();
+      return;
+    }
+
+    Vector<Double> estimation = new Vector<Double>();
+
+    // getting the active tariffs for evaluation
+    ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
+
+    log.debug("Estimation size for " + this.toString() + " = " + evaluationTariffs.size());
+
+    if (evaluationTariffs.size() > 1) {
+      for (Tariff tariff : evaluationTariffs) {
+        log.debug("Tariff : " + tariff.toString() + " Tariff Type : " + tariff.getTariffSpecification().getPowerType());
+        if (tariff.isExpired() == false && tariff.getTariffSpecification().getPowerType() == PowerType.CONSUMPTION) {
+          estimation.add(-(costEstimation(tariff, type)));
+        } else
+          estimation.add(Double.NEGATIVE_INFINITY);
+      }
+
+      int minIndex = logitPossibilityEstimation(estimation, type);
+
+      TariffSubscription sub = subscriptionMap.get(type);
+
+      log.debug("Equality: " + sub.getTariff().getTariffSpec().toString() + " = " + evaluationTariffs.get(minIndex).getTariffSpec().toString());
+      if (!(sub.getTariff().getTariffSpec() == evaluationTariffs.get(minIndex).getTariffSpec())) {
+        log.debug("Changing From " + sub.toString() + " After Evaluation");
+        changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex), type);
+      }
+
+    }
+  }
+
+  /**
+   * This function estimates the overall cost, taking into consideration the
+   * fixed payments as well as the variable that are depending on the tariff
+   * rates
+   */
+  double costEstimation (Tariff tariff, String type)
+  {
+    double costVariable = 0;
+
+    /* if it is NotShifting offices the evaluation is done without shifting devices 
+       if it is RandomShifting offices the evaluation is may be done without shifting devices or maybe shifting will be taken into consideration
+       In any other case shifting will be done. */
+    if (type.equals("NS")) {
+      // System.out.println("Simple Evaluation for " + type);
+      log.debug("Simple Evaluation for " + type);
+      costVariable = estimateVariableTariffPayment(tariff, type);
+    } else if (type.equals("RaS")) {
+      Double rand = gen.nextDouble();
+      // System.out.println(rand);
+      if (rand < getInertiaMap().get(type)) {
+        // System.out.println("Simple Evaluation for " + type);
+        log.debug("Simple Evaluation for " + type);
+        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+      } else {
+        // System.out.println("Shifting Evaluation for " + type);
+        log.debug("Shifting Evaluation for " + type);
+        costVariable = estimateVariableTariffPayment(tariff, type);
+      }
+    } else {
+      // System.out.println("Shifting Evaluation for " + type);
+      log.debug("Shifting Evaluation for " + type);
+      costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+    }
+
+    double costFixed = estimateFixedTariffPayments(tariff);
+    return (costVariable + costFixed) / OfficeComplexConstants.MILLION;
+  }
+
+  /**
+   * This function estimates the fixed cost, comprised by fees, bonuses and
+   * penalties that are the same no matter how much you consume
+   */
+  double estimateFixedTariffPayments (Tariff tariff)
+  {
+    double lifecyclePayment = -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
+    double minDuration;
+
+    // When there is not a Minimum Duration of the contract, you cannot divide
+    // with the duration
+    // because you don't know it.
+    if (tariff.getMinDuration() == 0)
+      minDuration = OfficeComplexConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
+    else
+      minDuration = tariff.getMinDuration();
+
+    log.debug("Minimum Duration: " + minDuration);
+    return (-tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
+  }
+
+  /**
+   * This function estimates the variable cost, depending only to the load
+   * quantity you consume
+   */
+  double estimateVariableTariffPayment (Tariff tariff, String type)
+  {
+
+    double finalCostSummary = 0;
+
+    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    Instant base = new Instant(timeService.getCurrentTime().getMillis() - serial * TimeService.HOUR);
+    int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
+
+    for (int day : daysList) {
+      if (day < daylimit)
+        day = (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
+      Instant now = base.plus(day * TimeService.DAY);
+      double costSummary = 0;
+      double summary = 0, cumulativeSummary = 0;
+
+      for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
+
+        summary = getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type);
+
+        log.debug("Cost for hour " + hour + ":" + tariff.getUsageCharge(now, 1, 0));
+        cumulativeSummary += summary;
+        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
+        now = now.plus(TimeService.HOUR);
+      }
+      log.debug("Variable Cost Summary: " + finalCostSummary);
+      finalCostSummary += costSummary;
+    }
+    return finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
+  }
+
+  /**
+   * This is the new function, used in order to find the most cost efficient
+   * tariff over the available ones. It is using Daily shifting in order to put
+   * the appliances operation in most suitable hours (less costly) of the day.
+   * 
+   * @param tariff
+   * @return
+   */
+  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
+  {
+
+    double finalCostSummary = 0;
+
+    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    Instant base = timeService.getCurrentTime().minus(serial * TimeService.HOUR);
+    int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
+
+    for (int day : daysList) {
+      if (day < daylimit)
+        day = (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
+      Instant now = base.plus(day * TimeService.DAY);
+      double costSummary = 0;
+      double summary = 0, cumulativeSummary = 0;
+
+      long[] newControllableLoad = dailyShifting(tariff, now, day, type);
+
+      for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
+        summary = getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
+        cumulativeSummary += summary;
+        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
+        now = now.plus(TimeService.HOUR);
+      }
+      log.debug("Variable Cost Summary: " + finalCostSummary);
+      finalCostSummary += costSummary;
+    }
+    return finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
+  }
+
+  /**
+   * This is the function that realizes the mathematical possibility formula for
+   * the choice of tariff.
+   */
+  int logitPossibilityEstimation (Vector<Double> estimation, String type)
+  {
+
+    double lamda = lamdaMap.get(type);
+    double summedEstimations = 0;
+    Vector<Integer> randomizer = new Vector<Integer>();
+    Vector<Integer> possibilities = new Vector<Integer>();
+
+    for (int i = 0; i < estimation.size(); i++) {
+      summedEstimations += Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i));
+      log.debug("Cost variable: " + estimation.get(i));
+      log.debug("Summary of Estimation: " + summedEstimations);
+    }
+
+    for (int i = 0; i < estimation.size(); i++) {
+      possibilities.add((int) (OfficeComplexConstants.PERCENTAGE * (Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i)) / summedEstimations)));
+      for (int j = 0; j < possibilities.get(i); j++) {
+        randomizer.add(i);
+      }
+    }
+
+    log.debug("Randomizer Vector: " + randomizer);
+    log.debug("Possibility Vector: " + possibilities.toString());
+    int index = randomizer.get((int) (randomizer.size() * rs1.nextDouble()));
+    log.debug("Resulting Index = " + index);
+    return index;
+  }
+
+  // =====SHIFTING FUNCTIONS===== //
+
+  /**
+   * This is the function that takes every office in the office complex and
+   * reads the shifted Controllable Consumption for the needs of the tariff
+   * evaluation.
+   * 
+   * @param tariff
+   * @param now
+   * @param day
+   * @param type
+   * @return
+   */
+  long[] dailyShifting (Tariff tariff, Instant now, int day, String type)
+  {
+
+    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    } else {
+      offices = smartShiftingoffices;
+    }
+
+    for (Office office : offices) {
+      long[] temp = office.dailyShifting(tariff, now, dayTemp, gen);
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++)
+        newControllableLoad[j] += temp[j];
+    }
+
+    log.debug("New Controllable Load of OfficeComplex " + toString() + " type " + type + " for Tariff " + tariff.toString());
+
+    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+      log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0) + " Load For Type " + type + " : " + newControllableLoad[i]);
+      now = new Instant(now.getMillis() + TimeService.HOUR);
+    }
+    return newControllableLoad;
+  }
+
+  // =====STATUS FUNCTIONS===== //
+
+  /**
+   * This function prints to the screen the daily load of the office complex's
+   * offices for the weekday at hand.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  void printDailyLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    } else {
+      offices = smartShiftingoffices;
+    }
+
+    log.debug("Day " + day);
+
+    for (Office office : offices) {
+      office.printDailyLoad(dayTemp);
+    }
+
+  }
+
+  // =====VECTOR CREATION===== //
+
+  /**
+   * This function is creating a certain number of random days that will be
+   * public vacation for the people living in the environment.
+   * 
+   * @param days
+   * @param gen
+   * @return
+   */
+  Vector<Integer> createPublicVacationVector (int days)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v = new Vector<Integer>(days);
+
+    for (int i = 0; i < days; i++) {
+      int x = gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
+      ListIterator<Integer> iter = v.listIterator();
+      while (iter.hasNext()) {
+        int temp = (int) iter.next();
+        if (x == temp) {
+          x = x + 1;
+          iter = v.listIterator();
+        }
+      }
+      v.add(x);
+    }
+    java.util.Collections.sort(v);
+    return v;
+  }
+
+  /**
+   * This function is creating the list of days for each office complex that
+   * will be utilized for the tariff evaluation.
+   * 
+   * @param days
+   * @param gen
+   * @return
+   */
+  void createCostEstimationDaysList (int days)
+  {
+
+    for (int i = 0; i < days; i++) {
+      int x = gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
+      ListIterator<Integer> iter = daysList.listIterator();
+      while (iter.hasNext()) {
+        int temp = (int) iter.next();
+        if (x == temp) {
+          x = x + 1;
+          iter = daysList.listIterator();
+        }
+      }
+      daysList.add(x);
+    }
+    java.util.Collections.sort(daysList);
+
+  }
+
+  // =====STEP FUNCTIONS===== //
+
+  @Override
+  public void step ()
+  {
+    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
+    int hour = timeService.getHourOfDay();
+    Instant now = new Instant(timeService.getCurrentTime().getMillis());
+
+    weatherCheck(day, hour, now);
+
+    checkRevokedSubscriptions();
+    consumePower();
+
+    if (hour == 23)
+      rescheduleNextDay("SS");
+
+  }
+
+  /**
+   * This function is utilized in order to check the weather at each time tick
+   * of the competition clock and reschedule the appliances that are weather
+   * sensitive to work.
+   */
+  void weatherCheck (int day, int hour, Instant now)
+  {
+
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    WeatherReport wr = weatherReportRepo.currentWeatherReport();
+    if (wr != null) {
+      double temperature = wr.getTemperature();
+      // log.debug("Temperature: " + temperature);
+
+      Vector<Office> offices = getOffices();
+
+      for (Office office : offices) {
+        office.weatherCheck(dayTemp, hour, now, temperature);
+      }
+
+      for (String type : subscriptionMap.keySet()) {
+        updateAggDailyWeatherSensitiveLoad(type, day);
+        if (dayTemp + 1 < OfficeComplexConstants.DAYS_OF_COMPETITION) {
+          updateAggDailyWeatherSensitiveLoad(type, dayTemp + 1);
+        }
+        // showAggDailyLoad(type, dayTemp);
+        // showAggDailyLoad(type, dayTemp + 1);
+      }
+    }
+  }
+
+  /**
+   * This function is utilized in order to reschedule the consumption load for
+   * the next day of the competition according to the tariff rates of the
+   * subscriptions under contract.
+   */
+  void rescheduleNextDay (String type)
+  {
+    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
+    Instant now = new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
+
+    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    Vector<Long> controllableVector = new Vector<Long>();
+
+    TariffSubscription sub = subscriptionMap.get(type);
+
+    log.debug("Old Consumption for day " + day + ": " + getControllableConsumptions(dayTemp, type).toString());
+    long[] newControllableLoad = dailyShifting(sub.getTariff(), now, dayTemp, type);
+    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++)
+      controllableVector.add(newControllableLoad[i]);
+    log.debug("New Consumption for day " + day + ": " + controllableVector.toString());
+
+    aggDailyBaseLoadInHoursSS.set(dayTemp, controllableVector);
+
+  }
+
+  @Override
+  public String toString ()
+  {
+    return customerInfo.toString();
+  }
+
+}
