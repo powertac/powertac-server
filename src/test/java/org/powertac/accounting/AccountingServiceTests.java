@@ -267,6 +267,7 @@ public class AccountingServiceTests
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
       tariffB1, customerInfo2, 7, 77.0, 7.7);
     assertEquals("correct number in list", 2, accountingService.getPendingTransactions().size());
+    assertEquals("correct number in ttx list", 2, accountingService.getPendingTariffTransactions().size());
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
     List<BrokerTransaction> signups = filter(pending,
                                              new Predicate<BrokerTransaction>() {
@@ -324,6 +325,7 @@ public class AccountingServiceTests
         timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
         timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
+    assertEquals("no tariff tx", 0, accountingService.getPendingTariffTransactions().size());
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
     assertEquals("correct number in list", 2, pending.size());
     MarketTransaction mtx = (MarketTransaction)pending.get(0);
