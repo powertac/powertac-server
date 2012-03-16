@@ -599,6 +599,7 @@ public class Rate extends XStreamStateLoggable
     }
   }
 
+  @Override
   public String toString ()
   {
     String result = "Rate." + IdGenerator.getString(id) + ":";
