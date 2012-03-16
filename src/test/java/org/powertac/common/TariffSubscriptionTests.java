@@ -17,6 +17,9 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
+
+import java.util.List;
+
 import org.mockito.ArgumentCaptor;
 
 import javax.annotation.Resource;
@@ -30,6 +33,10 @@ import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.msg.BalancingControlEvent;
+import org.powertac.common.msg.ControlEvent;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,6 +57,12 @@ public class TariffSubscriptionTests
   @Autowired
   TimeService timeService;
   
+  @Autowired
+  TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  TariffRepo tariffRepo;
+  
   @Resource
   Accounting mockAccounting;
   
@@ -68,8 +81,10 @@ public class TariffSubscriptionTests
   public void setUp () throws Exception
   {
     //timeService = new TimeService();
+    reset(mockAccounting);
     baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(baseTime);
+    Competition.newInstance("tst").withSimulationBaseTime(baseTime);
     broker = new Broker("Jenny");
     customer = new CustomerInfo("Podunk", 23).addPowerType(PowerType.CONSUMPTION);
     //customer = new AbstractCustomer(info);
@@ -223,5 +238,76 @@ public class TariffSubscriptionTests
     // move forward another three days, there should now be 33 expired
     timeService.setCurrentTime(now.plus(TimeService.DAY * 6));
     assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
+  }
+  
+  @Test
+  public void testBalancingControl ()
+  {
+    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+               .withExpiration(baseTime.plus(TimeService.DAY * 10))
+               .withMinDuration(TimeService.DAY * 5)
+               .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    sub.subscribe(10);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                tariff, customer, 10, 0.0, -0.0);
+    Timeslot ts10 = timeslotRepo.findOrCreateBySerialNumber(10);
+    sub.usePower(100.0);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
+                                                eq(tariff), eq(customer), eq(10), eq(-100.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    sub.postBalancingControl(30.0);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.PRODUCE),
+                                                eq(tariff), eq(customer), eq(10), eq(30.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", -2.7, chargeArg.getValue(), 1e-6);
+    assertEquals("correct curtailment", 30.0, sub.getCurtailment(), 1e-6);
+    assertEquals("no curtailment", 0.0, sub.getCurtailment(), 1e-6);
+  }
+  
+  @Test
+  public void testEconomicControl ()
+  {
+    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+               .withExpiration(baseTime.plus(TimeService.DAY * 10))
+               .withMinDuration(TimeService.DAY * 5)
+               .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    sub.subscribe(10);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                tariff, customer, 10, 0.0, -0.0);
+    Timeslot ts10 = timeslotRepo.findOrCreateBySerialNumber(10);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot().getSerialNumber());
+    
+    sub.usePower(100.0);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
+                                                eq(tariff), eq(customer), eq(10), eq(-100.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    assertEquals("full curtailment available", 50.0, 
+                 sub.getMaxRemainingCurtailment(), 1e-6);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    sub.postRatioControl(0.2);
+    sub.usePower(100.0);
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
+                                                eq(tariff), eq(customer), eq(10), eq(-80.0), 
+                                                chargeArg.capture());
+    assertEquals("correct charge", 7.2, chargeArg.getValue(), 1e-6);
+    assertEquals("partial curtailment available", 30.0, 
+                 sub.getMaxRemainingCurtailment(), 1e-6);
+    assertEquals("correct curtailment", 20.0, sub.getCurtailment(), 1e-6);
+    assertEquals("no curtailment", 0.0, sub.getCurtailment(), 1e-6);
   }
 }
