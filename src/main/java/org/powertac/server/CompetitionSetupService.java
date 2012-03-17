@@ -116,7 +116,7 @@ public class CompetitionSetupService
    * Processes command-line arguments, which means looking for the specified 
    * script file and processing that
    */
-  void processCmdLine (String[] args)
+  public void processCmdLine (String[] args)
   {
     // pick up and process the command-line arg if it's there
     if (args.length > 1) {
