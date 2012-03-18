@@ -50,7 +50,7 @@ public class MicrowaveOven extends SemiShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("MicrowaveOvenSaturation"));
     power = (int) (OfficeComplexConstants.MICROWAVE_OVEN_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.MICROWAVE_OVEN_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.MICROWAVE_OVEN_DURATION_CYCLE;
-    operationPercentage = 0.5;
+    operationPercentage = OfficeComplexConstants.MICROWAVE_OVEN_OPERATION_PERCENTAGE;
     times = Integer.parseInt(conf.getProperty("MicrowaveOvenDailyTimes"));
 
   }
@@ -88,15 +88,13 @@ public class MicrowaveOven extends SemiShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // In order for stove to work someone must be in the house for half hour
-    for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY - 1; j++) {
-      if (applianceOf.isWorking(day, j) == false && applianceOf.isWorking(day, j + 1) == false)
+    for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
+      if (applianceOf.isOnBreak(day, j) == true)
         possibilityDailyOperation.add(true);
       else
         possibilityDailyOperation.add(false);
     }
 
-    // For the last time, without check because it is the next day
-    possibilityDailyOperation.add(false);
     return possibilityDailyOperation;
   }
 
@@ -116,7 +114,7 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
     for (int i = OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1; i < OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2; i++) {
 
-      if ((minvalue < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+      if ((minvalue < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue = tariff.getUsageCharge(hour1, 1, 0);
         minindex = i;
       }

@@ -40,7 +40,6 @@ public class VendingMachine extends FullyShiftingAppliance
   @Override
   public void initialize (String office, Properties conf, Random gen)
   {
-
     // Filling the base variables
     name = office + " Vending Machine";
     saturation = Double.parseDouble(conf.getProperty("VendingMachineSaturation"));
@@ -98,7 +97,7 @@ public class VendingMachine extends FullyShiftingAppliance
 
       // For each shifting period we search the best value
       for (int j = 0; j < OfficeComplexConstants.VENDING_MACHINE_SHIFTING_INTERVAL; j++) {
-        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }

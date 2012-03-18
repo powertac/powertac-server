@@ -45,7 +45,7 @@ public class CoffeeMachine extends FullyShiftingAppliance
   {
 
     // Filling the base variables
-    name = office + " Refrigerator";
+    name = office + " CoffeeMachine";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
     power = (int) (OfficeComplexConstants.COFFEE_MACHINE_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.COFFEE_MACHINE_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.COFFEE_MACHINE_DURATION_CYCLE;
@@ -60,7 +60,10 @@ public class CoffeeMachine extends FullyShiftingAppliance
 
     // Freezer can work anytime
     for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      possibilityDailyOperation.add(true);
+      if (applianceOf.isWorking(day, j) == true)
+        possibilityDailyOperation.add(true);
+      else
+        possibilityDailyOperation.add(false);
     }
 
     return possibilityDailyOperation;
@@ -111,7 +114,7 @@ public class CoffeeMachine extends FullyShiftingAppliance
 
         // For each shifting period we search the best value
         for (int j = 0; j < OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_INTERVAL; j++) {
-          if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+          if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
             minvalue = tariff.getUsageCharge(now2, 1, 0);
             minindex = j;
           }

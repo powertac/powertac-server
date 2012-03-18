@@ -59,7 +59,7 @@ public class CopyMachine extends SemiShiftingAppliance
 
     // Lights need to operate only when someone is in the house
     for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isWorking(day, j) == false)
+      if (applianceOf.isWorking(day, j) == true)
         possibilityDailyOperation.add(true);
       else
         possibilityDailyOperation.add(false);
@@ -121,12 +121,12 @@ public class CopyMachine extends SemiShiftingAppliance
 
       newControllableLoad[i] = OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
 
-      if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+      if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue[1] = minvalue[0];
         minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
         minindex[1] = minindex[0];
         minindex[0] = i;
-      } else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+      } else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
         minindex[1] = i;
       }

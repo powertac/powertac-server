@@ -209,11 +209,11 @@ public class Office
     for (Appliance appliance : appliances) {
       appliance.setOperationDays();
     }
-
+    /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
-    /*
+    
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());

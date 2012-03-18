@@ -28,7 +28,7 @@ public class OfficeComplexConstants
   public static final int MWH = 1000000;
   public static final int MILLION = 1000000;
   public static final int MEAN_TARIFF_DURATION = 5;
-  public static final double HALF = 0.5;
+  public static final double SAME = 0.60;
   public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.02;
 
@@ -42,13 +42,15 @@ public class OfficeComplexConstants
   public static final int QUARTERS_OF_HOUR = 4;
   public static final int QUARTERS_OF_DAY = 96;
   public static final int HOURS_OF_DAY = 24;
-  public static final int PERSONS = 5;
+  public static final int MID_DAY_QUARTER = 48;
+  public static final int LUMINANCE_VARIANCE = 8;
 
-  // VILLAGE TYPES VARIABLES ---------------------//
+  // OFFICE COMPLEX TYPES VARIABLES ---------------------//
   public static final int NOT_SHIFTING_TYPE = 0;
   public static final int SMART_SHIFTING_TYPE = 1;
 
   // WORK VARIABLES -----------------------------//
+  public static final int PERSONS = 5;
   public static final int START_OF_WORK_MEAN = 32;
   public static final int START_OF_WORK_VARIANCE = 2;
 
@@ -134,6 +136,7 @@ public class OfficeComplexConstants
   public static final int MICROWAVE_OVEN_POWER_MEAN = 800;
   public static final int MICROWAVE_OVEN_POWER_VARIANCE = 307;
   public static final int MICROWAVE_OVEN_DURATION_CYCLE = 1;
+  public static final int MICROWAVE_OVEN_OPERATION_PERCENTAGE = 1;
 
   // REFRIGERATOR VARIABLES -----------------------------//
   public static final int REFRIGERATOR_POWER_MEAN = 140;
