@@ -57,7 +57,7 @@ public class Servers extends NotShiftingAppliance
 
     // Lights need to operate only when someone is in the house
     for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isWorking(day, j) == false)
+      if (applianceOf.isWorking(day, j) == true)
         possibilityDailyOperation.add(true);
       else
         possibilityDailyOperation.add(false);

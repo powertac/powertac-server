@@ -98,7 +98,7 @@ public class Refrigerator extends FullyShiftingAppliance
 
       // For each shifting period we search the best value
       for (int j = 0; j < OfficeComplexConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
-        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.HALF)) {
+        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }

@@ -436,7 +436,7 @@ public class AirCondition extends WeatherSensitiveAppliance
 
     // It can operate each quarter someone is at home to turn it on
     for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isEmpty(day, j) == false)
+      if (applianceOf.isWorking(day, j) == true)
         possibilityDailyOperation.add(true);
       else
         possibilityDailyOperation.add(false);

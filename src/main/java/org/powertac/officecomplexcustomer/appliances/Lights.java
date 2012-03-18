@@ -43,22 +43,6 @@ public class Lights extends NotShiftingAppliance
   }
 
   @Override
-  Vector<Boolean> createDailyPossibilityOperationVector (int day)
-  {
-    Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
-
-    // Lights need to operate only when someone is in the house
-    for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isWorking(day, j) == false)
-        possibilityDailyOperation.add(true);
-      else
-        possibilityDailyOperation.add(false);
-    }
-
-    return possibilityDailyOperation;
-  }
-
-  @Override
   public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing and Creating auxiliary variables

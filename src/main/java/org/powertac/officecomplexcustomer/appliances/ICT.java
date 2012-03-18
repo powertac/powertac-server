@@ -47,22 +47,6 @@ public class ICT extends NotShiftingAppliance
   }
 
   @Override
-  Vector<Boolean> createDailyPossibilityOperationVector (int day)
-  {
-    Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
-
-    // The ICT appliances need someone to be there to operate them
-    for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isWorking(day, j) == false)
-        possibilityDailyOperation.add(true);
-      else
-        possibilityDailyOperation.add(false);
-    }
-
-    return possibilityDailyOperation;
-  }
-
-  @Override
   public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing and Creating auxiliary variables

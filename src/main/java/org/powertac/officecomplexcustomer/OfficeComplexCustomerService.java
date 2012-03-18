@@ -134,16 +134,14 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
       configFile2 = "OfficeComplexDefault.properties";
     }
 
+    daysOfCompetition = Competition.currentCompetition().getExpectedTimeslotCount() / OfficeComplexConstants.HOURS_OF_DAY;
+    OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
+    daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
+
     if (daysOfCompetition == 0) {
       log.info("No Days Of Competition Taken");
       daysOfCompetition = 63;
     }
-
-    super.init();
-
-    OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
-    daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
-
     // =======FIRST OFFICE COMPLEX TYPE=========//
 
     InputStream cfgFile = null;
