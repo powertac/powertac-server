@@ -115,7 +115,7 @@ public class WorkingPerson extends Person
     int counter = duration;
     int counter2 = 0;
     while (counter > 0) {
-      int x = (int) gen.nextInt(VillageConstants.DAYS_OF_COMPETITION - 1) + 1;
+      int x = (int) gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP - 1) + 1;
       counter2 = 1 + (int) (gen.nextInt(counter));
       while (counter2 > 0) {
         v.add(x);
@@ -221,7 +221,7 @@ public class WorkingPerson extends Person
     log.debug("Weekly Routine : ");
     ListIterator<Status> iter2 = weeklyRoutine.get(0).listIterator();
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)

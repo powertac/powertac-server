@@ -16,7 +16,6 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.ListIterator;
 import java.util.Random;
 import java.util.Vector;
 
@@ -37,66 +36,54 @@ class SemiShiftingAppliance extends Appliance
   /** This vector contains the weekdays that the appliance will be functioning. */
   Vector<Integer> days = new Vector<Integer>();
 
+  /** This array contains the times of operation for last weeks days. */
+  int[] lastWeek = new int[VillageConstants.DAYS_OF_WEEK];
+
   /** This function returns days vector of the appliance */
   public Vector<Integer> getDays ()
   {
     return days;
   }
 
-  @Override
-  Vector<Boolean> createDailyOperationVector (int weekday, Random gen)
+  /**
+   * This function returns the times of operation for a certain day of the
+   * appliance
+   */
+  public int getTimesForDay (int day)
   {
-    // Creating Auxiliary Variables
-    Vector<Boolean> v = new Vector<Boolean>(VillageConstants.QUARTERS_OF_DAY);
-
-    // First initialize all to false
-    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++)
-      v.add(false);
-    if (days.contains(weekday) && ((this instanceof Dryer) == false)) {
-      int quarter = gen.nextInt(VillageConstants.END_OF_FUNCTION);
-      v.set(quarter, true);
-    }
-    return v;
-  }
-
-  @Override
-  void createWeeklyOperationVector (int times, Random gen)
-  {
-    fillDays(times, gen);
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      operationVector.add(createDailyOperationVector(i, gen));
-  }
-
-  @Override
-  public void fillWeeklyFunction (Random gen)
-  {
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      fillDailyFunction(i, gen);
+    return days.get(day);
   }
 
   /**
-   * This function fills out the vector that contains the days of the week that
-   * the appliance is functioning.
+   * This function fills out the vector that contains the days that the
+   * appliance is functioning.
    * 
    * @param times
    * @return
    */
-  void fillDays (int times, Random gen)
+  void fillDays (Random gen)
   {
+    lastWeek = new int[VillageConstants.DAYS_OF_WEEK];
+
     for (int i = 0; i < times; i++) {
-      int day = gen.nextInt(VillageConstants.DAYS_OF_WEEK - 1);
-      ListIterator<Integer> iter = days.listIterator();
-      while (iter.hasNext()) {
-        int temp = (int) iter.next();
-        if (day == temp) {
-          day = day + 1;
-          iter = days.listIterator();
-        }
-      }
-      days.add(day);
-      java.util.Collections.sort(days);
+      int temp = gen.nextInt(VillageConstants.DAYS_OF_WEEK);
+      if (lastWeek[temp] < VillageConstants.OPERATION_DAILY_TIMES_LIMIT)
+        lastWeek[temp]++;
+      else
+        i--;
     }
-    java.util.Collections.sort(days);
+
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
+      days.add(lastWeek[i]);
+    }
+
   }
 
+  @Override
+  public void fillWeeklyOperation (Random gen)
+  {
+    if ((this instanceof Stove) == false)
+      fillDays(gen);
+    super.fillWeeklyOperation(gen);
+  }
 }

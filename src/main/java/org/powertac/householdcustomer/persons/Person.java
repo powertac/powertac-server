@@ -83,15 +83,15 @@ public class Person
   int leisureDuration = 0;
 
   /**
-   * This is a vector of the person's status in quarterly fashion.
-   **/
-  Vector<Status> dailyRoutine = new Vector<Status>();
-
-  /**
    * This is a vector containing the days of the week that the person has
    * leisure time.
    **/
   Vector<Integer> leisureVector = new Vector<Integer>();
+
+  /**
+   * This is a vector of the person's status in quarterly fashion.
+   **/
+  Vector<Status> dailyRoutine = new Vector<Status>();
 
   /** The weekly schedule and status of the person. **/
   Vector<Vector<Status>> weeklyRoutine = new Vector<Vector<Status>>();
@@ -227,7 +227,7 @@ public class Person
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION) + 1;
+      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP) + 1;
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();

@@ -40,7 +40,7 @@ public class Freezer extends FullyShiftingAppliance
   public void fillWeeklyFunction (Random gen)
   {
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      fillDailyFunction(i, gen);
+      fillDailyOperation(i, gen);
   }
 
   @Override
@@ -52,7 +52,6 @@ public class Freezer extends FullyShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("FreezerSaturation"));
     power = (int) (VillageConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.FREEZER_POWER_MEAN);
     cycleDuration = VillageConstants.FREEZER_DURATION_CYCLE;
-    od = false;
 
   }
 
@@ -71,14 +70,15 @@ public class Freezer extends FullyShiftingAppliance
   }
 
   @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
+    int k = gen.nextInt(cycleDuration);
 
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (i % cycleDuration == 0) {
+      if (i % cycleDuration == k) {
         loadVector.add(power);
         dailyOperation.add(true);
       } else {
@@ -88,7 +88,6 @@ public class Freezer extends FullyShiftingAppliance
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-    operationVector.add(dailyOperation);
   }
 
   @Override
@@ -100,19 +99,19 @@ public class Freezer extends FullyShiftingAppliance
     Instant now2 = now;
 
     // Daily operation is seperated in shifting periods
-    for (int i = 0; i < VillageConstants.FREEZER_SHIFTING_PERIODS; i++) {
-      double minvalue = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < VillageConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
+      double minvalue = Double.NEGATIVE_INFINITY;
       int minindex = 0;
 
       // For each shifting period we search the best value
-      for (int j = 0; j < VillageConstants.FREEZER_SHIFTING_INTERVAL; j++) {
-        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.HALF)) {
+      for (int j = 0; j < VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
+        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.SAME)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }
         now2 = new Instant(now2.getMillis() + TimeService.HOUR);
       }
-      newControllableLoad[VillageConstants.FREEZER_SHIFTING_INTERVAL * i + minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL * i + minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
     }
     return newControllableLoad;
   }
@@ -120,7 +119,7 @@ public class Freezer extends FullyShiftingAppliance
   @Override
   public void refresh (Random gen)
   {
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

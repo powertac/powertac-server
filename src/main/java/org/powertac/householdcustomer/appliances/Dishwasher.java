@@ -52,9 +52,7 @@ public class Dishwasher extends SemiShiftingAppliance
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
     power = (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
     cycleDuration = VillageConstants.DISHWASHER_DURATION_CYCLE;
-    od = false;
     times = Integer.parseInt(conf.getProperty("DishwasherWeeklyTimes")) + applianceOf.getMembers().size();
-    createWeeklyOperationVector(times, gen);
   }
 
   @Override
@@ -65,18 +63,17 @@ public class Dishwasher extends SemiShiftingAppliance
     log.debug("Saturation = " + saturation);
     log.debug("Power = " + power);
     log.debug("Cycle Duration = " + cycleDuration);
-    log.debug("Occupancy Dependence = " + od);
-
+    log.debug("Weekly Times = " + times);
     // Printing Function Day Vector
-    ListIterator<Integer> iter = days.listIterator();
+
     log.debug("Days Vector = ");
-    while (iter.hasNext())
-      log.debug("Day  " + iter.next());
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++)
+      log.debug("Day: " + i + " Times: " + days.get(i));
 
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
@@ -92,8 +89,7 @@ public class Dishwasher extends SemiShiftingAppliance
     Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
 
     // The dishwasher needs for someone to be in the house at the beginning and
-    // the end of its
-    // function
+    // the end of its function.
     for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
       if (checkHouse(day, j) == true)
         possibilityDailyOperation.add(false);
@@ -104,36 +100,42 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
 
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    Vector<Boolean> operation = operationVector.get(weekday);
+
     for (int l = 0; l < VillageConstants.QUARTERS_OF_DAY; l++) {
       loadVector.add(0);
       dailyOperation.add(false);
     }
 
-    // Check all quarters of the day
-    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (operation.get(i) == true) {
-        boolean flag = true;
-        while (flag && i < (VillageConstants.QUARTERS_OF_DAY - VillageConstants.DISHWASHER_DURATION_CYCLE + 1)) {
-          boolean empty = checkHouse(weekday, i);
-          if (empty == false) {
-            for (int k = i; k < i + VillageConstants.DISHWASHER_DURATION_CYCLE; k++) {
-              loadVector.set(k, power);
-              dailyOperation.set(k, true);
-              if (k == VillageConstants.QUARTERS_OF_DAY - 1)
-                break;
-            }
-            i = VillageConstants.QUARTERS_OF_DAY;
-            flag = false;
-          } else {
-            i++;
+    if (lastWeek[weekday] > 0) {
+      Vector<Integer> temp = new Vector<Integer>();
+
+      for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY - cycleDuration; i++) {
+        if (checkHouse(weekday, i) == false) {
+          int count = applianceOf.tenantsNumber(weekday, i + cycleDuration);
+          for (int j = 0; j < count; j++) {
+            temp.add(i);
           }
+        }
+      }
+
+      if (temp.size() > 0) {
+        for (int i = 0; i < lastWeek[weekday]; i++) {
+          int rand = gen.nextInt(temp.size());
+          int quarter = temp.get(rand);
+
+          for (int j = 0; j < cycleDuration; j++) {
+            dailyOperation.set(quarter + j, true);
+            loadVector.set(quarter + j, power);
+          }
+          temp.remove(rand);
+          if (temp.size() == 0)
+            break;
         }
       }
     }
@@ -155,7 +157,7 @@ public class Dishwasher extends SemiShiftingAppliance
     if (quarter + VillageConstants.DISHWASHER_DURATION_CYCLE >= VillageConstants.QUARTERS_OF_DAY)
       return true;
     else
-      return applianceOf.isEmpty(weekday, quarter + VillageConstants.DISHWASHER_DURATION_CYCLE);
+      return applianceOf.isEmpty(weekday, quarter + cycleDuration);
 
   }
 
@@ -165,48 +167,61 @@ public class Dishwasher extends SemiShiftingAppliance
 
     long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
-    if (operationDaysVector.get(day)) {
-      int minindex = 0;
+    if (days.get(day) > 0) {
+
+      int[] minindex = new int[2];
+      double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
       boolean[] functionMatrix = createShiftingOperationMatrix(day);
+      Instant hour1 = now;
+      Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
+      Vector<Integer> possibleHours = new Vector<Integer>();
+      double newValue = 0;
 
-      // If we have a fixed tariff rate
-      if ((tariff.getTariffSpec().getRates().size() == 1) && (tariff.getTariffSpec().getRates().get(0).isFixed())) {
-        Vector<Integer> possibleHours = new Vector<Integer>();
-
-        // find the all the available functioning hours of the appliance
-        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-          if (functionMatrix[i] && functionMatrix[i + 1]) {
-            possibleHours.add(i);
-          }
+      // find the all the available functioning hours of the appliance
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        if (functionMatrix[i] && functionMatrix[i + 1]) {
+          possibleHours.add(i);
         }
-
-        if (possibleHours.size() == 0) {
-          return newControllableLoad;
-        }
-
-        minindex = possibleHours.get(gen.nextInt(possibleHours.size()));
       }
-      // case of variable tariff rate
-      else {
 
-        double minvalue = Double.POSITIVE_INFINITY;
-        Instant hour1 = now;
-        Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
+      if (possibleHours.size() == 0) {
+        return newControllableLoad;
+      }
 
-        // find the all the available functioning hours of the appliance
-        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-          if (functionMatrix[i] && functionMatrix[i + 1]) {
-            if (minvalue >= tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0)) {
-              minvalue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0);
-              minindex = i;
-            }
+      // find the all the available functioning hours of the appliance
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        if (possibleHours.contains(i)) {
+
+          newValue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0);
+
+          if ((minvalue[0] < newValue) || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+            minvalue[1] = minvalue[0];
+            minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
+            minindex[1] = minindex[0];
+            minindex[0] = i;
+          } else if ((minvalue[1] < newValue) || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+            minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
+            minindex[1] = i;
           }
+
           hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
           hour2 = new Instant(hour2.getMillis() + TimeService.HOUR);
+
         }
       }
-      newControllableLoad[minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
-      newControllableLoad[minindex + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+
+      if (days.get(day) == VillageConstants.OPERATION_DAILY_TIMES_LIMIT) {
+
+        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1]] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+
+      } else {
+        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+      }
+
     }
     return newControllableLoad;
   }
@@ -214,8 +229,7 @@ public class Dishwasher extends SemiShiftingAppliance
   @Override
   public void refresh (Random gen)
   {
-    createWeeklyOperationVector(times, gen);
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

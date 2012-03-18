@@ -55,6 +55,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
+import org.powertac.common.configurations.VillageConstants;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -190,18 +191,20 @@ public class HouseholdCustomerServiceTests
       }
     }).when(mockServerProperties).configureMe(anyObject());
 
-  }
-
-  public void initializeService ()
-  {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("householdcustomer.householdCustomerService.configFile1", "VillageType1.properties");
     map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
     map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
     map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
-    map.put("householdcustomer.householdCustomerService.daysOfCompetition", "70");
+    map.put("common.competition.expectedTimeslotCount", "1440");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
+    config.configureSingleton(comp);
+
+  }
+
+  public void initializeService ()
+  {
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerService.initialize(comp, inits);
@@ -209,20 +212,13 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
-    assertEquals("correct days of competition", 70, householdCustomerService.getDaysOfCompetition());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
   }
 
+  // @Repeat(20)
   @Test
   public void testNormalInitialization ()
   {
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("householdcustomer.householdCustomerService.configFile1", "VillageType1.properties");
-    map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
-    map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
-    map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
-    map.put("householdcustomer.householdCustomerService.daysOfCompetition", "8");
-    Configuration mapConfig = new MapConfiguration(map);
-    config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     String result = householdCustomerService.initialize(comp, inits);
@@ -231,10 +227,11 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
-    assertEquals("correct days of competition", 14, householdCustomerService.getDaysOfCompetition());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
 
   }
 
+  // @Repeat(20)
   @Test
   public void testNormalInitializationWithoutConfig ()
   {
@@ -244,7 +241,6 @@ public class HouseholdCustomerServiceTests
     map2.put("householdcustomer.householdCustomerService.configFile2", null);
     map2.put("householdcustomer.householdCustomerService.configFile3", null);
     map2.put("householdcustomer.householdCustomerService.configFile4", null);
-    map2.put("householdcustomer.householdCustomerService.daysOfCompetition", "0");
     Configuration mapConfig = new MapConfiguration(map2);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
@@ -255,9 +251,10 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile2());
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile3());
     assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile4());
-    assertEquals("correct days of competition", 63, householdCustomerService.getDaysOfCompetition());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
   }
 
+  // @Repeat(20)
   @Test
   public void testBogusInitialization ()
   {
@@ -267,6 +264,7 @@ public class HouseholdCustomerServiceTests
     inits.add("DefaultBroker");
   }
 
+  // @Repeat(20)
   @Test
   public void testServiceInitialization ()
   {
@@ -294,6 +292,7 @@ public class HouseholdCustomerServiceTests
     }
   }
 
+  // @Repeat(20)
   @Test
   public void testPowerConsumption ()
   {
@@ -326,6 +325,7 @@ public class HouseholdCustomerServiceTests
 
   }
 
+  // @Repeat(20)
   @Test
   public void changeSubscription ()
   {
@@ -420,6 +420,7 @@ public class HouseholdCustomerServiceTests
     }
   }
 
+  // @Repeat(20)
   @Test
   public void revokeSubscription ()
   {
@@ -461,9 +462,6 @@ public class HouseholdCustomerServiceTests
     assertNotNull("third tariff found", tariff3);
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    //TariffStatus st = new TariffStatus(broker1, tariff2.getId(), tariff2.getId(), TariffStatus.Status.success);
-    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
-
     for (Village customer : householdCustomerService.getVillageList()) {
 
       TariffSubscription tsd = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION), customer.getCustomerInfo());
@@ -488,10 +486,7 @@ public class HouseholdCustomerServiceTests
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
-    //TariffStatus status = mockTariffMarket.processTariff(tex);
     tariff2.setState(Tariff.State.KILLED);
-    //assertNotNull("non-null status", status);
-    //assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
@@ -500,13 +495,9 @@ public class HouseholdCustomerServiceTests
     }
 
     TariffStatus st2 = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
-    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st2);
 
     TariffRevoke tex2 = new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
-    //TariffStatus status2 = mockTariffMarket.processTariff(tex2);
     tariff3.setState(Tariff.State.KILLED);
-    //assertNotNull("non-null status", status2);
-    //assertEquals("success", TariffStatus.Status.success, status2.getStatus());
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
@@ -516,6 +507,7 @@ public class HouseholdCustomerServiceTests
 
   }
 
+  // @Repeat(20)
   @Test
   public void testPublishAndEvaluatingTariffs ()
   {
@@ -571,6 +563,7 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.publishNewTariffs(tclist2);
   }
 
+  // @Repeat(20)
   @Test
   public void testSupersedingTariffs ()
   {
@@ -630,15 +623,9 @@ public class HouseholdCustomerServiceTests
     // Test the function with different inputs, in order to get the same result.
     householdCustomerService.publishNewTariffs(tclist);
 
-    //TariffStatus st = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
-    //when(mockTariffMarket.processTariff(tariffRevokeArg.capture())).thenReturn(st);
-
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
-    //TariffStatus status = mockTariffMarket.processTariff(tex);
     tariff3.setState(Tariff.State.KILLED);
-    //assertNotNull("non-null status", status);
-    //assertEquals("success", TariffStatus.Status.success, status.getStatus());
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
@@ -656,6 +643,7 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.publishNewTariffs(tcactivelist);
   }
 
+  // @Repeat(20)
   @Test
   public void testDailyShifting ()
   {
@@ -748,6 +736,7 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
 
+  // @Repeat(20)
   @Test
   public void testWeather ()
   {
@@ -794,7 +783,7 @@ public class HouseholdCustomerServiceTests
     }
 
     for (Village customer : householdCustomerService.getVillageList()) {
-      customer.showAggDailyLoad("SS", 0);
+      customer.showAggDailyLoad("SS", 36);
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -861,4 +850,5 @@ public class HouseholdCustomerServiceTests
     }
 
   }
+
 }

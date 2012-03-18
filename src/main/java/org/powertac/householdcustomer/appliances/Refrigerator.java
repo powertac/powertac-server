@@ -38,15 +38,14 @@ public class Refrigerator extends FullyShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, Random gen)
   {
 
     // Filling the base variables
-    name = household + " Refrigerator";
+    name = office + " Refrigerator";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
     power = (int) (VillageConstants.REFRIGERATOR_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.REFRIGERATOR_POWER_MEAN);
     cycleDuration = VillageConstants.REFRIGERATOR_DURATION_CYCLE;
-    od = false;
   }
 
   @Override
@@ -64,14 +63,15 @@ public class Refrigerator extends FullyShiftingAppliance
   }
 
   @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
+    int k = gen.nextInt(cycleDuration);
 
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (i % cycleDuration == 0) {
+      if (i % cycleDuration == k) {
         loadVector.add(power);
         dailyOperation.add(true);
       } else {
@@ -81,7 +81,6 @@ public class Refrigerator extends FullyShiftingAppliance
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-    operationVector.add(dailyOperation);
   }
 
   @Override
@@ -94,12 +93,12 @@ public class Refrigerator extends FullyShiftingAppliance
 
     // Daily operation is seperated in shifting periods
     for (int i = 0; i < VillageConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
-      double minvalue = Double.POSITIVE_INFINITY;
+      double minvalue = Double.NEGATIVE_INFINITY;
       int minindex = 0;
 
       // For each shifting period we search the best value
       for (int j = 0; j < VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
-        if ((minvalue > tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.HALF)) {
+        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.SAME)) {
           minvalue = tariff.getUsageCharge(now2, 1, 0);
           minindex = j;
         }
@@ -113,7 +112,7 @@ public class Refrigerator extends FullyShiftingAppliance
   @Override
   public void refresh (Random gen)
   {
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

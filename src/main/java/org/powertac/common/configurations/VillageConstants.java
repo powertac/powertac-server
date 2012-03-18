@@ -28,8 +28,10 @@ public class VillageConstants
   public static final int MWH = 1000000;
   public static final int MILLION = 1000000;
   public static final int MEAN_TARIFF_DURATION = 5;
-  public static final double HALF = 0.5;
+  public static final double SAME = 0.60;
   public static final double EPSILON = 2.7;
+  public static final double OPERATION_PARTITION = 0.05;
+  public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;
@@ -41,6 +43,9 @@ public class VillageConstants
   public static final int QUARTERS_OF_HOUR = 4;
   public static final int QUARTERS_OF_DAY = 96;
   public static final int HOURS_OF_DAY = 24;
+  public static final int MID_DAY_QUARTER = 48;
+  public static final int LUMINANCE_VARIANCE = 16;
+  public static final int LUMINANCE_FACTOR = 40;
 
   // VILLAGE TYPES VARIABLES ---------------------//
   public static final int NOT_SHIFTING_TYPE = 0;
@@ -97,7 +102,7 @@ public class VillageConstants
   // CIRCULATION PUMP VARIABLES -----------------------------//
   public static final int CIRCULATION_PUMP_POWER_MEAN = 90;
   public static final int CIRCULATION_PUMP_POWER_VARIANCE = 15;
-  public static final int CIRCULATION_PUMP_DURATION_CYCLE = 65;
+  public static final int CIRCULATION_PUMP_DURATION_CYCLE = 1;
 
   // CONSUMER ELECTRONICS VARIABLES -----------------------------//
   public static final int CONSUMER_ELECTRONICS_POWER_MEAN = 100;
@@ -170,7 +175,6 @@ public class VillageConstants
   public static final int STORAGE_HEATER_POWER_MEAN = 3000;
   public static final int STORAGE_HEATER_POWER_VARIANCE = 500;
   public static final int STORAGE_HEATER_DURATION_CYCLE = 8;
-
   public static final int STORAGE_HEATER_START = 20;
   public static final int STORAGE_HEATER_PHASES = 4;
   public static final int STORAGE_HEATER_PHASE_LOAD = 20;
