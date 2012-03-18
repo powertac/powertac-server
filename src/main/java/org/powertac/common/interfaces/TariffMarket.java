@@ -23,10 +23,6 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.msg.TariffExpire;
-import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffStatus;
-import org.powertac.common.msg.VariableRateUpdate;
 
 /**
  * Tariff Market Receives, validates, and stores new tariffs, enforces tariff 

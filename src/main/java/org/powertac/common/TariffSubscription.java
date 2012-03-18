@@ -215,31 +215,126 @@ public class TariffSubscription
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
    */
-  public void usePower (double kWh)
+  public void usePower (double kwh)
   {
-    log.info("usePower " + kWh + ", customer=" + customer.getName());
-    if (customer == null) {
-      log.error("null customerInfo for customer " + customer.getId());
-    }
+    // do curtailment first
+    double actualKwh = kwh - getCurtailedKwh(kwh, totalUsage);
+    log.info("usePower " + kwh + ", actual " + actualKwh + 
+             ", customer=" + customer.getName());
     // generate the usage transaction
-    TariffTransaction.Type txType = kWh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+    TariffTransaction.Type txType =
+        actualKwh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     accountingService.addTariffTransaction(txType, tariff,
-        customer, customersCommitted, -kWh,
-        customersCommitted * -tariff.getUsageCharge(kWh / customersCommitted, totalUsage, true));
+        customer, customersCommitted, -actualKwh,
+        customersCommitted * -tariff.getUsageCharge(actualKwh / customersCommitted, totalUsage, true));
     if (timeService.getHourOfDay() == 0) {
       //reset the daily usage counter
       totalUsage = 0.0;
     }
-    totalUsage += kWh / customersCommitted;
+    totalUsage += actualKwh / customersCommitted;
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
-      // (#417) tariff.addPeriodicPayment();
       accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
           tariff, customer, customersCommitted, 0.0,
           customersCommitted * -tariff.getPeriodicPayment() / 24.0);
     }
   }
   
+  // ------------- Controllable capacity ----------------
+  // pending economic curtailment (from phase 1)
+  double pendingCurtailmentRatio = 0.0;
+  // actual curtailment from previous timeslot
+  double curtailment = 0.0;
+  // maximum remaining curtailment after phase 2
+  double maxRemainingCurtailment = 0.0;
+  
+  
+  
+  /**
+   * Posts the ratio for an EconomicControlEvent to the subscription for the
+   * current timeslot. .
+   */
+  public synchronized void postRatioControl (double ratio)
+  {
+    pendingCurtailmentRatio = ratio;
+  }
+  
+  /**
+   * Posts a BalancingControlEvent to the subscription. This simply updates
+   * the curtailment for the current timeslot by the amout of the control.
+   * A positive value for kwh represents a reduction in consumption, or an
+   * increase in production - in other words, a net gain for the broker's
+   * energy account balance.
+   */
+  public synchronized void postBalancingControl (double kwh)
+  {
+    addCurtailment(kwh);
+    // issue compensating tariff transaction
+    TariffTransaction.Type txType =
+        kwh > 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+    accountingService.addTariffTransaction(txType, tariff,
+        customer, customersCommitted, kwh,
+        customersCommitted *
+        tariff.getUsageCharge(kwh / customersCommitted, 
+                              totalUsage, true));
+    totalUsage -= kwh / customersCommitted;
+  }
+  
+  /**
+   * Returns the curtailment in kwh for the previous timeslot. Note that this
+   * method is not idempotent; if you call it twice in the same timeslot, the
+   * second time returns zero.
+   */
+  public synchronized double getCurtailment ()
+  {
+    double result = curtailment;
+    curtailment = 0.0;
+    return result;
+  }
+  
+  /**
+   * Returns the maximum curtailment possible after the customer model has
+   * run and possibly applied economic controls.
+   */
+  public double getMaxRemainingCurtailment ()
+  {
+    return maxRemainingCurtailment;
+  }
+  
+  /**
+   * Returns the ratio curtailment in kwh for the current timeslot.
+   * Value is 0.0 for no curtailment, 1.0 for full curtailment.
+   * Value is the minimum of what's requested and what's allowed by the
+   * rates in effect given the time and cumulative usage.
+   */
+  double getCurtailedKwh (double proposedUsage, double cumulativeUsage)
+  {
+    // check for the usual case of no curtailment first
+    //if (0.0 == pendingCurtailmentRatio)
+    //  return 0.0;
+    
+    // otherwise find the minimum of what's asked for and what's allowed.
+    double proposedCurtailment = proposedUsage * pendingCurtailmentRatio;
+    maxRemainingCurtailment =
+        tariff.getMaxCurtailment(proposedUsage, cumulativeUsage);
+    double result = Math.min(proposedCurtailment, maxRemainingCurtailment);
+    log.debug("proposedCurtailment=" + proposedCurtailment +
+              ", maxCurtailment=" + maxRemainingCurtailment);
+    pendingCurtailmentRatio = 0.0;
+    curtailment += result; // saved until next timeslot
+    maxRemainingCurtailment -= result;
+    return result;
+  }
+  
+  /**
+   * Adds kwh to the curtailment in the current timeslot.
+   */
+  void addCurtailment (double kwh)
+  {
+    curtailment += kwh;
+  }
+  
+  // -------------------- Expiration data -------------------
   /**
    * Returns the number of individual customers who may withdraw from this
    * subscription without penalty.

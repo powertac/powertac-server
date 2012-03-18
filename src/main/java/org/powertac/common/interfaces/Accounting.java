@@ -11,6 +11,8 @@
 
 package org.powertac.common.interfaces;
 
+import java.util.List;
+
 import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.Broker;
@@ -77,6 +79,13 @@ public interface Accounting
    * Needed to run the balancing process.
    */
   public double getCurrentMarketPosition (Broker broker);
+  
+  /**
+   * Returns the list of pending tariff transactions for the current timeslot.
+   * List will be non-empty only after the customer models have begun reporting
+   * tariff transactions, and before the accounting service has run.
+   */
+  public List<TariffTransaction> getPendingTariffTransactions ();
   
   /**
    * Runs the accounting process. This needs to be here to support some tests
