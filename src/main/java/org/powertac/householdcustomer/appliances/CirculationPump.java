@@ -36,7 +36,7 @@ public class CirculationPump extends NotShiftingAppliance
    * Variable that presents the mean possibility to utilize the appliance each
    * quarter of the day that someone is present in the household.
    */
-  double percentage;
+  double operationPercentage;
 
   @Override
   public void initialize (String household, Properties conf, Random gen)
@@ -45,61 +45,45 @@ public class CirculationPump extends NotShiftingAppliance
     // Filling the base variables
     name = household + " CirculationPump";
     saturation = Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
-    percentage = Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
-
+    operationPercentage = Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
     power = (int) (VillageConstants.CIRCULATION_PUMP_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CIRCULATION_PUMP_POWER_MEAN);
     cycleDuration = VillageConstants.CIRCULATION_PUMP_DURATION_CYCLE;
-    od = false;
 
   }
 
   @Override
-  Vector<Boolean> createDailyPossibilityOperationVector (int day)
-  {
-
-    Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
-
-    // The pump can work each quarter someone is in the premises
-    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isEmpty(day, j) == false)
-        possibilityDailyOperation.add(true);
-      else
-        possibilityDailyOperation.add(false);
-    }
-
-    return possibilityDailyOperation;
-  }
-
-  @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
 
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    Vector<Boolean> v = new Vector<Boolean>();
 
     // For each quarter of a day
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (applianceOf.isEmpty(weekday, i) == false && (gen.nextFloat() > percentage)) {
-        loadVector.add(power);
-        dailyOperation.add(true);
-        v.add(true);
-      } else {
-        loadVector.add(0);
-        dailyOperation.add(false);
-        v.add(false);
+
+      dailyOperation.add(false);
+      loadVector.add(0);
+
+      if (applianceOf.isEmpty(weekday, i) == false) {
+
+        double tempPercentage = operationPercentage + (VillageConstants.OPERATION_PARTITION * (applianceOf.tenantsNumber(weekday, i)));
+        if (tempPercentage > gen.nextDouble()) {
+          dailyOperation.set(i, true);
+          loadVector.set(i, power);
+        }
+
       }
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-    operationVector.add(v);
+
   }
 
   @Override
   public void refresh (Random gen)
   {
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

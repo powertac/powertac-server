@@ -1364,23 +1364,6 @@ public class Village extends AbstractCustomer
 
   }
 
-  /**
-   * This function represents the function that shows the status of all the
-   * households in the village each moment in time.
-   * 
-   * @param day
-   * @param quarter
-   * @return
-   */
-  void stepStatus (int day, int quarter, String type)
-  {
-    int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
-    Vector<Household> houses = getHouses(type);
-    for (Household house : houses) {
-      house.stepStatus(dayTemp, quarter);
-    }
-  }
-
   // =====VECTOR CREATION===== //
 
   /**

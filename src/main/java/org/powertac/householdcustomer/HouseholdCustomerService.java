@@ -51,9 +51,7 @@ import org.springframework.stereotype.Service;
  * @version 1.5, Date: 2.25.12
  */
 @Service
-public class HouseholdCustomerService
-extends TimeslotPhaseProcessor
-implements NewTariffListener, InitializationService
+public class HouseholdCustomerService extends TimeslotPhaseProcessor implements NewTariffListener, InitializationService
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -146,15 +144,15 @@ implements NewTariffListener, InitializationService
       configFile4 = "VillageDefault.properties";
     }
 
+    super.init();
+    daysOfCompetition = Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY;
+    VillageConstants.setDaysOfCompetition(daysOfCompetition);
+    daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
+
     if (daysOfCompetition == 0) {
       log.info("No Days Of Competition Taken");
       daysOfCompetition = 63;
     }
-
-    super.init();
-
-    VillageConstants.setDaysOfCompetition(daysOfCompetition);
-    daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
 
     // =======FIRST VILLAGE TYPE=========//
 
@@ -424,17 +422,17 @@ implements NewTariffListener, InitializationService
     }
   }
 
-  //@Override
-  //public void receiveMessage (Object msg)
-  //{
-    // TODO Implement per-message behavior. Note that incoming messages
-    // from brokers arrive in a JMS thread, so you need to synchronize
-    // access to shared data structures. See AuctionService for an example.
+  // @Override
+  // public void receiveMessage (Object msg)
+  // {
+  // TODO Implement per-message behavior. Note that incoming messages
+  // from brokers arrive in a JMS thread, so you need to synchronize
+  // access to shared data structures. See AuctionService for an example.
 
-    // If you need to handle a number of different message types, it may make
-    // make sense to use a reflection-based dispatcher. Both
-    // TariffMarketService and AccountingService work this way.
-  //}
+  // If you need to handle a number of different message types, it may make
+  // make sense to use a reflection-based dispatcher. Both
+  // TariffMarketService and AccountingService work this way.
+  // }
 
   @Override
   public void setDefaults ()

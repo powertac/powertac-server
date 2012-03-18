@@ -16,10 +16,6 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Random;
-import java.util.Vector;
-
-import org.powertac.common.configurations.VillageConstants;
 
 /**
  * This is the class for the appliance domain instances that start their
@@ -32,38 +28,5 @@ import org.powertac.common.configurations.VillageConstants;
  */
 public class WeatherSensitiveAppliance extends Appliance
 {
-
-  @Override
-  public void fillWeeklyFunction (Random gen)
-  {
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      fillDailyFunction(i, gen);
-  }
-
-  @Override
-  void createWeeklyOperationVector (int times, Random gen)
-  {
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      operationVector.add(createDailyOperationVector(times, gen));
-  }
-
-  @Override
-  Vector<Boolean> createDailyOperationVector (int times, Random gen)
-  {
-
-    // Creating Auxiliary Variables
-    Vector<Boolean> v = new Vector<Boolean>(VillageConstants.QUARTERS_OF_DAY);
-
-    // First initialize all to false
-    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++)
-      v.add(false);
-
-    // Then for the times it work add function quarters
-    for (int i = 0; i < times; i++) {
-      int quarter = gen.nextInt(VillageConstants.QUARTERS_OF_DAY);
-      v.set(quarter, true);
-    }
-    return v;
-  }
 
 }

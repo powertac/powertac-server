@@ -42,44 +42,46 @@ public class ConsumerElectronics extends NotShiftingAppliance
     power = (int) (VillageConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
     cycleDuration = VillageConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("ConsumerElectronicsDailyTimes")) + applianceOf.getMembers().size();
-    od = false;
 
-    createWeeklyOperationVector(times, gen);
   }
 
   @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    Vector<Boolean> operation = operationVector.get(weekday);
 
-    // For each quarter of a day
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (operation.get(i) == true) {
-        boolean flag = true;
-        int counter = 0;
-        while ((flag) && (i < VillageConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
-          if (applianceOf.isEmpty(weekday, i) == false) {
-            loadVector.add(power);
-            dailyOperation.add(true);
-            counter--;
-            if (counter < 0)
-              flag = false;
-          } else {
-            loadVector.add(0);
-            dailyOperation.add(false);
-            i++;
-            if (i < VillageConstants.QUARTERS_OF_DAY && operation.get(i) == true)
-              counter++;
-          }
-        }
-      } else {
-        loadVector.add(0);
-        dailyOperation.add(false);
+
+      dailyOperation.add(false);
+      loadVector.add(0);
+
+    }
+
+    Vector<Integer> temp = new Vector<Integer>();
+
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
+      int count = applianceOf.tenantsNumber(weekday, i);
+      for (int j = 0; j < count; j++) {
+        temp.add(i);
+      }
+
+    }
+
+    if (temp.size() > 0) {
+      for (int i = 0; i < times; i++) {
+        int rand = gen.nextInt(temp.size());
+        int quarter = temp.get(rand);
+
+        dailyOperation.set(quarter, true);
+        loadVector.set(quarter, (loadVector.get(quarter) + power));
+        temp.remove(rand);
+        if (temp.size() == 0)
+          break;
       }
     }
+
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
   }
@@ -87,25 +89,8 @@ public class ConsumerElectronics extends NotShiftingAppliance
   @Override
   public void refresh (Random gen)
   {
-    createWeeklyOperationVector(times, gen);
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 
-  @Override
-  Vector<Boolean> createDailyPossibilityOperationVector (int day)
-  {
-
-    Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
-
-    // The consumers electronics can work each quarter someone is in the
-    // premises
-    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isEmpty(day, j) == false)
-        possibilityDailyOperation.add(true);
-      else
-        possibilityDailyOperation.add(false);
-    }
-    return possibilityDailyOperation;
-  }
 }

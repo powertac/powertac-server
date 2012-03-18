@@ -71,28 +71,10 @@ public class Appliance
   protected int cycleDuration;
 
   /**
-   * This is the occupancy dependence boolean variable. Shows if the appliance
-   * needs the presence of an inhabitant in order to start operating.
-   */
-  protected boolean od;
-
-  /**
-   * This is a vector containing the quarters that the appliance should start
-   * functioning (before shifting).
-   */
-  Vector<Vector<Boolean>> operationVector = new Vector<Vector<Boolean>>();
-
-  /**
    * This is a vector containing the quarters that the appliance can start
    * functioning.
    */
   Vector<Vector<Boolean>> possibilityOperationVector = new Vector<Vector<Boolean>>();
-
-  /**
-   * This is a vector containing the consumption load of the appliance during
-   * the day.
-   */
-  Vector<Integer> loadVector = new Vector<Integer>();
 
   /**
    * This is a vector that contains the operation days of each appliance for the
@@ -111,6 +93,12 @@ public class Appliance
    * (after shifting due to any cause).
    */
   Vector<Vector<Boolean>> weeklyOperation = new Vector<Vector<Boolean>>();
+
+  /**
+   * This is a vector containing the consumption load of the appliance during
+   * the day.
+   */
+  Vector<Integer> loadVector = new Vector<Integer>();
 
   /**
    * This is a vector containing the final weekly load of the appliance (after
@@ -160,30 +148,18 @@ public class Appliance
     return weeklyLoadVector;
   }
 
-  /** This function helps to set the operation vector of the appliance. */
-  public void setOperationVector (Vector<Vector<Boolean>> v)
+  /**
+   * This function returns the daily/weekly times of operation of the appliance.
+   */
+  public int getTimes ()
   {
-    operationVector = v;
+    return times;
   }
 
   /** This function sets the household in which the appliance is installed in. */
   public void setApplianceOf (Household house)
   {
     applianceOf = house;
-  }
-
-  /**
-   * This function is used to create the operation vector of the appliance for
-   * the week taking into consideration the times that this appliance has to
-   * function.
-   * 
-   * @param times
-   * @param gen
-   * @return
-   */
-  void createOperationVector (int times, Random gen)
-  {
-
   }
 
   /**
@@ -268,7 +244,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void fillDailyFunction (int times, Random gen)
+  public void fillDailyOperation (int times, Random gen)
   {
 
   }
@@ -280,35 +256,10 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void fillWeeklyFunction (Random gen)
+  public void fillWeeklyOperation (Random gen)
   {
-
-  }
-
-  /**
-   * This function creates the weekly operation vector after the procedure of
-   * shifting for each day of the week.
-   * 
-   * @param times
-   * @param gen
-   * @return
-   */
-  void createWeeklyOperationVector (int times, Random gen)
-  {
-
-  }
-
-  /**
-   * This function creates the daily operation vector after the shifting
-   * procedure.
-   * 
-   * @param times
-   * @param gen
-   * @return
-   */
-  Vector<Boolean> createDailyOperationVector (int times, Random gen)
-  {
-    return new Vector<Boolean>();
+    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
+      fillDailyOperation(i, gen);
   }
 
   /**
@@ -325,11 +276,10 @@ public class Appliance
     log.debug("Saturation = " + saturation);
     log.debug("Power = " + power);
     log.debug("Cycle Duration = " + cycleDuration);
-    log.debug("Occupancy Dependence = " + od);
 
     // Printing Weekly Function Vector and Load
     log.debug("Weekly Operation Vector and Load = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
@@ -339,7 +289,7 @@ public class Appliance
   }
 
   /** This function fills out the daily function of an appliance for the day. */
-  public void weatherDailyFunction (int day, int hour, double temp)
+  public void weatherDailyOperation (int day, int hour, double temp)
   {
   }
 

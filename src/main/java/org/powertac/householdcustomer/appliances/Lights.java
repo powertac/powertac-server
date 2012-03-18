@@ -19,6 +19,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.configurations.Gaussian;
 import org.powertac.common.configurations.VillageConstants;
 
 /**
@@ -31,6 +32,13 @@ import org.powertac.common.configurations.VillageConstants;
 public class Lights extends NotShiftingAppliance
 {
 
+  /**
+   * This variable is used to simulated the luminance levels in the household
+   * during the day
+   **/
+  double luminance;// = new Gaussian(VillageConstants.MID_DAY_QUARTER,
+                   // VillageConstants.LUMINANCE_VARIANCE)
+
   @Override
   public void initialize (String household, Properties conf, Random gen)
   {
@@ -39,60 +47,34 @@ public class Lights extends NotShiftingAppliance
     saturation = 1;
     power = (int) (VillageConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.LIGHTS_POWER_MEAN);
     cycleDuration = VillageConstants.LIGHTS_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("LightsDailyTimes")) + applianceOf.getMembers().size();
-    od = false;
-    createWeeklyOperationVector(times, gen);
+
   }
 
   @Override
-  Vector<Boolean> createDailyPossibilityOperationVector (int day)
-  {
-    Vector<Boolean> possibilityDailyOperation = new Vector<Boolean>();
-
-    // Lights need to operate only when someone is in the house
-    for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++) {
-      if (applianceOf.isEmpty(day, j) == false)
-        possibilityDailyOperation.add(true);
-      else
-        possibilityDailyOperation.add(false);
-    }
-
-    return possibilityDailyOperation;
-  }
-
-  @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    Vector<Boolean> operation = operationVector.get(weekday);
 
-    // For each quarter of a day
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      if (operation.get(i) == true) {
-        boolean flag = true;
-        int counter = 0;
-        while ((flag) && (i < VillageConstants.QUARTERS_OF_DAY) && (counter >= 0)) {
-          if (applianceOf.isEmpty(weekday, i) == false) {
-            loadVector.add(power);
-            dailyOperation.add(true);
-            counter--;
-            if (counter < 0)
-              flag = false;
-          } else {
-            loadVector.add(0);
-            dailyOperation.add(false);
-            i++;
-            if (i < VillageConstants.QUARTERS_OF_DAY && operation.get(i) == true)
-              counter++;
-          }
+
+      dailyOperation.add(false);
+      loadVector.add(0);
+
+      if (applianceOf.isEmpty(weekday, i) == false) {
+
+        luminance = VillageConstants.LUMINANCE_FACTOR * Gaussian.phi(i, VillageConstants.MID_DAY_QUARTER, VillageConstants.LUMINANCE_VARIANCE);
+
+        // System.out.println("Quarter:" + i + " Luminance: " + luminance);
+        if (luminance < gen.nextDouble()) {
+          dailyOperation.set(i, true);
+          loadVector.set(i, power * applianceOf.tenantsNumber(weekday, i));
         }
-      } else {
-        loadVector.add(0);
-        dailyOperation.add(false);
       }
+
     }
+
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
   }
@@ -100,8 +82,8 @@ public class Lights extends NotShiftingAppliance
   @Override
   public void refresh (Random gen)
   {
-    createWeeklyOperationVector(times, gen);
-    fillWeeklyFunction(gen);
+
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

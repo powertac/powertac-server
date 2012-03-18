@@ -114,7 +114,6 @@ public class AirCondition extends WeatherSensitiveAppliance
     // Filling the base variables
     name = household + " AirCondition";
     saturation = Double.parseDouble(conf.getProperty("AirConditionSaturation"));
-    od = true;
 
     // Air Condition Specific Variables
     acOperation = AirConditionOperation.Off;
@@ -229,25 +228,24 @@ public class AirCondition extends WeatherSensitiveAppliance
   }
 
   @Override
-  public void fillDailyFunction (int weekday, Random gen)
+  public void fillDailyOperation (int weekday, Random gen)
   {
     // Initializing And Creating Auxiliary Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
-    Vector<Boolean> operation = new Vector<Boolean>();
 
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      operation.add(false);
+
       dailyOperation.add(false);
       loadVector.add(0);
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-    operationVector.add(operation);
+
   }
 
   @Override
-  public void weatherDailyFunction (int day, int hour, double temperature)
+  public void weatherDailyOperation (int day, int hour, double temperature)
   {
     int trueCounter = 0;
     boolean open = true; // this is a variable to help separate cases of
@@ -455,7 +453,6 @@ public class AirCondition extends WeatherSensitiveAppliance
     // Printing basic variables
     log.debug("Name = " + name);
     log.debug("Saturation = " + saturation);
-    log.debug("Occupancy Dependence = " + od);
     log.debug("Air Condition Type = " + type);
     log.debug("Air Condition Power Class = " + acPowerClass);
     log.debug("Air Condition BTU = " + BTU);
@@ -481,7 +478,7 @@ public class AirCondition extends WeatherSensitiveAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
@@ -493,8 +490,7 @@ public class AirCondition extends WeatherSensitiveAppliance
   @Override
   public void refresh (Random gen)
   {
-    // case the Water Heater is Instant
-    fillWeeklyFunction(gen);
+    fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
 

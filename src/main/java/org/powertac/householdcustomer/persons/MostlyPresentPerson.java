@@ -30,7 +30,7 @@ import org.powertac.common.enumerations.Status;
  * work at all, so they have more time for leisure activities.
  * 
  * @author Antonios Chrysopoulos
- * @version 1.5, Date: 2.25.122
+ * @version 1.5, Date: 2.25.12
  */
 public class MostlyPresentPerson extends Person
 {
@@ -85,7 +85,7 @@ public class MostlyPresentPerson extends Person
     log.debug("Weekly Routine Length : " + weeklyRoutine.size());
     log.debug("Weekly Routine : ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + (i));
       ListIterator<Status> iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
