@@ -57,7 +57,7 @@ public class ControlEventTest
   public void testBalancingControlEvent ()
   {
     BalancingControlEvent bce =
-        ControlEvent.makeBalancingControlEvent(spec.getId(), 21.0);
+        new BalancingControlEvent(spec, 21.0, 0);
     assertEquals("correct tariff", spec.getId(), bce.getTariffId());
     assertEquals("correct amount", 21.0, bce.getKwh(), 1e-6);
   }
@@ -76,7 +76,7 @@ public class ControlEventTest
   public void xmlSerializationBalancing ()
   {
     BalancingControlEvent bce =
-        ControlEvent.makeBalancingControlEvent(spec.getId(), 23.0);
+        new BalancingControlEvent(spec, 23.0, 0);
     XStream xstream = new XStream();
     xstream.processAnnotations(BalancingControlEvent.class);
     StringWriter serialized = new StringWriter();

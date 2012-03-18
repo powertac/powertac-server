@@ -56,23 +56,4 @@ public abstract class ControlEvent extends TariffUpdate
   {
     return timeslotIndex;
   }
-  
-  /**
-   * Creates a new BalancingControlEvent.
-   */
-  static public BalancingControlEvent
-  makeBalancingControlEvent (long tariffId, double kwh)
-  {
-    TariffRepo tariffRepo = 
-        (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
-    TariffSpecification spec = tariffRepo.findSpecificationById(tariffId);
-    if (null == spec)
-      return null;
-    TimeslotRepo timeslotRepo =
-        (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-    int ts = timeslotRepo.currentTimeslot().getSerialNumber();
-    BalancingControlEvent result =
-        new BalancingControlEvent(spec.getBroker(), spec, kwh, ts);
-    return result;
-  }
 }

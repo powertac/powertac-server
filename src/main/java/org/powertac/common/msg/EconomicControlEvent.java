@@ -16,7 +16,6 @@
 package org.powertac.common.msg;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.state.Domain;
 
@@ -50,9 +49,9 @@ public class EconomicControlEvent extends ControlEvent
    * timeslot. Package visibility reflects the fact that this is intended 
    * to be called by the factory method in ControlEvent.
    */
-  EconomicControlEvent (TariffSpecification tariff,
-                        double curtailmentRatio,
-                        int timeslotIndex)
+  public EconomicControlEvent (TariffSpecification tariff,
+                               double curtailmentRatio,
+                               int timeslotIndex)
   {
     super(tariff.getBroker(), tariff, timeslotIndex);
     if (0.0 > curtailmentRatio || 1.0 < curtailmentRatio) {

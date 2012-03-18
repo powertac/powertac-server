@@ -15,7 +15,6 @@
  */
 package org.powertac.common.msg;
 
-import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.state.Domain;
 
@@ -47,10 +46,10 @@ public class BalancingControlEvent extends ControlEvent
    * every BalancingControlEvent should be accompanied by a TariffTransaction
    * specifying the same amount of energy.
    */
-  public BalancingControlEvent (Broker broker, TariffSpecification spec,
+  public BalancingControlEvent (TariffSpecification spec,
                          double kwh, int timeslotIndex)
   {
-    super(broker, spec, timeslotIndex);
+    super(spec.getBroker(), spec, timeslotIndex);
     this.kwh = kwh;
   }
   

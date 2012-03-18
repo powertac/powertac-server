@@ -26,7 +26,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * Represents an offer of balancing capacity from a broker to the DU.
  * Applicable only to tariffs that have a Rate with maxCurtailment > 0 for
  * the current timeslot, and a non-empty set of customer subscriptions.
- * The Broker specifies that proportion of the total capacity that can be
+ * The Broker specifies that proportion of the remaining curtailable capacity
+ * (remaining after possible application of an economic control) that can be
  * curtailed for balancing purposes, but note that the actual curtailment
  * is also constrained by the Rates in force during the timeslot. Once
  * submitted, a BalancingOrder remains in effect until replaced with another
@@ -43,7 +44,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("balancing-order")
 public class BalancingOrder extends TariffUpdate
 {
-  // maximum ratio of actual usage on this tariff that can be curtailed
+  // maximum ratio of curtailable usage on this tariff that can be curtailed
   // for balancing purposes.
   @XStreamAsAttribute
   private double exerciseRatio = 0.0;
