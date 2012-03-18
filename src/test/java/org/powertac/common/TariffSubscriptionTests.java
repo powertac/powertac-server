@@ -18,8 +18,6 @@ package org.powertac.common;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import java.util.List;
-
 import org.mockito.ArgumentCaptor;
 
 import javax.annotation.Resource;
@@ -33,8 +31,6 @@ import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.msg.BalancingControlEvent;
-import org.powertac.common.msg.ControlEvent;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -256,7 +252,7 @@ public class TariffSubscriptionTests
     sub.subscribe(10);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 10, 0.0, -0.0);
-    Timeslot ts10 = timeslotRepo.findOrCreateBySerialNumber(10);
+    timeslotRepo.findOrCreateBySerialNumber(10);
     sub.usePower(100.0);
     verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
                                                 eq(tariff), eq(customer), eq(10), eq(-100.0), 
@@ -287,7 +283,7 @@ public class TariffSubscriptionTests
     sub.subscribe(10);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer, 10, 0.0, -0.0);
-    Timeslot ts10 = timeslotRepo.findOrCreateBySerialNumber(10);
+    timeslotRepo.findOrCreateBySerialNumber(10);
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot().getSerialNumber());
     
