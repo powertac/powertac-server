@@ -23,13 +23,13 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
-import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TariffTransaction;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.BalancingControlEvent;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.msg.EconomicControlEvent;
 import org.powertac.common.repo.TariffRepo;
@@ -61,10 +61,8 @@ implements CapacityControl, InitializationService
   @Autowired
   TimeslotRepo timeslotRepo;
   
-  // tariff transaction tracking
-  int lastValidTimeslot = -1;
-  HashMap<TariffSpecification, List<TariffTransaction>> pendingTariffTransactions =
-      new HashMap<TariffSpecification, List<TariffTransaction>>();
+  @Autowired
+  BrokerProxy brokerProxy;
   
   // future economic controls
   HashMap<Integer, List<EconomicControlEvent>> pendingEconomicControls =
@@ -84,9 +82,24 @@ implements CapacityControl, InitializationService
     }
     List<TariffSubscription> subs =
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
+    // allocate control across subscriptions in proportion to their curtailable
+    // usage.
+    double curtailable = 0.0;
+    HashMap<TariffSubscription, Double> amts =
+        new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
-      sub.postBalancingControl(kwh);
-    }    
+      double value = sub.getMaxRemainingCurtailment();
+      amts.put(sub, value);
+      curtailable += value;
+    }
+    for (TariffSubscription sub : subs) {
+      sub.postBalancingControl(kwh * amts.get(sub) / curtailable);
+    }
+    // send off the event to the broker
+    BalancingControlEvent bce = 
+        new BalancingControlEvent(tariff.getTariffSpec(), kwh,
+                                  timeslotRepo.currentTimeslot().getSerialNumber());
+    brokerProxy.sendMessage(tariff.getBroker(), bce);
   }
 
   /* (non-Javadoc)
@@ -96,6 +109,12 @@ implements CapacityControl, InitializationService
   public void postEconomicControl (EconomicControlEvent event)
   {
     int tsIndex = event.getTimeslotIndex();
+    int current = timeslotRepo.currentTimeslot().getSerialNumber();
+    if (tsIndex < current) {
+      log.warn("attempt to save old economic control for ts " + tsIndex +
+               " during timeslot " + current);
+      return;
+    }
     List<EconomicControlEvent> tsList = pendingEconomicControls.get(tsIndex);
     if (null == tsList) {
       tsList = new ArrayList<EconomicControlEvent>();
@@ -143,40 +162,8 @@ implements CapacityControl, InitializationService
     }
   }
 
-  // Returns the list of TariffTransactions in the current timeslot for
-  // the specified tariff
-  private List<TariffTransaction> getPendingTariffTransactions (Tariff tariff)
-  {
-    ensureCurrentTxList();
-    return pendingTariffTransactions.get(tariff.getTariffSpec());
-  }
-  
-  // Retrieves and filters TariffTransactions for the current timeslot, just
-  // in case we do not already have them. Only CONSUME and PRODUCE transactions
-  // are included.
-  private void ensureCurrentTxList()
-  {
-    int currentTs = timeslotRepo.currentTimeslot().getSerialNumber();
-    if (currentTs == lastValidTimeslot) 
-      return;
-    lastValidTimeslot = currentTs;
-    pendingTariffTransactions.clear();
-    for (TariffTransaction ttx : accountingService.getPendingTariffTransactions()) {
-      if (ttx.getTxType() == TariffTransaction.Type.CONSUME ||
-          ttx.getTxType() == TariffTransaction.Type.PRODUCE) {
-        List<TariffTransaction> record = 
-            pendingTariffTransactions.get(ttx.getTariffSpec());
-        if (null == record) {
-          record = new ArrayList<TariffTransaction>();
-          pendingTariffTransactions.put(ttx.getTariffSpec(), record);
-        }
-        record.add(ttx);
-      }
-    }
-  }
-
   /**
-   * Activation applies ratio controls to subscriptions for the current
+   * Activation applies pending ratio controls to subscriptions for the current
    * timeslot.
    */
   @Override
@@ -186,7 +173,7 @@ implements CapacityControl, InitializationService
     // them to their respective subscriptions.
     int tsIndex = timeslotRepo.currentTimeslot().getSerialNumber();
     // complain if there are any out-of-date controls
-    List<EconomicControlEvent> controls = pendingEconomicControls.get(tsIndex - 1);
+    List<EconomicControlEvent> controls = getControlsForTimeslot(tsIndex - 1);
     if (null != controls) {
       // expired controls
       for (EconomicControlEvent event : controls) {
@@ -196,7 +183,7 @@ implements CapacityControl, InitializationService
       pendingEconomicControls.remove(tsIndex - 1);
     }
     // now get the controls for the current timeslot
-    controls = pendingEconomicControls.get(tsIndex);
+    controls = getControlsForTimeslot(tsIndex);
     if (null != controls) {
       for (EconomicControlEvent event : controls) {
         Tariff tariff = tariffRepo.findTariffById(event.getTariffId());
@@ -215,6 +202,12 @@ implements CapacityControl, InitializationService
       }
     }
   }
+  
+  // ---------------- Test support ------------------
+  List<EconomicControlEvent> getControlsForTimeslot (int timeslotIndex)
+  {
+    return pendingEconomicControls.get(timeslotIndex);
+  }
 
   @Override
   public void setDefaults ()
@@ -225,7 +218,6 @@ implements CapacityControl, InitializationService
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
-    pendingTariffTransactions.clear();
     pendingEconomicControls.clear();
     return "CapacityControl";
   }

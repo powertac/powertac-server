@@ -55,8 +55,6 @@ import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.msg.PauseRelease;
-import org.powertac.common.msg.PauseRequest;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
@@ -97,12 +95,6 @@ public class TariffMarketServiceTests
   private TariffSubscriptionRepo tariffSubscriptionRepo;
   
   @Autowired
-  private TimeslotRepo timeslotRepo;
-  
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
-  
-  @Autowired
   private BrokerRepo brokerRepo;
   
   // get access to the mock services
@@ -128,9 +120,8 @@ public class TariffMarketServiceTests
   {
     // Clean up from previous tests
     tariffRepo.recycle();
-    timeslotRepo.recycle();
+    //timeslotRepo.recycle();
     brokerRepo.recycle();
-    pluginConfigRepo.recycle();
     reset(mockProxy);
     reset(accountingService);
     reset(mockServerProperties);
@@ -585,6 +576,7 @@ public class TariffMarketServiceTests
   }
 
   // create some subscriptions and then revoke a tariff
+  @SuppressWarnings("unused")
   @Test
   public void testGetRevokedSubscriptionList ()
   {
