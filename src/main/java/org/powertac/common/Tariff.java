@@ -235,13 +235,45 @@ public class Tariff
   }
 
   /**
-   * Adds periodic payments to the total cost, so realized price includes it.
+   * Returns the maximum interruptible quantity in kwh for this tariff in 
+   * the current timeslot, for the specified proposed and cumulative usage.
    */
-  @StateChange
-  public void addPeriodicPayment ()
+  public double getMaxCurtailment (double kwh, double cumulativeUsage)
   {
-    //totalCost += getPeriodicPayment();
+    // first, make sure this is an interruptible power type
+    if (! tariffSpec.getPowerType().isInterruptible())
+      return 0.0;
+    
+    // Next, we need to explore the rate structure. This starts with
+    // the time index
+    int di = getTimeIndex(timeService.getCurrentTime());
+        
+    // Then work out the tier index. Keep in mind that the kwh value could
+    // cross a tier boundary
+    if (tiers.size() == 1) {
+      Rate rate = rateMap[0][di];
+      return kwh * rate.getMaxCurtailment();
+    }
+    else {
+      double result = 0.0;
+      List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
+      // TODO this calculation is not quite right unless curtailment is only
+      // on top tier.
+      for (RateKwh rk : rkList) {
+        result += rk.kwh * rk.rate.getMaxCurtailment();
+      }
+      return result;
+    }
+
   }
+  
+  ///**
+  // * Adds periodic payments to the total cost, so realized price includes it.
+  // */
+  //public void addPeriodicPayment ()
+  //{
+    //totalCost += getPeriodicPayment();
+  //}
 
   /** 
    * Returns the usage charge for a single customer in the current timeslot. 
@@ -276,10 +308,7 @@ public class Tariff
   public double getUsageCharge (Instant when, double kwh, double cumulativeUsage)
   {
     // first, get the time index
-    DateTime dt = new DateTime(when, DateTimeZone.UTC);
-    int di = dt.getHourOfDay();
-    if (isWeekly)
-      di += 24 * (dt.getDayOfWeek() - 1);
+    int di = getTimeIndex(when);
 
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
@@ -291,43 +320,22 @@ public class Tariff
       return kwh * rateValue(0, di, when);
     }
     else {
-      double remainingAmount = kwh;
-      double accumulatedAmount = cumulativeUsage;
       double result = 0.0;
-      int ti = 0; // tier index
-      while (remainingAmount > 0.0) {
-        if (tiers.size() > ti + 1) {
-          // still tiers remaining
-          if (accumulatedAmount >= tiers.get(ti+1)) {
-            log.debug("accumulatedAmount " + accumulatedAmount + " above threshold " + (ti+1) + ":" + (tiers.get(ti+1)));
-            ti += 1;
-          }
-          else if (remainingAmount + accumulatedAmount > tiers.get(ti+1)) {
-            double amt = tiers.get(ti+1) - accumulatedAmount;
-            log.debug("split off " + amt + " below " + tiers.get(ti+1));
-            //result += amt * rateMap[ti++][di].getValue(when)
-            result += amt * rateValue(ti++, di, when);
-            remainingAmount -= amt;
-            accumulatedAmount += amt;
-          }
-          else {
-            // it all fits in the current tier
-            log.debug("amount " + remainingAmount + " fits in tier " + ti);
-            //result += remainingAmount * rateMap[ti][di].getValue(when)
-            result += remainingAmount * rateValue(ti, di, when);
-            remainingAmount = 0.0;
-          }
-        }
-        else {
-          // last tier
-          log.debug("remainder " + remainingAmount + " fits in top tier");
-          //result += remainingAmount * rateMap[ti][di].getValue(when)
-          result += remainingAmount * rateValue(ti, di, when);
-          remainingAmount = 0.0;
-        }
+      List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
+      for (RateKwh rk : rkList) {
+        result += rk.kwh * rk.rate.getValue(when);
       }
       return result;
     }
+  }
+
+  private int getTimeIndex (Instant when)
+  {
+    DateTime dt = new DateTime(when, DateTimeZone.UTC);
+    int di = dt.getHourOfDay();
+    if (isWeekly)
+      di += 24 * (dt.getDayOfWeek() - 1);
+    return di;
   }
 
   public Instant getExpiration ()
@@ -550,7 +558,49 @@ public class Tariff
     }
     analyzed = true;
   }
-    
+
+  private List<RateKwh> getRateKwhList (int timeIndex,
+                                        double kwh, 
+                                        double cumulativeUsage)
+  {
+    List<RateKwh> result = new ArrayList<RateKwh>();
+    double remainingAmount = kwh;
+    double accumulatedAmount = cumulativeUsage;
+    int ti = 0; // tier index
+    while (remainingAmount > 0.0) {
+      if (tiers.size() > ti + 1) {
+        // still tiers remaining
+        if (accumulatedAmount >= tiers.get(ti+1)) {
+          log.debug("accumulatedAmount " + accumulatedAmount + " above threshold " + (ti+1) + ":" + (tiers.get(ti+1)));
+          ti += 1;
+        }
+        else if (remainingAmount + accumulatedAmount > tiers.get(ti+1)) {
+          double amt = tiers.get(ti+1) - accumulatedAmount;
+          log.debug("split off " + amt + " below " + tiers.get(ti+1));
+          //result += amt * rateValue(ti++, timeIndex, when);
+          result.add(new RateKwh(rateMap[ti++][timeIndex], amt));
+          remainingAmount -= amt;
+          accumulatedAmount += amt;
+        }
+        else {
+          // it all fits in the current tier
+          log.debug("amount " + remainingAmount + " fits in tier " + ti);
+          //result += remainingAmount * rateValue(ti, timeIndex, when);
+          result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount));
+          remainingAmount = 0.0;
+        }
+      }
+      else {
+        // last tier
+        log.debug("remainder " + remainingAmount + " fits in top tier");
+        //result += remainingAmount * rateValue(ti, timeIndex, when);
+        result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount));
+        remainingAmount = 0.0;
+      }
+    }
+    return result;
+  }
+
   private double rateValue (int tierIndex, int timeIndex, Instant when)
   {
     Rate rate = rateMap[tierIndex][timeIndex];
@@ -567,5 +617,23 @@ public class Tariff
   public boolean isAnalyzed ()
   {
     return analyzed;
+  }
+  
+  /**
+   * Holder for a {Rate, kwh} pair. A list of these can be used to represent
+   * the ordered set of rates and quantities needed to determine price or
+   * curtailable energy at a particular point in time for a tiered-rate tariff.
+   */
+  class RateKwh
+  {
+    Rate rate;
+    double kwh;
+    
+    RateKwh (Rate rate, double kwh)
+    {
+      super();
+      this.rate = rate;
+      this.kwh = kwh;
+    }
   }
 }

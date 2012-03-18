@@ -15,11 +15,13 @@
  */
 package org.powertac.common.msg;
 
-import org.apache.log4j.Logger;
+import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
@@ -35,34 +37,23 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * during that timeslot.
  * @author John Collins
  */
-@Domain(fields = { "tariffId", "curtailmentRatio", "timeslotIndex" })
-@XStreamAlias("economic-control")
-public class EconomicControlEvent extends ControlEvent
-{
-  static private Logger log = Logger.getLogger(EconomicControlEvent.class.getName());
-
+public abstract class ControlEvent extends TariffUpdate
+{ 
   @XStreamAsAttribute
-  private double curtailmentRatio = 0.0;
+  private int timeslotIndex = 0;
   
   /**
-   * Creates a new EconomicControlEvent to take effect in the following 
-   * timeslot. Package visibility reflects the fact that this is intended 
-   * to be called by the factory method in ControlEvent.
+   * Creates a new ControlEvent. Used only as a superclass constructor for
+   * ControlEvent subtypes.
    */
-  public EconomicControlEvent (TariffSpecification tariff,
-                               double curtailmentRatio,
-                               int timeslotIndex)
+  ControlEvent (Broker broker, TariffSpecification tariff, int timeslotIndex)
   {
-    super(tariff.getBroker(), tariff, timeslotIndex);
-    if (0.0 > curtailmentRatio || 1.0 < curtailmentRatio) {
-       log.error("Illegal curtailmentRatio: " + curtailmentRatio);
-       curtailmentRatio = 0.0;
-    }
-    this.curtailmentRatio = curtailmentRatio;
+    super(broker, tariff);
+    this.timeslotIndex = timeslotIndex;
   }
   
-  public double getCurtailmentRatio ()
+  public int getTimeslotIndex ()
   {
-    return curtailmentRatio;
+    return timeslotIndex;
   }
 }

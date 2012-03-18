@@ -15,9 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import org.powertac.common.IdGenerator;
+import org.powertac.common.TariffSpecification;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -29,16 +28,10 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * imbalance.
  * @author John Collins
  */
-@Domain(fields = { "tariffId", "kwh" })
+@Domain(fields = { "kwh" })
 @XStreamAlias("balancing-control")
-public class BalancingControlEvent extends XStreamStateLoggable
+public class BalancingControlEvent extends ControlEvent
 {
-  @XStreamAsAttribute
-  protected long id = IdGenerator.createId();
-
-  @XStreamAsAttribute
-  private long tariffId = 0;
-
   @XStreamAsAttribute
   private double kwh = 0.0;
   
@@ -46,24 +39,18 @@ public class BalancingControlEvent extends XStreamStateLoggable
    * Creates a new BalancingControlEvent to represent a curtailment in the 
    * current timeslot. Presumably this will be generated AFTER the customer
    * models have run in the timeslot, so the customer models must adapt their
-   * behavior as though the curtailment has already happened.
+   * behavior in the following timeslot to accommodate a curtailment that has 
+   * already happened. A positive value for kwh indicates curtailment of
+   * consumption, which is equivalent to additional energy to the broker's
+   * account. However, this value must not be used to keep accounts, because
+   * every BalancingControlEvent should be accompanied by a TariffTransaction
+   * specifying the same amount of energy.
    */
-  public BalancingControlEvent (long tariffId,
-                                double kwh)
+  public BalancingControlEvent (TariffSpecification spec,
+                         double kwh, int timeslotIndex)
   {
-    super();
-    this.tariffId = tariffId;
+    super(spec.getBroker(), spec, timeslotIndex);
     this.kwh = kwh;
-  }
-  
-  public long getId()
-  {
-    return id;
-  }
-  
-  public long getTariffId ()
-  {
-    return tariffId;
   }
   
   public double getKwh()
