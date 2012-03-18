@@ -47,6 +47,13 @@
         </property>
   </bean>
   
+  <bean id="capacityControlService"
+        class="org.powertac.tariffmarket.CapacityControlService">
+        <property name="timeslotPhase">
+                <value>1</value>
+        </property>
+  </bean>
+  
   <bean id="tariffRepo"
         class="org.powertac.common.repo.TariffRepo" />
   
@@ -55,9 +62,6 @@
   
   <bean id="timeslotRepo"
         class="org.powertac.common.repo.TimeslotRepo" />
-  
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo" />
   
   <bean id="brokerRepo"
         class="org.powertac.common.repo.BrokerRepo" />

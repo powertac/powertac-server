@@ -38,12 +38,14 @@ import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.EconomicControlEvent;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
@@ -52,6 +54,7 @@ import org.powertac.common.msg.VariableRateUpdate;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +78,13 @@ public class TariffMarketService
   private Accounting accountingService;
   
   @Autowired
+  private CapacityControl capacityControlService;
+  
+  @Autowired
   private BrokerProxy brokerProxyService;
+  
+  @Autowired
+  private TimeslotRepo timeslotRepo;
   
   @Autowired
   private TariffRepo tariffRepo;
@@ -149,7 +158,8 @@ public class TariffMarketService
     for (Class<?> messageType: Arrays.asList(TariffSpecification.class,
                                              TariffExpire.class,
                                              TariffRevoke.class,
-                                             VariableRateUpdate.class)) {
+                                             VariableRateUpdate.class,
+                                             EconomicControlEvent.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
     }
     firstPublication = false;
@@ -163,8 +173,8 @@ public class TariffMarketService
 
     // compute the fees
     RandomSeed random =
-        randomSeedService.getRandomSeed("AccountingService",
-                                        0l, "interest");
+        randomSeedService.getRandomSeed("TariffMarket",
+                                        0l, "fees");
     if (publicationFee == null) {
       // interest will be non-null in case it was overridden in the config
       publicationFee = (minPublicationFee +
@@ -369,6 +379,32 @@ public class TariffMarketService
           .withMessage("update: could not add hourly charge"));
     }
   }
+  
+  /**
+   * Processes an incoming ControlEvent from a broker
+   */
+  public void handleMessage (EconomicControlEvent msg)
+  {
+    ValidationResult result = validateUpdate(msg);
+    if (result.tariff == null) {
+      send(result.message);
+      return;
+    }
+    int currentTimeslot = timeslotRepo.currentTimeslot().getSerialNumber();
+    if (currentTimeslot > msg.getTimeslotIndex()) {
+      // this is in the past
+      log.warn("Curtailment requested in ts " + currentTimeslot +
+               " for past timeslot " + msg.getTimeslotIndex());
+      // send error?
+      send(new TariffStatus(msg.getBroker(),
+                            msg.getTariffId(),
+                            msg.getId(),
+                            TariffStatus.Status.invalidUpdate)
+          .withMessage("control: specified timeslot in the past"));
+      return;
+    }
+    capacityControlService.postEconomicControl(msg);
+  }
 
   // ----------------------- Customer API --------------------------
 
@@ -469,6 +505,8 @@ public class TariffMarketService
     defaultTariff.put(newSpec.getPowerType(), tariff.getId());
     return true;
   }
+  
+  // ------------------ Helper stuff ---------------
 
   private void success (TariffUpdate update)
   {

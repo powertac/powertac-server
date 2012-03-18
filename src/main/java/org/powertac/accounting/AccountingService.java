@@ -126,6 +126,7 @@ public class AccountingService
   {
   }
 
+  @Override
   public synchronized MarketTransaction 
   addMarketTransaction(Broker broker,
                        Timeslot timeslot,
@@ -138,6 +139,7 @@ public class AccountingService
     return mtx;
   }
 
+  @Override
   public synchronized TariffTransaction 
   addTariffTransaction(TariffTransaction.Type txType,
                        Tariff tariff,
@@ -155,6 +157,7 @@ public class AccountingService
     return ttx;
   }
 
+  @Override
   public synchronized DistributionTransaction 
   addDistributionTransaction(Broker broker,
                              double kWh,
@@ -167,14 +170,14 @@ public class AccountingService
     return dtx;
   }
 
+  @Override
   public synchronized BalancingTransaction 
-  addBalancingTransaction(Broker broker,
-                          double kWh,
-                          double charge) 
+  addBalancingTransaction(Broker broker, double kWh, double charge)
   {
-    BalancingTransaction btx = new BalancingTransaction(broker,
-                                                        timeService.getCurrentTime(),
-                                                        kWh, charge);
+    BalancingTransaction btx =
+        new BalancingTransaction(broker,
+                                 timeService.getCurrentTime(),
+                                 kWh, charge);
     pendingTransactions.add(btx);
     return btx;
   }
@@ -186,6 +189,7 @@ public class AccountingService
    * negative if the broker's customers are consuming more than they produce
    * in the current timeslot.
    */
+  @Override
   public synchronized double getCurrentNetLoad (Broker broker) 
   {
     double netLoad = 0.0;
@@ -212,6 +216,7 @@ public class AccountingService
    * during the current timeslot.
    */
 
+  @Override
   public synchronized double getCurrentMarketPosition(Broker broker) 
   {
     Timeslot current = timeslotRepo.currentTimeslot();
@@ -231,6 +236,7 @@ public class AccountingService
    * Processes the pending transaction list, computes interest, sends 
    * updates to brokers
    */
+  @Override
   public void activate(Instant time, int phaseNumber) 
   {
     log.info("Activate: " + pendingTransactions.size() + " messages");
@@ -341,7 +347,23 @@ public class AccountingService
     log.error("tx " + tx.toString() + " calls processTransaction - should not happen");   
   }
   
-  // test-support code
+  /**
+   * Returns the current list of pending tariff transactions. This will be
+   * non-empty only after the customer model has run and before accounting
+   * has run in the current timeslot.
+   */
+  @Override
+  public synchronized List<TariffTransaction> getPendingTariffTransactions ()
+  {
+    List<TariffTransaction> result = new ArrayList<TariffTransaction>();
+    for (BrokerTransaction tx : pendingTransactions) {
+      if (tx instanceof TariffTransaction)
+        result.add((TariffTransaction)tx);
+    }
+    return result;
+  }
+
+  // test support
   List<BrokerTransaction> getPendingTransactions ()
   {
     return pendingTransactions;
