@@ -64,6 +64,8 @@ public class LogServiceTests
   @Test
   public void testDefaultLogging ()
   {
+    // reinitialize the log service
+    logService = new LogService("src/test/resources/log4j.properties");
     assertNotNull("log service got created", logService);
     
     // log to the default trace file, check file
