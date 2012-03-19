@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.VillageConstants;
+import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
  * The Other appliances contain several type of appliances that cannot be in any

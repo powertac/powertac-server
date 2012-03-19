@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.VillageConstants;
+import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
  * Circulation Pump is the appliance that brings hot water to the household. It

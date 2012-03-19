@@ -23,7 +23,7 @@ import java.util.Vector;
 
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.VillageConstants;
+import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
  * Dryer appliances are utilized by the inhabitants to order to dry the freshly

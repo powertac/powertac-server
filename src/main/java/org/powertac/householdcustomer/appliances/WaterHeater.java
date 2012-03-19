@@ -24,8 +24,8 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.VillageConstants;
-import org.powertac.common.enumerations.HeaterType;
+import org.powertac.householdcustomer.configurations.VillageConstants;
+import org.powertac.householdcustomer.enumerations.HeaterType;
 
 /**
  * Water Heater is an appliance utilized to provide with hot water when we need

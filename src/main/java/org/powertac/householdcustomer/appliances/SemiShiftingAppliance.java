@@ -19,7 +19,7 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.VillageConstants;
+import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
  * This is the class for the appliance domain instances that can change / shift

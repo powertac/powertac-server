@@ -19,8 +19,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.Gaussian;
-import org.powertac.common.configurations.VillageConstants;
+import org.powertac.householdcustomer.configurations.Gaussian;
+import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
  * Lights are utilized when the persons inhabiting the house have need for them
