@@ -24,78 +24,98 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.powertac.common.exceptions.PowerTacException;
 
 /**
- * Repository for WeatherReports. The weather reports are indexed by the 
+ * Repository for WeatherReports. The weather reports are indexed by the
  * timeslot that they are issued for. This allows them to be quickly accessed
  * via a hashMap.
+ * 
  * @author Erik Onarheim
  */
 @Repository
-public class WeatherForecastRepo implements DomainRepo
-{
-	  //static private Logger log = Logger.getLogger(WeatherForecastRepo.class.getName());
+public class WeatherForecastRepo implements DomainRepo {
+	// static private Logger log =
+	// Logger.getLogger(WeatherForecastRepo.class.getName());
 
-	  // storage
-	  private HashMap<Timeslot, WeatherForecast> indexedWeatherForecasts;
+	// storage
+	private HashMap<Timeslot, WeatherForecast> indexedWeatherForecasts;
 
-	  @Autowired
-	  private TimeslotRepo timeslotRepo;
-	  
-	  /** standard constructor */
-	  public WeatherForecastRepo ()
-	  {
-	    super();
-	    indexedWeatherForecasts = new HashMap<Timeslot, WeatherForecast>();
-	  }
-	  
-	  /** 
-	   * Adds a WeatherForecast to the repo
-	   */
-	  public void add (WeatherForecast weather)
-	  {
-		  indexedWeatherForecasts.put(weather.getCurrentTimeslot(), weather);
-	  }
-	  
-	  /**
-	   * Returns the current WeatherForecast
-	   */
-	  public WeatherForecast currentWeatherForecast () 
-	  {
-		  // Returns the weather report for the current timeslot
-	      return indexedWeatherForecasts.get(timeslotRepo.currentTimeslot()); 
-	  }
+	// Check if the weather service has run at least once
+	private boolean hasRunOnce = false;
 
-	  /**
-	   * Returns a list of all the issued weather forecast up to the currentTimeslot
-	   */
-	  public List<WeatherForecast> allWeatherForecasts ()
-	  {
-		  Timeslot current = timeslotRepo.currentTimeslot();
-		  // Some weather forecasts exist in the repo for the future 
-		  // but have not been issued for the current timeslot.
-		  ArrayList<WeatherForecast> issuedReports = new ArrayList<WeatherForecast>();
-		  for ( WeatherForecast w : indexedWeatherForecasts.values()){
-			  if(w.getCurrentTimeslot().getStartInstant().isBefore(current.getStartInstant())){
-				  issuedReports.add(w);
-			  }
-		  }
+	@Autowired
+	private TimeslotRepo timeslotRepo;
 
-		  issuedReports.add(this.currentWeatherForecast());
-		  
-		  return (List<WeatherForecast>) issuedReports;
-	  }
-	  
-	  /**
-	   * Returns the number of WeatherForecasts that have been successfully created.
-	   */
-	  public int count ()
-	  {
-	    return indexedWeatherForecasts.size();
-	  }
+	/** standard constructor */
+	public WeatherForecastRepo() {
+		super();
+		indexedWeatherForecasts = new HashMap<Timeslot, WeatherForecast>();
+	}
 
-	  public void recycle ()
-	  {
-            indexedWeatherForecasts.clear(); 
-	  }
+	/**
+	 * Adds a WeatherForecast to the repo
+	 */
+	public void add(WeatherForecast weather) {
+		runOnce();
+		indexedWeatherForecasts.put(weather.getCurrentTimeslot(), weather);
+	}
+
+	/**
+	 * Returns the current WeatherForecast
+	 */
+	public WeatherForecast currentWeatherForecast() throws PowerTacException {
+		if (!hasRunOnce) {
+			throw new PowerTacException();
+		}
+
+		// Returns the weather report for the current timeslot
+		return indexedWeatherForecasts.get(timeslotRepo.currentTimeslot());
+	}
+
+	/**
+	 * Returns a list of all the issued weather forecast up to the
+	 * currentTimeslot
+	 */
+	public List<WeatherForecast> allWeatherForecasts() throws PowerTacException {
+
+		try {
+			Timeslot current = timeslotRepo.currentTimeslot();
+			// Some weather forecasts exist in the repo for the future
+			// but have not been issued for the current timeslot.
+			ArrayList<WeatherForecast> issuedReports = new ArrayList<WeatherForecast>();
+			for (WeatherForecast w : indexedWeatherForecasts.values()) {
+				if (w.getCurrentTimeslot().getStartInstant()
+						.isBefore(current.getStartInstant())) {
+					issuedReports.add(w);
+				}
+			}
+
+			issuedReports.add(this.currentWeatherForecast());
+
+			return (List<WeatherForecast>) issuedReports;
+
+		} catch (PowerTacException p) {
+			throw p;
+		}
+	}
+
+	/**
+	 * Returns the number of WeatherForecasts that have been successfully
+	 * created.
+	 */
+	public int count() {
+		return indexedWeatherForecasts.size();
+	}
+
+	/**
+	 * Called by weather service to indicate weather exists
+	 */
+	public void runOnce() {
+		hasRunOnce = true;
+	}
+
+	public void recycle() {
+		indexedWeatherForecasts.clear();
+	}
 }
