@@ -21,8 +21,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.VillageConstants;
-import org.powertac.common.enumerations.Status;
+import org.powertac.householdcustomer.configurations.VillageConstants;
+import org.powertac.householdcustomer.enumerations.Status;
 
 /**
  * This is the instance of the person type that spents most of its time inside
