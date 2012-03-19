@@ -33,6 +33,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.exceptions.PowerTacException;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -1460,7 +1461,16 @@ public class Village extends AbstractCustomer
   {
 
     int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
-    WeatherReport wr = weatherReportRepo.currentWeatherReport();
+    
+    WeatherReport wr = null; 
+    try{
+    	wr = weatherReportRepo.currentWeatherReport();
+    } catch (PowerTacException p){
+    	log.error("Weather Service has yet to run, cannot retrieve report");
+    	// On error set wr to default
+    	wr = null; //new WeatherReport(timeslotRepo.currentTimeslot(),0.0, 0.0, 0.0, 0.0);
+    }
+    
     if (wr != null) {
       double temperature = wr.getTemperature();
       // log.debug("Temperature: " + temperature);
