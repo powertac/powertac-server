@@ -14,7 +14,7 @@
  * governing permissions and limitations under the License.
  */
 
-package org.powertac.common.enumerations;
+package org.powertac.officecomplexcustomer.enumerations;
 
 /**
  * This enumerator defines the state of a person. The available states are Home:

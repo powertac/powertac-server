@@ -21,8 +21,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.OfficeComplexConstants;
-import org.powertac.common.enumerations.Status;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.enumerations.Status;
 
 /**
  * This is the instance of the person type that works. In addition to the simple

@@ -24,8 +24,6 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.OfficeComplexConstants;
-import org.powertac.common.enumerations.Status;
 import org.powertac.officecomplexcustomer.appliances.AirCondition;
 import org.powertac.officecomplexcustomer.appliances.Appliance;
 import org.powertac.officecomplexcustomer.appliances.CoffeeMachine;
@@ -40,6 +38,8 @@ import org.powertac.officecomplexcustomer.appliances.Refrigerator;
 import org.powertac.officecomplexcustomer.appliances.Servers;
 import org.powertac.officecomplexcustomer.appliances.VendingMachine;
 import org.powertac.officecomplexcustomer.appliances.WeatherSensitiveAppliance;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.enumerations.Status;
 import org.powertac.officecomplexcustomer.persons.PeriodicPresentPerson;
 import org.powertac.officecomplexcustomer.persons.Person;
 

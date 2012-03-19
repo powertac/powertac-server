@@ -21,11 +21,11 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.OfficeComplexConstants;
-import org.powertac.common.enumerations.AirConditionClass;
-import org.powertac.common.enumerations.AirConditionOperation;
-import org.powertac.common.enumerations.AirConditionPowerClass;
-import org.powertac.common.enumerations.AirConditionType;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.enumerations.AirConditionClass;
+import org.powertac.officecomplexcustomer.enumerations.AirConditionOperation;
+import org.powertac.officecomplexcustomer.enumerations.AirConditionPowerClass;
+import org.powertac.officecomplexcustomer.enumerations.AirConditionType;
 
 /**
  * Air Condition is the most common used electrical appliance to date that keeps

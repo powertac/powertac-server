@@ -32,11 +32,11 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
-import org.powertac.common.configurations.OfficeComplexConstants;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

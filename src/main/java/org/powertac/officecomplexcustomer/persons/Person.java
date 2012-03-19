@@ -22,9 +22,9 @@ import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.configurations.OfficeComplexConstants;
-import org.powertac.common.enumerations.Status;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.Office;
+import org.powertac.officecomplexcustomer.enumerations.Status;
 
 /**
  * A person domain instance represents a single person in its real life

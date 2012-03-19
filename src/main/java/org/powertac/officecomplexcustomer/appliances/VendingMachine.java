@@ -23,7 +23,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
  * Refrigerator is in use in all the households in order to keep food preserved.

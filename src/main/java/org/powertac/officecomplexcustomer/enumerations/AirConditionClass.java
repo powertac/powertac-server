@@ -14,18 +14,18 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.officecomplexcustomer.enumerations;
 
 /**
- * This enumerator defines the three power classes available for households.
- * They differ only in the BTU produced while the operation cycle is the same
- * for all of them.
+ * This enumerator defines the different classes of Air Conditions available.
+ * Each has each own performance ratio with A having the most efficient behavior
+ * up to G which is the most consuming class. *
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
 
-public enum AirConditionPowerClass
+public enum AirConditionClass
 {
-  Small, Medium, Large
+  A, B, C, D, E, F, G
 }
