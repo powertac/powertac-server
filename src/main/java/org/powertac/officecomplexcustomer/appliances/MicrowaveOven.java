@@ -23,7 +23,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
  * MicrowaveOven is the kitchen utility we use for cooking. It is use at least

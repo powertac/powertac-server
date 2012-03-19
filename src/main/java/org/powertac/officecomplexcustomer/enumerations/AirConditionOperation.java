@@ -14,18 +14,19 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.officecomplexcustomer.enumerations;
 
 /**
- * This enumerator defines the two different kinds of Air Conditions available.
- * The one is the normal type and the second one is the Inverter type. This has
- * an impact on their consumption and their duration cycle.
+ * This enumerator defines the three different kinds of Air Conditions
+ * operations. There is heating, when the weather is cold, there is cooling
+ * operation, when the temperature is on high levels and then there is the Off
+ * Operation.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
 
-public enum AirConditionType
+public enum AirConditionOperation
 {
-  Normal, Inverter
+  Cooling, Heating, Off
 }

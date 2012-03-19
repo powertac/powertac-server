@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
  * Consumer Electronics are the appliances that are utilized mainly for work or

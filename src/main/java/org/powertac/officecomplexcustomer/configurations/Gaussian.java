@@ -16,7 +16,7 @@
  * 
  *************************************************************************/
 
-package org.powertac.common.configurations;
+package org.powertac.officecomplexcustomer.configurations;
 
 public class Gaussian
 {

@@ -22,7 +22,7 @@ import java.util.Vector;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
  * Lights are utilized when the persons inhabiting the house have need for them

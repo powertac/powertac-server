@@ -24,7 +24,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.Office;
 
 /**

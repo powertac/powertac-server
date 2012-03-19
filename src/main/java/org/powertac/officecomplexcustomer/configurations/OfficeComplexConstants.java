@@ -9,7 +9,7 @@
  * governing permissions and limitations under the License.
  */
 
-package org.powertac.common.configurations;
+package org.powertac.officecomplexcustomer.configurations;
 
 /**
  * This class contains constant definitions used throughout the office complex

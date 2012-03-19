@@ -19,7 +19,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.configurations.OfficeComplexConstants;
+import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
  * Lights are utilized when the persons inhabiting the house have need for them
