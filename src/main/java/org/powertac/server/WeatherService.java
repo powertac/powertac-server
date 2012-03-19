@@ -177,12 +177,27 @@ implements InitializationService
 
     // broadcast weather data to brokers
     WeatherReport report = weatherReportRepo.currentWeatherReport();
-    brokerProxyService.broadcastMessage(report);
+    if (report == null){
+      // In the event of an error return a default
+      log.error("null weather-report!");
+      brokerProxyService.broadcastMessage(new WeatherReport(timeslotRepo.currentTimeslot(), 0.0, 0.0, 0.0, 0.0));
+    }else{
+      brokerProxyService.broadcastMessage(report);
+    }
+
     WeatherForecast forecast = weatherForecastRepo.currentWeatherForecast();
-    if (forecast == null)
-      log.error("null forecast");
-    else
+    if (forecast == null){
+      log.error("null weather-forecast!");
+      // In the event of an error return a default
+      List<WeatherForecastPrediction> currentPredictions = new ArrayList<WeatherForecastPrediction>();
+      for (int j = 1; j <= getForecastHorizon(); j++) {
+         currentPredictions.add(new WeatherForecastPrediction(j,0.0, 0.0, 0.0, 0.0));
+      }
+
+      brokerProxyService.broadcastMessage(new WeatherForecast(timeslotRepo.currentTimeslot(), currentPredictions));
+    }else{
       brokerProxyService.broadcastMessage(forecast);
+    }
   }
 
   // Forecasts are random and must be repeatable from the same seed
@@ -262,6 +277,7 @@ implements InitializationService
       }
     }
     log.info(reportValues.size() + " WeatherReports fetched.");
+    weatherReportRepo.runOnce();
 
     // Reset time for corresponding forecasts
     currentTime = time;
@@ -292,6 +308,7 @@ implements InitializationService
       }
     }
     log.info(forecastValues.size() + " WeatherForecasts fetched.");
+    weatherForecastRepo.runOnce();
 
     return true;
   }
