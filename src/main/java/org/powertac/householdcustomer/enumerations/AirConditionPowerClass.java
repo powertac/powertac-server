@@ -14,19 +14,18 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.householdcustomer.enumerations;
 
 /**
- * This enumerator defines the two different kinds of Water Heater appliances
- * Instant Heater: Utilized when in need from the house tenants and closed
- * afterwards Storage Heater: Always having warm water inside. In the beginning
- * is working to boil the water and then works on stand-by to keep it warm.
+ * This enumerator defines the three power classes available for households.
+ * They differ only in the BTU produced while the operation cycle is the same
+ * for all of them.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
 
-public enum HeaterType
+public enum AirConditionPowerClass
 {
-  InstantHeater, StorageHeater
+  Small, Medium, Large
 }

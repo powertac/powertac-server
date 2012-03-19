@@ -14,7 +14,7 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.householdcustomer.enumerations;
 
 /**
  * This enumerator defines the three different kinds of Air Conditions

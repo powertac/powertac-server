@@ -14,7 +14,7 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.householdcustomer.enumerations;
 
 /**
  * This enumerator defines the four different modes of semi-automatic appliances

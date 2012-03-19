@@ -14,18 +14,19 @@
 * governing permissions and limitations under the License.
 */
 
-package org.powertac.common.enumerations;
+package org.powertac.householdcustomer.enumerations;
 
 /**
- * This enumerator defines the different classes of Air Conditions available.
- * Each has each own performance ratio with A having the most efficient behavior
- * up to G which is the most consuming class. *
+ * This enumerator defines the two different kinds of Water Heater appliances
+ * Instant Heater: Utilized when in need from the house tenants and closed
+ * afterwards Storage Heater: Always having warm water inside. In the beginning
+ * is working to boil the water and then works on stand-by to keep it warm.
  * 
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
 
-public enum AirConditionClass
+public enum HeaterType
 {
-  A, B, C, D, E, F, G
+  InstantHeater, StorageHeater
 }
