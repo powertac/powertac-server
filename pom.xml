@@ -13,7 +13,6 @@
 		<springframework-version>3.0.6.RELEASE</springframework-version>
 		<springwebflow-version>2.3.0.RELEASE</springwebflow-version>
 		<springsecurity-version>3.0.3.RELEASE</springsecurity-version>
-		<org.slf4j-version>1.5.10</org.slf4j-version>
 	</properties>
 
 	<dependencies>
@@ -70,7 +69,7 @@
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.16</version>
-			<scope>runtime</scope>
+			<!-- <scope>runtime</scope>  -->
 		</dependency>
 		<!-- JSF-303 Dependency Injection -->
 		<dependency>
@@ -143,16 +142,7 @@
 			<artifactId>commons-lang</artifactId>
 			<version>2.2</version>
 		</dependency>
-
-		<dependency>
-			<groupId>jfree</groupId>
-			<artifactId>jfreechart</artifactId>
-			<version>1.0.13</version>
-		</dependency>
-
-
-
-	</dependencies>
+</dependencies>
 
 
 	<repositories>
@@ -208,14 +198,14 @@
 
 	<build>
 		<plugins>
-			<plugin>
+		<!-- 	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<source>${java-version}</source>
 					<target>${java-version}</target>
 				</configuration>
-			</plugin>
+			</plugin>  
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
@@ -229,7 +219,7 @@
 					</sourceExcludes>
 				</configuration>
 			</plugin>
-			<plugin>
+		 	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -241,7 +231,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>  --> 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>tomcat-maven-plugin</artifactId>

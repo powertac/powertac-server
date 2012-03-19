@@ -87,72 +87,73 @@ public class WebCompetitionControlService {
 	private XMLMessageConverter messageConverter;
     private PluginConfigRepo pluginConfigRepo;
 
-
+    @Deprecated
 	public String runSim() throws IOException {
 
-		if (!simRunning) {
-			System.out.println("java.class.path ===>" + System.getProperty("java.class.path"));
-
-			context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
-					.getFile().getCanonicalPath());
-
-			context.registerShutdownHook();
-
-			// find the CompetitionControl bean
-			cc = (CompetitionControlService) context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
-			logService = (LogService) context.getBeansOfType(LogService.class).values().toArray()[0];
-			messageConverter = (XMLMessageConverter) context.getBeansOfType(XMLMessageConverter.class).values().toArray()[0];
-			pluginConfigRepo = (PluginConfigRepo) context.getBeansOfType(PluginConfigRepo.class).values().toArray()[0];
-
-
-			
-			
-			serverProps = (ServerPropertiesService) context.getBeansOfType(ServerProperties.class).values().toArray()[0];
-
-			// set user config
-			URL testPropertiesPath = resourceLoader.getResource("WEB-INF/config/test.properties").getURL();
-			
-			serverProps.setUserConfig(testPropertiesPath);
-
-			// UPDATE FOR NEW SIMULATOR VERSION
-			log.info("In Simulation mode!!!");
-			// String bootstrapFilename =
-			// serverProps.getProperty("server.bootstrapDataFile",
-			// "bd-noname.xml");
-			String bootstrapFilename = resourceLoader.getResource("WEB-INF/config/boot-data.xml").getFile()
-					.getCanonicalPath();
-			File bootFile = new File(bootstrapFilename);
-			if (!bootFile.canRead()) {
-				System.out.println("Cannot read bootstrap data file " + bootstrapFilename);
-			} else {
-				// collect broker names, hand to CC for login control
-				ArrayList<String> brokerList = new ArrayList<String>();
-				brokerList.add("Sample");
-				brokerList.add("Dragec");
-				brokerList.add("Markec");
-				cc.setAuthorizedBrokerList(brokerList);
-				
-				cc.init();
-				
-
-				if (preGame(bootFile)) {
-					cc.setBootstrapDataset(processBootDataset(bootFile));
-					//cc.runOnce(false);
-				} 
-			}
-
-			// time to initialize Visualizer:
-			VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class)
-					.values().toArray()[0];
-			visualizerService.init(visualizerProxy);
-
-			CompetitionStartThread competitionStartThread = new CompetitionStartThread();
-			new Thread(competitionStartThread).start();
-
-			return "Simulation started";
-		} else {
-			return "Can't do that, sim is running.";
-		}
+//		if (!simRunning) {
+//			System.out.println("java.class.path ===>" + System.getProperty("java.class.path"));
+//
+//			context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
+//					.getFile().getCanonicalPath());
+//
+//			context.registerShutdownHook();
+//
+//			// find the CompetitionControl bean
+//			cc = (CompetitionControlService) context.getBeansOfType(CompetitionControl.class).values().toArray()[0];
+//			logService = (LogService) context.getBeansOfType(LogService.class).values().toArray()[0];
+//			messageConverter = (XMLMessageConverter) context.getBeansOfType(XMLMessageConverter.class).values().toArray()[0];
+//			pluginConfigRepo = (PluginConfigRepo) context.getBeansOfType(PluginConfigRepo.class).values().toArray()[0];
+//
+//
+//			
+//			
+//			serverProps = (ServerPropertiesService) context.getBeansOfType(ServerProperties.class).values().toArray()[0];
+//
+//			// set user config
+//			URL testPropertiesPath = resourceLoader.getResource("WEB-INF/config/test.properties").getURL();
+//			
+//			serverProps.setUserConfig(testPropertiesPath);
+//
+//			// UPDATE FOR NEW SIMULATOR VERSION
+//			log.info("In Simulation mode!!!");
+//			// String bootstrapFilename =
+//			// serverProps.getProperty("server.bootstrapDataFile",
+//			// "bd-noname.xml");
+//			String bootstrapFilename = resourceLoader.getResource("WEB-INF/config/boot-data.xml").getFile()
+//					.getCanonicalPath();
+//			File bootFile = new File(bootstrapFilename);
+//			if (!bootFile.canRead()) {
+//				System.out.println("Cannot read bootstrap data file " + bootstrapFilename);
+//			} else {
+//				// collect broker names, hand to CC for login control
+//				ArrayList<String> brokerList = new ArrayList<String>();
+//				brokerList.add("Sample");
+//				brokerList.add("Dragec");
+//				brokerList.add("Markec");
+//				cc.setAuthorizedBrokerList(brokerList);
+//				
+//				cc.init();
+//				
+//
+//				if (preGame(bootFile)) {
+//					cc.setBootstrapDataset(processBootDataset(bootFile));
+//					//cc.runOnce(false);
+//				} 
+//			}
+//
+//			// time to initialize Visualizer:
+//			VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class)
+//					.values().toArray()[0];
+//			visualizerService.init(visualizerProxy);
+//
+//			CompetitionStartThread competitionStartThread = new CompetitionStartThread();
+//			new Thread(competitionStartThread).start();
+//
+//			return "Simulation started";
+//		} else {
+//			return "Can't do that, sim is running.";
+//		}
+		return "deprecated";
 	}
 
 	// to avoid GUI blocking
