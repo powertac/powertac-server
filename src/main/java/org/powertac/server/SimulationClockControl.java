@@ -28,7 +28,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Timer-based clock management for the Power TAC simulator. This is a

@@ -246,7 +246,7 @@ public class CompetitionSetupService
     if (logSuffix == null)
       logSuffix = defaultSuffix;
     serverProps.setProperty("server.logfileSuffix", logSuffix);
-    String realSuffix = serverProps.getProperty("server.logfileSuffix");
+    //String realSuffix = serverProps.getProperty("server.logfileSuffix");
   }
 
   // handles the original script format. This capability can presumably

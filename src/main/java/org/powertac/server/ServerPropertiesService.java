@@ -17,7 +17,6 @@ package org.powertac.server;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Properties;
@@ -28,7 +27,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;

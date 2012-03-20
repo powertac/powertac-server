@@ -16,9 +16,8 @@
 package org.powertac.server;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
-import org.apache.log4j.Appender;
+//import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.FileAppender;
 import org.apache.log4j.Level;
