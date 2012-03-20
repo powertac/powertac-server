@@ -150,7 +150,7 @@ public class VisualizerBean implements Serializable {
 		this.brokerSeriesOptions = seriesOptions.toString();
 		this.brokerSeriesColors = brokerSeriesColors.toString();
 		// this.brokers = brokers;
-		log.info("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:"
+		log.debug("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:"
 				+ brokerSeriesColors.toString());
 
 	}

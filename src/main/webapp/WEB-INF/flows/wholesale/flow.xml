@@ -5,15 +5,13 @@
 	parent="parent-flow">
 
 	<!-- Also see ../parent-flow.xml. -->
-
-
+	<var name="wholesaleFlow" class="org.powertac.visualizer.user.WholesaleFlowScope"/>
 	<view-state id="view">
+		<on-render>
+			<evaluate expression="trainingService.increment()"></evaluate>
 
-	<on-render>
-	<evaluate expression="trainingService.increment()"></evaluate>
-	</on-render>
-	
-
+		</on-render>
+		
 
 	</view-state>
 </flow>

@@ -85,7 +85,7 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(PluginConfig pluginConfig) {
 
-		log.info("\n" + pluginConfig.toString());
+		log.debug("\n" + pluginConfig.toString());
 
 		// build GENCO
 		if (pluginConfig.getRoleName().equals("genco")) {
@@ -114,7 +114,7 @@ public class VisualizerMessageHandlerService {
 			builder.append(" ").append(timeslot.getSerialNumber());
 		}
 
-		log.info(builder + "\n");
+		log.debug(builder + "\n");
 
 		int relativeTimeslotIndex = helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
 		// for all brokers and gencos:
@@ -149,19 +149,19 @@ public class VisualizerMessageHandlerService {
 	public void handleMessage(WeatherReport weatherReport) {
 
 		if (weatherReport.getCurrentTimeslot() != null) {
-			log.info("\nStart Instant: " + weatherReport.getCurrentTimeslot().getStartInstant());
+			log.debug("\nStart Instant: " + weatherReport.getCurrentTimeslot().getStartInstant());
 			visualizerBean.setWeatherReport(weatherReport);
 		} else {
 			log.warn("Timeslot for Weather report object is null!!");
 		}
 
-		log.info("CLOUD COVER: " + weatherReport.getCloudCover() + " TEMP: " + weatherReport.getTemperature()
+		log.debug("CLOUD COVER: " + weatherReport.getCloudCover() + " TEMP: " + weatherReport.getTemperature()
 				+ "W DIR:" + weatherReport.getWindDirection() + "W SPEED:" + weatherReport.getWindSpeed());
 
 	}
 
 	public void handleMessage(WeatherForecast weatherForecast) {
-		log.info("\nCurrent timeslot:\n Serial number: " + weatherForecast.getCurrentTimeslot().getSerialNumber()
+		log.debug("\nCurrent timeslot:\n Serial number: " + weatherForecast.getCurrentTimeslot().getSerialNumber()
 				+ " ID:" + weatherForecast.getCurrentTimeslot().getId() + " Start instant: "
 				+ weatherForecast.getCurrentTimeslot().getStartInstant());
 		visualizerBean.setWeatherForecast(weatherForecast);
@@ -170,7 +170,7 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(TariffSpecification tariffSpecification) {
-		log.info("\nBroker: " + tariffSpecification.getBroker().getUsername() + " Min duration: "
+		log.debug("\nBroker: " + tariffSpecification.getBroker().getUsername() + " Min duration: "
 				+ tariffSpecification.getMinDuration() + " EarlyWithdrPaymnt "
 				+ tariffSpecification.getEarlyWithdrawPayment() + " PeriodicPayment: "
 				+ tariffSpecification.getPeriodicPayment() + " SignupPayment" + tariffSpecification.getSignupPayment()
@@ -178,7 +178,7 @@ public class VisualizerMessageHandlerService {
 				+ tariffSpecification.getPowerType() + " ID: " + tariffSpecification.getId());
 
 		if (tariffSpecification.getSupersedes() != null) {
-			log.info("NO of tariffspec:" + tariffSpecification.getSupersedes().size());
+			log.debug("NO of tariffspec:" + tariffSpecification.getSupersedes().size());
 		}
 
 		List<Rate> rates = tariffSpecification.getRates();
@@ -187,7 +187,7 @@ public class VisualizerMessageHandlerService {
 			Rate rate = (Rate) iterator.next();
 			ispis += "" + rate.toString();
 		}
-		log.info("RATE:\n" + ispis);
+		log.debug("RATE:\n" + ispis);
 
 		// find matching broker and add received tariff spec. to its history.
 		BrokerModel brokerModel = helper.findBrokerModel(tariffSpecification.getBroker());
@@ -203,7 +203,7 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(CashPosition cashPosition) {
 
-		log.info("\nBalance: " + cashPosition.getBalance() + " for broker " + cashPosition.getBroker().getUsername());
+		log.debug("\nBalance: " + cashPosition.getBalance() + " for broker " + cashPosition.getBroker().getUsername());
 		// update balance, if such broker exists
 		VisualBroker visualBroker = helper.findVisualBroker(cashPosition.getBroker());
 
@@ -223,7 +223,7 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(Order order) {
 
-		log.info("\nBroker: " + order.getBroker() + "\nLimit Price: " + order.getLimitPrice() + "\nMWh: "
+		log.debug("\nBroker: " + order.getBroker() + "\nLimit Price: " + order.getLimitPrice() + "\nMWh: "
 				+ order.getMWh() + " Timeslot\n Serial Number: " + order.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(order.getTimeslot().getStartInstant()));
 
@@ -298,7 +298,7 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(ClearedTrade clearedTrade) {
 		int dateExecuted = helper.computeRelativeTimeslotIndex(clearedTrade.getDateExecuted());
-		log.info("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index: "
+		log.debug("\nTimeslot\n Serial number: " + clearedTrade.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(clearedTrade.getTimeslot().getStartInstant())
 				+ "\nExecutionPrice:" + clearedTrade.getExecutionPrice() + " ExecutionMWh"
 				+ clearedTrade.getExecutionMWh() + " DateExecuted (timeslot index):" + dateExecuted);
@@ -317,7 +317,7 @@ public class VisualizerMessageHandlerService {
 		// what about market? should be closed when all of its snapshots have
 		// been closed and when its timeslot equals the current timeslot
 		int offset = market.getTimeslotSerialNumber() - visualizerBean.getRelativeTimeslotIndex();
-		log.info(offset);
+		log.debug(offset);
 		if (offset == timeslotOffset) {
 			market.close();
 			// update model:
@@ -328,7 +328,7 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(MarketTransaction marketTransaction) {
-		log.info("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh()
+		log.debug("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh()
 				+ "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime()
 				+ " Timeslot\n Serial Number: " + marketTransaction.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
@@ -339,7 +339,7 @@ public class VisualizerMessageHandlerService {
 
 	public void handleMessage(MarketPosition marketPosition) {
 
-		log.info("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance()
+		log.debug("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance()
 				+ "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber()
 				+ " Timeslot\n Serial Number: " + marketPosition.getTimeslot().getSerialNumber() + " Index: "
 				+ helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
@@ -353,7 +353,7 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(TariffTransaction tariffTransaction) {
-		log.info("Broker: " + tariffTransaction.getBroker() + " Charge: " + tariffTransaction.getCharge()
+		log.debug("Broker: " + tariffTransaction.getBroker() + " Charge: " + tariffTransaction.getCharge()
 				+ " CustomerCount: " + tariffTransaction.getCustomerCount() + "\n KWh: " + tariffTransaction.getKWh()
 				+ " CustomerInfo: " + tariffTransaction.getCustomerInfo() + "Posted time: "
 				+ tariffTransaction.getPostedTime() + "\n TxType: " + tariffTransaction.getTxType());
@@ -368,7 +368,7 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(DistributionTransaction distributionTransaction) {
-		log.info("Broker: " + distributionTransaction.getBroker() + "\nCharge: " + distributionTransaction.getCharge()
+		log.debug("Broker: " + distributionTransaction.getBroker() + "\nCharge: " + distributionTransaction.getCharge()
 				+ "\nkWh: " + distributionTransaction.getKWh() + "\nPostedTime timeslot index: "
 				+ helper.computeRelativeTimeslotIndex(distributionTransaction.getPostedTime()));
 
@@ -385,7 +385,7 @@ public class VisualizerMessageHandlerService {
 	}
 
 	public void handleMessage(BalancingTransaction balancingTransaction) {
-		log.info("Broker: " + balancingTransaction.getBroker() + "\nCharge: " + balancingTransaction.getCharge()
+		log.debug("Broker: " + balancingTransaction.getBroker() + "\nCharge: " + balancingTransaction.getCharge()
 				+ "\nkWh: " + balancingTransaction.getKWh() + "\nPostedTime timeslot index: "
 				+ helper.computeRelativeTimeslotIndex(balancingTransaction.getPostedTime()));
 

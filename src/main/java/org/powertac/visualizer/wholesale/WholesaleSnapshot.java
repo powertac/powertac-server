@@ -15,8 +15,6 @@ import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
-import org.primefaces.model.DefaultTreeNode;
-import org.primefaces.model.TreeNode;
 
 /**
  * Represents the wholesale market per-timeslot snapshot for one timeslot.
@@ -25,6 +23,9 @@ import org.primefaces.model.TreeNode;
  * 
  */
 public class WholesaleSnapshot {
+	
+	
+
 	Logger log = Logger.getLogger(WholesaleSnapshot.class.getName());
 
 	// relative index in which snapshot was created.
@@ -49,11 +50,15 @@ public class WholesaleSnapshot {
 	 * when there is null price in orderbook, or when the clearedTrade object is
 	 * set.
 	 */
+	private boolean closed;
 
 	private OrderbookOrder marketAskOrder;
 	private OrderbookOrder marketBidOrder;
 
-	private boolean closed;
+	private List<OrderbookOrder> beforeAsks;
+	private List<OrderbookOrder> beforeBids;
+	private List<OrderbookOrder> afterAsks;
+	private List<OrderbookOrder> afterBids;
 
 	public WholesaleSnapshot(Timeslot timeslot, int relativeTimeslotIndexCreated, int timeslotSerialNumberCreated) {
 		this.timeslotSerialNumber = timeslot.getSerialNumber();
@@ -218,6 +223,13 @@ public class WholesaleSnapshot {
 		log.debug("Snapshot " + this.getTimeslotSerialNumber() + "@" + this.getTimeslotSerialNumberCreated()
 				+ " is closed: \n" + this.toString());
 
+		// make arraylists:
+		beforeAsks = new ArrayList<OrderbookOrder>(orders.getAsks());
+		beforeBids = new ArrayList<OrderbookOrder>(orders.getBids());
+
+		afterAsks = new ArrayList<OrderbookOrder>(orderbook.getAsks());
+		afterBids = new ArrayList<OrderbookOrder>(orderbook.getBids());
+
 	}
 
 	private void modifyMarketOrders() {
@@ -381,7 +393,7 @@ public class WholesaleSnapshot {
 			return offset;
 
 		} catch (JSONException e) {
-			log.info("Building JSON Array failed.");
+			log.warn("Building JSON Array failed.");
 		}
 		return 0;
 	}
@@ -415,19 +427,19 @@ public class WholesaleSnapshot {
 	}
 
 	public List<OrderbookOrder> getAfterAsks() {
-		return new ArrayList<OrderbookOrder>(orderbook.getAsks());
+		return afterAsks;
 	}
 
 	public List<OrderbookOrder> getAfterBids() {
-		return new ArrayList<OrderbookOrder>(orderbook.getBids());
+		return afterBids;
 	}
 
 	public List<OrderbookOrder> getBeforeAsks() {
-		return new ArrayList<OrderbookOrder>(orders.getAsks());
+		return beforeAsks;
 	}
 
 	public List<OrderbookOrder> getBeforeBids() {
-		return new ArrayList<OrderbookOrder>(orders.getBids());
+		return beforeBids;
 	}
 
 }

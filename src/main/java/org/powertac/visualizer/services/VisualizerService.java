@@ -74,7 +74,7 @@ public class VisualizerService implements VisualizerMessageListener {
 	
 
 	if (msg != null) {
-		log.info("Counter: " + visualizerBean.getMessageCount()
+		log.debug("Counter: " + visualizerBean.getMessageCount()
 				+ ", Got message: " + msg.getClass().getName());
 	    Helper.dispatch(visualizerMessageHandler, "handleMessage", msg);
 	} else {

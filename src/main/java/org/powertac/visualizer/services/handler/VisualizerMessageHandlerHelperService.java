@@ -76,7 +76,7 @@ public class VisualizerMessageHandlerHelperService {
 			}
 		}
 
-		log.debug("Could not find broker");
+		log.info("Could not find a visual broker");
 		return visualBroker;
 	}
 

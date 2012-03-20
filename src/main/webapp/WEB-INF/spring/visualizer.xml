@@ -26,9 +26,6 @@
 		
 	<bean id="visualizerBean" class="org.powertac.visualizer.beans.VisualizerBean"/>
 	
-	<bean id="customerBackingBean" class="org.powertac.visualizer.beans.backing.CustomerBackingBean" scope="request" />
-	<bean id="competitionInfoDashboard" class="org.powertac.visualizer.beans.backing.CompetitionInfoDashboard" scope="request" />
-	
 	<bean id="appearanceListBean" class="org.powertac.visualizer.beans.AppearanceListBean">
 		<constructor-arg name="appereanceList">
 			<list>
@@ -66,6 +63,6 @@
   	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
 	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="request">
 		<constructor-arg name="visualizerBean" ref="visualizerBean"/>
-	</bean>
+	</bean> 
 </beans>
 	

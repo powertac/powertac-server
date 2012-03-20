@@ -20,8 +20,8 @@
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true" stateful="true">
-		<p:layoutUnit id="north" position="north" size="140"
+	<p:layout id="mainLayout" fullPage="true" >
+		<p:layoutUnit id="north" position="north" size="100"
 			collapsible="true" header="LOL" styleClass="custom">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
 			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
@@ -38,7 +38,7 @@
 
 		</p:layoutUnit>
 		
-		<p:layoutUnit position="east" size="550" collapsible="true" header="LOL" styleClass="custom">
+		<p:layoutUnit position="east" size="400" collapsible="true" header="LOL" styleClass="custom">
 			
 				<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 				<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml"/>
@@ -48,7 +48,7 @@
 								
 		</p:layoutUnit>
 
-		<p:layoutUnit position="south" size="70">
+		<p:layoutUnit position="south" size="20">
 			<p:dock>
 				<p:menuitem value="Game Overview"
 					icon="/app/resources/resources/images/dock/general.png" url="gameoverview" />

@@ -92,7 +92,7 @@ public class CustomerModel {
 		} else {
 			energyConsumption += kWh;
 		}
-		log.info("\n energy consumption:" + energyConsumption + " energy production:" + energyProduction);
+		log.debug("\n energy consumption:" + energyConsumption + " energy production:" + energyProduction);
 	}
 
 	private void updateCash(double charge) {
@@ -102,7 +102,7 @@ public class CustomerModel {
 		} else {
 			cashOutflow += charge;
 		}
-		log.info("\n CashInflow:" + cashInflow + " CashOutflow:" + cashOutflow);
+		log.debug("\n CashInflow:" + cashInflow + " CashOutflow:" + cashOutflow);
 	}
 
 	public int getCustomerCount() {

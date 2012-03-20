@@ -20,13 +20,14 @@
 
 	<ui:define name="content">
 
-		<p:layout fullPage="false" style="width:800px;height:550px" stateful="true">
-			<p:layoutUnit position="west" size="500" collapsible="true"
+		<p:layout fullPage="false" style="width:800px;height:800px">
+
+			<p:layoutUnit position="west" size="330" collapsible="true"
 				header="LOL" styleClass="custom">
 				<h:form id="wholesaleTableForm">
 
 					<p:dataTable var="market" value="#{wholesaleBean.markets}"
-						paginator="true" rows="15">
+						paginator="true" rows="15" pageLinks="3" tableStyle="width:auto">
 
 						<f:facet name="header">  
           				   Expand rows to see detailed information  
@@ -36,31 +37,40 @@
 							<p:rowToggler />
 						</p:column>
 
-						<p:column style="width:100px" headerText="Name">
+						<p:column style="width:70px" headerText="Name">
 							<h:outputText value="#{market.name}" />
 						</p:column>
 
-						<p:column style="width:80px" headerText="TTQ (MWh)">
+						<p:column style="width:50px" headerText="TTQ (MWh)">
 							<h:outputText value="#{market.totalTradedQuantityMWh}" />
 						</p:column>
 
 						<p:rowExpansion>
 
 							<p:dataTable var="snapshot" value="#{market.snapshots}"
-								selectionMode="single"
-								selection="#{wholesaleBean.selectedSnapshot}"
-								rowKey="#{snapshot.timeslotSerialNumberCreated}">
-								<p:ajax event="rowSelect" update=":wholesaleGraphsForm" />
+								tableStyle="width:auto">
 
-								<p:column style="width:250px">
+								<p:column style="width:60px">
 									<h:outputText value="#{snapshot.name}" />
 								</p:column>
 
-								<p:column style="width:250px">
+								<p:column style="width:40px">
 									<h:outputText value="#{snapshot.totalTradedQuantity}" />
 								</p:column>
 
+								<p:column style="width:40px">
+									<h:panelGrid columns="3" styleClass="actions" cellpadding="2">
+										<p:commandButton id="selectButton"
+											update=":wholesaleGraphsForm" icon="ui-icon-search"
+											title="View">
+											<f:setPropertyActionListener value="#{snapshot}"
+												target="#{wholesaleBean.selectedSnapshot}" />
+										</p:commandButton>
+									</h:panelGrid>
+								</p:column>
+
 							</p:dataTable>
+
 						</p:rowExpansion>
 						<f:facet name="footer">
 						Total traded quantity: #{wholesaleBean.totalTradedQuantityMWh} MWh
@@ -74,10 +84,11 @@
 			<p:layoutUnit position="center" id="wholesaleCenterUnit">
 				<h:form id="wholesaleGraphsForm">
 
-					<!-- Before clearing graph -->
-					<div id="beforeClearingWholesaleGraph"
-						style="height: 300px; width: 600px;"></div>
-					<script type="text/javascript">
+					<p:panel rendered="#{not empty wholesaleBean.selectedSnapshot}">
+						<!-- Before clearing graph -->
+						<div id="beforeClearingWholesaleGraph"
+							style="width: 600px; height: 250px;" />
+						<script type="text/javascript">
 							if (window.beforeClearingWholesaleGraph != null) {
 								window.beforeClearingWholesaleGraph.destroy();
 							}
@@ -109,10 +120,17 @@
 						
 								</script>
 
-					<!-- After clearing graph -->
-					<div id="afterClearingWholesaleGraph"
-						style="height: 300px; width: 600px;"></div>
-					<script type="text/javascript">
+
+					</p:panel>
+
+					<p:outputPanel
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+
+
+						<!-- After clearing graph -->
+						<div id="afterClearingWholesaleGraph"
+							style="width: 600px; height: 250px;"></div>
+						<script type="text/javascript">
 							if (window.afterClearingWholesaleGraph != null) {
 								window.afterClearingWholesaleGraph.destroy();
 							}
@@ -144,10 +162,50 @@
 						
 								</script>
 
-			
-				</h:form>
+						<h:panelGrid columns="2">
 
+							<p:dataTable var="ask" value="#{wholesaleBean.selectedSnapshot.beforeAsks}"
+								scrollable="true" scrollHeight="120" style="float:left">
+								<f:facet name="header">
+							Asks
+							</f:facet>
+								<p:column headerText="Limit price" style="width:50px">
+									<h:outputText value="#{ask.limitPrice}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+								</p:column>
+								<p:column headerText="MWh" style="width:50px">
+									<h:outputText value="#{ask.MWh}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+								</p:column>
+							</p:dataTable>
+
+							<p:dataTable var="ask" value="#{wholesaleBean.selectedSnapshot.afterAsks}"
+								scrollable="true" scrollHeight="120" style="float:left">
+								<f:facet name="header">
+							Asks
+							</f:facet>
+								<p:column headerText="Limit price" style="width:50px">
+									<h:outputText value="#{ask.limitPrice}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+								</p:column>
+								<p:column headerText="MWh" style="width:50px">
+									<h:outputText value="#{ask.MWh}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+								</p:column>
+							</p:dataTable>
+						</h:panelGrid>
+
+
+
+					</p:outputPanel>
+
+				</h:form>
 			</p:layoutUnit>
+
 
 		</p:layout>
 

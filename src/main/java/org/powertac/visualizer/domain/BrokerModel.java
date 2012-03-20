@@ -92,7 +92,7 @@ public class BrokerModel implements VisualBroker, DisplayableBroker {
 		StringBuilder options = new StringBuilder();
 		options.append("{color: '").append(appearance.getColorCode()).append("', label: '").append(name).append("'}");
 		seriesOptions = options.toString();
-		log.info(seriesOptions);
+		log.debug(seriesOptions);
 		customerTicks = new JSONArray();
 
 	}

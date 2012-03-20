@@ -43,7 +43,7 @@ public class WebCompetitionControl2Service {
 	public String runSim() throws IOException {
 
 		if (!simRunning) {
-			System.out.println("java.class.path ===>" + System.getProperty("java.class.path"));
+			log.info("java.class.path ===>" + System.getProperty("java.class.path"));
 
 			context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
 					.getFile().getCanonicalPath());
@@ -53,11 +53,9 @@ public class WebCompetitionControl2Service {
 			// find the CompetitionControlService bean
 			css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
 		
-			// UPDATE FOR NEW SIMULATOR VERSION
-			log.info("In Simulation mode!!!");
-			
+						
 			URL bootstrapURL = resourceLoader.getResource("WEB-INF/config/boot-data.xml").getURL();
-			log.info("BOOTSTRAP:"+bootstrapURL);
+			log.info("BOOTSTRAP_url:"+bootstrapURL);
 
 			List<String> argList = new ArrayList<String>();
 			argList.add("--sim");
