@@ -141,6 +141,7 @@ public class HouseholdCustomerServiceTests
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
     weatherReportRepo.recycle();
+    weatherReportRepo.runOnce();
     householdCustomerService.clearConfiguration();
     reset(mockAccounting);
     reset(mockServerProperties);
