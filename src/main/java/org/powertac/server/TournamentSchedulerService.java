@@ -10,65 +10,75 @@ import org.powertac.common.Competition;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-public class TournamentSchedulerService implements InitializationService {
-	static private Logger log = Logger
-			.getLogger(WeatherService.class.getName());
+@Service
+public class TournamentSchedulerService implements InitializationService
+{
+  static private Logger log = 
+      Logger.getLogger(TournamentSchedulerService.class.getName());
 
-	@Autowired
-	private ServerConfiguration serverProps;
-	
-	
-	private String tournamentSchedulerUrl = "";
-	
-	private int gameId = 0;
-	
+  @Autowired
+  private ServerConfiguration serverProps;
 
-	public int getGameId() {
-		return gameId;
-	}
 
-	public void setGameId(int gameId) {
-		this.gameId = gameId;
-	}
+  private String tournamentSchedulerUrl = "";
 
-	public String getTournamentSchedulerUrl() {
-		return tournamentSchedulerUrl;
-	}
+  private int gameId = 0;
 
-	public void setTournamentSchedulerUrl(String tournamentSchedulerUrl) {
-		this.tournamentSchedulerUrl = tournamentSchedulerUrl;
-	}
 
-	public void ready() {
-		
-		String finalUrl = getTournamentSchedulerUrl() + 
-		"?status=ready" + 
-		"&gameId=" + getGameId();
-		
-		log.info("Sending game ready message to controller at: " + finalUrl);
+  public int getGameId()
+  {
+    return gameId;
+  }
 
-		try {
-			URL url = new URL(finalUrl);
-			URLConnection conn = url.openConnection();
-			// Get the response
-			InputStream input = conn.getInputStream();
+  public void setGameId(int gameId)
+  {
+    this.gameId = gameId;
+  }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Jenkins failure");
-		}
+  public String getTournamentSchedulerUrl()
+  {
+    return tournamentSchedulerUrl;
+  }
 
-	}
+  public void setTournamentSchedulerUrl(String tournamentSchedulerUrl)
+  {
+    this.tournamentSchedulerUrl = tournamentSchedulerUrl;
+  }
 
-	public String initialize(Competition competition,
-			List<String> completedInits) {
-		
-		serverProps.configureMe(this);
-		return "TournamentSchedulerService";
-	}
+  public void ready()
+  {
+    String finalUrl = getTournamentSchedulerUrl() + 
+        "?status=ready" + 
+        "&gameId=" + getGameId();
 
-	public void setDefaults() {
-	}
+    log.info("Sending game ready message to controller at: " + finalUrl);
+
+    try {
+      URL url = new URL(finalUrl);
+      URLConnection conn = url.openConnection();
+      // Get the response
+      InputStream input = conn.getInputStream();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("Jenkins failure");
+    }
+
+  }
+
+  @Override
+  public String initialize(Competition competition,
+                           List<String> completedInits)
+  {
+    serverProps.configureMe(this);
+    return "TournamentSchedulerService";
+  }
+
+  @Override
+  public void setDefaults()
+  {
+  }
 
 }

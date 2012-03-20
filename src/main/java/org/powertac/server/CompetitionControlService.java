@@ -119,7 +119,7 @@ public class CompetitionControlService
   private JmsManagementService jmsManagementService;
   
   @Autowired
-  private TournamentSchedulerService tss;
+  private TournamentSchedulerService tournamentSchedulerService;
 
   // Server JMS Queue Name
   private String serverQueueName = "serverInput";
@@ -295,7 +295,8 @@ public class CompetitionControlService
     }
 
     // Send ready message to tournament scheduler
-    tss.ready();
+    // -- but only if we have a tournament scheduler --
+    //tournamentSchedulerService.ready();
     
     // get brokers logged in
     //jmsManagementService.createQueues()
