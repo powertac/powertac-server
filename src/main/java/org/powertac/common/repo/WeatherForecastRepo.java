@@ -116,6 +116,7 @@ public class WeatherForecastRepo implements DomainRepo {
 	}
 
 	public void recycle() {
-		indexedWeatherForecasts.clear();
+	  hasRunOnce = false;
+	  indexedWeatherForecasts.clear();
 	}
 }
