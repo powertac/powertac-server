@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 //import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,8 @@ import org.powertac.common.exceptions.PowerTacException;
  */
 @Repository
 public class WeatherForecastRepo implements DomainRepo {
-	// static private Logger log =
-	// Logger.getLogger(WeatherForecastRepo.class.getName());
+  static private Logger log =
+      Logger.getLogger(WeatherForecastRepo.class.getName());
 
 	// storage
 	private HashMap<Timeslot, WeatherForecast> indexedWeatherForecasts;
@@ -64,9 +65,12 @@ public class WeatherForecastRepo implements DomainRepo {
 	/**
 	 * Returns the current WeatherForecast
 	 */
-	public WeatherForecast currentWeatherForecast() throws PowerTacException {
+	public WeatherForecast currentWeatherForecast()
+	    throws PowerTacException
+	{
 		if (!hasRunOnce) {
-			throw new PowerTacException();
+		        log.error("Weather Service has yet to run, cannot retrieve report");
+			throw new PowerTacException("Attempt to retrieve forecast before data available");
 		}
 
 		// Returns the weather report for the current timeslot
@@ -77,27 +81,22 @@ public class WeatherForecastRepo implements DomainRepo {
 	 * Returns a list of all the issued weather forecast up to the
 	 * currentTimeslot
 	 */
-	public List<WeatherForecast> allWeatherForecasts() throws PowerTacException {
+	public List<WeatherForecast> allWeatherForecasts()
+	{
+	  Timeslot current = timeslotRepo.currentTimeslot();
+	  // Some weather forecasts exist in the repo for the future
+	  // but have not been issued for the current timeslot.
+	  ArrayList<WeatherForecast> issuedReports = new ArrayList<WeatherForecast>();
+	  for (WeatherForecast w : indexedWeatherForecasts.values()) {
+	    if (w.getCurrentTimeslot().getStartInstant()
+	        .isBefore(current.getStartInstant())) {
+	      issuedReports.add(w);
+	    }
+	  }
 
-		try {
-			Timeslot current = timeslotRepo.currentTimeslot();
-			// Some weather forecasts exist in the repo for the future
-			// but have not been issued for the current timeslot.
-			ArrayList<WeatherForecast> issuedReports = new ArrayList<WeatherForecast>();
-			for (WeatherForecast w : indexedWeatherForecasts.values()) {
-				if (w.getCurrentTimeslot().getStartInstant()
-						.isBefore(current.getStartInstant())) {
-					issuedReports.add(w);
-				}
-			}
+	  issuedReports.add(this.currentWeatherForecast());
 
-			issuedReports.add(this.currentWeatherForecast());
-
-			return (List<WeatherForecast>) issuedReports;
-
-		} catch (PowerTacException p) {
-			throw p;
-		}
+	  return (List<WeatherForecast>) issuedReports;
 	}
 
 	/**
@@ -115,7 +114,9 @@ public class WeatherForecastRepo implements DomainRepo {
 		hasRunOnce = true;
 	}
 
-	public void recycle() {
+	@Override
+	public void recycle()
+	{
 	  hasRunOnce = false;
 	  indexedWeatherForecasts.clear();
 	}

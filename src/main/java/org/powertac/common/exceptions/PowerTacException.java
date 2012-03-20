@@ -6,7 +6,7 @@ package org.powertac.common.exceptions;
  * @author Carsten Block
  * @version 1.0, Date: 10.01.11
  */
-public class PowerTacException extends Exception {
+public class PowerTacException extends RuntimeException {
   private static final long serialVersionUID = 3756680475439684129L;
 
   public PowerTacException() {

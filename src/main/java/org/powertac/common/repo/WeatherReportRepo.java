@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 
 //import org.apache.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,8 +36,8 @@ import org.powertac.common.exceptions.PowerTacException;
  */
 @Repository
 public class WeatherReportRepo implements DomainRepo {
-	// static private Logger log =
-	// Logger.getLogger(WeatherReportRepo.class.getName());
+	static private Logger log =
+	    Logger.getLogger(WeatherReportRepo.class.getName());
 
 	// storage
 	private HashMap<Timeslot, WeatherReport> indexedWeatherReports;
@@ -66,7 +67,8 @@ public class WeatherReportRepo implements DomainRepo {
 	 */
 	public WeatherReport currentWeatherReport() throws PowerTacException {
 		if (!hasRunOnce) {
-			throw new PowerTacException();
+                  log.error("Weather Service has yet to run, cannot retrieve report");
+                  throw new PowerTacException("Attempt to retrieve report before data available");
 		}
 		// Returns the weather report for the current timeslot
 		return indexedWeatherReports.get(timeslotRepo.currentTimeslot());
@@ -76,24 +78,21 @@ public class WeatherReportRepo implements DomainRepo {
 	 * Returns a list of all the issued weather reports up to the
 	 * currentTimeslot
 	 */
-	public List<WeatherReport> allWeatherReports() throws PowerTacException {
-		try {
-			Timeslot current = timeslotRepo.currentTimeslot();
-			// Some weather reports exist in the repo for the future
-			// but have not been issued for the current timeslot.
-			ArrayList<WeatherReport> issuedReports = new ArrayList<WeatherReport>();
-			for (WeatherReport w : indexedWeatherReports.values()) {
-				if (w.getCurrentTimeslot().getStartInstant()
-						.isBefore(current.getStartInstant())) {
-					issuedReports.add(w);
-				}
-			}
-			issuedReports.add(this.currentWeatherReport());
+	public List<WeatherReport> allWeatherReports()
+	{
+	  Timeslot current = timeslotRepo.currentTimeslot();
+	  // Some weather reports exist in the repo for the future
+	  // but have not been issued for the current timeslot.
+	  ArrayList<WeatherReport> issuedReports = new ArrayList<WeatherReport>();
+	  for (WeatherReport w : indexedWeatherReports.values()) {
+	    if (w.getCurrentTimeslot().getStartInstant()
+	        .isBefore(current.getStartInstant())) {
+	      issuedReports.add(w);
+	    }
+	  }
+	  issuedReports.add(this.currentWeatherReport());
 
-			return (List<WeatherReport>) issuedReports;
-		} catch (PowerTacException p) {
-			throw p;
-		}
+	  return (List<WeatherReport>) issuedReports;
 	}
 
 	/**
