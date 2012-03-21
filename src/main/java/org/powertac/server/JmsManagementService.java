@@ -76,6 +76,7 @@ public class JmsManagementService
     brokerService = new BrokerService();
     try {
       brokerService.setBrokerName(getJmsBrokerName());
+      brokerService.setPersistent(false);
       brokerService.addConnector(getJmsBrokerUrl());
       brokerService.start();
       brokerService.waitUntilStarted();
