@@ -45,8 +45,7 @@ public class WebCompetitionControl2Service {
 		if (!simRunning) {
 			log.info("java.class.path ===>" + System.getProperty("java.class.path"));
 
-			context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml")
-					.getFile().getCanonicalPath());
+			context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml").getURL().toString());
 
 			context.registerShutdownHook();
 
