@@ -25,3 +25,6 @@
 [submodule "server-main"]
 	path = server-main
 	url = git://github.com/powertac/server-main.git
+[submodule "officecomplex-customer"]
+	path = officecomplex-customer
+	url = git://github.com/powertac/officecomplex-customer.git
