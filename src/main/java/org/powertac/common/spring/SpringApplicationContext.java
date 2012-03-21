@@ -20,9 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.powertac.common.repo.DomainRepo;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
@@ -37,6 +35,7 @@ public class SpringApplicationContext implements ApplicationContextAware
 {
   private static ApplicationContext context;
   
+  @Override
   public void setApplicationContext (ApplicationContext appContext)
   throws BeansException
   {
