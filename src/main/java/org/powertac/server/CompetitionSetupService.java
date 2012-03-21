@@ -28,7 +28,6 @@ import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.transform.OutputKeys;
@@ -50,14 +49,12 @@ import joptsimple.OptionSpec;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.DomainRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -89,9 +86,6 @@ public class CompetitionSetupService
 
   @Autowired
   private BootstrapDataCollector defaultBroker;
-
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
 
   @Autowired
   private ServerPropertiesService serverProps;
@@ -399,70 +393,7 @@ public class CompetitionSetupService
   private void configureCompetition (Competition competition)
   {
     serverProps.configureMe(competition);
-//    // get game length
-//    int minimumTimeslotCount =
-//        serverProps.getIntegerProperty("competition.minimumTimeslotCount",
-//                                       competition.getMinimumTimeslotCount());
-//    int expectedTimeslotCount =
-//        serverProps.getIntegerProperty("competition.expectedTimeslotCount",
-//                                       competition.getExpectedTimeslotCount());
-//    if (expectedTimeslotCount < minimumTimeslotCount) {
-//      log.warn("competition expectedTimeslotCount " + expectedTimeslotCount
-//               + " < minimumTimeslotCount " + minimumTimeslotCount);
-//      expectedTimeslotCount = minimumTimeslotCount;
-//    }
-//    int bootstrapTimeslotCount =
-//        serverProps.getIntegerProperty("competition.bootstrapTimeslotCount",
-//                                       competition.getBootstrapTimeslotCount());
-//    int bootstrapDiscardedTimeslots =
-//        serverProps.getIntegerProperty("competition.bootstrapDiscardedTimeslots",
-//                                       competition.getBootstrapDiscardedTimeslots());
-//
-//    // get trading parameters
-//    int timeslotsOpen =
-//        serverProps.getIntegerProperty("competition.timeslotsOpen",
-//                                       competition.getTimeslotsOpen());
-//    int deactivateTimeslotsAhead =
-//        serverProps.getIntegerProperty("competition.deactivateTimeslotsAhead",
-//                                       competition.getDeactivateTimeslotsAhead());
-//
-//    // get time parameters
-//    int timeslotLength =
-//        serverProps.getIntegerProperty("competition.timeslotLength",
-//                                       competition.getTimeslotLength());
-//    int simulationTimeslotSeconds =
-//        timeslotLength * 60 / (int)competition.getSimulationRate();
-//    simulationTimeslotSeconds =
-//        serverProps.getIntegerProperty("competition.simulationTimeslotSeconds",
-//                                       simulationTimeslotSeconds);
-//    int simulationRate = timeslotLength * 60 / simulationTimeslotSeconds;
-//    DateTimeZone.setDefault(DateTimeZone.UTC);
-//    DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
-//    Instant start = null;
-//    try {
-//      start =
-//        fmt.parseDateTime(serverProps.getProperty("competition.baseTime")).toInstant();
-//    }
-//    catch (Exception e) {
-//      log.error("Exception reading base time: " + e.toString());
-//    }
-//    if (start == null)
-//      start = competition.getSimulationBaseTime();
-//
-//    // populate the competition instance
-//    competition
-//      .withMinimumTimeslotCount(minimumTimeslotCount)
-//      .withExpectedTimeslotCount(expectedTimeslotCount)
-//      .withSimulationBaseTime(start)
-//      .withSimulationRate(simulationRate)
-//      .withTimeslotLength(timeslotLength)
-//      .withSimulationModulo(timeslotLength * TimeService.MINUTE)
-//      .withTimeslotsOpen(timeslotsOpen)
-//      .withDeactivateTimeslotsAhead(deactivateTimeslotsAhead)
-//      .withBootstrapTimeslotCount(bootstrapTimeslotCount)
-//      .withBootstrapDiscardedTimeslots(bootstrapDiscardedTimeslots);
-//    
-//    // bootstrap timeslot timing is a local parameter
+    // bootstrap timeslot timing is a local parameter
     int bootstrapTimeslotSeconds =
         serverProps.getIntegerProperty("server.bootstrapTimeslotSeconds",
                                        (int)(cc.getBootstrapTimeslotMillis()
@@ -485,8 +416,6 @@ public class CompetitionSetupService
     // read the config info from the bootReader - 
     // We need to find a Competition and a set of PluginConfig instances
     Competition bootstrapCompetition = null;
-    ArrayList<PluginConfig> configList = new ArrayList<PluginConfig>();
-    //InputSource source = new InputSource(bootReader);
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
@@ -497,18 +426,6 @@ public class CompetitionSetupService
                                      XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
-      
-      // then get the configs
-      exp = xPath.compile("/powertac-bootstrap-data/config/plugin-config");
-      nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
-                                     XPathConstants.NODESET);
-      // Each node is a plugin-config
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Node node = nodes.item(i);
-        xml = nodeToString(node);
-        PluginConfig pic = (PluginConfig)messageConverter.fromXML(xml);
-        configList.add(pic);
-      }
     }
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading boot dataset: " + xee.toString());
@@ -519,26 +436,6 @@ public class CompetitionSetupService
     }
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
-    
-    // update the existing config, and make sure the bootReader has the
-    // same set of PluginConfig instances as the running server
-    for (Iterator<PluginConfig> pics = configList.iterator(); pics.hasNext(); ) {
-      // find the matching one in the server and update it, then remove
-      // the current element from the configList
-      PluginConfig next = pics.next();
-      PluginConfig match = pluginConfigRepo.findMatching(next);
-      if (match == null) {
-        // there's a pic in the file that's not in the server
-        log.error("no matching PluginConfig found for " + next.toString());
-        return false;
-      }
-      // if we found it, then we need to update it.
-      match.update(next);
-    }
-    
-    // we currently ignore cases where there's a config in the server that's
-    // not in the file; there might be use cases for which this would
-    // be useful.
     return true;
   }
 
@@ -559,11 +456,6 @@ public class CompetitionSetupService
       // current competition
       output.write(messageConverter.toXML(competition));
       output.newLine();
-      // next the PluginConfig instances
-      for (PluginConfig pic : pluginConfigRepo.list()) {
-        output.write(messageConverter.toXML(pic));
-        output.newLine();
-      }
       output.write("</config>");
       output.newLine();
       // finally the bootstrap data

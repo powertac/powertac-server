@@ -50,6 +50,10 @@
   <bean id="logService"
         class="org.powertac.server.LogService" >
   </bean>
+  
+  <bean id="tournamentSchedulerService"
+        class="org.powertac.server.TournamentSchedulerService" >
+  </bean>
 
   <bean id="timeslotRepo"
         class="org.powertac.common.repo.TimeslotRepo">
@@ -67,9 +71,9 @@
         class="org.powertac.common.repo.RandomSeedRepo">
   </bean>
 
-  <bean id="pluginConfigRepo"
+  <!--  <bean id="pluginConfigRepo"
         class="org.powertac.common.repo.PluginConfigRepo">
-  </bean>
+  </bean> -->
 
   <bean id="tariffRepo"
         class="org.powertac.common.repo.TariffRepo">
