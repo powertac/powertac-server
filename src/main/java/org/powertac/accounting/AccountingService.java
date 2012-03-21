@@ -31,6 +31,7 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.DistributionReport;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -71,6 +72,7 @@ public class AccountingService
   private ServerConfiguration serverProps;
 
   private ArrayList<BrokerTransaction> pendingTransactions;
+  private DistributionReport distributionReport;
 
   // read this from configuration
   
@@ -244,6 +246,9 @@ public class AccountingService
     for (Broker broker : brokerRepo.list()) {
       brokerMsg.put(broker, new ArrayList<Object>());
     }
+    // initialize the distribution report
+    distributionReport = new DistributionReport();
+    
     // walk through the pending transactions and run the updates
     for (BrokerTransaction tx : getPendingTransactionList()) {
       // need to refresh the transaction first
@@ -281,6 +286,8 @@ public class AccountingService
       log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
+    // send the distribution report
+    brokerProxyService.broadcastMessage(distributionReport);
   }
   
   /**
@@ -300,6 +307,11 @@ public class AccountingService
                                  ArrayList<Object> messages) {
     //log.info("processing tariff tx " + tx.toString());
     updateCash(tx.getBroker(), tx.getCharge());
+    // update the distribution report
+    if (TariffTransaction.Type.CONSUME == tx.getTxType())
+      distributionReport.addConsumption(-tx.getKWh());
+    else if (TariffTransaction.Type.PRODUCE == tx.getTxType())
+      distributionReport.addProduction(tx.getKWh());
   }
 
   // process a balance transaction
