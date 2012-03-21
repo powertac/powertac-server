@@ -140,6 +140,7 @@ public class OfficeComplexCustomerServiceTests
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
     weatherReportRepo.recycle();
+    weatherReportRepo.runOnce();
     officeComplexCustomerService.clearConfiguration();
     reset(mockAccounting);
     reset(mockServerProperties);
