@@ -60,7 +60,7 @@ public class WebCompetitionControl2Service {
 			List<String> argList = new ArrayList<String>();
 			argList.add("--sim");
 			argList.add("--boot-data="+bootstrapURL.toString());
-			argList.add("--brokers=Markec");
+			argList.add("--brokers=Sample");
 			
 						
 		//	String userConfURL = resourceLoader.getResource("WEB-INF/config/banana.txt").getURL().toString();
