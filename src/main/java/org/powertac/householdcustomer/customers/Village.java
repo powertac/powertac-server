@@ -362,19 +362,19 @@ public class Village extends AbstractCustomer
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
 
-    log.info(this.toString() + " Changing");
-    log.info("Old:" + ts.toString() + "  New:" + newTs.toString());
+    log.debug(this.toString() + " Changing");
+    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
 
-    if (subscriptionMap.get("NS") == ts)
+    if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
       subscriptionMap.put("NS", newTs);
-    if (subscriptionMap.get("RaS") == ts)
+    if (subscriptionMap.get("RaS") == ts || subscriptionMap.get("RaS") == null)
       subscriptionMap.put("RaS", newTs);
-    if (subscriptionMap.get("ReS") == ts)
+    if (subscriptionMap.get("ReS") == ts || subscriptionMap.get("ReS") == null)
       subscriptionMap.put("ReS", newTs);
-    if (subscriptionMap.get("SS") == ts)
+    if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
       subscriptionMap.put("SS", newTs);
 
-    log.info(subscriptionMap.toString());
+    log.debug(subscriptionMap.toString());
 
   }
 
@@ -1460,10 +1460,10 @@ public class Village extends AbstractCustomer
   {
 
     int dayTemp = day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
-    
-    WeatherReport wr = null; 
+
+    WeatherReport wr = null;
     wr = weatherReportRepo.currentWeatherReport();
-    
+
     if (wr != null) {
       double temperature = wr.getTemperature();
       // log.debug("Temperature: " + temperature);
