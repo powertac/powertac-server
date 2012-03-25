@@ -49,7 +49,7 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -426,15 +426,14 @@ public class DefaultBrokerServiceTests
     TariffSpecification cspec = specs.get(PowerType.CONSUMPTION);
     TariffSpecification pspec = specs.get(PowerType.PRODUCTION);
 
-    TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(), 
-                                            timeslotRepo.enabledTimeslots()); // 0-22 enabled
+    //TimeslotComplete tsu = new TimeslotComplete(0); // 0-22 enabled
     assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
     assertTrue("ts1 enabled", timeslotRepo.findBySerialNumber(1).isEnabled());
     assertTrue("ts23 enabled", timeslotRepo.findBySerialNumber(23).isEnabled());
     assertNull("ts24 null", timeslotRepo.findBySerialNumber(24));
 
     // ---- timeslot 0 ----
-    face.receiveMessage(tsu);
+    //face.receiveMessage(tsu);
     // market clears for ts 0-22, but broker has not yet submitted bids
     // customer model runs, generating subscriptions and production/consumption
     // accounting runs, generating transactions
@@ -460,8 +459,13 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
+<<<<<<< Updated upstream
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // last message in ts0
+=======
+    //TimeslotComplete tc = new TimeslotComplete(0);
+    face.receiveMessage(endTimeslot()); // last message in ts0
+>>>>>>> Stashed changes
     assertEquals("23 orders", 23, orderList.size());
     assertEquals("23 orders ts1", 23, orderList.size());
     Order order = orderList.get(0);
@@ -480,15 +484,8 @@ public class DefaultBrokerServiceTests
     assertEquals("correct price", (-5 -95.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
-    face.receiveMessage(nextTimeslot()); // end of ts0: 1 disabled, 24 enabled
-
-    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
-    assertFalse("ts1 disabled", timeslotRepo.findBySerialNumber(1).isEnabled());
-    assertTrue("ts2 enabled", timeslotRepo.findBySerialNumber(2).isEnabled());
-    assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
-    assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
-    
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    nextTimeslot();
     assertEquals("correct usage index 0", -500.0,
                  service.getUsageForCustomer(customer1, cspec, 0), 1e-6);
     assertEquals("correct usage index 1", 0.0,
@@ -511,7 +508,18 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               30.0, -0.15));
     // accounting runs ts1
+<<<<<<< Updated upstream
     face.receiveMessage(cp);
+=======
+    face.receiveMessage(endTimeslot()); // end of ts0: 1 disabled, 24 enabled
+
+    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
+    assertFalse("ts1 disabled", timeslotRepo.findBySerialNumber(1).isEnabled());
+    assertTrue("ts2 enabled", timeslotRepo.findBySerialNumber(2).isEnabled());
+    assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
+    assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
+    //face.receiveMessage(tc);
+>>>>>>> Stashed changes
     // broker sends bids for ts2...ts24
     assertEquals("23 orders ts1", 23, orderList.size());
     order = orderList.get(0);
@@ -537,11 +545,11 @@ public class DefaultBrokerServiceTests
     assertEquals("correct price", (-5.0 -95.0/22.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
-    face.receiveMessage(nextTimeslot()); // ts2 disabled, ts25 enabled
+    nextTimeslot();
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     // market clears ts2
     // customer model runs, usage 510 in ts2
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.CONSUME, 
@@ -557,7 +565,11 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               40.0, -0.15));
     // accounting runs ts2
+<<<<<<< Updated upstream
     face.receiveMessage(cp);
+=======
+    face.receiveMessage(endTimeslot()); // ts2 disabled, ts25 enabled
+>>>>>>> Stashed changes
     // broker sends bids for ts3...ts25
     assertEquals("23 orders ts2", 23, orderList.size());
     order = orderList.get(0);
@@ -580,7 +592,11 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(25),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+<<<<<<< Updated upstream
     assertEquals("correct price", (-5.0 -95.0/21.0), order.getLimitPrice(), 1e-6);
+=======
+    assertEquals("correct price", (-1.0 - 99.0/22.0), order.getLimitPrice(), 1e-6);
+>>>>>>> Stashed changes
     orderList.clear();
   }
   
@@ -610,11 +626,10 @@ public class DefaultBrokerServiceTests
     TariffSpecification cspec = specs.get(PowerType.CONSUMPTION);
     TariffSpecification pspec = specs.get(PowerType.PRODUCTION);
 
-    TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(), 
-                                            timeslotRepo.enabledTimeslots()); // 0-22 enabled
+    //TimeslotComplete tsu = new TimeslotComplete(0); // 1-24 enabled
 
     // ---- timeslot 0 ----
-    face.receiveMessage(tsu);
+    face.receiveMessage(endTimeslot());
     // market clears for ts 0-22, but broker has not yet submitted bids
     // customer model runs, generating subscriptions and production/consumption
     // accounting runs, generating transactions
@@ -643,8 +658,8 @@ public class DefaultBrokerServiceTests
     CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // last message in ts0
 
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
-    face.receiveMessage(nextTimeslot()); // end of ts0: 1 disabled, 24 enabled
+    nextTimeslot();
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     
     // market clears ts1
     // customer model runs, usage = 420 in ts1
@@ -663,14 +678,15 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               30.0, -0.15));
     // accounting runs ts1
-    face.receiveMessage(cp);
+    face.receiveMessage(endTimeslot());
     // broker sends bids for ts2...ts24
 
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
-    face.receiveMessage(nextTimeslot()); // ts2 disabled, ts25 enabled
+    nextTimeslot();
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    //face.receiveMessage(nextTimeslot()); // ts2 disabled, ts25 enabled
     // market clears ts2
     // customer model runs, usage 510 in ts2
-    timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
+    //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(new TariffTransaction(face,
                                               timeService.getCurrentTime(),
                                               TariffTransaction.Type.CONSUME, 
@@ -686,7 +702,7 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               40.0, -0.15));
     // accounting runs ts2
-    face.receiveMessage(cp);
+    face.receiveMessage(endTimeslot());
     // broker sends bids for ts3...ts25
     
     // check the customer bootstrap data
@@ -697,29 +713,33 @@ public class DefaultBrokerServiceTests
   }
   
   // set up some timeslots - ts0 is disabled, then 23 enabled slots
-  private TimeslotUpdate createTimeslots()
+  private void createTimeslots()
   {
     Instant now = timeService.getCurrentTime();
     Timeslot ts = timeslotRepo.makeTimeslot(now);
     ts.disable();
     for (int i = 1; i < 24; i++) {
-      timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i));
+      ts = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i));
+      ts.enable();
     }
-    return new TimeslotUpdate(timeService.getCurrentTime(), 
-                              timeslotRepo.enabledTimeslots());
   }
 
-  // called immediately after clock tick
-  private TimeslotUpdate nextTimeslot ()
+  // called to make the clock tick
+  private void nextTimeslot ()
   {
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     Timeslot current = timeslotRepo.currentTimeslot();
     Timeslot oldTs = timeslotRepo.findBySerialNumber(current.getSerialNumber());
     oldTs.disable();
     Instant start = oldTs.getStartInstant().plus(TimeService.HOUR * 23);
     Timeslot newTs = timeslotRepo.makeTimeslot(start);
     newTs.enable();
-    return new TimeslotUpdate(timeService.getCurrentTime(), 
-                              timeslotRepo.enabledTimeslots());
+  }
+  
+  // called to end a timeslot
+  private TimeslotComplete endTimeslot ()
+  {
+    return new TimeslotComplete(timeslotRepo.currentTimeslot().getSerialNumber());
   }
   
   class MockRandomSeed extends RandomSeed

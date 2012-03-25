@@ -29,7 +29,6 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Order;
@@ -56,7 +55,7 @@ import org.springframework.stereotype.Service;
  * the default broker is a singleton and it's convenient. The actual Broker
  * instance is implemented in an inner class. Note that this is not a type of
  * TimeslotPhaseProcessor. It's a broker, and so it runs after the last message
- * of the timeslot goes out, the TimeslotUpdate message. As implemented, it runs
+ * of the timeslot goes out, the TimeslotComplete message. As implemented, it runs
  * in the message-sending thread. If this turns out to cause problems with real
  * brokers, it could run in its own thread.
  * @author John Collins
@@ -340,7 +339,7 @@ public class DefaultBrokerService
    *   activity and power usage,</li>
    * <li>MarketPosition tells us how much power we have bought
    *   or sold in a given timeslot,</li>
-   * <li>TimeslotUpdate that tell us it's time to send in our bids/asks</li>
+   * <li>TimeslotComplete that tell us it's time to send in our bids/asks</li>
    * </ul>
    * along with a number of other message types that we can safely ignore.
    */
