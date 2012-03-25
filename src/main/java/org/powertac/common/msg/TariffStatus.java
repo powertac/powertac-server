@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.*;
 public class TariffStatus extends TariffMessage
 {
   public enum Status {success, noSuchTariff, noSuchUpdate, illegalOperation,
-    invalidTariff, invalidUpdate}
+    invalidTariff, invalidUpdate, duplicateId}
 
   @XStreamAsAttribute
   private long tariffId;
