@@ -81,4 +81,10 @@ public interface TariffMarket {
    * Registers a listener for publication of new Tariffs.
    */
   public void registerNewTariffListener (NewTariffListener listener);
+
+  /**
+   * Revokes tariffs for which TariffRevoke messages have been received
+   * since the last time this method was called in an earlier timeslot.
+   */
+  public void processRevokedTariffs ();
 }
