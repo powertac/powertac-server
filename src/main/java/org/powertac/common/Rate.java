@@ -76,7 +76,7 @@ public class Rate extends XStreamStateLoggable
 
   // depends on TimeService
   @XStreamOmitField
-  private TimeService timeService;
+  private TimeService timeService = null;
 
   /**
    * Default constructor only. You create one of these with the
@@ -85,7 +85,6 @@ public class Rate extends XStreamStateLoggable
   public Rate ()
   {
     super();
-    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     rateHistory = new TreeSet<HourlyCharge>();
   }
 
@@ -324,7 +323,7 @@ public class Rate extends XStreamStateLoggable
       log.error("Cannot change Rate " + this.toString());
     }
     else {
-      Instant now = timeService.getCurrentTime();
+      Instant now = getCurrentTime();
       long warning = newCharge.getAtTime().getMillis() - now.getMillis();
       if (warning < noticeInterval && !publish) {
         // too late
@@ -467,7 +466,7 @@ public class Rate extends XStreamStateLoggable
    */
   public boolean applies ()
   {
-    return applies(timeService.getCurrentTime());
+    return applies(getCurrentTime());
   }
 
   /**
@@ -518,7 +517,7 @@ public class Rate extends XStreamStateLoggable
    */
   public boolean applies (double usage)
   {
-    return applies(usage, timeService.getCurrentTime());
+    return applies(usage, getCurrentTime());
   }
 
   /**
@@ -555,7 +554,7 @@ public class Rate extends XStreamStateLoggable
   public double getValue ()
   {
     //return getValue(Timeslot.currentTimeslot().getStartDateTime())
-    return getValue(timeService.getCurrentTime());
+    return getValue(getCurrentTime());
   }
 
   /**
@@ -620,5 +619,13 @@ public class Rate extends XStreamStateLoggable
       result += (", usage > " + tierThreshold);
     }
     return result;
+  }
+  
+  // retrieves current time
+  private Instant getCurrentTime ()
+  {
+    if (timeService == null)
+      timeService = (TimeService)SpringApplicationContext.getBean("timeService");
+    return timeService.getCurrentTime();
   }
 }
