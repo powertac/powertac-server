@@ -142,6 +142,7 @@ public class Village extends AbstractCustomer
    * possibility function of the evaluation.
    */
   HashMap<String, TariffSubscription> subscriptionMap = new HashMap<String, TariffSubscription>();
+  HashMap<String, TariffSubscription> controllableSubscriptionMap = new HashMap<String, TariffSubscription>();
   HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
   HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
@@ -177,6 +178,7 @@ public class Village extends AbstractCustomer
 
     for (String type : typeList) {
       subscriptionMap.put(type, null);
+      controllableSubscriptionMap.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
@@ -248,6 +250,7 @@ public class Village extends AbstractCustomer
 
     /*
     System.out.println("Subscriptions:" + subscriptionMap.toString());
+     System.out.println("Controllable Subscriptions:" + controllableSubscriptionMap.toString());
     System.out.println("Inertia:" + inertiaMap.toString());
     System.out.println("Period:" + periodMap.toString());
     System.out.println("Lamda:" + lamdaMap.toString());
@@ -273,9 +276,11 @@ public class Village extends AbstractCustomer
 
       for (String type : subscriptionMap.keySet()) {
         subscriptionMap.put(type, subscriptions.get(0));
+        controllableSubscriptionMap.put(type, subscriptions.get(0));
       }
       log.debug(this.toString() + " Default");
       log.debug(subscriptionMap.toString());
+      log.debug(controllableSubscriptionMap.toString());
     }
   }
 
@@ -286,7 +291,7 @@ public class Village extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff)
+  public void changeSubscription (Tariff tariff, boolean controllable)
   {
 
     TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
@@ -296,7 +301,7 @@ public class Village extends AbstractCustomer
     Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
     subscribe(newTariff, populationCount);
 
-    updateSubscriptions(tariff, newTariff);
+    updateSubscriptions(tariff, newTariff, controllable);
   }
 
   /**
@@ -305,7 +310,7 @@ public class Village extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, String type)
+  public void changeSubscription (Tariff tariff, String type, boolean controllable)
   {
     TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
     int populationCount = getHouses(type).size();
@@ -314,7 +319,7 @@ public class Village extends AbstractCustomer
     Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
     subscribe(newTariff, populationCount);
 
-    updateSubscriptions(tariff, newTariff, type);
+    updateSubscriptions(tariff, newTariff, type, controllable);
 
   }
 
@@ -325,14 +330,14 @@ public class Village extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, Tariff newTariff)
+  public void changeSubscription (Tariff tariff, Tariff newTariff, boolean controllable)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
     subscribe(newTariff, populationCount);
 
-    updateSubscriptions(tariff, newTariff);
+    updateSubscriptions(tariff, newTariff, controllable);
   }
 
   /**
@@ -341,14 +346,14 @@ public class Village extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, Tariff newTariff, String type)
+  public void changeSubscription (Tariff tariff, Tariff newTariff, String type, boolean controllable)
   {
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     int populationCount = getHouses(type).size();
     unsubscribe(ts, populationCount);
     subscribe(newTariff, populationCount);
 
-    updateSubscriptions(tariff, newTariff, type);
+    updateSubscriptions(tariff, newTariff, type, controllable);
   }
 
   /**
@@ -356,7 +361,7 @@ public class Village extends AbstractCustomer
    * changes made.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff)
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff, boolean controllable)
   {
 
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
@@ -365,17 +370,31 @@ public class Village extends AbstractCustomer
     log.debug(this.toString() + " Changing");
     log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
 
-    if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
-      subscriptionMap.put("NS", newTs);
-    if (subscriptionMap.get("RaS") == ts || subscriptionMap.get("RaS") == null)
-      subscriptionMap.put("RaS", newTs);
-    if (subscriptionMap.get("ReS") == ts || subscriptionMap.get("ReS") == null)
-      subscriptionMap.put("ReS", newTs);
-    if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
-      subscriptionMap.put("SS", newTs);
+    if (controllable) {
 
-    log.debug(subscriptionMap.toString());
+      if (controllableSubscriptionMap.get("NS") == ts || controllableSubscriptionMap.get("NS") == null)
+        controllableSubscriptionMap.put("NS", newTs);
+      if (controllableSubscriptionMap.get("RaS") == ts || controllableSubscriptionMap.get("RaS") == null)
+        controllableSubscriptionMap.put("RaS", newTs);
+      if (controllableSubscriptionMap.get("ReS") == ts || controllableSubscriptionMap.get("ReS") == null)
+        controllableSubscriptionMap.put("ReS", newTs);
+      if (controllableSubscriptionMap.get("SS") == ts || controllableSubscriptionMap.get("SS") == null)
+        controllableSubscriptionMap.put("SS", newTs);
 
+      log.debug("Controllable Subscription Map: " + controllableSubscriptionMap.toString());
+    } else {
+
+      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
+        subscriptionMap.put("NS", newTs);
+      if (subscriptionMap.get("RaS") == ts || subscriptionMap.get("RaS") == null)
+        subscriptionMap.put("RaS", newTs);
+      if (subscriptionMap.get("ReS") == ts || subscriptionMap.get("ReS") == null)
+        subscriptionMap.put("ReS", newTs);
+      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
+        subscriptionMap.put("SS", newTs);
+
+      log.debug("Subscription Map: " + subscriptionMap.toString());
+    }
   }
 
   /**
@@ -383,25 +402,46 @@ public class Village extends AbstractCustomer
    * types of houses changed tariff.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type)
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type, boolean controllable)
   {
 
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
 
-    if (type.equals("NS")) {
-      subscriptionMap.put("NS", newTs);
-    } else if (type.equals("RaS")) {
-      subscriptionMap.put("RaS", newTs);
-    } else if (type.equals("ReS")) {
-      subscriptionMap.put("ReS", newTs);
-    } else {
-      subscriptionMap.put("SS", newTs);
-    }
-
     log.debug(this.toString() + " Changing Only " + type);
     log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
-    log.debug(subscriptionMap.toString());
+
+    if (controllable) {
+
+      log.debug("For Controllable");
+
+      if (type.equals("NS")) {
+        controllableSubscriptionMap.put("NS", newTs);
+      } else if (type.equals("RaS")) {
+        controllableSubscriptionMap.put("RaS", newTs);
+      } else if (type.equals("ReS")) {
+        controllableSubscriptionMap.put("ReS", newTs);
+      } else {
+        controllableSubscriptionMap.put("SS", newTs);
+      }
+
+      log.debug("Controllable Subscription Map: " + controllableSubscriptionMap.toString());
+
+    } else {
+
+      if (type.equals("NS")) {
+        subscriptionMap.put("NS", newTs);
+      } else if (type.equals("RaS")) {
+        subscriptionMap.put("RaS", newTs);
+      } else if (type.equals("ReS")) {
+        subscriptionMap.put("ReS", newTs);
+      } else {
+        subscriptionMap.put("SS", newTs);
+      }
+
+      log.debug("Subscription Map: " + subscriptionMap.toString());
+
+    }
 
   }
 
@@ -415,10 +455,11 @@ public class Village extends AbstractCustomer
       revokedSubscription.handleRevokedTariff();
 
       Tariff tariff = revokedSubscription.getTariff();
+      boolean controllable = tariff.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION;
       Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
       Tariff defaultTariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
 
-      log.debug("Tariff:" + tariff.toString());
+      log.debug("Tariff:" + tariff.toString() + " PowerType: " + tariff.getPowerType());
       if (newTariff != null)
         log.debug("New Tariff:" + newTariff.toString());
       else
@@ -426,9 +467,9 @@ public class Village extends AbstractCustomer
       log.debug("Default Tariff:" + defaultTariff.toString());
 
       if (newTariff == null)
-        updateSubscriptions(tariff, defaultTariff);
+        updateSubscriptions(tariff, defaultTariff, controllable);
       else
-        updateSubscriptions(tariff, newTariff);
+        updateSubscriptions(tariff, newTariff, controllable);
 
     }
   }
@@ -850,19 +891,29 @@ public class Village extends AbstractCustomer
   {
     Timeslot ts = timeslotRepo.currentTimeslot();
     double summary = 0;
+    double summaryControllable = 0;
 
     for (String type : subscriptionMap.keySet()) {
       TariffSubscription sub = subscriptionMap.get(type);
+      TariffSubscription sub2 = controllableSubscriptionMap.get(type);
+
       if (ts == null) {
         log.debug("Current timeslot is null");
         int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-        summary = getConsumptionByTimeslot(serial, type);
+        summary = getConsumptionByTimeslot(serial, type, false);
+        summaryControllable = getConsumptionByTimeslot(serial, type, true);
       } else {
-        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type);
+        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type, false);
+        summaryControllable = getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
       }
-      log.info("Consumption Load for " + type + ": " + summary);
+
+      log.debug("Consumption Load for " + type + ": Base Load " + summary + " Controllable Load " + summaryControllable);
+
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(summary);
+      if (sub2.getCustomersCommitted() > 0)
+        sub2.usePower(summary);
+
     }
 
   }
@@ -872,7 +923,7 @@ public class Village extends AbstractCustomer
    * in the current time) and estimates the consumption for this time-slot over
    * the population under the Village Household Consumer.
    */
-  double getConsumptionByTimeslot (int serial, String type)
+  double getConsumptionByTimeslot (int serial, String type, boolean controllable)
   {
 
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
@@ -881,7 +932,10 @@ public class Village extends AbstractCustomer
 
     log.debug("Serial : " + serial + " Day: " + day + " Hour: " + hour);
 
-    summary = (getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
+    if (controllable)
+      summary = (getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
+    else
+      summary = getBaseConsumptions(day, hour, type);
 
     return (double) summary / VillageConstants.THOUSAND;
   }
@@ -1115,7 +1169,7 @@ public class Village extends AbstractCustomer
       log.debug("Equality: " + sub.getTariff().getTariffSpec().toString() + " = " + evaluationTariffs.get(minIndex).getTariffSpec().toString());
       if (!(sub.getTariff().getTariffSpec() == evaluationTariffs.get(minIndex).getTariffSpec())) {
         log.debug("Changing From " + sub.toString() + " After Evaluation");
-        changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex), type);
+        changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex), type, false);
       }
 
     }
