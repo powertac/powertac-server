@@ -101,6 +101,16 @@ public class TariffRepo implements DomainRepo
     return rates.get(id);
   }
   
+  /**
+   * Removes a tariff and its specification from the repo
+   */
+  public synchronized void removeTariff (Tariff tariff)
+  {
+    tariffs.remove(tariff.getId());
+    specs.remove(tariff.getId());
+  }
+  
+  @Override
   public synchronized void recycle ()
   {
     specs.clear();
