@@ -15,10 +15,10 @@
  */
 package org.powertac.tariffmarket;
 
+import static org.powertac.util.ListTools.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -55,6 +55,7 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -100,6 +101,13 @@ public class TariffMarketService
 
   // maps power type to id of corresponding default tariff
   private HashMap<PowerType, Long> defaultTariff;
+  
+  // list of tariffs that have been revoked but not processed
+  private ArrayList<Tariff> pendingRevokedTariffs =
+      new ArrayList<Tariff> ();
+  // list of revoked but not yet deleted tariffs
+  private List<Tariff> revokedTariffs = null;
+  private Instant lastRevokeProcess = new Instant(0l);
 
   // configuration
   @ConfigurableValue(valueType = "Double",
@@ -168,6 +176,10 @@ public class TariffMarketService
     revocationFee = null;
     
     super.init();
+    
+    pendingRevokedTariffs.clear();
+    revokedTariffs = null;
+    lastRevokeProcess = new Instant(0);
 
     serverProps.configureMe(this);
 
@@ -340,28 +352,7 @@ public class TariffMarketService
     if (result.tariff == null)
       send(result.message);
     else {
-      result.tariff.setState(Tariff.State.KILLED);
-      log.info("Revoke tariff " + update.getTariffId());
-      // The actual revocation processing is delegated to the Customer,
-      // who is obligated to call getRevokedSubscriptions periodically.
-
-      // If there are active subscriptions, then we have to charge a fee.
-      List<TariffSubscription> activeSubscriptions =
-          tariffSubscriptionRepo.findSubscriptionsForTariff(result.tariff);
-      for (Iterator<TariffSubscription> subs = activeSubscriptions.iterator();
-           subs.hasNext(); ) {
-        TariffSubscription sub = subs.next();
-        if (sub.getCustomersCommitted() <= 0) {
-          subs.remove();
-        }
-      }
-      // check whether there are any remaining active subscriptions
-      if (activeSubscriptions.size() > 0) {
-        log.info("Revoked tariff has " + activeSubscriptions.size() + " active subscriptions");
-        accountingService.addTariffTransaction(TariffTransaction.Type.REVOKE,
-                                               result.tariff, null, 0, 0.0,
-                                               revocationFee);
-      }
+      addPendingRevoke(result.tariff);
     }
     success(update);
   }
@@ -415,6 +406,76 @@ public class TariffMarketService
 
   // ----------------------- Customer API --------------------------
 
+  private synchronized void addPendingRevoke (Tariff tariff)
+  {
+    pendingRevokedTariffs.add(tariff);
+  }
+  
+  private synchronized List<Tariff> getPendingRevokes ()
+  {
+    Instant now = timeService.getCurrentTime();
+    if (now.isAfter(lastRevokeProcess)) {
+      lastRevokeProcess = now;
+      return new ArrayList<Tariff>(pendingRevokedTariffs);
+    }
+    return null;
+  }
+  
+  /**
+   * Runs through the list of pending tariff revocations, marking the tariffs
+   * and their subscriptions.
+   */
+  @Override
+  public void processRevokedTariffs ()
+  {
+    List<Tariff> pending = getPendingRevokes();
+    if (pending == null)
+      return;
+    
+    revokedTariffs = pending;
+    for (Tariff tariff : pending) {
+      tariff.setState(Tariff.State.KILLED);
+      log.info("Revoke tariff " + tariff.getId());
+      // The actual revocation processing is delegated to the Customer,
+      // who is obligated to call getRevokedSubscriptions periodically.
+
+      // If there are active subscriptions, then we have to charge a fee.
+      List<TariffSubscription> activeSubscriptions =
+          filter(tariffSubscriptionRepo.findSubscriptionsForTariff(tariff),
+                 new Predicate<TariffSubscription> () {
+            @Override
+            public boolean apply (TariffSubscription sub) {
+              return (sub.getCustomersCommitted() > 0);
+            }
+          });
+      if (activeSubscriptions.size() > 0) {
+        log.info("Revoked tariff " + tariff.getId() +
+                 " has " + activeSubscriptions.size() + 
+                 " active subscriptions");
+        accountingService.addTariffTransaction(TariffTransaction.Type.REVOKE,
+                                               tariff, null, 0, 0.0,
+                                               revocationFee);
+      }
+    }
+  }
+  
+  // Removes revoked tariffs and their subscriptions from their respective
+  // repos.
+  void removeRevokedTariffs ()
+  {
+    if (null == revokedTariffs)
+      return;
+
+    for (Tariff tariff : revokedTariffs) {
+      // remove all subscriptions
+      tariffSubscriptionRepo.removeSubscriptionsForTariff(tariff);
+      
+      // then remove the tariff and the tariffSpec
+      tariffRepo.removeTariff(tariff);
+    }
+    revokedTariffs = null;
+  }
+
   private List<NewTariffListener> registrations = new ArrayList<NewTariffListener>();
 
   @Override
@@ -429,6 +490,7 @@ public class TariffMarketService
   public void activate (Instant time, int phase)
   {
     log.info("Activate");
+    removeRevokedTariffs();
     long msec = timeService.getCurrentTime().getMillis();
     if (!firstPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {

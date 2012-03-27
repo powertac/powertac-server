@@ -24,6 +24,7 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -97,6 +98,9 @@ public class TariffMarketServiceTests
   @Autowired
   private BrokerRepo brokerRepo;
   
+  @Autowired
+  private TimeslotRepo timeslotRepo;
+  
   // get access to the mock services
   @Autowired
   private BrokerProxy mockProxy;
@@ -120,6 +124,7 @@ public class TariffMarketServiceTests
   {
     // Clean up from previous tests
     tariffRepo.recycle();
+    tariffSubscriptionRepo.recycle();
     //timeslotRepo.recycle();
     brokerRepo.recycle();
     reset(mockProxy);
@@ -187,6 +192,7 @@ public class TariffMarketServiceTests
     // init time service
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
+    timeslotRepo.makeTimeslot(start);
     
     // create useful objects, set parameters
     broker = new Broker("testBroker");
@@ -359,7 +365,9 @@ public class TariffMarketServiceTests
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", tex.getId(), status.getUpdateId());
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
-    assertTrue("tariff revoked", tf.isRevoked());
+    assertFalse("tariff not yet revoked", tf.isRevoked());
+    tariffMarketService.processRevokedTariffs();
+    assertTrue("tariff not yet revoked", tf.isRevoked());
   }
 
   // variable rate update - nominal case, 2 tariffs
@@ -519,7 +527,7 @@ public class TariffMarketServiceTests
     MockTariffListener listener = new MockTariffListener();
     tariffMarketService.registerNewTariffListener(listener);
     assertEquals("one registration", 1, tariffMarketService.getRegistrations().size());
-    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertEquals("no tariffs at 12:00", 0, listener.publishedTariffs.size());
     // publish some tariffs over a period of three hours, check for publication
     TariffSpecification tsc1 = new TariffSpecification(broker, PowerType.CONSUMPTION)
@@ -566,10 +574,11 @@ public class TariffMarketServiceTests
     
     TariffRevoke tex = new TariffRevoke(tsc1a.getBroker(), tsc1a);
     tariffMarketService.handleMessage(tex);
+    tariffMarketService.processRevokedTariffs();
 
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     // it's 15:00 - time to publish
-    tariffMarketService.activate(timeService.getCurrentTime(), 2);
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertEquals("5 tariffs at 15:00", 5, listener.publishedTariffs.size());
     List<Tariff> pendingTariffs = tariffRepo.findTariffsByState(Tariff.State.PENDING);
     assertEquals("newTariffs list is again empty", 0, pendingTariffs.size());
@@ -636,6 +645,8 @@ public class TariffMarketServiceTests
     TariffStatus status = (TariffStatus)msgs.get(index);
     assertNotNull("non-null status", status);
     assertEquals("success", TariffStatus.Status.success, status.getStatus());
+    assertFalse("tariff not yet revoked", tc2.isRevoked());
+    tariffMarketService.processRevokedTariffs();
     assertTrue("tariff revoked", tc2.isRevoked());
 
     // should now be just two active tariffs
