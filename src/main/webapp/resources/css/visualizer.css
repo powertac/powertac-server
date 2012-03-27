@@ -26,3 +26,7 @@ body, html { height:100%; padding:0; margin:0;}
 .noBorderPanel.ui-panel{
 	border:0;
 }
+
+.noBackground.ui-panel{
+	background-image: none;
+}

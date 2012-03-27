@@ -123,9 +123,7 @@
 
 					</p:panel>
 
-					<p:outputPanel
-						rendered="#{not empty wholesaleBean.selectedSnapshot}">
-
+					<p:panel rendered="#{not empty wholesaleBean.selectedSnapshot}">
 
 						<!-- After clearing graph -->
 						<div id="afterClearingWholesaleGraph"
@@ -162,46 +160,134 @@
 						
 								</script>
 
+					</p:panel>
+
+					<p:panel rendered="#{not empty wholesaleBean.selectedSnapshot}">
+
 						<h:panelGrid columns="2">
 
-							<p:dataTable var="ask" value="#{wholesaleBean.selectedSnapshot.beforeAsks}"
-								scrollable="true" scrollHeight="120" style="float:left">
-								<f:facet name="header">
-							Asks
+							<h:panelGrid columns="2">
+								<p:dataTable var="ask"
+									value="#{wholesaleBean.selectedSnapshot.beforeAsks}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							Before Asks
 							</f:facet>
-								<p:column headerText="Limit price" style="width:50px">
-									<h:outputText value="#{ask.limitPrice}">
-										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText>
-								</p:column>
-								<p:column headerText="MWh" style="width:50px">
-									<h:outputText value="#{ask.MWh}">
-										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText>
-								</p:column>
-							</p:dataTable>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{ask.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{ask.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
 
-							<p:dataTable var="ask" value="#{wholesaleBean.selectedSnapshot.afterAsks}"
-								scrollable="true" scrollHeight="120" style="float:left">
-								<f:facet name="header">
-							Asks
+								<p:dataTable var="bid"
+									value="#{wholesaleBean.selectedSnapshot.beforeBids}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							Before Bids
 							</f:facet>
-								<p:column headerText="Limit price" style="width:50px">
-									<h:outputText value="#{ask.limitPrice}">
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{bid.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{bid.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+
+							<h:panelGrid columns="2">
+								<p:dataTable var="ask"
+									value="#{wholesaleBean.selectedSnapshot.afterAsks}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							After Asks
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{ask.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{ask.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+
+								<p:dataTable var="bid"
+									value="#{wholesaleBean.selectedSnapshot.afterBids}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							After Bids
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{bid.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{bid.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+
+							<h:panelGrid>
+
+								<h:panelGrid columns="4"
+									rendered="#{not empty wholesaleBean.selectedSnapshot.marketBidOrder}">
+									<h:outputLabel value="Market bid order: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketBidOrder.MWh}">
 										<f:convertNumber maxFractionDigits="2" />
 									</h:outputText>
-								</p:column>
-								<p:column headerText="MWh" style="width:50px">
-									<h:outputText value="#{ask.MWh}">
+									<h:outputText value=" @ " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketBidOrder.limitPrice}"
+										rendered="#{not empty wholesaleBean.selectedSnapshot.marketBidOrder}">
 										<f:convertNumber maxFractionDigits="2" />
 									</h:outputText>
-								</p:column>
-							</p:dataTable>
+
+								</h:panelGrid>
+
+								<h:panelGrid columns="4"
+									rendered="#{not empty wholesaleBean.selectedSnapshot.marketAskOrder}">
+									<h:outputLabel value="Market ask order: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketAskOrder.MWh}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+									<h:outputText value=" @ " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketAskOrder.limitPrice}"
+										rendered="#{not empty wholesaleBean.selectedSnapshot.marketAskOrder}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+
+								</h:panelGrid>
+								<h:panelGrid columns="2">
+									<h:outputLabel value="Total Traded Quantity: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.totalTradedQuantity} MWh" />
+								</h:panelGrid>
+
+
+							</h:panelGrid>
 						</h:panelGrid>
 
+					</p:panel>
 
 
-					</p:outputPanel>
 
 				</h:form>
 			</p:layoutUnit>
