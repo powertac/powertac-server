@@ -187,8 +187,12 @@ public class TariffSubscriptionRepo implements DomainRepo
    */
   public void removeSubscriptionsForTariff (Tariff tariff)
   {
+    List<TariffSubscription> subs = tariffMap.get(tariff);
+    if (null == subs)
+      return;
+    
     // first, remove the subscriptions from the customer map
-    for (TariffSubscription sub : tariffMap.get(tariff)) {
+    for (TariffSubscription sub : subs) {
       customerMap.get(sub.getCustomer()).remove(sub);
     }
 
