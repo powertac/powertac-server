@@ -71,10 +71,6 @@
         class="org.powertac.common.repo.RandomSeedRepo">
   </bean>
 
-  <!--  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo">
-  </bean> -->
-
   <bean id="tariffRepo"
         class="org.powertac.common.repo.TariffRepo">
   </bean>
@@ -86,24 +82,18 @@
   <bean id="xmlMessageConverter"
         class="org.powertac.common.XMLMessageConverter">
   </bean>
-
-  <!-- 
-  <bean id="accountingInitializationService"
-        class="org.powertac.accounting.AccountingInitializationService">
-  </bean>
   
   <bean id="accountingService"
         class="org.powertac.accounting.AccountingService">
   </bean>
   
-  <bean id="tariffMarketInitializationService"
-        class="org.powertac.tariffmarket.TariffMarketInitializationService">
-  </bean>
-  
   <bean id="tariffMarketService"
         class="org.powertac.tariffmarket.TariffMarketService">
   </bean>
-   -->
+  
+  <bean id="capacityControlService"
+        class="org.powertac.tariffmarket.CapacityControlService">
+  </bean>
 
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
