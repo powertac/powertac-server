@@ -861,7 +861,8 @@ public class Village extends AbstractCustomer
         summary = getConsumptionByTimeslot(ts.getSerialNumber(), type);
       }
       log.info("Consumption Load for " + type + ": " + summary);
-      sub.usePower(summary);
+      if (sub.getCustomersCommitted() > 0)
+        sub.usePower(summary);
     }
 
   }
