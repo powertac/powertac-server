@@ -512,18 +512,8 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    CashPosition cp = new CashPosition(face, 0.0);
-    face.receiveMessage(cp); // last message in ts0
-=======
     //TimeslotComplete tc = new TimeslotComplete(0);
     face.receiveMessage(endTimeslot()); // last message in ts0
->>>>>>> Stashed changes
-=======
-    TimeslotComplete tc = new TimeslotComplete(0);
-    face.receiveMessage(tc); // last message in ts0
->>>>>>> master
     assertEquals("23 orders", 23, orderList.size());
     assertEquals("23 orders ts1", 23, orderList.size());
     Order order = orderList.get(0);
@@ -566,10 +556,6 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               30.0, -0.15));
     // accounting runs ts1
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    face.receiveMessage(cp);
-=======
     face.receiveMessage(endTimeslot()); // end of ts0: 1 disabled, 24 enabled
 
     assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
@@ -577,11 +563,6 @@ public class DefaultBrokerServiceTests
     assertTrue("ts2 enabled", timeslotRepo.findBySerialNumber(2).isEnabled());
     assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
     assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
-    //face.receiveMessage(tc);
->>>>>>> Stashed changes
-=======
-    face.receiveMessage(tc);
->>>>>>> master
     // broker sends bids for ts2...ts24
     assertEquals("23 orders ts1", 23, orderList.size());
     order = orderList.get(0);
@@ -627,15 +608,7 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               40.0, -0.15));
     // accounting runs ts2
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    face.receiveMessage(cp);
-=======
     face.receiveMessage(endTimeslot()); // ts2 disabled, ts25 enabled
->>>>>>> Stashed changes
-=======
-    face.receiveMessage(tc);
->>>>>>> master
     // broker sends bids for ts3...ts25
     assertEquals("23 orders ts2", 23, orderList.size());
     order = orderList.get(0);
@@ -658,15 +631,7 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(25),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-    assertEquals("correct price", (-5.0 -95.0/21.0), order.getLimitPrice(), 1e-6);
-=======
     assertEquals("correct price", (-1.0 - 99.0/22.0), order.getLimitPrice(), 1e-6);
->>>>>>> Stashed changes
-=======
-    assertEquals("correct price", (-1.0 - 99.0/21.0), order.getLimitPrice(), 1e-6);
->>>>>>> master
     orderList.clear();
   }
   
