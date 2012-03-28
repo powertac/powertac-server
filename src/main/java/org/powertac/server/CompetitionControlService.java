@@ -333,10 +333,17 @@ public class CompetitionControlService
     }
 
     // Send out the first timeslot update
-    TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
-                                            timeslotRepo.enabledTimeslots());
-    brokerProxyService.broadcastMessage(msg);
+    brokerProxyService.broadcastMessage(makeTimeslotUpdate());
     return true;
+  }
+
+  private TimeslotUpdate makeTimeslotUpdate ()
+  {
+    List<Timeslot> enabled = timeslotRepo.enabledTimeslots();
+    TimeslotUpdate msg = new TimeslotUpdate(timeService.getCurrentTime(),
+                                            enabled.get(0).getSerialNumber(),
+                                            enabled.get(enabled.size() - 1).getSerialNumber());
+    return msg;
   }
   
   // blocks until all brokers have logged in.
@@ -571,7 +578,6 @@ public class CompetitionControlService
   private int activateNextTimeslot ()
   {
     long timeslotMillis = competition.getTimeslotDuration();
-    TimeslotUpdate msg;
     // first, deactivate the oldest active timeslot
     // remember that this runs at the beginning of a timeslot, so the current
     // timeslot is the first one we consider.
@@ -605,9 +611,7 @@ public class CompetitionControlService
     }
     log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
     // Communicate timeslot updates to brokers
-    msg = new TimeslotUpdate(timeService.getCurrentTime(),
-                             timeslotRepo.enabledTimeslots());
-    brokerProxyService.broadcastMessage(msg);
+    brokerProxyService.broadcastMessage(makeTimeslotUpdate());
     return current.getSerialNumber();
   }
 
