@@ -324,15 +324,15 @@ public class OfficeComplex extends AbstractCustomer
     TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
     TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
 
-    log.info(this.toString() + " Changing");
-    log.info("Old:" + ts.toString() + "  New:" + newTs.toString());
+    log.debug(this.toString() + " Changing");
+    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
 
-    if (subscriptionMap.get("NS") == ts)
+    if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
       subscriptionMap.put("NS", newTs);
-    if (subscriptionMap.get("SS") == ts)
+    if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
       subscriptionMap.put("SS", newTs);
 
-    log.info(subscriptionMap.toString());
+    log.debug(subscriptionMap.toString());
 
   }
 
@@ -713,7 +713,8 @@ public class OfficeComplex extends AbstractCustomer
         summary = getConsumptionByTimeslot(ts.getSerialNumber(), type);
       }
       log.info("Consumption Load for " + type + ": " + summary);
-      sub.usePower(summary);
+      if (sub.getCustomersCommitted() > 0)
+        sub.usePower(summary);
     }
 
   }
