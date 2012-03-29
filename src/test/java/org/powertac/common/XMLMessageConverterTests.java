@@ -25,6 +25,7 @@ import org.apache.commons.logging.LogFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.CustomerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -65,7 +66,8 @@ public class XMLMessageConverterTests
 
     assertEquals("name", "t1", convertedInfo.getName());
     assertEquals("population", 33, convertedInfo.getPopulation());
-    assertEquals("no power types", 0, convertedInfo.getPowerTypes().size());
+    assertEquals("correct power type", PowerType.CONSUMPTION, 
+                 convertedInfo.getPowerType());
     assertFalse("no multicontracting", convertedInfo.isMultiContracting());
     assertFalse("can't negotiate", convertedInfo.isCanNegotiate());
   }
