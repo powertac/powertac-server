@@ -31,6 +31,7 @@
     <module>factored-customer</module>
     <module>genco</module>
     <module>household-customer</module>
+    <module>officecomplex-customer</module>
     <module>server-main</module>
   </modules>
 
