@@ -81,10 +81,10 @@
     <property name="timeslotPhase" value="2" />
   </bean>
 
-  <!--  <bean id="officeComplexCustomerService"
+  <bean id="officeComplexCustomerService"
         class="org.powertac.officecomplexcustomer.OfficeComplexCustomerService">
     <property name="timeslotPhase" value="2" />
-  </bean> -->
+  </bean>
   
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
