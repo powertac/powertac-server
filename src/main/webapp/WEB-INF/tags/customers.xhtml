@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+
+<h:body>
+	<ui:fragment>
+
+		<ui:repeat var="customer" value="#{customers}">
+			<script type="text/javascript">
+	var bootstrap#{customer.customerInfo.id}=null;
+	
+	var totalkWhLineChartData#{customer.customerInfo.id}=null;
+	var productionKWhLineChartData#{customer.customerInfo.id}=null;
+	var consumptionKWhLineChartData#{customer.customerInfo.id}=null;
+	
+	</script>
+		</ui:repeat>
+
+
+		<p:tabView id="tabCustomers" var="customer" value="#{customers}"
+			dynamic="true" cache="true">
+
+
+
+
+			<p:tab title="#{customer.customerInfo.name}">
+
+				<h:panelGrid columns="1" cellpadding="10">
+					<!-- TODO: powertype icons	<p:graphicImage value="${broker.appearance.iconLocation}"
+						width="85" height="85" />  -->
+					<h:panelGrid columns="2" cellpadding="10">
+						<h:outputText value="Population: " />
+						<h:outputText value="#{customer.customerInfo.population}"
+							style="font-weight: bold" />
+						<h:outputText value="Subscriptions: " />
+						<h:outputText value="#{customer.customerModel.customerCount}"
+							style="font-weight: bold" />
+					</h:panelGrid>
+
+				</h:panelGrid>
+
+				<p:tabView dynamic="true" cache="true">
+					<p:tab title="Energy">
+
+						<h:panelGrid columns="1" cellpadding="10">
+							<!-- TODO: powertype icons	<p:graphicImage value="${broker.appearance.iconLocation}"
+						width="85" height="85" />  -->
+							<h:panelGrid columns="2" cellpadding="10">
+								<h:outputText value="Energy consumption:" />
+								<h:outputText
+									value="#{customer.customerModel.energyConsumption} kWh"
+									style="font-weight: bold" />
+								<h:outputText value="Energy production:" />
+								<h:outputText
+									value="#{customer.customerModel.energyProduction} kWh"
+									style="font-weight: bold" />
+								<h:outputText value="Total:" />
+								<h:outputText value="#{customer.customerModel.totalEnergy} kWh"
+									style="font-weight: bold" />
+							</h:panelGrid>
+
+						</h:panelGrid>
+
+						<p:panel
+							rendered="#{not empty customer.customerJson.totalkWhLineChartData}">
+							<div id="totalkWhLineChartData#{customer.customerInfo.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.totalkWhLineChartData#{customer.customerInfo.id}!=null) {
+						window.totalkWhLineChartData#{customer.customerInfo.id}.destroy();					
+					}
+					window.totalkWhLineChartData#{customer.customerInfo.id} = $.jqplot('totalkWhLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.totalkWhLineChartDataText} ],{
+						title: 'Total Energy', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "kWh"}},
+						seriesDefaults: {
+							showMarker: false
+						}					
+						
+						
+						}); 
+					</script>
+						</p:panel>
+						
+							<p:panel
+							rendered="#{not empty customer.customerJson.productionKWhLineChartData}">
+							<div id="productionKWhLineChartData#{customer.customerInfo.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.productionKWhLineChartData#{customer.customerInfo.id}!=null) {
+						window.productionKWhLineChartData#{customer.customerInfo.id}.destroy();					
+					}
+					window.productionKWhLineChartData#{customer.customerInfo.id} = $.jqplot('productionKWhLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.productionKWhLineChartDataText} ],{
+						title: 'Energy Production', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "kWh"}},
+						seriesDefaults: {
+							showMarker: false,
+							color: "#7FFF00"
+						}					
+						
+						
+						}); 
+					</script>
+						</p:panel>
+						
+						<p:panel
+							rendered="#{not empty customer.customerJson.consumptionKWhLineChartData}">
+							<div id="consumptionKWhLineChartData#{customer.customerInfo.id}"
+								style="width: 700px; height: 250px"></div>
+							<script type="text/javascript">
+				
+		 			if (window.consumptionKWhLineChartData#{customer.customerInfo.id}!=null) {
+						window.consumptionKWhLineChartData#{customer.customerInfo.id}.destroy();					
+					}
+					window.consumptionKWhLineChartData#{customer.customerInfo.id} = $.jqplot('consumptionKWhLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.consumptionKWhLineChartDataText} ],{
+						title: 'Energy Consumption', 
+						axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+						axes: {
+							xaxis: {
+						            label: "timeslot",
+						            pad: 0},
+						    yaxis: {
+						            label: "kWh"}},
+						seriesDefaults: {
+							showMarker: false,
+							color: "#FF0000"
+						}					
+						
+						
+						}); 
+					</script>
+						</p:panel>
+
+
+					</p:tab>
+
+					<p:tab title="lolado">
+todo
+</p:tab>
+					<p:tab title="lolado">
+todo
+</p:tab>
+				</p:tabView>
+
+
+
+
+
+			</p:tab>
+
+		</p:tabView>
+
+
+
+	</ui:fragment>
+</h:body>
+
+</html>
+

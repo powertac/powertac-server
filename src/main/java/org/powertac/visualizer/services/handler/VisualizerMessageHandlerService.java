@@ -1,15 +1,10 @@
 package org.powertac.visualizer.services.handler;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.log4j.Logger;
-import org.joda.time.field.OffsetDateTimeField;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.BankTransaction;
 import org.powertac.common.CashPosition;
@@ -25,27 +20,27 @@ import org.powertac.common.PluginConfig;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
-import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
+import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.visualizer.SpringApplicationContext;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
+import org.powertac.visualizer.customers.Customer;
 import org.powertac.visualizer.domain.BrokerModel;
-import org.powertac.visualizer.domain.DayOverview;
-import org.powertac.visualizer.domain.DayState;
 import org.powertac.visualizer.domain.GencoModel;
 import org.powertac.visualizer.domain.VisualBroker;
+import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.wholesale.WholesaleMarket;
 import org.powertac.visualizer.wholesale.WholesaleModel;
 import org.powertac.visualizer.wholesale.WholesaleSnapshot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.sun.xml.bind.v2.runtime.unmarshaller.LocatorEx.Snapshot;
 
 @Service
 public class VisualizerMessageHandlerService {
@@ -71,12 +66,13 @@ public class VisualizerMessageHandlerService {
 			List<BrokerModel> brokers = helper.buildBrokerList(competition);
 
 			visualizerBean.setBrokers(brokers);
-
-			// Add customers to an existing collection
-			visualizerBean.setCustomers(competition.getCustomers());
-
+		
 			// build customer models for each broker
-			helper.buildCustomerModels(visualizerBean.getBrokers(), visualizerBean.getCustomers());
+			helper.buildCustomerModels(visualizerBean.getBrokers(), competition.getCustomers());
+			
+			// build global customers
+			helper.buildCustomers(competition.getCustomers());
+			
 		}
 
 		else
@@ -105,13 +101,12 @@ public class VisualizerMessageHandlerService {
 		if (visualizerBean.getFirstTimeslotInstant() == null)
 			visualizerBean.setFirstTimeslotInstant(timeslotUpdate.getPostedTime());
 
-		ArrayList<Timeslot> enabledTimeslots = timeslotUpdate.getEnabled();
-
+		
 		StringBuilder builder = new StringBuilder();
 		builder.append("Enabled timeslots:");
-		for (Iterator<Timeslot> iterator = enabledTimeslots.iterator(); iterator.hasNext();) {
-			Timeslot timeslot = (Timeslot) iterator.next();
-			builder.append(" ").append(timeslot.getSerialNumber());
+		for (int i=timeslotUpdate.getFirstEnabled();i<timeslotUpdate.getLastEnabled();i++) {
+			
+			builder.append(" ").append(i);
 		}
 
 		log.debug(builder + "\n");
@@ -134,6 +129,15 @@ public class VisualizerMessageHandlerService {
 
 		// wholesale update:
 
+	}
+	
+	public void handleMessage(TimeslotComplete complete){
+		//activate beans that implement timeslotcompleteactivation interface:
+		List<TimeslotCompleteActivation> activators  = SpringApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
+		for (TimeslotCompleteActivation active : activators) {
+			log.debug("activating...");
+			active.activate(complete.getTimeslotIndex());
+		}				
 	}
 
 	public void handleMessage(SimStart simStart) {
@@ -361,9 +365,11 @@ public class VisualizerMessageHandlerService {
 		BrokerModel brokerModel = helper.findBrokerModel(tariffTransaction.getBroker());
 		if (brokerModel != null) {
 			brokerModel.addTariffTransaction(tariffTransaction);
-			// update overall status for customers:
-			visualizerBean.getCustomerModel().addTariffTransaction(tariffTransaction);
+			
 		}
+		
+		Customer customer = visualizerBean.getCustomers().findCustomerByCustomerInfo(tariffTransaction.getCustomerInfo());
+		customer.addTariffTransaction(tariffTransaction);
 
 	}
 
@@ -394,4 +400,13 @@ public class VisualizerMessageHandlerService {
 			visualBroker.addBalancingTransaction(balancingTransaction);
 		}
 	}
+	
+	public void handleMessage(CustomerBootstrapData data){
+		Customer customer =  visualizerBean.getCustomers().findCustomerByName(data.getCustomerName());
+		if(customer!=null){
+		customer.addCustomerBootstrapData(data);
+		}
+		
+	}
+	
 }

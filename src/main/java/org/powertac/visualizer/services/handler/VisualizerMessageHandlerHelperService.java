@@ -174,6 +174,11 @@ public class VisualizerMessageHandlerHelperService {
 		visualizerBean.setDayOverview(new DayOverview(dayStates,day));	
 		
 	}
+
+	public void buildCustomers(List<CustomerInfo> customers) {
+		visualizerBean.getCustomers().addCustomers(customers);
+		
+	}
 	
 	
 

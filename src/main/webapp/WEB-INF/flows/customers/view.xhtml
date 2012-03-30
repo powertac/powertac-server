@@ -9,7 +9,11 @@
 	<ui:define name="title">Customers</ui:define>
 
 	<ui:define name="content">
-		
+		<h:form>
+			<ui:include src="/WEB-INF/tags/customers.xhtml" />
+
+			<p:poll autoStart="true" update="tabCustomers" interval="5" />
+		</h:form>
 
 	</ui:define>
 

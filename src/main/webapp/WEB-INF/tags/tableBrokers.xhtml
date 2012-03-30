@@ -10,28 +10,34 @@
 			<p:panel styleClass="noBorderPanel" >
 			
 			
-			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" sortBy="${broker.cashBalance}" sortOrder="descending">
+			<p:dataTable value="#{brokersClone}" var="broker" type="ordered" sortBy="${broker.cashBalance}" sortOrder="descending" tableStyle="width:auto">
 				<f:facet name="header">  
             			Live info:  
         	</f:facet>
 
-				<p:column sortBy="${broker.appearance.iconLocation}" headerText="Icon">
-					<p:graphicImage value="${broker.appearance.iconLocation}" width="50" height="50" />
+				<p:column sortBy="${broker.appearance.iconLocation}" headerText="Icon" style="width:40px">
+					<p:graphicImage value="${broker.appearance.iconLocation}" width="40" height="40" />
 				</p:column>
 				
-				<p:column sortBy="#{broker.name}" headerText="Name" >
+				<p:column sortBy="#{broker.name}" headerText="Name" style="width:50px" >
 					<h:outputText value="#{broker.name}" style="font-weight: bold" />
 				</p:column>
 
-				<p:column sortBy="${broker.cashBalance}" headerText="Cash balance">
-					<h:outputText value="#{broker.cashBalance} &euro;" style="font-weight: bold;" />
+				<p:column sortBy="${broker.cashBalance}" style="width:50px">
+				<f:facet name="header">  
+            			Cash bal. <br/> [&euro;]
+        	</f:facet>
+					<h:outputText value="#{broker.cashBalance}" style="font-weight: bold;" />
 				</p:column>
 
-				<p:column sortBy="${broker.energyBalance}" headerText="Energy balance" >
-					<h:outputText value="#{broker.energyBalance} kWh" style="font-weight: bold" />
+				<p:column sortBy="${broker.energyBalance}" style="width:50px" >
+				<f:facet name="header">  
+            			Energy bal. <br/> [kWh]
+        	</f:facet>
+					<h:outputText value="#{broker.energyBalance}" style="font-weight: bold" />
 				</p:column>
 				
-				<p:column sortBy="${broker.customerCount}" headerText="Subscriptions">
+				<p:column sortBy="${broker.customerCount}" headerText="Subs." style="width:50px">
 					<h:outputText value="#{broker.customerCount}" style="font-weight: bold" />
 				</p:column>
 				

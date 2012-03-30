@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.visualizer.customers.CustomerService;
 import org.powertac.visualizer.domain.*;
 import org.powertac.visualizer.wholesale.WholesaleModel;
 import org.powertac.visualizer.wholesale.WholesaleSnapshot;
@@ -22,6 +23,7 @@ import org.powertac.common.msg.TimeslotUpdate;
 import org.primefaces.json.JSONArray;
 import org.primefaces.model.chart.CartesianChartModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Holds properties of the Visualizer such as number of received messages from
@@ -29,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * 
  * @author Jurica Babic
  */
+@Service
 public class VisualizerBean implements Serializable {
 
 	/**
@@ -41,14 +44,13 @@ public class VisualizerBean implements Serializable {
 	private int visualizerRunCount;
 
 	private DayOverview dayOverview;
-	
-	//wholesale:
-	private WholesaleModel wholesaleModel; 
+
+	// wholesale:
+	private WholesaleModel wholesaleModel;
 	private WholesaleSnapshot currentWholesaleSnapshot;
-		
+
 	private Competition competition;
 	private Instant firstTimeslotInstant;
-	private List<CustomerInfo> customers;
 	private List<BrokerModel> brokers;
 	private TimeslotUpdate timeslotUpdate;
 	private String simulationStatus;
@@ -62,10 +64,10 @@ public class VisualizerBean implements Serializable {
 	private String brokerSeriesColors;
 	private JSONArray subscriptionsPieChartJSON;
 	private JSONArray brokerCashBalancesJSON;
-	// convinient variable for holding the sum of all customers:
-	private CustomerModel customerModel;
 	@Autowired
 	private AppearanceListBean appearanceList;
+	@Autowired
+	private CustomerService customers;
 
 	public VisualizerBean() {
 		init();
@@ -87,20 +89,20 @@ public class VisualizerBean implements Serializable {
 	public void newRun() {
 		init();
 		appearanceList.resetAvailableList(); // so broker appearances will be
-												// free for the next competition
+		customers.recycle(); // free for the next competition
 	}
 
 	public void init() {
 		messageCounter = 0;
 		visualizerRunCount++;
-		
-		dayOverview=null;
-		
+
+		dayOverview = null;
+
 		competition = null;
 		brokers = new ArrayList<BrokerModel>();
 
 		firstTimeslotInstant = null;
-		customers = null;
+
 		timeslotUpdate = null;
 		simulationStatus = null;
 		weatherReport = null;
@@ -112,9 +114,9 @@ public class VisualizerBean implements Serializable {
 		brokerSeriesColors = "";
 		subscriptionsPieChartJSON = new JSONArray();
 		brokerCashBalancesJSON = new JSONArray();
-		customerModel = new CustomerModel();
 		wholesaleModel = new WholesaleModel();
 		currentWholesaleSnapshot = null;
+
 	}
 
 	public int getVisualizerRunCount() {
@@ -136,9 +138,7 @@ public class VisualizerBean implements Serializable {
 		String stringDebug = "";
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
-			stringDebug += "Name: " + brokerModel.getName() + " Color code: "
-					+ brokerModel.getAppearance().getColorCode() + " Icon:"
-					+ brokerModel.getAppearance().getIconLocation() + "\n";
+			stringDebug += "Name: " + brokerModel.getName() + " Color code: " + brokerModel.getAppearance().getColorCode() + " Icon:" + brokerModel.getAppearance().getIconLocation() + "\n";
 			// build broker series options:
 			seriesOptions.append(prefix);
 			prefix = ",";
@@ -150,8 +150,7 @@ public class VisualizerBean implements Serializable {
 		this.brokerSeriesOptions = seriesOptions.toString();
 		this.brokerSeriesColors = brokerSeriesColors.toString();
 		// this.brokers = brokers;
-		log.debug("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:"
-				+ brokerSeriesColors.toString());
+		log.debug("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:" + brokerSeriesColors.toString());
 
 	}
 
@@ -159,22 +158,8 @@ public class VisualizerBean implements Serializable {
 		return brokers;
 	}
 
-	public List<CustomerInfo> getCustomers() {
+	public CustomerService getCustomers() {
 		return customers;
-	}
-
-	public void setCustomers(List<CustomerInfo> customers) {
-		this.customers = customers;
-		StringBuilder builder = new StringBuilder();
-
-		for (Iterator iterator = customers.iterator(); iterator.hasNext();) {
-			CustomerInfo customerInfo = (CustomerInfo) iterator.next();
-			builder.append("ID:" + customerInfo.getId()).append(" NAME:" + customerInfo.getName())
-					.append(" POPULATION:" + customerInfo.getPopulation());
-
-		}
-		log.info("Customer list:\n" + builder.toString());
-
 	}
 
 	public TimeslotUpdate getTimeslotUpdate() {
@@ -184,11 +169,11 @@ public class VisualizerBean implements Serializable {
 	public void setTimeslotUpdate(TimeslotUpdate timeslotUpdate) {
 		this.timeslotUpdate = timeslotUpdate;
 	}
-	
-	public int getCurrentFirstEnabledTimeslotSerialNumber(){
-		if (timeslotUpdate!=null)
-		return timeslotUpdate.getEnabled().get(0).getSerialNumber();
-		else{
+
+	public int getCurrentFirstEnabledTimeslotSerialNumber() {
+		if (timeslotUpdate != null)
+			return timeslotUpdate.getFirstEnabled();
+		else {
 			return -1;
 		}
 	}
@@ -227,19 +212,16 @@ public class VisualizerBean implements Serializable {
 
 	/**
 	 * Should be called
+	 * 
 	 * @param relativeTimeslotIndex
 	 */
 	public void setRelativeTimeslotIndex(int relativeTimeslotIndex) {
 		this.relativeTimeslotIndex = relativeTimeslotIndex;
-		
+
 	}
 
 	public int getRelativeTimeslotIndex() {
 		return relativeTimeslotIndex;
-	}
-
-	public CustomerModel getCustomerModel() {
-		return customerModel;
 	}
 
 	public String getBrokerSeriesOptions() {
@@ -292,19 +274,19 @@ public class VisualizerBean implements Serializable {
 	public DayOverview getDayOverview() {
 		return dayOverview;
 	}
-	
+
 	public void setDayOverview(DayOverview dayOverview) {
 		this.dayOverview = dayOverview;
 	}
-	
+
 	public void setCurrentWholesaleSnapshot(WholesaleSnapshot currentWholesaleSnapshot) {
 		this.currentWholesaleSnapshot = currentWholesaleSnapshot;
 	}
-	
+
 	public WholesaleSnapshot getCurrentWholesaleSnapshot() {
 		return currentWholesaleSnapshot;
 	}
-	
+
 	public WholesaleModel getWholesaleModel() {
 		return wholesaleModel;
 	}

@@ -7,7 +7,7 @@
 	<context:component-scan base-package="org.powertac.visualizer" />
 	
 
-
+	<bean id="springApplicationContext" class="org.powertac.visualizer.SpringApplicationContext"/>
 
 	<bean id="visualizerLogService" class="org.powertac.visualizer.services.VisualizerLogService">
 		<constructor-arg name="outputFolderResource" value="WEB-INF/output/log" />
@@ -24,8 +24,8 @@
 		<property name="moneyPath" value="/app/resources/resources/images/money_icon.png"/>
 	</bean>
 		
-	<bean id="visualizerBean" class="org.powertac.visualizer.beans.VisualizerBean"/>
-	
+	<!-- <bean id="visualizerBean" class="org.powertac.visualizer.beans.VisualizerBean"/>
+	 -->
 	<bean id="appearanceListBean" class="org.powertac.visualizer.beans.AppearanceListBean">
 		<constructor-arg name="appereanceList">
 			<list>
