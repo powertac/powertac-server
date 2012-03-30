@@ -326,8 +326,9 @@ public class HouseholdCustomerServiceTests
       // tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTotalUsage()
       // == 0);
     }
-
-    assertEquals("Tariff Transactions Created", 9 * householdCustomerService.getVillageList().size(), accountingArgs.size());
+    assertEquals("Tariff Transactions Created", 5 * householdCustomerService.getVillageList().size(), accountingArgs.size());
+    // assertEquals("Tariff Transactions Created", 9 *
+    // householdCustomerService.getVillageList().size(), accountingArgs.size());
 
   }
 
@@ -408,7 +409,7 @@ public class HouseholdCustomerServiceTests
 
       // Single type changeSubscription Method checked
       when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), lastTariff, "SS", false);
+      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), lastTariff, "SS");
 
       assertFalse("Changed SS from default tariff", customer.getSubscriptionMap().get("SS").getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
@@ -419,7 +420,7 @@ public class HouseholdCustomerServiceTests
       when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
       when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tariffRepo.findAllTariffs());
 
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), "NS", false);
+      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), "NS");
 
       assertFalse("Changed NS from default tariff", customer.getSubscriptionMap().get("NS").getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
 
