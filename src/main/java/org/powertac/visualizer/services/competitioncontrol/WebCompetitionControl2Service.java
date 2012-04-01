@@ -53,7 +53,7 @@ public class WebCompetitionControl2Service {
 			css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
 		
 						
-			URL bootstrapURL = resourceLoader.getResource("WEB-INF/config/boot-data.xml").getURL();
+			URL bootstrapURL = resourceLoader.getResource("WEB-INF/config/boot1.xml").getURL();
 			log.info("BOOTSTRAP_url:"+bootstrapURL);
 
 			List<String> argList = new ArrayList<String>();
@@ -61,15 +61,7 @@ public class WebCompetitionControl2Service {
 			argList.add("--boot-data="+bootstrapURL.toString());
 			argList.add("--brokers=Sample");
 			
-						
-		//	String userConfURL = resourceLoader.getResource("WEB-INF/config/banana.txt").getURL().toString();
-			 
-			
-			
-		//	log.info("USERCONF:"+userConfURL);
-			
-		//	argList.add("--config="+userConfURL);
-			
+					
 			args=(String[]) argList.toArray(new String [argList.size()]);
 			
 			

@@ -19,16 +19,16 @@
  
 
 	<!-- Embedded ActiveMQ Broker -->
-   <amq:broker id="broker" useJmx="true" persistent="false">
+<!--   <amq:broker id="broker" useJmx="true" persistent="false">
     <amq:transportConnectors>
   	  <amq:transportConnector uri="tcp://localhost:61616" />
     </amq:transportConnectors>
-  </amq:broker> 
+  </amq:broker>
+ -->
  
- 
-  <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML 
-   <amq:connectionFactory id="jmsFactory" brokerURL="tcp://localhost:61616" />-->
- 
+  <!-- JMS ConnectionFactory to use, configuring the embedded broker using XML -->
+<!--   <amq:connectionFactory id="jmsFactory" brokerURL="tcp://localhost:61616" />
+ -->
   <!-- JMS Producer Configuration -->
 <!--   <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
     <property name="connectionFactory">
@@ -73,7 +73,7 @@
     </property>
   </bean>
   
-   <bean id="auctionService" 
+  <bean id="auctionService" 
         class="org.powertac.auctioneer.AuctionService">
     <property name="timeslotPhase" value="1" />
   </bean>
@@ -87,11 +87,11 @@
         class="org.powertac.householdcustomer.HouseholdCustomerService">
     <property name="timeslotPhase" value="2" />
   </bean>
-  
-  <!--  <bean id="officeComplexCustomerService"
+
+  <bean id="officeComplexCustomerService"
         class="org.powertac.officecomplexcustomer.OfficeComplexCustomerService">
     <property name="timeslotPhase" value="2" />
-  </bean> -->
+  </bean>
   
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
