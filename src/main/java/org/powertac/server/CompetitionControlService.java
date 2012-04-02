@@ -28,6 +28,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
@@ -134,6 +135,10 @@ public class CompetitionControlService
   private ArrayList<String> alwaysAuthorizedBrokers;
   private ArrayList<String> authorizedBrokerList;
   private int idPrefix = 0;
+  
+  @ConfigurableValue(valueType = "Integer",
+      description = "Maximum time in msec to wait for broker login")
+  private int loginTimeout = 0;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
@@ -363,11 +368,15 @@ public class CompetitionControlService
       log.info(msg.toString());
     }
     try {
-      while (authorizedBrokerList.size() > 0) {
-        wait();
-      }  
+      //while (authorizedBrokerList.size() > 0) {
+      wait(loginTimeout);
+      //}  
     }
     catch (InterruptedException ie) {
+      authorizedBrokerList.clear();
+    }
+    if (authorizedBrokerList.size() > 0) {
+      log.warn("Some brokers did not log in: " + authorizedBrokerList.size());
       authorizedBrokerList.clear();
     }
   }
@@ -463,6 +472,7 @@ public class CompetitionControlService
   // relationships among them.
   private boolean configurePlugins ()
   {
+    configService.configureMe(this);
     List<InitializationService> initializers =
         SpringApplicationContext.listBeansOfType(InitializationService.class);
 
