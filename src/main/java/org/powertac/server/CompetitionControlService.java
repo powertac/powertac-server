@@ -163,7 +163,6 @@ public class CompetitionControlService
     
     // create broker queues
     String[] brokerArray = new String[authorizedBrokerList.size()];
-    jmsManagementService.initializeBrokersQueues(authorizedBrokerList.toArray(brokerArray));
     
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
@@ -386,7 +385,7 @@ public class CompetitionControlService
    * Returns true if the broker is authorized, otherwise false.
    */
   @Override
-  public synchronized boolean loginBroker (String username)
+  public synchronized boolean loginBroker (String username, String queueName)
   {
     // cannot log in if there's no list, or if the broker is not on the list
     if (authorizedBrokerList == null
@@ -404,17 +403,21 @@ public class CompetitionControlService
     // Brokers can be local, in which case the Broker instance already exists.
     // If that's the case, we don't need to create the broker, send a message,
     // or create a new ID prefix.
-    log.info("Log in broker " + username);
     Broker broker = brokerRepo.findByUsername(username);
-    if (broker == null) {
+    log.info("Log in " + ((null == broker)?"":"existing ") +
+             "broker " + username + ", queue " + queueName);
+    if (null == broker) {
       broker = new Broker(username);
       brokerRepo.add(broker);
     }
     
     // only enabled brokers get messages
     broker.setEnabled(true);
-    // assign prefix...
-    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix));
+    broker.setQueueName(queueName);
+    computeBrokerKey(broker);
+    // assign prefix and key with accept message
+    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix,
+                                                            broker.getKey()));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
@@ -423,6 +426,16 @@ public class CompetitionControlService
       notifyAll();
     }
     return true;
+  }
+  
+  private void computeBrokerKey (Broker broker)
+  {
+    long time = new Date().getTime() & 0xffffffff;
+    int hash = broker.hashCode();
+    int code = (int)((hash * time) & 0x7fffffff);
+    String key = Integer.toString(code, 36);
+    log.info("Broker " + broker.getUsername() + " key: " + key);
+    broker.setKey(key);
   }
   
   // set simulation time parameters, making sure that simulationStartTime
@@ -747,9 +760,9 @@ public class CompetitionControlService
    * TODO: add auth-token processing
    */
   public void handleMessage(BrokerAuthentication msg) {
-    log.info("receiveMessage(BrokerAuthentication) - start");
-    String username = msg.getUsername();
-    loginBroker(username);
+    log.info("receiveMessage(BrokerAuthentication) " + 
+             msg.getUsername() + ", " + msg.getQueueName());
+    loginBroker(msg.getUsername(), msg.getQueueName());
   }
   
   /**
