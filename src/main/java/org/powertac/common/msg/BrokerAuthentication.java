@@ -55,6 +55,7 @@ public class BrokerAuthentication
     super();
     this.username = broker.getUsername();
     this.password = broker.getPassword();
+    this.queueName = broker.toQueueName();
   }
   
   /**
