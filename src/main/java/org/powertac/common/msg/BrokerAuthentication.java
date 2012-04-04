@@ -24,8 +24,13 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * This message is used for authenticating a broker with the server.
- * Broker sends this message to the server with its username and game-token which 
- * it receives from the web-app.  The game-token is ignored in research mode.
+ * Broker sends this message to the server with its username, password, and 
+ * the name of the queue through which it wishes to receive messages. The
+ * password is ignored by a standalone server; in a tournament situation it is
+ * the game-token received from the tournament manager. The queue name may be
+ * the username, but in a tournament situation using some sort of
+ * difficult-to-guess hash (or possibly the game token) will make it more
+ * difficult (but not impossible) for other brokers to intercept its messages.
  * If the login is accepted, a {@link BrokerAccept} message is returned.
  */
 
@@ -38,6 +43,9 @@ public class BrokerAuthentication
   
   @XStreamAsAttribute
   private String password;
+  
+  @XStreamAsAttribute
+  private String queueName;
   
   /**
    * Creates an instance from a broker
@@ -58,6 +66,17 @@ public class BrokerAuthentication
     this.username = username;
     this.password = password;
   }
+  
+  /**
+   * Creates an instance with a queue name
+   */
+  public BrokerAuthentication (String username,
+                               String password,
+                               String queueName)
+  {
+    this(username, password);
+    this.queueName = queueName;
+  }
 
   /**
    * @return the broker username
@@ -76,11 +95,19 @@ public class BrokerAuthentication
   }
 
   /**
+   * Returns the queue name
+   */
+  public String getQueueName ()
+  {
+    return queueName;
+  }
+  
+  /**
    * @param password new password
    */
-  @StateChange
-  public void setPassword (String password)
-  {
-    this.password = password;
-  }
+//  @StateChange
+//  public void setPassword (String password)
+//  {
+//    this.password = password;
+//  }
 }

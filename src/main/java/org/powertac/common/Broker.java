@@ -46,9 +46,14 @@ public class Broker
 {
   private long id = IdGenerator.createId();
 
-  /** the broker's login or user name     */
+  /** the broker's login or user name and password */
   private String username;
   private String password;
+  
+  /** the broker's jms key. Must be copied over from the BrokerAccept message */
+  private String key;
+  private String queueName = null;
+  
   private boolean enabled;
 
   /** If true, the broker is local to the server and does not receive messages  */
@@ -95,11 +100,19 @@ public class Broker
   }
   
   /**
-   * Returns the unique ID for this broker as a String.
+   * Sets the jms key for a remote broker.
    */
-  public String getApiKey() 
+  public void setKey (String key)
   {
-    return Long.toString(id);
+    this.key = key;
+  }
+  
+  /**
+   * Returns the jms ID for this broker.
+   */
+  public String getKey() 
+  {
+    return key;
   }
 
   /**
@@ -221,9 +234,24 @@ public class Broker
     return username;
   }
 
+  /**
+   * Sets the broker's queue name.
+   */
+  public void setQueueName (String queueName)
+  {
+    this.queueName = queueName;
+  }
+  
+  /**
+   * Returns the broker's queue name if it's been set, otherwise the default
+   * queue name.
+   */
   public String toQueueName() 
   {
-    return ("brokers." + this.username + ".outputQueue");
+    if (null != queueName)
+      return (queueName);
+    else
+      return ("brokers." + getUsername() + ".outputQueue");
   }
 
   /**
