@@ -17,6 +17,7 @@ import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.log4j.Logger;
+import org.powertac.common.Broker;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -130,15 +131,7 @@ public class JmsManagementService
       log.error("Failed to stop JMS Server", e);
     }
   }
-
-  public void initializeBrokersQueues (String[] queueNames)
-  {
-    // create broker queues
-    for (String queueName: queueNames) {
-      createQueue(queueName);
-    }
-  }
-
+  
   public Queue createQueue (String queueName)
   {
     Queue queue = null;

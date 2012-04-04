@@ -30,7 +30,7 @@ public class ServerMessageReceiver implements MessageListener
   @Autowired
   BrokerRepo brokerRepo;
   
-  private Pattern brokerRegex = Pattern.compile("<broker>([A-Za-z_0-9 ])</broker>");
+  private Pattern brokerRegex = Pattern.compile("<broker>([A-Za-z0-9_ ]+)</broker>");
 
   @Override
   public void onMessage (Message message)
@@ -60,8 +60,8 @@ public class ServerMessageReceiver implements MessageListener
         return;
       }
     }
-    log.info("onMessage(String) - received message:\n" + xml);
-    Object message = converter.fromXML(xml);
+    log.info("onMessage(String) - received message:\n" + validXml);
+    Object message = converter.fromXML(validXml);
     log.debug("onMessage(String) - received message of type " + message.getClass().getSimpleName());
     brokerProxy.routeMessage(message);
   }
@@ -74,9 +74,11 @@ public class ServerMessageReceiver implements MessageListener
     if (0 == realMsg)
       return null;
     String prefix = message.substring(0, realMsg);
+    log.debug("prefix=" + prefix);
     Matcher m = brokerRegex.matcher(message);
     if (m.find(realMsg)) {
       String username = m.group(1);
+      log.debug("broker username=" + username);
       Broker broker = brokerRepo.findByUsername(username);
       if (broker.getKey().equals(prefix))
         return message.substring(realMsg);
