@@ -405,7 +405,7 @@ public class CompetitionControlService
     // or create a new ID prefix.
     Broker broker = brokerRepo.findByUsername(username);
     log.info("Log in " + ((null == broker)?"":"existing ") +
-             "broker " + username);
+             "broker " + username + ", queue " + queueName);
     if (null == broker) {
       broker = new Broker(username);
       brokerRepo.add(broker);
@@ -760,7 +760,8 @@ public class CompetitionControlService
    * TODO: add auth-token processing
    */
   public void handleMessage(BrokerAuthentication msg) {
-    log.info("receiveMessage(BrokerAuthentication) - start");
+    log.info("receiveMessage(BrokerAuthentication) " + 
+             msg.getUsername() + ", " + msg.getQueueName());
     loginBroker(msg.getUsername(), msg.getQueueName());
   }
   

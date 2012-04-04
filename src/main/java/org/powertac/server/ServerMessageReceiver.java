@@ -35,17 +35,24 @@ public class ServerMessageReceiver implements MessageListener
   @Override
   public void onMessage (Message message)
   {
-    if (message instanceof TextMessage) {
-      try {
-        log.debug("onMessage(Message) - receiving a message");
-        onMessage(((TextMessage) message).getText());
-      } catch (JMSException e) {
-        log.error("failed to extract text from TextMessage", e);
-      }
+    if (message instanceof TextMessage)
+      onMessage((TextMessage)message);
+    else
+      log.warn("Unable to process incoming message of type " + 
+               message.getClass().getName());
+  }
+
+  public void onMessage (TextMessage message)
+  {
+    try {
+      log.debug("onMessage(Message) - receiving a message");
+      onMessage(message.getText());
+    } catch (JMSException e) {
+      log.error("failed to extract text from TextMessage", e);
     }
   }
 
-  private void onMessage (String xml) {
+  void onMessage (String xml) {
     // validate broker's key, then strip it off
     String validXml;
     if (xml.startsWith("<broker-authentication")) {
