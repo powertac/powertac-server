@@ -732,7 +732,7 @@ public class TariffMarketServiceTests
     }
 
     @Override
-    public boolean loginBroker (String username)
+    public boolean loginBroker (String username, String queueName)
     {
       return false;
     }
