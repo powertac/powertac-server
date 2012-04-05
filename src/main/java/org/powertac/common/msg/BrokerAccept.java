@@ -18,6 +18,7 @@ package org.powertac.common.msg;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * This message is used to signify that the broker authentication is accepted.
@@ -30,14 +31,26 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("broker-accept")
 public class BrokerAccept
 {
+  @XStreamAsAttribute
   private int prefix;
+
+  @XStreamAsAttribute
+  private String key;
   
-  public BrokerAccept(int prefix) {
+  public BrokerAccept (int prefix)
+  {
     this.prefix = prefix;
+  }
+  
+  public BrokerAccept (int prefix, String key)
+  {
+    this(prefix);
+    this.key = key;
   }
 
   /**
-   * @return the prefix
+   * Returns the ID prefix to be used by the broker. On receiving this message,
+   * a remote broker is responsible for calling IdGenerator.setPrefix(prefix).
    */
   public int getPrefix ()
   {
@@ -45,10 +58,12 @@ public class BrokerAccept
   }
 
   /**
-   * @param prefix the prefix to set
+   * Returns the jms key used to validate broker communications. On receiving
+   * this message, a remote broker is responsible for calling
+   * broker.setKey(key) before sending messages to the server.
    */
-  public void setPrefix (int prefix)
+  public String getKey ()
   {
-    this.prefix = prefix;
+    return key;
   }
 }
