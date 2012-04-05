@@ -105,8 +105,8 @@ public class CapacityControlServiceTest
     timeslotRepo.findOrCreateBySerialNumber(10);
     // broker and customers
     broker = new Broker("Jenny");
-    customer1 = new CustomerInfo("Podunk", 200).addPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
-    customer2 = new CustomerInfo("Nowhere", 400).addPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+    customer1 = new CustomerInfo("Podunk", 200).withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+    customer2 = new CustomerInfo("Nowhere", 400).withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
     // a tariff for interruptible consumption
     spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
         .withExpiration(baseTime.plus(TimeService.DAY * 10))
