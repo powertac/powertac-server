@@ -416,7 +416,9 @@ public class TariffMarketService
     Instant now = timeService.getCurrentTime();
     if (now.isAfter(lastRevokeProcess)) {
       lastRevokeProcess = now;
-      return new ArrayList<Tariff>(pendingRevokedTariffs);
+      List<Tariff> result = new ArrayList<Tariff>(pendingRevokedTariffs);
+      pendingRevokedTariffs.clear();
+      return result;
     }
     return null;
   }
