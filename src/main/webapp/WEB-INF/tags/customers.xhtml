@@ -59,28 +59,31 @@
 						<table cellspacing="10">
 							<tr>
 								<th><h:outputText value="Cash inflow:"
-								style="font-weight: normal" /></th>
+										style="font-weight: normal" /></th>
 								<th><h:outputText value="Cash outflow:"
-								style="font-weight: normal" /></th>
+										style="font-weight: normal" /></th>
 								<th><h:outputText value="Total:"
-								style="font-weight: normal" /></th>
+										style="font-weight: normal" /></th>
 							</tr>
 							<tr>
 								<td><h:outputText
 										value="#{customer.customerModel.cashInflow}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> &euro;</td>
+									</h:outputText>
+									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
 								<td><h:outputText
 										value="#{customer.customerModel.cashOutflow}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> &euro;</td>
+									</h:outputText>
+									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
 								<td><h:outputText
 										value="#{customer.customerModel.totalCash}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> &euro;</td>
+									</h:outputText>
+									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
 							</tr>
 						</table>
 
@@ -134,24 +137,33 @@
 
 					<p:tab title="Energy">
 
-						<h:panelGrid columns="1" cellpadding="10">
-							<!-- TODO: powertype icons	<p:graphicImage value="${broker.appearance.iconLocation}"
-						width="85" height="85" />  -->
-							<h:panelGrid columns="2" cellpadding="10">
-								<h:outputText value="Energy consumption:" />
-								<h:outputText
-									value="#{customer.customerModel.energyConsumption} kWh"
-									style="font-weight: bold" />
-								<h:outputText value="Energy production:" />
-								<h:outputText
-									value="#{customer.customerModel.energyProduction} kWh"
-									style="font-weight: bold" />
-								<h:outputText value="Total:" />
-								<h:outputText value="#{customer.customerModel.totalEnergy} kWh"
-									style="font-weight: bold" />
-							</h:panelGrid>
-
-						</h:panelGrid>
+						<table cellspacing="10">
+							<tr>
+								<th><h:outputText value="Energy consumption:"
+										style="font-weight: normal" /></th>
+								<th><h:outputText value="Energy production:"
+										style="font-weight: normal" /></th>
+								<th><h:outputText value="Total:"
+										style="font-weight: normal" /></th>
+							</tr>
+							<tr>
+								<td><h:outputText
+										value="#{customer.customerModel.energyConsumption}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> <h:outputText style="font-weight: bold" value=" kWh" /></td>
+								<td><h:outputText
+										value="#{customer.customerModel.energyProduction}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> <h:outputText style="font-weight: bold" value=" kWh" /></td>
+								<td><h:outputText
+										value="#{customer.customerModel.totalEnergy}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> <h:outputText style="font-weight: bold" value=" kWh" /></td>
+							</tr>
+						</table>
 
 						<p:panel
 							rendered="#{not empty customer.customerJson.totalkWhLineChartData}">

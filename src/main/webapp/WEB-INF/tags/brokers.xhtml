@@ -44,17 +44,29 @@
 								width="65" height="65" /></td>
 						<td><table cellspacing="10">
 								<tr>
-									<th><h:outputText value="Cash balance:" style="font-weight:normal"/></th>
-									<th><h:outputText value="Energy balance:" style="font-weight:normal"/></th>
-									<th><h:outputText value="Subscription count:" style="font-weight:normal"/></th>
+									<th><h:outputText value="Cash balance:"
+											style="font-weight:normal" /></th>
+									<th><h:outputText value="Energy balance:"
+											style="font-weight:normal" /></th>
+									<th><h:outputText value="Subscription count:"
+											style="font-weight:normal" /></th>
 								</tr>
 								<tr>
-									<td><h:outputText value="#{broker.cashBalance} &euro;"
-											style="font-weight: bold" /></td>
-									<td><h:outputText value="#{broker.energyBalance} kWh"
-											style="font-weight: bold" /></td>
+									<td><h:outputText value="#{broker.cashBalance}"
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+										<h:outputText value=" &euro;"
+											style="font-weight: bold"/></td>
+									<td><h:outputText value="#{broker.energyBalance}"
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText><h:outputText value=" kWh"
+											style="font-weight: bold"/></td>
 									<td><h:outputText value="#{broker.customerCount}"
-											style="font-weight: bold" /></td>
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText></td>
 								</tr>
 							</table></td>
 					</tr>
