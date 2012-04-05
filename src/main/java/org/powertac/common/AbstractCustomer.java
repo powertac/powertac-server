@@ -28,11 +28,13 @@ import org.powertac.common.spring.SpringApplicationContext;
 
 /**
  * Abstract customer implementation
+ * 
  * @author Antonios Chrysopoulos
  */
 public class AbstractCustomer
 {
-  static protected Logger log = Logger.getLogger(AbstractCustomer.class.getName());
+  static protected Logger log = Logger.getLogger(AbstractCustomer.class
+          .getName());
 
   protected TariffMarket tariffMarketService;
 
@@ -45,64 +47,110 @@ public class AbstractCustomer
   /** The id of the Abstract Customer */
   protected long custId;
 
+  /** The name of the Abstract Customer */
+  protected String name;
+
   /** The Customer specifications */
-  protected CustomerInfo customerInfo;
+  protected ArrayList<CustomerInfo> customerInfos;
 
   /**
-   * >0: max power consumption (think consumer with fuse limit); <0: min power production (think
-   * nuclear power plant with min output)
+   * >0: max power consumption (think consumer with fuse limit); <0: min power
+   * production (think nuclear power plant with min output)
    */
   protected double upperPowerCap = 100.0;
 
   /**
-   * >0: min power consumption (think refrigerator); <0: max power production (think power plant
-   * with max capacity)
+   * >0: min power consumption (think refrigerator); <0: max power production
+   * (think power plant with max capacity)
    */
   protected double lowerPowerCap = 0.0;
 
   /** >=0 - gram CO2 per kW/h */
   protected double carbonEmissionRate = 0.0;
 
-  /** measures how wind changes translate into load / generation changes of the customer */
+  /**
+   * measures how wind changes translate into load / generation changes of the
+   * customer
+   */
   protected double windToPowerConversion = 0.0;
 
-  /** measures how temperature changes translate into load / generation changes of the customer */
+  /**
+   * measures how temperature changes translate into load / generation changes
+   * of the customer
+   */
   protected double tempToPowerConversion = 0.0;
 
-  /** measures how sun intensity changes translate into load /generation changes of the customer */
+  /**
+   * measures how sun intensity changes translate into load /generation changes
+   * of the customer
+   */
   protected double sunToPowerConversion = 0.0;
 
   /** Random Number Generator */
   protected RandomSeed rs1;
 
   /**
-   * Abstract Customer constructor. It takes the customerInfo as an input. It creates the autowiring
-   * required using the Spring Application Context, it creates the new Abstract Customer based on
-   * the customerInfo given, creates a new random number generator and adds the newly created
-   * customer in the CustomerRepo.
+   * Abstract Customer constructor. It takes the customerInfo as an input. It
+   * creates the autowiring required using the Spring Application Context, it
+   * creates the new Abstract Customer based on the customerInfo given, creates
+   * a new random number generator and adds the newly created customer in the
+   * CustomerRepo.
    */
-  public AbstractCustomer (CustomerInfo customer)
+  public AbstractCustomer (String name)
   {
     super();
-    randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
-    customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
-    tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
-    tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    customerRepo =
+      (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
+    tariffMarketService =
+      (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
+    tariffSubscriptionRepo =
+      (TariffSubscriptionRepo) SpringApplicationContext
+              .getBean("tariffSubscriptionRepo");
 
-    custId = customer.getId();
-    customerInfo = customer;
-    rs1 = randomSeedRepo.getRandomSeed("AbstractCustomer", getCustId(), "TariffChooser");
-    customerRepo.add(customer);
+    custId = IdGenerator.createId();
+    this.name = name;
+    customerInfos = new ArrayList<CustomerInfo>();
+    rs1 =
+      randomSeedRepo.getRandomSeed("AbstractCustomer", getCustId(),
+                                   "TariffChooser");
+  }
+
+  /**
+   * Overload of the above constructor
+   */
+  public AbstractCustomer (String name, ArrayList<CustomerInfo> customers)
+  {
+    super();
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    customerRepo =
+      (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
+    tariffMarketService =
+      (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
+    tariffSubscriptionRepo =
+      (TariffSubscriptionRepo) SpringApplicationContext
+              .getBean("tariffSubscriptionRepo");
+
+    custId = IdGenerator.createId();
+    this.name = name;
+    customerInfos = customers;
+    rs1 =
+      randomSeedRepo.getRandomSeed("AbstractCustomer", getCustId(),
+                                   "TariffChooser");
+    for (CustomerInfo customer: customerInfos)
+      customerRepo.add(customer);
   }
 
   public String toString ()
   {
-    return customerInfo.getName();
+    return Long.toString(getId()) + " " + getName();
   }
 
   public int getPopulation ()
   {
-    return customerInfo.getPopulation();
+    return customerInfos.get(0).getPopulation();
   }
 
   public long getCustId ()
@@ -116,9 +164,14 @@ public class AbstractCustomer
     return custId;
   }
 
-  public CustomerInfo getCustomerInfo ()
+  public String getName ()
   {
-    return customerInfo;
+    return name;
+  }
+
+  public ArrayList<CustomerInfo> getCustomerInfo ()
+  {
+    return customerInfos;
   }
 
   public double getUpperPowerCap ()
@@ -151,51 +204,84 @@ public class AbstractCustomer
     return sunToPowerConversion;
   }
 
+  public void addCustomerInfo (CustomerInfo customer)
+  {
+    boolean error = false;
+
+    for (CustomerInfo customerInfo: customerInfos) {
+      if (customerInfo.getPowerType() == customer.getPowerType())
+        error = true;
+    }
+    if (error) {
+      log.error("Same Power Type exists");
+    }
+    else {
+      customerInfos.add(customer);
+      customerRepo.add(customer);
+    }
+  }
+
   // =============================SUBSCRIPTION=================================================
 
-  /** Function utilized at the beginning in order to subscribe to the default tariff */
+  /**
+   * Function utilized at the beginning in order to subscribe to the default
+   * tariff
+   */
   public void subscribeDefault ()
   {
-    for (PowerType type : customerInfo.getPowerTypes()) {
+    for (CustomerInfo customer: customerInfos) {
+
+      PowerType type = customer.getPowerType();
       if (tariffMarketService.getDefaultTariff(type) == null) {
-        log.info("No default Subscription for type " + type.toString() + " for " + this.toString() + " to subscribe to.");
-      } else {
-        tariffMarketService.subscribeToTariff(tariffMarketService.getDefaultTariff(type), customerInfo, getPopulation());
-        log.info(this.toString() + " was subscribed to the default broker successfully.");
+        log.info("No default Subscription for type " + type.toString() + " of "
+                 + this.toString() + " to subscribe to.");
+      }
+      else {
+        tariffMarketService.subscribeToTariff(tariffMarketService
+                .getDefaultTariff(type), customer, getPopulation());
+        log.info("CustomerInfo of type " + type.toString() + " of "
+                 + this.toString()
+                 + " was subscribed to the default broker successfully.");
       }
     }
   }
 
   /** Subscribing a certain population amount to a certain subscription */
-  public void subscribe (Tariff tariff,
-                         int customerCount)
+  public void
+    subscribe (Tariff tariff, int customerCount, CustomerInfo customer)
   {
-    tariffMarketService.subscribeToTariff(tariff, customerInfo, customerCount);
-    log.info(this.toString() + ": " + customerCount + " were subscribed to tariff " + tariff.getId());
+
+    tariffMarketService.subscribeToTariff(tariff, customer, customerCount);
+    log.info(this.toString() + " " + tariff.getPowerType().toString() + ": "
+             + customerCount + " were subscribed to tariff " + tariff.getId());
+
   }
 
   /** Unsubscribing a certain population amount from a certain subscription */
-  public void unsubscribe (TariffSubscription subscription,
-                           int customerCount)
+  public void unsubscribe (TariffSubscription subscription, int customerCount)
   {
+
     subscription.unsubscribe(customerCount);
-    log.info(this.toString() + ": " + customerCount + " were unsubscribed from tariff " + 
-             subscription.getTariff().getId());
+    log.info(this.toString() + " "
+             + subscription.getTariff().getPowerType().toString() + ": "
+             + customerCount + " were unsubscribed from tariff "
+             + subscription.getTariff().getId());
+
   }
 
   // =============================CONSUMPTION-PRODUCTION=================================================
 
   /**
-   * The first implementation of the power consumption function. I utilized the mean consumption of
-   * a neighborhood of households with a random variable
+   * The first implementation of the power consumption function. I utilized the
+   * mean consumption of a neighborhood of households with a random variable
    */
   public void consumePower ()
   {
   }
 
   /**
-   * The first implementation of the power consumption function. I utilized the mean consumption of
-   * a neighborhood of households with a random variable
+   * The first implementation of the power consumption function. I utilized the
+   * mean consumption of a neighborhood of households with a random variable
    */
   public void producePower ()
   {
@@ -204,51 +290,63 @@ public class AbstractCustomer
   // =============================TARIFF_SELECTION_PROCESS=================================================
 
   /**
-   * The first implementation of the changing subscription function. Here we just put the tariff we
-   * want to change and the whole population is moved to another random tariff.
+   * The first implementation of the changing subscription function. Here we
+   * just put the tariff we want to change and the whole population is moved to
+   * another random tariff.
+   * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff)
+  public void changeSubscription (Tariff tariff, CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
+
+    TariffSubscription ts =
+      tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff,
+                                                                  customer);
+
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
 
     Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
-    subscribe(newTariff, populationCount);
+    subscribe(newTariff, populationCount, customer);
+
   }
 
   /**
-   * In this overloaded implementation of the changing subscription function, Here we just put the
-   * tariff we want to change and the whole population is moved to another random tariff.
+   * In this overloaded implementation of the changing subscription function,
+   * Here we just put the tariff we want to change and the whole population is
+   * moved to another random tariff.
+   * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff,
-                                  Tariff newTariff)
+  public void changeSubscription (Tariff tariff, Tariff newTariff,
+                                  CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
-    subscribe(newTariff, populationCount);
+    subscribe(newTariff, populationCount, customer);
   }
 
   /**
-   * In this overloaded implementation of the changing subscription function, Here we just put the
-   * tariff we want to change and amount of the population we want to move to the new tariff.
+   * In this overloaded implementation of the changing subscription function,
+   * Here we just put the tariff we want to change and amount of the population
+   * we want to move to the new tariff.
+   * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff,
-                                  Tariff newTariff,
-                                  int populationCount)
+  public void changeSubscription (Tariff tariff, Tariff newTariff,
+                                  int populationCount, CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
     unsubscribe(ts, populationCount);
-    subscribe(newTariff, populationCount);
+    subscribe(newTariff, populationCount, customer);
   }
 
   /**
-   * The first implementation of the tariff selection function. This is a random chooser of the
-   * available tariffs, totally insensitive.
+   * The first implementation of the tariff selection function. This is a random
+   * chooser of the available tariffs, totally insensitive.
    */
   public Tariff selectTariff (PowerType powerType)
   {
@@ -256,7 +354,8 @@ public class AbstractCustomer
     List<Tariff> available = new ArrayList<Tariff>();
     int ran, index;
     available = tariffMarketService.getActiveTariffList(powerType);
-    // log.info("Available Tariffs for " + powerType + ": " available.toString()");
+    // log.info("Available Tariffs for " + powerType + ": "
+    // available.toString()");
     index = available.indexOf(tariffMarketService.getDefaultTariff(powerType));
     log.info("Index of Default Tariff: " + index);
     ran = index;
@@ -267,12 +366,18 @@ public class AbstractCustomer
     return result;
   }
 
-  /** The first implementation of the checking for revoked subscriptions function. */
+  /**
+   * The first implementation of the checking for revoked subscriptions
+   * function.
+   */
   public void checkRevokedSubscriptions ()
   {
-    List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
-    for (TariffSubscription revokedSubscription : revoked) {
-      revokedSubscription.handleRevokedTariff();
+    for (CustomerInfo customer: customerInfos) {
+      List<TariffSubscription> revoked =
+        tariffSubscriptionRepo.getRevokedSubscriptionList(customer);
+      for (TariffSubscription revokedSubscription: revoked) {
+        revokedSubscription.handleRevokedTariff();
+      }
     }
   }
 
