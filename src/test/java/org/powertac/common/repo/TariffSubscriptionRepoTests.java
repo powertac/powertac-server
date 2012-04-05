@@ -63,8 +63,8 @@ public class TariffSubscriptionRepoTests
     Competition.newInstance("tst").withSimulationBaseTime(baseTime);
     b1 = new Broker("Bob");
     b2 = new Broker("Barb");
-    c1 = new CustomerInfo("Podunk", 23).addPowerType(PowerType.CONSUMPTION);
-    c2 = new CustomerInfo("Sticks", 230).addPowerType(PowerType.CONSUMPTION);
+    c1 = new CustomerInfo("Podunk", 23).withPowerType(PowerType.CONSUMPTION);
+    c2 = new CustomerInfo("Sticks", 230).withPowerType(PowerType.CONSUMPTION);
     ts1 = new TariffSpecification(b1, PowerType.CONSUMPTION)
         .withExpiration(baseTime.plus(TimeService.DAY * 10))
         .withMinDuration(TimeService.DAY * 5)

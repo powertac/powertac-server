@@ -82,7 +82,7 @@ public class TariffSubscriptionTests
     timeService.setCurrentTime(baseTime);
     Competition.newInstance("tst").withSimulationBaseTime(baseTime);
     broker = new Broker("Jenny");
-    customer = new CustomerInfo("Podunk", 23).addPowerType(PowerType.CONSUMPTION);
+    customer = new CustomerInfo("Podunk", 23).withPowerType(PowerType.CONSUMPTION);
     //customer = new AbstractCustomer(info);
     spec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(baseTime.plus(TimeService.DAY * 10))
