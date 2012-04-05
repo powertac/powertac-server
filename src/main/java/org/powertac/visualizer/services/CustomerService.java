@@ -1,4 +1,4 @@
-package org.powertac.visualizer.customers;
+package org.powertac.visualizer.services;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.repo.DomainRepo;
+import org.powertac.visualizer.domain.customer.Customer;
+import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.primefaces.component.log.Log;
 import org.springframework.stereotype.Repository;
@@ -21,7 +23,7 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service
-public class CustomerService implements TimeslotCompleteActivation{
+public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 
 	private static Logger log = Logger.getLogger(CustomerService.class);
 	
@@ -80,7 +82,7 @@ public class CustomerService implements TimeslotCompleteActivation{
 		
 	for (Iterator<Customer> iterator = customerList.iterator(); iterator.hasNext();) {
 		Customer type = (Customer) iterator.next();
-		type.updateJson(timeslotIndex);
+		type.update(timeslotIndex);
 		
 	}
 	log.debug("Customer service activation complete. Timeslotindex:"+timeslotIndex);

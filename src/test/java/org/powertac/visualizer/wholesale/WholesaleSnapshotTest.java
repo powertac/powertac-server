@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
+import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 
 public class WholesaleSnapshotTest {
 	
@@ -15,7 +16,7 @@ public class WholesaleSnapshotTest {
 
 	@Before
 	public void setUp() throws Exception {
-		wholesaleSnapshot = new WholesaleSnapshot(timeslot, 0,360 + 0);
+		wholesaleSnapshot = new WholesaleSnapshot(timeslot, 360);
 		
 	
 	}

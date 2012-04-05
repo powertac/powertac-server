@@ -7,9 +7,9 @@ import java.util.List;
 
 import org.powertac.common.OrderbookOrder;
 import org.powertac.visualizer.beans.VisualizerBean;
-import org.powertac.visualizer.wholesale.WholesaleMarket;
-import org.powertac.visualizer.wholesale.WholesaleModel;
-import org.powertac.visualizer.wholesale.WholesaleSnapshot;
+import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
+import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
+import org.powertac.visualizer.services.WholesaleService;
 import org.primefaces.component.datatable.DataTable;
 import org.primefaces.component.paginator.PaginatorElementRenderer;
 import org.primefaces.model.TreeNode;
@@ -21,14 +21,15 @@ public class WholesaleBean implements Serializable {
 	private WholesaleSnapshot selectedSnapshot;
 	private WholesaleMarket selectedMarket;
 	private double totalTradedQuantityMWh;
-	private WholesaleModel model;
+	private WholesaleService model;
 	private Collection<WholesaleMarket> markets;
 
 	private List<OrderbookOrder> beforeAsks;
 	private List<OrderbookOrder> afterAsks;
 
-	public WholesaleBean(VisualizerBean visualizerBean) {
-		model = visualizerBean.getWholesaleModel();
+	@Autowired
+	public WholesaleBean(WholesaleService wholesaleService) {
+		model = wholesaleService;
 		markets = new ArrayList<WholesaleMarket>(model.getWholesaleMarkets().values());
 		totalTradedQuantityMWh = model.getTotalTradedQuantityMWh();
 	}
@@ -56,7 +57,7 @@ public class WholesaleBean implements Serializable {
 
 	}
 
-	public WholesaleModel getModel() {
+	public WholesaleService getModel() {
 		return model;
 	}
 

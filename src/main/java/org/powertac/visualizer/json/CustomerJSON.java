@@ -1,4 +1,4 @@
-package org.powertac.visualizer.customers;
+package org.powertac.visualizer.json;
 
 import org.primefaces.json.JSONArray;
 

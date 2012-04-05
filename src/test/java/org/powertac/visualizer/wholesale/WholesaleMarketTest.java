@@ -13,6 +13,8 @@ import org.junit.Test;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
+import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
+import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.primefaces.model.TreeNode;
 
 public class WholesaleMarketTest {
@@ -29,7 +31,7 @@ public class WholesaleMarketTest {
 
 		for (int i = 0; i < 5; i++) {
 			timeslot = new Timeslot(360 + i, null, null);
-			snapshot = new WholesaleSnapshot(timeslot, 0, 360 + i);
+			snapshot = new WholesaleSnapshot(timeslot, 360 + i);
 			snapshot.setClearedTrade(new ClearedTrade(timeslot, 10, i, null));
 			snapshot.setOrderbook(new Orderbook(timeslot, 0.0, new Instant()));
 			snapshot.close();

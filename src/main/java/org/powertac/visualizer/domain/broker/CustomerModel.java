@@ -1,4 +1,4 @@
-package org.powertac.visualizer.domain;
+package org.powertac.visualizer.domain.broker;
 
 import java.util.ArrayList;
 import java.util.List;

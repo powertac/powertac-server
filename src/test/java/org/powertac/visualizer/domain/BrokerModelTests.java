@@ -11,6 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
+import org.powertac.visualizer.domain.broker.BrokerModel;
+import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 //import org.springframework.test.annotation.DirtiesContext;
@@ -46,16 +48,16 @@ public class BrokerModelTests {
 		 double balance=10.5;
 		 int currentTimeslotIndex = 2;
 		 
-		 assertEquals("Empty JSON array","[]",brokerModel.getCashBalanceJson().toString());
+		 assertEquals("Empty JSON array","[]",brokerModel.getJson().getCashBalanceJson().toString());
 		 
 		 JSONArray entry = new JSONArray();
 		 entry.put(currentTimeslotIndex).put(balance);
 		 assertEquals("[2,10.5]", entry.toString());
 		 
-		 brokerModel.getCashBalanceJson().put(currentTimeslotIndex,entry);
-		 brokerModel.getCashBalanceJson().put(currentTimeslotIndex,entry);
+		 brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex,entry);
+		 brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex,entry);
 		 
-		 assertEquals("One array","[null,null,[2,10.5]]",brokerModel.getCashBalanceJson().toString());
+		 assertEquals("One array","[null,null,[2,10.5]]",brokerModel.getJson().getCashBalanceJson().toString());
 		 
 		 
 		 JSONArray arrayOfArrays = new JSONArray();
@@ -85,9 +87,9 @@ public class BrokerModelTests {
 		 
 		 brokerModel.buildCustomersBubble();
 		 
-		 System.out.println(brokerModel.getCustomersBubbleJsonText());
+		 System.out.println(brokerModel.getJson().getCustomersBubbleJson());
 		 
-		 assertEquals("Built JSON Array text: ","[[0,0,0,\"Customer1\"],[0,0,0,\"Customer2\"]]",brokerModel.getCustomersBubbleJsonText());
+		 assertEquals("Built JSON Array text: ","[[0,0,0,\"Customer1\"],[0,0,0,\"Customer2\"]]",brokerModel.getJson().getCustomersBubbleJson().toString());
 		 
 	 }
 	

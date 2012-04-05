@@ -1,11 +1,12 @@
-package org.powertac.visualizer.customers;
+package org.powertac.visualizer.domain.customer;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.visualizer.domain.CustomerModel;
-import org.powertac.visualizer.interfaces.JSONUpdate;
+import org.powertac.visualizer.domain.broker.CustomerModel;
+import org.powertac.visualizer.interfaces.TimeslotModelUpdate;
+import org.powertac.visualizer.json.CustomerJSON;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 
@@ -15,7 +16,7 @@ import org.primefaces.json.JSONException;
  * @author Jurica Babic
  * 
  */
-public class Customer implements JSONUpdate {
+public class Customer implements TimeslotModelUpdate {
 	private Logger log = Logger.getLogger(Customer.class);
 	private CustomerModel customerModel;
 
@@ -76,7 +77,7 @@ public class Customer implements JSONUpdate {
 
 	}
 
-	public void updateJson(int timeslotIndex) {
+	public void update(int timeslotIndex) {
 		try {
 			JSONArray chargeTotal = new JSONArray().put(timeslotIndex).put(currentInflowCharge+currentOutflowCharge);
 			customerJson.getTotalChargeLineChartData().put(chargeTotal);

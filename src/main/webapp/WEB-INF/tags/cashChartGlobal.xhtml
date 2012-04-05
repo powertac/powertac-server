@@ -14,10 +14,10 @@
 							if (window.cashChartGlobal != null) {
 								window.cashChartGlobal.destroy();
 							}
-							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{visualizerBean.brokerCashBalancesJSONText}, 
+							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{brokerService.json.cashChartData}, 
 									{
 									title: 'Cash balance', 
-									seriesColors: #{visualizerBean.brokerSeriesColors},
+								
 									axesDefaults: {
 									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
 									axes: {
@@ -31,7 +31,14 @@
 											
 									seriesDefaults: {
 										showMarker: false
-									}
+									},
+									series:#{brokerService.json.seriesOptions},
+									legend: {
+								        show: false,
+								        location: 'nw',     // compass direction, nw, n, ne, e, se, s, sw, w.
+								        xoffset: 12,        // pixel offset of the legend box from the x (or x2) axis.
+								        yoffset: 12,        // pixel offset of the legend box from the y (or y2) axis.
+								    }
 								}); 	
 						
 								</script>

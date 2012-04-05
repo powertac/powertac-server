@@ -1,4 +1,4 @@
-package org.powertac.visualizer.domain;
+package org.powertac.visualizer.domain.broker;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -10,6 +10,8 @@ import org.powertac.common.BalancingTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.Helper;
+import org.powertac.visualizer.interfaces.DisplayableBroker;
+import org.powertac.visualizer.json.DayStateJSON;
 import org.primefaces.json.JSONArray;
 
 /**
@@ -22,7 +24,7 @@ public class DayState {
 
 	Logger log = Logger.getLogger(DayState.class);
 
-	private int day;
+	private int day = -1;
 	private DisplayableBroker broker;
 
 	private ArrayList<Double> cashBalances = new ArrayList<Double>();
@@ -34,23 +36,30 @@ public class DayState {
 	private double avgEnergyBalance;
 	private double sumEnergyBalance;
 
-	private JSONArray dayCashBalancesJson = new JSONArray();
-	private JSONArray dayEnergyBalancesJson = new JSONArray();
+	DayStateJSON json = new DayStateJSON();
 
 	private List<TariffSpecification> tariffSpecifications = new ArrayList<TariffSpecification>();
 
 	private List<TariffTransaction> tariffTransactions = new ArrayList<TariffTransaction>();
 	private int signupCustomersCount;
 	private int withdrawCustomersCount;
-	
+
 	private List<BalancingTransaction> balancingTransactions = new ArrayList<BalancingTransaction>();
 	private double totalBalancingCharge;
-	//Same thing as sumEnergyBalance!!!
+	// Same thing as sumEnergyBalance!!!
 	private double totalBalancingKWh;
 
 	public DayState(int day, DisplayableBroker displayableBroker) {
 		this.day = day;
 		broker = displayableBroker;
+	}
+
+	public DayState(DisplayableBroker broker) {
+		this.broker = broker;
+	}
+
+	public void setDay(int day) {
+		this.day = day;
 	}
 
 	/**
@@ -61,13 +70,14 @@ public class DayState {
 	 */
 	public void addTimeslotValues(int hour, double cashBalance, double energyBalance) {
 		cashBalances.add(cashBalance);
-		Helper.updateJSON(dayCashBalancesJson, hour, cashBalance);
+
+		json.addDayCashAndEnergyPoint(Helper.pointJSON(hour, cashBalance), Helper.pointJSON(hour, energyBalance));
+	
 		sumCashBalance += cashBalance;
 		totalCashBalance = cashBalance;
 		avgCashBalance = sumCashBalance / cashBalances.size();
 
 		energyBalances.add(energyBalance);
-		Helper.updateJSON(dayEnergyBalancesJson, hour, energyBalance);
 		sumEnergyBalance += energyBalance;
 		avgEnergyBalance = sumEnergyBalance / energyBalances.size();
 	}
@@ -78,13 +88,13 @@ public class DayState {
 
 	public void addTariffTransaction(TariffTransaction tariffTransaction) {
 		tariffTransactions.add(tariffTransaction);
-		
+
 		switch (tariffTransaction.getTxType()) {
 		case SIGNUP:
-			signupCustomersCount += tariffTransaction.getCustomerCount();	
+			signupCustomersCount += tariffTransaction.getCustomerCount();
 			break;
 		case REVOKE:
-		case WITHDRAW:		
+		case WITHDRAW:
 			withdrawCustomersCount += tariffTransaction.getCustomerCount();
 			break;
 		case CONSUME:
@@ -94,30 +104,27 @@ public class DayState {
 		default:
 			break;
 		}
-		
-		
+
 	}
-	
-	public void addBalancingTransaction(BalancingTransaction balancingTransaction){
+
+	public void addBalancingTransaction(BalancingTransaction balancingTransaction) {
 		balancingTransactions.add(balancingTransaction);
-		
-		totalBalancingCharge+=new BigDecimal(balancingTransaction.getCharge()).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-		totalBalancingCharge=new BigDecimal(totalBalancingCharge).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-		
-		totalBalancingKWh+=new BigDecimal(balancingTransaction.getKWh()).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-		totalBalancingKWh=new BigDecimal(totalBalancingKWh).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+		totalBalancingCharge += new BigDecimal(balancingTransaction.getCharge()).setScale(2, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		totalBalancingCharge = new BigDecimal(totalBalancingCharge).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+
+		totalBalancingKWh += new BigDecimal(balancingTransaction.getKWh()).setScale(2, BigDecimal.ROUND_HALF_UP)
+				.doubleValue();
+		totalBalancingKWh = new BigDecimal(totalBalancingKWh).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 	}
 
 	public int getTariffSpecificationsCount() {
 		return tariffSpecifications.size();
 	}
 
-	public JSONArray getDayCashBalancesJson() {
-		return dayCashBalancesJson;
-	}
-
-	public JSONArray getDayEnergyBalancesJson() {
-		return dayEnergyBalancesJson;
+	public DayStateJSON getJson() {
+		return json;
 	}
 
 	public double getAvgCashBalance() {
@@ -189,7 +196,5 @@ public class DayState {
 	public double getTotalBalancingKWh() {
 		return totalBalancingKWh;
 	}
-	
-	
 
 }

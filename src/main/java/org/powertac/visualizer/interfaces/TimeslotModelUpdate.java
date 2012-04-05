@@ -1,14 +1,14 @@
 package org.powertac.visualizer.interfaces;
 
 /**
- * For objects that need to (per timeslot) update their Json objects.
+ * For objects that need to (per timeslot) update their states.
  * @author Jurica Babic
  *
  */
-public interface JSONUpdate {
+public interface TimeslotModelUpdate {
 	
 	/**
 	 * @param timeslotIndex update will be run for this timeslot index.
 	 */
-	public void updateJson(int timeslotIndex);
+	public void update(int timeslotIndex);
 }

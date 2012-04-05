@@ -1,4 +1,4 @@
-package org.powertac.visualizer.domain;
+package org.powertac.visualizer.interfaces;
 
 import java.util.List;
 import java.util.Set;
@@ -7,6 +7,8 @@ import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
+import org.powertac.visualizer.domain.Appearance;
+import org.powertac.visualizer.domain.broker.CustomerModel;
 
 /**
  * Represents abstract broker model for Visualizer. There can be various
@@ -38,9 +40,6 @@ public interface VisualBroker {
 
 	public void addBalancingTransaction(BalancingTransaction balancingTransaction);
 
-	public int getCurrentTimeslotIndex();
-
-	public void setCurrentTimeslotIndex(int currentTimeslotIndex);
-
+	
 	
 }

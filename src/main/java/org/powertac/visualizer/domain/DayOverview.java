@@ -3,6 +3,8 @@ package org.powertac.visualizer.domain;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.powertac.visualizer.domain.broker.DayState;
+
 /**
  * Represents one-day overview of the competition.
  * @author Jurek

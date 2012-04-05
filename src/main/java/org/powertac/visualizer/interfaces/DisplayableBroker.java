@@ -1,4 +1,7 @@
-package org.powertac.visualizer.domain;
+package org.powertac.visualizer.interfaces;
+
+import org.powertac.visualizer.domain.Appearance;
+import org.powertac.visualizer.domain.broker.DayState;
 
 public interface DisplayableBroker {
 	

@@ -3,6 +3,7 @@ package org.powertac.visualizer.domain;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.visualizer.domain.broker.DayState;
 
 public class DayStateTest {
 

@@ -8,9 +8,9 @@
 	<input name="tab" value="flowScope.tab" required="false" />
 
 	<on-start>
-		<evaluate expression="visualizerBean.getBrokersClone()"
+		<evaluate expression="brokerService.getBrokers()"
 			result="conversationScope.brokersClone"></evaluate>
-		<evaluate expression="visualizerBean.getCustomers().getCustomerList()"
+		<evaluate expression="customerService.getCustomerList()"
 			result="conversationScope.customers"></evaluate>
 	</on-start>
 

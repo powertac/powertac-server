@@ -14,11 +14,10 @@
 							if (window.subscriptionsPieChart != null) {
 								window.subscriptionsPieChart.destroy();
 							}
-							window.subscriptionsPieChart=jQuery.jqplot ('subscriptionsPieChart', [#{visualizerBean.subscriptionsPieChartJSONText}],
+							window.subscriptionsPieChart=jQuery.jqplot ('subscriptionsPieChart', [#{brokerService.json.customerCountData}],
 								    {
 									title: 'Number of subscriptions for each broker',
-									seriesColors: #{visualizerBean.brokerSeriesColors},
-							        highlighter: { show: false },
+									highlighter: { show: false },
 								   	seriesDefaults: {
 								        // Make this a pie chart.
 								        renderer: jQuery.jqplot.PieRenderer,
@@ -32,6 +31,7 @@
 								          lineWidth: 4
 								        }
 								      },
+								      seriesColors: #{brokerService.json.brokerSeriesColors},
 								     
 								     legend: { show:false, location: 's' }
 								    }

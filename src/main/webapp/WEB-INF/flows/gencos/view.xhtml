@@ -9,7 +9,11 @@
 	<ui:define name="title">GenCos</ui:define>
 
 	<ui:define name="content">
-		
+		<h:form>
+			<ui:include src="/WEB-INF/tags/gencos.xhtml" />
+
+			<p:poll autoStart="true" update="tabGencos" interval="5" />
+		</h:form>
 
 	</ui:define>
 

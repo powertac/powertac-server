@@ -6,12 +6,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.visualizer.customers.CustomerService;
+import org.powertac.visualizer.SpringApplicationContext;
 import org.powertac.visualizer.domain.*;
-import org.powertac.visualizer.wholesale.WholesaleModel;
-import org.powertac.visualizer.wholesale.WholesaleSnapshot;
+import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
+import org.powertac.visualizer.interfaces.Recyclable;
+import org.powertac.visualizer.services.CustomerService;
+import org.powertac.visualizer.services.WholesaleService;
 
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -45,30 +48,18 @@ public class VisualizerBean implements Serializable {
 
 	private DayOverview dayOverview;
 
-	// wholesale:
-	private WholesaleModel wholesaleModel;
-	private WholesaleSnapshot currentWholesaleSnapshot;
-
 	private Competition competition;
 	private Instant firstTimeslotInstant;
-	private List<BrokerModel> brokers;
 	private TimeslotUpdate timeslotUpdate;
 	private String simulationStatus;
 	private WeatherReport weatherReport;
 	private WeatherForecast weatherForecast;
-	private int timeslotIndex;
-	private List<GencoModel> gencos;
+	private int currentTimeslotSerialNumber;
 	private int relativeTimeslotIndex;
-	// JSON stuff
-	private String brokerSeriesOptions;
-	private String brokerSeriesColors;
-	private JSONArray subscriptionsPieChartJSON;
-	private JSONArray brokerCashBalancesJSON;
+
 	@Autowired
 	private AppearanceListBean appearanceList;
-	@Autowired
-	private CustomerService customers;
-
+	
 	public VisualizerBean() {
 		init();
 
@@ -89,7 +80,13 @@ public class VisualizerBean implements Serializable {
 	public void newRun() {
 		init();
 		appearanceList.resetAvailableList(); // so broker appearances will be
-		customers.recycle(); // free for the next competition
+		// free for the next competition
+		// Recycle:
+		List<Recyclable> recyclables = SpringApplicationContext.listBeansOfType(Recyclable.class);
+		for (Recyclable rec : recyclables) {
+			log.info("recycling..." + rec.getClass().getName());
+			rec.recycle();
+		}
 	}
 
 	public void init() {
@@ -99,23 +96,16 @@ public class VisualizerBean implements Serializable {
 		dayOverview = null;
 
 		competition = null;
-		brokers = new ArrayList<BrokerModel>();
-
+		
 		firstTimeslotInstant = null;
 
 		timeslotUpdate = null;
 		simulationStatus = null;
 		weatherReport = null;
 		weatherForecast = null;
-		timeslotIndex = 0;
-		gencos = new ArrayList<GencoModel>();
+		currentTimeslotSerialNumber = -1;
 		relativeTimeslotIndex = -1;
-		brokerSeriesOptions = "";
-		brokerSeriesColors = "";
-		subscriptionsPieChartJSON = new JSONArray();
-		brokerCashBalancesJSON = new JSONArray();
-		wholesaleModel = new WholesaleModel();
-		currentWholesaleSnapshot = null;
+	
 
 	}
 
@@ -130,38 +120,7 @@ public class VisualizerBean implements Serializable {
 	public void setCompetition(Competition competition) {
 		this.competition = competition;
 	}
-
-	public void setBrokers(List<BrokerModel> brokers) {
-		JSONArray brokerSeriesColors = new JSONArray();
-		StringBuilder seriesOptions = new StringBuilder();
-		String prefix = "";
-		String stringDebug = "";
-		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-			BrokerModel brokerModel = (BrokerModel) iterator.next();
-			stringDebug += "Name: " + brokerModel.getName() + " Color code: " + brokerModel.getAppearance().getColorCode() + " Icon:" + brokerModel.getAppearance().getIconLocation() + "\n";
-			// build broker series options:
-			seriesOptions.append(prefix);
-			prefix = ",";
-			seriesOptions.append(brokerModel.getSeriesOptions());
-			// build colors:
-			brokerSeriesColors.put(brokerModel.getAppearance().getColorCode());
-			this.brokers.add(brokerModel);
-		}
-		this.brokerSeriesOptions = seriesOptions.toString();
-		this.brokerSeriesColors = brokerSeriesColors.toString();
-		// this.brokers = brokers;
-		log.debug("Broker list:\n" + stringDebug + " series options:" + brokerSeriesOptions + "\n JSON colors array:" + brokerSeriesColors.toString());
-
-	}
-
-	public List<BrokerModel> getBrokers() {
-		return brokers;
-	}
-
-	public CustomerService getCustomers() {
-		return customers;
-	}
-
+	
 	public TimeslotUpdate getTimeslotUpdate() {
 		return timeslotUpdate;
 	}
@@ -202,16 +161,17 @@ public class VisualizerBean implements Serializable {
 		this.weatherForecast = weatherForecast;
 	}
 
-	public int getTimeslotIndex() {
-		return timeslotIndex;
+	public int getCurrentTimeslotSerialNumber() {
+		return currentTimeslotSerialNumber;
 	}
 
-	public List<GencoModel> getGencos() {
-		return gencos;
+	public void setCurrentTimeslotSerialNumber(int currentTimeslotSerialNumber) {
+		this.currentTimeslotSerialNumber = currentTimeslotSerialNumber;
 	}
 
+	
 	/**
-	 * Should be called
+	 * 
 	 * 
 	 * @param relativeTimeslotIndex
 	 */
@@ -224,51 +184,12 @@ public class VisualizerBean implements Serializable {
 		return relativeTimeslotIndex;
 	}
 
-	public String getBrokerSeriesOptions() {
-		return brokerSeriesOptions;
-
-	}
-
-	public String getBrokerCashBalancesJSONText() {
-		return brokerCashBalancesJSON.toString();
-	}
-
-	public void setBrokerCashBalancesJSON(JSONArray brokerCashBalancesJSON) {
-		this.brokerCashBalancesJSON = brokerCashBalancesJSON;
-	}
-
-	public String getSubscriptionsPieChartJSONText() {
-		return subscriptionsPieChartJSON.toString();
-	}
-
-	public void setSubscriptionsPieChartJSON(JSONArray subscriptionsPieChartJSON) {
-		this.subscriptionsPieChartJSON = subscriptionsPieChartJSON;
-	}
-
-	public String getBrokerSeriesColors() {
-		return brokerSeriesColors;
-	}
-
 	public void setFirstTimeslotInstant(Instant firstTimeslot) {
 		this.firstTimeslotInstant = firstTimeslot;
 	}
 
 	public Instant getFirstTimeslotInstant() {
 		return firstTimeslotInstant;
-	}
-
-	/**
-	 * Shallow copy of brokers collection.
-	 * 
-	 * @return
-	 */
-	public List<BrokerModel> getBrokersClone() {
-		List<BrokerModel> brokersClone = new ArrayList<BrokerModel>(brokers.size());
-		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-			BrokerModel brokerModel = (BrokerModel) iterator.next();
-			brokersClone.add(brokerModel);
-		}
-		return brokersClone;
 	}
 
 	public DayOverview getDayOverview() {
@@ -279,16 +200,5 @@ public class VisualizerBean implements Serializable {
 		this.dayOverview = dayOverview;
 	}
 
-	public void setCurrentWholesaleSnapshot(WholesaleSnapshot currentWholesaleSnapshot) {
-		this.currentWholesaleSnapshot = currentWholesaleSnapshot;
-	}
-
-	public WholesaleSnapshot getCurrentWholesaleSnapshot() {
-		return currentWholesaleSnapshot;
-	}
-
-	public WholesaleModel getWholesaleModel() {
-		return wholesaleModel;
-	}
 
 }

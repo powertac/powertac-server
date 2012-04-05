@@ -1,4 +1,4 @@
-package org.powertac.visualizer.wholesale;
+package org.powertac.visualizer.services;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -16,40 +16,43 @@ import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
+import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
+import org.powertac.visualizer.interfaces.Recyclable;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
+import org.springframework.stereotype.Service;
 
-public class WholesaleModel implements Serializable {
-	
+@Service
+public class WholesaleService implements Serializable, Recyclable {
+
 	private static final long serialVersionUID = 1L;
 
 	private Map<Integer, WholesaleMarket> wholesaleMarkets;
-				
+
 	private double totalTradedQuantityMWh;
 
-		
-	public WholesaleModel() {
-		wholesaleMarkets = new ConcurrentSkipListMap<Integer, WholesaleMarket>();
-		
+	public WholesaleService() {
+		recycle();
+
 	}
-	
-	public WholesaleMarket findWholesaleMarket(Integer timeslotSerialNumber){
+
+	public WholesaleMarket findWholesaleMarket(Integer timeslotSerialNumber) {
 		return wholesaleMarkets.get(timeslotSerialNumber);
 	}
-	
+
 	public Map<Integer, WholesaleMarket> getWholesaleMarkets() {
 		return wholesaleMarkets;
 	}
-	
+
 	public double getTotalTradedQuantityMWh() {
 		return totalTradedQuantityMWh;
 	}
-	
-	public void addTradedQuantityMWh(double quantity){
-		totalTradedQuantityMWh+=quantity;
+
+	public void addTradedQuantityMWh(double quantity) {
+		totalTradedQuantityMWh += quantity;
 		totalTradedQuantityMWh = Helper.roundNumberTwoDecimal(totalTradedQuantityMWh);
 	}
-	
+
 	public String getName() {
 		return "Root";
 	}
@@ -59,9 +62,13 @@ public class WholesaleModel implements Serializable {
 	}
 
 	public String getTotalTradedQuantity() {
-		return ""+totalTradedQuantityMWh;
-	}	
-	
-	
-	
+		return "" + totalTradedQuantityMWh;
+	}
+
+	public void recycle() {
+		wholesaleMarkets = new ConcurrentSkipListMap<Integer, WholesaleMarket>();
+		totalTradedQuantityMWh = 0;
+
+	}
+
 }

@@ -1,4 +1,4 @@
-package org.powertac.visualizer.wholesale;
+package org.powertac.visualizer.domain.wholesale;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,6 +13,7 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
+import org.powertac.visualizer.json.WholesaleSnapshotJSON;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 
@@ -28,8 +29,6 @@ public class WholesaleSnapshot {
 
 	Logger log = Logger.getLogger(WholesaleSnapshot.class.getName());
 
-	// relative index in which snapshot was created.
-	private int relativeTimeslotIndexCreated;
 	// timeslot serial number value in which the snapshot is created.
 	private int timeslotSerialNumberCreated;
 	// snapshot is built for this timeslot:
@@ -60,11 +59,10 @@ public class WholesaleSnapshot {
 	private List<OrderbookOrder> afterAsks;
 	private List<OrderbookOrder> afterBids;
 
-	public WholesaleSnapshot(Timeslot timeslot, int relativeTimeslotIndexCreated, int timeslotSerialNumberCreated) {
+	public WholesaleSnapshot(Timeslot timeslot, int timeslotSerialNumberCreated) {
 		this.timeslotSerialNumber = timeslot.getSerialNumber();
 		orders = new Orderbook(timeslot, null, null);
 		this.timeslot = timeslot;
-		this.relativeTimeslotIndexCreated = relativeTimeslotIndexCreated;
 		this.timeslotSerialNumberCreated = timeslotSerialNumberCreated;
 	}
 
@@ -408,10 +406,6 @@ public class WholesaleSnapshot {
 
 	public String getTotalTradedQuantity() {
 		return "" + totalTradedQuantity;
-	}
-
-	public int getRelativeTimeslotIndexCreated() {
-		return relativeTimeslotIndexCreated;
 	}
 
 	public int getTimeslotSerialNumberCreated() {

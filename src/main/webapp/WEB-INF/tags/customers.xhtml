@@ -34,49 +34,55 @@
 
 			<p:tab title="#{customer.customerInfo.name}">
 
-				<h:panelGrid columns="1" cellpadding="10">
-					<!-- TODO: powertype icons	<p:graphicImage value="${broker.appearance.iconLocation}"
-						width="85" height="85" />  -->
-					<h:panelGrid columns="2" cellpadding="10">
-						<h:outputText value="Population: " />
-						<h:outputText value="#{customer.customerInfo.population}"
-							style="font-weight: bold" />
-						<h:outputText value="Subscriptions: " />
-						<h:outputText value="#{customer.customerModel.customerCount}"
-							style="font-weight: bold" />
-					</h:panelGrid>
-
-				</h:panelGrid>
+				<table cellspacing="10">
+					<tr>
+						<th><h:outputText value="Population:"
+								style="font-weight: normal" /></th>
+						<th><h:outputText value="Subscriptions:"
+								style="font-weight: normal" /></th>
+						<th><h:outputText value="Power types:"
+								style="font-weight: normal" /></th>
+					</tr>
+					<tr>
+						<td><h:outputText value="#{customer.customerInfo.population}"
+								style="font-weight: bold" /></td>
+						<td><h:outputText
+								value="#{customer.customerModel.customerCount}"
+								style="font-weight: bold" /></td>
+						<td><h:outputText value="TODO" style="font-weight: bold" /></td>
+					</tr>
+				</table>
 
 				<p:tabView dynamic="true" cache="true">
-				
-				<p:tab title="Cash">
 
-						<h:panelGrid columns="1" cellpadding="10">
-							<!-- TODO: powertype icons	<p:graphicImage value="${broker.appearance.iconLocation}"
-						width="85" height="85" />  -->
-							<h:panelGrid columns="2" cellpadding="10">
-								<h:outputText value="Cash inflow:" />
-
-								<h:outputText
-									value="#{customer.customerModel.cashInflow} &euro;"
-									style="font-weight: bold">
-									<f:convertNumber maxFractionDigits="2" />
-								</h:outputText>
-								<h:outputText value="Cash outflow:" />
-								<h:outputText
-									value="#{customer.customerModel.cashOutflow} &euro;"
-									style="font-weight: bold">
-									<f:convertNumber maxFractionDigits="2" />
-								</h:outputText>
-								<h:outputText value="Total:" />
-								<h:outputText value="#{customer.customerModel.totalCash} &euro;"
-									style="font-weight: bold">
-									<f:convertNumber maxFractionDigits="2" />
-								</h:outputText>
-							</h:panelGrid>
-
-						</h:panelGrid>
+					<p:tab title="Cash">
+						<table cellspacing="10">
+							<tr>
+								<th><h:outputText value="Cash inflow:"
+								style="font-weight: normal" /></th>
+								<th><h:outputText value="Cash outflow:"
+								style="font-weight: normal" /></th>
+								<th><h:outputText value="Total:"
+								style="font-weight: normal" /></th>
+							</tr>
+							<tr>
+								<td><h:outputText
+										value="#{customer.customerModel.cashInflow}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> &euro;</td>
+								<td><h:outputText
+										value="#{customer.customerModel.cashOutflow}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> &euro;</td>
+								<td><h:outputText
+										value="#{customer.customerModel.totalCash}"
+										style="font-weight: bold">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText> &euro;</td>
+							</tr>
+						</table>
 
 						<p:panel
 							rendered="#{not empty customer.customerJson.totalChargeLineChartData}">
@@ -125,7 +131,7 @@
 					</script>
 						</p:panel>
 					</p:tab>
-				
+
 					<p:tab title="Energy">
 
 						<h:panelGrid columns="1" cellpadding="10">
@@ -196,7 +202,7 @@
 					</p:tab>
 
 					<p:tab title="Bootstrap">
-					<p:panel
+						<p:panel
 							rendered="#{not empty customer.customerJson.bootstrapLineChartData}">
 							<div id="bootstrapLineChartData#{customer.customerInfo.id}"
 								style="width: 700px; height: 350px"></div>
@@ -236,7 +242,7 @@
 						}); 
 					</script>
 						</p:panel>
-					
+
 					</p:tab>
 
 
