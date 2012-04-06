@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;
@@ -25,11 +26,13 @@ public class Genco implements TimeslotModelUpdate {
 	private Broker broker;
 	private double cash;
 	private GencoJSON json; 
+	private String id;
 
 	private Map<Integer, WholesaleData> wholesaleDatas;
 
 	public Genco(Broker broker) {
 		this.broker = broker;
+		id = "genco"+RandomStringUtils.random(7, "abcdefghijklomnopqrstuvxy".toCharArray());
 		wholesaleDatas = new ConcurrentSkipListMap<Integer, WholesaleData>();
 		json = new GencoJSON();
 		
@@ -88,6 +91,9 @@ public class Genco implements TimeslotModelUpdate {
 	}
 	@Override
 	public String toString() {
-		return "Genco: "+this.broker.getUsername()+", apiKey: "+this.broker.getApiKey();
+		return "Genco: "+this.broker.getUsername()+", apiKey: "+this.broker.getKey();
+	}
+	public String getId() {
+		return id;
 	}
 }

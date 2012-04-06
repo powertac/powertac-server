@@ -37,10 +37,11 @@ public class GencoMessageHandler implements Initializable {
 	 */
 	public void handleMessage(CashPosition position) {
 		Broker broker = position.getBroker();
+		
 
 		// only care about the wholesale broker
 		if (broker.isWholesale()) {
-			Genco genco = gencoService.findGencoByApiKey(broker.getApiKey());
+			Genco genco = gencoService.findGencoByUsername(broker.getUsername());
 			if (genco == null) {
 				genco = gencoService.addGenco(broker);
 			}
@@ -53,7 +54,7 @@ public class GencoMessageHandler implements Initializable {
 
 		// only care about the wholesale broker
 		if (broker.isWholesale()) {
-			Genco genco = gencoService.findGencoByApiKey(broker.getApiKey());
+			Genco genco = gencoService.findGencoByUsername(broker.getUsername());
 			genco.findWholesaleDataByTimeslot(transaction.getTimeslot()).addMarketTransaction(transaction);
 		}
 	}
@@ -63,7 +64,7 @@ public class GencoMessageHandler implements Initializable {
 
 		// only care about the wholesale broker
 		if (broker.isWholesale()) {
-			Genco genco = gencoService.findGencoByApiKey(broker.getApiKey());
+			Genco genco = gencoService.findGencoByUsername(broker.getUsername());
 			genco.findWholesaleDataByTimeslot(position.getTimeslot()).addMarketPosition(position);
 		}
 	}

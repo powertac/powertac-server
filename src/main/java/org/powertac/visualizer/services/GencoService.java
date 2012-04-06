@@ -41,7 +41,7 @@ public class GencoService implements TimeslotCompleteActivation, DomainRepo {
 	public Genco addGenco(Broker broker) {
 		Genco genco = new Genco(broker);
 
-		gencoMap.put(genco.getBroker().getApiKey(), genco);
+		gencoMap.put(genco.getBroker().getUsername(), genco);
 		// rebuild list:
 		gencoList = new ArrayList<Genco>(gencoMap.values());
 		log.info(genco.toString() + " added.");
@@ -51,12 +51,12 @@ public class GencoService implements TimeslotCompleteActivation, DomainRepo {
 	/**
 	 * Returns null if genco cannot be found.
 	 * 
-	 * @param apiKey
+	 * @param username
 	 * @return
 	 */
-	public Genco findGencoByApiKey(String apiKey) {
+	public Genco findGencoByUsername(String username) {
 
-		return gencoMap.get(apiKey);
+		return gencoMap.get(username);
 
 	}
 

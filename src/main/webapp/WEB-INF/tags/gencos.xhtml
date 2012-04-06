@@ -12,7 +12,7 @@
 
 		<ui:repeat var="genco" value="#{gencosBean.list}">
 			<script type="text/javascript">
-	var gencoCashPosition#{genco.broker.apiKey}=null;
+	var gencoCashPosition#{genco.broker.id}=null;
 	
 	</script>
 		</ui:repeat>
@@ -43,14 +43,14 @@
 
 
 				<p:panel rendered="#{not empty genco.json.cashPositions}">
-					<div id="gencoCashPosition#{genco.broker.apiKey}"
+					<div id="gencoCashPosition#{genco.broker.id}"
 						style="width: 500px; height: 250px"></div>
 					<script type="text/javascript">
 				
-		 			if (window.gencoCashPosition#{genco.broker.apiKey}!=null) {
-						window.gencoCashPosition#{genco.broker.apiKey}.destroy();					
+		 			if (window.gencoCashPosition#{genco.broker.id}!=null) {
+						window.gencoCashPosition#{genco.broker.id}.destroy();					
 					}
-					window.gencoCashPosition#{genco.broker.apiKey} = $.jqplot('gencoCashPosition#{genco.broker.apiKey}', [#{genco.json.cashPositions}],{
+					window.gencoCashPosition#{genco.broker.id} = $.jqplot('gencoCashPosition#{genco.broker.id}', [#{genco.json.cashPositions}],{
 						title: 'Cash', 
 						axesDefaults: {
 						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
