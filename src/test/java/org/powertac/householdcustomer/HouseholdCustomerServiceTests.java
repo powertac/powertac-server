@@ -126,8 +126,8 @@ public class HouseholdCustomerServiceTests
   private Instant exp;
   private Broker broker1;
   private Instant now;
-  private TariffSpecification defaultTariffSpec;
-  private Tariff defaultTariff;
+  private TariffSpecification defaultTariffSpec, defaultTariffSpecControllable;
+  private Tariff defaultTariff, defaultTariffControllable;
   private Competition comp;
   private List<Object[]> accountingArgs;
 
@@ -156,33 +156,40 @@ public class HouseholdCustomerServiceTests
     timeService.setBase(now.getMillis());
     exp = now.plus(TimeService.WEEK * 10);
 
-    defaultTariffSpec = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(exp).withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(-0.222));
-
+    defaultTariffSpec =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
+              .addRate(new Rate().withValue(-0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
 
-    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION)).thenReturn(defaultTariff);
+    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+            .thenReturn(defaultTariff);
+    // when(mockTariffMarket.getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION)).thenReturn(defaultTariff);
 
     accountingArgs = new ArrayList<Object[]>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer()
-    {
+    doAnswer(new Answer() {
       public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
         accountingArgs.add(args);
         return null;
       }
-    }).when(mockAccounting).addTariffTransaction(isA(TariffTransaction.Type.class), isA(Tariff.class), isA(CustomerInfo.class), anyInt(), anyDouble(), anyDouble());
+    }).when(mockAccounting)
+            .addTariffTransaction(isA(TariffTransaction.Type.class),
+                                  isA(Tariff.class), isA(CustomerInfo.class),
+                                  anyInt(), anyDouble(), anyDouble());
 
     // Set up serverProperties mock
 
-    ReflectionTestUtils.setField(householdCustomerService, "serverPropertiesService", mockServerProperties);
+    ReflectionTestUtils.setField(householdCustomerService,
+                                 "serverPropertiesService",
+                                 mockServerProperties);
     config = new Configurator();
 
-    doAnswer(new Answer()
-    {
+    doAnswer(new Answer() {
       @Override
       public Object answer (InvocationOnMock invocation)
       {
@@ -193,10 +200,14 @@ public class HouseholdCustomerServiceTests
     }).when(mockServerProperties).configureMe(anyObject());
 
     TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("householdcustomer.householdCustomerService.configFile1", "VillageType1.properties");
-    map.put("householdcustomer.householdCustomerService.configFile2", "VillageType2.properties");
-    map.put("householdcustomer.householdCustomerService.configFile3", "VillageType3.properties");
-    map.put("householdcustomer.householdCustomerService.configFile4", "VillageType4.properties");
+    map.put("householdcustomer.householdCustomerService.configFile1",
+            "VillageType1.properties");
+    map.put("householdcustomer.householdCustomerService.configFile2",
+            "VillageType2.properties");
+    map.put("householdcustomer.householdCustomerService.configFile3",
+            "VillageType3.properties");
+    map.put("householdcustomer.householdCustomerService.configFile4",
+            "VillageType4.properties");
     map.put("common.competition.expectedTimeslotCount", "1440");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
@@ -209,11 +220,18 @@ public class HouseholdCustomerServiceTests
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
     householdCustomerService.initialize(comp, inits);
-    assertEquals("correct first configuration file", "VillageType1.properties", householdCustomerService.getConfigFile1());
-    assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
-    assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
-    assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
+    assertEquals("correct first configuration file", "VillageType1.properties",
+                 householdCustomerService.getConfigFile1());
+    assertEquals("correct second configuration file",
+                 "VillageType2.properties",
+                 householdCustomerService.getConfigFile2());
+    assertEquals("correct third configuration file", "VillageType3.properties",
+                 householdCustomerService.getConfigFile3());
+    assertEquals("correct forth configuration file", "VillageType4.properties",
+                 householdCustomerService.getConfigFile4());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+            .currentCompetition().getExpectedTimeslotCount()
+                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -224,11 +242,18 @@ public class HouseholdCustomerServiceTests
     inits.add("DefaultBroker");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "VillageType1.properties", householdCustomerService.getConfigFile1());
-    assertEquals("correct second configuration file", "VillageType2.properties", householdCustomerService.getConfigFile2());
-    assertEquals("correct third configuration file", "VillageType3.properties", householdCustomerService.getConfigFile3());
-    assertEquals("correct forth configuration file", "VillageType4.properties", householdCustomerService.getConfigFile4());
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
+    assertEquals("correct configuration file", "VillageType1.properties",
+                 householdCustomerService.getConfigFile1());
+    assertEquals("correct second configuration file",
+                 "VillageType2.properties",
+                 householdCustomerService.getConfigFile2());
+    assertEquals("correct third configuration file", "VillageType3.properties",
+                 householdCustomerService.getConfigFile3());
+    assertEquals("correct forth configuration file", "VillageType4.properties",
+                 householdCustomerService.getConfigFile4());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+            .currentCompetition().getExpectedTimeslotCount()
+                                                                  / VillageConstants.HOURS_OF_DAY);
 
   }
 
@@ -236,7 +261,6 @@ public class HouseholdCustomerServiceTests
   @Test
   public void testNormalInitializationWithoutConfig ()
   {
-
     TreeMap<String, String> map2 = new TreeMap<String, String>();
     map2.put("householdcustomer.householdCustomerService.configFile1", null);
     map2.put("householdcustomer.householdCustomerService.configFile2", null);
@@ -248,11 +272,17 @@ public class HouseholdCustomerServiceTests
     inits.add("DefaultBroker");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
-    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile1());
-    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile2());
-    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile3());
-    assertEquals("correct configuration file", "VillageDefault.properties", householdCustomerService.getConfigFile4());
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY);
+    assertEquals("correct configuration file", "VillageDefault.properties",
+                 householdCustomerService.getConfigFile1());
+    assertEquals("correct configuration file", "VillageDefault.properties",
+                 householdCustomerService.getConfigFile2());
+    assertEquals("correct configuration file", "VillageDefault.properties",
+                 householdCustomerService.getConfigFile3());
+    assertEquals("correct configuration file", "VillageDefault.properties",
+                 householdCustomerService.getConfigFile4());
+    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+            .currentCompetition().getExpectedTimeslotCount()
+                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -270,26 +300,55 @@ public class HouseholdCustomerServiceTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Eight Consumers Created", 8, householdCustomerService.getVillageList().size());
-    for (Village customer : householdCustomerService.getVillageList()) {
+    assertEquals("Eight Consumers Created", 8, householdCustomerService
+            .getVillageList().size());
+    for (Village customer: householdCustomerService.getVillageList()) {
 
       // capture subscription method args
       ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-      ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+      ArgumentCaptor<CustomerInfo> customerArg =
+        ArgumentCaptor.forClass(CustomerInfo.class);
       ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
 
-      // System.out.println(tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff().toString());
-      assertEquals("one subscription for our customer", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-      assertEquals("customer on DefaultTariff", mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)),
-          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff());
+      assertEquals("one subscription for CONSUMPTION customerInfo",
+                   1,
+                   tariffSubscriptionRepo
+                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                 .get(0))
+                           .size());
+      assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo",
+                   1,
+                   tariffSubscriptionRepo
+                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                 .get(1))
+                           .size());
+
+      assertEquals("customer on DefaultTariff",
+                   mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
+                           .get(0).getPowerType()),
+                   tariffSubscriptionRepo
+                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                 .get(0))
+                           .get(0).getTariff());
     }
   }
 
@@ -299,15 +358,28 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
       // capture subscription method args
       ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-      ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+      ArgumentCaptor<CustomerInfo> customerArg =
+        ArgumentCaptor.forClass(CustomerInfo.class);
       ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -315,20 +387,31 @@ public class HouseholdCustomerServiceTests
 
     }
 
-    timeService.setCurrentTime(now.plus(TimeService.HOUR));
+    timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    for (Village customer : householdCustomerService.getVillageList()) {
-      assertFalse("Household consumed power", tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()) == null);
-      // assertFalse("Household consumed power",
-      // tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo())
-      // == null
-      // ||
-      // tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTotalUsage()
-      // == 0);
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      assertFalse("Household consumed power for CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findActiveSubscriptionsForCustomer(customer
+                                  .getCustomerInfo().get(0)) == null
+                          || tariffSubscriptionRepo
+                                  .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                              .get(0))
+                                  .get(0).getTotalUsage() < 0);
+      assertFalse("Household consumed power for INTERRUPTIBLE_CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findActiveSubscriptionsForCustomer(customer
+                                  .getCustomerInfo().get(1)) == null
+                          || tariffSubscriptionRepo
+                                  .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                              .get(1))
+                                  .get(0).getTotalUsage() < 0);
     }
-    assertEquals("Tariff Transactions Created", 5 * householdCustomerService.getVillageList().size(), accountingArgs.size());
-    // assertEquals("Tariff Transactions Created", 9 *
-    // householdCustomerService.getVillageList().size(), accountingArgs.size());
+
+    assertEquals("Tariff Transactions Created", 10 * householdCustomerService
+            .getVillageList().size(), accountingArgs.size());
 
   }
 
@@ -339,92 +422,225 @@ public class HouseholdCustomerServiceTests
     initializeService();
 
     Rate r2 = new Rate().withValue(-0.222);
+    Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
+    TariffSpecification tsc3 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    Tariff tariff2 = new Tariff(tsc2);
+    tariff2.init();
+    Tariff tariff3 = new Tariff(tsc3);
+    tariff3.init();
 
-    assertEquals("Two Tariffs", 2, tariffRepo.findAllTariffs().size());
+    assertEquals("Four tariffs", 4, tariffRepo.findAllTariffs().size());
+
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
 
-      // Changing from default to another tariff
-      TariffSubscription sub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff1);
-      sub.subscribe(customer.getCustomerInfo().getPopulation());
-
-      assertEquals("Two Subscriptions Active", 2, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
     }
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
 
       // Changing from default to another tariff
-      TariffSubscription sub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff1);
-      sub.subscribe(customer.getCustomerInfo().getPopulation());
-
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
-      when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tariffRepo.findAllTariffs());
+      TariffSubscription sub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), tariff1);
+      sub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription sub2 =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), tariff2);
+      sub2.subscribe(customer.getCustomerInfo().get(1).getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(sub).thenReturn(sub2);
+      when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+              .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
 
       // System.out.println("Subscriptions: " +
       // tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).toString());
 
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
-      assertFalse(
-          "Changed from default tariff",
-          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes()
-              .get(0)));
+      customer.changeSubscription(mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), customer
+              .getCustomerInfo().get(0));
 
-      // System.out.println("Subscriptions: " +
-      // tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).toString());
+      when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+              .thenReturn(tariffRepo
+                                  .findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION))
+              .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
+
+      customer.changeSubscription(mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), customer
+              .getCustomerInfo().get(1));
+      assertFalse("Changed from default tariff",
+                  tariffSubscriptionRepo
+                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                      .get(0))
+                          .get(0).getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(0)
+                                  .getPowerType()));
+
+      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                .get(1)).get(1)
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(1)
+                                  .getPowerType()));
 
       // Changing back from the new tariff to the default one in order to check
       // every changeSubscription Method
-      Tariff lastTariff = sub.getTariff();
+      Tariff lastTariff =
+        tariffSubscriptionRepo
+                .findSubscriptionsForCustomer(customer.getCustomerInfo().get(0))
+                .get(1).getTariff();
+      Tariff lastTariff2 =
+        tariffSubscriptionRepo
+                .findSubscriptionsForCustomer(customer.getCustomerInfo().get(1))
+                .get(1).getTariff();
 
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      customer.changeSubscription(lastTariff, mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
 
-      assertTrue(
-          "Changed to default tariff",
-          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes()
-              .get(0)));
+      customer.changeSubscription(lastTariff, mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), customer
+              .getCustomerInfo().get(0));
+      customer.changeSubscription(lastTariff2, mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), customer
+              .getCustomerInfo().get(1));
+
+      assertTrue("Changed to default tariff for CONSUMPTION",
+                 tariffSubscriptionRepo
+                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                               .get(0)).get(0)
+                         .getTariff() == mockTariffMarket
+                         .getDefaultTariff(PowerType.CONSUMPTION));
+
+      assertTrue("Changed to default tariff for INTERRUPTIBLE_CONSUMPTION",
+                 tariffSubscriptionRepo
+                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                               .get(1)).get(0)
+                         .getTariff() == mockTariffMarket
+                         .getDefaultTariff(PowerType.CONSUMPTION));
 
       sub.subscribe(customer.getHouses("SS").size());
+      sub2.subscribe(customer.getHouses("SS").size());
 
-      // Single type changeSubscription Method checked
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), lastTariff, "SS");
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(sub).thenReturn(sub2);
+      customer.changeSubscription(mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), lastTariff, customer
+              .getHouses("SS").size(), customer.getCustomerInfo().get(0));
+      customer.changeSubscription(mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), lastTariff2, customer
+              .getHouses("SS").size(), customer.getCustomerInfo().get(1));
 
-      assertFalse("Changed SS from default tariff", customer.getSubscriptionMap().get("SS").getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+      assertFalse("Changed from default tariff for CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                .get(0)).get(1)
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(PowerType.CONSUMPTION));
+
+      assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                .get(1)).get(1)
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
 
       sub.subscribe(customer.getHouses("NS").size());
+      sub2.subscribe(customer.getHouses("NS").size());
 
       // Changing back from the new tariff to the default one in order to check
       // every changeSubscription Method
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(sub);
-      when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tariffRepo.findAllTariffs());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(sub).thenReturn(sub2);
 
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)), "NS");
+      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
+              .getCustomerInfo().get(0).getPowerType()), "NS", customer
+              .getCustomerInfo().get(0));
 
-      assertFalse("Changed NS from default tariff", customer.getSubscriptionMap().get("NS").getTariff() == mockTariffMarket.getDefaultTariff(customer.getCustomerInfo().getPowerTypes().get(0)));
+      when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+              .thenReturn(tariffRepo
+                                  .findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION))
+              .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
+
+      customer.changeSubscription(mockTariffMarket
+              .getDefaultTariff(PowerType.CONSUMPTION), "NS", customer
+              .getCustomerInfo().get(1));
+
+      assertFalse("Changed NS of CONSUMPTION from default tariff", customer
+              .getSubscriptionMap().get("NS").getTariff() == mockTariffMarket
+              .getDefaultTariff(customer.getCustomerInfo().get(0)
+                      .getPowerType()));
+      assertFalse("Changed NS of INTERRUPTIBLE_CONSUMPTION from default tariff",
+                  customer.getControllableSubscriptionMap().get("NS")
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(1)
+                                  .getPowerType()));
 
     }
+
   }
 
   // @Repeat(20)
@@ -435,27 +651,60 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<TariffRevoke> tariffRevokeArg = ArgumentCaptor.forClass(TariffRevoke.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
+
+      assertEquals("one subscription for CONSUMPTION",
+                   1,
+                   tariffSubscriptionRepo
+                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                 .get(0))
+                           .size());
+      assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION",
+                   1,
+                   tariffSubscriptionRepo
+                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                 .get(1))
+                           .size());
+
     }
 
     Rate r2 = new Rate().withValue(-0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc3 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
@@ -464,52 +713,100 @@ public class HouseholdCustomerServiceTests
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
 
+    assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs()
+            .size());
+
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
-    assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription tsd = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION), customer.getCustomerInfo());
+      TariffSubscription tsd =
+        tariffSubscriptionRepo
+                .findSubscriptionForTariffAndCustomer(mockTariffMarket
+                        .getDefaultTariff(PowerType.CONSUMPTION), customer
+                        .getCustomerInfo().get(0));
       customer.unsubscribe(tsd, 3);
-      TariffSubscription sub1 = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff1);
+
+      TariffSubscription sub1 =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), tariff1);
       sub1.subscribe(3);
-      TariffSubscription sub2 = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff2);
+      TariffSubscription sub2 =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), tariff2);
       sub2.subscribe(3);
-      TariffSubscription sub3 = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariff3);
+      TariffSubscription sub3 =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), tariff3);
       sub3.subscribe(4);
 
-      TariffSubscription ts1 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff1, customer.getCustomerInfo());
+      TariffSubscription ts1 =
+        tariffSubscriptionRepo
+                .findSubscriptionForTariffAndCustomer(tariff1, customer
+                        .getCustomerInfo().get(0));
       customer.unsubscribe(ts1, 2);
-      TariffSubscription ts2 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff2, customer.getCustomerInfo());
+      TariffSubscription ts2 =
+        tariffSubscriptionRepo
+                .findSubscriptionForTariffAndCustomer(tariff2, customer
+                        .getCustomerInfo().get(1));
       customer.unsubscribe(ts2, 1);
-      TariffSubscription ts3 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff3, customer.getCustomerInfo());
+      TariffSubscription ts3 =
+        tariffSubscriptionRepo
+                .findSubscriptionForTariffAndCustomer(tariff3, customer
+                        .getCustomerInfo().get(0));
       customer.unsubscribe(ts3, 2);
-      assertEquals("4 Subscriptions for customer", 4, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
-      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+      assertEquals("3 Subscriptions for customerInfo CONSUMPTION",
+                   3,
+                   tariffSubscriptionRepo
+                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                       .get(0))
+                           .size());
+      assertEquals("3 Subscriptions for customerInfo INTERRUPTIBLE_CONSUMPTION",
+                   2,
+                   tariffSubscriptionRepo
+                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                       .get(1))
+                           .size());
+      timeService.setCurrentTime(timeService.getCurrentTime()
+              .plus(TimeService.HOUR));
 
     }
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
+            .getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    for (Village customer : householdCustomerService.getVillageList()) {
-      assertEquals("3 Subscriptions for customer", 3, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+    for (Village customer: householdCustomerService.getVillageList()) {
+      assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
+                   1,
+                   tariffSubscriptionRepo
+                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                       .get(1))
+                           .size());
     }
 
-    TariffStatus st2 = new TariffStatus(broker1, tariff3.getId(), tariff3.getId(), TariffStatus.Status.success);
+    TariffStatus st2 =
+      new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
+                       TariffStatus.Status.success);
 
-    TariffRevoke tex2 = new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
+    TariffRevoke tex2 =
+      new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    for (Village customer : householdCustomerService.getVillageList()) {
-      assertEquals("2 Subscriptions for customer", 2, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+    for (Village customer: householdCustomerService.getVillageList()) {
+      assertEquals("2 Subscriptions for customer",
+                   2,
+                   tariffSubscriptionRepo
+                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                       .get(0))
+                           .size());
     }
 
   }
@@ -522,16 +819,28 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -540,9 +849,18 @@ public class HouseholdCustomerServiceTests
 
     Rate r2 = new Rate().withValue(-0.222);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc3 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
@@ -551,15 +869,18 @@ public class HouseholdCustomerServiceTests
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
 
+    assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs()
+            .size());
+
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
-    assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs().size());
 
     List<Tariff> tclist = tariffRepo.findAllTariffs();
     assertEquals("4 consumption tariffs", 4, tclist.size());
 
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tclist);
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist);
 
     // Test the function with different inputs, in order to get the same result.
     householdCustomerService.publishNewTariffs(tclist);
@@ -568,6 +889,7 @@ public class HouseholdCustomerServiceTests
 
     householdCustomerService.publishNewTariffs(tclist);
     householdCustomerService.publishNewTariffs(tclist2);
+
   }
 
   // @Repeat(20)
@@ -578,17 +900,28 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<TariffRevoke> tariffRevokeArg = ArgumentCaptor.forClass(TariffRevoke.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -599,10 +932,22 @@ public class HouseholdCustomerServiceTests
     Rate r2 = new Rate().withValue(-0.222);
     Rate r3 = new Rate().withValue(-0.111);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(2 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc3 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc4 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(3 * TimeService.DAY)).withMinDuration(TimeService.WEEK * 8).addRate(r3);
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(2 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc3 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+    TariffSpecification tsc4 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
@@ -615,37 +960,43 @@ public class HouseholdCustomerServiceTests
 
     tsc4.addSupersedes(tsc3.getId());
     assertEquals("correct length", 1, tsc4.getSupersedes().size());
-    assertEquals("correct first element", tsc3.getId(), (long) tsc4.getSupersedes().get(0));
+    assertEquals("correct first element", tsc3.getId(), (long) tsc4
+            .getSupersedes().get(0));
 
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
-    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs().size());
+    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
+            .size());
 
     List<Tariff> tclist = tariffRepo.findAllTariffs();
     assertEquals("5 consumption tariffs", 5, tclist.size());
 
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tclist);
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist);
 
     // Test the function with different inputs, in order to get the same result.
     householdCustomerService.publishNewTariffs(tclist);
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
+            .getMillis() + TimeService.HOUR));
     TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR));
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
+            .getMillis() + TimeService.HOUR));
 
     tclist = tariffRepo.findAllTariffs();
     assertEquals("5 consumption tariffs", 5, tclist.size());
     List<Tariff> tcactivelist = new ArrayList<Tariff>();
-    for (Tariff tariff : tclist) {
+    for (Tariff tariff: tclist) {
       if (tariff.isRevoked() == false)
         tcactivelist.add(tariff);
     }
 
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tcactivelist);
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tcactivelist);
 
     householdCustomerService.publishNewTariffs(tcactivelist);
   }
@@ -658,16 +1009,28 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -676,32 +1039,59 @@ public class HouseholdCustomerServiceTests
 
     // for (int i = 0; i < 10; i++) {
 
-    Rate r0 = new Rate().withValue(-Math.random()).withDailyBegin(0).withDailyEnd(0);
-    Rate r1 = new Rate().withValue(-Math.random()).withDailyBegin(1).withDailyEnd(1);
-    Rate r2 = new Rate().withValue(-Math.random()).withDailyBegin(2).withDailyEnd(2);
-    Rate r3 = new Rate().withValue(-Math.random()).withDailyBegin(3).withDailyEnd(3);
-    Rate r4 = new Rate().withValue(-Math.random()).withDailyBegin(4).withDailyEnd(4);
-    Rate r5 = new Rate().withValue(-Math.random()).withDailyBegin(5).withDailyEnd(5);
-    Rate r6 = new Rate().withValue(-Math.random()).withDailyBegin(6).withDailyEnd(6);
-    Rate r7 = new Rate().withValue(-Math.random()).withDailyBegin(7).withDailyEnd(7);
-    Rate r8 = new Rate().withValue(-Math.random()).withDailyBegin(8).withDailyEnd(8);
-    Rate r9 = new Rate().withValue(-Math.random()).withDailyBegin(9).withDailyEnd(9);
-    Rate r10 = new Rate().withValue(-Math.random()).withDailyBegin(10).withDailyEnd(10);
-    Rate r11 = new Rate().withValue(-Math.random()).withDailyBegin(11).withDailyEnd(11);
-    Rate r12 = new Rate().withValue(-Math.random()).withDailyBegin(12).withDailyEnd(12);
-    Rate r13 = new Rate().withValue(-Math.random()).withDailyBegin(13).withDailyEnd(13);
-    Rate r14 = new Rate().withValue(-Math.random()).withDailyBegin(14).withDailyEnd(14);
-    Rate r15 = new Rate().withValue(-Math.random()).withDailyBegin(15).withDailyEnd(15);
-    Rate r16 = new Rate().withValue(-Math.random()).withDailyBegin(16).withDailyEnd(16);
-    Rate r17 = new Rate().withValue(-Math.random()).withDailyBegin(17).withDailyEnd(17);
-    Rate r18 = new Rate().withValue(-Math.random()).withDailyBegin(18).withDailyEnd(18);
-    Rate r19 = new Rate().withValue(-Math.random()).withDailyBegin(19).withDailyEnd(19);
-    Rate r20 = new Rate().withValue(-Math.random()).withDailyBegin(20).withDailyEnd(20);
-    Rate r21 = new Rate().withValue(-Math.random()).withDailyBegin(21).withDailyEnd(21);
-    Rate r22 = new Rate().withValue(-Math.random()).withDailyBegin(22).withDailyEnd(22);
-    Rate r23 = new Rate().withValue(-Math.random()).withDailyBegin(23).withDailyEnd(23);
+    Rate r0 =
+      new Rate().withValue(-Math.random()).withDailyBegin(0).withDailyEnd(0);
+    Rate r1 =
+      new Rate().withValue(-Math.random()).withDailyBegin(1).withDailyEnd(1);
+    Rate r2 =
+      new Rate().withValue(-Math.random()).withDailyBegin(2).withDailyEnd(2);
+    Rate r3 =
+      new Rate().withValue(-Math.random()).withDailyBegin(3).withDailyEnd(3);
+    Rate r4 =
+      new Rate().withValue(-Math.random()).withDailyBegin(4).withDailyEnd(4);
+    Rate r5 =
+      new Rate().withValue(-Math.random()).withDailyBegin(5).withDailyEnd(5);
+    Rate r6 =
+      new Rate().withValue(-Math.random()).withDailyBegin(6).withDailyEnd(6);
+    Rate r7 =
+      new Rate().withValue(-Math.random()).withDailyBegin(7).withDailyEnd(7);
+    Rate r8 =
+      new Rate().withValue(-Math.random()).withDailyBegin(8).withDailyEnd(8);
+    Rate r9 =
+      new Rate().withValue(-Math.random()).withDailyBegin(9).withDailyEnd(9);
+    Rate r10 =
+      new Rate().withValue(-Math.random()).withDailyBegin(10).withDailyEnd(10);
+    Rate r11 =
+      new Rate().withValue(-Math.random()).withDailyBegin(11).withDailyEnd(11);
+    Rate r12 =
+      new Rate().withValue(-Math.random()).withDailyBegin(12).withDailyEnd(12);
+    Rate r13 =
+      new Rate().withValue(-Math.random()).withDailyBegin(13).withDailyEnd(13);
+    Rate r14 =
+      new Rate().withValue(-Math.random()).withDailyBegin(14).withDailyEnd(14);
+    Rate r15 =
+      new Rate().withValue(-Math.random()).withDailyBegin(15).withDailyEnd(15);
+    Rate r16 =
+      new Rate().withValue(-Math.random()).withDailyBegin(16).withDailyEnd(16);
+    Rate r17 =
+      new Rate().withValue(-Math.random()).withDailyBegin(17).withDailyEnd(17);
+    Rate r18 =
+      new Rate().withValue(-Math.random()).withDailyBegin(18).withDailyEnd(18);
+    Rate r19 =
+      new Rate().withValue(-Math.random()).withDailyBegin(19).withDailyEnd(19);
+    Rate r20 =
+      new Rate().withValue(-Math.random()).withDailyBegin(20).withDailyEnd(20);
+    Rate r21 =
+      new Rate().withValue(-Math.random()).withDailyBegin(21).withDailyEnd(21);
+    Rate r22 =
+      new Rate().withValue(-Math.random()).withDailyBegin(22).withDailyEnd(22);
+    Rate r23 =
+      new Rate().withValue(-Math.random()).withDailyBegin(23).withDailyEnd(23);
 
-    TariffSpecification tsc1 = new TariffSpecification(broker1, PowerType.CONSUMPTION).withExpiration(now.plus(TimeService.DAY)).withMinDuration(TimeService.WEEK * 8);
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8);
     tsc1.addRate(r0);
     tsc1.addRate(r1);
     tsc1.addRate(r2);
@@ -733,13 +1123,15 @@ public class HouseholdCustomerServiceTests
     assertNotNull("first tariff found", tariff1);
 
     List<Tariff> tclist = tariffRepo.findAllTariffs();
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture())).thenReturn(tclist);
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist);
 
     householdCustomerService.publishNewTariffs(tclist);
 
     // }
     timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+            .plus(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
   }
 
@@ -751,16 +1143,28 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -769,7 +1173,8 @@ public class HouseholdCustomerServiceTests
 
     // for (int i = 0; i < 10; i++) {
     timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 5));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+            .plus(TimeService.HOUR * 5));
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
@@ -780,7 +1185,8 @@ public class HouseholdCustomerServiceTests
 
     for (int i = 0; i < 1000; i++) {
       timeService.setBase(now.getMillis());
-      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 1));
+      timeService.setCurrentTime(timeService.getCurrentTime()
+              .plus(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
@@ -789,7 +1195,7 @@ public class HouseholdCustomerServiceTests
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
       customer.showAggDailyLoad("SS", 36);
     }
 
@@ -810,31 +1216,45 @@ public class HouseholdCustomerServiceTests
 
     // capture subscription method args
     ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
+    ArgumentCaptor<CustomerInfo> customerArg =
+      ArgumentCaptor.forClass(CustomerInfo.class);
     ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg = ArgumentCaptor.forClass(PowerType.class);
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
 
-      TariffSubscription defaultSub = tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().getPopulation());
-      when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture())).thenReturn(defaultSub);
-      assertEquals("one subscription", 1, tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer.getCustomerInfo()).size());
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+      when(
+           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+                                              customerArg.capture(),
+                                              countArg.capture()))
+              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
     }
 
-    for (Village customer : householdCustomerService.getVillageList()) {
+    for (Village customer: householdCustomerService.getVillageList()) {
       customer.showAggDailyLoad("SS", 0);
     }
 
     timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.DAY * 1020));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+            .plus(TimeService.DAY * 1020));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 23));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+            .plus(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
@@ -845,7 +1265,8 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (int i = 0; i < 2000; i++) {
-      timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 1));
+      timeService.setCurrentTime(timeService.getCurrentTime()
+              .plus(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       if (i > 1700) {
