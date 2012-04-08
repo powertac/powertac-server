@@ -2036,11 +2036,13 @@ public class Village extends AbstractCustomer
       if (!subs.contains(sub))
         subs.add(sub);
 
+    log.debug(this.toString() + " " + subs.toString());
+
     for (TariffSubscription sub: subs) {
 
       long curt = (long) sub.getCurtailment() * VillageConstants.THOUSAND;
-      System.out.println(this.toString() + " Subscription " + sub
-                         + " Curtailment " + curt);
+      log.debug(this.toString() + " Subscription " + sub + " Curtailment "
+                + curt);
 
       if (curt > 0) {
 
