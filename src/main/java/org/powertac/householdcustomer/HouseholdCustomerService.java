@@ -51,14 +51,16 @@ import org.springframework.stereotype.Service;
  * @version 1.5, Date: 2.25.12
  */
 @Service
-public class HouseholdCustomerService extends TimeslotPhaseProcessor implements NewTariffListener, InitializationService
+public class HouseholdCustomerService extends TimeslotPhaseProcessor
+  implements NewTariffListener, InitializationService
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static private Logger log = Logger.getLogger(HouseholdCustomerService.class.getName());
+  static private Logger log = Logger.getLogger(HouseholdCustomerService.class
+          .getName());
 
   @Autowired
   private TariffMarket tariffMarketService;
@@ -114,7 +116,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
    * Consumers that will be running in the game.
    */
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String
+    initialize (Competition competition, List<String> completedInits)
   {
     int index = completedInits.indexOf("DefaultBroker");
     if (index == -1) {
@@ -125,7 +128,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
     villageList.clear();
     tariffMarketService.registerNewTariffListener(this);
-    rs1 = randomSeedRepo.getRandomSeed("HouseholdCustomerService", 1, "Household Customer Models");
+    rs1 =
+      randomSeedRepo.getRandomSeed("HouseholdCustomerService", 1,
+                                   "Household Customer Models");
 
     if (configFile1 == null) {
       log.info("No Config File for VillageType1 Taken");
@@ -145,7 +150,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
     }
 
     super.init();
-    daysOfCompetition = Competition.currentCompetition().getExpectedTimeslotCount() / VillageConstants.HOURS_OF_DAY;
+    daysOfCompetition =
+      Competition.currentCompetition().getExpectedTimeslotCount()
+              / VillageConstants.HOURS_OF_DAY;
     VillageConstants.setDaysOfCompetition(daysOfCompetition);
     daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
 
@@ -158,27 +165,44 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
     InputStream cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile1);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile1);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
       e.printStackTrace();
+
     }
 
-    int numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+    int numberOfVillages =
+      Integer.parseInt(configuration.getProperty("NumberOfVillages"));
 
-    int nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    int rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    int reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    int sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    int nshouses =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    int rashouses =
+      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    int reshouses =
+      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    int sshouses =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     int villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("VillageType1 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      Village village = new Village(villageInfo);
+      CustomerInfo villageInfo =
+        new CustomerInfo("VillageType1 Village " + i + " Base",
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo2 =
+        new CustomerInfo("VillageType1 Village " + i + " Controllable",
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      Village village = new Village("VillageType1 Village " + i);
+      village.addCustomerInfo(villageInfo);
+      village.addCustomerInfo(villageInfo2);
       village.initialize(configuration, rs1);
       villageList.add(village);
       village.subscribeDefault();
@@ -188,27 +212,43 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile2);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile2);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
       e.printStackTrace();
     }
 
-    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+    numberOfVillages =
+      Integer.parseInt(configuration.getProperty("NumberOfVillages"));
 
-    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    nshouses =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses =
+      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses =
+      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("VillageType2 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      Village village = new Village(villageInfo);
+      CustomerInfo villageInfo =
+        new CustomerInfo("VillageType2 Village " + i + " Base",
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo2 =
+        new CustomerInfo("VillageType2 Village " + i + " Controllable",
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      Village village = new Village("VillageType2 Village " + i);
+      village.addCustomerInfo(villageInfo);
+      village.addCustomerInfo(villageInfo2);
       village.initialize(configuration, rs1);
       villageList.add(village);
       village.subscribeDefault();
@@ -218,27 +258,43 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile3);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile3);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
       e.printStackTrace();
     }
 
-    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+    numberOfVillages =
+      Integer.parseInt(configuration.getProperty("NumberOfVillages"));
 
-    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    nshouses =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses =
+      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses =
+      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("VillageType3 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      Village village = new Village(villageInfo);
+      CustomerInfo villageInfo =
+        new CustomerInfo("VillageType3 Village " + i + " Base",
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo2 =
+        new CustomerInfo("VillageType3 Village " + i + " Controllable",
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      Village village = new Village("VillageType3 Village " + i);
+      village.addCustomerInfo(villageInfo);
+      village.addCustomerInfo(villageInfo2);
       village.initialize(configuration, rs1);
       villageList.add(village);
       village.subscribeDefault();
@@ -248,27 +304,43 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile4);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile4);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
       e.printStackTrace();
     }
 
-    numberOfVillages = Integer.parseInt(configuration.getProperty("NumberOfVillages"));
+    numberOfVillages =
+      Integer.parseInt(configuration.getProperty("NumberOfVillages"));
 
-    nshouses = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    rashouses = Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
-    reshouses = Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
-    sshouses = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    nshouses =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    rashouses =
+      Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    reshouses =
+      Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    sshouses =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     villagePopulation = nshouses + rashouses + reshouses + sshouses;
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo = new CustomerInfo("VillageType4 Village " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      Village village = new Village(villageInfo);
+      CustomerInfo villageInfo =
+        new CustomerInfo("VillageType4 Village " + i + " Base",
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo villageInfo2 =
+        new CustomerInfo("VillageType4 Village " + i + " Controllable",
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      Village village = new Village("VillageType4 Village " + i);
+      village.addCustomerInfo(villageInfo);
+      village.addCustomerInfo(villageInfo2);
       village.initialize(configuration, rs1);
       villageList.add(village);
       village.subscribeDefault();
@@ -281,13 +353,14 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     publishingPeriods++;
-    publishedTariffs = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    publishedTariffs =
+      tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
     // For each village of the server //
-    for (Village village : villageList) {
+    for (Village village: villageList) {
 
       // For each type of houses of the villages //
-      for (String type : village.getSubscriptionMap().keySet()) {
+      for (String type: village.getSubscriptionMap().keySet()) {
 
         // if the publishingPeriod is divided exactly with the periodicity of
         // the evaluation of each type. //
@@ -295,7 +368,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
 
           // System.out.println("Evaluation for " + type + " of village " +
           // village.toString());
-          log.debug("Evaluation for " + type + " of village " + village.toString());
+          log.debug("Evaluation for " + type + " of village "
+                    + village.toString());
           double rand = rs1.nextDouble();
           // System.out.println(rand);
           // If the percentage is smaller that inertia then evaluate the new
@@ -303,7 +377,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
           if (rand < village.getInertiaMap().get(type)) {
             // System.out.println("Inertia Passed for " + type + " of village "
             // + village.toString());
-            log.debug("Inertia Passed for " + type + " of village " + village.toString());
+            log.debug("Inertia Passed for " + type + " of village "
+                      + village.toString());
             village.possibilityEvaluationNewTariffs(publishedTariffs, type);
           }
         }
@@ -322,7 +397,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   @ConfigurableValue(valueType = "Integer", description = "The competition duration in days")
-  public void setDaysOfCompetition (int days)
+  public
+    void setDaysOfCompetition (int days)
   {
     daysOfCompetition = days;
   }
@@ -334,7 +410,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   @ConfigurableValue(valueType = "String", description = "first configuration file of the household customers")
-  public void setConfigFile1 (String config)
+  public
+    void setConfigFile1 (String config)
   {
     configFile1 = config;
   }
@@ -346,7 +423,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   @ConfigurableValue(valueType = "String", description = "second configuration file of the household customers")
-  public void setConfigFile2 (String config)
+  public
+    void setConfigFile2 (String config)
   {
     configFile2 = config;
   }
@@ -358,7 +436,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   @ConfigurableValue(valueType = "String", description = "third configuration file of the household customers")
-  public void setConfigFile3 (String config)
+  public
+    void setConfigFile3 (String config)
   {
     configFile3 = config;
   }
@@ -370,7 +449,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   }
 
   @ConfigurableValue(valueType = "String", description = "forth configuration file of the household customers")
-  public void setConfigFile4 (String config)
+  public
+    void setConfigFile4 (String config)
   {
     configFile4 = config;
   }
@@ -405,8 +485,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   public List<CustomerInfo> generateCustomerInfoList ()
   {
     ArrayList<CustomerInfo> result = new ArrayList<CustomerInfo>();
-    for (Village village : villageList) {
-      result.add(village.getCustomerInfo());
+    for (Village village: villageList) {
+      for (CustomerInfo customer: village.getCustomerInfo())
+        result.add(customer);
     }
     return result;
   }
@@ -416,7 +497,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor implements 
   {
     log.info("Activate");
     if (villageList.size() > 0) {
-      for (Village village : villageList) {
+      for (Village village: villageList) {
         village.step();
       }
     }
