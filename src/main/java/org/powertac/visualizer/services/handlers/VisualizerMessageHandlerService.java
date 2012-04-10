@@ -57,10 +57,10 @@ public class VisualizerMessageHandlerService implements Initializable {
 	private AppearanceListBean appearanceListBean;
 	@Autowired
 	private MessageDispatcher router;
-	private int firstTimeslotIndex=-1;
+	private int firstTimeslotIndex = -1;
 
 	public void handleMessage(Competition competition) {
-			visualizerBean.setCompetition(competition);		
+		visualizerBean.setCompetition(competition);
 	}
 
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
@@ -84,34 +84,38 @@ public class VisualizerMessageHandlerService implements Initializable {
 		// helper.updateTimeslotIndex(relativeTimeslotIndex);
 		// update for visualizerBean:
 		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
-
+		
 		log.info("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
 
 		Competition comp = visualizerBean.getCompetition();
 		// timeslot serial number:
-		visualizerBean.setCurrentTimeslotSerialNumber(timeslotUpdate.getFirstEnabled()
-				- comp.getDeactivateTimeslotsAhead());
+		int timeslotSerialNumber = timeslotUpdate.getFirstEnabled() - comp.getDeactivateTimeslotsAhead();
+		visualizerBean.setCurrentTimeslotSerialNumber(timeslotSerialNumber);
+		
+		visualizerBean.setWeek(timeslotSerialNumber/(24*7));
+		visualizerBean.setDay(timeslotSerialNumber/24);
+		visualizerBean.setHour(timeslotSerialNumber%24);
+		
 	}
 
 	public void handleMessage(TimeslotComplete complete) {
-		
-		if(firstTimeslotIndex==-1){
+
+		if (firstTimeslotIndex == -1) {
 			firstTimeslotIndex = complete.getTimeslotIndex();
 		}
-		
+
 		// activate beans that implement timeslotcompleteactivation interface:
-		List<TimeslotCompleteActivation> activators = SpringApplicationContext
-				.listBeansOfType(TimeslotCompleteActivation.class);
+		List<TimeslotCompleteActivation> activators = SpringApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
 		for (TimeslotCompleteActivation active : activators) {
-			log.debug("activating..."+active.getClass().getSimpleName());
+			log.debug("activating..." + active.getClass().getSimpleName());
 			active.activate(complete.getTimeslotIndex());
 		}
 
 		// new day? if so, make new day overview:
-		
-		int relativeTimeslotIndex = complete.getTimeslotIndex()-firstTimeslotIndex;
-		
-		if (relativeTimeslotIndex % 23 == 0 && firstTimeslotIndex!=complete.getTimeslotIndex()) {
+
+		int relativeTimeslotIndex = complete.getTimeslotIndex() - firstTimeslotIndex;
+
+		if (relativeTimeslotIndex % 23 == 0 && firstTimeslotIndex != complete.getTimeslotIndex()) {
 			helper.buildDayOverview();
 		}
 
@@ -136,31 +140,24 @@ public class VisualizerMessageHandlerService implements Initializable {
 			log.warn("Timeslot for Weather report object is null!!");
 		}
 
-		log.debug("CLOUD COVER: " + weatherReport.getCloudCover() + " TEMP: " + weatherReport.getTemperature()
-				+ "W DIR:" + weatherReport.getWindDirection() + "W SPEED:" + weatherReport.getWindSpeed());
+		log.debug("CLOUD COVER: " + weatherReport.getCloudCover() + " TEMP: " + weatherReport.getTemperature() + "W DIR:" + weatherReport.getWindDirection() + "W SPEED:" + weatherReport.getWindSpeed());
 
 	}
 
 	public void handleMessage(WeatherForecast weatherForecast) {
-		log.debug("\nCurrent timeslot:\n Serial number: " + weatherForecast.getCurrentTimeslot().getSerialNumber()
-				+ " ID:" + weatherForecast.getCurrentTimeslot().getId() + " Start instant: "
-				+ weatherForecast.getCurrentTimeslot().getStartInstant());
+		log.debug("\nCurrent timeslot:\n Serial number: " + weatherForecast.getCurrentTimeslot().getSerialNumber() + " ID:" + weatherForecast.getCurrentTimeslot().getId() + " Start instant: " + weatherForecast.getCurrentTimeslot().getStartInstant());
 		visualizerBean.setWeatherForecast(weatherForecast);
 		weatherForecast.getPredictions();
 		// TODO !!!!!!!!!! FORECAST
 	}
 
-	
 	public void handleMessage(BankTransaction bankTransaction) {
 		// TODO
 	}
 
-	
 	public void handleMessage(MarketTransaction marketTransaction) {
-		log.debug("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh()
-				+ "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime()
-				+ " Timeslot\n Serial Number: " + marketTransaction.getTimeslot().getSerialNumber() + " Index: "
-				+ helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
+		log.debug("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh() + "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime() + " Timeslot\n Serial Number: "
+				+ marketTransaction.getTimeslot().getSerialNumber() + " Index: " + helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
 
 		// TODO
 
@@ -168,10 +165,8 @@ public class VisualizerMessageHandlerService implements Initializable {
 
 	public void handleMessage(MarketPosition marketPosition) {
 
-		log.debug("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance()
-				+ "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber()
-				+ " Timeslot\n Serial Number: " + marketPosition.getTimeslot().getSerialNumber() + " Index: "
-				+ helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
+		log.debug("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance() + "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber() + " Timeslot\n Serial Number: "
+				+ marketPosition.getTimeslot().getSerialNumber() + " Index: " + helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
 		// TODO
 
 	}
@@ -180,17 +175,14 @@ public class VisualizerMessageHandlerService implements Initializable {
 		// TODO
 
 	}
-	
+
 	public void handleMessage(DistributionReport report) {
 		log.debug("DIST REPORT: " + "PROD " + report.getTotalProduction() + "CONS " + report.getTotalConsumption());
 	}
 
 	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(DistributionReport.class,
-				 SimResume.class, MarketPosition.class,
-				MarketTransaction.class, BankTransaction.class,
-				WeatherForecast.class, WeatherReport.class, SimPause.class, SimStart.class, TimeslotComplete.class,
-				TimeslotUpdate.class, Competition.class)) {
+		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class, MarketPosition.class, MarketTransaction.class, BankTransaction.class, WeatherForecast.class, WeatherReport.class, SimPause.class, SimStart.class,
+				TimeslotComplete.class, TimeslotUpdate.class, Competition.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 	}

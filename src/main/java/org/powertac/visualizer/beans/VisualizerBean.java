@@ -56,10 +56,13 @@ public class VisualizerBean implements Serializable {
 	private WeatherForecast weatherForecast;
 	private int currentTimeslotSerialNumber;
 	private int relativeTimeslotIndex;
+	private int week;
+	private int day;
+	private int hour;
 
 	@Autowired
 	private AppearanceListBean appearanceList;
-	
+
 	public VisualizerBean() {
 		init();
 
@@ -96,7 +99,7 @@ public class VisualizerBean implements Serializable {
 		dayOverview = null;
 
 		competition = null;
-		
+
 		firstTimeslotInstant = null;
 
 		timeslotUpdate = null;
@@ -105,7 +108,9 @@ public class VisualizerBean implements Serializable {
 		weatherForecast = null;
 		currentTimeslotSerialNumber = -1;
 		relativeTimeslotIndex = -1;
-	
+		week = -1;
+		day = -1;
+		hour = -1;
 
 	}
 
@@ -120,7 +125,7 @@ public class VisualizerBean implements Serializable {
 	public void setCompetition(Competition competition) {
 		this.competition = competition;
 	}
-	
+
 	public TimeslotUpdate getTimeslotUpdate() {
 		return timeslotUpdate;
 	}
@@ -169,7 +174,6 @@ public class VisualizerBean implements Serializable {
 		this.currentTimeslotSerialNumber = currentTimeslotSerialNumber;
 	}
 
-	
 	/**
 	 * 
 	 * 
@@ -200,5 +204,28 @@ public class VisualizerBean implements Serializable {
 		this.dayOverview = dayOverview;
 	}
 
+	public int getWeek() {
+		return week;
+	}
+
+	public void setWeek(int week) {
+		this.week = week;
+	}
+
+	public int getDay() {
+		return day;
+	}
+
+	public void setDay(int day) {
+		this.day = day;
+	}
+
+	public int getHour() {
+		return hour;
+	}
+
+	public void setHour(int hour) {
+		this.hour = hour;
+	}
 
 }

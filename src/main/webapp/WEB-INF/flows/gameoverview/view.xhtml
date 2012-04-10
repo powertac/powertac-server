@@ -32,7 +32,7 @@
 			</script>
 			<ui:repeat var="dayState" value="#{visualizerBean.dayOverview.dayStates}">
 				
-				<div id="broker#{dayState.broker.id}" style="" class="brokerDiv"><p:graphicImage value="${dayState.broker.appearance.iconLocation}" width="80px" height="80px" /><div>#{dayState.broker.name}</div></div>
+				<div id="broker#{dayState.broker.id}" class="brokerDiv"><p:graphicImage value="${dayState.broker.appearance.iconLocation}" width="80px" height="80px" /><div>#{dayState.broker.name}</div></div>
 				<div id="cashBalance#{dayState.broker.id}" class="cashBalanceDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/cashBalance.png"/><div>#{dayState.totalCashBalance} &euro;</div></div>
 				<div id="newTariff#{dayState.broker.id}" class="newTariffDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/envelope.png"/><div>x #{dayState.tariffSpecificationsCount}</div></div>
 			    <div id="signupCustomers#{dayState.broker.id}" class="signupCustomersDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/signupCustomers.png"/><div>x #{dayState.signupCustomersCount}</div></div>
@@ -40,8 +40,12 @@
 				<div id="balancingTransaction#{dayState.broker.id}" class="balancingTransactionDiv" style="border:3px solid #{dayState.broker.appearance.colorCode}"><p:graphicImage value="/app/resources/resources/images/gameoverview/balancingTransaction.png"/><div>#{dayState.totalBalancingKWh} kWh</div><div>#{dayState.totalBalancingCharge} &euro;</div></div>
 			
 				<script type="text/javascript">
-								
-					enableBroker(broker#{dayState.broker.id},iteration);
+
+				$(function() {
+					 // Handler for .ready() called.
+					 var broker = "#broker#{dayState.broker.id}";
+						
+					enableBroker(broker,iteration);
 					//duration: 10000 ms, starts at 1000 ms
 					setTimeout("moveNewTarrif('#broker#{dayState.broker.id}','#tariffMarket','#newTariff#{dayState.broker.id}')",1000);
 					//duration: 15000 ms, starts at 11000 ms
@@ -53,7 +57,7 @@
 					//duration: 15000 ms, starts at 56000 ms
 					setTimeout("moveCashBalance('#accountingService','#broker#{dayState.broker.id}','#cashBalance#{dayState.broker.id}')",56000);
 					iteration++;
-		
+				});	
 				</script>
 			</ui:repeat>
 

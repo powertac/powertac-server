@@ -21,7 +21,7 @@
 			#info{position:absolute; top:0px; left: 900px; z-index:30;}
 			
 		/*	img.brokerImg {width:80px;height:80px; }  */
-			div.brokerDiv {width:105px;height:120px; position:absolute; top:250px; visibility:hidden;font-size: 80%;font-weight:bold; z-index:1;}
+			div.brokerDiv {width:105px;height:120px; position:absolute; top:250px; visibility:visible;font-size: 80%;font-weight:bold; z-index:1;}
 			
 		/*	img.customersImg {width:200px;height:80px;} */
 			div.customersDiv {width:200px;height:125px; font-size: 110%;font-weight:bold;}
@@ -39,8 +39,8 @@
 			
 			div.newTariffDiv {width:60px;height:60px; position:absolute; top:300px; left: -200px; z-index:10;visibility: hidden;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 115%;font-weight:bold;background: url('images/gameoverview/scene.png');}
 			
-			div.signupCustomersDiv {width:60px;height:60px; position:absolute; top:300px; left: -200px; z-index:10;visibility: hidden;;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 95%;font-weight:bold;background: url('images/gameoverview/scene.png');}
-			div.withdrawCustomersDiv {width:60px;height:60px; position:absolute; top:300px; left: -200px;z-index:10;visibility: hidden;;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 95%;font-weight:bold;background: url('images/gameoverview/scene.png');}
+			div.signupCustomersDiv {width:60px;height:60px; position:absolute; top:300px; left: -200px; z-index:10;visibility: hidden;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 95%;font-weight:bold;background: url('images/gameoverview/scene.png');}
+			div.withdrawCustomersDiv {width:60px;height:60px; position:absolute; top:300px; left: -200px;z-index:10;visibility: hidden;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 95%;font-weight:bold;background: url('images/gameoverview/scene.png');}
 			
 			div.cashBalanceDiv {width:100px;height:60px; position:absolute; top:300px; left: -200px;z-index:10;visibility: hidden;border-radius: 0.5em 0.5em 0.5em 0.5em;font-size: 85%;font-weight:bold;background: url('images/gameoverview/scene.png');}
 			

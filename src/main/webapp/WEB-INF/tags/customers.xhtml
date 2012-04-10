@@ -49,7 +49,20 @@
 						<td><h:outputText
 								value="#{customer.customerModel.customerCount}"
 								style="font-weight: bold" /></td>
-						<td><h:outputText value="TODO" style="font-weight: bold" /></td>
+						<td><ui:repeat var="powerType"
+								value="#{customer.customerInfo.powerTypes}">
+								<p:graphicImage
+									value="/app/resources/resources/images/customers/producer.png"
+									height="55px" width="55px" rendered="#{powerType.production}" title="Producer" />
+
+								<p:graphicImage
+									value="/app/resources/resources/images/customers/consumer.png"
+									height="55px" width="55px" rendered="#{powerType.consumption}" title="Consumer" />
+									
+								<p:graphicImage
+									value="/app/resources/resources/images/customers/storage.png"
+									height="55px" width="55px" rendered="#{powerType.storage}" title="Storage" />
+							</ui:repeat></td>
 					</tr>
 				</table>
 
@@ -70,20 +83,17 @@
 										value="#{customer.customerModel.cashInflow}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText>
-									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
+									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
 								<td><h:outputText
 										value="#{customer.customerModel.cashOutflow}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText>
-									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
+									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
 								<td><h:outputText
 										value="#{customer.customerModel.totalCash}"
 										style="font-weight: bold">
 										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText>
-									<h:outputText style="font-weight: bold" value=" &euro;" /></td>
+									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
 							</tr>
 						</table>
 

@@ -16,15 +16,38 @@
 		var cashChartGlobal;
 		var subscriptionsPieChart;
 	</script>
-	
+
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true" stateful="true">
-		<p:layoutUnit id="north" position="north" size="100"
-			collapsible="true" header="LOL" styleClass="custom">
+	<p:layout id="mainLayout" fullPage="true" stateful="false">
+		<p:layoutUnit id="north" position="north" size="80" collapsible="true"
+			header="LOL" styleClass="custom">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
-			<ui:include src="/WEB-INF/tags/competitionInfo.xhtml" />
+			<h:form id="northForm">
+				<table cellspacing="5" align="right">
+					<tr>
+						<th>Week:</th>
+						<th>Day:</th>
+						<th>Hour:</th>
+						<th>Timeslot:</th>
+						<th>Name:</th>
+						<th>Description:</th>
+						<th>Poll counter (dev. stage):</th>
+					</tr>
+					<tr>
+						<td>#{visualizerBean.week}</td>
+						<td>#{visualizerBean.day}</td>
+						<td>#{visualizerBean.hour}</td>
+						<td>#{visualizerBean.currentTimeslotSerialNumber}</td>
+						<td>#{visualizerBean.competition.name}</td>
+						<td>#{visualizerBean.competition.description}</td>
+						<td>#{trainingService.counter}</td>
+						
+					</tr>
+				</table>
+
+			</h:form>
 		</p:layoutUnit>
 
 		<p:layoutUnit position="center" size="1000">
@@ -37,38 +60,44 @@
 			<ui:insert name="content" />
 
 		</p:layoutUnit>
-		
-		<p:layoutUnit position="east" size="400" collapsible="true" header="LOL" styleClass="custom">
-			
-				<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
-				<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml"/>
-				<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml"/>
-				<p:lineChart style="height: 1px; width: 1px;"
+
+		<p:layoutUnit position="east" size="400" collapsible="true"
+			header="LOL" styleClass="custom">
+
+			<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+			<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml" />
+			<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml" />
+			<p:lineChart style="height: 1px; width: 1px;"
 				value="#{imageControl.fakeChart}" rendered="false" />
-								
+
 		</p:layoutUnit>
 
 		<p:layoutUnit position="south" size="20">
 			<p:dock>
 				<p:menuitem value="Game Overview"
-					icon="/app/resources/resources/images/dock/general.png" url="gameoverview" />
+					icon="/app/resources/resources/images/dock/eye.png"
+					url="gameoverview" />
 				<p:menuitem value="Brokers"
-					icon="/app/resources/resources/images/dock/brokers.png" url="brokers" />
+					icon="/app/resources/resources/images/dock/brokers.png"
+					url="brokers" />
 				<p:menuitem value="Customers"
-					icon="/app/resources/resources/images/dock/users.png" url="customers" />
+					icon="/app/resources/resources/images/dock/customers.png"
+					url="customers" />
 				<p:menuitem value="GenCos"
-					icon="/app/resources/resources/images/dock/music.png" url="gencos" />
+					icon="/app/resources/resources/images/dock/gencos.png" url="gencos" />
 				<p:menuitem value="Wholesale"
-					icon="/app/resources/resources/images/dock/email.png" url="wholesale" />
+					icon="/app/resources/resources/images/dock/wholesale.png"
+					url="wholesale" />
 			</p:dock>
 		</p:layoutUnit>
 
 	</p:layout>
-	
+
 	<h:form>
-			<p:poll autoStart="true" interval="5" update=":tableBrokersForm,:competitionInfoForm, :cashChartGlobalForm, :subscriptionsPieChartForm"/>
+		<p:poll autoStart="true" interval="5"
+			update=":tableBrokersForm,:northForm, :cashChartGlobalForm, :subscriptionsPieChartForm" />
 	</h:form>
-		
+
 </h:body>
 
 </html>

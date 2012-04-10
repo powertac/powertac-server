@@ -78,16 +78,17 @@
 			$(broker).css("visibility", "visible");
 			var position=420;
 			var offset=105;
-			//if brokerIteration even use - , else use +
+			//if brokerIteration is even use - , else use +
 			var offsetTimes;
 			if(iteration%2==0){
 				offsetTimes = Math.floor(iteration/2);
 				position-=offset*offsetTimes;
 			} else {
-				offsetTimes = Math.floor((iteration-1)/2);
+				var result = (iteration-1)/2;
+				offsetTimes = Math.floor(result);
 				position+=offset*offsetTimes;
 			}
-			$(broker).css("left", position + "px");
+			$(broker).animate({left:position+"px"},0)
 		}
 		
 		/*from broker to tariffMarket*/
