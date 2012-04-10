@@ -255,37 +255,37 @@ public class Village extends AbstractCustomer
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
     for (int i = 0; i < nshouses; i++) {
-      log.info("Initializing " + name.toString() + " NSHouse " + i);
+      log.info("Initializing " + toString() + " NSHouse " + i);
       Household hh = new Household();
-      hh.initialize(name.toString() + " NSHouse" + i, conf,
-                    publicVacationVector, gen);
+      hh.initialize(toString() + " NSHouse" + i, conf, publicVacationVector,
+                    gen);
       notShiftingHouses.add(hh);
       hh.householdOf = this;
     }
 
     for (int i = 0; i < rashouses; i++) {
-      log.info("Initializing " + name.toString() + " RaSHouse " + i);
+      log.info("Initializing " + toString() + " RaSHouse " + i);
       Household hh = new Household();
-      hh.initialize(name.toString() + " RaSHouse" + i, conf,
-                    publicVacationVector, gen);
+      hh.initialize(toString() + " RaSHouse" + i, conf, publicVacationVector,
+                    gen);
       randomlyShiftingHouses.add(hh);
       hh.householdOf = this;
     }
 
     for (int i = 0; i < reshouses; i++) {
-      log.info("Initializing " + name.toString() + " ReSHouse " + i);
+      log.info("Initializing " + toString() + " ReSHouse " + i);
       Household hh = new Household();
-      hh.initialize(name.toString() + " ReSHouse" + i, conf,
-                    publicVacationVector, gen);
+      hh.initialize(toString() + " ReSHouse" + i, conf, publicVacationVector,
+                    gen);
       regularlyShiftingHouses.add(hh);
       hh.householdOf = this;
     }
 
     for (int i = 0; i < sshouses; i++) {
-      log.info("Initializing " + name.toString() + " SSHouse " + i);
+      log.info("Initializing " + toString() + " SSHouse " + i);
       Household hh = new Household();
-      hh.initialize(name.toString() + " SSHouse" + i, conf,
-                    publicVacationVector, gen);
+      hh.initialize(toString() + " SSHouse" + i, conf, publicVacationVector,
+                    gen);
       smartShiftingHouses.add(hh);
       hh.householdOf = this;
     }
@@ -336,7 +336,7 @@ public class Village extends AbstractCustomer
                 .getDefaultTariff(PowerType.CONSUMPTION), customer, customer
                 .getPopulation());
         log.info("CustomerInfo of type INTERRUPTIBLE_CONSUMPTION of "
-                 + this.toString()
+                 + toString()
                  + " was subscribed to the default CONSUMPTION tariff successfully.");
 
       }
@@ -1349,8 +1349,9 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns the quantity of controllable load for a specific day
-   * and hour of that day for a specific type of households.
+   * This function curtails the quantity of controllable load given by the
+   * subscription, by reducing current timeslots consumption and adding it to
+   * the next timeslot.
    */
   void curtailControllableConsumption (int day, int hour, String type,
                                        long curtail)
@@ -2114,7 +2115,7 @@ public class Village extends AbstractCustomer
   @Override
   public String toString ()
   {
-    return name.toString();
+    return name;
   }
 
 }

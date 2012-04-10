@@ -83,7 +83,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:test-config.xml" })
 @DirtiesContext
-public class ControllableCapacitiesTests
+public class HouseholdControllableCapacitiesTests
 {
 
   @Autowired
