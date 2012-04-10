@@ -289,11 +289,17 @@ public class DistributionUtilityServiceTests
     orderbookRepo.makeOrderbook(ts3, 33.0);
     orderbookRepo.makeOrderbook(ts3, 32.0);
     orderbookRepo.makeOrderbook(ts0, 20.2);
+    orderbookRepo.makeOrderbook(ts0, 21.2);
+    orderbookRepo.makeOrderbook(ts0, 19.8);
     // this should be the spot price
     orderbookRepo.makeOrderbook(ts0, 20.1);
 
     // make sure we can retrieve current spot price
     assertEquals("correct spot price", 0.0201,
                  distributionUtilityService.getSpotPrice(), 1e-6);
+    assertEquals("correct pMin", 0.0198,
+                 distributionUtilityService.getPMin(), 1e-6);
+    assertEquals("correct pMin", 0.0212,
+                 distributionUtilityService.getPMax(), 1e-6);
   }
 }

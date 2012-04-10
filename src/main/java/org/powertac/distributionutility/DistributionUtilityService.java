@@ -169,7 +169,7 @@ implements InitializationService
    * Returns the spot market price - the clearing price for the current timeslot
    * in the most recent trading period.
    */
-  public double getSpotPrice ()
+  double getSpotPrice ()
   {
     Double result = defaultSpotPrice;
     // most recent trade is determined by Competition parameters
@@ -188,7 +188,7 @@ implements InitializationService
   /**
    * Returns the maximum price for energy in the current timeslot
    */
-  public double getPMax ()
+  double getPMax ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
@@ -208,7 +208,7 @@ implements InitializationService
   /**
    * Returns the minimum price for energy in the current timeslot
    */
-  public double getPMin ()
+  double getPMin ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
