@@ -99,7 +99,7 @@ implements InitializationService
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Spot price/mwh used if unavailable from wholesale market")
-  private double defaultSpotPrice = -30.0; // per mwh
+  private double defaultSpotPrice = 30.0; // per mwh
 
   @Override
   public void setDefaults ()
@@ -177,7 +177,7 @@ implements InitializationService
     Orderbook ob =
         orderbookRepo.findSpotByTimeslot(timeslotRepo.currentTimeslot());
     if (ob != null) {
-      result = -ob.getClearingPrice();
+      result = ob.getClearingPrice();
     }
     else {
       log.info("null Orderbook");
@@ -193,7 +193,7 @@ implements InitializationService
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
         orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
-    if (obs.size() > 0) {
+    if (obs != null && obs.size() > 0) {
       Double max = null;
       for (Orderbook ob : obs) {
         Double price = ob.getClearingPrice();
@@ -202,7 +202,7 @@ implements InitializationService
       }
       result = max;
     }
-    return result;
+    return result / 1000.0;
   }
   
   /**
@@ -213,7 +213,7 @@ implements InitializationService
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
         orderbookRepo.findAllByTimeslot(timeslotRepo.currentTimeslot());
-    if (obs.size() > 0) {
+    if (obs != null && obs.size() > 0) {
       Double min = null;
       for (Orderbook ob : obs) {
         Double price = ob.getClearingPrice();
@@ -222,7 +222,7 @@ implements InitializationService
       }
       result = min;
     }
-    return result;
+    return result / 1000.0;
   }
 
   /**
@@ -270,7 +270,11 @@ implements InitializationService
     QuadraticSolver myQuadraticSolver;
     BasicMatrix[] inputMatrices = new BigMatrix[6];
     int numOfBrokers = brokerList.size();
-    double P = -getSpotPrice(); // market price in day ahead market
+    
+    double pMax = getPMax();
+    double pMin = getPMin();
+    log.debug("pMax=" + pMax + ", pMin=" + pMin);
+    
     double c0 = -balancingCost; // cost function per unit of energy produced by
                                // the DU
     double x = 0.0; // total market balance
@@ -288,13 +292,21 @@ implements InitializationService
                                                      // rhs
 
     for (int i = 0; i < numOfBrokers; i++) {
-      x += brokerBalance[i] = ((Double) balanceList.get(i)).doubleValue();
+      x += (brokerBalance[i] = ((Double) balanceList.get(i)).doubleValue());
+      log.debug("broker[" + i + "].balance=" + brokerBalance[i]);
     }
 
     // Initialize all the matrices with the proper values
     for (int i = 0; i < numOfBrokers; i++) {
       AE[0][i] = 0;
-      C[i][0] = brokerBalance[i] * P;
+      if (brokerBalance[i] < 0.0) {
+        BI[i][0] = brokerBalance[i] * pMax;
+        C[i][0] = brokerBalance[i] * pMax;
+      }
+      else {
+        BI[i][0] = brokerBalance[i] * pMin;
+        C[i][0] = brokerBalance[i] * pMin;
+      }
       for (int j = 0; j < numOfBrokers; j++) {
         if (i == j) {
           Q[i][j] = 1;
@@ -306,7 +318,6 @@ implements InitializationService
         }
       }
       AI[numOfBrokers][i] = -1;
-      BI[i][0] = brokerBalance[i] * P;
     }
     BE[0][0] = 0;
     BI[numOfBrokers][0] = x * c0;
@@ -320,12 +331,12 @@ implements InitializationService
     inputMatrices[5] = BigMatrix.FACTORY.copy(BI);
 
     // create a new builder to initialize the solver with Q and C
-    final org.ojalgo.optimisation.quadratic.QuadraticSolver.Builder tmpBuilder = new QuadraticSolver.Builder(
-                                                                                                             inputMatrices[2].round(StandardType.DECIMAL_032)
-                                                                                                                             .toPrimitiveStore(),
-                                                                                                             inputMatrices[3].round(StandardType.DECIMAL_032)
-                                                                                                                             .negate()
-                                                                                                                             .toPrimitiveStore());
+    final org.ojalgo.optimisation.quadratic.QuadraticSolver.Builder tmpBuilder =
+            new QuadraticSolver.Builder(inputMatrices[2].round(StandardType.DECIMAL_032)
+                                                        .toPrimitiveStore(),
+                                        inputMatrices[3].round(StandardType.DECIMAL_032)
+                                                        .negate()
+                                                        .toPrimitiveStore());
     // input the equality constraints
     tmpBuilder.equalities(inputMatrices[0].round(StandardType.DECIMAL_032)
                                           .toPrimitiveStore(),
@@ -346,6 +357,7 @@ implements InitializationService
     for (int i = 0; i < numOfBrokers; i++) {
       solutionList.add((Double) result.doubleValue(i, 0));
     }
+    log.debug("result=" + solutionList);
     return solutionList;
   }
 

@@ -259,16 +259,16 @@ public class DistributionUtilityServiceTests
     // Correct solution list is [-4, 14, 2] (but negated)
     ChargeInfo ci = theChargeInfoList.get(0); // BalancingTransaction.findByBroker(brokerList.get(0));
     assertNotNull("non-null btx, broker 1", ci);
-    assertEquals("correct balancing charge broker1", 4.0, ci.itsBalanceCharge,
-                 1e-6);
+    assertEquals("correct balancing charge broker1",
+                 4.0, ci.itsBalanceCharge, 1e-6);
     ci = theChargeInfoList.get(1); // BalancingTransaction.findByBroker(brokerList.get(1));
     assertNotNull("non-null btx, broker 2", ci);
-    assertEquals("correct balancing charge broker2", -14.0, ci.itsBalanceCharge,
-                 1e-6);
+    assertEquals("correct balancing charge broker2",
+                 -14.0, ci.itsBalanceCharge, 1e-6);
     ci = theChargeInfoList.get(2); // BalancingTransaction.findByBroker(brokerList.get(2));
     assertNotNull("non-null btx, broker 3", ci);
-    assertEquals("correct balancing charge broker3", -2.0, ci.itsBalanceCharge,
-                 1e-6);
+    assertEquals("correct balancing charge broker3",
+                 -2.0, ci.itsBalanceCharge, 1e-6);
   }
 
   @Test
@@ -293,7 +293,7 @@ public class DistributionUtilityServiceTests
     orderbookRepo.makeOrderbook(ts0, 20.1);
 
     // make sure we can retrieve current spot price
-    assertEquals("correct spot price", -0.0201,
+    assertEquals("correct spot price", 0.0201,
                  distributionUtilityService.getSpotPrice(), 1e-6);
   }
 }
