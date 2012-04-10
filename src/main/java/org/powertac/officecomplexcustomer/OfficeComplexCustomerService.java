@@ -51,14 +51,16 @@ import org.springframework.stereotype.Service;
  * @version 1.5, Date: 2.25.12
  */
 @Service
-public class OfficeComplexCustomerService extends TimeslotPhaseProcessor implements NewTariffListener, InitializationService
+public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
+  implements NewTariffListener, InitializationService
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static private Logger log = Logger.getLogger(OfficeComplexCustomerService.class.getName());
+  static private Logger log = Logger
+          .getLogger(OfficeComplexCustomerService.class.getName());
 
   @Autowired
   private TariffMarket tariffMarketService;
@@ -112,7 +114,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
    * Consumers that will be running in the game.
    */
   @Override
-  public String initialize (Competition competition, List<String> completedInits)
+  public String
+    initialize (Competition competition, List<String> completedInits)
   {
     int index = completedInits.indexOf("DefaultBroker");
     if (index == -1) {
@@ -123,7 +126,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
 
     officeComplexList.clear();
     tariffMarketService.registerNewTariffListener(this);
-    rs1 = randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1, "Office Complex Customer Models");
+    rs1 =
+      randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
+                                   "Office Complex Customer Models");
 
     if (configFile1 == null) {
       log.info("No Config File for OfficeComplexType1 Taken");
@@ -135,7 +140,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
     }
 
     super.init();
-    daysOfCompetition = Competition.currentCompetition().getExpectedTimeslotCount() / OfficeComplexConstants.HOURS_OF_DAY;
+    daysOfCompetition =
+      Competition.currentCompetition().getExpectedTimeslotCount()
+              / OfficeComplexConstants.HOURS_OF_DAY;
     OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
     daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
 
@@ -147,25 +154,41 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
 
     InputStream cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile1);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile1);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
+
       e.printStackTrace();
     }
 
-    int numberOfOfficeComplexes = Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
+    int numberOfOfficeComplexes =
+      Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
 
-    int nsoffices = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    int ssoffices = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    int nsoffices =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    int ssoffices =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     int villagePopulation = nsoffices + ssoffices;
 
     for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
-      CustomerInfo officeComplexInfo = new CustomerInfo("OfficeComplexType1 OfficeComplex " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      OfficeComplex officeComplex = new OfficeComplex(officeComplexInfo);
+      CustomerInfo officeComplexInfo =
+        new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo officeComplexInfo2 =
+        new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      OfficeComplex officeComplex =
+        new OfficeComplex("OfficeComplexType1 OfficeComplex " + i);
+      officeComplex.addCustomerInfo(officeComplexInfo);
+      officeComplex.addCustomerInfo(officeComplexInfo2);
       officeComplex.initialize(configuration, rs1);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault();
@@ -175,25 +198,41 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
 
     cfgFile = null;
     // cfgFile = new FileInputStream(configFile);
-    cfgFile = Thread.currentThread().getContextClassLoader().getResourceAsStream(configFile2);
+    cfgFile =
+      Thread.currentThread().getContextClassLoader()
+              .getResourceAsStream(configFile2);
     try {
       configuration.load(cfgFile);
       cfgFile.close();
-    } catch (IOException e) {
-      // TODO Auto-generated catch block
+    }
+    catch (IOException e) {
+
       e.printStackTrace();
     }
 
-    numberOfOfficeComplexes = Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
+    numberOfOfficeComplexes =
+      Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
 
-    nsoffices = Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    ssoffices = Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    nsoffices =
+      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    ssoffices =
+      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
     villagePopulation = nsoffices + ssoffices;
 
     for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
-      CustomerInfo officeComplexInfo = new CustomerInfo("OfficeComplexType2 OfficeComplex " + i, villagePopulation).addPowerType(PowerType.CONSUMPTION);
-      OfficeComplex officeComplex = new OfficeComplex(officeComplexInfo);
+      CustomerInfo officeComplexInfo =
+        new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
+                         villagePopulation)
+                .withPowerType(PowerType.CONSUMPTION);
+      CustomerInfo officeComplexInfo2 =
+        new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
+                         villagePopulation)
+                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+      OfficeComplex officeComplex =
+        new OfficeComplex("OfficeComplexType2 OfficeComplex " + i);
+      officeComplex.addCustomerInfo(officeComplexInfo);
+      officeComplex.addCustomerInfo(officeComplexInfo2);
       officeComplex.initialize(configuration, rs1);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault();
@@ -206,13 +245,14 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     publishingPeriods++;
-    publishedTariffs = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    publishedTariffs =
+      tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
     // For each village of the server //
-    for (OfficeComplex officeComplex : officeComplexList) {
+    for (OfficeComplex officeComplex: officeComplexList) {
 
       // For each type of houses of the villages //
-      for (String type : officeComplex.getSubscriptionMap().keySet()) {
+      for (String type: officeComplex.getSubscriptionMap().keySet()) {
 
         // if the publishingPeriod is divided exactly with the periodicity of
         // the evaluation of each type. //
@@ -220,7 +260,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
 
           // System.out.println("Evaluation for " + type + " of village " +
           // village.toString());
-          log.debug("Evaluation for " + type + " of village " + officeComplex.toString());
+          log.debug("Evaluation for " + type + " of village "
+                    + officeComplex.toString());
           double rand = rs1.nextDouble();
           // System.out.println(rand);
           // If the percentage is smaller that inertia then evaluate the new
@@ -228,8 +269,10 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
           if (rand < officeComplex.getInertiaMap().get(type)) {
             // System.out.println("Inertia Passed for " + type + " of village "
             // + village.toString());
-            log.debug("Inertia Passed for " + type + " of village " + officeComplex.toString());
-            officeComplex.possibilityEvaluationNewTariffs(publishedTariffs, type);
+            log.debug("Inertia Passed for " + type + " of village "
+                      + officeComplex.toString());
+            officeComplex.possibilityEvaluationNewTariffs(publishedTariffs,
+                                                          type);
           }
         }
       }
@@ -247,7 +290,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   }
 
   @ConfigurableValue(valueType = "Integer", description = "The competition duration in days")
-  public void setDaysOfCompetition (int days)
+  public
+    void setDaysOfCompetition (int days)
   {
     daysOfCompetition = days;
   }
@@ -259,7 +303,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   }
 
   @ConfigurableValue(valueType = "String", description = "first configuration file of the office complex customers")
-  public void setConfigFile1 (String config)
+  public
+    void setConfigFile1 (String config)
   {
     configFile1 = config;
   }
@@ -271,7 +316,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   }
 
   @ConfigurableValue(valueType = "String", description = "second configuration file of the office complex customers")
-  public void setConfigFile2 (String config)
+  public
+    void setConfigFile2 (String config)
   {
     configFile2 = config;
   }
@@ -304,8 +350,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   public List<CustomerInfo> generateCustomerInfoList ()
   {
     ArrayList<CustomerInfo> result = new ArrayList<CustomerInfo>();
-    for (OfficeComplex officeComplex : officeComplexList) {
-      result.add(officeComplex.getCustomerInfo());
+    for (OfficeComplex officeComplex: officeComplexList) {
+      for (CustomerInfo customer: officeComplex.getCustomerInfo())
+        result.add(customer);
     }
     return result;
   }
@@ -315,7 +362,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor impleme
   {
     log.info("Activate");
     if (officeComplexList.size() > 0) {
-      for (OfficeComplex officeComplex : officeComplexList) {
+      for (OfficeComplex officeComplex: officeComplexList) {
         officeComplex.step();
       }
     }
