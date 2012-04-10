@@ -16,6 +16,7 @@
 package org.powertac.officecomplexcustomer.customers;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -84,8 +85,10 @@ public class OfficeComplex extends AbstractCustomer
    * These are the vectors containing aggregated each day's weather sensitive
    * load from the appliances installed inside the offices.
    **/
-  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadNS = new Vector<Vector<Long>>();
-  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadSS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadSS =
+    new Vector<Vector<Long>>();
 
   /**
    * These are the aggregated vectors containing each day's base load of all the
@@ -98,15 +101,19 @@ public class OfficeComplex extends AbstractCustomer
    * These are the aggregated vectors containing each day's controllable load of
    * all the offices in hours.
    **/
-  Vector<Vector<Long>> aggDailyControllableLoadInHoursNS = new Vector<Vector<Long>>();
-  Vector<Vector<Long>> aggDailyControllableLoadInHoursSS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyControllableLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyControllableLoadInHoursSS =
+    new Vector<Vector<Long>>();
 
   /**
    * These are the aggregated vectors containing each day's weather sensitive
    * load of all the offices in hours.
    **/
-  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursNS = new Vector<Vector<Long>>();
-  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS =
+    new Vector<Vector<Long>>();
 
   /**
    * This is an vector containing the days of the competition that the office
@@ -130,7 +137,10 @@ public class OfficeComplex extends AbstractCustomer
    * best for their type. The forth is setting the lamda variable for the
    * possibility function of the evaluation.
    */
-  HashMap<String, TariffSubscription> subscriptionMap = new HashMap<String, TariffSubscription>();
+  HashMap<String, TariffSubscription> subscriptionMap =
+    new HashMap<String, TariffSubscription>();
+  HashMap<String, TariffSubscription> controllableSubscriptionMap =
+    new HashMap<String, TariffSubscription>();
   HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
   HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
@@ -145,20 +155,47 @@ public class OfficeComplex extends AbstractCustomer
   Vector<Office> smartShiftingoffices = new Vector<Office>();
 
   /** This is the constructor function of the OfficeComplex customer */
-  public OfficeComplex (CustomerInfo customerInfo)
+  public OfficeComplex (String name)
   {
-    super(customerInfo);
+    super(name);
 
-    timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    timeslotRepo =
+      (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-    weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+    weatherReportRepo =
+      (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
     typeList.add("SS");
 
-    for (String type : typeList) {
+    for (String type: typeList) {
       subscriptionMap.put(type, null);
+      controllableSubscriptionMap.put(type, null);
+      inertiaMap.put(type, null);
+      periodMap.put(type, null);
+      lamdaMap.put(type, null);
+    }
+  }
+
+  /** This is the second constructor function of the Village customer */
+  public OfficeComplex (String name, ArrayList<CustomerInfo> customerInfo)
+  {
+    super(name, customerInfo);
+
+    timeslotRepo =
+      (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    weatherReportRepo =
+      (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+
+    ArrayList<String> typeList = new ArrayList<String>();
+    typeList.add("NS");
+    typeList.add("SS");
+
+    for (String type: typeList) {
+      subscriptionMap.put(type, null);
+      controllableSubscriptionMap.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
@@ -178,7 +215,8 @@ public class OfficeComplex extends AbstractCustomer
     // Initializing variables
 
     int nsoffices = Integer.parseInt(conf.getProperty("NotShiftingCustomers"));
-    int ssoffices = Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
+    int ssoffices =
+      Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
     gen = generator;
@@ -188,24 +226,27 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
     for (int i = 0; i < nsoffices; i++) {
-      log.info("Initializing " + customerInfo.toString() + " NSoffice " + i);
+      log.info("Initializing " + toString() + " NSoffice " + i);
       Office of = new Office();
-      of.initialize(customerInfo.toString() + " NSoffice" + i, conf, publicVacationVector, gen);
+      of.initialize(toString() + " NSoffice" + i, conf, publicVacationVector,
+                    gen);
       notShiftingoffices.add(of);
       of.officeOf = this;
     }
 
     for (int i = 0; i < ssoffices; i++) {
-      log.info("Initializing " + customerInfo.toString() + " SSoffice " + i);
+      log.info("Initializing " + toString() + " SSoffice " + i);
       Office hh = new Office();
-      hh.initialize(customerInfo.toString() + " SSoffice" + i, conf, publicVacationVector, gen);
+      hh.initialize(toString() + " SSoffice" + i, conf, publicVacationVector,
+                    gen);
       smartShiftingoffices.add(hh);
       hh.officeOf = this;
     }
 
-    for (String type : subscriptionMap.keySet()) {
+    for (String type: subscriptionMap.keySet()) {
       fillAggWeeklyLoad(type);
-      inertiaMap.put(type, Double.parseDouble(conf.getProperty(type + "Inertia")));
+      inertiaMap.put(type,
+                     Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
     }
@@ -228,17 +269,44 @@ public class OfficeComplex extends AbstractCustomer
   {
     super.subscribeDefault();
 
-    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(this.getCustomerInfo());
+    for (CustomerInfo customer: customerInfos) {
 
-    if (subscriptions.size() > 0) {
-      log.debug(subscriptions.toString());
+      List<TariffSubscription> subscriptions =
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
 
-      for (String type : subscriptionMap.keySet()) {
-        subscriptionMap.put(type, subscriptions.get(0));
+      if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
+          && tariffMarketService
+                  .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION) == null) {
+
+        log.debug("No Default Tariff for INTERRUPTIBLE_CONSUMPTION so the customer "
+                  + customer.toString()
+                  + " subscribe to CONSUMPTION Default Tariff instead");
+        tariffMarketService.subscribeToTariff(tariffMarketService
+                .getDefaultTariff(PowerType.CONSUMPTION), customer, customer
+                .getPopulation());
+        log.info("CustomerInfo of type INTERRUPTIBLE_CONSUMPTION of "
+                 + toString()
+                 + " was subscribed to the default CONSUMPTION tariff successfully.");
+
       }
-      log.debug(this.toString() + " Default");
-      log.debug(subscriptionMap.toString());
+
+      if (subscriptions.size() > 0) {
+        log.debug(subscriptions.toString());
+
+        for (String type: subscriptionMap.keySet()) {
+          if (customer.getPowerType() == PowerType.CONSUMPTION) {
+            subscriptionMap.put(type, subscriptions.get(0));
+          }
+          else if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
+            controllableSubscriptionMap.put(type, subscriptions.get(0));
+          }
+        }
+      }
     }
+
+    log.debug("Base Load Subscriptions:" + subscriptionMap.toString());
+    log.debug("Controllable Load Subscriptions:"
+              + controllableSubscriptionMap.toString());
   }
 
   /**
@@ -248,36 +316,59 @@ public class OfficeComplex extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff)
+  public void changeSubscription (Tariff tariff, CustomerInfo customer)
   {
 
-    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff,
+                                                                  customer);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
 
-    Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
-    subscribe(newTariff, populationCount);
+    Tariff newTariff;
 
-    updateSubscriptions(tariff, newTariff);
+    if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
+        && tariffMarketService
+                .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION)
+                .size() > 1)
+      newTariff = selectTariff(PowerType.INTERRUPTIBLE_CONSUMPTION);
+    else
+      newTariff = selectTariff(PowerType.CONSUMPTION);
+
+    subscribe(newTariff, populationCount, customer);
+
+    updateSubscriptions(tariff, newTariff, customer);
+
   }
 
   /**
    * The second implementation of the changing subscription function only for
-   * certain type of the offices.
+   * certain type of the households.
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, String type)
+  public void changeSubscription (Tariff tariff, String type,
+                                  CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customerInfo);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff,
+                                                                  customer);
     int populationCount = getOffices(type).size();
     unsubscribe(ts, populationCount);
 
-    Tariff newTariff = selectTariff(tariff.getTariffSpec().getPowerType());
-    subscribe(newTariff, populationCount);
+    Tariff newTariff;
 
-    updateSubscriptions(tariff, newTariff, type);
+    if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
+        && tariffMarketService
+                .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION)
+                .size() > 1)
+      newTariff = selectTariff(PowerType.INTERRUPTIBLE_CONSUMPTION);
+    else
+      newTariff = selectTariff(PowerType.CONSUMPTION);
 
+    subscribe(newTariff, populationCount, customer);
+
+    updateSubscriptions(tariff, newTariff, type, customer);
   }
 
   /**
@@ -287,30 +378,35 @@ public class OfficeComplex extends AbstractCustomer
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, Tariff newTariff)
+  public void changeSubscription (Tariff tariff, Tariff newTariff,
+                                  CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
-    subscribe(newTariff, populationCount);
 
-    updateSubscriptions(tariff, newTariff);
+    subscribe(newTariff, populationCount, customer);
+
+    updateSubscriptions(tariff, newTariff, customer);
   }
 
   /**
    * In this overloaded implementation of the changing subscription function
-   * only certain type of the offices.
+   * only certain type of the households.
    * 
    * @param tariff
    */
-  public void changeSubscription (Tariff tariff, Tariff newTariff, String type)
+  public void changeSubscription (Tariff tariff, Tariff newTariff, String type,
+                                  CustomerInfo customer)
   {
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
     int populationCount = getOffices(type).size();
     unsubscribe(ts, populationCount);
-    subscribe(newTariff, populationCount);
+    subscribe(newTariff, populationCount, customer);
 
-    updateSubscriptions(tariff, newTariff, type);
+    updateSubscriptions(tariff, newTariff, type, customer);
   }
 
   /**
@@ -318,72 +414,144 @@ public class OfficeComplex extends AbstractCustomer
    * changes made.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff)
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff,
+                                    CustomerInfo customer)
   {
 
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
-    TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
-
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
+    TariffSubscription newTs =
+      tariffSubscriptionRepo.getSubscription(customer, newTariff);
+    boolean controllable =
+      (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION);
     log.debug(this.toString() + " Changing");
     log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
 
-    if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
-      subscriptionMap.put("NS", newTs);
-    if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
-      subscriptionMap.put("SS", newTs);
+    if (controllable) {
 
-    log.debug(subscriptionMap.toString());
+      if (controllableSubscriptionMap.get("NS") == ts
+          || controllableSubscriptionMap.get("NS") == null)
+        controllableSubscriptionMap.put("NS", newTs);
+      if (controllableSubscriptionMap.get("RaS") == ts
+          || controllableSubscriptionMap.get("RaS") == null)
+        controllableSubscriptionMap.put("RaS", newTs);
+      if (controllableSubscriptionMap.get("ReS") == ts
+          || controllableSubscriptionMap.get("ReS") == null)
+        controllableSubscriptionMap.put("ReS", newTs);
+      if (controllableSubscriptionMap.get("SS") == ts
+          || controllableSubscriptionMap.get("SS") == null)
+        controllableSubscriptionMap.put("SS", newTs);
 
+      log.debug("Controllable Subscription Map: "
+                + controllableSubscriptionMap.toString());
+    }
+    else {
+
+      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
+        subscriptionMap.put("NS", newTs);
+      if (subscriptionMap.get("RaS") == ts
+          || subscriptionMap.get("RaS") == null)
+        subscriptionMap.put("RaS", newTs);
+      if (subscriptionMap.get("ReS") == ts
+          || subscriptionMap.get("ReS") == null)
+        subscriptionMap.put("ReS", newTs);
+      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
+        subscriptionMap.put("SS", newTs);
+
+      log.debug("Subscription Map: " + subscriptionMap.toString());
+    }
   }
 
   /**
    * This function is overloading the previous one and is used when only certain
-   * types of offices changed tariff.
+   * types of houses changed tariff.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff, String type)
+  private void updateSubscriptions (Tariff tariff, Tariff newTariff,
+                                    String type, CustomerInfo customer)
   {
 
-    TariffSubscription ts = tariffSubscriptionRepo.getSubscription(customerInfo, tariff);
-    TariffSubscription newTs = tariffSubscriptionRepo.getSubscription(customerInfo, newTariff);
-
-    if (type.equals("NS")) {
-      subscriptionMap.put("NS", newTs);
-    } else {
-      subscriptionMap.put("SS", newTs);
-    }
-
+    TariffSubscription ts =
+      tariffSubscriptionRepo.getSubscription(customer, tariff);
+    TariffSubscription newTs =
+      tariffSubscriptionRepo.getSubscription(customer, newTariff);
+    boolean controllable =
+      (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION);
     log.debug(this.toString() + " Changing Only " + type);
     log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
-    log.debug(subscriptionMap.toString());
+
+    if (controllable) {
+
+      log.debug("For Controllable");
+
+      if (type.equals("NS")) {
+        controllableSubscriptionMap.put("NS", newTs);
+      }
+      else if (type.equals("RaS")) {
+        controllableSubscriptionMap.put("RaS", newTs);
+      }
+      else if (type.equals("ReS")) {
+        controllableSubscriptionMap.put("ReS", newTs);
+      }
+      else {
+        controllableSubscriptionMap.put("SS", newTs);
+      }
+
+      log.debug("Controllable Subscription Map: "
+                + controllableSubscriptionMap.toString());
+
+    }
+    else {
+
+      if (type.equals("NS")) {
+        subscriptionMap.put("NS", newTs);
+      }
+      else if (type.equals("RaS")) {
+        subscriptionMap.put("RaS", newTs);
+      }
+      else if (type.equals("ReS")) {
+        subscriptionMap.put("ReS", newTs);
+      }
+      else {
+        subscriptionMap.put("SS", newTs);
+      }
+
+      log.debug("Subscription Map: " + subscriptionMap.toString());
+
+    }
 
   }
 
   @Override
   public void checkRevokedSubscriptions ()
   {
-    List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
+    for (CustomerInfo customer: customerInfos) {
+      List<TariffSubscription> revoked =
+        tariffSubscriptionRepo.getRevokedSubscriptionList(customer);
 
-    log.debug(revoked.toString());
-    for (TariffSubscription revokedSubscription : revoked) {
-      revokedSubscription.handleRevokedTariff();
+      log.debug(revoked.toString());
+      for (TariffSubscription revokedSubscription: revoked) {
+        revokedSubscription.handleRevokedTariff();
 
-      Tariff tariff = revokedSubscription.getTariff();
-      Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
-      Tariff defaultTariff = tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
+        Tariff tariff = revokedSubscription.getTariff();
+        Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
+        Tariff defaultTariff =
+          tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
 
-      log.debug("Tariff:" + tariff.toString());
-      if (newTariff != null)
-        log.debug("New Tariff:" + newTariff.toString());
-      else
-        log.debug("New Tariff is Null");
-      log.debug("Default Tariff:" + defaultTariff.toString());
+        log.debug("Tariff:" + tariff.toString() + " PowerType: "
+                  + tariff.getPowerType());
+        if (newTariff != null)
+          log.debug("New Tariff:" + newTariff.toString());
+        else {
+          log.debug("New Tariff is Null");
+          log.debug("Default Tariff:" + defaultTariff.toString());
+        }
 
-      if (newTariff == null)
-        updateSubscriptions(tariff, defaultTariff);
-      else
-        updateSubscriptions(tariff, newTariff);
-
+        if (newTariff == null)
+          updateSubscriptions(tariff, defaultTariff, customer);
+        else
+          updateSubscriptions(tariff, newTariff, customer);
+      }
     }
   }
 
@@ -400,22 +568,31 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     if (type.equals("NS")) {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK
+                          * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadNS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadNS.add(fillAggDailyControllableLoad(i, type));
-        aggDailyWeatherSensitiveLoadNS.add(fillAggDailyWeatherSensitiveLoad(i, type));
+        aggDailyWeatherSensitiveLoadNS
+                .add(fillAggDailyWeatherSensitiveLoad(i, type));
         aggDailyBaseLoadInHoursNS.add(fillAggDailyBaseLoadInHours(i, type));
-        aggDailyControllableLoadInHoursNS.add(fillAggDailyControllableLoadInHours(i, type));
-        aggDailyWeatherSensitiveLoadInHoursNS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+        aggDailyControllableLoadInHoursNS
+                .add(fillAggDailyControllableLoadInHours(i, type));
+        aggDailyWeatherSensitiveLoadInHoursNS
+                .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
-    } else {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
+    }
+    else {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK
+                          * (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP); i++) {
         aggDailyBaseLoadSS.add(fillAggDailyBaseLoad(i, type));
         aggDailyControllableLoadSS.add(fillAggDailyControllableLoad(i, type));
-        aggDailyWeatherSensitiveLoadSS.add(fillAggDailyWeatherSensitiveLoad(i, type));
+        aggDailyWeatherSensitiveLoadSS
+                .add(fillAggDailyWeatherSensitiveLoad(i, type));
         aggDailyBaseLoadInHoursSS.add(fillAggDailyBaseLoadInHours(i, type));
-        aggDailyControllableLoadInHoursSS.add(fillAggDailyControllableLoadInHours(i, type));
-        aggDailyWeatherSensitiveLoadInHoursSS.add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+        aggDailyControllableLoadInHoursSS
+                .add(fillAggDailyControllableLoadInHours(i, type));
+        aggDailyWeatherSensitiveLoadInHoursSS
+                .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
     }
   }
@@ -430,13 +607,22 @@ public class OfficeComplex extends AbstractCustomer
    */
   void updateAggDailyWeatherSensitiveLoad (String type, int day)
   {
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
     if (type.equals("NS")) {
-      aggDailyWeatherSensitiveLoadNS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
-      aggDailyWeatherSensitiveLoadInHoursNS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
-    } else {
-      aggDailyWeatherSensitiveLoadSS.set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
-      aggDailyWeatherSensitiveLoadInHoursSS.set(dayTemp, fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
+      aggDailyWeatherSensitiveLoadNS
+              .set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursNS
+              .set(dayTemp,
+                   fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
+    }
+    else {
+      aggDailyWeatherSensitiveLoadSS
+              .set(dayTemp, fillAggDailyWeatherSensitiveLoad(dayTemp, type));
+      aggDailyWeatherSensitiveLoadInHoursSS
+              .set(dayTemp,
+                   fillAggDailyWeatherSensitiveLoadInHours(dayTemp, type));
     }
   }
 
@@ -455,7 +641,8 @@ public class OfficeComplex extends AbstractCustomer
 
     if (type.equals("NS")) {
       offices = notShiftingoffices;
-    } else {
+    }
+    else {
       offices = smartShiftingoffices;
     }
 
@@ -463,7 +650,7 @@ public class OfficeComplex extends AbstractCustomer
     long sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Office office : offices) {
+      for (Office office: offices) {
         sum = sum + office.weeklyBaseLoad.get(day).get(i);
       }
       v.add(sum);
@@ -486,7 +673,8 @@ public class OfficeComplex extends AbstractCustomer
 
     if (type.equals("NS")) {
       offices = notShiftingoffices;
-    } else {
+    }
+    else {
       offices = smartShiftingoffices;
     }
 
@@ -494,7 +682,7 @@ public class OfficeComplex extends AbstractCustomer
     long sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Office office : offices) {
+      for (Office office: offices) {
         sum = sum + office.weeklyControllableLoad.get(day).get(i);
       }
       v.add(sum);
@@ -518,7 +706,8 @@ public class OfficeComplex extends AbstractCustomer
 
     if (type.equals("NS")) {
       offices = notShiftingoffices;
-    } else {
+    }
+    else {
       offices = smartShiftingoffices;
     }
 
@@ -526,7 +715,7 @@ public class OfficeComplex extends AbstractCustomer
     long sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Office office : offices) {
+      for (Office office: offices) {
         sum = sum + office.weeklyWeatherSensitiveLoad.get(day).get(i);
       }
       v.add(sum);
@@ -551,15 +740,30 @@ public class OfficeComplex extends AbstractCustomer
     if (type.equals("NS")) {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyBaseLoadNS.get(day)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyBaseLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyBaseLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyBaseLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyBaseLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyBaseLoadSS.get(day)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyBaseLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyBaseLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyBaseLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -584,15 +788,30 @@ public class OfficeComplex extends AbstractCustomer
     if (type.equals("NS")) {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadNS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyControllableLoadNS.get(day)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyControllableLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyControllableLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyControllableLoadNS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + aggDailyControllableLoadSS.get(day).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyControllableLoadSS.get(day)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyControllableLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyControllableLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyControllableLoadSS.get(day)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -611,26 +830,39 @@ public class OfficeComplex extends AbstractCustomer
   Vector<Long> fillAggDailyWeatherSensitiveLoadInHours (int day, String type)
   {
 
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
     Vector<Long> daily = new Vector<Long>();
     long sum = 0;
 
     if (type.equals("NS")) {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
-            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
-            + aggDailyWeatherSensitiveLoadNS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyWeatherSensitiveLoadNS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyWeatherSensitiveLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyWeatherSensitiveLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyWeatherSensitiveLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
-    } else {
+    }
+    else {
       for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
         sum = 0;
-        sum = aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
-            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
-            + aggDailyWeatherSensitiveLoadSS.get(dayTemp).get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        sum =
+          aggDailyWeatherSensitiveLoadSS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyWeatherSensitiveLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyWeatherSensitiveLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyWeatherSensitiveLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
     }
@@ -651,19 +883,30 @@ public class OfficeComplex extends AbstractCustomer
     log.info("Portion " + type + " Weekly Aggregated Load");
 
     if (type.equals("NS")) {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                          + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
         for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(i).get(j) + " Weather Sensitive Load: "
-              + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
+          log.debug("Hour : " + j + " Base Load : "
+                    + aggDailyBaseLoadInHoursNS.get(i).get(j)
+                    + " Controllable Load: "
+                    + aggDailyControllableLoadInHoursNS.get(i).get(j)
+                    + " Weather Sensitive Load: "
+                    + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
         }
       }
-    } else {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+    }
+    else {
+      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                          + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
         log.debug("Day " + i);
         for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(i).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(i).get(j) + " Weather Sensitive Load: "
-              + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
+          log.debug("Hour : " + j + " Base Load : "
+                    + aggDailyBaseLoadInHoursSS.get(i).get(j)
+                    + " Controllable Load: "
+                    + aggDailyControllableLoadInHoursSS.get(i).get(j)
+                    + " Weather Sensitive Load: "
+                    + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
         }
       }
     }
@@ -684,13 +927,22 @@ public class OfficeComplex extends AbstractCustomer
 
     if (type.equals("NS")) {
       for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursNS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursNS.get(day).get(j)
-            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
+        log.debug("Hour : " + j + " Base Load : "
+                  + aggDailyBaseLoadInHoursNS.get(day).get(j)
+                  + " Controllable Load: "
+                  + aggDailyControllableLoadInHoursNS.get(day).get(j)
+                  + " Weather Sensitive Load: "
+                  + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
       }
-    } else {
+    }
+    else {
       for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : " + aggDailyBaseLoadInHoursSS.get(day).get(j) + " Controllable Load: " + aggDailyControllableLoadInHoursSS.get(day).get(j)
-            + " Weather Sensitive Load: " + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
+        log.debug("Hour : " + j + " Base Load : "
+                  + aggDailyBaseLoadInHoursSS.get(day).get(j)
+                  + " Controllable Load: "
+                  + aggDailyControllableLoadInHoursSS.get(day).get(j)
+                  + " Weather Sensitive Load: "
+                  + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
       }
     }
   }
@@ -702,19 +954,34 @@ public class OfficeComplex extends AbstractCustomer
   {
     Timeslot ts = timeslotRepo.currentTimeslot();
     double summary = 0;
+    double summaryControllable = 0;
 
-    for (String type : subscriptionMap.keySet()) {
+    for (String type: subscriptionMap.keySet()) {
       TariffSubscription sub = subscriptionMap.get(type);
+      TariffSubscription sub2 = controllableSubscriptionMap.get(type);
+
       if (ts == null) {
         log.debug("Current timeslot is null");
-        int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-        summary = getConsumptionByTimeslot(serial, type);
-      } else {
-        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type);
+        int serial =
+          (int) ((timeService.getCurrentTime().getMillis() - timeService
+                  .getBase()) / TimeService.HOUR);
+        summary = getConsumptionByTimeslot(serial, type, false);
+        summaryControllable = getConsumptionByTimeslot(serial, type, true);
       }
-      log.info("Consumption Load for " + type + ": " + summary);
+      else {
+        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type, false);
+        summaryControllable =
+          getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
+      }
+
+      log.debug("Consumption Load for " + type + ": Base Load " + summary
+                + " Controllable Load " + summaryControllable);
+
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(summary);
+      if (sub2.getCustomersCommitted() > 0)
+        sub2.usePower(summaryControllable);
+
     }
 
   }
@@ -722,9 +989,10 @@ public class OfficeComplex extends AbstractCustomer
   /**
    * This method takes as an input the time-slot serial number (in order to know
    * in the current time) and estimates the consumption for this time-slot over
-   * the population under the OfficeComplex Office Consumer.
+   * the population under the Village Household Consumer.
    */
-  double getConsumptionByTimeslot (int serial, String type)
+  double
+    getConsumptionByTimeslot (int serial, String type, boolean controllable)
   {
 
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
@@ -733,7 +1001,12 @@ public class OfficeComplex extends AbstractCustomer
 
     log.debug("Serial : " + serial + " Day: " + day + " Hour: " + hour);
 
-    summary = (getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type) + getWeatherSensitiveConsumptions(day, hour, type));
+    if (controllable)
+      summary = getControllableConsumptions(day, hour, type);
+    else
+      summary =
+        getBaseConsumptions(day, hour, type)
+                + getWeatherSensitiveConsumptions(day, hour, type);
 
     return (double) summary / OfficeComplexConstants.THOUSAND;
   }
@@ -744,6 +1017,12 @@ public class OfficeComplex extends AbstractCustomer
   public HashMap<String, TariffSubscription> getSubscriptionMap ()
   {
     return subscriptionMap;
+  }
+
+  /** This function returns the subscription Map variable of the village. */
+  public HashMap<String, TariffSubscription> getControllableSubscriptionMap ()
+  {
+    return controllableSubscriptionMap;
   }
 
   /** This function returns the inertia Map variable of the office complex. */
@@ -765,11 +1044,14 @@ public class OfficeComplex extends AbstractCustomer
   long getBaseConsumptions (int day, int hour, String type)
   {
     long summaryBase = 0;
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
       summaryBase = aggDailyBaseLoadInHoursNS.get(dayTemp).get(hour);
-    } else {
+    }
+    else {
       summaryBase = aggDailyBaseLoadInHoursSS.get(dayTemp).get(hour);
     }
 
@@ -784,16 +1066,52 @@ public class OfficeComplex extends AbstractCustomer
   long getControllableConsumptions (int day, int hour, String type)
   {
     long summaryControllable = 0;
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      summaryControllable = aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
-    } else {
-      summaryControllable = aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
+      summaryControllable =
+        aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
+    }
+    else {
+      summaryControllable =
+        aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
     }
 
     log.debug("Controllable Load for " + type + ":" + summaryControllable);
     return summaryControllable;
+  }
+
+  /**
+   * This function curtails the quantity of controllable load given by the
+   * subscription, by reducing current timeslots consumption and adding it to
+   * the next timeslot.
+   */
+  void curtailControllableConsumption (int day, int hour, String type,
+                                       long curtail)
+  {
+    long before = 0, after = 0;
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      before = aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
+      aggDailyControllableLoadInHoursNS.get(dayTemp)
+              .set(hour, before + curtail);
+      after = aggDailyControllableLoadInHoursNS.get(dayTemp).get(hour);
+    }
+    else {
+      before = aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
+      aggDailyControllableLoadInHoursSS.get(dayTemp)
+              .set(hour, before + curtail);
+      after = aggDailyControllableLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("Controllable Load for " + type + ": Before Curtailment "
+              + before + " After Curtailment " + after);
+
   }
 
   /**
@@ -803,15 +1121,21 @@ public class OfficeComplex extends AbstractCustomer
   long getWeatherSensitiveConsumptions (int day, int hour, String type)
   {
     long summaryWeatherSensitive = 0;
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
-    } else {
-      summaryWeatherSensitive = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
+    }
+    else {
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
     }
 
-    log.debug("WeatherSensitive Load for " + type + ":" + summaryWeatherSensitive);
+    log.debug("WeatherSensitive Load for " + type + ":"
+              + summaryWeatherSensitive);
     return summaryWeatherSensitive;
   }
 
@@ -823,11 +1147,14 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     Vector<Long> controllableVector = new Vector<Long>();
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
       controllableVector = aggDailyControllableLoadInHoursNS.get(dayTemp);
-    } else {
+    }
+    else {
       controllableVector = aggDailyControllableLoadInHoursSS.get(dayTemp);
     }
 
@@ -842,12 +1169,17 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     Vector<Long> weatherSensitiveVector = new Vector<Long>();
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp);
-    } else {
-      weatherSensitiveVector = aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp);
+      weatherSensitiveVector =
+        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp);
+    }
+    else {
+      weatherSensitiveVector =
+        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp);
     }
 
     return weatherSensitiveVector;
@@ -862,9 +1194,9 @@ public class OfficeComplex extends AbstractCustomer
 
     Vector<Office> offices = new Vector<Office>();
 
-    for (Office office : notShiftingoffices)
+    for (Office office: notShiftingoffices)
       offices.add(office);
-    for (Office office : smartShiftingoffices)
+    for (Office office: smartShiftingoffices)
       offices.add(office);
 
     return offices;
@@ -881,11 +1213,12 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      for (Office office : notShiftingoffices) {
+      for (Office office: notShiftingoffices) {
         offices.add(office);
       }
-    } else {
-      for (Office office : smartShiftingoffices) {
+    }
+    else {
+      for (Office office: smartShiftingoffices) {
         offices.add(office);
       }
     }
@@ -896,48 +1229,66 @@ public class OfficeComplex extends AbstractCustomer
 
   // =====EVALUATION FUNCTIONS===== //
 
+  // =====EVALUATION FUNCTIONS===== //
+
   /**
    * This is the basic evaluation function, taking into consideration the
    * minimum cost without shifting the appliances' load but the tariff chosen is
    * picked up randomly by using a possibility pattern. The better tariffs have
    * more chances to be chosen.
    */
-  public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs, String type)
+  public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs,
+                                               String type)
   {
+    for (CustomerInfo customer: customerInfos) {
+      List<TariffSubscription> subscriptions =
+        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
 
-    List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(this.getCustomerInfo());
-
-    if (subscriptions == null || subscriptions.size() == 0) {
-      subscribeDefault();
-      return;
-    }
-
-    Vector<Double> estimation = new Vector<Double>();
-
-    // getting the active tariffs for evaluation
-    ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
-
-    log.debug("Estimation size for " + this.toString() + " = " + evaluationTariffs.size());
-
-    if (evaluationTariffs.size() > 1) {
-      for (Tariff tariff : evaluationTariffs) {
-        log.debug("Tariff : " + tariff.toString() + " Tariff Type : " + tariff.getTariffSpecification().getPowerType());
-        if (tariff.isExpired() == false && tariff.getTariffSpecification().getPowerType() == PowerType.CONSUMPTION) {
-          estimation.add(-(costEstimation(tariff, type)));
-        } else
-          estimation.add(Double.NEGATIVE_INFINITY);
+      if (subscriptions == null || subscriptions.size() == 0) {
+        subscribeDefault();
+        return;
       }
 
-      int minIndex = logitPossibilityEstimation(estimation, type);
+      Vector<Double> estimation = new Vector<Double>();
 
-      TariffSubscription sub = subscriptionMap.get(type);
+      // getting the active tariffs for evaluation
+      ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
 
-      log.debug("Equality: " + sub.getTariff().getTariffSpec().toString() + " = " + evaluationTariffs.get(minIndex).getTariffSpec().toString());
-      if (!(sub.getTariff().getTariffSpec() == evaluationTariffs.get(minIndex).getTariffSpec())) {
-        log.debug("Changing From " + sub.toString() + " After Evaluation");
-        changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex), type);
+      log.debug("Estimation size for " + this.toString() + " = "
+                + evaluationTariffs.size());
+
+      if (evaluationTariffs.size() > 1) {
+        for (Tariff tariff: evaluationTariffs) {
+          log.debug("Tariff : " + tariff.toString() + " Tariff Type : "
+                    + tariff.getTariffSpecification().getPowerType());
+          if (tariff.isExpired() == false
+              && (tariff.getTariffSpecification().getPowerType() == customer
+                      .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
+                      .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
+            estimation.add(-(costEstimation(tariff, type)));
+          }
+          else
+            estimation.add(Double.NEGATIVE_INFINITY);
+        }
+
+        int minIndex = logitPossibilityEstimation(estimation, type);
+
+        TariffSubscription sub = subscriptionMap.get(type);
+
+        if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION)
+          sub = controllableSubscriptionMap.get(type);
+
+        log.debug("Equality: " + sub.getTariff().getTariffSpec().toString()
+                  + " = "
+                  + evaluationTariffs.get(minIndex).getTariffSpec().toString());
+        if (!(sub.getTariff().getTariffSpec() == evaluationTariffs
+                .get(minIndex).getTariffSpec())) {
+          log.debug("Changing From " + sub.toString() + " For PowerType "
+                    + customer.getPowerType() + " After Evaluation");
+          changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex),
+                             type, customer);
+        }
       }
-
     }
   }
 
@@ -957,19 +1308,22 @@ public class OfficeComplex extends AbstractCustomer
       // System.out.println("Simple Evaluation for " + type);
       log.debug("Simple Evaluation for " + type);
       costVariable = estimateVariableTariffPayment(tariff, type);
-    } else if (type.equals("RaS")) {
+    }
+    else if (type.equals("RaS")) {
       Double rand = gen.nextDouble();
       // System.out.println(rand);
       if (rand < getInertiaMap().get(type)) {
         // System.out.println("Simple Evaluation for " + type);
         log.debug("Simple Evaluation for " + type);
         costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-      } else {
+      }
+      else {
         // System.out.println("Shifting Evaluation for " + type);
         log.debug("Shifting Evaluation for " + type);
         costVariable = estimateVariableTariffPayment(tariff, type);
       }
-    } else {
+    }
+    else {
       // System.out.println("Shifting Evaluation for " + type);
       log.debug("Shifting Evaluation for " + type);
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
@@ -985,14 +1339,16 @@ public class OfficeComplex extends AbstractCustomer
    */
   double estimateFixedTariffPayments (Tariff tariff)
   {
-    double lifecyclePayment = -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
+    double lifecyclePayment =
+      -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
     double minDuration;
 
     // When there is not a Minimum Duration of the contract, you cannot divide
     // with the duration
     // because you don't know it.
     if (tariff.getMinDuration() == 0)
-      minDuration = OfficeComplexConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
+      minDuration =
+        OfficeComplexConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
     else
       minDuration = tariff.getMinDuration();
 
@@ -1009,22 +1365,29 @@ public class OfficeComplex extends AbstractCustomer
 
     double finalCostSummary = 0;
 
-    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    Instant base = new Instant(timeService.getCurrentTime().getMillis() - serial * TimeService.HOUR);
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    Instant base =
+      new Instant(timeService.getCurrentTime().getMillis() - serial
+                  * TimeService.HOUR);
     int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
 
-    for (int day : daysList) {
+    for (int day: daysList) {
       if (day < daylimit)
-        day = (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
+        day =
+          (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
       Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
 
       for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
 
-        summary = getBaseConsumptions(day, hour, type) + getControllableConsumptions(day, hour, type);
+        summary =
+          getBaseConsumptions(day, hour, type)
+                  + getControllableConsumptions(day, hour, type);
 
-        log.debug("Cost for hour " + hour + ":" + tariff.getUsageCharge(now, 1, 0));
+        log.debug("Cost for hour " + hour + ":"
+                  + tariff.getUsageCharge(now, 1, 0));
         cumulativeSummary += summary;
         costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
         now = now.plus(TimeService.HOUR);
@@ -1048,13 +1411,16 @@ public class OfficeComplex extends AbstractCustomer
 
     double finalCostSummary = 0;
 
-    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    Instant base = timeService.getCurrentTime().minus(serial * TimeService.HOUR);
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    Instant base =
+      timeService.getCurrentTime().minus(serial * TimeService.HOUR);
     int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
 
-    for (int day : daysList) {
+    for (int day: daysList) {
       if (day < daylimit)
-        day = (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
+        day =
+          (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
       Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
       double summary = 0, cumulativeSummary = 0;
@@ -1062,7 +1428,8 @@ public class OfficeComplex extends AbstractCustomer
       long[] newControllableLoad = dailyShifting(tariff, now, day, type);
 
       for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
-        summary = getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
+        summary =
+          getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
         cumulativeSummary += summary;
         costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
         now = now.plus(TimeService.HOUR);
@@ -1086,13 +1453,17 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Integer> possibilities = new Vector<Integer>();
 
     for (int i = 0; i < estimation.size(); i++) {
-      summedEstimations += Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i));
+      summedEstimations +=
+        Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i));
       log.debug("Cost variable: " + estimation.get(i));
       log.debug("Summary of Estimation: " + summedEstimations);
     }
 
     for (int i = 0; i < estimation.size(); i++) {
-      possibilities.add((int) (OfficeComplexConstants.PERCENTAGE * (Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i)) / summedEstimations)));
+      possibilities
+              .add((int) (OfficeComplexConstants.PERCENTAGE * (Math
+                      .pow(OfficeComplexConstants.EPSILON,
+                           lamda * estimation.get(i)) / summedEstimations)));
       for (int j = 0; j < possibilities.get(i); j++) {
         randomizer.add(i);
       }
@@ -1122,26 +1493,31 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
       offices = notShiftingoffices;
-    } else {
+    }
+    else {
       offices = smartShiftingoffices;
     }
 
-    for (Office office : offices) {
+    for (Office office: offices) {
       long[] temp = office.dailyShifting(tariff, now, dayTemp, gen);
       for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++)
         newControllableLoad[j] += temp[j];
     }
 
-    log.debug("New Controllable Load of OfficeComplex " + toString() + " type " + type + " for Tariff " + tariff.toString());
+    log.debug("New Controllable Load of OfficeComplex " + toString() + " type "
+              + type + " for Tariff " + tariff.toString());
 
     for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
-      log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0) + " Load For Type " + type + " : " + newControllableLoad[i]);
+      log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0)
+                + " Load For Type " + type + " : " + newControllableLoad[i]);
       now = new Instant(now.getMillis() + TimeService.HOUR);
     }
     return newControllableLoad;
@@ -1161,17 +1537,20 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     Vector<Office> offices = new Vector<Office>();
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
       offices = notShiftingoffices;
-    } else {
+    }
+    else {
       offices = smartShiftingoffices;
     }
 
     log.debug("Day " + day);
 
-    for (Office office : offices) {
+    for (Office office: offices) {
       office.printDailyLoad(dayTemp);
     }
 
@@ -1193,7 +1572,9 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
+      int x =
+        gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION
+                    + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -1220,7 +1601,9 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
+      int x =
+        gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION
+                    + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
       ListIterator<Integer> iter = daysList.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -1240,7 +1623,8 @@ public class OfficeComplex extends AbstractCustomer
   @Override
   public void step ()
   {
-    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
     int hour = timeService.getHourOfDay();
     Instant now = new Instant(timeService.getCurrentTime().getMillis());
@@ -1248,10 +1632,22 @@ public class OfficeComplex extends AbstractCustomer
     weatherCheck(day, hour, now);
 
     checkRevokedSubscriptions();
+
+    checkCurtailment(serial, day, hour);
+
     consumePower();
 
-    if (hour == 23)
-      rescheduleNextDay("SS");
+    if (hour == 23) {
+
+      for (String type: subscriptionMap.keySet()) {
+        if (!(type.equals("NS"))) {
+          log.info("Rescheduling " + type);
+          rescheduleNextDay(type);
+        }
+
+      }
+
+    }
 
   }
 
@@ -1263,7 +1659,9 @@ public class OfficeComplex extends AbstractCustomer
   void weatherCheck (int day, int hour, Instant now)
   {
 
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
     WeatherReport wr = weatherReportRepo.currentWeatherReport();
     if (wr != null) {
       double temperature = wr.getTemperature();
@@ -1271,11 +1669,11 @@ public class OfficeComplex extends AbstractCustomer
 
       Vector<Office> offices = getOffices();
 
-      for (Office office : offices) {
+      for (Office office: offices) {
         office.weatherCheck(dayTemp, hour, now, temperature);
       }
 
-      for (String type : subscriptionMap.keySet()) {
+      for (String type: subscriptionMap.keySet()) {
         updateAggDailyWeatherSensitiveLoad(type, day);
         if (dayTemp + 1 < OfficeComplexConstants.DAYS_OF_COMPETITION) {
           updateAggDailyWeatherSensitiveLoad(type, dayTemp + 1);
@@ -1287,27 +1685,94 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
+   * This function is utilized in order to check the subscriptions curtailments
+   * for each time tick and move the controllable load at the next timeslot.
+   */
+  void checkCurtailment (int serial, int day, int hour)
+  {
+
+    int nextSerial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR) + 1;
+    int nextDay = (int) (nextSerial / OfficeComplexConstants.HOURS_OF_DAY);
+    int nextHour = (int) (nextSerial % OfficeComplexConstants.HOURS_OF_DAY);
+
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int nextDayTemp =
+      nextDay
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    Collection<TariffSubscription> tempCol =
+      controllableSubscriptionMap.values();
+    ArrayList<TariffSubscription> subs = new ArrayList<TariffSubscription>();
+
+    for (TariffSubscription sub: tempCol)
+      if (!subs.contains(sub))
+        subs.add(sub);
+
+    log.debug(this.toString() + " " + subs.toString());
+
+    for (TariffSubscription sub: subs) {
+
+      long curt = (long) sub.getCurtailment() * OfficeComplexConstants.THOUSAND;
+      log.debug(this.toString() + " Subscription " + sub + " Curtailment "
+                + curt);
+
+      if (curt > 0) {
+
+        ArrayList<String> temp = new ArrayList<String>();
+
+        for (String type: controllableSubscriptionMap.keySet())
+          if (controllableSubscriptionMap.get(type) == sub)
+            temp.add(type);
+
+        for (int i = 0; i < temp.size(); i++) {
+          String type = temp.get(i);
+          curtailControllableConsumption(dayTemp, hour, type,
+                                         -(long) (curt / temp.size()));
+          curtailControllableConsumption(nextDayTemp, nextHour, type,
+                                         (long) (curt / temp.size()));
+        }
+
+      }
+
+    }
+
+    // showAggDailyLoad(type, dayTemp);
+    // showAggDailyLoad(type, dayTemp + 1);
+
+  }
+
+  /**
    * This function is utilized in order to reschedule the consumption load for
    * the next day of the competition according to the tariff rates of the
    * subscriptions under contract.
    */
   void rescheduleNextDay (String type)
   {
-    int serial = (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
-    Instant now = new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
+    Instant now =
+      new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
 
-    int dayTemp = day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     Vector<Long> controllableVector = new Vector<Long>();
 
     TariffSubscription sub = subscriptionMap.get(type);
 
-    log.debug("Old Consumption for day " + day + ": " + getControllableConsumptions(dayTemp, type).toString());
-    long[] newControllableLoad = dailyShifting(sub.getTariff(), now, dayTemp, type);
+    log.debug("Old Consumption for day " + day + ": "
+              + getControllableConsumptions(dayTemp, type).toString());
+    long[] newControllableLoad =
+      dailyShifting(sub.getTariff(), now, dayTemp, type);
     for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++)
       controllableVector.add(newControllableLoad[i]);
-    log.debug("New Consumption for day " + day + ": " + controllableVector.toString());
+    log.debug("New Consumption for day " + day + ": "
+              + controllableVector.toString());
 
     aggDailyBaseLoadInHoursSS.set(dayTemp, controllableVector);
 
@@ -1316,7 +1781,7 @@ public class OfficeComplex extends AbstractCustomer
   @Override
   public String toString ()
   {
-    return customerInfo.toString();
+    return name;
   }
 
 }
