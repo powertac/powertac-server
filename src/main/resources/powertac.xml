@@ -58,7 +58,6 @@
   <!-- need explicit list of beans that have properties to set -->
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
-    <property name="bootstrapTimeslotMillis" value="1000" />
     <property name="alwaysAuthorizedBrokers">
       <list>
         <value>default broker</value>

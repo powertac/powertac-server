@@ -139,11 +139,14 @@ public class CompetitionControlService
   @ConfigurableValue(valueType = "Integer",
       description = "Maximum time in msec to wait for broker login")
   private int loginTimeout = 0;
+
+  @ConfigurableValue(valueType = "Long",
+          description = "Milliseconds/timeslot in boot mode. Should be > 300.")
+  private long bootstrapTimeslotMillis = 2000;
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
-  private long bootstrapTimeslotMillis = 2000;
   //private int bootstrapDiscardedTimeslots = 24;
   
   private boolean simRunning = false;
@@ -162,7 +165,7 @@ public class CompetitionControlService
     jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
     
     // create broker queues
-    String[] brokerArray = new String[authorizedBrokerList.size()];
+    //String[] brokerArray = new String[authorizedBrokerList.size()];
     
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
@@ -263,6 +266,8 @@ public class CompetitionControlService
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
                                              competition.getId(),
                                              "game-setup");
+    
+    configService.configureMe(this);
     
     if (!bootstrapMode) {
       // Create the timeslots from the bootstrap period - they will be needed to 
@@ -453,7 +458,9 @@ public class CompetitionControlService
     }
     else {
       // compute rate from bootstrapTimeslotMillis
+      log.info("bootstrapTimeslotMillis=" + bootstrapTimeslotMillis);
       rate = competition.getTimeslotDuration() / bootstrapTimeslotMillis;
+      log.info("bootstrap mode clock rate: " + rate);
     }
     long rem = rate % competition.getTimeslotLength();
     if (rem > 0) {
@@ -485,7 +492,6 @@ public class CompetitionControlService
   // relationships among them.
   private boolean configurePlugins ()
   {
-    configService.configureMe(this);
     List<InitializationService> initializers =
         SpringApplicationContext.listBeansOfType(InitializationService.class);
 
