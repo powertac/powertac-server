@@ -322,9 +322,6 @@ public class Village extends AbstractCustomer
 
     for (CustomerInfo customer: customerInfos) {
 
-      List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
-
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
           && tariffMarketService
                   .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION) == null) {
@@ -341,8 +338,11 @@ public class Village extends AbstractCustomer
 
       }
 
+      List<TariffSubscription> subscriptions =
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
+
       if (subscriptions.size() > 0) {
-        log.debug(subscriptions.toString());
+        log.info(subscriptions.toString());
 
         for (String type: subscriptionMap.keySet()) {
           if (customer.getPowerType() == PowerType.CONSUMPTION) {
@@ -355,9 +355,9 @@ public class Village extends AbstractCustomer
       }
     }
 
-    log.debug("Base Load Subscriptions:" + subscriptionMap.toString());
-    log.debug("Controllable Load Subscriptions:"
-              + controllableSubscriptionMap.toString());
+    log.info("Base Load Subscriptions:" + subscriptionMap.toString());
+    log.info("Controllable Load Subscriptions:"
+             + controllableSubscriptionMap.toString());
   }
 
   /**
