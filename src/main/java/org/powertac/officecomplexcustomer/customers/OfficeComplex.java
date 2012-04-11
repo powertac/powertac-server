@@ -271,9 +271,6 @@ public class OfficeComplex extends AbstractCustomer
 
     for (CustomerInfo customer: customerInfos) {
 
-      List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
-
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
           && tariffMarketService
                   .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION) == null) {
@@ -289,6 +286,9 @@ public class OfficeComplex extends AbstractCustomer
                  + " was subscribed to the default CONSUMPTION tariff successfully.");
 
       }
+
+      List<TariffSubscription> subscriptions =
+        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
 
       if (subscriptions.size() > 0) {
         log.debug(subscriptions.toString());
