@@ -1774,7 +1774,7 @@ public class OfficeComplex extends AbstractCustomer
     log.debug("New Consumption for day " + day + ": "
               + controllableVector.toString());
 
-    aggDailyBaseLoadInHoursSS.set(dayTemp, controllableVector);
+    aggDailyControllableLoadInHoursSS.set(dayTemp, controllableVector);
 
   }
 
