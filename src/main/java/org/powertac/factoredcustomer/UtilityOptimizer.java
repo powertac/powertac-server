@@ -36,8 +36,6 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
-import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
 import org.powertac.factoredcustomer.TariffSubscriberProfile.AllocationMethod;
 
 /**
@@ -106,18 +104,15 @@ class UtilityOptimizer
     public void subscribeDefault() 
     {
         for (CapacityBundle bundle: capacityBundles) {
-            PowerType powerType = CapacityProfile.reportPowerType(bundle.getCapacityType(), bundle.getCapacitySubType());
+            PowerType powerType = bundle.getPowerType();
             if (tariffMarketService.getDefaultTariff(powerType) == null) {
                 log.info(getName() + ": No default tariff for power type " + powerType + "; trying less specific type.");
-
-                CapacityType capacityType = CapacityProfile.reportCapacityType(powerType);
-                PowerType generalType = CapacityProfile.reportPowerType(capacityType, CapacitySubType.NONE);
-                  
-                if (tariffMarketService.getDefaultTariff(generalType) == null) {
-                    log.error(getName() + ": No default tariff for general power type " + generalType + " either!");
+                PowerType genericType = powerType.getGenericType();
+                if (tariffMarketService.getDefaultTariff(genericType) == null) {
+                    log.error(getName() + ": No default tariff for generic power type " + genericType + " either!");
                 } else {
-                    log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + generalType + " tariff");
-                    subscribe(tariffMarketService.getDefaultTariff(generalType), getPopulation(), false);
+                    log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + genericType + " tariff");
+                    subscribe(tariffMarketService.getDefaultTariff(genericType), getPopulation(), false);
                 } 
             } else {
                 log.info(getName() + ": Subscribing " + getPopulation() + " customers to default " + powerType + " tariff");
@@ -153,13 +148,11 @@ class UtilityOptimizer
     
     private void reevaluateAllTariffs(CapacityBundle bundle) 
     {
-        log.info(getName() + ": Reevaluating all tariffs for " + bundle.getCapacityType() + " subscriptions");
+        log.info(getName() + ": Reevaluating all tariffs for " + bundle.getPowerType() + " subscriptions");
         
-        CapacityType capacityType = bundle.getCapacityType();        
         List<Tariff> evalTariffs = new ArrayList<Tariff>();
         for (Tariff tariff: allTariffs) {
-            if (! tariff.isRevoked() && ! tariff.isExpired() 
-                && CapacityProfile.reportCapacityType(tariff.getTariffSpec().getPowerType()) == capacityType) {
+            if (! tariff.isRevoked() && ! tariff.isExpired() && isTariffApplicable(tariff, bundle)) {
                 evalTariffs.add(tariff);
             }
         }
@@ -167,12 +160,21 @@ class UtilityOptimizer
         manageSubscriptions(evalTariffs, bundle);
     }
     
+    private boolean isTariffApplicable(Tariff tariff, CapacityBundle bundle)
+    {
+        if (tariff.getPowerType() == bundle.getPowerType() ||
+            tariff.getPowerType() == bundle.getPowerType().getGenericType()) {
+            return true;
+        }
+        return false;
+    }
+    
     private void evaluateCurrentTariffs(List<Tariff> newTariffs, CapacityBundle bundle) 
     {
         if (bundle.getSubscriberProfile().inertiaDistribution != null) {
             double inertia = bundle.getSubscriberProfile().inertiaDistribution.drawSample();
             if (inertiaSampler.nextDouble() < inertia) {
-                log.info(getName() + ": Skipping " + bundle.getCapacityType() + " tariff reevaluation due to inertia");
+                log.info(getName() + ": Skipping " + bundle.getPowerType() + " tariff reevaluation due to inertia");
                 for (Tariff newTariff: newTariffs) {
                     ignoredTariffs.add(newTariff);
                 }
@@ -193,10 +195,9 @@ class UtilityOptimizer
         for (Tariff newTariff: newTariffs) {
             currTariffs.put(newTariff.getId(), newTariff);
         }
-        CapacityType capacityType = bundle.getCapacityType();        
         List<Tariff> evalTariffs = new ArrayList<Tariff>();
         for (Tariff tariff: currTariffs.values()) {
-            if (CapacityProfile.reportCapacityType(tariff.getTariffSpec().getPowerType()) == capacityType) {
+            if (isTariffApplicable(tariff, bundle)) {
                 evalTariffs.add(tariff);
             }
         }
@@ -215,10 +216,10 @@ class UtilityOptimizer
     {
 	Collections.shuffle(evalTariffs);
         
-        CapacityType capacityType = bundle.getCapacityType();        
+        PowerType powerType = bundle.getPowerType();        
         List<Long> tariffIds = new ArrayList<Long>(evalTariffs.size());
         for (Tariff tariff: evalTariffs) tariffIds.add(tariff.getId());
-        logAllocationDetails(getName() + ": " + capacityType + " tariffs for evaluation: " + tariffIds);
+        logAllocationDetails(getName() + ": " + powerType + " tariffs for evaluation: " + tariffIds);
 
 	List<Double> estimatedPayments = estimatePayments(evalTariffs, bundle);
 	logAllocationDetails(getName() + ": Estimated payments for evaluated tariffs: " + estimatedPayments);
@@ -239,23 +240,23 @@ class UtilityOptimizer
 			
 	    if (numChange == 0) {
 	        if (currentCommitted > 0) {
-	            log.info(getName() + ": Maintaining " + currentCommitted + " " + capacityType + " customers in tariff " + evalTariff.getId());
+	            log.info(getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in tariff " + evalTariff.getId());
 	        } else {
-                    log.info(getName() + ": Not allocating any " + capacityType + " customers to tariff " + evalTariff.getId());
+                    log.info(getName() + ": Not allocating any " + powerType + " customers to tariff " + evalTariff.getId());
 	        }
 	    } else if (numChange > 0) {
 	        if (evalTariff.isExpired()) {
 	            overAllocations += numChange;
 	            if (currentCommitted > 0) {
-	                log.info(getName() + ": Maintaining " + currentCommitted + " " + capacityType + " customers in expired tariff " + evalTariff.getId());
+	                log.info(getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in expired tariff " + evalTariff.getId());
 	            }
-	            log.info(getName() + ": Reallocating " + numChange + " " + capacityType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
+	            log.info(getName() + ": Reallocating " + numChange + " " + powerType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
 	        } else { 
-                    log.info(getName() + ": Subscribing " + numChange + " " + capacityType + " customers to tariff " + evalTariff.getId());
+                    log.info(getName() + ": Subscribing " + numChange + " " + powerType + " customers to tariff " + evalTariff.getId());
                     subscribe(evalTariff, numChange, false);
 	        }
 	    } else if (numChange < 0) {
-	        log.info(getName() + ": Unsubscribing " + -numChange + " " + capacityType + " customers from tariff " + evalTariff.getId());
+	        log.info(getName() + ": Unsubscribing " + -numChange + " " + powerType + " customers from tariff " + evalTariff.getId());
                 unsubscribe(subscription, -numChange, false);
 	    }
 	}
@@ -279,7 +280,7 @@ class UtilityOptimizer
         for (int i=0; i < evalTariffs.size(); ++i) {
             Tariff tariff = evalTariffs.get(i);
             if (tariff.isExpired()) {
-                if (bundle.getCapacityType() == CapacityProfile.CapacityType.CONSUMPTION) {
+                if (bundle.getPowerType().isConsumption()) {
                     estimatedPayments.add(Double.POSITIVE_INFINITY);  // assume worst case
                 } else {  // PRODUCTION
                     estimatedPayments.add(Double.NEGATIVE_INFINITY);  // assume worst case
@@ -452,7 +453,7 @@ class UtilityOptimizer
     private boolean haveConsumptionCapacity() 
     {
         for (CapacityBundle bundle: capacityBundles) {
-            if (bundle.getCapacityType() == CapacityType.CONSUMPTION) {
+            if (bundle.getPowerType().isConsumption()) {
                 return true;
             }
         }
@@ -462,7 +463,7 @@ class UtilityOptimizer
     private boolean haveProductionCapacity() 
     {
         for (CapacityBundle bundle: capacityBundles) {
-            if (bundle.getCapacityType() == CapacityType.PRODUCTION) {
+            if (bundle.getPowerType().isProduction()) {
                 return true;
             }
         }
@@ -474,9 +475,9 @@ class UtilityOptimizer
         double totalConsumption = 0.0;
         for (TariffSubscription subscription: subscriptions) {
             if (subscription.getCustomersCommitted() > 0 && 
-                    CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.CONSUMPTION) {
+                    subscription.getTariff().getTariffSpec().getPowerType().isConsumption()) {
                 for (CapacityBundle bundle: capacityBundles) {
-                    if (bundle.getCapacityType() == CapacityType.CONSUMPTION) {
+                    if (bundle.getPowerType().isConsumption()) {
                         double currCapacity = bundle.useCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // positive usage is consumption
                         totalConsumption += currCapacity;
@@ -492,9 +493,9 @@ class UtilityOptimizer
         double totalProduction = 0.0;
         for (TariffSubscription subscription: subscriptions) {
             if (subscription.getCustomersCommitted() > 0 && 
-                    CapacityProfile.reportCapacityType(subscription.getTariff().getTariffSpec().getPowerType()) == CapacityType.PRODUCTION) {
+                    subscription.getTariff().getTariffSpec().getPowerType().isProduction()) {
                 for (CapacityBundle bundle: capacityBundles) {
-                    if (bundle.getCapacityType() == CapacityType.PRODUCTION) {
+                    if (bundle.getPowerType().isProduction()) {
                         double currCapacity = -1 * bundle.useCapacity(timeslot, subscription);
                         subscription.usePower(currCapacity); // negative usage is production
                         totalProduction = currCapacity;

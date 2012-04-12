@@ -1,8 +1,8 @@
 <customers>
 
     <customer name="BrooksideHomes" creatorKey="">
-        <info population="30000" entityType="RESIDENTIAL" multiContracting="true" canNegotiate="false" />
-        <capacityBundle type="CONSUMPTION" subType="NONE" negotiable="false">
+        <info population="30000" entityType="RESIDENTIAL" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
+        <capacityBundle>
             <contractNegotiator /> <!-- N/A -->
             <tariffSubscriber>
                 <influenceFactors> <!-- N/A -->
@@ -63,8 +63,8 @@
     </customer>
 
     <customer name="CentervilleHomes" creatorKey="">
-        <info population="20000" entityType="RESIDENTIAL" multiContracting="true" canNegotiate="false" />
-        <capacityBundle type="CONSUMPTION" subType="NONE" negotiable="false">
+        <info population="20000" entityType="RESIDENTIAL" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE"> 
                     <logitChoice rationality="0.6" />
@@ -98,8 +98,8 @@
     </customer>
 
     <customer name="DowntownOffices" creatorKey="">
-        <info population="60" entityType="COMMERCIAL" multiContracting="true" canNegotiate="false" />
-        <capacityBundle type="CONSUMPTION" subType="NONE" negotiable="false">
+        <info population="60" entityType="COMMERCIAL" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE"> <!-- TOTAL_ORDER | LOGIT_CHOICE -->
                     <logitChoice rationality="0.7" />
@@ -129,9 +129,9 @@
         </capacityBundle>
     </customer>
 
-    <customer name="MedicalCenter" creatorKey="">
-        <info population="1" entityType="COMMERCIAL" multiContracting="false" canNegotiate="false" />
-        <capacityBundle type="CONSUMPTION" subType="NONE" negotiable="false">
+    <customer name="MedicalCenter1" creatorKey="">
+        <info population="1" entityType="COMMERCIAL" powerType="CONSUMPTION" multiContracting="false" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE"> <!-- TOTAL_ORDER | LOGIT_CHOICE -->
                     <logitChoice rationality="0.8" />
@@ -141,7 +141,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" description="Downtown office buildings.">
+            <capacity id="1" description="Facilities in hospital complex.">
                 <baseCapacity type="POPULATION">  
                     <populationCapacity distribution="NORMAL" mean="5000" stdDev="500" />
                 </baseCapacity>
@@ -159,7 +159,11 @@
                 </influenceFactors>
             </capacity>
         </capacityBundle>
-        <capacityBundle type="PRODUCTION" subType="SOLAR" negotiable="false">
+    </customer>
+    
+    <customer name="MedicalCenter2" creatorKey="">
+        <info population="1" entityType="COMMERCIAL" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.8" />
@@ -190,8 +194,8 @@
     </customer>
 
     <customer name="SunnyhillSolar" creatorKey="">
-        <info population="1" entityType="INDUSTRIAL" multiContracting="false" canNegotiate="false" />
-        <capacityBundle type="PRODUCTION" subType="SOLAR" negotiable="false">
+        <info population="1" entityType="INDUSTRIAL" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -222,8 +226,8 @@
     </customer>
 
     <customer name="WindmillCoOp" creatorKey="">
-        <info population="50" entityType="INDUSTRIAL" multiContracting="false" canNegotiate="false" />
-        <capacityBundle type="PRODUCTION" subType="WIND" negotiable="false">
+        <info population="50" entityType="INDUSTRIAL" powerType="WIND_PRODUCTION" multiContracting="false" canNegotiate="false" />
+        <capacityBundle>
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />

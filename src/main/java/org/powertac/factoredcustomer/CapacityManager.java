@@ -28,7 +28,6 @@ import org.powertac.common.WeatherReport;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.CapacityProfile.BaseCapacityType;
-import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
 import org.powertac.factoredcustomer.CapacityProfile.InfluenceKind;
 
 /**
@@ -246,8 +245,8 @@ final class CapacityManager
             elasticity = ParserFunctions.parseMapToDoubleArray(capacityProfile.elasticityModelXml.getAttribute("map"));
         }
         if (Math.abs(rateRatio - 1) < 0.01 || elasticity.length == 0) return 1.0;       
-        if (capacityProfile.parentBundle.getCapacityType() == CapacityType.CONSUMPTION && rateRatio < 1.0) return 1.0;       
-        if (capacityProfile.parentBundle.getCapacityType() == CapacityType.PRODUCTION && rateRatio > 1.0) return 1.0;
+        if (capacityProfile.parentBundle.getPowerType().isConsumption() && rateRatio < 1.0) return 1.0;       
+        if (capacityProfile.parentBundle.getPowerType().isProduction() && rateRatio > 1.0) return 1.0;
         
         final int RATE_RATIO_INDEX = 0;
         final int CAPACITY_FACTOR_INDEX = 1;

@@ -24,9 +24,7 @@ import org.joda.time.Instant;
 import org.w3c.dom.*;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
-
 import org.powertac.common.Competition;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.InitializationService;
@@ -58,8 +56,7 @@ implements InitializationService, NewTariffListener
   @Autowired
   private ServerConfiguration serverConfig;
 
-  @ConfigurableValue(valueType = "String",
-      description = "Resource name for configuration data")
+  @ConfigurableValue(valueType = "String", description = "Resource name for configuration data")
   private String configResource = null;
 
   private List<CustomerProfile> customerProfiles = new ArrayList<CustomerProfile>();
@@ -82,8 +79,7 @@ implements InitializationService, NewTariffListener
    * This is called once at the beginning of each game.
    */
   @Override
-  public String initialize (Competition competition,
-                            List<String> completedInits)
+  public String initialize (Competition competition, List<String> completedInits)
   {
     if (! completedInits.contains("DefaultBroker") ||
         ! completedInits.contains("TariffMarket")) {

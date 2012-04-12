@@ -22,10 +22,9 @@ import org.w3c.dom.*;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.factoredcustomer.CapacityProfile.CapacitySubType;
-import org.powertac.factoredcustomer.CapacityProfile.CapacityType;
 
 /**
  * A collection of capacities, all with the same base capacity type; 
@@ -41,9 +40,10 @@ final class CapacityBundle
     
     private final Element configXml;
     
-    private final CapacityType capacityType;
-    private final CapacitySubType capacitySubType;
-    
+//    private final CapacityType capacityType;
+//    private final CapacitySubType capacitySubType;
+    private final PowerType powerType;
+
     private final TariffSubscriberProfile subscriberProfile;
     
     private final List<CapacityManager> capacityManagers = new ArrayList<CapacityManager>();
@@ -55,8 +55,9 @@ final class CapacityBundle
         
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
 
-        capacityType = Enum.valueOf(CapacityType.class, xml.getAttribute("type"));
-        capacitySubType = Enum.valueOf(CapacitySubType.class, xml.getAttribute("subType"));
+//        capacityType = Enum.valueOf(CapacityType.class, xml.getAttribute("type"));
+//        capacitySubType = Enum.valueOf(CapacitySubType.class, xml.getAttribute("subType"));
+        powerType = profile.customerInfo.getPowerType();
         
         Element tariffSubscriberElement = (Element) xml.getElementsByTagName("tariffSubscriber").item(0);
         subscriberProfile = new TariffSubscriberProfile(profile, this, tariffSubscriberElement);
@@ -95,14 +96,9 @@ final class CapacityBundle
         return capacity;
     }
     
-    CapacityType getCapacityType()
+    PowerType getPowerType()
     {
-        return capacityType;
-    }
-    
-    CapacitySubType getCapacitySubType()
-    {
-        return capacitySubType;
+        return powerType;
     }
     
     List<CapacityManager> getCapacityManagers() 
