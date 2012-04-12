@@ -27,7 +27,7 @@
 				<h:form id="wholesaleTableForm">
 
 					<p:dataTable var="market" value="#{wholesaleBean.markets}"
-						paginator="true" rows="15" pageLinks="3" tableStyle="width:auto">
+						paginator="true" rows="24" pageLinks="3" tableStyle="width:auto">
 
 						<f:facet name="header">  
           				   Expand rows to see detailed information  
@@ -37,11 +37,11 @@
 							<p:rowToggler />
 						</p:column>
 
-						<p:column style="width:70px" headerText="Name">
-							<h:outputText value="#{market.name}" />
+						<p:column style="width:40px" headerText="Timeslot">
+							<h:outputText value="#{market.timeslotSerialNumber}" />
 						</p:column>
 
-						<p:column style="width:50px" headerText="TTQ (MWh)">
+						<p:column style="width:40px" headerText="TTQ (MWh)">
 							<h:outputText value="#{market.totalTradedQuantityMWh}" />
 						</p:column>
 
@@ -50,23 +50,23 @@
 							<p:dataTable var="snapshot" value="#{market.snapshots}"
 								tableStyle="width:auto">
 
-								<p:column style="width:60px">
-									<h:outputText value="#{snapshot.name}" />
+								<p:column style="width:40px" headerText="Timeslot">
+									<h:outputText value="#{snapshot.timeslotSerialNumberCreated}" />
 								</p:column>
 
-								<p:column style="width:40px">
+								<p:column style="width:40px" headerText="TTQ (MWh)">
 									<h:outputText value="#{snapshot.totalTradedQuantity}" />
 								</p:column>
 
-								<p:column style="width:40px">
-									<h:panelGrid columns="3" styleClass="actions" cellpadding="2">
+								<p:column style="width:20px">
+									
 										<p:commandButton id="selectButton"
 											update=":wholesaleGraphsForm" icon="ui-icon-search"
 											title="View">
 											<f:setPropertyActionListener value="#{snapshot}"
 												target="#{wholesaleBean.selectedSnapshot}" />
 										</p:commandButton>
-									</h:panelGrid>
+									
 								</p:column>
 
 							</p:dataTable>

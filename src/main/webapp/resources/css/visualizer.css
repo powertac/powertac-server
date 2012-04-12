@@ -30,3 +30,7 @@ body, html { height:100%; padding:0; margin:0;}
 .noBackground.ui-panel{
 	background-image: none;
 }
+
+.ui-sortable-column-icon{
+visibility: hidden;
+}
