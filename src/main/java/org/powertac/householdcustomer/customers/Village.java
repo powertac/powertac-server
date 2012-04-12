@@ -1198,6 +1198,61 @@ public class Village extends AbstractCustomer
     }
   }
 
+  /**
+   * This function is used in order to print the aggregated hourly load of the
+   * village households for a certain type of households.
+   * 
+   * @param type
+   * @return
+   */
+  public void showAggDailyLoad (String type, int day, int hour)
+  {
+
+    log.info("Portion " + type + " Hourly Aggregated Load");
+    log.info("Day " + day + " Hour " + hour);
+
+    if (type.equals("NS")) {
+
+      log.info("Hour : " + hour + " Base Load : "
+               + aggDailyBaseLoadInHoursNS.get(day).get(hour)
+               + " Controllable Load: "
+               + aggDailyControllableLoadInHoursNS.get(day).get(hour)
+               + " Weather Sensitive Load: "
+               + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(hour));
+
+    }
+    else if (type.equals("RaS")) {
+
+      log.info("Hour : " + hour + " Base Load : "
+               + aggDailyBaseLoadInHoursRaS.get(day).get(hour)
+               + " Controllable Load: "
+               + aggDailyControllableLoadInHoursRaS.get(day).get(hour)
+               + " Weather Sensitive Load: "
+               + aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(hour));
+
+    }
+    else if (type.equals("ReS")) {
+
+      log.info("Hour : " + hour + " Base Load : "
+               + aggDailyBaseLoadInHoursReS.get(day).get(hour)
+               + " Controllable Load: "
+               + aggDailyControllableLoadInHoursReS.get(day).get(hour)
+               + " Weather Sensitive Load: "
+               + aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(hour));
+
+    }
+    else {
+
+      log.info("Hour : " + hour + " Base Load : "
+               + aggDailyBaseLoadInHoursSS.get(day).get(hour)
+               + " Controllable Load: "
+               + aggDailyControllableLoadInHoursSS.get(day).get(hour)
+               + " Weather Sensitive Load: "
+               + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(hour));
+
+    }
+  }
+
   // =====CONSUMPTION FUNCTIONS===== //
 
   @Override
@@ -1220,6 +1275,7 @@ public class Village extends AbstractCustomer
         summaryControllable = getConsumptionByTimeslot(serial, type, true);
       }
       else {
+        log.debug("Timeslot Serial: " + ts.getSerialNumber());
         summary = getConsumptionByTimeslot(ts.getSerialNumber(), type, false);
         summaryControllable =
           getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
@@ -2101,13 +2157,13 @@ public class Village extends AbstractCustomer
               + controllableVector.toString());
 
     if (type.equals("RaS")) {
-      aggDailyBaseLoadInHoursRaS.set(dayTemp, controllableVector);
+      aggDailyControllableLoadInHoursRaS.set(dayTemp, controllableVector);
     }
     else if (type.equals("ReS")) {
-      aggDailyBaseLoadInHoursReS.set(dayTemp, controllableVector);
+      aggDailyControllableLoadInHoursReS.set(dayTemp, controllableVector);
     }
     else {
-      aggDailyBaseLoadInHoursSS.set(dayTemp, controllableVector);
+      aggDailyControllableLoadInHoursSS.set(dayTemp, controllableVector);
     }
 
   }
