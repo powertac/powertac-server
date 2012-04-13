@@ -15,11 +15,16 @@
 */
 package org.powertac.common.repo;
 
+import static org.powertac.util.ListTools.filter;
+
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.util.Predicate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -66,18 +71,38 @@ public class CustomerRepo implements DomainRepo
   {
     return customers.get(id);
   }
-  
-  public CustomerInfo findByName (String name)
+
+  public List<CustomerInfo> findByName (final String name)
   {
-    CustomerInfo result = null;
-    for (CustomerInfo customer : customers.values()) {
-      if (name.equals(customer.getName())) {
-        return customer;
-      }
-    }
-    return result;
+    return filter(customers.values(),
+                  new Predicate<CustomerInfo>() {
+      @Override
+      public boolean apply (CustomerInfo item)
+      {
+        return name.equals(item.getName());
+      }  
+    });
   }
-  
+
+  public CustomerInfo findByNameAndPowerType (final String name,
+                                              final PowerType type)
+  {
+    List<CustomerInfo> candidates =
+            filter(customers.values(),
+                   new Predicate<CustomerInfo>() {
+      @Override
+      public boolean apply (CustomerInfo item)
+      {
+        return (name.equals(item.getName()) && type == item.getPowerType());
+      }
+    });
+    
+    if (candidates.size() == 0)
+      return null;
+    else
+      return candidates.get(0);
+  }
+
   public void recycle ()
   {
     customers.clear();
