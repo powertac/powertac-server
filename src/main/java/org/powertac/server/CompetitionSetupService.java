@@ -394,11 +394,11 @@ public class CompetitionSetupService
   {
     serverProps.configureMe(competition);
     // bootstrap timeslot timing is a local parameter
-    int bootstrapTimeslotSeconds =
-        serverProps.getIntegerProperty("server.bootstrapTimeslotSeconds",
-                                       (int)(cc.getBootstrapTimeslotMillis()
-                                             / TimeService.SECOND));
-    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
+//    int bootstrapTimeslotSeconds =
+//        serverProps.getIntegerProperty("server.bootstrapTimeslotSeconds",
+//                                       (int)(cc.getBootstrapTimeslotMillis()
+//                                             / TimeService.SECOND));
+//    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
   }
 
   /**
