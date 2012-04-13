@@ -17,9 +17,7 @@ package org.powertac.factoredcustomer;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.w3c.dom.*;
-import org.powertac.common.enumerations.PowerType;
 
 /**
  * Data-holder class for parsed configuration elements of one capacity.
@@ -29,11 +27,6 @@ import org.powertac.common.enumerations.PowerType;
  */
 final class CapacityProfile
 {	
-    enum CapacityType { CONSUMPTION, PRODUCTION, STORAGE }
-    enum CapacitySubType { NONE, INTERRUPTIBLE, THERMAL_STORAGE, 
-                           SOLAR,  WIND, RUN_OF_RIVER, PUMPED_STORAGE, CHP, FOSSIL, 
-                           BATTERY_STORAGE, ELECTRIC_VEHICLE }
-                          
     enum InfluenceKind { DIRECT, DEVIATION, NONE }
     
     enum BaseCapacityType { POPULATION, INDIVIDUAL, TIMESERIES }
@@ -65,6 +58,8 @@ final class CapacityProfile
     final Map<Integer, Double> benchmarkRates = new HashMap<Integer, Double>();  // key: hour of day
     final ElasticityModelType elasticityModelType;
     final Element elasticityModelXml;
+    
+    final double[] curtailmentShifts;  // index = timeslot
         
 	
     CapacityProfile(Element xml, CapacityBundle bundle) 
@@ -136,61 +131,11 @@ final class CapacityProfile
         
         elasticityModelXml = (Element) priceElasticityElement.getElementsByTagName("elasticityModel").item(0);
         elasticityModelType = Enum.valueOf(ElasticityModelType.class, elasticityModelXml.getAttribute("type"));
+        
+        Element curtailmentElement = (Element) xml.getElementsByTagName("curtailment").item(0);
+        curtailmentShifts = (curtailmentElement != null) ? 
+                ParserFunctions.parseDoubleArray(curtailmentElement.getAttribute("shifts")) : null;
     }
-    
-    static PowerType reportPowerType(CapacityType capacityType, CapacitySubType capacitySubType)
-    {
-        switch (capacityType) {
-        case CONSUMPTION:
-            switch (capacitySubType) {
-            case NONE:
-                return PowerType.CONSUMPTION;
-            case INTERRUPTIBLE:
-                return PowerType.INTERRUPTIBLE_CONSUMPTION;
-            case THERMAL_STORAGE:
-                return PowerType.INTERRUPTIBLE_CONSUMPTION;
-            default: throw new Error("Incompatible capacity subType: " + capacitySubType);
-            }
-        case PRODUCTION:
-            switch (capacitySubType) {
-            case NONE:
-                return PowerType.PRODUCTION;
-            case SOLAR:
-                return PowerType.SOLAR_PRODUCTION;
-            case WIND:
-                return PowerType.WIND_PRODUCTION;
-            case RUN_OF_RIVER:
-                return PowerType.RUN_OF_RIVER_PRODUCTION;
-            case PUMPED_STORAGE:
-                return PowerType.PUMPED_STORAGE_PRODUCTION;
-            case CHP:
-                return PowerType.CHP_PRODUCTION;
-            case FOSSIL:
-                return PowerType.FOSSIL_PRODUCTION;
-            default: throw new Error("Incompatible capacity subType: " + capacitySubType);
-            }
-        case STORAGE:
-            switch (capacitySubType) {
-            case BATTERY_STORAGE:
-                return PowerType.BATTERY_STORAGE;
-            case ELECTRIC_VEHICLE:
-                return PowerType.ELECTRIC_VEHICLE;
-            default: throw new Error("Incompatible capacity subType: " + capacitySubType);
-            }	
-        default: throw new Error("Incompatible capacity type: " + capacityType);        
-        }	
-    }
-	
-    static CapacityType reportCapacityType(PowerType powerType)
-    {
-      if (powerType.isConsumption())
-        return CapacityType.CONSUMPTION;
-      if (powerType.isProduction())
-        return CapacityType.PRODUCTION;
-      if (powerType.isStorage())
-        return CapacityType.STORAGE;
-      throw new Error("Unexpected powerType: " + powerType);
-    }	
-	
+   	
 } // end class
 

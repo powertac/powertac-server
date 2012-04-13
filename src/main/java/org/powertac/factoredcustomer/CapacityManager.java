@@ -48,15 +48,20 @@ final class CapacityManager
     private final TimeseriesGenerator tsGenerator;
     
     private final CustomerProfile customerProfile;
+    private final CapacityBundle parentBundle;
     private final CapacityProfile capacityProfile;
     
     private final Map<Integer, Double> baseCapacities = new HashMap<Integer, Double>();
     private final Map<Integer, Double> adjCapacities = new HashMap<Integer, Double>();
     
+    private final Map<Integer, Double> curtailedCapacities = new HashMap<Integer, Double>();
+    private final Map<Integer, Double> shiftedCurtailments = new HashMap<Integer, Double>();
+    
     
     CapacityManager(CustomerProfile customer, CapacityBundle bundle, Element xml) 
     {
         customerProfile = customer;
+        parentBundle = bundle;
         capacityProfile = new CapacityProfile(xml, bundle);
         
         timeService = (TimeService) SpringApplicationContext.getBean("timeService");
@@ -126,18 +131,43 @@ final class CapacityManager
         logCapacityDetails(getName() + ": Base capacity for timeslot " + timeslot.getSerialNumber() + " = " + baseCapacity);        
 
         double adjustedCapacity = baseCapacity;
+        if (parentBundle.getPowerType().isInterruptible()) {
+            adjustedCapacity = adjustCapacityForCurtailments(timeslot, adjustedCapacity, subscription);
+        }
         adjustedCapacity = adjustCapacityForPopulationRatio(adjustedCapacity, subscription);
         adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity);
-        adjustedCapacity = adjustCapacityForWeather(timeslot, adjustedCapacity);                
+        adjustedCapacity = adjustCapacityForWeather(timeslot, adjustedCapacity);    
         adjustedCapacity = adjustCapacityForTariffRates(timeslot, subscription, adjustedCapacity);
         if (Double.isNaN(adjustedCapacity)) throw new Error("Adjusted capacity is NaN for base capacity = " + baseCapacity);
-        
+
         adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
         adjCapacities.put(timeslot.getSerialNumber(), adjustedCapacity);        
         log.info(getName() + ": Adjusted capacity for tariff " + subscription.getTariff().getId() + " = " + adjustedCapacity);        
         return adjustedCapacity;
     }
 
+    private double adjustCapacityForCurtailments(Timeslot timeslot, double capacity, TariffSubscription subscription)
+    {
+        double lastCurtailment = subscription.getCurtailment();
+        if (Math.abs(lastCurtailment) > 0.01) {  // != 0
+            curtailedCapacities.put(timeslot.getSerialNumber() - 1, lastCurtailment);
+            if (capacityProfile.curtailmentShifts != null) {
+                for (int i=0; i < capacityProfile.curtailmentShifts.length; ++i) {
+                    double shiftingFactor = capacityProfile.curtailmentShifts[i];
+                    double shiftedCapacity = lastCurtailment * shiftingFactor; 
+                    Double previousShifts = shiftedCurtailments.get(timeslot.getSerialNumber() + i); 
+                    if (previousShifts == null) {
+                        shiftedCurtailments.put(timeslot.getSerialNumber() + i, shiftedCapacity);
+                    } else {
+                        shiftedCurtailments.put(timeslot.getSerialNumber() + i, previousShifts + shiftedCapacity);
+                    }
+                }
+            }
+        }
+        Double currentShift = shiftedCurtailments.get(timeslot.getSerialNumber());
+        return (currentShift == null) ? capacity : capacity + currentShift;
+    }
+    
     private double adjustCapacityForPopulationRatio(double capacity, TariffSubscription subscription)
     {
         double popRatio = getPopulationRatio(subscription.getCustomersCommitted(), customerProfile.customerInfo.getPopulation());
