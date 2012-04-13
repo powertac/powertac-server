@@ -469,7 +469,9 @@ public class DefaultBrokerService
    */
   public void handleMessage (CustomerBootstrapData cbd)
   {
-    CustomerInfo customer = customerRepo.findByName(cbd.getCustomerName());
+    CustomerInfo customer =
+            customerRepo.findByNameAndPowerType(cbd.getCustomerName(),
+                                                cbd.getPowerType());
     TariffSpecification tariff = null;
     for (TariffSpecification spec : customerSubscriptions.keySet()) {
       if (spec.getPowerType() == cbd.getPowerType()) {
