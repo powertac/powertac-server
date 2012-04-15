@@ -64,9 +64,6 @@ public class SimulationClockControl
 
   public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
   
-  //private static final long postPauseDelay = 500l; // 500 msec
-  //private static final long watchdogSlack = 200l; // 200 msec
-  
   private TimeService timeService;
   
   private CompetitionControlService competitionControl;
@@ -77,11 +74,13 @@ public class SimulationClockControl
   private Integer minAgentWindow = 1000;
   private int minWindow = 50;
   private int minPauseInterval = 100; // min time before pause
+  private double maxTickOffsetRatio = 0.2; // max offset as proportion of tickInterval
 
   private long base;
   private long start;
   private long rate;
   private long modulo;
+  private long tickInterval;
 
   private Status state = Status.CLEAR; // package visibility for testing
   private int nextTick = -1;
@@ -126,6 +125,7 @@ public class SimulationClockControl
     this.base = timeService.getBase();
     this.rate = timeService.getRate();
     this.modulo = timeService.getModulo();
+    this.tickInterval = this.modulo / this.rate;
     theTimer = new Timer();
     this.waitUntilStopSemaphores = Collections.synchronizedSet(new HashSet<Semaphore>());
 
@@ -307,13 +307,18 @@ public class SimulationClockControl
   // the clock.
   private void resume ()
   {
-    //System.out.println("resume()");
     long originalNextTick = computeNextTickTime();
     long actualNextTick = new Date().getTime() + minWindow;
-    start += actualNextTick - originalNextTick;
+    updateStart(actualNextTick - originalNextTick);
+    scheduleTick();
+  }
+
+  // push the clock forward by offset msec
+  private void updateStart (long offset)
+  {
+    start += offset;
     timeService.setStart(start);
     competitionControl.resume(start);
-    scheduleTick();
   }
 
   synchronized Status getState () // package visibility for test support
@@ -369,6 +374,12 @@ public class SimulationClockControl
     public void run ()
     {
       //System.out.println("TickAction.run() " + new Date().getTime());
+      // find the delay offset for this tick
+      long offset = new Date().getTime() - scheduledExecutionTime();
+      if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+        log.warn("clock delay: " + offset + " msec");
+        updateStart(offset);
+      }
       timeService.updateTime();
       scc.setState(Status.CLEAR);
       long earliestPause = new Date().getTime() + minPauseInterval;
