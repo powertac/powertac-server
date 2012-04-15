@@ -84,7 +84,7 @@ public class CustomerInfoTests
     xstream.processAnnotations(CustomerInfo.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ci));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     CustomerInfo xci = (CustomerInfo)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xci);
     assertEquals("correct id", ci.getId(), xci.getId());

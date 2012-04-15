@@ -93,7 +93,9 @@ public class CustomerRepo implements DomainRepo
       @Override
       public boolean apply (CustomerInfo item)
       {
-        return (name.equals(item.getName()) && type == item.getPowerType());
+        return (name.equals(item.getName()) 
+                && (type == item.getPowerType()
+                    || type == item.getPowerType().getGenericType()));
       }
     });
     
