@@ -49,6 +49,7 @@ public class TariffTests
   private TariffRepo repo;
   
   private TariffSpecification tariffSpec; // instance var
+  private TariffSpecification productionSpec; // instance var
 
   private Instant start;
   private Instant exp;
@@ -74,6 +75,9 @@ public class TariffTests
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(exp)
         .withMinDuration(TimeService.WEEK * 8);
+    productionSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
+    .withExpiration(exp)
+    .withMinDuration(TimeService.WEEK * 8);
   }
 
   // create a Tariff and inspect it
@@ -125,6 +129,22 @@ public class TariffTests
     //assertEquals("daily rate map", 1, te.rateMap.size())
     //assertEquals("rate map has 24 entries", 24, te.rateMap[0].size())
     assertTrue("covered", te.isCovered());
+  }
+  
+  @Test
+  public void testSimpleProduction ()
+  {
+    Rate r1 = new Rate().withValue(0.121);
+    productionSpec.addRate(r1);
+    Instant now = timeService.getCurrentTime();
+    Tariff te = new Tariff(productionSpec);
+    te.init();
+    assertEquals("correct charge, default case", 0.121, te.getUsageCharge(1.0, 0.0, false), 1e-6);
+    assertEquals("correct charge, today", 1.21, te.getUsageCharge(10.0, 0.0, false), 1e-6);
+    assertEquals("correct charge yesterday", 2.42, te.getUsageCharge(now.minus(TimeService.DAY), 20.0, 0.0), 1e-6);
+    assertEquals("correct charge tomorrow", 12.1, te.getUsageCharge(now.plus(TimeService.DAY), 100.0, 0.0), 1e-6);
+    assertEquals("correct charge an hour ago", 3.63, te.getUsageCharge(now.minus(TimeService.HOUR), 30.0, 0.0), 1e-6);
+    assertEquals("correct charge an hour from now", 1.21, te.getUsageCharge(now.plus(TimeService.HOUR), 10.0, 0.0), 1e-6);
   }
   
   // single fixed rate, check realized price after multiple rounds
