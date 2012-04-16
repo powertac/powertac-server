@@ -72,7 +72,8 @@ implements CapacityControl, InitializationService
    * @see org.powertac.common.interfaces.CapacityControl#exerciseBalancingControl(org.powertac.common.msg.BalancingOrder, double)
    */
   @Override
-  public void exerciseBalancingControl (BalancingOrder order, double kwh)
+  public void exerciseBalancingControl (BalancingOrder order,
+                                        double kwh, double payment)
   {
     Tariff tariff = tariffRepo.findTariffById(order.getTariffId());
     if (null == tariff) {
@@ -97,7 +98,7 @@ implements CapacityControl, InitializationService
     }
     // send off the event to the broker
     BalancingControlEvent bce = 
-        new BalancingControlEvent(tariff.getTariffSpec(), kwh,
+        new BalancingControlEvent(tariff.getTariffSpec(), kwh, payment,
                                   timeslotRepo.currentTimeslot().getSerialNumber());
     brokerProxy.sendMessage(tariff.getBroker(), bce);
   }

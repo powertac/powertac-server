@@ -219,7 +219,7 @@ public class CapacityControlServiceTest
           }
         });
                                              
-    capacityControl.exerciseBalancingControl(order, 100.0);
+    capacityControl.exerciseBalancingControl(order, 100.0, 11.0);
     // check the outgoing message
     assertEquals("one message", 1, msgs.size());
     assertTrue("correct type", msgs.get(0) instanceof BalancingControlEvent);
@@ -227,6 +227,7 @@ public class CapacityControlServiceTest
     assertEquals("correct broker", broker, bce.getBroker());
     assertEquals("correct tariff", spec.getId(), bce.getTariffId());
     assertEquals("correct amount", 100.0, bce.getKwh(), 1e-6);
+    assertEquals("correct payment", 11.0, bce.getPayment(), 1e-6);
     assertEquals("correct timeslot", 0, bce.getTimeslotIndex());
     // Check curtailment
     assertEquals("correct curtailment sub1", 40.0, sub1.getCurtailment(), 1e-6);
