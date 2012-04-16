@@ -25,6 +25,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -56,6 +57,7 @@ import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
@@ -698,6 +700,54 @@ public class TariffMarketServiceTests
     assertEquals("default consumption tariff", tc1, tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION));
     assertEquals("default production tariff", tp1, tariffMarketService.getDefaultTariff(PowerType.PRODUCTION));
     assertNull("no solar tariff", tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION));
+  }
+  
+  // test balancing orders
+  @Test
+  public void testBalancingOrder ()
+  {
+    initializeService();
+    Collection<BalancingOrder> orders = tariffRepo.getBalancingOrders();
+    assertEquals("no orders yet", 0, orders.size());
+
+    TariffSpecification tsc1 = new TariffSpecification(broker,
+                                                       PowerType.INTERRUPTIBLE_CONSUMPTION) 
+        .withExpiration(start.plus(TimeService.WEEK))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(0.222));
+    tariffMarketService.handleMessage(tsc1);
+
+    TariffSpecification tsc2 = new TariffSpecification(broker,
+                                                       PowerType.INTERRUPTIBLE_CONSUMPTION) 
+        .withExpiration(start.plus(TimeService.WEEK))
+        .withMinDuration(TimeService.WEEK * 8)
+        .addRate(new Rate().withValue(0.20));
+    tariffMarketService.handleMessage(tsc2);
+    
+    // add one order, check
+    BalancingOrder bo1 = new BalancingOrder(broker, tsc2, 0.6, 0.18);
+    tariffMarketService.handleMessage(bo1);
+    
+    orders = tariffRepo.getBalancingOrders();
+    assertEquals("one order", 1, orders.size());
+    assertTrue("correct item", orders.contains(bo1));
+    
+    // add second order, check
+    BalancingOrder bo2  = new BalancingOrder(broker, tsc1, 0.7, 0.19);
+    tariffMarketService.handleMessage(bo2);
+    
+    orders = tariffRepo.getBalancingOrders();
+    assertEquals("two orders", 2, orders.size());
+    assertTrue("contains first", orders.contains(bo1));
+    assertTrue("contains second", orders.contains(bo2));
+    
+    // replace first order, check
+    BalancingOrder bo3 = new BalancingOrder(broker, tsc2, 0.3, 0.18);
+    tariffMarketService.handleMessage(bo3);
+    assertEquals("two orders", 2, orders.size());
+    assertFalse("does not contain first", orders.contains(bo1));
+    assertTrue("contains second", orders.contains(bo2));
+    assertTrue("contains third", orders.contains(bo3));
   }
   
   class MockCC implements CompetitionControl

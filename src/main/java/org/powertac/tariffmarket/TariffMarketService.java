@@ -45,6 +45,7 @@ import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.msg.EconomicControlEvent;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
@@ -167,7 +168,8 @@ public class TariffMarketService
                                              TariffExpire.class,
                                              TariffRevoke.class,
                                              VariableRateUpdate.class,
-                                             EconomicControlEvent.class)) {
+                                             EconomicControlEvent.class,
+                                             BalancingOrder.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
     }
     firstPublication = false;
@@ -402,6 +404,19 @@ public class TariffMarketService
       return;
     }
     capacityControlService.postEconomicControl(msg);
+  }
+  
+  /**
+   * Processes an incoming BalancingOrder by storing it in the tariffRepo
+   */
+  public void handleMessage (BalancingOrder msg)
+  {
+    ValidationResult result = validateUpdate(msg);
+    if (result.tariff == null) {
+      send(result.message);
+      return;
+    }
+    tariffRepo.addBalancingOrder(msg);
   }
 
   // ----------------------- Customer API --------------------------
