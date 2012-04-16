@@ -190,10 +190,13 @@ public class Tariff
    */
   public double getRealizedPrice ()
   {
-    if (totalUsage == 0.0)
+    if (totalUsage == 0.0) {
       return 0.0;
-    else
-      return totalCost / totalUsage;
+    }
+    else {
+      double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
+      return sign * totalCost / totalUsage;
+    }
   }
 
   /** 
