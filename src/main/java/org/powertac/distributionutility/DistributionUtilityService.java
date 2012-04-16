@@ -85,11 +85,11 @@ implements InitializationService
 
   @ConfigurableValue(valueType = "Double",
       description = "Low end of balancing cost range")
-  private double balancingCostMin = -0.04;
+  private double balancingCostMin = -0.01;
 
   @ConfigurableValue(valueType = "Double",
       description = "High end of balancing cost range")
-  private double balancingCostMax = -0.08;
+  private double balancingCostMax = -0.02;
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
@@ -100,7 +100,16 @@ implements InitializationService
       publish = true,
       description = "Spot price/mwh used if unavailable from wholesale market")
   private double defaultSpotPrice = 30.0; // per mwh
-
+  
+  @ConfigurableValue(valueType = "String",
+          publish = true,
+          description = "Balancing settlement processing: blank for no controllable capacity, \"static\" for per-timeslot processing of balancing orders")
+  private String settlementProcess = "";
+  
+  // internal representation of settlement process
+  private enum settlementType {SIMPLE, STATIC, DYNAMIC};
+  private settlementType settlement = settlementType.SIMPLE;
+  
   @Override
   public void setDefaults ()
   {
@@ -129,6 +138,16 @@ implements InitializationService
                        * (balancingCostMax - balancingCostMin));
     log.info("Configured DU: distro fee = " + distributionFee
              + ", balancing cost = " + balancingCost);
+    
+    // determine and record settlement process
+    if (settlementProcess.equals(""))
+      settlement = settlementType.SIMPLE;
+    else if (settlementProcess.equals("static"))
+      settlement = settlementType.STATIC;
+    else if (settlementProcess.equals("dynamic"))
+      settlement = settlementType.DYNAMIC;
+    log.info("Settlement process: " + settlement);
+    
     serverProps.publishConfiguration(this);
     return "DistributionUtility";
   }
