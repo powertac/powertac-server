@@ -17,6 +17,8 @@
 package org.powertac.distributionutility;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -251,40 +253,55 @@ implements InitializationService
    * 
    * @return List of MarketTransactions
    */
-  public List<ChargeInfo> balanceTimeslot (Timeslot currentTimeslot,
-                                           List<Broker> brokerList)
+  public Collection<ChargeInfo> balanceTimeslot (Timeslot currentTimeslot,
+                                                 List<Broker> brokerList)
   {
-    List<Double> brokerBalances = new ArrayList<Double>();
+    HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
+    //List<Double> brokerBalances = new ArrayList<Double>();
     for (Broker broker : brokerList) {
-      brokerBalances.add(getMarketBalance(broker));
+      chargeInfoMap.put(broker,
+                         new ChargeInfo(broker.getUsername(),
+                                        -getMarketBalance(broker),
+                                        0.0));
+      //brokerBalances.add(getMarketBalance(broker));
     }
-    List<Double> balanceCharges = computeNonControllableBalancingCharges(brokerList,
-                                                                         brokerBalances);
+    if (settlementType.STATIC == settlement) {
+      computeStaticBalancingCharges(brokerList, chargeInfoMap);
+    }
+    computeSimpleBalancingCharges(brokerList, chargeInfoMap);
 
-    List<ChargeInfo> chargeInfoList = new ArrayList<ChargeInfo>();
     // Add transactions for distribution and balancing
-    double theNetLoad, theBalanceCharge;
-    Broker theBroker;
-    for (int i = 0; i < brokerList.size(); i++) {
-      theBroker = brokerList.get(i);
-      theNetLoad = -accountingService.getCurrentNetLoad(theBroker);
-      accountingService.addDistributionTransaction(theBroker, theNetLoad,
-                                                   theNetLoad * distributionFee);
+    //double theNetLoad, theBalanceCharge;
+    //Broker theBroker;
+    for (Broker broker : brokerList) {
+      double netLoad = -accountingService.getCurrentNetLoad(broker);
+      accountingService.addDistributionTransaction(broker, netLoad,
+                                                   netLoad * distributionFee);
 
-      theBalanceCharge = -balanceCharges.get(i);
-      chargeInfoList.add(new ChargeInfo(theBroker.getUsername(), theNetLoad,
-                                        theBalanceCharge));
-      if (theBalanceCharge != 0.0) {
-        accountingService.addBalancingTransaction(theBroker,
-                                                  brokerBalances.get(i),
-                                                  theBalanceCharge);
+      //theBalanceCharge = -balanceCharges.get(i);
+      //chargeInfoList.add(new ChargeInfo(theBroker.getUsername(), theNetLoad,
+      //                                  theBalanceCharge));
+      ChargeInfo info = chargeInfoMap.get(broker);
+      double balanceCharge = info.balanceCharge;
+      if (balanceCharge != 0.0) {
+        accountingService.addBalancingTransaction(broker,
+                                                  info.netLoadKWh,
+                                                  balanceCharge);
       }
     }
-    return chargeInfoList;
+    return chargeInfoMap.values();
   }
 
-  List<Double> computeNonControllableBalancingCharges (List<Broker> brokerList,
-                                                       List<Double> balanceList)
+  // Solves a VCG auction across balancing orders
+  void computeStaticBalancingCharges (List<Broker> brokerList,
+                                      HashMap<Broker, ChargeInfo> balanceMap)
+  {
+    
+  }
+  
+  // Computes balancing charges according to Eq. 15.
+  void computeSimpleBalancingCharges (List<Broker> brokerList,
+                                      HashMap<Broker, ChargeInfo> balanceMap)
   {
     QuadraticSolver myQuadraticSolver;
     BasicMatrix[] inputMatrices = new BigMatrix[6];
@@ -311,7 +328,7 @@ implements InitializationService
                                                      // rhs
 
     for (int i = 0; i < numOfBrokers; i++) {
-      x += (brokerBalance[i] = ((Double) balanceList.get(i)).doubleValue());
+      x += (brokerBalance[i] = -balanceMap.get(brokerList.get(i)).netLoadKWh);
       log.debug("broker[" + i + "].balance=" + brokerBalance[i]);
     }
 
@@ -372,12 +389,12 @@ implements InitializationService
     // solve the system, and return the result as a list of balancing
     // charges
     BasicMatrix result = myQuadraticSolver.solve().getSolution();
-    List<Double> solutionList = new ArrayList<Double>();
+    //List<Double> solutionList = new ArrayList<Double>();
     for (int i = 0; i < numOfBrokers; i++) {
-      solutionList.add((Double) result.doubleValue(i, 0));
+      balanceMap.get(brokerList.get(i)).balanceCharge = -result.doubleValue(i, 0);
     }
-    log.debug("result=" + solutionList);
-    return solutionList;
+    //log.debug("result=" + solutionList);
+    //return solutionList;
   }
 
   // ---------- Getters and setters for configuration support ---------
@@ -421,16 +438,16 @@ implements InitializationService
    */
   class ChargeInfo
   {
-    String itsBrokerName = "";
-    double itsNetLoadKWh = 0.0;
-    double itsBalanceCharge = 0.0;
+    String brokerName = "";
+    double netLoadKWh = 0.0;
+    double balanceCharge = 0.0;
 
     ChargeInfo (String inBrokerName, double inNetLoadKWh,
                 double inBalanceCharge)
     {
-      itsBrokerName = inBrokerName;
-      itsNetLoadKWh = inNetLoadKWh;
-      itsBalanceCharge = inBalanceCharge;
+      brokerName = inBrokerName;
+      netLoadKWh = inNetLoadKWh;
+      balanceCharge = inBalanceCharge;
     }
   }
 }

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -173,13 +174,13 @@ public class DistributionUtilityServiceTests
     when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
     double marketBalance = -150.0; // Compute market balance
-    List<ChargeInfo> theChargeInfoList =
+    Collection<ChargeInfo> theChargeInfoList =
         distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                    brokerList);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.itsNetLoadKWh;
+      marketBalance += ci.netLoadKWh;
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -192,12 +193,12 @@ public class DistributionUtilityServiceTests
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(50.0);    
     double marketBalance = 150.0; // Compute market balance
 
-    List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
+    Collection<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                                                     brokerList);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.itsNetLoadKWh;
+      marketBalance += ci.netLoadKWh;
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -218,26 +219,33 @@ public class DistributionUtilityServiceTests
       balance += distributionUtilityService.getMarketBalance(b);
     }
 
-    List<ChargeInfo> theChargeInfoList = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
+    Collection<ChargeInfo> chargeInfos = distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                                                     brokerList);
 
     // ensure each broker was balanced correctly
-    for (int i = 0; i < brokerList.size(); i++) {
-      ChargeInfo ci = theChargeInfoList.get(i);
-
-      if (ci.itsBrokerName != brokerList.get(i).getUsername()) {
-        fail("theChargeInfoList does not match brokerList for index " + i);
-
-      }
-      if (i < brokerList.size()) {
-        assertEquals("broker correctly balanced",
-                     0.0,
-                     (distributionUtilityService.getMarketBalance(brokerList.get(i)) + ci.itsNetLoadKWh),
-                     1e-6);
-        balance += ci.itsNetLoadKWh;
-      }
+    for (Broker broker : brokerList) {
+      ChargeInfo ci = findChargeInfoForBroker(chargeInfos, broker);
+      assertNotNull("found ChargeInfo", ci);
+      assertEquals("broker correctly balanced",
+                   0.0,
+                   (distributionUtilityService.getMarketBalance(broker) + ci.netLoadKWh),
+                   1e-6);
+      balance += ci.netLoadKWh;
     }
     assertEquals("market fully balanced", 0.0, balance, 1e-6);
+  }
+
+  private ChargeInfo
+    findChargeInfoForBroker (Collection<ChargeInfo> chargeInfos, Broker broker)
+  {
+    ChargeInfo ci = null;
+    for (ChargeInfo info : chargeInfos) {
+      if (info.brokerName.equals(broker.getUsername())) {
+        ci = info;
+        break;
+      }
+    }
+    return ci;
   }
 
   @Test
@@ -252,23 +260,23 @@ public class DistributionUtilityServiceTests
 
     // List solution =
     // distributionUtilityService.computeNonControllableBalancingCharges(brokerList)
-    List<ChargeInfo> theChargeInfoList =
+    Collection<ChargeInfo> chargeInfos =
         distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                    brokerList);
 
     // Correct solution list is [-4, 14, 2] (but negated)
-    ChargeInfo ci = theChargeInfoList.get(0); // BalancingTransaction.findByBroker(brokerList.get(0));
+    ChargeInfo ci = findChargeInfoForBroker(chargeInfos, brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
     assertNotNull("non-null btx, broker 1", ci);
     assertEquals("correct balancing charge broker1",
-                 4.0, ci.itsBalanceCharge, 1e-6);
-    ci = theChargeInfoList.get(1); // BalancingTransaction.findByBroker(brokerList.get(1));
+                 4.0, ci.balanceCharge, 1e-6);
+    ci = findChargeInfoForBroker(chargeInfos, brokerList.get(1)); // BalancingTransaction.findByBroker(brokerList.get(1));
     assertNotNull("non-null btx, broker 2", ci);
     assertEquals("correct balancing charge broker2",
-                 -14.0, ci.itsBalanceCharge, 1e-6);
-    ci = theChargeInfoList.get(2); // BalancingTransaction.findByBroker(brokerList.get(2));
+                 -14.0, ci.balanceCharge, 1e-6);
+    ci = findChargeInfoForBroker(chargeInfos, brokerList.get(2)); // BalancingTransaction.findByBroker(brokerList.get(2));
     assertNotNull("non-null btx, broker 3", ci);
     assertEquals("correct balancing charge broker3",
-                 -2.0, ci.itsBalanceCharge, 1e-6);
+                 -2.0, ci.balanceCharge, 1e-6);
   }
 
   @Test
