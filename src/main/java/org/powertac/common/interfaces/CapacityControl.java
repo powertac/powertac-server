@@ -31,7 +31,8 @@ public interface CapacityControl {
    * Creates BalancingControlEvent, posts it on correct TariffSubscription
    * instances.
    */
-  public void exerciseBalancingControl (BalancingOrder order, double kwh);
+  void exerciseBalancingControl (BalancingOrder order, double kwh,
+                                 double payment);
 
   /**
    * Gathers up power usage data for the current timeslot that could be
@@ -44,4 +45,5 @@ public interface CapacityControl {
    * Posts an EconomicControlEvent on the correct TariffSubscription instances.
    */
   public void postEconomicControl (EconomicControlEvent event);
+
 }
