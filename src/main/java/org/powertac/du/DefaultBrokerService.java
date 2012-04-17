@@ -596,7 +596,7 @@ public class DefaultBrokerService
         for (int i = 0; i < usage.length; i++)
           usage[i] = usageList.get(i + startIndex);
         result.add(new CustomerBootstrapData(customer,
-                                             spec.getPowerType(),
+                                             customer.getPowerType(),
                                              usage));
       }
     }
