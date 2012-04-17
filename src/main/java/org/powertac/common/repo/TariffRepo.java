@@ -63,6 +63,11 @@ public class TariffRepo implements DomainRepo
     return specs.get(id);
   }
   
+  public synchronized List<TariffSpecification> findAllTariffSpecifications()
+  {
+    return new ArrayList<TariffSpecification>(specs.values());
+  }
+  
   public synchronized void addTariff (Tariff tariff)
   {
     tariffs.put(tariff.getId(), tariff);
