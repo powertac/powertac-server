@@ -49,20 +49,19 @@
 						<td><h:outputText
 								value="#{customer.customerModel.customerCount}"
 								style="font-weight: bold" /></td>
-						<td><ui:repeat var="powerType"
-								value="#{customer.customerInfo.powerTypes}">
+						<td>
 								<p:graphicImage
 									value="/app/resources/resources/images/customers/producer.png"
-									height="55px" width="55px" rendered="#{powerType.production}" title="Producer" />
+									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.production}" title="Producer" />
 
 								<p:graphicImage
 									value="/app/resources/resources/images/customers/consumer.png"
-									height="55px" width="55px" rendered="#{powerType.consumption}" title="Consumer" />
+									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.consumption}" title="Consumer" />
 									
 								<p:graphicImage
 									value="/app/resources/resources/images/customers/storage.png"
-									height="55px" width="55px" rendered="#{powerType.storage}" title="Storage" />
-							</ui:repeat></td>
+									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.storage}" title="Storage" />
+						</td>
 					</tr>
 				</table>
 
