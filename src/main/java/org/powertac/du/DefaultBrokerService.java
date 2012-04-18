@@ -482,11 +482,15 @@ public class DefaultBrokerService
                                                 cbd.getPowerType());
     TariffSpecification tariff = null;
     for (TariffSpecification spec : customerSubscriptions.keySet()) {
-      if (spec.getPowerType() == cbd.getPowerType()) {
+      if (cbd.getPowerType().canUse(spec.getPowerType())) {
         tariff = spec;
         break;
       }
     }
+    if (tariff == null) {
+      log.error("Failed to find tariff for powerType " + cbd.getPowerType());
+    }
+
     HashMap<CustomerInfo, CustomerRecord> customerMap = 
       customerSubscriptions.get(tariff);
     CustomerRecord record = customerMap.get(customer); // subscription exists
