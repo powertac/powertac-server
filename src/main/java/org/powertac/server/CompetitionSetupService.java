@@ -100,6 +100,8 @@ public class CompetitionSetupService
   private TournamentSchedulerService tss;
 
   private Competition competition;
+  private URL controllerURL;
+  private Thread session = null;
   
   /**
    * Standard constructor
@@ -119,10 +121,12 @@ public class CompetitionSetupService
     if (args.length > 1) {
       // cli setup
       processCli(args);
+      waitForSession();
     }
     else if (args.length == 1) {
       // old-style script file
       processScript(args);
+      waitForSession();
     }
     else { // args.length == 0
       // running from web interface
@@ -141,20 +145,31 @@ public class CompetitionSetupService
     }
   }
   
+  private void waitForSession ()
+  {
+    if (session != null)
+      try {
+        session.join();
+      }
+      catch (InterruptedException e) {
+        System.out.println("Error waiting for session completion: " + e.toString());
+      }
+  }
+  
   // handles the server CLI as described at
   // https://github.com/powertac/powertac-server/wiki/Server-configuration
   private void processCli (String[] args)
   {
     // set up command-line options
     OptionParser parser = new OptionParser();
-    OptionSpec<File> bootOutput = 
-        parser.accepts("boot").withRequiredArg().ofType(File.class);
-    OptionSpec<URL> controllerUrl =
+    OptionSpec<String> bootOutput = 
+        parser.accepts("boot").withRequiredArg().ofType(String.class);
+    OptionSpec<URL> controllerOption =
         parser.accepts("control").withRequiredArg().ofType(URL.class);
     OptionSpec<Integer> gameId = 
     	parser.accepts("game-id").withRequiredArg().ofType(Integer.class);
-    OptionSpec<URL> serverConfigUrl =
-        parser.accepts("config").withRequiredArg().ofType(URL.class);
+    OptionSpec<String> serverConfigUrl =
+        parser.accepts("config").withRequiredArg().ofType(String.class);
     OptionSpec<String> logSuffixOption =
         parser.accepts("log-suffix").withRequiredArg();
     parser.accepts("sim");
@@ -171,49 +186,34 @@ public class CompetitionSetupService
     try {
       // process common options
       String logSuffix = options.valueOf(logSuffixOption);
-      URL controller = options.valueOf(controllerUrl);
+      controllerURL = options.valueOf(controllerOption);
       Integer game = options.valueOf(gameId);
-      URL serverConfig = options.valueOf(serverConfigUrl);
-      if (serverConfig == null && controller != null) {
-        // offset from controller
-        serverConfig = new URL(controller, "server-config");
-      }
+      String serverConfig = options.valueOf(serverConfigUrl);
       
       // process tournament scheduler based info
-      if (controller != null && game != null){
-          tss.setTournamentSchedulerUrl(controller.toString());
+      if (controllerURL != null && game != null){
+          tss.setTournamentSchedulerUrl(controllerURL.toString());
           tss.setGameId(game);
       }
-      
-      
-      // process serverConfig now, because other options may override
-      // parts of it
-      if (serverConfig != null)
-        serverProps.setUserConfig(serverConfig);
-      // override jms url if provided in command line
-      String jmsBrokerUrl = options.valueOf(jmsUrl);
-      if (jmsBrokerUrl != null) {
-        serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
-                                jmsBrokerUrl);
+
+      if (serverConfig == null && controllerURL != null) {
+        // offset from controller
+        serverConfig = new URL(controllerURL, "server-config").toExternalForm();
       }
-            
+      
       if (options.has(bootOutput)) {
         // bootstrap session
-        setLogSuffix(logSuffix, controller, "boot");
-        bootSession(options.valueOf(bootOutput));
+        bootSession(options.valueOf(bootOutput),
+                    serverConfig,
+                    logSuffix);
       }
       else if (options.has("sim")) {
         // sim session
-        setLogSuffix(logSuffix, controller, "sim");
-        URL bootDataUrl = options.valueOf(bootData);
-        if (bootDataUrl == null && controller != null)
-          bootDataUrl = new URL(controller, "bootstrap-data");
-        if (bootDataUrl != null)
-          simSession(options.valuesOf(brokerList), bootDataUrl);
-        else {
-          System.err.println("Cannot run sim session without boot dataset");
-          System.exit(1);
-        }
+        simSession(options.valueOf(bootData).toExternalForm(),
+                   serverConfig,
+                   options.valueOf(jmsUrl),
+                   logSuffix,
+                   options.valuesOf(brokerList));
       }
       else {
         // Must be either boot or sim
@@ -236,12 +236,11 @@ public class CompetitionSetupService
 
   // sets up the logfile name suffix
   private void setLogSuffix (String logSuffix,
-                             URL controlUrl,
                              String defaultSuffix)
                                  throws IOException
   {
-    if (logSuffix == null && controlUrl != null) {
-      URL suffixUrl = new URL(controlUrl, "log-suffix");
+    if (logSuffix == null && controllerURL != null) {
+      URL suffixUrl = new URL(controllerURL, "log-suffix");
       log.info("retrieving logSuffix from " + suffixUrl.toExternalForm());
       InputStream stream = suffixUrl.openStream();
       byte[] buffer = new byte[64];
@@ -281,7 +280,7 @@ public class CompetitionSetupService
             String bootstrapFilename =
                 serverProps.getProperty("server.bootstrapDataFile",
                                         "/bd-noname.xml");
-            bootSession(new File(bootstrapFilename));
+            startBootSession(new File(bootstrapFilename));
           }
         }
         else if ("sim".equals(tokens[0])) {
@@ -308,7 +307,7 @@ public class CompetitionSetupService
               brokerList.add(tokens[i]);
             }
             URL bootDataset = new URL("file:" + bootFile);
-            simSession(brokerList, bootDataset);
+            startSimSession(brokerList, bootDataset);
           }
         }
       }
@@ -320,35 +319,131 @@ public class CompetitionSetupService
       System.out.println("Error reading file " + args[0]);
     }
   }
+  
+  // ---------- top-level boot and sim session control ----------
+
+  @Override
+  public String bootSession (String bootFilename, String config,
+                             String logSuffix)
+  {
+    String error = null;
+    // process serverConfig now, because other options may override
+    // parts of it
+    try {
+      config = setConfigMaybe(config);
+
+      setLogSuffix(logSuffix, "boot");
+
+      File bootFile = new File(bootFilename);
+      if (!bootFile
+              .getAbsoluteFile()
+              .getParentFile()
+              .canWrite()) {
+        error = "Cannot write to bootstrap data file " + bootFilename;
+        System.out.println(error);                
+      }
+      else {
+        startBootSession(bootFile);
+      }
+    }
+    catch (MalformedURLException e) {
+      // Note that this should not happen from the web interface
+      error = "Malformed URL: " + config;
+      System.out.println(error);
+    }
+    catch (IOException e) {
+      error = "Error retrieving log suffix value";
+    }
+    return error;
+  }
+
+  @Override
+  public String simSession (String bootData, String config, String jmsUrl,
+                            String logfileSuffix, List<String> brokerUsernames)
+  {
+    String error = null;
+    try {
+      // process serverConfig now, because other options may override
+      // parts of it
+      config = setConfigMaybe(config);
+
+      // set the logfile suffix
+      setLogSuffix(logfileSuffix, "sim");
+    
+      // jms setup
+      if (jmsUrl != null) {
+        serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
+                                jmsUrl);
+      }
+      
+      // boot data access
+      if (bootData != null) {
+        if (!bootData.contains(":"))
+          bootData = "file:" + bootData;
+        startSimSession(brokerUsernames, new URL(bootData));
+      }        
+      else if (controllerURL != null) {
+        startSimSession(brokerUsernames, new URL(controllerURL, "bootstrap-data"));
+      }
+      else {
+        error = "bootstrap data source not given";
+        System.out.println(error);
+      }
+    }
+    catch (MalformedURLException e) {
+      // Note that this should not happen from the web interface
+      error = "Malformed URL: " + config;
+      System.out.println(error);
+    }
+    catch (IOException e) {
+      error = "Error retrieving log suffix value";
+    }
+    return error;
+  }
+
+  private String setConfigMaybe (String config) throws MalformedURLException
+  {
+    if (config != null) {
+      // needs to be a URL
+      if (!config.contains(":")) {
+        config = "file:" + config;
+      }
+      serverProps.setUserConfig(new URL(config));
+    }
+    return config;
+  }
 
   // Runs a bootstrap session
-  private void bootSession (File bootstrapFile) throws IOException
+  private void startBootSession (File bootstrapFile) throws IOException
   {
-    if (!bootstrapFile
-          .getAbsoluteFile()
-          .getParentFile()
-          .canWrite()) {
-      System.out.println("Cannot write to bootstrap data file " +
-          bootstrapFile);                
-    }
-    else {
-      FileWriter bootWriter = new FileWriter(bootstrapFile);
-      cc.setAuthorizedBrokerList(new ArrayList<String>());
-      preGame();
-      //cc.runOnce(bootWriter);
-      cc.runOnce(true);
-      saveBootstrapData(bootWriter);
-    }
+    final FileWriter bootWriter = new FileWriter(bootstrapFile);
+    session = new Thread() {
+      @Override
+      public void run () {
+        cc.setAuthorizedBrokerList(new ArrayList<String>());
+        preGame();
+        cc.runOnce(true);
+        saveBootstrapData(bootWriter);
+      }
+    };
+    session.start();
   }
 
   // Runs a simulation session
-  private void simSession (List<String> list, URL bootDataset)
+  private void startSimSession (final List<String> list,
+                                final URL bootDataset)
   {
-    cc.setAuthorizedBrokerList(list);
-    if (preGame(bootDataset)) {
-      cc.setBootstrapDataset(processBootDataset(bootDataset));
-      cc.runOnce(false);
-    }
+    session = new Thread() {
+      @Override
+      public void run () {
+        cc.setAuthorizedBrokerList(list);
+        if (preGame(bootDataset)) {
+          cc.setBootstrapDataset(processBootDataset(bootDataset));
+          cc.runOnce(false);
+        }        
+      }
+    };
+    session.start();
   }  
 
   /**
