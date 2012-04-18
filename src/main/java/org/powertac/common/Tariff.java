@@ -190,10 +190,13 @@ public class Tariff
    */
   public double getRealizedPrice ()
   {
-    if (totalUsage == 0.0)
+    if (totalUsage == 0.0) {
       return 0.0;
-    else
-      return totalCost / totalUsage;
+    }
+    else {
+      double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
+      return sign * totalCost / totalUsage;
+    }
   }
 
   /** 
@@ -309,6 +312,11 @@ public class Tariff
   {
     // first, get the time index
     int di = getTimeIndex(when);
+    
+    // next, adjust the sign of the result. Production is kwh<0, and rate>0.
+    // Consumption is kwh>0 and rate<0. If we multiply them, we get the same
+    // sign. So this is the adjustment:
+    double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
 
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
@@ -317,7 +325,7 @@ public class Tariff
       return 0.0;
     }
     else if (tiers.size() == 1) {
-      return kwh * rateValue(0, di, when);
+      return sign * kwh * rateValue(0, di, when);
     }
     else {
       double result = 0.0;
@@ -325,7 +333,7 @@ public class Tariff
       for (RateKwh rk : rkList) {
         result += rk.kwh * rk.rate.getValue(when);
       }
-      return result;
+      return sign * result;
     }
   }
 
