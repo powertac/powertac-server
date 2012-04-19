@@ -657,7 +657,7 @@ public class CompetitionControlService
   /**
    * Shuts down the simulation and cleans up.
    */
-  private void shutDown ()
+  public void shutDown ()
   {
     running = false;
 

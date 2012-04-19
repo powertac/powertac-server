@@ -90,6 +90,7 @@ public class LogService
   {
     Logger root = Logger.getRootLogger();
     Logger state = getStateLogger();
+    state.setAdditivity(false);
     root.removeAllAppenders();
     state.removeAllAppenders();
     try {
