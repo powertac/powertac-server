@@ -233,7 +233,7 @@
 
 				<configuration>
 					<webApp>${basedir}/target/mycustom.war</webApp>
-					<contextPath>/visualizer9</contextPath>
+					<contextPath>/visualizer</contextPath>
 				</configuration>
 			</plugin>
 

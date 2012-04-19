@@ -10,7 +10,16 @@
 
 	<ui:define name="notes">
 		<h5>Comments:</h5>
-		<p>From here you can start the simulator</p>
+		<p>From here you can start configure and run the competition.</p>
+		<br />
+		<p>
+			You can also watch the running competition from here:
+			<h:outputLink value="gameoverview">
+				<h:outputText style="font-weight:bold; font-size:150%;"
+					value="GAME VIEW" />
+			</h:outputLink>
+		</p>
+
 	</ui:define>
 
 	<ui:define name="content">
@@ -18,7 +27,10 @@
 			<h:panelGroup id="content" layout="block" styleClass="notice">
 				<h:outputLabel for="message" value="Message: " styleClass="large" />
 				<hr />
-				<h:outputText id="message" value="#{webCompetitionControl2Service.message}" styleClass="large alt" />
+				<h:outputText id="message"
+					value="#{webCompetitionControlService.message}"
+					styleClass="large alt" />
+		
 
 			</h:panelGroup>
 			<br />
@@ -85,7 +97,9 @@
 					</h:panelGroup>
 					<hr />
 					<h:outputText value=" " />
-					<p:commandButton value="Run" actionListener="#{webCompetitionControl2Service.runSim}" update="content" />
+					<p:commandButton value="Run"
+						actionListener="#{webCompetitionControlService.runSim}"
+						update="content" />
 
 
 
@@ -100,7 +114,9 @@
 
 					<hr />
 					<h:outputText value=" " />
-					<p:commandButton value="Run" actionListener="#{webCompetitionControl2Service.runBoot}" update="content" />
+					<p:commandButton value="Run"
+						actionListener="#{webCompetitionControlService.runBoot}"
+						update="content" />
 				</h:panelGrid>
 			</p:panel>
 
@@ -117,9 +133,12 @@
 
 
 
-				<p:commandButton value="Force close"
-					actionListener="#{webCompetitionControl2Service.forceClose}"
+				<p:commandButton value="Shut down"
+					actionListener="#{webCompetitionControlService.shutDown}"
 					update="content" />
+
+
+
 			</h:panelGroup>
 
 

@@ -19,17 +19,17 @@
 	<view-state id="view">
 
 	<!--  	<transition on="runSim">
-			<evaluate expression="webCompetitionControl2Service.runSim()"
+			<evaluate expression="webCompetitionControlService.runSim()"
 				result="requestScope.message"></evaluate>
 		</transition>
 		
 		<transition on="runBoot">
-			<evaluate expression="webCompetitionControl2Service.runBoot()"
+			<evaluate expression="webCompetitionControlService.runBoot()"
 				result="requestScope.message"></evaluate>
 		</transition>
 
 		<transition on="forceClose">
-			<evaluate expression="webCompetitionControl2Service.forceClose()"
+			<evaluate expression="webCompetitionControlService.forceClose()"
 				result="requestScope.message"></evaluate>
 		</transition>
 	 -->	
