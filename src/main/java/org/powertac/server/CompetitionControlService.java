@@ -444,8 +444,12 @@ public class CompetitionControlService
     // if we are not in bootstrap mode, we have to add the bootstrap interval
     // to the base
     long rate = competition.getSimulationRate();
+    
+    // reset the slot counting mechanism
+    currentSlot = 0;
+    
     if (!bootstrapMode) {
-      int slotCount = (currentSlotOffset);
+      int slotCount = currentSlotOffset;
       log.info("first slot: " + slotCount);
       base = base.plus(slotCount * competition.getTimeslotDuration());
     }

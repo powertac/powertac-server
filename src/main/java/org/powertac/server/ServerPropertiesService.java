@@ -63,8 +63,12 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     recycle();
   }
 
-  // test support
-  void recycle ()
+  /**
+   * Come here to re-configure from scratch. This is not done as an 
+   * InitializationService because it has to happen before module
+   * initialization happens.
+   */
+  public void recycle ()
   {
     // set up the config instance
     config = new CompositeConfiguration();

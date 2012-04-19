@@ -228,10 +228,6 @@ public class CompetitionSetupService
       System.err.println("Cannot parse command line: " + e.toString());
       System.exit(1);
     }
-    catch (IOException e) {
-      System.err.println("I/O Error: " + e.toString());
-      System.exit(1);
-    }
   }
 
   // sets up the logfile name suffix
@@ -330,6 +326,7 @@ public class CompetitionSetupService
     // process serverConfig now, because other options may override
     // parts of it
     try {
+      serverProps.recycle();
       config = setConfigMaybe(config);
 
       setLogSuffix(logSuffix, "boot");
@@ -365,6 +362,7 @@ public class CompetitionSetupService
     try {
       // process serverConfig now, because other options may override
       // parts of it
+      serverProps.recycle();
       config = setConfigMaybe(config);
 
       // set the logfile suffix
