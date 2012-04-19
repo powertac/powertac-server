@@ -60,4 +60,10 @@ public interface CompetitionControl
    * Waits for broker login, then starts and runs a simulation.
    */
   public void runOnce (boolean bootstrapMode);
+  
+  /**
+   * Stops a running simulation, and sends out the SimEnd message
+   * to brokers.
+   */
+  public void shutDown ();
 }
