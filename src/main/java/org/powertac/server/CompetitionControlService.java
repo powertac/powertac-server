@@ -248,13 +248,6 @@ public class CompetitionControlService
 
     // wrap up
     shutDown();
-    simRunning = false;
-    
-    // need to wait for clock control stop before shutting down JMS provider
-    clock.waitUntilStop();
-    jmsManagementService.stop();
-    
-    logService.stopLog();
   }
 
   // ------------------ simulation setup -------------------
@@ -646,6 +639,14 @@ public class CompetitionControlService
 
   // ------------ simulation shutdown ------------
   /**
+   * Expose simulation-running flag
+   */
+  public boolean isRunning()
+  {
+    return simRunning;
+  }
+  
+  /**
    * Signals the simulation thread to stop after processing is completed in
    * the current timeslot.
    */
@@ -663,6 +664,14 @@ public class CompetitionControlService
 
     SimEnd endMsg = new SimEnd();
     brokerProxyService.broadcastMessage(endMsg);
+
+    simRunning = false;
+    
+    // need to wait for clock control stop before shutting down JMS provider
+    clock.waitUntilStop();
+    jmsManagementService.stop();
+    
+    logService.stopLog();
   }
 
   // ---------------- API contract -------------
