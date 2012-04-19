@@ -265,7 +265,7 @@ public class WeatherServiceTest {
 		Instant reqTime = timeslotRepo.enabledTimeslots().get(24)
 				.getStartInstant();
 		assertNotNull(reqTime);
-		System.out.println(timeslotRepo.currentTimeslot());
+		//System.out.println(timeslotRepo.currentTimeslot());
 		assertEquals(24, weatherReportRepo.count());
 
 		timeService.setCurrentTime(reqTime);
@@ -276,9 +276,8 @@ public class WeatherServiceTest {
 		// Check that 48 weather forecast enterd the repo
 		assertEquals(48, weatherForecastRepo.count());
 
-		System.out.println(timeslotRepo.currentTimeslot());
-		System.out.println(weatherReportRepo.currentWeatherReport()
-				.getCurrentTimeslot());
+		//System.out.println(timeslotRepo.currentTimeslot());
+		//System.out.println(weatherReportRepo.currentWeatherReport().getCurrentTimeslot());
 
 		assertEquals(48, weatherReportRepo.count());
 		// Check beginning weather

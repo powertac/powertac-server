@@ -189,7 +189,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 					Double.parseDouble(Wind), Double.parseDouble(Dir
 							.equalsIgnoreCase("***") ? "0.0" : Dir), cvr);
 
-			currentTime = currentTime = currentTime.getNext();
+			currentTime = currentTime.getNext();
 
 			return wr;
 		}
@@ -366,10 +366,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 	// Forecasts are random and must be repeatable from the same seed
 	private boolean webRequest(Timeslot time, int randomSeed) {
 		currentTime = time;
-		boolean readingForecast = false;
 
-		List<String[]> reportValues = new ArrayList<String[]>();
-		List<String[]> forecastValues = new ArrayList<String[]>();
 
 		try {
 			// Create a URLConnection object for a URL and send request
@@ -390,7 +387,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			String queryDate = String.format("%02d%02d%02d%04d", hour, day,
 					month, year);
 
-			// System.out.println("Query Date Time: " + queryDate);
+			log.info("Query datetime value for REST call: " + queryDate);
 
 			URL url = new URL(getServerUrl() + "?weatherDate=" + queryDate
 					+ "&weatherLocation=" + weatherLocation);
@@ -400,7 +397,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			// Get the response in xml
 			BufferedReader input = new BufferedReader(new InputStreamReader(
 					conn.getInputStream()));
-
+			
+	
 			xstream = new XStream();
 
 			// Set up alias
@@ -429,7 +427,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 			}
 
 			currentTime = time;
-			log.info(reportValues.size() + " WeatherReports fetched.");
+			log.info(d.getWeatherReports().size() + " WeatherReports fetched from xml response.");
 			weatherReportRepo.runOnce();
 
 			List<WeatherForecastPrediction> currentPredictions;
@@ -446,6 +444,9 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 					}
 					j++;
 				}
+				if(currentPredictions.size() != getForecastHorizon()){
+					log.error("Forecast horizon does not match the predictions parsed!");
+				}
 				WeatherForecast newForecast = new WeatherForecast(currentTime,
 						currentPredictions);
 				// Add a forecast to the repo, increment to the next timeslot
@@ -457,7 +458,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 					currentTime = currentTime.getNext();
 				}
 			}
-			log.info(forecastValues.size() + " WeatherForecasts fetched.");
+			log.info(d.getWeatherForecasts().size() + " WeatherForecasts fetched from xml response.");
 			weatherForecastRepo.runOnce();
 		} catch (Exception e) {
 
