@@ -52,13 +52,13 @@ public class Customer implements TimeslotModelUpdate {
 
 	public void addTariffTransaction(TariffTransaction transaction) {
 		double kWh = transaction.getKWh();
-		double charge = transaction.getCharge();
+		double charge = (-1.0) * transaction.getCharge();
 		if (kWh < 0) {
 			currentKWhConsumed += kWh;
 		} else {
 			currentKWhProduced += kWh;
 		}
-		if (charge < 0) {
+		if (charge > 0) {
 			currentInflowCharge += charge;
 		} else {
 			currentOutflowCharge += charge;

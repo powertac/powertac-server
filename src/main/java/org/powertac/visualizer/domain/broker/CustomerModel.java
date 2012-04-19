@@ -97,8 +97,10 @@ public class CustomerModel {
 
 	private void updateCash(double charge) {
 
-		if (charge < 0) {
-			cashInflow += charge;
+		charge*=-1.0;
+		
+		if (charge > 0) {
+			cashInflow +=  charge;
 		} else {
 			cashOutflow += charge;
 		}

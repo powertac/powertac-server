@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.domain.customer.Customer;
 import org.powertac.visualizer.interfaces.Recyclable;
@@ -54,11 +55,11 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	 * @param customerName
 	 * @return Customer associated by the given name, or null if the customer cannot be found.
 	 */
-	public Customer findCustomerByName(String customerName) {
+	public Customer findCustomerByNameAndType(String customerName,PowerType type) {
 		for (Entry<CustomerInfo, Customer> entry : customerMap.entrySet()) {
 			CustomerInfo key = entry.getKey();
 			Customer value = entry.getValue();
-			if(key.getName().equals(customerName)){
+			if(key.getName().equals(customerName)&&(key.getPowerType()==type)){
 				return value;
 			}
 		}
@@ -92,5 +93,7 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	public Customer findCustomerByCustomerInfo(CustomerInfo customerInfo) {
 		return customerMap.get(customerInfo);
 	}
+
+	
 
 }

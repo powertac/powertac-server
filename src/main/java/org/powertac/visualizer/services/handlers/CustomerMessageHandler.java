@@ -37,7 +37,7 @@ public class CustomerMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(CustomerBootstrapData data) {
-		Customer customer = customerService.findCustomerByName(data.getCustomerName());
+		Customer customer = customerService.findCustomerByNameAndType(data.getCustomerName(),data.getPowerType());
 		if (customer != null) {
 			customer.addCustomerBootstrapData(data);
 		}
