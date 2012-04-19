@@ -67,6 +67,13 @@
 					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/671731.png" />
 				</bean>
 				
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#b2b2b2" />
+					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/b2b2b2.png" />
+				</bean>
+				
+				
+				
 			</list>
 		</constructor-arg>
 		<constructor-arg name="defaultAppearance">

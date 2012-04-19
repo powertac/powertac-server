@@ -54,7 +54,7 @@ public class WebCompetitionControl2Service {
 
 		// find the CompetitionControlService bean
 		css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
-				
+
 		// time to initialize Visualizer:
 		VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class).values().toArray()[0];
 		visualizerService.init(visualizerProxy);
@@ -93,12 +93,15 @@ public class WebCompetitionControl2Service {
 		context.registerShutdownHook();
 		css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
 
+		// time to initialize Visualizer:
+		VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class).values().toArray()[0];
+		visualizerService.init(visualizerProxy);
+
 		// web components treat empty forms as "", not null.
 		String bootFilename = gameParamaters.getBootstrapFilename().equals("") ? null : gameParamaters.getBootstrapFilename();
 		String serverConfig = gameParamaters.getServerConfig().equals("") ? null : gameParamaters.getServerConfig();
 		String logSuffix = gameParamaters.getLogSuffix().equals("") ? null : gameParamaters.getLogSuffix();
-		css.bootSession(bootFilename, serverConfig, logSuffix);
-
+		
 		System.out.println(bootFilename + serverConfig + logSuffix);
 
 		String result = css.bootSession(bootFilename, serverConfig, logSuffix);
@@ -120,7 +123,7 @@ public class WebCompetitionControl2Service {
 		message = "Force close completed.";
 
 	}
-	
+
 	public String getMessage() {
 		return message;
 	}
