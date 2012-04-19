@@ -4,27 +4,38 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
 	parent="parent-flow">
 
-	<!--
-		Also see ../parent-flow.xml. 
-	-->
+	<!-- Also see ../parent-flow.xml. -->
 
 	<var name="message" class="java.lang.String" />
 	<!-- <var name="visualizerService" class="org.powertac.visualizer.services.VisualizerService"/> -->
-		
+	
+	
+
 	<on-start>
 		<set name="flashScope.message" value="'output from competition control methods'" />
+	
 	</on-start>
 
 	<view-state id="view">
-			
-		<transition on="run2">
-			<evaluate expression="webCompetitionControl2Service.runSim()" result="requestScope.message"></evaluate>
-		</transition>	
+
+	<!-- 	<transition on="runSim">
+			<evaluate expression="webCompetitionControl2Service.runSim()"
+				result="requestScope.message"></evaluate>
+		</transition>
 		
-		<transition on="stop">
-			<evaluate expression="webCompetitionControl2Service.stopSim()" result="requestScope.message"></evaluate>
-		</transition>							
+		<transition on="runBoot">
+			<evaluate expression="webCompetitionControl2Service.runBoot()"
+				result="requestScope.message"></evaluate>
+		</transition>
+
+		<transition on="forceClose">
+			<evaluate expression="webCompetitionControl2Service.forceClose()"
+				result="requestScope.message"></evaluate>
+		</transition>
 		
+	 -->
+		
+
 	</view-state>
 
 </flow>

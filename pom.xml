@@ -7,12 +7,12 @@
 	<packaging>war</packaging>
 	<version>0.5</version>
 
-  <parent>
-    <groupId>org.powertac</groupId>
-    <artifactId>server-master</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
-    <relativePath />
-  </parent>
+	<parent>
+		<groupId>org.powertac</groupId>
+		<artifactId>server-master</artifactId>
+		<version>0.5.0-SNAPSHOT</version>
+		<relativePath />
+	</parent>
 
 	<properties>
 		<springwebflow-version>2.3.0.RELEASE</springwebflow-version>
@@ -30,7 +30,7 @@
 
 
 
-		<!-- Spring --> 
+		<!-- Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
@@ -68,13 +68,9 @@
 			<artifactId>jcl-over-slf4j</artifactId> <version>${org.slf4j-version}</version> 
 			<scope>runtime</scope> </dependency> <dependency> <groupId>org.slf4j</groupId> 
 			<artifactId>slf4j-log4j12</artifactId> <version>${org.slf4j-version}</version> 
-			<scope>runtime</scope> </dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-			<scope>runtime</scope>
-		</dependency> -->
+			<scope>runtime</scope> </dependency> <dependency> <groupId>log4j</groupId> 
+			<artifactId>log4j</artifactId> <version>1.2.16</version> <scope>runtime</scope> 
+			</dependency> -->
 		<!-- JSF-303 Dependency Injection -->
 		<dependency>
 			<groupId>javax.inject</groupId>
@@ -134,19 +130,20 @@
 			<version>4.0.2.GA</version>
 		</dependency>
 		<!-- Test -->
-		<!-- <dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.7</version>
-			<scope>test</scope>
-		</dependency> -->
+		<!-- <dependency> <groupId>junit</groupId> <artifactId>junit</artifactId> 
+			<version>4.7</version> <scope>test</scope> </dependency> -->
 		<!-- For random string generator -->
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 			<version>2.2</version>
 		</dependency>
-</dependencies>
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2.2</version>
+		</dependency>
+	</dependencies>
 
 
 	<repositories>
@@ -197,28 +194,20 @@
 
 	<build>
 		<plugins>
-		 	<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
 					<source>${java.version}</source>
 					<target>${java.version}</target>
 				</configuration>
-			</plugin>  
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-eclipse-plugin</artifactId>
-				<version>2.8</version>
-				<configuration>
-					<downloadSources>true</downloadSources>
-					<downloadJavadocs>false</downloadJavadocs>
-					<wtpversion>2.0</wtpversion>
-					<sourceExcludes>
-						<sourceExclude>**/.svn/**</sourceExclude>
-					</sourceExcludes>
-				</configuration>
 			</plugin>
-		 	<plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-eclipse-plugin</artifactId> 
+				<version>2.8</version> <configuration> <downloadSources>true</downloadSources> 
+				<downloadJavadocs>false</downloadJavadocs> <wtpversion>2.0</wtpversion> <sourceExcludes> 
+				<sourceExclude>**/.svn/**</sourceExclude> </sourceExcludes> </configuration> 
+				</plugin> -->
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -230,7 +219,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>  
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>tomcat-maven-plugin</artifactId>
@@ -247,6 +236,9 @@
 					<contextPath>/visualizer9</contextPath>
 				</configuration>
 			</plugin>
+
+
+
 
 		</plugins>
 	</build>

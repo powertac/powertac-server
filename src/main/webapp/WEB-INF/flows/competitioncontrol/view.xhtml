@@ -14,7 +14,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<h:form>
+		<h:form id="comp_form">
 			<h:panelGroup id="content" layout="block" styleClass="notice">
 				<h:outputLabel for="message" value="Message: " styleClass="large" />
 				<hr />
@@ -22,17 +22,118 @@
 
 			</h:panelGroup>
 			<br />
+			<p:panel header="COMMON:" style="width:700px">
+				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+
+
+					<h:outputText value="Server-config:" />
+					<p:inputText value="#{gameParamatersBean.serverConfig}" />
+
+					<h:outputText value="Log suffix:" />
+					<p:inputText value="#{gameParamatersBean.logSuffix}" />
+
+				</h:panelGrid>
+			</p:panel>
+
+			<p:panel header="SIM MODE:" style="width:700px">
+				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+
+
+					<h:outputText value="Bootstrap data URL:" />
+					<p:inputText value="#{gameParamatersBean.bootstrapData}" />
+
+					<h:outputText value="JMS URL:" />
+					<p:inputText value="#{gameParamatersBean.jmsUrl}" />
+
+					<p:dataTable var="broker" value="#{gameParamatersBean.brokers}"
+						editable="true">
+						<f:facet name="header">  
+            Brokers
+        </f:facet>
+
+						<p:column headerText="Name:" style="width:125px">
+							<p:cellEditor>
+								<f:facet name="output">
+									<h:outputText value="#{broker.name}" />
+								</f:facet>
+								<f:facet name="input">
+									<p:inputText value="#{broker.name}" style="width:100%" />
+								</f:facet>
+							</p:cellEditor>
+						</p:column>
+						<p:column headerText="Options" style="width:50px">
+							<p:rowEditor />
+						</p:column>
+
+					</p:dataTable>
+
+
+					<h:panelGroup layout="block">
+						<p:commandButton value="Add broker" update="display"
+							oncomplete="dialog.show()" />
+						<p:commandButton value="Reset"
+							actionListener="#{gameParamatersBean.resetBrokerList}"
+							update="comp_form" />
+					</h:panelGroup>
+					<hr />
+					<h:outputText value=" " />
+					<p:commandButton value="Run" action="runSim" update="content" />
+					
+
+
+				</h:panelGrid>
+			</p:panel>
+			<p:panel header="BOOTSTRAP MODE:" style="width:700px">
+				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
+
+					<h:outputText value="Bootstrap filename:" />
+					<p:inputText value="#{gameParamatersBean.bootstrapFilename}" />
+
+					<hr />
+					<h:outputText value=" " />
+					<p:commandButton value="Run"
+						actionListener="#{webCompetitionControl2Service.runBoot}"
+						 />
+				</h:panelGrid>
+			</p:panel>
+
+
+
+
+
 
 
 			<h:panelGroup layout="block">
-				
-				<p:commandButton value="Run2" action="run2" update="content" />
-				<p:commandButton value="Stop" action="stop" update="content" />
-				
+
+
+
+
+
+
+				<p:commandButton value="Force close"
+					actionListener="#{webCompetitionControl2Service.forceClose}"
+					update="content" />
 			</h:panelGroup>
 
+
+
+			<p:dialog widgetVar="dialog" modal="true">
+				<h:panelGrid id="display" columns="2" cellpadding="5">
+
+					<h:outputText value="Name:" />
+					<p:inputText value="#{gameParamatersBean.newBrokerName}"
+						label="text" />
+
+					<p:commandButton value="Add"
+						actionListener="#{gameParamatersBean.addBroker}"
+						update="comp_form" oncomplete="dialog.hide()" />
+
+
+				</h:panelGrid>
+			</p:dialog>
+
 			<hr />
-			
+
 
 
 
