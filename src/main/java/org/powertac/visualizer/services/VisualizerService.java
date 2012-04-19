@@ -23,7 +23,7 @@ import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
-import org.powertac.visualizer.SpringApplicationContext;
+import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.services.handlers.VisualizerMessageHandlerService;
@@ -45,8 +45,7 @@ public class VisualizerService implements VisualizerMessageListener {
 	@Autowired
 	private VisualizerBean visualizerBean;
 
-//	@Autowired
-//	private VisualizerLogService visualizerLogService;
+	private boolean alreadyRegistered = false;
 
 	@Autowired
 	private MessageDispatcher dispatcher;
@@ -65,14 +64,17 @@ public class VisualizerService implements VisualizerMessageListener {
 		visualizerBean.newRun();
 
 		// Register Visualizer with VisualizerProxy service
-		visualizerProxy.registerVisualizerMessageListener(this);
-
-	//	visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
+		if (!alreadyRegistered) {
+			visualizerProxy.registerVisualizerMessageListener(this);
+			alreadyRegistered = true;
+		} 
+		
+		// visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
 
 		// registrations for message listeners:
-		List<Initializable> initializers = SpringApplicationContext.listBeansOfType(Initializable.class);
+		List<Initializable> initializers = VisualizerApplicationContext.listBeansOfType(Initializable.class);
 		for (Initializable init : initializers) {
-			log.debug("initializing..."+ init.getClass().getName());
+			log.debug("initializing..." + init.getClass().getName());
 			init.initialize();
 		}
 	}

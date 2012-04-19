@@ -9,7 +9,7 @@ import java.util.List;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.visualizer.SpringApplicationContext;
+import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.domain.*;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.interfaces.Recyclable;
@@ -85,7 +85,7 @@ public class VisualizerBean implements Serializable {
 		appearanceList.resetAvailableList(); // so broker appearances will be
 		// free for the next competition
 		// Recycle:
-		List<Recyclable> recyclables = SpringApplicationContext.listBeansOfType(Recyclable.class);
+		List<Recyclable> recyclables = VisualizerApplicationContext.listBeansOfType(Recyclable.class);
 		for (Recyclable rec : recyclables) {
 			log.info("recycling..." + rec.getClass().getName());
 			rec.recycle();

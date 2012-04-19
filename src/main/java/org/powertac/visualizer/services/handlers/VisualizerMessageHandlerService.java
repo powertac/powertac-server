@@ -35,7 +35,7 @@ import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.MessageDispatcher;
-import org.powertac.visualizer.SpringApplicationContext;
+import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
@@ -109,7 +109,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 		}
 
 		// activate beans that implement timeslotcompleteactivation interface:
-		List<TimeslotCompleteActivation> activators = SpringApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
+		List<TimeslotCompleteActivation> activators = VisualizerApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
 		for (TimeslotCompleteActivation active : activators) {
 			log.debug("activating..." + active.getClass().getSimpleName());
 			active.activate(complete.getTimeslotIndex());

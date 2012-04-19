@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.interfaces.CompetitionControl;
+import org.powertac.common.interfaces.CompetitionSetup;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.server.CompetitionSetupService;
 import org.powertac.server.VisualizerProxyService;
@@ -32,7 +34,11 @@ public class WebCompetitionControl2Service {
 	@Autowired
 	private VisualizerResourceLoaderService resourceLoader;
 
-	private CompetitionSetupService css;
+	@Autowired
+	private CompetitionSetup css;
+	
+	@Autowired
+	private CompetitionControl competitionControl;
 
 	@Autowired
 	private VisualizerService visualizerService;
@@ -40,25 +46,17 @@ public class WebCompetitionControl2Service {
 	@Autowired
 	private GameParamatersBean gameParamaters;
 
-	private AbstractApplicationContext context;
+	@Autowired
+	private VisualizerProxy visualizerProxy;
 
 	private String message;
 
-	public void runSim() throws IOException {
-
-		log.info("java.class.path ===>" + System.getProperty("java.class.path"));
-
-		context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml").getURL().toString());
-
-		context.registerShutdownHook();
-
-		// find the CompetitionControlService bean
-		css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
-
-		// time to initialize Visualizer:
-		VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class).values().toArray()[0];
+	public void runSim() {
+		
 		visualizerService.init(visualizerProxy);
-
+		
+		
+		
 		List<String> names = new ArrayList<String>();
 		for (Iterator iterator = gameParamaters.getBrokers().iterator(); iterator.hasNext();) {
 			FakeBroker type = (FakeBroker) iterator.next();
@@ -77,24 +75,14 @@ public class WebCompetitionControl2Service {
 		if (result == null) {
 			message = "Simulation started.";
 		} else {
-			context.close();
 			message = "ERROR: " + result;
 		}
 
 		message = "Sim mode in progress.";
 	}
 
-	public void runBoot() throws IOException {
-
-		log.info("java.class.path ===>" + System.getProperty("java.class.path"));
-
-		context = new FileSystemXmlApplicationContext(resourceLoader.getResource("WEB-INF/spring/powertac.xml").getURL().toString());
-
-		context.registerShutdownHook();
-		css = (CompetitionSetupService) context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
-
-		// time to initialize Visualizer:
-		VisualizerProxy visualizerProxy = (VisualizerProxy) context.getBeansOfType(VisualizerProxyService.class).values().toArray()[0];
+	public void runBoot() {
+		
 		visualizerService.init(visualizerProxy);
 
 		// web components treat empty forms as "", not null.
@@ -110,18 +98,8 @@ public class WebCompetitionControl2Service {
 
 			message = "Bootstrap mode started.";
 		} else {
-			context.close();
 			message = "ERROR: " + result;
 		}
-	}
-
-	public void forceClose() {
-
-		if (context != null) {
-			context.close();
-		}
-		message = "Force close completed.";
-
 	}
 
 	public String getMessage() {
