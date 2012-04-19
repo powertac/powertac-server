@@ -62,6 +62,11 @@ public interface CompetitionControl
   public void runOnce (boolean bootstrapMode);
   
   /**
+   * True if a simulation (boot or sim) session is currently running.
+   */
+  public boolean isRunning();
+  
+  /**
    * Stops a running simulation, and sends out the SimEnd message
    * to brokers.
    */
