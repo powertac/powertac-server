@@ -28,6 +28,10 @@ import org.powertac.common.msg.DistributionReport;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
+import org.powertac.common.msg.TariffExpire;
+import org.powertac.common.msg.TariffRevoke;
+import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.MessageDispatcher;
@@ -84,18 +88,18 @@ public class VisualizerMessageHandlerService implements Initializable {
 		// helper.updateTimeslotIndex(relativeTimeslotIndex);
 		// update for visualizerBean:
 		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
-		
-		log.info("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
+
+		log.debug("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
 
 		Competition comp = visualizerBean.getCompetition();
 		// timeslot serial number:
 		int timeslotSerialNumber = timeslotUpdate.getFirstEnabled() - comp.getDeactivateTimeslotsAhead();
 		visualizerBean.setCurrentTimeslotSerialNumber(timeslotSerialNumber);
-		
-		visualizerBean.setWeek(timeslotSerialNumber/(24*7));
-		visualizerBean.setDay(timeslotSerialNumber/24);
-		visualizerBean.setHour(timeslotSerialNumber%24);
-		
+
+		visualizerBean.setWeek(timeslotSerialNumber / (24 * 7));
+		visualizerBean.setDay(timeslotSerialNumber / 24);
+		visualizerBean.setHour(timeslotSerialNumber % 24);
+
 	}
 
 	public void handleMessage(TimeslotComplete complete) {
@@ -137,7 +141,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 			log.debug("\nStart Instant: " + weatherReport.getCurrentTimeslot().getStartInstant());
 			visualizerBean.setWeatherReport(weatherReport);
 		} else {
-			log.warn("Timeslot for Weather report object is null!!");
+			log.debug("Timeslot for Weather report object is null!!");
 		}
 
 		log.debug("CLOUD COVER: " + weatherReport.getCloudCover() + " TEMP: " + weatherReport.getTemperature() + "W DIR:" + weatherReport.getWindDirection() + "W SPEED:" + weatherReport.getWindSpeed());
@@ -180,9 +184,25 @@ public class VisualizerMessageHandlerService implements Initializable {
 		log.debug("DIST REPORT: " + "PROD " + report.getTotalProduction() + "CONS " + report.getTotalConsumption());
 	}
 
+	public void handleMessage(TariffExpire msg) {
+		// TODO
+	}
+
+	public void handleMessage(TariffRevoke msg) {
+		// TODO
+	}
+
+	public void handleMessage(TariffStatus msg) {
+		// TODO
+	}
+
+	public void handleMessage(TariffUpdate msg) {
+		// TODO
+	}
+
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class, MarketPosition.class, MarketTransaction.class, BankTransaction.class, WeatherForecast.class, WeatherReport.class, SimPause.class, SimStart.class,
-				TimeslotComplete.class, TimeslotUpdate.class, Competition.class)) {
+				TimeslotComplete.class, TimeslotUpdate.class, Competition.class, TariffExpire.class, TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 	}

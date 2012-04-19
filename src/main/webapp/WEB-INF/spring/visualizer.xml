@@ -9,10 +9,10 @@
 
 	<bean id="springApplicationContext" class="org.powertac.visualizer.SpringApplicationContext"/>
 
-	<bean id="visualizerLogService" class="org.powertac.visualizer.services.VisualizerLogService">
-		<constructor-arg name="outputFolderResource" value="WEB-INF/output/log" />
+	<!-- <bean id="visualizerLogService" class="org.powertac.visualizer.services.VisualizerLogService">
+		<constructor-arg name="outputFolderResource" value="log" />  
 		<constructor-arg name="filenamePrefix" value="visualizer" />
-	</bean>
+	</bean>-->
 
 
 	<!-- .................BEANS......................... NOT USED? -->
@@ -49,6 +49,24 @@
 					<constructor-arg name="colorCode" value="#ffff00" />
 					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ffff00.png" />
 				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#ff9933" />
+					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ff9933.png" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#87b5bd" />
+					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/87b5bd.png" />
+				</bean>
+					<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#23811c" />
+					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/23811c.png" />
+				</bean>
+				
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#671731" />
+					<constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/671731.png" />
+				</bean>
+				
 			</list>
 		</constructor-arg>
 		<constructor-arg name="defaultAppearance">

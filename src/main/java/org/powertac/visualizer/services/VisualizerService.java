@@ -45,8 +45,8 @@ public class VisualizerService implements VisualizerMessageListener {
 	@Autowired
 	private VisualizerBean visualizerBean;
 
-	@Autowired
-	private VisualizerLogService visualizerLogService;
+//	@Autowired
+//	private VisualizerLogService visualizerLogService;
 
 	@Autowired
 	private MessageDispatcher dispatcher;
@@ -67,7 +67,7 @@ public class VisualizerService implements VisualizerMessageListener {
 		// Register Visualizer with VisualizerProxy service
 		visualizerProxy.registerVisualizerMessageListener(this);
 
-		visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
+	//	visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
 
 		// registrations for message listeners:
 		List<Initializable> initializers = SpringApplicationContext.listBeansOfType(Initializable.class);

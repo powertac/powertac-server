@@ -2,6 +2,7 @@ package org.powertac.visualizer.services.handlers;
 
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.CustomerBootstrapData;
@@ -20,6 +21,7 @@ public class CustomerMessageHandler implements Initializable {
 	private MessageDispatcher router;
 	@Autowired
 	private CustomerService customerService;
+	private static Logger log = Logger.getLogger(CustomerMessageHandler.class);
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Competition.class, TariffTransaction.class, CustomerBootstrapData.class)) {
@@ -33,11 +35,15 @@ public class CustomerMessageHandler implements Initializable {
 
 	public void handleMessage(TariffTransaction transaction) {
 		Customer customer = customerService.findCustomerByCustomerInfo(transaction.getCustomerInfo());
-		customer.addTariffTransaction(transaction);
+		if (customer == null) {
+			log.warn("Customer '" + transaction.getCustomerInfo() + "' not found!");
+		} else {
+			customer.addTariffTransaction(transaction);
+		}
 	}
 
 	public void handleMessage(CustomerBootstrapData data) {
-		Customer customer = customerService.findCustomerByNameAndType(data.getCustomerName(),data.getPowerType());
+		Customer customer = customerService.findCustomerByNameAndType(data.getCustomerName(), data.getPowerType());
 		if (customer != null) {
 			customer.addCustomerBootstrapData(data);
 		}

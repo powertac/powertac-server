@@ -14,7 +14,7 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 
-	<!-- PRIMEFACES THEME-->
+	<!-- PRIMEFACES THEME -->
 	<context-param>
 		<param-name>primefaces.THEME</param-name>
 		<param-value>south-street</param-value>
@@ -76,12 +76,12 @@
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
-	
+
 	<!-- TAG LIBS -->
 	<context-param>
-        <param-name>facelets.LIBRARIES</param-name>
-        <param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
-    </context-param>
-    
+		<param-name>facelets.LIBRARIES</param-name>
+		<param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
+	</context-param>
+
 
 </web-app>
