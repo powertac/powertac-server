@@ -20,9 +20,6 @@ Poke:
 
 To run Visualizer, poke 'mvn jetty:run' inside your visualizer folder.
 If everything works well, the message "Jetty Server started" will appear in your console output.
-Now go in your browser: localhost:8080/visualizer9/
-Navigate to competition control page and poke "Run2" button to start the new comeptition with an embedded bootstrap file.
-Simulation will now wait for broker "Sample" to log in.
-Finally, go to:
-localhost:8080/visualizer9/app/brokers
-to see the brokers page.
+
+Visualizer is located on the following link:
+localhost:8080/visualizer/
