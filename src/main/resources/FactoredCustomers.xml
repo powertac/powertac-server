@@ -278,7 +278,7 @@
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
                     <hourlySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
                     <temperature influence="NONE" />
-		    <windSpeed influence="DIRECT" rangeMap="0~1: 0.0, 2~5: 0.5, 6~17: 1.0, 18~30: 1.2, 31~105: 0.0" />
+		    <windSpeed influence="DIRECT" rangeMap="0~3: 0.0, 3~6: 0.5, 7~17: 1.0, 18~30: 1.2, 31~105: 0.0" />
                     <windDirection influence="DIRECT" rangeMap="0~90: 0.5, 91~180: 0.8, 181~270: 1.0, 271~360: 0.9" />
                     <cloudCover influence="NONE" />
                     <priceElasticity>
