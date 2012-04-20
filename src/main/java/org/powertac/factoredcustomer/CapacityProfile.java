@@ -49,7 +49,7 @@ final class CapacityProfile
     final Map<Integer, Double> temperatureMap = new HashMap<Integer, Double>();  // key: degree Celsius
     final double temperatureReference;
     final InfluenceKind windSpeedInfluence;
-    final Map<Integer, Double> windSpeedMap = new HashMap<Integer, Double>();  // key: 0 (calm) - 12 (hurricane) Beaufort scale 
+    final Map<Integer, Double> windSpeedMap = new HashMap<Integer, Double>();  // key: speed in m/s 
     final InfluenceKind windDirectionInfluence;
     final Map<Integer, Double> windDirectionMap = new HashMap<Integer, Double>();  // key: angle 0-360
     final InfluenceKind cloudCoverInfluence;
