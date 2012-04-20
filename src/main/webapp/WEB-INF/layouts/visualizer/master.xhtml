@@ -34,7 +34,7 @@
 						<th>Name:</th>
 						<th>Description:</th>
 						<!-- <th>Poll counter (dev. stage):</th>  -->
-						<th>Admin page:</th>
+						
 					</tr>
 					<tr>
 						<td>#{visualizerBean.week}</td>
@@ -44,11 +44,7 @@
 						<td>#{visualizerBean.competition.name}</td>
 						<td>#{visualizerBean.competition.description}</td>
 						<!-- <td>#{trainingService.counter}</td> -->
-						<td><h:outputLink value="competitioncontrol">
-								<h:outputText style="font-weight:bold; font-size:110%;"
-									value="ENTER" />
-							</h:outputLink>
-							</td>
+						<td><p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol"/>	</td>
 
 					</tr>
 				</table>
