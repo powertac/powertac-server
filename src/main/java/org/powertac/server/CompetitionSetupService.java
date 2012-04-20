@@ -47,6 +47,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
@@ -271,7 +272,7 @@ public class CompetitionSetupService
           else {
             if (tokens.length == 3 && "--config".equals(tokens[1])) {
               // explicit config file - convert to URL format
-              serverProps.setUserConfig(new URL("file:" + tokens[2]));
+              setConfigMaybe(tokens[2]);
             }
             String bootstrapFilename =
                 serverProps.getProperty("server.bootstrapDataFile",
@@ -284,7 +285,7 @@ public class CompetitionSetupService
           // sim mode, check for --config in tokens[1]
           if (tokens.length > 2 && "--config".equals(tokens[1])) {
             // explicit config file in tokens[2]
-            serverProps.setUserConfig(new URL("file:" + tokens[2]));
+            setConfigMaybe(tokens[2]);
             brokerIndex = 3;
           }
           log.info("In Simulation mode!!!");
@@ -314,6 +315,9 @@ public class CompetitionSetupService
     catch (IOException ioe ) {
       System.out.println("Error reading file " + args[0]);
     }
+    catch (ConfigurationException ce) {
+      System.out.println("Error setting configuration: " + ce.toString());
+    }
   }
   
   // ---------- top-level boot and sim session control ----------
@@ -327,7 +331,7 @@ public class CompetitionSetupService
     // parts of it
     try {
       serverProps.recycle();
-      config = setConfigMaybe(config);
+      setConfigMaybe(config);
 
       setLogSuffix(logSuffix, "boot");
 
@@ -345,11 +349,14 @@ public class CompetitionSetupService
     }
     catch (MalformedURLException e) {
       // Note that this should not happen from the web interface
-      error = "Malformed URL: " + config;
+      error = "Malformed URL: " + e.toString();
       System.out.println(error);
     }
     catch (IOException e) {
-      error = "Error retrieving log suffix value";
+      error = "Error reading configuration";
+    }
+    catch (ConfigurationException e) {
+      error = "Error setting configuration";
     }
     return error;
   }
@@ -363,7 +370,7 @@ public class CompetitionSetupService
       // process serverConfig now, because other options may override
       // parts of it
       serverProps.recycle();
-      config = setConfigMaybe(config);
+      setConfigMaybe(config);
 
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim");
@@ -390,16 +397,20 @@ public class CompetitionSetupService
     }
     catch (MalformedURLException e) {
       // Note that this should not happen from the web interface
-      error = "Malformed URL: " + config;
+      error = "Malformed URL: " + e.toString();
       System.out.println(error);
     }
     catch (IOException e) {
-      error = "Error retrieving log suffix value";
+      error = "Error reading configuration " + config;
+    }
+    catch (ConfigurationException e) {
+      error = "Error setting configuration " + config;
     }
     return error;
   }
 
-  private String setConfigMaybe (String config) throws MalformedURLException
+  private void setConfigMaybe (String config)
+          throws ConfigurationException, IOException
   {
     if (config != null) {
       // needs to be a URL
@@ -408,7 +419,6 @@ public class CompetitionSetupService
       }
       serverProps.setUserConfig(new URL(config));
     }
-    return config;
   }
 
   // Runs a bootstrap session

@@ -138,20 +138,14 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   }
   
   public void setUserConfig (URL userConfigURL)
+          throws ConfigurationException, IOException
   {
     // then load the user-specified config
-    try {
-      PropertiesConfiguration pconfig = new PropertiesConfiguration();
-      pconfig.load(userConfigURL.openStream());
-      config.addConfiguration(pconfig);
-      log.debug("setUserConfig " + userConfigURL.toExternalForm());
-    }
-    catch (IOException e) {
-      log.error("IO error loading " + userConfigURL + ": " + e.toString());
-    }
-    catch (ConfigurationException e) {
-      log.error("Config error loading " + userConfigURL + ": " + e.toString());
-    }
+    
+    PropertiesConfiguration pconfig = new PropertiesConfiguration();
+    pconfig.load(userConfigURL.openStream());
+    config.addConfiguration(pconfig);
+    log.debug("setUserConfig " + userConfigURL.toExternalForm());
     lazyInit();
   }
 
