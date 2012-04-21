@@ -2,9 +2,7 @@
 	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <!--
-     Master pom for powertac server components. Must be
-     installed/deployed first in order to successfully install or
-     deploy server components. 
+     Deployment pom for powertac server. 
    -->
 
   <modelVersion>4.0.0</modelVersion>
@@ -33,19 +31,32 @@
   </repositories>
     
   <dependencies>
+
      <dependency>
        <groupId>org.powertac</groupId>
        <artifactId>server-main</artifactId>
        <version>0.5.0-SNAPSHOT</version>
        <scope>runtime</scope>
      </dependency>
+
+     <dependency>
+       <groupId>org.powertac</groupId>
+       <artifactId>visualizer</artifactId>
+       <version>0.5.0-SNAPSHOT</version>
+       <type>war</type>
+       <scope>runtime</scope>
+     </dependency>
+
   </dependencies>
-  <!--
-    mvn exec:exec -Dexec.executable="java" -Dexec.args="-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer config/bootstrap.txt"
-  -->
+
   <build>
     <finalName>server-distribution</finalName>
     <plugins>
+      <!-- ... headless server execution ...
+	 mvn exec:exec -Dexec.args="args"
+	   ... should turn into
+	 mvn exec:exec -Dexec.executable="java" -Dexec.args="-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer cmd-line-args"
+	-->
       <plugin>
       	<groupId>org.codehaus.mojo</groupId>
       	<artifactId>exec-maven-plugin</artifactId>
@@ -60,6 +71,45 @@
       	<configuration>
 	  <executable>java</executable>
 	  <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer ${exec.args}</commandlineArgs>
+	</configuration>
+      </plugin>
+
+      <!-- ... visualizer execution ...
+	 mvn cargo:run
+	-->
+      <plugin>
+	<groupId>org.codehaus.cargo</groupId>
+	<artifactId>cargo-maven2-plugin</artifactId>
+	<version>1.2.1</version>
+	<configuration>
+          <!-- Container configuration -->
+          <container>
+            <containerId>jetty6x</containerId>
+            <type>embedded</type>
+	    <dependencies>
+	      <dependency>
+		<groupId>org.powertac</groupId>
+		<artifactId>visualizer</artifactId>
+		<version>0.5.0-SNAPSHOT</version>
+		<type>war</type>
+		<scope>runtime</scope>
+	      </dependency>
+	    </dependencies>
+          </container>
+          <!-- Configuration to use with the container or the deployer -->
+          <configuration>
+            <deployables>
+              <deployable>
+		<groupId>org.powertac</groupId>
+		<artifactId>visualizer</artifactId>
+		<type>war</type>
+		<properties>
+                  <context>/visualizer</context>
+		</properties>
+              </deployable>
+            </deployables>
+          </configuration>
+          <wait>false</wait>
 	</configuration>
       </plugin>
     </plugins>
