@@ -256,7 +256,7 @@ public class WeatherServiceTest {
 		WeatherReport wr = weatherReportRepo.allWeatherReports().get(0);
 		// System.out.println(wr.getCurrentTimeslot());
 		// System.out.println(wr.getId());
-		assertEquals(53, wr.getTemperature(), .0001);
+		assertEquals((53 - 32) * 5.0 / 9.0, wr.getTemperature(), .0001);
 		assertEquals(0, wr.getWindSpeed(), .0001);
 		assertEquals(0, wr.getWindDirection(), .0001);
 		assertEquals(0, wr.getCloudCover(), .0001);
