@@ -248,13 +248,6 @@ public class CompetitionControlService
 
     // wrap up
     shutDown();
-    simRunning = false;
-    
-    // need to wait for clock control stop before shutting down JMS provider
-    clock.waitUntilStop();
-    jmsManagementService.stop();
-    
-    logService.stopLog();
   }
 
   // ------------------ simulation setup -------------------
@@ -451,8 +444,12 @@ public class CompetitionControlService
     // if we are not in bootstrap mode, we have to add the bootstrap interval
     // to the base
     long rate = competition.getSimulationRate();
+    
+    // reset the slot counting mechanism
+    currentSlot = 0;
+    
     if (!bootstrapMode) {
-      int slotCount = (currentSlotOffset);
+      int slotCount = currentSlotOffset;
       log.info("first slot: " + slotCount);
       base = base.plus(slotCount * competition.getTimeslotDuration());
     }
@@ -646,6 +643,14 @@ public class CompetitionControlService
 
   // ------------ simulation shutdown ------------
   /**
+   * Expose simulation-running flag
+   */
+  public boolean isRunning()
+  {
+    return simRunning;
+  }
+  
+  /**
    * Signals the simulation thread to stop after processing is completed in
    * the current timeslot.
    */
@@ -657,12 +662,20 @@ public class CompetitionControlService
   /**
    * Shuts down the simulation and cleans up.
    */
-  private void shutDown ()
+  public void shutDown ()
   {
     running = false;
 
     SimEnd endMsg = new SimEnd();
     brokerProxyService.broadcastMessage(endMsg);
+
+    simRunning = false;
+    
+    // need to wait for clock control stop before shutting down JMS provider
+    clock.waitUntilStop();
+    jmsManagementService.stop();
+    
+    logService.stopLog();
   }
 
   // ---------------- API contract -------------
