@@ -25,7 +25,7 @@ import org.powertac.factoredcustomer.TimeseriesGenerator.DataSource;
  * 
  * @author Prashant Reddy
  */
-public final class TimeseriesProfile 
+public final class TimeseriesStructure 
 {
     final ModelType modelType;
     final String modelParamsName;
@@ -34,7 +34,7 @@ public final class TimeseriesProfile
     final DataSource refSeriesSource; 
     
     
-    TimeseriesProfile(Element xml) 
+    TimeseriesStructure(Element xml) 
     {
         modelType = Enum.valueOf(ModelType.class, xml.getAttribute("type"));
 

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.*;
 import org.powertac.factoredcustomer.ProbabilityDistribution;
+import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 
 /**
  * Data-holder class for parsed configuration elements of one tariff subscriber, 
@@ -28,13 +29,12 @@ import org.powertac.factoredcustomer.ProbabilityDistribution;
  *
  * @author Prashant Reddy
  */
-final class TariffSubscriberProfile
+public final class TariffSubscriberStructure
 {
     enum AllocationMethod { TOTAL_ORDER, LOGIT_CHOICE }
     
-    private final CustomerProfile customerProfile;
+    private final CustomerStructure customerStructure;
     private final CapacityBundle capacityBundle;
-    private final Element configXml;
     
     final AllocationMethod allocationMethod;
     final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
@@ -47,11 +47,11 @@ final class TariffSubscriberProfile
     final ProbabilityDistribution switchingDelay;
     final ProbabilityDistribution waitAfterSwitch;
     
-    TariffSubscriberProfile(CustomerProfile profile, CapacityBundle bundle, Element xml)
+    
+    TariffSubscriberStructure(CustomerStructure structure, CapacityBundle bundle, Element xml)
     {
-        customerProfile = profile;
+        customerStructure = structure;
         capacityBundle = bundle;
-        configXml = xml;        
         
         Element allocationElement = (Element) xml.getElementsByTagName("allocation").item(0);
         allocationMethod = Enum.valueOf(AllocationMethod.class, allocationElement.getAttribute("method"));
@@ -82,7 +82,7 @@ final class TariffSubscriberProfile
             
             Node inertiaFactorsNode = inertiaElement.getElementsByTagName("inertiaFactors").item(0);
             if (inertiaFactorsNode == null) {
-                throw new Error("TariffSubscriberProfile(): Inertia distribution and factors are both undefined!");
+                throw new Error("TariffSubscriberStructure(): Inertia distribution and factors are both undefined!");
             }
             Element inertiaFactorsElement = (Element) inertiaFactorsNode;
             Element customerWealthElement = (Element) inertiaFactorsElement.getElementsByTagName("customerWealth").item(0);
@@ -124,9 +124,9 @@ final class TariffSubscriberProfile
         }
     }
 
-    CustomerProfile getCustomerProfile()
+    CustomerStructure getCustomerStructure()
     {
-        return customerProfile;
+        return customerStructure;
     }
 
     CapacityBundle getCapacityBundle()
@@ -134,8 +134,4 @@ final class TariffSubscriberProfile
         return capacityBundle;
     }
 
-    Element getConfigXml()
-    {
-        return configXml;
-    }   
-}
+} // end class

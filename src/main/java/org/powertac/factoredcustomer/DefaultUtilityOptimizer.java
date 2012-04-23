@@ -31,12 +31,13 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.factoredcustomer.TariffSubscriberProfile.AllocationMethod;
+import org.powertac.factoredcustomer.interfaces.*;
+import org.powertac.factoredcustomer.TariffSubscriberStructure.AllocationMethod;
 
 /**
  * Key class responsible for managing the tariff(s) for one customer across 
@@ -45,42 +46,49 @@ import org.powertac.factoredcustomer.TariffSubscriberProfile.AllocationMethod;
  * @author Prashant Reddy
  */
 @Domain
-class UtilityOptimizer
+class DefaultUtilityOptimizer implements UtilityOptimizer
 {
-    private static Logger log = Logger.getLogger(UtilityOptimizer.class.getName());
+    protected Logger log = Logger.getLogger(DefaultUtilityOptimizer.class.getName());
 
+    private boolean LOG_USAGE_CHARGES = true;
+    
     protected TariffMarket tariffMarketService;
     protected TariffSubscriptionRepo tariffSubscriptionRepo;
-    protected TimeslotRepo timeslotRepo;
-    private RandomSeedRepo randomSeedRepo;
+    protected final TimeslotRepo timeslotRepo;
+    protected RandomSeedRepo randomSeedRepo;
     
-    private static final long MEAN_TARIFF_DURATION = 5;  // number of days
+    protected static final int NUM_HOURS_IN_DAY = 24;
+    protected static final long MEAN_TARIFF_DURATION = 5;  // number of days
     
-    private final CustomerProfile customerProfile;
-    private final List<CapacityBundle> capacityBundles;
+    protected final CustomerStructure customerStructure;
+    protected final List<CapacityBundle> capacityBundles;
    
-    private final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
-    private final Random inertiaSampler;
-    private final Random tariffSelector;
+    protected final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
+    protected Random inertiaSampler;
+    protected Random tariffSelector;
     
-    private final List<Tariff> allTariffs = new ArrayList<Tariff>();
+    protected final List<Tariff> allTariffs = new ArrayList<Tariff>();
     private int tariffEvaluationCounter = 0;
     
     
-    UtilityOptimizer(CustomerProfile profile, List<CapacityBundle> bundles) 
+    DefaultUtilityOptimizer(CustomerStructure structure, List<CapacityBundle> bundles) 
     {        
-        customerProfile = profile;
+        customerStructure = structure;
         capacityBundles = bundles;
     
         tariffMarketService = (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
         tariffSubscriptionRepo = (TariffSubscriptionRepo) SpringApplicationContext.getBean("tariffSubscriptionRepo");
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
         randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
-
-        inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.UtilityOptimizer", 
-                customerProfile.profileId, "InertiaSampler").getValue());
-        tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.UtilityOptimizer", 
-                customerProfile.profileId, "TariffSelector").getValue());
+    }
+    
+    @Override
+    public void initialize()
+    {
+        inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
+                customerStructure.structureId, "InertiaSampler").getValue());
+        tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
+                customerStructure.structureId, "TariffSelector").getValue());
         
         subscribeDefault();
     }
@@ -101,7 +109,8 @@ class UtilityOptimizer
       if (verbose) log.info(getName() + ": Unsubscribed " + customerCount + " customers from tariff " + subscription.getTariff().getId() + " successfully");
     }
 
-    public void subscribeDefault() 
+    /** @Override hook **/
+    protected void subscribeDefault() 
     {
         for (CapacityBundle bundle: capacityBundles) {
             PowerType powerType = bundle.getPowerType();
@@ -121,7 +130,8 @@ class UtilityOptimizer
         }
     }
     
-    void handleNewTariffs (List<Tariff> newTariffs)
+    @Override
+    public void handleNewTariffs (List<Tariff> newTariffs)
     {
         ++tariffEvaluationCounter;
         for (Tariff tariff: newTariffs) {
@@ -138,7 +148,7 @@ class UtilityOptimizer
     private void evaluateTariffs(List<Tariff> newTariffs) 
     {
         for (CapacityBundle bundle: capacityBundles) {
-            if ((tariffEvaluationCounter % bundle.getSubscriberProfile().reconsiderationPeriod) == 0) { 
+            if ((tariffEvaluationCounter % bundle.getSubscriberStructure().reconsiderationPeriod) == 0) { 
                 reevaluateAllTariffs(bundle);
             } else {
                 evaluateCurrentTariffs(newTariffs, bundle);
@@ -171,8 +181,8 @@ class UtilityOptimizer
     
     private void evaluateCurrentTariffs(List<Tariff> newTariffs, CapacityBundle bundle) 
     {
-        if (bundle.getSubscriberProfile().inertiaDistribution != null) {
-            double inertia = bundle.getSubscriberProfile().inertiaDistribution.drawSample();
+        if (bundle.getSubscriberStructure().inertiaDistribution != null) {
+            double inertia = bundle.getSubscriberStructure().inertiaDistribution.drawSample();
             if (inertiaSampler.nextDouble() < inertia) {
                 log.info(getName() + ": Skipping " + bundle.getPowerType() + " tariff reevaluation due to inertia");
                 for (Tariff newTariff: newTariffs) {
@@ -282,12 +292,12 @@ class UtilityOptimizer
             if (tariff.isExpired()) {
                 if (bundle.getPowerType().isConsumption()) {
                     estimatedPayments.add(Double.POSITIVE_INFINITY);  // assume worst case
-                } else {  // PRODUCTION
+                } else {  // PRODUCTION or STORAGE
                     estimatedPayments.add(Double.NEGATIVE_INFINITY);  // assume worst case
                 }
             } else {
                 double fixedPayments = estimateFixedTariffPayments(tariff);
-                double variablePayment = bundle.computeDailyUsageCharge(tariff);
+                double variablePayment = forecastDailyUsageCharge(tariff, bundle);
                 double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);
                 estimatedPayments.add(totalPayment);
             } 
@@ -295,26 +305,42 @@ class UtilityOptimizer
         return estimatedPayments;
     }
     
+    private double forecastDailyUsageCharge(Tariff tariff, CapacityBundle bundle)
+    {
+        Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
+        double totalUsage = 0.0;
+        double totalCharge = 0.0;            
+        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+            CapacityProfile forecast = capacityOriginator.getCurrentForecast();            
+            for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+                double hourlyUsage = forecast.getCapacity(i);
+                totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
+                totalUsage += hourlyUsage;
+            }
+        }
+        return totalCharge;
+    }
+
     private double estimateFixedTariffPayments(Tariff tariff)
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
   
         double minDuration;
-        // When there is not a Minimum Duration of the contract, you cannot divide with the duration because you don't know it.
         if (tariff.getMinDuration() == 0) minDuration = MEAN_TARIFF_DURATION * TimeService.DAY;
         else minDuration = tariff.getMinDuration();
   
         return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
     }
   
-    private List<Integer> determineAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineAllocations(List<Tariff> evalTariffs, 
+                                               List<Double> estimatedPayments, CapacityBundle bundle) 
     {
         if (evalTariffs.size() == 1) {
             List<Integer> allocations = new ArrayList<Integer>();
             allocations.add(getCustomerInfo().getPopulation());
             return allocations;
         } else {        
-            if (bundle.getSubscriberProfile().allocationMethod == AllocationMethod.TOTAL_ORDER) {
+            if (bundle.getSubscriberStructure().allocationMethod == AllocationMethod.TOTAL_ORDER) {
                 return determineTotalOrderAllocations(evalTariffs, estimatedPayments, bundle);
             } else { // LOGIT_CHOICE
                 return determineLogitChoiceAllocations(evalTariffs, estimatedPayments, bundle);
@@ -322,21 +348,22 @@ class UtilityOptimizer
         }
     }
     
-    private List<Integer> determineTotalOrderAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineTotalOrderAllocations(List<Tariff> evalTariffs, 
+                                                         List<Double> estimatedPayments, CapacityBundle bundle) 
     {
         int numTariffs = evalTariffs.size();
         List<Double> allocationRule;
-        if (bundle.getSubscriberProfile().totalOrderRules.isEmpty()) {
+        if (bundle.getSubscriberStructure().totalOrderRules.isEmpty()) {
             allocationRule = new ArrayList<Double>(numTariffs);
             allocationRule.add(1.0);
             for (int i=1; i < numTariffs; ++i) {
                 allocationRule.add(0.0);
             }
-        } else if (numTariffs <= bundle.getSubscriberProfile().totalOrderRules.size()) {
-            allocationRule = bundle.getSubscriberProfile().totalOrderRules.get(numTariffs - 1);
+        } else if (numTariffs <= bundle.getSubscriberStructure().totalOrderRules.size()) {
+            allocationRule = bundle.getSubscriberStructure().totalOrderRules.get(numTariffs - 1);
         } else {
             allocationRule = new ArrayList<Double>(numTariffs);
-            List<Double> largestRule = bundle.getSubscriberProfile().totalOrderRules.get(bundle.getSubscriberProfile().totalOrderRules.size() - 1);
+            List<Double> largestRule = bundle.getSubscriberStructure().totalOrderRules.get(bundle.getSubscriberStructure().totalOrderRules.size() - 1);
             for (int i=0; i < numTariffs; ++i) {
                 if (i < largestRule.size()) {
                     allocationRule.add(largestRule.get(i));
@@ -368,7 +395,8 @@ class UtilityOptimizer
         return allocations;
     }
     
-    private List<Integer> determineLogitChoiceAllocations(List<Tariff> evalTariffs, List<Double> estimatedPayments, CapacityBundle bundle) 
+    private List<Integer> determineLogitChoiceAllocations(List<Tariff> evalTariffs, 
+                                                          List<Double> estimatedPayments, CapacityBundle bundle) 
     {
         // logit choice model:  p_i = e^(lambda * utility_i) / sum_i(e^(lambda * utility_i))
         
@@ -381,7 +409,7 @@ class UtilityOptimizer
         }
         double meanPayment = sumPayments / numTariffs;
         
-        double lambda = bundle.getSubscriberProfile().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
+        double lambda = bundle.getSubscriberStructure().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
         List<Double> numerators = new ArrayList<Double>(numTariffs);
         double denominator = 0.0;
         for (int i=0; i < numTariffs; ++i) {  
@@ -433,13 +461,12 @@ class UtilityOptimizer
 
     ///////////////// TIMESLOT ACTIVITY //////////////////////
 
-    /** @Override @code{FactoredCustomer} **/
+    @Override
     public void handleNewTimeslot(Timeslot timeslot)
     {
         checkRevokedSubscriptions();
         List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
-        if (haveConsumptionCapacity()) consumePower(timeslot, subscriptions);
-        if (haveProductionCapacity()) producePower(timeslot, subscriptions);
+        usePower(timeslot, subscriptions);
     }
 	
     private void checkRevokedSubscriptions()
@@ -450,78 +477,57 @@ class UtilityOptimizer
       }
     }
 
-    private boolean haveConsumptionCapacity() 
-    {
+    private void usePower(Timeslot timeslot, List<TariffSubscription> subscriptions) 
+    {        
         for (CapacityBundle bundle: capacityBundles) {
-            if (bundle.getPowerType().isConsumption()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean haveProductionCapacity() 
-    {
-        for (CapacityBundle bundle: capacityBundles) {
-            if (bundle.getPowerType().isProduction()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void consumePower(Timeslot timeslot, List<TariffSubscription> subscriptions) 
-    {
-        double totalConsumption = 0.0;
-        for (TariffSubscription subscription: subscriptions) {
-            if (subscription.getCustomersCommitted() > 0 && 
-                    subscription.getTariff().getTariffSpec().getPowerType().isConsumption()) {
-                for (CapacityBundle bundle: capacityBundles) {
-                    if (bundle.getPowerType().isConsumption()) {
-                        double currCapacity = bundle.useCapacity(timeslot, subscription);
-                        subscription.usePower(currCapacity); // positive usage is consumption
-                        totalConsumption += currCapacity;
-                    }
-                }
-            }			
-        }
-	log.info(getName() + ": Total consumption for timeslot " + timeslot.getSerialNumber() + " = " + totalConsumption);
-    }
-	
-    private void producePower(Timeslot timeslot, List<TariffSubscription> subscriptions) 
-    {
-        double totalProduction = 0.0;
-        for (TariffSubscription subscription: subscriptions) {
-            if (subscription.getCustomersCommitted() > 0 && 
-                    subscription.getTariff().getTariffSpec().getPowerType().isProduction()) {
-                for (CapacityBundle bundle: capacityBundles) {
-                    if (bundle.getPowerType().isProduction()) {
-                        double currCapacity = -1 * bundle.useCapacity(timeslot, subscription);
-                        subscription.usePower(currCapacity); // negative usage is production
-                        totalProduction = currCapacity;
-                    }			
+            PowerType bundleType = bundle.getPowerType().getGenericType();
+            double totalCapacity = 0.0; 
+            double totalUsageCharge = 0.0;
+            for (TariffSubscription subscription: subscriptions) {
+                if (subscription.getCustomersCommitted() > 0) {
+                    PowerType subscriptionType = subscription.getTariff().getTariffSpec().getPowerType().getGenericType();
+                    if (bundleType == subscriptionType) {
+                        double usageSign = subscriptionType == PowerType.CONSUMPTION ? +1 : -1;  
+                        double currCapacity = usageSign * useCapacity(subscription, bundle); 
+                        if (LOG_USAGE_CHARGES) {
+                            double charge = subscription.getTariff().getUsageCharge(currCapacity, subscription.getTotalUsage(), false);
+                            totalUsageCharge += charge;
+                        }
+                        subscription.usePower(currCapacity);
+                        totalCapacity += currCapacity;
+                    }                   
                 }
             }
+            log.info(getName() + ": Total " + bundleType + " capacity for timeslot " + timeslot.getSerialNumber() + " = " + totalCapacity);
+            log.info(getName() + ": Total " + bundleType + " usage charge for timeslot " + timeslot.getSerialNumber() + " = " + totalUsageCharge);     
         }
-        log.info(getName() + ": Total production for timeslot " + timeslot.getSerialNumber() + " = " + totalProduction);
     }
 
-    CustomerInfo getCustomerInfo() 
+    public double useCapacity(TariffSubscription subscription, CapacityBundle bundle)
     {
-        return customerProfile.customerInfo;
+        double capacity = 0;
+        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+            capacity += capacityOriginator.useCapacity(subscription);
+        }
+        return capacity;
     }
     
-    String getName()
+    protected CustomerInfo getCustomerInfo() 
     {
-        return customerProfile.name;
+        return customerStructure.customerInfo;
     }
     
-    int getPopulation()
+    protected String getName()
+    {
+        return customerStructure.name;
+    }
+    
+    protected int getPopulation()
     {
         return getCustomerInfo().getPopulation();
     }
     
-    private double truncateTo2Decimals(double x)
+    protected double truncateTo2Decimals(double x)
     {
         double fract, whole;
         if (x > 0) {
@@ -540,9 +546,10 @@ class UtilityOptimizer
         log.debug(msg);
     }
     
+    @Override
     public String toString() 
     {
-	return "UtilityOptimizer:" + getName();
+	return this.getClass().getCanonicalName() + ":" + getName();
     }
 	
 } // end class

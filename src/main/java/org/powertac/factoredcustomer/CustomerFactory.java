@@ -16,12 +16,11 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import org.powertac.common.Tariff;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.factoredcustomer.interfaces.*;
 
 /**
  * Register CustomerCategory-specific creators.  Creators implement the nested 
@@ -32,15 +31,9 @@ import org.powertac.common.state.StateChange;
 @Domain
 final class CustomerFactory
 {
-    interface Customer 
-    {
-        void handleNewTariffs(List<Tariff> newTariffs);        
-        void handleNewTimeslot();
-    }
-
     public interface CustomerCreator {
         public String getKey();
-        public Customer createModel(CustomerProfile profile);
+        public FactoredCustomer createModel(CustomerStructure structure);
     }
     
     CustomerCreator defaultCreator;
@@ -64,11 +57,18 @@ final class CustomerFactory
         customerCreators.put(key, creator);
     }
 
-    Customer processProfile(CustomerProfile profile) 
+    FactoredCustomer processStructure(CustomerStructure structure) 
     {
-	CustomerCreator creator = customerCreators.get(profile.creatorKey);
-	if (creator == null) creator = defaultCreator;
-	return creator.createModel(profile);
+        CustomerCreator creator;
+        if (structure.creatorKey == null || structure.creatorKey.trim().isEmpty()) {
+            creator = defaultCreator;
+        } else {
+            creator = customerCreators.get(structure.creatorKey);
+            if (creator == null) {
+                throw new Error("CustomerFactory does not have a registered creator for key: " + structure.creatorKey);
+            }
+        }
+        return creator.createModel(structure);            
     }
 
 } // end class

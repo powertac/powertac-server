@@ -17,8 +17,8 @@
 package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.enumerations.PowerType;
 
 /**
  * Data-holder class for parsed configuration elements of one customer.
@@ -26,45 +26,35 @@ import org.powertac.common.CustomerInfo;
  * 
  * @author Prashant Reddy
  */
-final class CustomerProfile
+public final class CustomerStructure
 {
     enum EntityType { RESIDENTIAL, COMMERCIAL, INDUSTRIAL };
     	
     private final Element configXml;
     
-    private static long profileCounter = 0;
+    private static long structureCounter = 0;
     
-    final long profileId = ++profileCounter;
+    final long structureId = ++structureCounter;
     final String name;
     final String creatorKey;
     final EntityType entityType;
     final CustomerInfo customerInfo;
     
-    CustomerProfile(Element xml)
+    CustomerStructure(String nameWithCount, Element xml)
     {
+        name = nameWithCount;
         configXml = xml;
         
-        name = xml.getAttribute("name");
         creatorKey = xml.getAttribute("creatorKey");
-        	
+        
+        entityType = Enum.valueOf(EntityType.class, xml.getAttribute("entityType"));
+
         Element infoElement = (Element) xml.getElementsByTagName("info").item(0);
 	int population = Integer.parseInt(infoElement.getAttribute("population"));
         customerInfo = new CustomerInfo(name, population)
             .withPowerType(PowerType.valueOf(infoElement.getAttribute("powerType")))
             .withMultiContracting(Boolean.parseBoolean(infoElement.getAttribute("multiContracting")))
             .withCanNegotiate(Boolean.parseBoolean(infoElement.getAttribute("canNegotiate")));
-        entityType = Enum.valueOf(EntityType.class, infoElement.getAttribute("entityType"));
-        
-//        NodeList capacityBundles = xml.getElementsByTagName("capacityBundle");
-//        for (int i=0; i < capacityBundles.getLength(); ++i) {
-//            Element capacityBundle = (Element) capacityBundles.item(i);
-//            CapacityType capacityType = Enum.valueOf(CapacityType.class, capacityBundle.getAttribute("type"));
-//            CapacitySubType capacitySubType = Enum.valueOf(CapacitySubType.class, capacityBundle.getAttribute("subType"));                
-//            PowerType powerType = CapacityProfile.reportPowerType(capacityType, capacitySubType);
-//            if (! customerInfo.getPowerTypes().contains(powerType)) {
-//                customerInfo.addPowerType(powerType);
-//            }
-//        }
     }
 
     public Element getConfigXml()
