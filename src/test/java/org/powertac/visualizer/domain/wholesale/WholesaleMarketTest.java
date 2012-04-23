@@ -1,4 +1,4 @@
-package org.powertac.visualizer.wholesale;
+package org.powertac.visualizer.domain.wholesale;
 
 import static org.junit.Assert.*;
 

@@ -1,4 +1,4 @@
-package org.powertac.visualizer.wholesale;
+package org.powertac.visualizer.domain.wholesale;
 
 import static org.junit.Assert.*;
 
@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
+import org.powertac.common.OrderbookOrder;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 
@@ -31,10 +32,18 @@ public class WholesaleSnapshotTest {
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 4.0, -4.0));
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 5.0, null));
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 6.0, -6.0));
-		wholesaleSnapshot.setOrderbook(new Orderbook(timeslot, 0.0, null));
 		
+		Orderbook orderbookWithNulls = new Orderbook(timeslot, 0.0, null).addAsk(new OrderbookOrder(10, null)).addBid(new OrderbookOrder(-10, null));
+		wholesaleSnapshot.setOrderbook(orderbookWithNulls);
 		wholesaleSnapshot.close();
-		 
+		assertEquals("Wholesale snapshot should be successfully closed", wholesaleSnapshot.isClosed(), true);
+		
+		Orderbook orderbookWithoutNulls = new Orderbook(timeslot, 0.0, null).addAsk(new OrderbookOrder(10, -10.0)).addBid(new OrderbookOrder(-10, 10.0));
+		wholesaleSnapshot.setOrderbook(orderbookWithoutNulls);
+		wholesaleSnapshot.close();
+		assertEquals("Wholesale snapshot should be successfully closed", wholesaleSnapshot.isClosed(), true);
+		
+		
 		
 	}
 
