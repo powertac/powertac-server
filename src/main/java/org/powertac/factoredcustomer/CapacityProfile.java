@@ -1,141 +1,184 @@
-/* Copyright 2011 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an
- * "AS IS" BASIS,  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
- */
+/*
+* Copyright 2011 the original author or authors.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an
+* "AS IS" BASIS,  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+* either express or implied. See the License for the specific language
+* governing permissions and limitations under the License.
+*/
 
 package org.powertac.factoredcustomer;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.w3c.dom.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
+
+import org.powertac.common.state.Domain;
 
 /**
- * Data-holder class for parsed configuration elements of one capacity.
- * All members are declared final in the package scope.
+ * Encapsulation represented real or hypothetical capacity over some 
+ * fixed number of timeslots.  We will set the number of timeslots to 24.
  * 
  * @author Prashant Reddy
  */
-final class CapacityProfile
-{	
-    enum InfluenceKind { DIRECT, DEVIATION, NONE }
+@Domain
+public final class CapacityProfile
+{
+    enum PermutationRule { TEMPORAL_SHIFTS, BALANCING_SHIFTS, ALL_SHIFTS }
     
-    enum BaseCapacityType { POPULATION, INDIVIDUAL, TIMESERIES }
-
-    enum ElasticityModelType { CONTINUOUS, STEPWISE }
-        
-    final String capacityId;
-    final String description;
-    final CapacityBundle parentBundle;
+    static final int NUM_TIMESLOTS = 24;
     
-    final BaseCapacityType baseCapacityType;
-    final ProbabilityDistribution basePopulationCapacity;
-    final ProbabilityDistribution baseIndividualCapacity;
-    final TimeseriesProfile baseTimeseriesProfile;
+    private static final int MAX_BALANCING_SHIFTS = 24;
+    private static final double BALANCING_SHIFTS_EPSILON = 0.1;  // range as percent of max
     
-    final double[] dailySkew;
-    final double[] hourlySkew;
-
-    final InfluenceKind temperatureInfluence;
-    final Map<Integer, Double> temperatureMap = new HashMap<Integer, Double>();  // key: degree Celsius
-    final double temperatureReference;
-    final InfluenceKind windSpeedInfluence;
-    final Map<Integer, Double> windSpeedMap = new HashMap<Integer, Double>();  // key: speed in m/s 
-    final InfluenceKind windDirectionInfluence;
-    final Map<Integer, Double> windDirectionMap = new HashMap<Integer, Double>();  // key: angle 0-360
-    final InfluenceKind cloudCoverInfluence;
-    final Map<Integer, Double> cloudCoverMap = new HashMap<Integer, Double>();  // key: 0 (cloudy) - 255 (clear) 
-        
-    final Map<Integer, Double> benchmarkRates = new HashMap<Integer, Double>();  // key: hour of day
-    final ElasticityModelType elasticityModelType;
-    final Element elasticityModelXml;
+    private List<Double> values;
     
-    final double[] curtailmentShifts;  // index = timeslot
-        
-	
-    CapacityProfile(Element xml, CapacityBundle bundle) 
+    
+    CapacityProfile(Double uniformValue)
     {
-        capacityId = xml.getAttribute("id");
-        description = xml.getAttribute("description");
-        parentBundle = bundle;
-        
-        Element baseCapacityElement = (Element) xml.getElementsByTagName("baseCapacity").item(0);
-        baseCapacityType = Enum.valueOf(BaseCapacityType.class, baseCapacityElement.getAttribute("type"));
-        switch (baseCapacityType) {
-        case POPULATION: 
-            Element populationCapacityElement = (Element) baseCapacityElement.getElementsByTagName("populationCapacity").item(0);
-            basePopulationCapacity = new ProbabilityDistribution(populationCapacityElement);
-            baseIndividualCapacity = null;
-            baseTimeseriesProfile = null;
-            break;
-        case INDIVIDUAL: 
-            basePopulationCapacity = null;
-            Element individualCapacityElement = (Element) baseCapacityElement.getElementsByTagName("individualCapacity").item(0);
-            baseIndividualCapacity = new ProbabilityDistribution(individualCapacityElement);
-            baseTimeseriesProfile = null;
-            break;
-        case TIMESERIES: 
-            basePopulationCapacity = null;
-            baseIndividualCapacity = null;
-            Element timeseriesModelElement = (Element) baseCapacityElement.getElementsByTagName("timeseriesModel").item(0);
-            baseTimeseriesProfile = new TimeseriesProfile(timeseriesModelElement);
-            break;
-        default: throw new Error("Unexpected base capacity type: " + baseCapacityType);
+        values = new ArrayList<Double>(NUM_TIMESLOTS);
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            values.add(uniformValue);
         }
-        
-        Element dailySkewElement = (Element) xml.getElementsByTagName("dailySkew").item(0);
-        dailySkew = ParserFunctions.parseDoubleArray(dailySkewElement.getAttribute("array"));
-        
-        Element hourlySkewElement = (Element) xml.getElementsByTagName("hourlySkew").item(0);
-        hourlySkew = ParserFunctions.parseDoubleArray(hourlySkewElement.getAttribute("array"));
-        
-        Element temperatureInfluenceElement = (Element) xml.getElementsByTagName("temperature").item(0);
-        temperatureInfluence = Enum.valueOf(InfluenceKind.class, temperatureInfluenceElement.getAttribute("influence"));
-        if (temperatureInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(temperatureInfluenceElement.getAttribute("rangeMap"), temperatureMap);
-            if (temperatureInfluence == InfluenceKind.DEVIATION) {
-                temperatureReference = Double.parseDouble(temperatureInfluenceElement.getAttribute("reference"));
-            } else temperatureReference = Double.NaN;
-        } else temperatureReference = Double.NaN;
-
-        Element windSpeedInfluenceElement = (Element) xml.getElementsByTagName("windSpeed").item(0);
-        windSpeedInfluence = Enum.valueOf(InfluenceKind.class, windSpeedInfluenceElement.getAttribute("influence"));
-        if (windSpeedInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(windSpeedInfluenceElement.getAttribute("rangeMap"), windSpeedMap);
-        }
-          
-        Element windDirectionInfluenceElement = (Element) xml.getElementsByTagName("windDirection").item(0);
-        windDirectionInfluence = Enum.valueOf(InfluenceKind.class, windDirectionInfluenceElement.getAttribute("influence"));
-        if (windDirectionInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(windDirectionInfluenceElement.getAttribute("rangeMap"), windDirectionMap);
-        }
-        
-        Element cloudCoverInfluenceElement = (Element) xml.getElementsByTagName("cloudCover").item(0);
-        cloudCoverInfluence = Enum.valueOf(InfluenceKind.class, cloudCoverInfluenceElement.getAttribute("influence"));
-        if (cloudCoverInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(cloudCoverInfluenceElement.getAttribute("rangeMap"), cloudCoverMap);
-        }
-
-        Element priceElasticityElement = (Element) xml.getElementsByTagName("priceElasticity").item(0);
-        Element benchmarkRatesElement = (Element) priceElasticityElement.getElementsByTagName("benchmarkRates").item(0);
-        ParserFunctions.parseRangeMap(benchmarkRatesElement.getAttribute("rangeMap"), benchmarkRates);
-        
-        elasticityModelXml = (Element) priceElasticityElement.getElementsByTagName("elasticityModel").item(0);
-        elasticityModelType = Enum.valueOf(ElasticityModelType.class, elasticityModelXml.getAttribute("type"));
-        
-        Element curtailmentElement = (Element) xml.getElementsByTagName("curtailment").item(0);
-        curtailmentShifts = (curtailmentElement != null) ? 
-                ParserFunctions.parseDoubleArray(curtailmentElement.getAttribute("shifts")) : null;
     }
-   	
+    
+    CapacityProfile(List<Double> list)
+    {
+        values = new ArrayList<Double>(NUM_TIMESLOTS);
+        values.addAll(list);
+    }
+    
+    CapacityProfile(double[] array)
+    {
+        if (array.length != NUM_TIMESLOTS) {
+            throw new Error("Number of elements in array does not match expected length: " + NUM_TIMESLOTS);
+        }
+        values = new ArrayList<Double>(NUM_TIMESLOTS);
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            values.add(array[i]);
+        }
+    }
+    
+    double distanceTo(CapacityProfile other) 
+    {
+        // sum of squared distances
+        double distance = 0.0;
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            distance += Math.pow(Math.abs(this.getCapacity(i) - other.getCapacity(i)), 2);
+        }
+        return distance;
+    }
+    
+    double getCapacity(int index) 
+    {
+        return values.get(index);
+    }
+    
+    List<CapacityProfile> getPermutations(PermutationRule rule)
+    {
+        List<CapacityProfile> perms;
+        switch (rule) {
+        case TEMPORAL_SHIFTS:
+            perms = getTimeShiftedPermutations();
+            break;
+        case BALANCING_SHIFTS:
+            perms = getPeakShiftedPermutations();
+            break;
+        case ALL_SHIFTS:
+            perms = new ArrayList<CapacityProfile>();
+            perms.addAll(getTimeShiftedPermutations());
+            perms.addAll(getPeakShiftedPermutations());
+            break;
+        default:
+            throw new Error("Unexpected value for permutation rule: " + rule);
+        }
+        return perms;
+    }
+    
+    private List<CapacityProfile> getTimeShiftedPermutations()
+    {
+        List<CapacityProfile> perms = new ArrayList<CapacityProfile>();
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            List<Double> perm = new ArrayList<Double>(NUM_TIMESLOTS);
+            for (int j=i; j < i + NUM_TIMESLOTS; ++j) {
+                perm.add(values.get(j % NUM_TIMESLOTS));
+            }
+            validatePermutation(perm);  // TODO TEMP
+            perms.add(new CapacityProfile(perm));
+        }
+        return perms;
+    }
+    
+    private List<CapacityProfile> getPeakShiftedPermutations()
+    {
+        List<CapacityProfile> perms = new ArrayList<CapacityProfile>();      
+        recursivePeakShift(values, perms);
+        return perms;
+    }
+    
+    private void recursivePeakShift(List<Double> curr, List<CapacityProfile> perms)
+    {
+        int peakIndex = 0;
+        int valleyIndex = 0;
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            Double val = curr.get(i);
+            if (val > curr.get(peakIndex)) peakIndex = i;
+            if (val < curr.get(valleyIndex)) valleyIndex = i;            
+        }
+        Double max = curr.get(peakIndex);
+        Double min = curr.get(valleyIndex);
+        Double mid = 0.5 * (max + min);
+        if (peakIndex != valleyIndex) {
+            List<Double> newList = new ArrayList<Double>();
+            for (int j=0; j < NUM_TIMESLOTS; ++j) {
+                if (j == peakIndex) {
+                    newList.add(mid); // shift down (max - mid)
+                } 
+                else if (j == valleyIndex) {
+                    newList.add(min + (max - mid)); // shift up (max - mid)
+                }
+                else {
+                    newList.add(curr.get(j));
+                }
+            }
+            validatePermutation(newList);  // TODO TEMP
+            CapacityProfile newProfile = new CapacityProfile(newList);
+            perms.add(newProfile);
+            if (perms.size() < MAX_BALANCING_SHIFTS) {
+                double newRange = Collections.max(newList) - Collections.min(newList);
+                if (newRange > (BALANCING_SHIFTS_EPSILON * max)) {
+                    recursivePeakShift(newList, perms);
+                }
+            }
+        }
+    }
+    
+    private void validatePermutation(List<Double> perm)
+    {
+        Double origTotal = 0.0;
+        Double permTotal = 0.0;
+        for (int i=0; i < NUM_TIMESLOTS; ++i) {
+            origTotal += values.get(i);
+            permTotal += perm.get(i);
+        }
+        if (Math.abs(permTotal - origTotal) > 0.01) {
+            throw new Error("Total permutation capacity " + permTotal + " not approximately equal to original capacity " + origTotal);
+        }
+    }
+    
+    @Override
+    public String toString()
+    {
+        return this.getClass().getCanonicalName() + ":" + values.toString();
+    }
+    
 } // end class
+
 

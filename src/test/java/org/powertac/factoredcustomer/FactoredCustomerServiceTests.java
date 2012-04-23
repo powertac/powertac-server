@@ -170,7 +170,7 @@ public class FactoredCustomerServiceTests
 
         // Set up serverProperties mock
         config = new Configurator();
-        doAnswer(new Answer() {
+        doAnswer(new Answer<Object>() {
           @Override
           public Object answer(InvocationOnMock invocation) {
             Object[] args = invocation.getArguments();
@@ -200,61 +200,4 @@ public class FactoredCustomerServiceTests
         assertEquals("Configured number of customers created", 8, factoredCustomerService.getCustomers().size());
     }
 
-    /******  IGNORE FOR NOW
-    public void subscribeDefault()
-    {
-        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
-            // capture subscription method args
-            ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-            ArgumentCaptor<CustomerInfo> customerArg = ArgumentCaptor.forClass(CustomerInfo.class);
-            ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-            when(mockTariffMarket.subscribeToTariff(tariffArg.capture(), customerArg.capture(), countArg.capture()))
-                .thenReturn(tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo(), tariffArg.getValue()));
-        }
-        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
-            customer.subscribeDefault();
-        }
-    }
-    
-    @Test
-    public void testTimeslotActivation()
-    {
-        initializeService();
-        //subscribeDefault();
-        
-        timeService.setCurrentTime(now.plus(TimeService.HOUR));
-        factoredCustomerService.activate(timeService.getCurrentTime(), 1);
-        for (FactoredCustomer customer : factoredCustomerService.getCustomers()) {
-            assertFalse("Factored customer capacity",
-                        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()) == null
-                        || tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).get(0).getTotalUsage() == 0);
-        }
-        assertEquals("Tariff transactions created", factoredCustomerService.getCustomers().size() + 1, accountingArgs.size());
-    }
-
-
-    @Test
-    public void testTariffEvaluation()
-    {
-        initializeService();
-        subscribeDefault();
-        
-        Broker secondBroker = new Broker("SecondBroker");
-
-        TariffSpecification secondConsumptionTariffSpec = new TariffSpecification(secondBroker, PowerType.CONSUMPTION).withExpiration(exp)
-            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(0.10));
-        Tariff secondConsumptionTariff = new Tariff(secondConsumptionTariffSpec);
-        secondConsumptionTariff.init();
-
-        TariffSpecification secondProductionTariffSpec = new TariffSpecification(secondBroker, PowerType.PRODUCTION).withExpiration(exp)
-            .withMinDuration(TimeService.WEEK * 8).addRate(new Rate().withValue(-0.09));
-        Tariff secondProductionTariff = new Tariff(secondProductionTariffSpec);
-        secondProductionTariff.init();
-
-        List<Tariff> tariffs = tariffRepo.findAllTariffs();
-        assertEquals("Four tariffs found", 4, tariffRepo.findAllTariffs().size());
-
-        factoredCustomerService.publishNewTariffs(tariffs);
-    }
-     END IGNORE FOR NOW ******/
-}
+} // end class

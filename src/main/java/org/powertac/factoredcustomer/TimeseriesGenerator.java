@@ -22,13 +22,16 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.Random;
 import org.joda.time.DateTime;
 import org.powertac.common.Timeslot;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.apache.commons.io.IOUtils;
 
 /**
  * Utility class that generates various time series patterns that can be 
- * used as base capacity series by implementations of @code{CapacityManager}.
+ * used as base capacity series by implementations of @code{CapacityOriginator}.
  * 
  * @author Prashant Reddy
  */
@@ -37,12 +40,14 @@ final class TimeseriesGenerator
     enum ModelType { ARIMA_101x101 }
     enum DataSource { BUILTIN, CLASSPATH, FILEPATH }
 
+    private RandomSeedRepo randomSeedRepo;
+
     private final Properties modelParams = new Properties();
     
     private final List<Double> refSeries = new ArrayList<Double>();
     private final Map<Integer, Double> genSeries = new HashMap<Integer, Double>();
     
-    private final TimeseriesProfile tsProfile;
+    private final TimeseriesStructure tsStructure;
     
     private final int FORECAST_HORIZON = 2 * 24; // two days
     
@@ -53,33 +58,36 @@ final class TimeseriesGenerator
     private double Phi1;
     private double theta1;
     private double Theta1;
+    private double sigma;
     private double lambda;
     private double gamma;
     
+    private Random arimaNoise;
     
-    TimeseriesGenerator(TimeseriesProfile profile) 
+    
+    TimeseriesGenerator(TimeseriesStructure structure) 
     {
-        tsProfile = profile;
+        tsStructure = structure;
         
-        switch (tsProfile.modelType) {
+        switch (tsStructure.modelType) {
         case ARIMA_101x101:
             initArima101x101();
             break;
-        default: throw new Error("Unexpected timeseries model type: " + tsProfile.modelType);
+        default: throw new Error("Unexpected timeseries model type: " + tsStructure.modelType);
         }
     }
     
-    void initArima101x101() 
+    private void initArima101x101() 
     {   
         initArima101x101ModelParams();
         initArima101x101RefSeries();
     }
     
-    void initArima101x101ModelParams()
+    private void initArima101x101ModelParams()
     {
         InputStream paramsStream;
-        String paramsName = tsProfile.modelParamsName;
-        switch (tsProfile.modelParamsSource) {
+        String paramsName = tsStructure.modelParamsName;
+        switch (tsStructure.modelParamsSource) {
         case BUILTIN:
             throw new Error("Unknown builtin model parameters with name: " + paramsName);
             // break;
@@ -94,7 +102,7 @@ final class TimeseriesGenerator
             }
             break;
         default: 
-            throw new Error("Unexpected reference timeseries source type: " + tsProfile.refSeriesSource);
+            throw new Error("Unexpected reference timeseries source type: " + tsStructure.refSeriesSource);
          }
         if (paramsStream == null) throw new Error("Model parameters input stream is uninitialized!");
 
@@ -113,13 +121,19 @@ final class TimeseriesGenerator
         Theta1 = Double.parseDouble((String) modelParams.get("Theta1"));
         lambda = Double.parseDouble((String) modelParams.get("lambda"));
         gamma = Double.parseDouble((String) modelParams.get("gamma"));
+        sigma = Double.parseDouble((String) modelParams.get("sigma"));
+        
+        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+
+        arimaNoise = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.TimeseriesGenerator", 
+                                                             tsStructure.hashCode(), "ArimaNoise").getValue());
     }
     
-    void initArima101x101RefSeries()
+    private void initArima101x101RefSeries()
     {
         InputStream refStream;
-        String seriesName = tsProfile.refSeriesName;
-        switch (tsProfile.refSeriesSource) {
+        String seriesName = tsStructure.refSeriesName;
+        switch (tsStructure.refSeriesSource) {
         case BUILTIN:
             throw new Error("Unknown builtin series name: " + seriesName);
             // break;
@@ -134,7 +148,7 @@ final class TimeseriesGenerator
             }
             break;
         default: 
-            throw new Error("Unexpected reference timeseries source type: " + tsProfile.refSeriesSource);
+            throw new Error("Unexpected reference timeseries source type: " + tsStructure.refSeriesSource);
          }
         if (refStream == null) throw new Error("Reference timeseries input stream is uninitialized!");
             
@@ -156,10 +170,10 @@ final class TimeseriesGenerator
         }
     }
 
-    double generateNext(Timeslot timeslot)
+    public double generateNext(Timeslot timeslot)
     {
         Double next;
-        switch (tsProfile.modelType) {
+        switch (tsStructure.modelType) {
         case ARIMA_101x101:
             if (genSeries.isEmpty()) {
                 initArima101x101GenSeries(timeslot);
@@ -170,7 +184,7 @@ final class TimeseriesGenerator
                 genSeries.put(timeslot.getSerialNumber(), next); 
             }
             break;
-        default: throw new Error("Unexpected timeseries model type: " + tsProfile.modelType);
+        default: throw new Error("Unexpected timeseries model type: " + tsStructure.modelType);
         }
         return next;
     }
@@ -208,6 +222,7 @@ final class TimeseriesGenerator
                          + theta1 * Theta1 * (getLog(t-25) - getLog(t-26));
         logNext = logNext + (lambda * (Math.pow(Math.log(t-26), 2) / Math.pow(Math.log(FORECAST_HORIZON - 26), 2)) 
                                        * ((1 - gamma) * Yh[hour] + gamma * Yd[day-1]));
+        logNext = logNext + Math.pow(sigma, 2) * arimaNoise.nextGaussian();
         double next = Math.exp(logNext);
         if (Double.isNaN(next)) throw new Error("Generated NaN as next time series element!");
         return next;

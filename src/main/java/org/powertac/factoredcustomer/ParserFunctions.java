@@ -18,7 +18,7 @@ package org.powertac.factoredcustomer;
 import java.util.Map;
 
 /**
- * Utility class with functions used to build the various profile objects.
+ * Utility class with functions used to build the various structure objects.
  * 
  * @author Prashant Reddy
  */

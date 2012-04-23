@@ -42,6 +42,7 @@ final class ProbabilityDistribution
     private final Sampler sampler;
     private double param1, param2, param3, param4;
         
+    
     ProbabilityDistribution(Element xml)
     {
         randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
@@ -128,7 +129,8 @@ final class ProbabilityDistribution
             break;
         default: throw new Error("Invalid probability distribution type!");
         } 
-        sampler.reseedRandomGenerator(randomSeedRepo.getRandomSeed("ProbabilityDistribution", distId, "Sampler").getValue());
+        sampler.reseedRandomGenerator(randomSeedRepo.getRandomSeed("factoredcustomer.ProbabilityDistribution", 
+                                                                   distId, "Sampler").getValue());
     }
         
     double drawSample()
@@ -144,9 +146,10 @@ final class ProbabilityDistribution
         }
     }
  
+    @Override
     public String toString() 
     {
-        return "ProbabilityDistribution:" + distId + ":" + type + 
+        return this.getClass().getCanonicalName() + ":" + distId + ":" + type + 
                "(" + param1 + ", " + param2 + ", " + param3 + ", " + param4 + ")";
     }
 
