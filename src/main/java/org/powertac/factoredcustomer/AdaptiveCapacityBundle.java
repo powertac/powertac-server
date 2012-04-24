@@ -34,9 +34,9 @@ final class AdaptiveCapacityBundle extends DefaultCapacityBundle
     }
     
     @Override
-    protected CapacityOriginator createCapacityOriginator(CapacityStructure capacityStructure, CustomerStructure customerStructure)
+    protected CapacityOriginator createCapacityOriginator(CapacityStructure capacityStructure)
     {
-        return new AdaptiveCapacityOriginator(capacityStructure, this, customerStructure);
+        return new AdaptiveCapacityOriginator(capacityStructure, this);
     }
     
 } // end class

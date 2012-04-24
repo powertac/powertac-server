@@ -123,7 +123,7 @@ public final class TariffSubscriberStructure
             }
         }
     }
-
+    
     CustomerStructure getCustomerStructure()
     {
         return customerStructure;

@@ -49,6 +49,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
 {
     protected Logger log = Logger.getLogger(DefaultCapacityOriginator.class.getName());
 
+    protected final FactoredCustomerService factoredCustomerService;
     protected final TimeService timeService;
     protected final TimeslotRepo timeslotRepo;
     protected final WeatherReportRepo weatherReportRepo;
@@ -60,7 +61,6 @@ class DefaultCapacityOriginator implements CapacityOriginator
     
     private final CapacityStructure capacityStructure;
     private final CapacityBundle parentBundle;
-    private final CustomerStructure customerStructure;
     
     protected final String logIdentifier;
     
@@ -71,15 +71,15 @@ class DefaultCapacityOriginator implements CapacityOriginator
     protected final Map<Integer, Double> shiftedCurtailments = new HashMap<Integer, Double>();
     
     
-    DefaultCapacityOriginator(CapacityStructure structure, CapacityBundle bundle, CustomerStructure customer) 
+    DefaultCapacityOriginator(CapacityStructure structure, CapacityBundle bundle) 
     {
         capacityStructure = structure;
         parentBundle = bundle;
-        customerStructure = customer;
         
         logIdentifier = capacityStructure.capacityName.isEmpty() ? 
-                customerStructure.name : customerStructure.name + "#" + capacityStructure.capacityName;
+                bundle.getName() : bundle.getName() + "#" + capacityStructure.capacityName;
         
+        factoredCustomerService = (FactoredCustomerService) SpringApplicationContext.getBean("factoredCustomerService");
         timeService = (TimeService) SpringApplicationContext.getBean("timeService");
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
         weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
@@ -165,7 +165,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
             baseCapacity = capacityStructure.basePopulationCapacity.drawSample();
             break;
         case INDIVIDUAL:
-            for (int i=0; i < getPopulation(); ++i) {
+            for (int i=0; i < parentBundle.getPopulation(); ++i) {
                 double draw = capacityStructure.baseIndividualCapacity.drawSample();
                 baseCapacity += draw;
             }
@@ -310,7 +310,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     
     private double adjustCapacityForPopulationRatio(double capacity, TariffSubscription subscription)
     {
-        double popRatio = getPopulationRatio(subscription.getCustomersCommitted(), getPopulation());
+        double popRatio = getPopulationRatio(subscription.getCustomersCommitted(), parentBundle.getPopulation());
         logCapacityDetails(logIdentifier + ": population ratio = " + popRatio);
         return capacity * popRatio;     
     }
@@ -392,12 +392,6 @@ class DefaultCapacityOriginator implements CapacityOriginator
     }
       
     @Override
-    public int getPopulation()
-    {
-        return customerStructure.customerInfo.getPopulation();
-    }
-    
-    @Override
     public String getCapacityName()
     {
         return capacityStructure.capacityName;
@@ -409,12 +403,6 @@ class DefaultCapacityOriginator implements CapacityOriginator
         return parentBundle;
     }
     
-    @Override
-    public PowerType getPowerType()
-    {
-        return parentBundle.getPowerType();
-    }
-
     protected double truncateTo2Decimals(double x)
     {
         double fract, whole;
@@ -430,8 +418,9 @@ class DefaultCapacityOriginator implements CapacityOriginator
 
     protected void logCapacityDetails(String msg) 
     {
-        //log.info(msg);
-        log.debug(msg);
+        if (factoredCustomerService.getCapacityDetailsLogging() == true) {
+            log.info(msg);
+        }
     }
     
     @Override
