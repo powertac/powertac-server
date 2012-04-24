@@ -60,6 +60,13 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     @ConfigurableValue(valueType = "String", description = "Resource name for configuration data")
     private String configResource = null;
 
+    @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of tariff allocation details")
+    private boolean allocationDetailsLogging = false;
+    @ConfigurableValue(valueType = "Boolean", description = "Toogle logging of capacity adjustment details")
+    private boolean capacityDetailsLogging = false;
+    @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of expected usage charges")
+    private boolean usageChargesLogging = false;
+
     private List<CustomerStructure> customerStructures = new ArrayList<CustomerStructure>();
     private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
     private CustomerFactory customerFactory = new CustomerFactory();
@@ -205,6 +212,36 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
       configResource = resource;
   }
 
+  boolean getAllocationDetailsLogging()
+  {
+      return allocationDetailsLogging;
+  }
+  
+  void setAllocationDetailsLogging(boolean value)
+  {
+      allocationDetailsLogging = value;
+  }
+  
+  boolean getCapacityDetailsLogging()
+  {
+      return capacityDetailsLogging;
+  }
+  
+  void setCapacityDetailsLogging(boolean value)
+  {
+      capacityDetailsLogging = value;
+  }
+  
+  boolean getUsageChargesLogging()
+  {
+      return usageChargesLogging;
+  }
+  
+  void setUsageChargesLogging(boolean value)
+  {
+      usageChargesLogging = value;
+  }
+  
   /** package scope for testing **/
   List<FactoredCustomer> getCustomers() 
   {

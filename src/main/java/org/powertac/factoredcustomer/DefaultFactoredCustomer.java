@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
 import org.apache.log4j.Logger;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
@@ -55,7 +54,6 @@ class DefaultFactoredCustomer implements FactoredCustomer
         
         timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
         customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
-        customerRepo.add(structure.customerInfo);
     }
      
     @Override
@@ -68,6 +66,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
             CapacityBundle capacityBundle = createCapacityBundle(structure, capacityBundleElement);
             capacityBundle.initialize(structure, capacityBundleElement);
             capacityBundles.add(capacityBundle);
+            customerRepo.add(capacityBundle.getCustomerInfo());
         }
         utilityOptimizer = createUtilityOptimizer(structure, capacityBundles);                
         utilityOptimizer.initialize();
@@ -113,16 +112,6 @@ class DefaultFactoredCustomer implements FactoredCustomer
         return customerStructure;
     }
 
-    CustomerInfo getCustomerInfo()
-    {
-        return customerStructure.customerInfo;
-    }
-
-    int getPopulation() 
-    {
-        return getCustomerInfo().getPopulation();
-    }
-    
     @Override
     public String toString() 
     {

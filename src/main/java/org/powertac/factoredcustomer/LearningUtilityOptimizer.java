@@ -17,7 +17,6 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,8 +116,8 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
             PermutationRule permutationRule = bundle.getOptimizerStructure().permutationRule;
             if (permutationRule == null) permutationRule = PermutationRule.ALL_SHIFTS;
             perms.put(capacityOriginator, forecast.getPermutations(permutationRule));
-            log.info(getName() + ": Evaluating " + perms.get(capacityOriginator).size() + " profile permutations for " 
-                    + bundle.getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
+            log.info(bundle.getName() + ": Evaluating " + perms.get(capacityOriginator).size() + " profile permutations for " 
+                    + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
             recs.put(capacityOriginator, getProfileRecommendation(capacityOriginator, bundle, forecastRecord, perms, subscriptions));
         }
         if (bundle.getOptimizerStructure().raconcileRecommendations == true) {
@@ -128,13 +127,13 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
             if (capacityOriginator instanceof ProfileRecommendation.Listener) {
                 ProfileRecommendation rec = recs.get(capacityOriginator);
                 if (! rec.isEmpty()) {
-                    log.info(getName() + ": Submitting " + rec.getOpinions().size() + " profile suggestions to " 
-                             + bundle.getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
+                    log.info(bundle.getName() + ": Submitting " + rec.getOpinions().size() + " profile suggestions to " 
+                             + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
                     ((ProfileRecommendation.Listener) capacityOriginator).handleProfileRecommendation(rec);
                 }
                 else {
-                    log.info(getName() + ": No beneficial profile permutations for " 
-                             + bundle.getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
+                    log.info(bundle.getName() + ": No beneficial profile permutations for " 
+                             + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
                 }
             }
         }
@@ -142,15 +141,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     
     private List<TariffSubscription> getBundleSubscriptions(CapacityBundle bundle) 
     {
-        List<TariffSubscription> allSubscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(getCustomerInfo());
-        List<TariffSubscription> bundleSubscriptions = new ArrayList<TariffSubscription>();
-        for (TariffSubscription subscription: allSubscriptions) {
-            if (subscription.getTariff().getPowerType().getGenericType() == bundle.getPowerType().getGenericType() 
-                && subscription.getCustomersCommitted() > 0) {
-                bundleSubscriptions.add(subscription);
-            }
-        }
-        return bundleSubscriptions;
+        return tariffSubscriptionRepo.findSubscriptionsForCustomer(bundle.getCustomerInfo());
     }
     
     private ProfileRecommendation getProfileRecommendation(CapacityOriginator capacityOriginator, CapacityBundle bundle, 
@@ -212,10 +203,12 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
         case NEUTRAL: 
             return true;
         case BENEFIT: 
-            if (capacityOriginator.getPowerType().isConsumption()) {  // less negative is better
+            if (capacityOriginator.getParentBundle().getCustomerInfo().getPowerType().isConsumption()) {  
+                // less negative is better
                 threshold = (1.0 - optimizerStructure.usageChargePercentBenefit) * forecastCharge;
             }
-            else { // PRODUCTION or STORAGE -- more positive is better
+            else { 
+                // PRODUCTION or STORAGE -- more positive is better
                 threshold = (1.0 + optimizerStructure.usageChargePercentBenefit) * forecastCharge;
             }
             // fall through
@@ -268,8 +261,6 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
                 double targetVariance = computeAggregateVariance(targetProfile, othersCapacities);
                 double bundleValue = forecastVariance / targetVariance;
                 opinionEntry.getValue().bundleValue = bundleValue;
-                System.out.println("******* forecast variance = " + forecastVariance + ", target variance = " + targetVariance
-                                   + "; bundle value = " + bundleValue);
             }
             computeDerivedValues(targetRec, targetOriginator.getParentBundle().getOptimizerStructure()); // TODO use local opt-structure
         }

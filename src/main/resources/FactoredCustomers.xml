@@ -1,8 +1,7 @@
-<customers>
+<customers logAllocationDetails="TRUE" logCapacityDetails="TRUE" logUsageCharges="TRUE">
 
     <customer name="BrooksideHomes" count="1" creatorKey="" entityType="RESIDENTIAL">
-        <info population="30000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="30000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <contractNegotiator /> <!-- N/A -->
             <tariffSubscriber>
                 <influenceFactors> <!-- N/A -->
@@ -27,7 +26,7 @@
                     </inertiaFactors>
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Collection of suburban households.">
+            <capacity count="1" description="Collection of suburban households.">
                 <baseCapacity type="TIMESERIES">  <!-- POPULATION | INDIVIDUAL | TIMESERIES -->
                     <!-- <populationCapacity distribution="POINTMASS" value="8000" /> -->
                     <!-- <populationCapacity distribution="NORMAL" mean="22000" stdDev="2000" /> -->
@@ -63,8 +62,7 @@
     </customer>
 
     <customer name="CentervilleHomes" count="1" creatorKey="LEARNING" entityType="RESIDENTIAL">
-        <info population="20000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="20000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE"> 
                     <logitChoice rationality="0.6" />
@@ -74,20 +72,17 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Collection of urban households.">
+            <capacity count="1" description="Collection of urban households.">
                 <baseCapacity type="POPULATION">
                     <populationCapacity distribution="NORMAL" mean="22000" stdDev="2000" />
                 </baseCapacity>
                 <influenceFactors>
-                    <!-- Calendar factors -->
                     <dailySkew array="0.8, 0.8, 0.8, 0.8, 0.8, 1.0, 0.9" />
                     <hourlySkew array="0.5, 0.4, 0.4, 0.5, 0.5, 0.6, 0.6, 0.6, 0.7, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0.7, 0.8, 0.9, 1.0, 1.0, 0.9, 0.7, 0.5" />     
-                    <!-- Weather factors -->
                     <temperature influence="DEVIATION" reference="20" rangeMap="-50~-21: +0.005, -20~0: +0.01, 1~16: +0.02, 17~24: 0.00, 25~35: +0.01, 36~50: +0.005" />
                     <windSpeed influence="NONE" rangeMap="" />
                     <windDirection influence="NONE" rangeMap="0~360: 1.0" />
                     <cloudCover influence="NONE" />
-                    <!-- Market factors -->
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: -0.15" />
                         <elasticityModel type="CONTINUOUS" ratio="-0.01" range="0.7~1.0"/>
@@ -98,8 +93,7 @@
     </customer>
 
     <customer name="DowntownOffices" count="1" creatorKey="" entityType="COMMERCIAL">
-        <info population="60" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="60" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.7" />
@@ -109,7 +103,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Downtown office buildings.">
+            <capacity count="1" description="Downtown office buildings.">
                 <baseCapacity type="POPULATION">  
                     <populationCapacity distribution="NORMAL" mean="15000" stdDev="1000" />
                 </baseCapacity>
@@ -130,8 +124,7 @@
     </customer>
 
     <customer name="FrostyStorage" count="1" creatorKey="" entityType="COMMERCIAL">
-        <info population="10" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="false" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="10" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -141,7 +134,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="3" description="Refrigerated storage warehouses.">
+            <capacity count="3" description="Refrigerated storage warehouses.">
                 <baseCapacity type="POPULATION">  
                     <populationCapacity distribution="NORMAL" mean="7800" stdDev="400" />
                 </baseCapacity>
@@ -163,8 +156,7 @@
     </customer>
 
     <customer name="MedicalCenter" count="1" creatorKey="" entityType="COMMERCIAL">
-        <info population="1" powerType="CONSUMPTION" multiContracting="false" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="1" population="1" powerType="CONSUMPTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.8" />
@@ -174,7 +166,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Facilities in hospital complex.">
+            <capacity count="1" description="Facilities in hospital complex.">
                 <baseCapacity type="POPULATION">  
                     <populationCapacity distribution="NORMAL" mean="5000" stdDev="500" />
                 </baseCapacity>
@@ -192,11 +184,7 @@
                 </influenceFactors>
             </capacity>
         </capacityBundle>
-    </customer>
-    
-    <customer name="MedicalCenterSolar" count="1" creatorKey="" entityType="COMMERCIAL">
-        <info population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="2" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.8" />
@@ -206,7 +194,7 @@
                     <inertiaDistribution distribution="POINTMASS" value="0.5" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Solar capacity in hospital complex.">
+            <capacity count="1" description="Solar capacity in hospital complex.">
                 <baseCapacity type="INDIVIDUAL">  
                     <individualCapacity distribution="NORMAL" mean="2000" stdDev="200" />
                 </baseCapacity>
@@ -227,8 +215,7 @@
     </customer>
 
     <customer name="SunnyhillSolar" count="1" creatorKey="" entityType="INDUSTRIAL">
-        <info population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -238,7 +225,7 @@
                     <inertiaDistribution distribution="POINTMASS" value="0.1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Midsize solar farm.">
+            <capacity count="1" description="Midsize solar farm.">
                 <baseCapacity type="INDIVIDUAL">  
                     <individualCapacity distribution="NORMAL" mean="7000" stdDev="700" />
                 </baseCapacity>
@@ -259,8 +246,7 @@
     </customer>
 
     <customer name="WindmillCoOp" count="1" creatorKey="" entityType="INDUSTRIAL">
-        <info population="50" powerType="WIND_PRODUCTION" multiContracting="false" canNegotiate="false" />
-        <capacityBundle>
+        <capacityBundle id="" population="50" powerType="WIND_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />
@@ -270,7 +256,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity id="1" count="1" description="Cooperative of small windmill owners.">
+            <capacity count="1" description="Cooperative of small windmill owners.">
                 <baseCapacity type="INDIVIDUAL">  
                     <individualCapacity distribution="NORMAL" mean="100" stdDev="20" />
                 </baseCapacity>

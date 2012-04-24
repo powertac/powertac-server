@@ -17,8 +17,8 @@
 package org.powertac.factoredcustomer.interfaces;
 
 import java.util.List;
-
 import org.w3c.dom.Element;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.CustomerStructure;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure;
@@ -31,8 +31,14 @@ import org.powertac.factoredcustomer.TariffSubscriberStructure;
 public interface CapacityBundle
 {
     void initialize(CustomerStructure profile, Element xml);
-    
+
+    String getName();
+
+    int getPopulation();
+
     PowerType getPowerType();
+    
+    CustomerInfo getCustomerInfo();
     
     TariffSubscriberStructure getSubscriberStructure();
     

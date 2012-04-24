@@ -19,6 +19,7 @@ package org.powertac.factoredcustomer;
 import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.common.state.Domain;
@@ -33,7 +34,10 @@ import org.powertac.common.state.Domain;
 class DefaultCapacityBundle implements CapacityBundle
 {
     private final CustomerStructure customerStructure;
-    private final PowerType powerType;    
+    
+    private final String name;
+    private final CustomerInfo customerInfo;
+    
     private final TariffSubscriberStructure subscriberStructure;
     private final ProfileOptimizerStructure optimizerStructure;
     
@@ -43,8 +47,16 @@ class DefaultCapacityBundle implements CapacityBundle
     DefaultCapacityBundle(CustomerStructure structure, Element xml)
     {
         customerStructure = structure;
-        powerType = structure.customerInfo.getPowerType();
+
+        String bundleId = xml.getAttribute("id");
+        name = (bundleId == null || bundleId.isEmpty()) ? 
+                customerStructure.name : customerStructure.name + "@" + bundleId;
         
+        customerInfo = new CustomerInfo(name, Integer.parseInt(xml.getAttribute("population")))
+            .withPowerType(PowerType.valueOf(xml.getAttribute("powerType")))
+            .withMultiContracting(Boolean.parseBoolean(xml.getAttribute("multiContracting")))
+            .withCanNegotiate(Boolean.parseBoolean(xml.getAttribute("canNegotiate")));
+
         Element tariffSubscriberElement = (Element) xml.getElementsByTagName("tariffSubscriber").item(0);
         subscriberStructure = new TariffSubscriberStructure(structure, this, tariffSubscriberElement);        
         
@@ -62,27 +74,45 @@ class DefaultCapacityBundle implements CapacityBundle
             String countString = capacityElement.getAttribute("count");
             if (countString == null || Integer.parseInt(countString) == 1) {
                 CapacityStructure capacityStructure = new CapacityStructure(name, capacityElement, this);
-                capacityOriginators.add(createCapacityOriginator(capacityStructure, customerStructure));            
+                capacityOriginators.add(createCapacityOriginator(capacityStructure));            
             } else {
                 if (name == null) name = "";
                 for (int j=1; j < (1 + Integer.parseInt(countString)); ++j) {
                     CapacityStructure capacityStructure = new CapacityStructure(name + j, capacityElement, this);
-                    capacityOriginators.add(createCapacityOriginator(capacityStructure, customerStructure));                            
+                    capacityOriginators.add(createCapacityOriginator(capacityStructure));                            
                 }
             }
         }
     }
 
     /** @Override hook **/
-    protected CapacityOriginator createCapacityOriginator(CapacityStructure capacityStructure, CustomerStructure customerStructure)
+    protected CapacityOriginator createCapacityOriginator(CapacityStructure capacityStructure)
     {
-        return new DefaultCapacityOriginator(capacityStructure, this, customerStructure);            
+        return new DefaultCapacityOriginator(capacityStructure, this);            
     }
 
     @Override
+    public String getName()
+    {
+        return name;
+    }
+    
+    @Override
+    public int getPopulation()
+    {
+        return customerInfo.getPopulation();
+    }
+    
+    @Override 
     public PowerType getPowerType()
     {
-        return powerType;
+        return customerInfo.getPowerType();
+    }
+
+    @Override
+    public CustomerInfo getCustomerInfo()
+    {
+        return customerInfo;
     }
     
     @Override
@@ -106,7 +136,7 @@ class DefaultCapacityBundle implements CapacityBundle
     @Override
     public String toString()
     {
-        return this.getClass().getCanonicalName() + ":" + customerStructure.name + ":" + powerType;
+        return this.getClass().getCanonicalName() + ":" + customerStructure.name + ":" + customerInfo.getPowerType();
     }
 
 } // end class

@@ -17,8 +17,6 @@
 package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.enumerations.PowerType;
 
 /**
  * Data-holder class for parsed configuration elements of one customer.
@@ -38,7 +36,6 @@ public final class CustomerStructure
     final String name;
     final String creatorKey;
     final EntityType entityType;
-    final CustomerInfo customerInfo;
     
     CustomerStructure(String nameWithCount, Element xml)
     {
@@ -48,13 +45,6 @@ public final class CustomerStructure
         creatorKey = xml.getAttribute("creatorKey");
         
         entityType = Enum.valueOf(EntityType.class, xml.getAttribute("entityType"));
-
-        Element infoElement = (Element) xml.getElementsByTagName("info").item(0);
-	int population = Integer.parseInt(infoElement.getAttribute("population"));
-        customerInfo = new CustomerInfo(name, population)
-            .withPowerType(PowerType.valueOf(infoElement.getAttribute("powerType")))
-            .withMultiContracting(Boolean.parseBoolean(infoElement.getAttribute("multiContracting")))
-            .withCanNegotiate(Boolean.parseBoolean(infoElement.getAttribute("canNegotiate")));
     }
 
     public Element getConfigXml()

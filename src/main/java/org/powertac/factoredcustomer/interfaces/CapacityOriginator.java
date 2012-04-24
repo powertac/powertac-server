@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer.interfaces;
 
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.CapacityProfile;
 
 /**
@@ -32,13 +31,9 @@ public interface CapacityOriginator
     
     double adjustCapacityForSubscription(Timeslot timeslot, double totalCapacity, TariffSubscription subscription);
     
-    int getPopulation();
-    
     String getCapacityName();
     
     CapacityBundle getParentBundle();
-    
-    PowerType getPowerType();
 }
 
 

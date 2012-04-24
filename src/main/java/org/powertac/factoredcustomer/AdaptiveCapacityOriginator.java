@@ -47,9 +47,9 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     
     
     
-    AdaptiveCapacityOriginator(CapacityStructure capacityStructure, DefaultCapacityBundle bundle, CustomerStructure customerStructure) 
+    AdaptiveCapacityOriginator(CapacityStructure capacityStructure, DefaultCapacityBundle bundle) 
     {
-        super(capacityStructure, bundle, customerStructure);
+        super(capacityStructure, bundle);
         log = Logger.getLogger(AdaptiveCapacityOriginator.class.getName());
         
         randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
