@@ -397,38 +397,38 @@ implements InitializationService
     //return solutionList;
   }
 
-  // ---------- Getters and setters for configuration support ---------
-  public double getDistributionFeeMin ()
+  // ---------- Getters and setters for test support ---------
+  double getDistributionFeeMin ()
   {
     return distributionFeeMin;
   }
 
-  public double getDistributionFeeMax ()
+  double getDistributionFeeMax ()
   {
     return distributionFeeMax;
   }
 
-  public Double getDistributionFee ()
+  Double getDistributionFee ()
   {
     return distributionFee;
   }
 
-  public double getBalancingCostMin ()
+  double getBalancingCostMin ()
   {
     return balancingCostMin;
   }
 
-  public double getBalancingCostMax ()
+  double getBalancingCostMax ()
   {
     return balancingCostMax;
   }
 
-  public Double getBalancingCost ()
+  Double getBalancingCost ()
   {
     return balancingCost;
   }
 
-  public double getDefaultSpotPrice ()
+  double getDefaultSpotPrice ()
   {
     return defaultSpotPrice;
   }
