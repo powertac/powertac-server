@@ -356,6 +356,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     publishedTariffs =
       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
+    List<Tariff> temp =
+      tariffMarketService
+              .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    publishedTariffs.addAll(temp);
+
     // For each village of the server //
     for (Village village: villageList) {
 
