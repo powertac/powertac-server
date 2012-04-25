@@ -2,9 +2,7 @@ package org.powertac.distributionutility;
 
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +34,6 @@ import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.distributionutility.DistributionUtilityService.ChargeInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -102,7 +99,7 @@ public class DistributionUtilityServiceTests
 
     // Set up serverProperties mock
     config = new Configurator();
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -180,7 +177,7 @@ public class DistributionUtilityServiceTests
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.netLoadKWh;
+      marketBalance += ci.getNetLoadKWh();
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -198,7 +195,7 @@ public class DistributionUtilityServiceTests
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.netLoadKWh;
+      marketBalance += ci.getNetLoadKWh();
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -228,9 +225,10 @@ public class DistributionUtilityServiceTests
       assertNotNull("found ChargeInfo", ci);
       assertEquals("broker correctly balanced",
                    0.0,
-                   (distributionUtilityService.getMarketBalance(broker) + ci.netLoadKWh),
+                   (distributionUtilityService.getMarketBalance(broker)
+                           + ci.getNetLoadKWh()),
                    1e-6);
-      balance += ci.netLoadKWh;
+      balance += ci.getNetLoadKWh();
     }
     assertEquals("market fully balanced", 0.0, balance, 1e-6);
   }
@@ -240,7 +238,7 @@ public class DistributionUtilityServiceTests
   {
     ChargeInfo ci = null;
     for (ChargeInfo info : chargeInfos) {
-      if (info.brokerName.equals(broker.getUsername())) {
+      if (info.getBrokerName().equals(broker.getUsername())) {
         ci = info;
         break;
       }
@@ -268,15 +266,15 @@ public class DistributionUtilityServiceTests
     ChargeInfo ci = findChargeInfoForBroker(chargeInfos, brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
     assertNotNull("non-null btx, broker 1", ci);
     assertEquals("correct balancing charge broker1",
-                 4.0, ci.balanceCharge, 1e-6);
+                 4.0, ci.getBalanceCharge(), 1e-6);
     ci = findChargeInfoForBroker(chargeInfos, brokerList.get(1)); // BalancingTransaction.findByBroker(brokerList.get(1));
     assertNotNull("non-null btx, broker 2", ci);
     assertEquals("correct balancing charge broker2",
-                 -14.0, ci.balanceCharge, 1e-6);
+                 -14.0, ci.getBalanceCharge(), 1e-6);
     ci = findChargeInfoForBroker(chargeInfos, brokerList.get(2)); // BalancingTransaction.findByBroker(brokerList.get(2));
     assertNotNull("non-null btx, broker 3", ci);
     assertEquals("correct balancing charge broker3",
-                 -2.0, ci.balanceCharge, 1e-6);
+                 -2.0, ci.getBalanceCharge(), 1e-6);
   }
 
   @Test
@@ -306,8 +304,8 @@ public class DistributionUtilityServiceTests
     assertEquals("correct spot price", 0.0201,
                  distributionUtilityService.getSpotPrice(), 1e-6);
     assertEquals("correct pMin", 0.0198,
-                 distributionUtilityService.getPMin(), 1e-6);
+                 distributionUtilityService.getPMinus(), 1e-6);
     assertEquals("correct pMin", 0.0212,
-                 distributionUtilityService.getPMax(), 1e-6);
+                 distributionUtilityService.getPPlus(), 1e-6);
   }
 }
