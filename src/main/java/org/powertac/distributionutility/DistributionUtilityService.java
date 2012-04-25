@@ -307,7 +307,12 @@ implements InitializationService
     return result / 1000.0;
   }
 
-  // ---------- Getters and setters for test support ---------
+  // ---------- Getters and setters for settlement processsors ---------
+  CapacityControl getCapacityControlService ()
+  {
+    return capacityControlService;
+  }
+  
   double getDistributionFeeMin ()
   {
     return distributionFeeMin;
