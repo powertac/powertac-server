@@ -17,6 +17,7 @@
 package org.powertac.distributionutility;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
@@ -33,9 +35,11 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -55,9 +59,15 @@ implements InitializationService
 
   @Autowired
   private OrderbookRepo orderbookRepo;
+  
+  @Autowired
+  private TariffRepo tariffRepo;
 
   @Autowired
   private Accounting accountingService;
+  
+  @Autowired
+  private CapacityControl capacityControlService;
   
   @Autowired
   private ServerConfiguration serverProps;
@@ -110,7 +120,7 @@ implements InitializationService
           new HashMap<String, SettlementProcessor> () {{
             put("simple", new SimpleSettlementProcessor());
             put("static", new StaticSettlementProcessor());
-            put ("dynamic", new DynamicSettlementProcessor());
+            put("dynamic", new DynamicSettlementProcessor());
           }};
 
   private SettlementProcessor processor = null;
@@ -190,13 +200,23 @@ implements InitializationService
   public List<ChargeInfo> balanceTimeslot (Timeslot currentTimeslot,
                                                  List<Broker> brokerList)
   {
-    //HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
-    //List<Double> brokerBalances = new ArrayList<Double>();
-    List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>();
+    HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
+
+    // create the ChargeInfo instances for each broker
     for (Broker broker : brokerList) {
-      brokerData.add(new ChargeInfo(broker,
-                                    -getMarketBalance(broker)));
+      ChargeInfo info = new ChargeInfo(broker, -getMarketBalance(broker));
+      chargeInfoMap.put(broker, info);
     }
+    
+    // retrieve and allocate the balancing orders
+    Collection<BalancingOrder> boc = tariffRepo.getBalancingOrders();
+    for (BalancingOrder order : boc) {
+      ChargeInfo info = chargeInfoMap.get(order.getBroker());
+      info.addBalancingOrder(order);
+    }
+
+    // gather up the list of ChargeInfo instances and settle
+    List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>(chargeInfoMap.values());
     processor.settle(this, brokerData);
     
     // add balancing transactions

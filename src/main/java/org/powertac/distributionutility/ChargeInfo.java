@@ -15,6 +15,9 @@
  */
 package org.powertac.distributionutility;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.powertac.common.Broker;
 import org.powertac.common.msg.BalancingOrder;
 
@@ -27,7 +30,7 @@ class ChargeInfo
   private Broker broker = null;
   private double netLoadKWh = 0.0;
   private double balanceCharge = 0.0;
-  private BalancingOrder balancingOrder = null;
+  private List<BalancingOrder> balancingOrders = null;
 
   ChargeInfo (Broker broker, double netLoad)
   {
@@ -61,13 +64,15 @@ class ChargeInfo
     balanceCharge = charge;
   }
   
-  BalancingOrder getBalancingOrder ()
+  List<BalancingOrder> getBalancingOrders ()
   {
-    return balancingOrder;
+    return balancingOrders;
   }
   
-  void setBalancingOrder (BalancingOrder order)
+  void addBalancingOrder (BalancingOrder order)
   {
-    balancingOrder = order;
+    if (null == balancingOrders)
+      balancingOrders = new ArrayList<BalancingOrder>();
+    balancingOrders.add(order);
   }
 }

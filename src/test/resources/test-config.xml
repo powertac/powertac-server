@@ -28,6 +28,11 @@
           <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
         </bean>
         
+        <bean id="capacityControlService" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.CapacityControl" />
+        </bean>
+        
         <bean id="serverPropertiesService" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
