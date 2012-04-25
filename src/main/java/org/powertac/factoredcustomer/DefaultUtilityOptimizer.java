@@ -135,7 +135,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         ++tariffEvaluationCounter;
         for (Tariff tariff: newTariffs) {
             allTariffs.add(tariff);
-        }       
+        }               
         for (CapacityBundle bundle: capacityBundles) {
             evaluateTariffs(bundle, newTariffs); 
         }
@@ -145,8 +145,20 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
         if ((tariffEvaluationCounter % bundle.getSubscriberStructure().reconsiderationPeriod) == 0) { 
             reevaluateAllTariffs(bundle);
-        } else {
-            evaluateCurrentTariffs(bundle, newTariffs);
+        } 
+        else if (! ignoredTariffs.isEmpty()) {
+            evaluateCurrentTariffs(bundle, newTariffs);                
+        }   
+        else if (! newTariffs.isEmpty()) {
+            boolean ignoringNewTariffs = true;
+            for (Tariff tariff: newTariffs) {
+                if (isTariffApplicable(tariff, bundle)) {
+                    ignoringNewTariffs = false;
+                    evaluateCurrentTariffs(bundle, newTariffs);
+                    break;
+                }
+            }
+            if (ignoringNewTariffs) log.info(bundle.getName() + ": New tariffs are not applicable; skipping evaluation");
         }
     }
     
@@ -300,22 +312,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         return estimatedPayments;
     }
     
-    private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
-    {
-        Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
-        double totalUsage = 0.0;
-        double totalCharge = 0.0;            
-        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-            CapacityProfile forecast = capacityOriginator.getCurrentForecast();            
-            for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-                double hourlyUsage = forecast.getCapacity(i);
-                totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
-                totalUsage += hourlyUsage;
-            }
-        }
-        return totalCharge;
-    }
-
     private double estimateFixedTariffPayments(Tariff tariff)
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
@@ -327,6 +323,23 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
     }
   
+    private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
+    {
+        Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
+        double totalUsage = 0.0;
+        double totalCharge = 0.0;            
+        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+            CapacityProfile forecast = capacityOriginator.getCurrentForecast();            
+            for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+                double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
+                double hourlyUsage = usageSign * forecast.getCapacity(i);
+                totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
+                totalUsage += hourlyUsage;
+            }
+        }
+        return totalCharge;
+    }
+
     private List<Integer> determineAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
                                                List<Double> estimatedPayments) 
     {
@@ -372,8 +385,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         for (double estimatedPayment: estimatedPayments) {
             sortedPayments.add(estimatedPayment);
         }
-        Collections.sort(sortedPayments);
-        Collections.reverse(sortedPayments); // we want descending order
+        Collections.sort(sortedPayments, Collections.reverseOrder()); // we want descending order
 
         List<Integer> allocations = new ArrayList<Integer>(numTariffs);
         for (int i=0; i < numTariffs; ++i) {
@@ -398,27 +410,33 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         int numTariffs = evalTariffs.size();
         double bestPayment = Collections.max(estimatedPayments);
         double worstPayment = Collections.min(estimatedPayments);
-        double sumPayments = 0.0;
-        for (int i=0; i < numTariffs; ++i) {
-            sumPayments += estimatedPayments.get(i);
-        }
-        double meanPayment = sumPayments / numTariffs;
         
-        double lambda = bundle.getSubscriberStructure().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
-        List<Double> numerators = new ArrayList<Double>(numTariffs);
-        double denominator = 0.0;
-        for (int i=0; i < numTariffs; ++i) {  
-            double basis = Math.max((bestPayment - meanPayment), (meanPayment - worstPayment));
-            double utility = ((estimatedPayments.get(i) - meanPayment) / basis) * 3.0;  // [-3.0, +3.0] 
-            double numerator = Math.exp(lambda * utility);
-            numerators.add(numerator);
-            denominator += numerator;
-        }
         List<Double> probabilities = new ArrayList<Double>(numTariffs);
-        for (int i=0; i < numTariffs; ++i) {
-            probabilities.add(numerators.get(i) / denominator);
-        }   
-        
+        if (bestPayment - worstPayment < 0.01) { // i.e., approximately zero
+            for (int i=0; i < numTariffs; ++i) {
+                probabilities.add(1.0 / numTariffs);
+            }               
+        } else {
+            double sumPayments = 0.0;
+            for (int i=0; i < numTariffs; ++i) {
+                sumPayments += estimatedPayments.get(i);
+            }
+            double meanPayment = sumPayments / numTariffs;
+            
+            double lambda = bundle.getSubscriberStructure().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
+            List<Double> numerators = new ArrayList<Double>(numTariffs);
+            double denominator = 0.0;
+            for (int i=0; i < numTariffs; ++i) {  
+                double basis = Math.max((bestPayment - meanPayment), (meanPayment - worstPayment));
+                double utility = ((estimatedPayments.get(i) - meanPayment) / basis) * 3.0;  // [-3.0, +3.0] 
+                double numerator = Math.exp(lambda * utility);
+                numerators.add(numerator);
+                denominator += numerator;
+            }
+            for (int i=0; i < numTariffs; ++i) {
+                probabilities.add(numerators.get(i) / denominator);
+            }   
+        }
         // Now determine allocations based on above probabilities
         List<Integer> allocations = new ArrayList<Integer>(numTariffs);
         int population = bundle.getPopulation();
