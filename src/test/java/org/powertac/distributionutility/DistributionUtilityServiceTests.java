@@ -286,6 +286,19 @@ public class DistributionUtilityServiceTests
   public void testSpotPrice ()
   {
     initializeService();
+    updatePrices();
+
+    // make sure we can retrieve current spot price
+    assertEquals("correct spot price", 0.0201,
+                 distributionUtilityService.getSpotPrice(), 1e-6);
+    assertEquals("correct pMinus", 0.0198,
+                 distributionUtilityService.getPMinus(), 1e-6);
+    assertEquals("correct pPlus", 0.0212,
+                 distributionUtilityService.getPPlus(), 1e-6);
+  }
+
+  private void updatePrices ()
+  {
     // add some new timeslots
     Timeslot ts0 = timeslotRepo.currentTimeslot();
     long start = timeService.getCurrentTime().getMillis();
@@ -304,14 +317,6 @@ public class DistributionUtilityServiceTests
     orderbookRepo.makeOrderbook(ts0, 19.8);
     // this should be the spot price
     orderbookRepo.makeOrderbook(ts0, 20.1);
-
-    // make sure we can retrieve current spot price
-    assertEquals("correct spot price", 0.0201,
-                 distributionUtilityService.getSpotPrice(), 1e-6);
-    assertEquals("correct pMin", 0.0198,
-                 distributionUtilityService.getPMinus(), 1e-6);
-    assertEquals("correct pMin", 0.0212,
-                 distributionUtilityService.getPPlus(), 1e-6);
   }
   
   // make sure balancing orders are correctly allocated
@@ -349,6 +354,7 @@ public class DistributionUtilityServiceTests
             distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
                                                        brokerList);
     assertEquals("correct count", 3, chargeInfos.size());
+    
     ChargeInfo c1b1 = findFirst(chargeInfos,
                                 new Predicate<ChargeInfo>() {
       @Override
@@ -362,6 +368,19 @@ public class DistributionUtilityServiceTests
     assertEquals("found 2 balancing orders", 2, orders.size());
     assertTrue("contains bo1t1", orders.contains(bo1t1));
     assertTrue("contains bo1t2", orders.contains(bo1t2));
+    
+    ChargeInfo c1b2 = findFirst(chargeInfos,
+                                new Predicate<ChargeInfo>() {
+      @Override
+      public boolean apply (ChargeInfo item)
+      {
+        return (item.getBroker() == b2);
+      }
+    });
+    assertNotNull("found correct chargeInfo", c1b2);
+    orders = c1b2.getBalancingOrders();
+    assertEquals("found 1 balancing order", 1, orders.size());
+    assertTrue("contains bo2t1", orders.contains(bo2t1));
   }
   
 //  class DummySettlementProcessor implements SettlementProcessor
