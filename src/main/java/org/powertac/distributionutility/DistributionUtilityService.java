@@ -342,4 +342,9 @@ implements InitializationService
   {
     return defaultSpotPrice;
   }
+  
+  void setSettlementProcessor (SettlementProcessor proc)
+  {
+    processor = proc;
+  }
 }

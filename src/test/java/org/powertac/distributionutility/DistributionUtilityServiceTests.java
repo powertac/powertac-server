@@ -3,6 +3,7 @@ package org.powertac.distributionutility;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+import static org.powertac.util.ListTools.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,10 +22,13 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.config.Configurator;
+import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
@@ -33,7 +37,7 @@ import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -53,6 +57,9 @@ public class DistributionUtilityServiceTests
   private BrokerRepo brokerRepo;
 
   @Autowired
+  private TariffRepo tariffRepo;
+
+  @Autowired
   private OrderbookRepo orderbookRepo;
   
   @Autowired
@@ -64,7 +71,6 @@ public class DistributionUtilityServiceTests
   @Autowired
   private DistributionUtilityService distributionUtilityService;
 
-  private TariffRepo tariffRepo;
   private Competition comp;
   private Configurator config;
   private List<Broker> brokerList = new ArrayList<Broker>();
@@ -115,7 +121,6 @@ public class DistributionUtilityServiceTests
     // clear all repos
     timeslotRepo.recycle();
     brokerRepo.recycle();
-    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
     tariffRepo.recycle();
     orderbookRepo.recycle();
 
@@ -308,4 +313,67 @@ public class DistributionUtilityServiceTests
     assertEquals("correct pMin", 0.0212,
                  distributionUtilityService.getPPlus(), 1e-6);
   }
+  
+  // make sure balancing orders are correctly allocated
+  @Test
+  public void testBalancingOrderAllocation ()
+  {
+    initializeService();
+    final Broker b1 = brokerRepo.findByUsername("testBroker1");
+    TariffSpecification b1ts1 =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    b1ts1.addRate(new Rate().withValue(0.12).withMaxCurtailment(0.3));
+    tariffRepo.addSpecification(b1ts1);
+    TariffSpecification b1ts2 =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    b1ts1.addRate(new Rate().withValue(0.10).withMaxCurtailment(0.5));
+    tariffRepo.addSpecification(b1ts2);
+
+    final Broker b2 = brokerRepo.findByUsername("testBroker2");
+    TariffSpecification b2ts1 =
+            new TariffSpecification(b2, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    b1ts1.addRate(new Rate().withValue(0.13).withMaxCurtailment(0.2));
+    tariffRepo.addSpecification(b2ts1);
+    
+    BalancingOrder bo1t1 = new BalancingOrder(b1, b1ts1, 0.8, 0.2);
+    tariffRepo.addBalancingOrder(bo1t1);
+    BalancingOrder bo1t2 = new BalancingOrder(b1, b1ts2, 0.6, 0.15);
+    tariffRepo.addBalancingOrder(bo1t2);
+    BalancingOrder bo2t1 = new BalancingOrder(b2, b2ts1, 0.7, 0.1);
+    tariffRepo.addBalancingOrder(bo2t1);
+    
+    assertEquals("correct number of bo", 3,
+                 tariffRepo.getBalancingOrders().size());
+
+    List<ChargeInfo> chargeInfos =
+            distributionUtilityService.balanceTimeslot(timeslotRepo.currentTimeslot(),
+                                                       brokerList);
+    assertEquals("correct count", 3, chargeInfos.size());
+    ChargeInfo c1b1 = findFirst(chargeInfos,
+                                new Predicate<ChargeInfo>() {
+      @Override
+      public boolean apply (ChargeInfo item)
+      {
+        return (item.getBroker() == b1);
+      }
+    });
+    assertNotNull("found correct chargeInfo", c1b1);
+    List<BalancingOrder> orders = c1b1.getBalancingOrders();
+    assertEquals("found 2 balancing orders", 2, orders.size());
+    assertTrue("contains bo1t1", orders.contains(bo1t1));
+    assertTrue("contains bo1t2", orders.contains(bo1t2));
+  }
+  
+//  class DummySettlementProcessor implements SettlementProcessor
+//  {
+//    List<ChargeInfo> chargeInfoList = null;
+//    
+//    @Override
+//    public void settle (DistributionUtilityService service,
+//                        List<ChargeInfo> brokerData)
+//    {
+//      chargeInfoList = brokerData;
+//    }
+//    
+//  }
 }
