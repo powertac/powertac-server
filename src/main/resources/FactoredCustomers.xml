@@ -124,7 +124,7 @@
     </customer>
 
     <customer name="FrostyStorage" count="1" creatorKey="" entityType="COMMERCIAL">
-        <capacityBundle id="" population="10" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="false" canNegotiate="false">
+        <capacityBundle id="" population="3" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -246,7 +246,7 @@
     </customer>
 
     <customer name="WindmillCoOp" count="1" creatorKey="" entityType="INDUSTRIAL">
-        <capacityBundle id="" population="50" powerType="WIND_PRODUCTION" multiContracting="false" canNegotiate="false">
+        <capacityBundle id="" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />

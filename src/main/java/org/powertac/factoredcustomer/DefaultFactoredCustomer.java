@@ -87,7 +87,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     }
     
     @Override 
-    public void handleNewTariffs (List<Tariff> newTariffs)
+    public void handleNewTariffs(List<Tariff> newTariffs)
     {
         Timeslot timeslot =  timeslotRepo.currentTimeslot();
         log.info("Customer " + getName() + " received " + newTariffs.size() + " new tariffs at timeslot " + timeslot.getSerialNumber());
