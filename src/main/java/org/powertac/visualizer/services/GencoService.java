@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.domain.genco.Genco;
+import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service
-public class GencoService implements TimeslotCompleteActivation, DomainRepo {
+public class GencoService implements TimeslotCompleteActivation, Recyclable {
 
 	private static Logger log = Logger.getLogger(GencoService.class);
 

@@ -1,5 +1,6 @@
 package org.powertac.visualizer.services.handlers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,7 +52,9 @@ public class BrokerMessageHandler implements Initializable {
 
 	public void handleMessage(Competition competition) {
 		List<String> brokersName = competition.getBrokers();
-		HashMap<String, BrokerModel> brokers = new HashMap<String, BrokerModel>();
+		HashMap<String, BrokerModel> map = new HashMap<String, BrokerModel>();
+		
+		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
 
 		JSONArray brokerSeriesColors = new JSONArray();
 		//StringBuilder seriesOptions = new StringBuilder();
@@ -77,9 +80,11 @@ public class BrokerMessageHandler implements Initializable {
 			}
 			brokerModel.setCustomerModels(customerModels);
 
-			brokers.put(brokerModel.getName(), brokerModel);
+			map.put(brokerModel.getName(), brokerModel);
+			list.add(brokerModel);
 		}
-		brokerService.addBrokers(brokers);
+		brokerService.setMap(map);
+		brokerService.setBrokers(list);
 		brokerService.getJson().setBrokerSeriesColors(brokerSeriesColors);
 		brokerService.getJson().setSeriesOptions(seriesOptions);
 
