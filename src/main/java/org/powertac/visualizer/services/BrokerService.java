@@ -24,10 +24,12 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 	private ArrayList<BrokerModel> brokers = new ArrayList<BrokerModel>();
 	private BrokersJSON json = new BrokersJSON();
 
-	public void addBrokers(HashMap<String, BrokerModel> brokers) {
-		this.map = brokers;
-		// build brokers list:
-		this.brokers = new ArrayList<BrokerModel>(map.values());
+	public void setMap(Map<String, BrokerModel> map) {
+		this.map = map;
+	}
+	
+	public void setBrokers(ArrayList<BrokerModel> brokers) {
+		this.brokers = brokers;
 	}
 
 	/**
