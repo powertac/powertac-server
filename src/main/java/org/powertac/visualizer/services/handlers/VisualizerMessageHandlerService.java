@@ -25,6 +25,7 @@ import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.DistributionReport;
+import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
@@ -61,9 +62,10 @@ public class VisualizerMessageHandlerService implements Initializable {
 	private AppearanceListBean appearanceListBean;
 	@Autowired
 	private MessageDispatcher router;
-	private int firstTimeslotIndex = -1;
+	
 
 	public void handleMessage(Competition competition) {
+		visualizerBean.setRunning(true);
 		visualizerBean.setCompetition(competition);
 	}
 
@@ -104,8 +106,8 @@ public class VisualizerMessageHandlerService implements Initializable {
 
 	public void handleMessage(TimeslotComplete complete) {
 
-		if (firstTimeslotIndex == -1) {
-			firstTimeslotIndex = complete.getTimeslotIndex();
+		if (visualizerBean.getFirstTimeslotIndex() == -1) {
+			visualizerBean.setFirstTimeslotIndex(complete.getTimeslotIndex());
 		}
 
 		// activate beans that implement timeslotcompleteactivation interface:
@@ -117,19 +119,23 @@ public class VisualizerMessageHandlerService implements Initializable {
 
 		// new day? if so, make new day overview:
 
-		int relativeTimeslotIndex = complete.getTimeslotIndex() - firstTimeslotIndex;
+		int relativeTimeslotIndex = complete.getTimeslotIndex() - visualizerBean.getFirstTimeslotIndex();
 
-		if (relativeTimeslotIndex % 23 == 0 && firstTimeslotIndex != complete.getTimeslotIndex()) {
+		if (relativeTimeslotIndex % 23 == 0 && visualizerBean.getFirstTimeslotIndex() != complete.getTimeslotIndex()) {
 			helper.buildDayOverview();
 		}
 
 	}
 
 	public void handleMessage(SimStart simStart) {
-		log.info("\nINSTANT: " + simStart.getStart());
-		// TODO
-
+		
 	}
+	
+	public void handleMessage(SimEnd simEnd) {
+		visualizerBean.setRunning(false);
+		visualizerBean.setFinished(true);
+	}
+
 
 	public void handleMessage(SimPause simPause) {
 		// TODO
@@ -201,7 +207,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 	}
 
 	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class, MarketPosition.class, MarketTransaction.class, BankTransaction.class, WeatherForecast.class, WeatherReport.class, SimPause.class, SimStart.class,
+		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class,SimEnd.class, MarketPosition.class, MarketTransaction.class, BankTransaction.class, WeatherForecast.class, WeatherReport.class, SimPause.class, SimStart.class,
 				TimeslotComplete.class, TimeslotUpdate.class, Competition.class, TariffExpire.class, TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}

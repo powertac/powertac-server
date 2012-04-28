@@ -19,6 +19,21 @@
 					value="GAME VIEW" />
 			</h:outputLink>
 		</p>
+		<br />
+
+		<p:panel id="game_status">
+			Game status:
+			<h:outputText style="font-weight:bold; font-size:150%;" value=" not"
+				rendered="#{not visualizerBean.running}" />
+			<h:outputText style="font-weight:bold; font-size:150%;"
+				value=" running" />
+			<h:outputText style="font-weight:bold; font-size:150%;"
+				value=" (finished)" rendered="#{visualizerBean.finished}" />
+
+		</p:panel>
+		<h:form>
+			<p:poll autoStart="true" interval="5" update=":game_status" />
+		</h:form>
 
 	</ui:define>
 
@@ -28,9 +43,8 @@
 				<h:outputLabel for="message" value="Message: " styleClass="large" />
 				<hr />
 				<h:outputText id="message"
-					value="#{webCompetitionControlService.message}"
-					 />
-			
+					value="#{webCompetitionControlService.message}" />
+
 			</h:panelGroup>
 			<br />
 			<p:panel header="COMMON:" style="width:700px">

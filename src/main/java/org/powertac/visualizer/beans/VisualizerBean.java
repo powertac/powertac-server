@@ -59,6 +59,9 @@ public class VisualizerBean implements Serializable {
 	private int week;
 	private int day;
 	private int hour;
+	private boolean finished;
+	private boolean running;
+	private int firstTimeslotIndex;
 
 	@Autowired
 	private AppearanceListBean appearanceList;
@@ -111,6 +114,9 @@ public class VisualizerBean implements Serializable {
 		week = -1;
 		day = -1;
 		hour = -1;
+		finished = false;
+		running = false;
+		firstTimeslotIndex = -1;
 
 	}
 
@@ -226,6 +232,30 @@ public class VisualizerBean implements Serializable {
 
 	public void setHour(int hour) {
 		this.hour = hour;
+	}
+
+	public boolean isFinished() {
+		return finished;
+	}
+
+	public void setFinished(boolean finished) {
+		this.finished = finished;
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public void setRunning(boolean running) {
+		this.running = running;
+	}
+
+	public int getFirstTimeslotIndex() {
+		return firstTimeslotIndex;
+	}
+
+	public void setFirstTimeslotIndex(int firstTimeslotIndex) {
+		this.firstTimeslotIndex = firstTimeslotIndex;
 	}
 
 }

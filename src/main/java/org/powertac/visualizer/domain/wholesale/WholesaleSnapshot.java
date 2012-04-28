@@ -24,9 +24,8 @@ import org.primefaces.json.JSONException;
  * 
  */
 public class WholesaleSnapshot {
-	
-	
 
+	private static final int MARKET_PRICE = 100;
 	Logger log = Logger.getLogger(WholesaleSnapshot.class.getName());
 
 	// timeslot serial number value in which the snapshot is created.
@@ -255,7 +254,7 @@ public class WholesaleSnapshot {
 						.abs(highestBid.getLimitPrice()) : 0.8 * Math.abs(lowestAsk.getLimitPrice());
 
 			} else {
-				newPrice = 100;
+				newPrice = MARKET_PRICE;
 			}
 			marketAskOrder = new OrderbookOrder(marketAskOrder.getMWh(), newPrice);
 		}
@@ -265,7 +264,7 @@ public class WholesaleSnapshot {
 				newPrice = (Math.abs(lowestBid.getLimitPrice()) > Math.abs(highestAsk.getLimitPrice())) ? -1.2
 						* Math.abs(lowestBid.getLimitPrice()) : -1.2 * Math.abs(highestAsk.getLimitPrice());
 			} else {
-				newPrice = -100;
+				newPrice = -1 * MARKET_PRICE;
 			}
 			marketBidOrder = new OrderbookOrder(marketBidOrder.getMWh(), newPrice);
 		}
@@ -310,12 +309,12 @@ public class WholesaleSnapshot {
 				bidOffset = buildLine(Math.abs(newMarketAskOrder.getMWh()),
 						Math.abs(newMarketAskOrder.getLimitPrice()), graphDataAfterClearing, seriesColorsAfterClearing,
 						bidOffset, WholesaleSnapshotJSON.getMarketBidOrderColor());
+			} else {
+
+				bidOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
+						graphDataAfterClearing, seriesColorsAfterClearing, bidOffset,
+						WholesaleSnapshotJSON.getLimitBidOrderColor());
 			}
-
-			bidOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
-					graphDataAfterClearing, seriesColorsAfterClearing, bidOffset,
-					WholesaleSnapshotJSON.getLimitBidOrderColor());
-
 		}
 
 	}
@@ -352,11 +351,25 @@ public class WholesaleSnapshot {
 	}
 
 	private OrderbookOrder modifyMarketOrder(OrderbookOrder marketOrder, SortedSet<OrderbookOrder> offers) {
-		// if there is market order give her some real value.
+		// get rid of a null price in market order:
 		try {
 			OrderbookOrder first = offers.first();
-			double limitPrice = first.getLimitPrice();
-			double newMarketPrice = (1.2) * limitPrice;
+			Double limitPrice = first.getLimitPrice();
+			double newMarketPrice;
+			
+			//First element in "offers" set is order with a null price:
+			if (limitPrice == null) {
+				// bid
+				if (first.getMWh() > 0) {
+					newMarketPrice = -1 * MARKET_PRICE;
+				} else {
+					// ask
+					newMarketPrice = MARKET_PRICE;
+				}
+			} else {
+				// First element in "offers" set does not have a null price, it is an actual number:
+				newMarketPrice = (first.getMWh() > 0) ? (-1.2) * limitPrice : (0.8) * limitPrice;
+			}
 
 			return new OrderbookOrder(marketOrder.getMWh(), newMarketPrice);
 
