@@ -14,7 +14,6 @@
   <description>Support for download and execution of the Power TAC server</description>
   <url>http://www.powertac.org</url>
 
-  <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
   	<groupId>org.powertac</groupId>
   	<artifactId>server-master</artifactId>
@@ -29,89 +28,105 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
-    
-  <dependencies>
 
-     <dependency>
-       <groupId>org.powertac</groupId>
-       <artifactId>server-main</artifactId>
-       <version>0.5.0-SNAPSHOT</version>
-       <scope>runtime</scope>
-     </dependency>
+  <profiles>
+    <!-- Command-line setup -->
+    <profile>
+      <id>cli</id>
+      <dependencies>
+	<dependency>
+	  <groupId>org.powertac</groupId>
+	  <artifactId>server-main</artifactId>
+	  <version>0.5.0-SNAPSHOT</version>
+	</dependency>
+      </dependencies>
 
-     <dependency>
-       <groupId>org.powertac</groupId>
-       <artifactId>visualizer</artifactId>
-       <version>0.5.0-SNAPSHOT</version>
-       <type>war</type>
-       <scope>runtime</scope>
-     </dependency>
-
-  </dependencies>
-
-  <build>
-    <finalName>server-distribution</finalName>
-    <plugins>
-      <!-- ... headless server execution ...
-	 mvn exec:exec -Dexec.args="args"
+      <build>
+	<finalName>run-cli</finalName>
+	<defaultGoal>exec:exec</defaultGoal>
+	<plugins>
+	  <!-- ... headless server execution ...
+	 mvn -Pcli -Dexec.args="args"
 	   ... should turn into
 	 mvn exec:exec -Dexec.executable="java" -Dexec.args="-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer cmd-line-args"
 	-->
-      <plugin>
-      	<groupId>org.codehaus.mojo</groupId>
-      	<artifactId>exec-maven-plugin</artifactId>
-      	<version>1.2.1</version>
-      	<executions>
-      	  <execution>
-      	    <goals>
-      	      <goal>exec</goal>
-      	    </goals>
-      	  </execution>
-      	 </executions>
-      	<configuration>
-	  <executable>java</executable>
-	  <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer ${exec.args}</commandlineArgs>
-	</configuration>
-      </plugin>
+	  <plugin>
+      	    <groupId>org.codehaus.mojo</groupId>
+      	    <artifactId>exec-maven-plugin</artifactId>
+      	    <version>1.2.1</version>
+      	    <executions>
+      	      <execution>
+      		<goals>
+      		  <goal>exec</goal>
+      		</goals>
+      	      </execution>
+      	    </executions>
+      	    <configuration>
+	      <executable>java</executable>
+	      <commandlineArgs>-server -Xmx1024m -classpath %classpath org.powertac.server.PowerTacServer ${exec.args}</commandlineArgs>
+	    </configuration>
+	  </plugin>
+	</plugins>
+      </build>
+    </profile>
 
-      <!-- ... visualizer execution ...
-	 mvn cargo:run
-	-->
-      <plugin>
-	<groupId>org.codehaus.cargo</groupId>
-	<artifactId>cargo-maven2-plugin</artifactId>
-	<version>1.2.1</version>
-	<configuration>
-          <!-- Container configuration -->
-          <container>
-            <containerId>jetty6x</containerId>
-            <type>embedded</type>
-	    <dependencies>
-	      <dependency>
-		<groupId>org.powertac</groupId>
-		<artifactId>visualizer</artifactId>
-		<version>0.5.0-SNAPSHOT</version>
-		<type>war</type>
-		<scope>runtime</scope>
-	      </dependency>
-	    </dependencies>
-          </container>
-          <!-- Configuration to use with the container or the deployer -->
-          <configuration>
-            <deployables>
-              <deployable>
-		<groupId>org.powertac</groupId>
-		<artifactId>visualizer</artifactId>
-		<type>war</type>
-		<properties>
-                  <context>/visualizer</context>
-		</properties>
-              </deployable>
-            </deployables>
-          </configuration>
-          <wait>false</wait>
-	</configuration>
-      </plugin>
-    </plugins>
-   </build>
+    <!-- Web visualizer setup -->
+    <profile>
+      <id>web</id>
+      <dependencies>
+	<dependency>
+	  <groupId>org.powertac</groupId>
+	  <artifactId>visualizer</artifactId>
+	  <version>0.5.0-SNAPSHOT</version>
+	  <type>war</type>
+	</dependency>
+      </dependencies>
+
+      <build>
+	<finalName>run-web</finalName>
+	<defaultGoal>jetty:run-war</defaultGoal>
+	<plugins>
+	  <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+		<id>copy</id>
+		<phase>package</phase>
+		<goals>
+		  <goal>copy</goal>
+		</goals>
+		<configuration>
+		  <outputDirectory>${project.build.directory}</outputDirectory>
+		  <strip-version>true</strip-version>
+		  <artifactItems>
+                    <artifactItem>
+                      <groupId>org.powertac</groupId>
+                      <artifactId>visualizer</artifactId>
+                      <version>0.5.0-SNAPSHOT</version>
+                      <type>war</type>
+		      <dest-file-name>visualizer.war</dest-file-name>
+                    </artifactItem>
+		  </artifactItems>
+		</configuration>
+              </execution>
+            </executions>
+	  </plugin>
+
+	  <!-- jetty-maven-plugin -->
+	  <plugin>
+	    <groupId>org.mortbay.jetty</groupId>
+	    <artifactId>maven-jetty-plugin</artifactId>
+	    <version>6.1.26</version>
+	    <configuration>
+	      <webApp>${project.build.directory}/visualizer.war</webApp>
+	      <contextPath>/visualizer</contextPath>
+	    </configuration>
+	  </plugin>
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
+
  </project>

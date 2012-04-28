@@ -1,7 +1,9 @@
-February 2012
+April 2012
 
-Welcome to the 0.2.0 release of the Power TAC server. This release
-contains the server only, although there is a compatible sample
+Welcome to the 0.5.0 release of the Power TAC server. This release
+contains the server and an initial version of the game visualizer,
+including a simple control panel that allows you to set up and run
+bootstrap and competition sessions. There is a compatible sample
 broker distributed separately. This release is intended to support
 broker development and simple experiments.
 
@@ -13,11 +15,13 @@ http://tac04.cs.umn.edu:8080/job/powertac-server/ws/target/site/api/html/index.h
 
 Running the server
 ------------------
-The server is distributed as a maven pom.xml file. The first time you
+The server is distributed as a maven pom.xml file, and you must have
+Apache Maven installed to use it. The first time you
 run it, maven will download all the server components, as well as
 other libraries, from Maven Central (or from the Sonatype snapshot
 repository if you are running a snapshot version). This can take some
-time the first time you start the server.
+time the first time you start the server. If you are running the web
+version, the main download file is over 26 Mb.
 
 Before you run the server, note that it runs in two different modes:
 
@@ -34,36 +38,38 @@ Before you run the server, note that it runs in two different modes:
   in simulated time immediately following the end of the bootstrap
   period. Many sims can be run with the same bootstrap dataset.
 
-The server is configured by command-line options and by a
-configuration file. Note that a number of these options refer to the
-Tournament Scheduler, which is not yet released. See
+The server can be run from the command line (the "cli" option), and
+from the web interface (the "web" option). Both options accept the
+same input settings, except that the web option does not support the
+Tournament Manager.
+
+Configuration is by command-line options or the equivalent data in a
+web form and by a configuration file. Note that a number of these
+options refer to the Tournament Manager, which is not yet
+released. See
 https://github.com/powertac/powertac-server/wiki/Tournament-Scheduler
-for background on this. Also note that the older "script-file"
-interface still works - if you were set up to run the 0.1.0 server,
-the new version still accepts that style of interface.
+for background on this.
 
-The format of the command line depends on the type
-of session you want to run. To run a bootstrap session, it's
+The command line options depend on the type of session you want to
+run. To run a bootstrap session, the command is
 
-To run the server in bootstrap mode, the command is
-
-  mvn exec:exec -Dexec.args="--boot bootstrap-data [options]"
+  mvn -Pcli -Dexec.args="--boot bootstrap-data [options]"
 
 where
 
-bootstrap-data is the name (not a URL) of the xml file that will be 
+  bootstrap-data is the name (not a URL) of the xml file that will be 
   written with the results of the bootstrap run,
 
 options include:
 
   --control controller-url 
-  gives the URL of the Tournament Scheduler api, from which the server
+  gives the URL of the Tournament Manager api, from which the server
   can request a configuration and a log-prefix string.
 
   --config server-config
   gives the URL (not a filename) of a properties file that overrides
-  the standard server configuration. If this option is missing and the
-  --control option is given, the server configuration is retrieved
+  the standard server configuration. If this option is missing and
+  the --control option is given, the server configuration is retrieved
   from controller-url/server-config.
 
   --log-suffix suffix
@@ -73,25 +79,27 @@ options include:
   given, the logfile prefix will be retrieved from
   controller-url/log-suffix.
 
-To run the server in sim mode, the command is
+To run the server from the command line in sim mode, the command is
 
-  mvn exec:exec -Dexec.args="--sim [options]"
+  mvn -Pcli -Dexec.args="--sim [options]"
 
 where options include the --config, --log-suffix, and --control
 options as in bootstrap mode, as well as
 
   --boot-data bootstrap-data
-  gives the URL of the xml file from which a bootstrap record can be
-  read. If this option is missing and the --control option is given,
-  then the URL for the bootstrap record will be
-  controller-url/bootstrap-data. Note: the server will not start if
-  one of these two sources does not produce a valid bootstrap
+  gives the URL (or simply a filename) of the xml file from which a
+  bootstrap record can be read. If this option is missing and the
+  --control option is given, then the URL for the bootstrap record
+  will be controller-url/bootstrap-data. Note that the server will not
+  start if one of these two sources does not produce a valid bootstrap
   dataset.
 
   --jms-url url
   gives the URL of the jms message broker, which is typically, but not
   necessarily, instantiated inside the server. The default value is
-  tcp://localhost:61616.
+  tcp://localhost:61616. If you want to connect to it from another
+  host, you need to use a valid hostname rather than localhost, and
+  the brokers must specify the same URL.
 
   --brokers broker,...
   is a comma-separated list of broker usernames that are expected to
@@ -105,8 +113,22 @@ options as in bootstrap mode, as well as
 If you want to override some aspect of server configuration that is
 not directly supported by command-line options, you will need to edit
 the sample server configuration file given in
-config/server.properties, and then specify it, presumably using a
-file: URL, as the argument to the --config option.
+config/server.properties, and then specify it as the argument to the
+--config option.
+
+To run the server under control of the visualizer, the command is
+simply
+
+  mvn -Pweb
+
+Once it is running (it will print '[INFO] Started Jetty Server),
+browse to http://localhost:8080/visualizer and navigate to the
+Competition Control page. There you will see a web form that allows
+you to fill in the same options accepted by the cli version. Once a
+sim session is running, the Game Status message will change to
+"Running", and you can then navigate to the Game View. Note that it is
+not necessary to shut down the web server (which you do by aborting
+the maven process with Control-C) between sessions.
 
 Access to code resources
 ------------------------
@@ -132,8 +154,9 @@ will not always be immediate.
 Please let us know what you think of the Power TAC system, and how we
 can improve our software and processes.
 
-John Collins, Wolf Ketter, and the Power TAC development team:
-Jurica Babic, Antonios Chrysopoulos, Travis Daudelin, Josh Edeen, 
-Ryan Finneman, Nguyen Nguyen, Erik Onarheim, Markus Peters, 
-Vedran Podobnik, Prashant Reddy, Andreas Symeonidis,
-Philippe Souza Moraes Ribeiro, and Konstantina Valogianni
+John Collins, Wolf Ketter, and the Power TAC development team: Jurica
+Babic, Antonios Chrysopoulos, Travis Daudelin, Mathijs de Weerdt, Josh
+Edeen, Ryan Finneman, Nguyen Nguyen, Erik Onarheim, Shashank Pande,
+Markus Peters, Vedran Podobnik, Kailash Ramanathan, Prashant Reddy,
+Andreas Symeonidis, Philippe Souza Moraes Ribeiro, and Konstantina
+Valogianni
