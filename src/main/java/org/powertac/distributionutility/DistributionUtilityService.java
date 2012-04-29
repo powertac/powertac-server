@@ -313,6 +313,11 @@ implements InitializationService
     return capacityControlService;
   }
   
+  TariffRepo getTariffRepo ()
+  {
+    return tariffRepo;
+  }
+  
   double getDistributionFeeMin ()
   {
     return distributionFeeMin;
