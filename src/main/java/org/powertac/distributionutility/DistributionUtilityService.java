@@ -47,7 +47,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DistributionUtilityService
 extends TimeslotPhaseProcessor
-implements InitializationService
+implements SettlementContext, InitializationService
 {
   Logger log = Logger.getLogger(this.getClass().getName());
 
@@ -270,7 +270,8 @@ implements InitializationService
   /**
    * Returns the maximum price for energy in the current timeslot
    */
-  double getPPlus ()
+  @Override
+  public double getPPlus ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
@@ -290,7 +291,8 @@ implements InitializationService
   /**
    * Returns the minimum price for energy in the current timeslot
    */
-  double getPMinus ()
+  @Override
+  public double getPMinus ()
   {
     double result = defaultSpotPrice;
     List<Orderbook> obs = 
@@ -308,12 +310,14 @@ implements InitializationService
   }
 
   // ---------- Getters and setters for settlement processsors ---------
-  CapacityControl getCapacityControlService ()
+  @Override
+  public CapacityControl getCapacityControlService ()
   {
     return capacityControlService;
   }
   
-  TariffRepo getTariffRepo ()
+  @Override
+  public TariffRepo getTariffRepo ()
   {
     return tariffRepo;
   }
@@ -343,7 +347,8 @@ implements InitializationService
     return balancingCostMax;
   }
 
-  Double getBalancingCost ()
+  @Override
+  public Double getBalancingCost ()
   {
     return balancingCost;
   }

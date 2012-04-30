@@ -29,7 +29,7 @@ public class DynamicSettlementProcessor implements SettlementProcessor
    * @see org.powertac.distributionutility.SettlementProcessor#settle(java.util.Collection)
    */
   @Override
-  public void settle (DistributionUtilityService service,
+  public void settle (SettlementContext service,
                       List<ChargeInfo> brokerData)
   {
     // TODO Auto-generated method stub

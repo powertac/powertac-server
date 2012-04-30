@@ -40,12 +40,13 @@ public class StaticSettlementProcessor implements SettlementProcessor
 
   TariffRepo tariffRepo;
   CapacityControl capacityControlService;
+  double epsilon = 1e-3; // 1 watt-hour
   
   /* (non-Javadoc)
    * @see org.powertac.distributionutility.SettlementProcessor#settle(java.util.Collection)
    */
   @Override
-  public void settle (DistributionUtilityService service,
+  public void settle (SettlementContext service,
                       List<ChargeInfo> brokerData)
   {
     tariffRepo = service.getTariffRepo();
@@ -71,14 +72,16 @@ public class StaticSettlementProcessor implements SettlementProcessor
     // get curtailable usage for each order that is not superseded by the
     // regulating market.
     for (BOWrapper bo : candidates) {
-      double avail =
-              capacityControlService.getCurtailableUsage(bo.balancingOrder);
-      bo.availableCapacity = avail;
+      if (bo != dummy) {
+        double avail =
+                capacityControlService.getCurtailableUsage(bo.balancingOrder);
+        bo.availableCapacity = avail;
+      }
     }
     
     // determine the set that will be exercised.
     determineExerciseSet(totalImbalance, candidates);
-    BOWrapper lastExercised = null;
+    BOWrapper lastExercised = candidates.first();
     for (BOWrapper bow : candidates) {
       if (0.0 == bow.exercisedCapacity)
         break;
@@ -106,7 +109,7 @@ public class StaticSettlementProcessor implements SettlementProcessor
       double net = info.getNetLoadKWh(); 
       if (net < 0.0)
         // deficit - charge pPlus
-        charge = -pPlus * net;
+        charge = pPlus * net;
       else
         // surplus - charge pMinus
         charge = pMinus * net;
@@ -155,10 +158,13 @@ public class StaticSettlementProcessor implements SettlementProcessor
       };
     }
     for (ChargeInfo info : brokerData) {
-      for (BalancingOrder bo : info.getBalancingOrders()) {
-        if (tester.apply(bo)) {
-          BOWrapper bow = new BOWrapper(info, bo);
-          orders.add(bow);
+      List<BalancingOrder> balancingOrders = info.getBalancingOrders(); 
+      if (null != balancingOrders && balancingOrders.size() > 0) {
+        for (BalancingOrder bo : info.getBalancingOrders()) {
+          if (tester.apply(bo)) {
+            BOWrapper bow = new BOWrapper(info, bo);
+            orders.add(bow);
+          }
         }
       }
     }
@@ -176,8 +182,10 @@ public class StaticSettlementProcessor implements SettlementProcessor
       if (sgn * remainingImbalance <= 0.0)
         break;
       double exercise = Math.min(sgn * remainingImbalance,
-                                 sgn * bo.availableCapacity);
-      bo.exercisedCapacity = sgn * exercise;
+                                 -sgn * bo.availableCapacity);
+      bo.exercisedCapacity = -sgn * exercise;
+      log.debug("exercising order " + bo.toString()
+                + " for " + bo.exercisedCapacity);
       remainingImbalance -= sgn * exercise;
     }
   }
@@ -215,12 +223,15 @@ public class StaticSettlementProcessor implements SettlementProcessor
         BOWrapper nextExercised = exercisedOrders.next();
         double exerciseValue = 0.0; // integrated value of nextExercised
         double nextRemainingQty = nextExercised.exercisedCapacity;
-        while (Math.abs(remainingQty) > 0.0) {
+        while (Math.abs(remainingQty) > epsilon) {
           double used = sgn * Math.min(sgn * avail,
                                        sgn * nextRemainingQty);
-          exerciseValue += sgn * used * nextOrder.price;
-          marginalCost += sgn * used * nextOrder.price;
+          exerciseValue += used * nextOrder.price;
+          marginalCost += used * nextOrder.price;
           remainingQty -= used;
+          if (Math.abs(remainingQty) <= epsilon)
+            // we are done at this point
+            continue;
           // two cases:
           if (used == avail) {
             // run off the end of nextOrder
@@ -244,10 +255,9 @@ public class StaticSettlementProcessor implements SettlementProcessor
           }
         }
         // we can now compute the payment for this broker
-        double payment = marginalCost / exercisedQty;
         log.info("VCG payment for " + info.getBrokerName()
-                 + ": " + payment);
-        info.setBalanceCharge(payment);
+                 + ": " + marginalCost);
+        info.setBalanceCharge(marginalCost);
       }
     }
   }
@@ -276,6 +286,16 @@ public class StaticSettlementProcessor implements SettlementProcessor
       super();
       this.availableCapacity = availableCapacity;
       this.price = price;
+    }
+    
+    @Override
+    public String toString ()
+    {
+      if (null == balancingOrder)
+        return "Dummy";
+      else
+        return (balancingOrder.getBroker().getUsername()
+                + ":" + balancingOrder.getTariffId());
     }
   }
 }

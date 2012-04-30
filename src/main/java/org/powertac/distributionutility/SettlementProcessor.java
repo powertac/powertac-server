@@ -29,6 +29,6 @@ public interface SettlementProcessor
    * settlement, are represented by a Collection of ChargeInfo instances.
    * Requires access to utility methods in DistributionUtilityService.
    */
-  public void settle(DistributionUtilityService service,
+  public void settle(SettlementContext service,
                      List<ChargeInfo> brokerData);
 }
