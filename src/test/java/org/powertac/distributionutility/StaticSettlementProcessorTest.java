@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.internal.matchers.InstanceOf;
 import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -109,9 +110,147 @@ public class StaticSettlementProcessorTest
     pplus = 0.06;
     pminus = 0.015;
     uut.settle(context, brokerData);
+    verify(capacityControlService).exerciseBalancingControl(bo1, 5.0, 0.3);
     assertEquals("-0.9 for b1", -0.9, ci1.getBalanceCharge(), 1e-6);
     assertEquals(".15 for b2", 0.15, ci2.getBalanceCharge(), 1e-6);
   }
+
+  // Simple balancing, net imbalance, single balancing order for b1
+  // that is not exercised
+  @Test
+  public void testSingleBO_NoExercise ()
+  {
+    TariffSpecification spec =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec.addRate(rate);
+    Tariff tariff = new Tariff(spec);
+    tariffRepo.addTariff(tariff);
+    BalancingOrder bo1 = new BalancingOrder(b1, spec, 0.6, 0.061);
+    tariffRepo.addBalancingOrder(bo1);
+    ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
+    brokerData.add(ci2);
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(5.0);
+    
+    pplus = 0.06;
+    pminus = 0.015;
+    uut.settle(context, brokerData);
+    verify(capacityControlService, never()).exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
+    assertEquals("-1.2 for b1", -1.2, ci1.getBalanceCharge(), 1e-6);
+    assertEquals(".15 for b2", 0.15, ci2.getBalanceCharge(), 1e-6);
+  }
+
+  // Simple balancing, net imbalance, single balancing order for b1
+  @Test
+  public void testSingleBO_HighCapacity ()
+  {
+    TariffSpecification spec =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec.addRate(rate);
+    Tariff tariff = new Tariff(spec);
+    tariffRepo.addTariff(tariff);
+    BalancingOrder bo1 = new BalancingOrder(b1, spec, 0.6, 0.05);
+    tariffRepo.addBalancingOrder(bo1);
+    ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
+    brokerData.add(ci2);
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(15.0);
+    
+    pplus = 0.06;
+    pminus = 0.015;
+    uut.settle(context, brokerData);
+    verify(capacityControlService).exerciseBalancingControl(bo1, 10.0, 0.55);
+    assertEquals("-0.65 for b1", -0.65, ci1.getBalanceCharge(), 1e-6);
+    assertEquals(".15 for b2", 0.15, ci2.getBalanceCharge(), 1e-6);
+  }
+
+  // Simple balancing, net imbalance, single balancing order for each broker
+  @Test
+  public void test2BO_LowCapacity ()
+  {
+    TariffSpecification spec1 =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec1.addRate(rate);
+    Tariff tariff1 = new Tariff(spec1);
+    tariffRepo.addTariff(tariff1);
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
+    tariffRepo.addBalancingOrder(bo1);
+    
+    TariffSpecification spec2 =
+            new TariffSpecification(b2, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec2.addRate(rate);
+    Tariff tariff2 = new Tariff(spec2);
+    tariffRepo.addTariff(tariff2);
+    BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
+    tariffRepo.addBalancingOrder(bo2);
+    
+    ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, -10.0);
+    ci2.addBalancingOrder(bo2);
+    brokerData.add(ci2);
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(10.0);
+    when(capacityControlService.getCurtailableUsage(bo2)).thenReturn(5.0);
+    
+    pplus = 0.06;
+    pminus = 0.015;
+    uut.settle(context, brokerData);
+    verify(capacityControlService).exerciseBalancingControl(bo1, 10.0, 0.6);
+    verify(capacityControlService).exerciseBalancingControl(bo2, 5.0, 0.3);
+    assertEquals("-0.6 for b1", -0.6, ci1.getBalanceCharge(), 1e-6);
+    assertEquals(".15 for b2", -0.3, ci2.getBalanceCharge(), 1e-6);
+  }
+
+  // Simple balancing, net imbalance, single balancing order for each broker
+  @Test
+  public void test2BO_HighCapacity ()
+  {
+    TariffSpecification spec1 =
+            new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec1.addRate(rate);
+    Tariff tariff1 = new Tariff(spec1);
+    tariffRepo.addTariff(tariff1);
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
+    tariffRepo.addBalancingOrder(bo1);
+    
+    TariffSpecification spec2 =
+            new TariffSpecification(b2, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec2.addRate(rate);
+    Tariff tariff2 = new Tariff(spec2);
+    tariffRepo.addTariff(tariff2);
+    BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
+    tariffRepo.addBalancingOrder(bo2);
+    
+    ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, -10.0);
+    ci2.addBalancingOrder(bo2);
+    brokerData.add(ci2);
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(16.0);
+    when(capacityControlService.getCurtailableUsage(bo2)).thenReturn(16.0);
+    
+    pplus = 0.06;
+    pminus = 0.015;
+    uut.settle(context, brokerData);
+    verify(capacityControlService).exerciseBalancingControl(bo1, 16.0, 0.94);
+    verify(capacityControlService).exerciseBalancingControl(bo2, 14.0, 0.82);
+    assertEquals("-0.26 for b1", -0.26, ci1.getBalanceCharge(), 1e-6);
+    assertEquals(".022 for b2", 0.22, ci2.getBalanceCharge(), 1e-6);
+  }
+
+  // --------------------------------------------------------
 
   class MockSettlementContext implements SettlementContext
   {

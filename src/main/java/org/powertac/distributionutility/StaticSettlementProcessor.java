@@ -40,7 +40,7 @@ public class StaticSettlementProcessor implements SettlementProcessor
 
   TariffRepo tariffRepo;
   CapacityControl capacityControlService;
-  double epsilon = 1e-3; // 1 watt-hour
+  double epsilon = 1e-6; // 1 milliwatt-hour
   
   /* (non-Javadoc)
    * @see org.powertac.distributionutility.SettlementProcessor#settle(java.util.Collection)
@@ -215,37 +215,42 @@ public class StaticSettlementProcessor implements SettlementProcessor
         // removing this broker from the exercised set.
         double marginalCost = 0.0;
         double remainingQty = exercisedQty;
-        Iterator<BOWrapper> nextOrders = nonExercised.iterator();
+        Iterator<BOWrapper> nonExercisedOrders = nonExercised.iterator();
         Iterator<BOWrapper> exercisedOrders = exercised.iterator();
-        BOWrapper nextOrder = nextOrders.next();
-        double avail = (nextOrder.availableCapacity
-                        - nextOrder.exercisedCapacity);
+        BOWrapper nextNonExercised = nonExercisedOrders.next();
+        double avail = (nextNonExercised.availableCapacity
+                        - nextNonExercised.exercisedCapacity);
         BOWrapper nextExercised = exercisedOrders.next();
         double exerciseValue = 0.0; // integrated value of nextExercised
-        double nextRemainingQty = nextExercised.exercisedCapacity;
+        double exercisedRemainingQty = nextExercised.exercisedCapacity;
         while (Math.abs(remainingQty) > epsilon) {
-          double used = sgn * Math.min(sgn * avail,
-                                       sgn * nextRemainingQty);
-          exerciseValue += used * nextOrder.price;
-          marginalCost += used * nextOrder.price;
+          double used = sgn * Math.max(sgn * avail,
+                                       sgn * exercisedRemainingQty);
+          exerciseValue += used * nextNonExercised.price;
+          marginalCost += used * nextNonExercised.price;
           remainingQty -= used;
-          if (Math.abs(remainingQty) <= epsilon)
-            // we are done at this point
+          exercisedRemainingQty -= used;
+          if (Math.abs(remainingQty) <= epsilon) {
+            // we are done at this point - exercise the last one
+            capacityControlService.exerciseBalancingControl(nextExercised.balancingOrder,
+                                                            nextExercised.exercisedCapacity,
+                                                            exerciseValue);
             continue;
+          }
           // two cases:
-          if (used == avail) {
+          if (Math.abs(used - avail) <= epsilon) {
             // run off the end of nextOrder
-            nextOrder = nextOrders.next();
-            avail = (nextOrder.availableCapacity
-                    - nextOrder.exercisedCapacity);
+            nextNonExercised = nonExercisedOrders.next();
+            avail = (nextNonExercised.availableCapacity
+                    - nextNonExercised.exercisedCapacity);
           }
           else if (exercisedOrders.hasNext()) {
             // run off the end of nextExercised - time to do the exercise
             capacityControlService.exerciseBalancingControl(nextExercised.balancingOrder,
                                                             nextExercised.exercisedCapacity,
-                                                            exerciseValue / nextExercised.exercisedCapacity);
+                                                            exerciseValue);
             nextExercised = exercisedOrders.next();
-            nextRemainingQty = nextExercised.exercisedCapacity;
+            exercisedRemainingQty = nextExercised.exercisedCapacity;
             exerciseValue = 0.0;
           }
           else if (Math.abs(remainingQty) > 0.0) {
