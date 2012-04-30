@@ -165,8 +165,8 @@ public class StaticSettlementProcessorTest
     pplus = 0.06;
     pminus = 0.015;
     uut.settle(context, brokerData);
-    verify(capacityControlService).exerciseBalancingControl(bo1, 10.0, 0.55);
-    assertEquals("-0.65 for b1", -0.65, ci1.getBalanceCharge(), 1e-6);
+    verify(capacityControlService).exerciseBalancingControl(bo1, 10.0, 0.6);
+    assertEquals("-0.6 for b1", -0.6, ci1.getBalanceCharge(), 1e-6);
     assertEquals(".15 for b2", 0.15, ci2.getBalanceCharge(), 1e-6);
   }
 
@@ -245,9 +245,9 @@ public class StaticSettlementProcessorTest
     pminus = 0.015;
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(bo1, 16.0, 0.94);
-    verify(capacityControlService).exerciseBalancingControl(bo2, 14.0, 0.82);
+    verify(capacityControlService).exerciseBalancingControl(bo2, 14.0, 0.84);
     assertEquals("-0.26 for b1", -0.26, ci1.getBalanceCharge(), 1e-6);
-    assertEquals(".022 for b2", 0.22, ci2.getBalanceCharge(), 1e-6);
+    assertEquals(".022 for b2", 0.24, ci2.getBalanceCharge(), 1e-6);
   }
 
   // --------------------------------------------------------

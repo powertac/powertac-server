@@ -218,6 +218,8 @@ public class StaticSettlementProcessor implements SettlementProcessor
         Iterator<BOWrapper> nonExercisedOrders = nonExercised.iterator();
         Iterator<BOWrapper> exercisedOrders = exercised.iterator();
         BOWrapper nextNonExercised = nonExercisedOrders.next();
+        while (nextNonExercised.info == info)
+          nextNonExercised = nonExercisedOrders.next();
         double avail = (nextNonExercised.availableCapacity
                         - nextNonExercised.exercisedCapacity);
         BOWrapper nextExercised = exercisedOrders.next();
@@ -241,6 +243,8 @@ public class StaticSettlementProcessor implements SettlementProcessor
           if (Math.abs(used - avail) <= epsilon) {
             // run off the end of nextOrder
             nextNonExercised = nonExercisedOrders.next();
+            while (nextNonExercised.info == info)
+              nextNonExercised = nonExercisedOrders.next();
             avail = (nextNonExercised.availableCapacity
                     - nextNonExercised.exercisedCapacity);
           }
