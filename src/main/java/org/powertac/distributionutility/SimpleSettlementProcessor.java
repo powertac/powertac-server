@@ -70,7 +70,7 @@ public class SimpleSettlementProcessor implements SettlementProcessor
                                                      // rhs
 
     for (int i = 0; i < numOfBrokers; i++) {
-      x += (brokerBalance[i] = -brokerData.get(i).getNetLoadKWh());
+      x += (brokerBalance[i] = brokerData.get(i).getNetLoadKWh());
       log.debug("broker[" + i + "].balance=" + brokerBalance[i]);
     }
 

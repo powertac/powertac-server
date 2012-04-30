@@ -204,7 +204,7 @@ implements SettlementContext, InitializationService
 
     // create the ChargeInfo instances for each broker
     for (Broker broker : brokerList) {
-      ChargeInfo info = new ChargeInfo(broker, -getMarketBalance(broker));
+      ChargeInfo info = new ChargeInfo(broker, getMarketBalance(broker));
       chargeInfoMap.put(broker, info);
     }
     
@@ -216,6 +216,8 @@ implements SettlementContext, InitializationService
     }
 
     // gather up the list of ChargeInfo instances and settle
+    log.info("balancing prices: pPlus=" + getPPlus()
+             + ", pMinus=" + getPMinus());
     List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>(chargeInfoMap.values());
     processor.settle(this, brokerData);
     
