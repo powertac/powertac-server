@@ -190,4 +190,10 @@
 
     </plugins>
   </build>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/visualizer.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/visualizer.git</developerConnection>
+    <url>https://github.com/powertac/visualizer</url>
+  </scm>
 </project>
