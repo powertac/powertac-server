@@ -182,7 +182,7 @@ public class DistributionUtilityServiceTests
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.getNetLoadKWh();
+      marketBalance -= ci.getNetLoadKWh();
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -200,7 +200,7 @@ public class DistributionUtilityServiceTests
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList) {
-      marketBalance += ci.getNetLoadKWh();
+      marketBalance -= ci.getNetLoadKWh();
     }
     assertEquals("correct balancing transactions", 0.0, marketBalance, 1e-6);
   }
@@ -231,9 +231,9 @@ public class DistributionUtilityServiceTests
       assertEquals("broker correctly balanced",
                    0.0,
                    (distributionUtilityService.getMarketBalance(broker)
-                           + ci.getNetLoadKWh()),
+                           - ci.getNetLoadKWh()),
                    1e-6);
-      balance += ci.getNetLoadKWh();
+      balance -= ci.getNetLoadKWh();
     }
     assertEquals("market fully balanced", 0.0, balance, 1e-6);
   }
