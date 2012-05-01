@@ -44,7 +44,7 @@ same input settings, except that the web option does not support the
 Tournament Manager.
 
 Configuration is by command-line options or the equivalent data in a
-web form and by a configuration file. Note that a number of these
+web form, and by a configuration file. Note that a number of these
 options refer to the Tournament Manager, which is not yet
 released. See
 https://github.com/powertac/powertac-server/wiki/Tournament-Scheduler
@@ -67,7 +67,7 @@ options include:
   can request a configuration and a log-prefix string.
 
   --config server-config
-  gives the URL (not a filename) of a properties file that overrides
+  gives the URL (or a filename) of a properties file that overrides
   the standard server configuration. If this option is missing and
   the --control option is given, the server configuration is retrieved
   from controller-url/server-config.
@@ -97,15 +97,16 @@ options as in bootstrap mode, as well as
   --jms-url url
   gives the URL of the jms message broker, which is typically, but not
   necessarily, instantiated inside the server. The default value is
-  tcp://localhost:61616. If you want to connect to it from another
+  tcp://localhost:61616 unless you change it in your server
+  configuration file. If you want to connect to it from another
   host, you need to use a valid hostname rather than localhost, and
   the brokers must specify the same URL.
 
   --brokers broker,...
-  is a comma-separated list of broker usernames that are expected to
-  log in to the simulation before it starts. If this option is missing
-  and --control is provided, then the broker list will be retrieved
-  from controller-url/broker-list.
+  is a comma-separated list (no whitespace allowed) of broker
+  usernames that are expected to log in to the simulation before it
+  starts. If this option is missing and --control is provided, then
+  the broker list will be retrieved from controller-url/broker-list.
 
   --log-suffix suffix
   defaults to "sim" rather than "boot".
@@ -121,7 +122,7 @@ simply
 
   mvn -Pweb
 
-Once it is running (it will print '[INFO] Started Jetty Server),
+Once it is running (it will print '[INFO] Started Jetty Server'),
 browse to http://localhost:8080/visualizer and navigate to the
 Competition Control page. There you will see a web form that allows
 you to fill in the same options accepted by the cli version. Once a
@@ -155,8 +156,8 @@ Please let us know what you think of the Power TAC system, and how we
 can improve our software and processes.
 
 John Collins, Wolf Ketter, and the Power TAC development team: Jurica
-Babic, Antonios Chrysopoulos, Travis Daudelin, Mathijs de Weerdt, Josh
-Edeen, Ryan Finneman, Nguyen Nguyen, Erik Onarheim, Shashank Pande,
-Markus Peters, Vedran Podobnik, Kailash Ramanathan, Prashant Reddy,
-Andreas Symeonidis, Philippe Souza Moraes Ribeiro, and Konstantina
-Valogianni
+Babic, Mehdi Benyebka, Antonios Chrysopoulos, Travis Daudelin, Mathijs
+de Weerdt, Josh Edeen, Ryan Finneman, Nguyen Nguyen, Erik Onarheim,
+Shashank Pande, Markus Peters, Vedran Podobnik, Kailash Ramanathan,
+Prashant Reddy, Andreas Symeonidis, Philippe Souza Moraes Ribeiro, and
+Konstantina Valogianni
