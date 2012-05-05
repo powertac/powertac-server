@@ -84,9 +84,6 @@ public class CompetitionControlService
 
   private Competition competition;
 
-  private int timeslotPhaseCount = 4; // # of phases/timeslot
-  private boolean running = false;
-
   private SimulationClockControl clock;
 
   @Autowired
@@ -125,7 +122,11 @@ public class CompetitionControlService
   // Server JMS Queue Name
   private String serverQueueName = "serverInput";
 
+  private boolean running = false;
+
+  private int timeslotPhaseCount = 4; // # of phases/timeslot
   private ArrayList<List<TimeslotPhaseProcessor>> phaseRegistrations;
+
   private int timeslotCount = 0;
   private int currentSlot = 0;
   private int currentSlotOffset = 0;
@@ -174,6 +175,19 @@ public class CompetitionControlService
                                              PauseRelease.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
     }
+  }
+  
+  /**
+   * Sets the number of phases into which a timeslot is divided for processing.
+   * Intended to be called by Spring initialization. The value must be at least as
+   * large as the maximum value of timeslotPhase among the service modules.
+   */
+  public void setTimeslotPhaseCount (int count)
+  {
+    if (count <= 0)
+      log.error("TimeslotPhaseCount must be >= 0");
+    else
+      timeslotPhaseCount = count;
   }
   
   /**

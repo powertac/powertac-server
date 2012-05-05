@@ -51,13 +51,12 @@
     </property>
   </bean>
   
-  
-  
   <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
   
   <!-- need explicit list of beans that have properties to set -->
   <bean id="competitionControlService"
         class="org.powertac.server.CompetitionControlService">
+    <property name="timeslotPhaseCount" value="5" />
     <property name="alwaysAuthorizedBrokers">
       <list>
         <value>default broker</value>
@@ -89,25 +88,25 @@
         class="org.powertac.factoredcustomer.FactoredCustomerService">
     <property name="timeslotPhase" value="2" />
   </bean>
-  
-  <bean id="tariffMarketService"
-        class="org.powertac.tariffmarket.TariffMarketService">
-    <property name="timeslotPhase" value="3" />
-  </bean>
-  
+
   <bean id="distributionUtilityService"
         class="org.powertac.distributionutility.DistributionUtilityService">
     <property name="timeslotPhase" value="3" />
   </bean>
   
+  <bean id="tariffMarketService"
+        class="org.powertac.tariffmarket.TariffMarketService">
+    <property name="timeslotPhase" value="4" />
+  </bean>
+
   <bean id="simpleGencoService"
         class="org.powertac.genco.SimpleGencoService">
-    <property name="timeslotPhase" value="4" />
+    <property name="timeslotPhase" value="5" />
   </bean>
   
   <bean id="accountingService"
         class="org.powertac.accounting.AccountingService">
-    <property name="timeslotPhase" value="4" />
+    <property name="timeslotPhase" value="5" />
   </bean>
   
 </beans>
