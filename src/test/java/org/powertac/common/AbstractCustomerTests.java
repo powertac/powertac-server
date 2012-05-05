@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import javax.annotation.Resource;
 
@@ -132,7 +132,7 @@ public class AbstractCustomerTests
     assertEquals("correct powerType for second",
                  PowerType.INTERRUPTIBLE_CONSUMPTION, customer
                          .getCustomerInfo().get(1).getPowerType());
-    assertEquals("one customer on repo", 2, customerRepo.list().size());
+    assertEquals("two customers on repo", 2, customerRepo.list().size());
   }
 
   @Test
@@ -161,16 +161,11 @@ public class AbstractCustomerTests
     info2 =
       new CustomerInfo("Philby", 200)
               .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+    // note that the population of the second PowerType is ignored
 
     customer = new AbstractCustomer(info.getName());
     customer.addCustomerInfo(info);
     customer.addCustomerInfo(info2);
-
-    // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg =
-      ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
 
     TariffSubscription defaultSub =
       tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo().get(0),
@@ -181,32 +176,29 @@ public class AbstractCustomerTests
                                              defaultTariffControllable);
     defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
             .getPopulation());
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
     customer.subscribeDefault();
+    verify(mockTariffMarket).subscribeToTariff(defaultTariff, info, 100);
+    verify(mockTariffMarket).subscribeToTariff(defaultTariffControllable, info2, 100);
 
-    assertEquals("one subscription for CONSUMPTION customerInfo",
-                 1,
-                 tariffSubscriptionRepo
-                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                               .get(0)).size());
-    assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo",
-                 1,
-                 tariffSubscriptionRepo
-                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                               .get(1)).size());
-
-    assertEquals("customer on DefaultTariff",
-                 mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
-                         .get(0).getPowerType()),
-                 tariffSubscriptionRepo
-                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                               .get(0)).get(0)
-                         .getTariff());
+//    assertEquals("one subscription for CONSUMPTION customerInfo",
+//                 1,
+//                 tariffSubscriptionRepo
+//                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
+//                                                               .get(0)).size());
+//    assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo",
+//                 1,
+//                 tariffSubscriptionRepo
+//                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
+//                                                               .get(1)).size());
+//
+//    assertEquals("customer on DefaultTariff",
+//                 mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
+//                         .get(0).getPowerType()),
+//                 tariffSubscriptionRepo
+//                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
+//                                                               .get(0)).get(0)
+//                         .getTariff());
   }
 
   @Test
@@ -222,12 +214,12 @@ public class AbstractCustomerTests
     customer.addCustomerInfo(info2);
 
     // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg =
-      ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    ArgumentCaptor<PowerType> powerArg =
-      ArgumentCaptor.forClass(PowerType.class);
+//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+//    ArgumentCaptor<CustomerInfo> customerArg =
+//      ArgumentCaptor.forClass(CustomerInfo.class);
+//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+//    ArgumentCaptor<PowerType> powerArg =
+//      ArgumentCaptor.forClass(PowerType.class);
 
     TariffSubscription defaultSub =
       tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo().get(0),
@@ -238,11 +230,11 @@ public class AbstractCustomerTests
                                              defaultTariffControllable);
     defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
             .getPopulation());
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
+//    when(
+//         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
     customer.subscribeDefault();
 
@@ -280,15 +272,15 @@ public class AbstractCustomerTests
       tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo().get(1),
                                              tariff2);
     sub2.subscribe(customer.getCustomerInfo().get(1).getPopulation());
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(sub).thenReturn(sub2);
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION))
-            .thenReturn(tariffRepo
-                                .findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION));
+//    when(
+//         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//            .thenReturn(sub).thenReturn(sub2);
+    when(mockTariffMarket.getActiveTariffList(PowerType.CONSUMPTION))
+            .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
+    when(mockTariffMarket.getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION))
+            .thenReturn(tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION));
 
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
             .getCustomerInfo().get(0).getPowerType()), customer
@@ -324,11 +316,11 @@ public class AbstractCustomerTests
               .findSubscriptionsForCustomer(customer.getCustomerInfo().get(1))
               .get(1).getTariff();
 
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
+//    when(
+//         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
     defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
     defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
@@ -360,11 +352,11 @@ public class AbstractCustomerTests
                        .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
 
     // Last changeSubscription Method checked
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(sub).thenReturn(sub2);
+//    when(
+//         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//            .thenReturn(sub).thenReturn(sub2);
     customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
                                         .getCustomerInfo().get(0)
                                         .getPowerType()), lastTariff, 5,
@@ -403,10 +395,10 @@ public class AbstractCustomerTests
     customer.addCustomerInfo(info2);
 
     // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg =
-      ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+//    ArgumentCaptor<CustomerInfo> customerArg =
+//      ArgumentCaptor.forClass(CustomerInfo.class);
+//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
 
     TariffSubscription defaultSub =
       tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo().get(0),
@@ -417,11 +409,11 @@ public class AbstractCustomerTests
                                              defaultTariffControllable);
     defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
             .getPopulation());
-    when(
-         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
+//    when(
+//         mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//            .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
     customer.subscribeDefault();
 

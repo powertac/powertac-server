@@ -69,6 +69,9 @@ public class TariffSubscription
    *  tiered rates. */
   private double totalUsage = 0.0;
   
+  /** Count of customers who will not be subscribers in the next timeslot */
+  private int pendingUnsubscribeCount = 0; 
+  
   public TariffSubscription (CustomerInfo customer, Tariff tariff)
   {
     super();
@@ -153,6 +156,20 @@ public class TariffSubscription
    */
   public void unsubscribe (int customerCount)
   {
+    tariffMarketService.subscribeToTariff(getTariff(),
+                                          getCustomer(),
+                                          -customerCount);
+    pendingUnsubscribeCount += customerCount;
+  }
+  
+  /**
+   * Handles the actual unsubscribe operation. Intended to be called by
+   * the TariffMarket to avoid subscription changes between customer
+   * consumption/production and balancing.
+   */
+  public void deferredUnsubscribe (int customerCount)
+  {
+    pendingUnsubscribeCount = 0;
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
     // find the number of customers who can withdraw without penalty
@@ -185,28 +202,35 @@ public class TariffSubscription
    * revoked. Returns the new subscription just in case the Tariff was
    * revoked, otherwise returns null.
    */
-  public TariffSubscription handleRevokedTariff ()
+  public void handleRevokedTariff ()
   {
     // if the tariff is not revoked, then just return this subscription
     if (!tariff.isRevoked()) {
       log.warn("Tariff " + tariff.getId() + " is not revoked.");
-      return this;
+    }
+    // if no subscribers, we can ignore this
+    if (0 == customersCommitted) {
+      return;
     }
     // if the tariff has already been superseded, then switch subscription to
     // that new tariff
     Tariff newTariff = tariff.getIsSupersededBy();
     if (newTariff == null) {
-      // there is no superseding tariff, so we have to revert to the default tariff.
-      newTariff = tariffMarketService.getDefaultTariff(tariff.getTariffSpec().getPowerType());
+      // there is no superseding tariff, so we have to revert to the default
+      // tariff.
+      newTariff =
+        tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
+                .getPowerType());
     }
 
-    TariffSubscription result =
-        tariffMarketService.subscribeToTariff(newTariff, customer, customersCommitted);
-    log.info("Tariff " + tariff.getId() + " superseded by " + 
-             newTariff.getId() + " for " + customersCommitted +
-             "customers");
-    customersCommitted = 0;
-    return result;
+    tariffMarketService.subscribeToTariff(tariff, customer,
+                                          -customersCommitted);
+    tariffMarketService.subscribeToTariff(newTariff, customer,
+                                          customersCommitted);
+    log.info("Tariff " + tariff.getId() + " superseded by " + newTariff.getId()
+             + " for " + customersCommitted + "customers");
+    // customersCommitted = 0;
+    // return result;
   }
 
   /**
@@ -294,11 +318,22 @@ public class TariffSubscription
   
   /**
    * Returns the maximum curtailment possible after the customer model has
-   * run and possibly applied economic controls.
+   * run and possibly applied economic controls. Since this is potentially 
+   * accessed after customers have updated their subscriptions, it's possible
+   * that the value will have to be changed.
    */
   public double getMaxRemainingCurtailment ()
   {
-    return maxRemainingCurtailment;
+    if (0 == pendingUnsubscribeCount) {
+      return maxRemainingCurtailment;
+    }
+    else {
+      // need to adjust 
+      double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
+                              / customersCommitted;
+      log.info("remaining curtailment reduced by " + ratio);
+      return (maxRemainingCurtailment * ratio);
+    }
   }
   
   /**

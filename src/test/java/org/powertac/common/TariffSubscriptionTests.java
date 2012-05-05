@@ -18,6 +18,9 @@ package org.powertac.common;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.mockito.ArgumentCaptor;
 
 import javax.annotation.Resource;
@@ -130,7 +133,10 @@ public class TariffSubscriptionTests
     sub.unsubscribe(8);
     verify(mockAccounting, never()).addTariffTransaction(TariffTransaction.Type.WITHDRAW, 
                                                          tariff, customer, 8, 0.0, 0.0);
-    assertEquals("25 committed", 25, sub.getCustomersCommitted());
+    verify(mockTariffMarket).subscribeToTariff(tariff, customer, -8);
+    assertEquals("33 still committed", 33, sub.getCustomersCommitted());
+    sub.deferredUnsubscribe(8);
+    assertEquals("25 now committed", 25, sub.getCustomersCommitted());
   }
 
   // TODO - test subscribe and unsubscribe with non-zero signup and withdraw payments
@@ -138,6 +144,7 @@ public class TariffSubscriptionTests
   @Test
   public void testHandleRevokedTariffDefault ()
   {
+    List<List<Object>>results = new ArrayList<List<Object>>();
     // set up default tariff, install in tariff market
     TariffSpecification defaultSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .addRate(new Rate().withValue(-0.21));
@@ -147,15 +154,15 @@ public class TariffSubscriptionTests
         .thenReturn(defaultTariff);
 
     // capture subscription method args
-    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-    ArgumentCaptor<CustomerInfo> customerArg= ArgumentCaptor.forClass(CustomerInfo.class);
-    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-    // tariff market returns subscription to default tariff
-    TariffSubscription defaultSub = new TariffSubscription(customer, defaultTariff);
-    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-                                            customerArg.capture(),
-                                            countArg.capture()))
-        .thenReturn(defaultSub);
+//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
+//    ArgumentCaptor<CustomerInfo> customerArg= ArgumentCaptor.forClass(CustomerInfo.class);
+//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
+//    // tariff market returns subscription to default tariff
+//    TariffSubscription defaultSub = new TariffSubscription(customer, defaultTariff);
+//    when(mockTariffMarket.subscribeToTariff(tariffArg.capture(),
+//                                            customerArg.capture(),
+//                                            countArg.capture()))
+//        .thenReturn(defaultSub);
 
     // subscribe some customers to the original tariff
     TariffSubscription sub = new TariffSubscription(customer, tariff);
@@ -165,15 +172,11 @@ public class TariffSubscriptionTests
 
     // revoke the original subscription
     tariff.setState(Tariff.State.KILLED);
-    TariffSubscription newSub = sub.handleRevokedTariff();
+    sub.handleRevokedTariff();
     // should have called tariff market twice
     verify(mockTariffMarket).getDefaultTariff(PowerType.CONSUMPTION);
+    verify(mockTariffMarket).subscribeToTariff(tariff, customer, -33);
     verify(mockTariffMarket).subscribeToTariff(defaultTariff, customer, 33);
-    assertEquals("no subscribers to sub", 0, sub.getCustomersCommitted());
-    assertEquals("correct tariff arg", defaultTariff, tariffArg.getValue());
-    assertEquals("correct customer arg", customer, customerArg.getValue());
-    assertEquals("correct customerCount arg", 33, (int)countArg.getValue());
-    assertEquals("correct new sub", newSub, defaultSub);
   }
   
   // TODO - public void handleRevokedTariffSuperseded ()
@@ -305,5 +308,32 @@ public class TariffSubscriptionTests
                  sub.getMaxRemainingCurtailment(), 1e-6);
     assertEquals("correct curtailment", 20.0, sub.getCurtailment(), 1e-6);
     assertEquals("no curtailment", 0.0, sub.getCurtailment(), 1e-6);
+  }
+  
+  @Test
+  public void testCurtailmentUnsubscribe ()
+  {
+    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+      .withExpiration(baseTime.plus(TimeService.DAY * 10))
+      .withMinDuration(TimeService.DAY * 5)
+      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(10);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+
+    sub.usePower(100.0);
+    assertEquals("correct remaining curtailment",
+                 50.0, sub.getMaxRemainingCurtailment(), 1e-6);
+    sub.unsubscribe(2);
+    assertEquals("correct remaining curtailment",
+                 40.0, sub.getMaxRemainingCurtailment(), 1e-6);
+    sub.unsubscribe(8);
+    assertEquals("correct remaining curtailment",
+                 0.0, sub.getMaxRemainingCurtailment(), 1e-6);
   }
 }
