@@ -35,6 +35,7 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -50,7 +51,10 @@ public class TariffSubscriptionTests
 
   @Autowired
   private TariffMarketService tariffMarketService;  // autowire the market
-  
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
+
   @Autowired
   private Accounting mockAccounting;
   
@@ -83,8 +87,10 @@ public class TariffSubscriptionTests
   @Test
   public void testSimpleSub ()
   {
+    tariffMarketService.subscribeToTariff(tariff, customer, 3);
+    tariffMarketService.activate(now, 4);
     TariffSubscription ts = 
-        tariffMarketService.subscribeToTariff(tariff, customer, 3);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     assertNotNull("non-null subscription", ts);
     assertEquals("correct customer", customer, ts.getCustomer());
     assertEquals("correct tariff", tariff, ts.getTariff());
@@ -105,8 +111,10 @@ public class TariffSubscriptionTests
     tariff = new Tariff(tariffSpec);
     tariff.init();
 
+    tariffMarketService.subscribeToTariff(tariff, customer, 5);
+    tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
-      tariffMarketService.subscribeToTariff(tariff, customer, 5);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     assertNotNull("non-null subscription", tsub);
     assertEquals("five customers committed", 5, tsub.getCustomersCommitted());
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
@@ -128,8 +136,10 @@ public class TariffSubscriptionTests
             .addRate(new Rate().withValue(-0.121));
     tariff = new Tariff(tariffSpec);
     tariff.init();
+    tariffMarketService.subscribeToTariff(tariff, customer, 5);
+    tariffMarketService.activate(now, 4);
     TariffSubscription tsub =
-        tariffMarketService.subscribeToTariff(tariff, customer, 5);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                                 tariff, customer,
                                                 5, 0.0, -33.2*5);
@@ -138,6 +148,7 @@ public class TariffSubscriptionTests
     Instant wk2 = now.plus(TimeService.WEEK * 2);
     timeService.setCurrentTime(wk2);
     tsub.unsubscribe(2);
+    tariffMarketService.activate(wk2, 4);
     verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.WITHDRAW,
                                                 tariff, customer,
                                                 2, 0.0, 42.1*2);
@@ -150,10 +161,12 @@ public class TariffSubscriptionTests
     // move time forward another week, add 4 customers and drop 1
     Instant wk3 = now.plus(TimeService.WEEK * 2 + TimeService.HOUR * 6);
     timeService.setCurrentTime(wk3);
+    tariffMarketService.subscribeToTariff(tariff, customer, 4);
     TariffSubscription tsub1 = 
-        tariffMarketService.subscribeToTariff(tariff, customer, 4);
-    assertEquals("same subscription", tsub, tsub1);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     tsub1.unsubscribe(1);
+    tariffMarketService.activate(wk3, 4);
+    assertEquals("same subscription", tsub, tsub1);
     //txs = TariffTransaction.findAllByPostedTime(wk3)
     //assertEquals("two transactions", 2, txs.size())
     //TariffTransaction ttx = TariffTransaction.findByPostedTimeAndTxType(timeService.currentTime,
@@ -182,8 +195,10 @@ public class TariffSubscriptionTests
     tariff.init();
 
     // subscribe and consume in the first timeslot
+    tariffMarketService.subscribeToTariff(tariff, customer, 4);
+    tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
-        tariffMarketService.subscribeToTariff(tariff, customer, 4);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     assertEquals("four customers committed", 4, tsub.getCustomersCommitted());
     tsub.usePower(24.4); // consumption
     assertEquals("correct total usage", 24.4 / 4, tsub.getTotalUsage(), 1e-6);
@@ -229,8 +244,10 @@ public class TariffSubscriptionTests
     tariff.init();
 
     // subscribe and consume in the first timeslot
+    tariffMarketService.subscribeToTariff(tariff, customer, 6);
+    tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
-        tariffMarketService.subscribeToTariff(tariff, customer, 6);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     assertEquals("six customers committed", 6, tsub.getCustomersCommitted());
     tsub.usePower(28.8); // consumption
     assertEquals("correct total usage", 28.8 / 6, tsub.getTotalUsage(), 1e-6);
@@ -265,8 +282,10 @@ public class TariffSubscriptionTests
     tariff.init();
 
     // subscribe and consume in the first timeslot
+    tariffMarketService.subscribeToTariff(tariff, customer, 4);
+    tariffMarketService.activate(now, 4);
     TariffSubscription tsub = 
-        tariffMarketService.subscribeToTariff(tariff, customer, 4);
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
     assertEquals("four customers committed", 4, tsub.getCustomersCommitted());
     tsub.usePower(-244.6); // production
     assertEquals("correct total usage", -244.6 / 4, tsub.getTotalUsage(), 1e-6);

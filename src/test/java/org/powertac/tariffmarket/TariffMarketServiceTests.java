@@ -93,10 +93,10 @@ public class TariffMarketServiceTests
   
   @Autowired
   private TariffRepo tariffRepo;
-  
+
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
-  
+
   @Autowired
   private BrokerRepo brokerRepo;
   
@@ -629,12 +629,27 @@ public class TariffMarketServiceTests
     //assertEquals("three transaction", 3, TariffTransaction.count());
     
     // create some subscriptions
-    TariffSubscription cs1 = tariffMarketService.subscribeToTariff(tc1, charley, 3);
-    TariffSubscription cs2 = tariffMarketService.subscribeToTariff(tc2, charley, 31);
-    TariffSubscription cs3 = tariffMarketService.subscribeToTariff(tc3, charley, 13);
-    TariffSubscription ss1 = tariffMarketService.subscribeToTariff(tc1, sally, 4);
-    TariffSubscription ss2 = tariffMarketService.subscribeToTariff(tc2, sally, 24); 
-    TariffSubscription ss3 = tariffMarketService.subscribeToTariff(tc3, sally, 42);
+    tariffMarketService.subscribeToTariff(tc1, charley, 3);
+    tariffMarketService.subscribeToTariff(tc2, charley, 31);
+    tariffMarketService.subscribeToTariff(tc3, charley, 13);
+    tariffMarketService.subscribeToTariff(tc1, sally, 4);
+    tariffMarketService.subscribeToTariff(tc2, sally, 24); 
+    tariffMarketService.subscribeToTariff(tc3, sally, 42);
+    assertNull("no subscription yet", tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, charley));
+    tariffMarketService.activate(start, 4);
+    
+    TariffSubscription cs1 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, charley);
+    assertNotNull(cs1);
+    TariffSubscription cs2 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc2, charley);
+    assertNotNull(cs2);
+    TariffSubscription cs3 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc3, charley);
+    assertNotNull(cs3);
+    TariffSubscription ss1 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, sally);
+    assertNotNull(ss1);
+    TariffSubscription ss2 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc2, sally); 
+    assertNotNull(ss2);
+    TariffSubscription ss3 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc3, sally);
+    assertNotNull(ss3);
     assertEquals("3 customers for cs1", 3, cs1.getCustomersCommitted());
     assertEquals("42 customers for ss3", 42, ss3.getCustomersCommitted());
     assertEquals("Charley has 3 subscriptions", 3, tariffSubscriptionRepo.findSubscriptionsForCustomer(charley).size());

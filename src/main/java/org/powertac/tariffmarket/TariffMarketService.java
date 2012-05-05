@@ -141,6 +141,10 @@ public class TariffMarketService
   private int publicationInterval = 6;
   private int publicationOffset = 0;
   private boolean firstPublication;
+
+  // list of pending subscription events.
+  private List<PendingSubscription> pendingSubscriptionEvents =
+          new ArrayList<PendingSubscription>();
   
   /**
    * Default constructor
@@ -179,6 +183,7 @@ public class TariffMarketService
     
     super.init();
     
+    pendingSubscriptionEvents.clear();
     pendingRevokedTariffs.clear();
     revokedTariffs = null;
     lastRevokeProcess = new Instant(0);
@@ -507,6 +512,7 @@ public class TariffMarketService
   public void activate (Instant time, int phase)
   {
     log.info("Activate");
+    processPendingSubscriptions();
     removeRevokedTariffs();
     long msec = timeService.getCurrentTime().getMillis();
     if (!firstPublication ||
@@ -541,28 +547,6 @@ public class TariffMarketService
     brokerProxyService.broadcastMessages(publishedTariffSpecs);
   }
 
-  /**
-   * Subscribes a block of Customers from a single Customer model to
-   * this Tariff, as long as this Tariff has not expired. If the
-   * subscription succeeds, then the TariffSubscription instance is
-   * return, otherwise null.
-   * <p>
-   * Note that you cannot unsubscribe directly from a Tariff -- you have to do
-   * that from the TariffSubscription that represents the Tariff you want
-   * to unsubscribe from.</p>
-   */
-  @Override
-  public TariffSubscription subscribeToTariff (Tariff tariff,
-                                               CustomerInfo customer,
-                                               int customerCount)
-  {
-    if (tariff.isExpired())
-      return null;
-    TariffSubscription sub = tariffSubscriptionRepo.getSubscription(customer, tariff);
-    sub.subscribe(customerCount);
-    return sub;
-  }
-
   @Override
   public List<Tariff> getActiveTariffList(PowerType type)
   {
@@ -590,6 +574,58 @@ public class TariffMarketService
     tariffRepo.addTariff(tariff);
     defaultTariff.put(newSpec.getPowerType(), tariff.getId());
     return true;
+  }
+  
+  // ----------- Subscribe/unsubscribe processing --------------
+
+  /**
+   * Subscribes a block of Customers from a single Customer model to
+   * this Tariff, as long as this Tariff has not expired. If the
+   * subscription succeeds, then the TariffSubscription instance is
+   * return, otherwise null.
+   * <p>
+   * Note that you cannot unsubscribe directly from a Tariff -- you have to do
+   * that from the TariffSubscription that represents the Tariff you want
+   * to unsubscribe from.</p>
+   */
+  @Override
+  public void subscribeToTariff (Tariff tariff,
+                                 CustomerInfo customer,
+                                 int customerCount)
+  {
+    if (!tariff.isExpired())
+      postPendingSubscriptionEvent(tariff, customer, customerCount);
+    else
+      log.warn("Attempt to subscribe to expired tariff");
+  }
+  
+  /**
+   * Adds a pending subscribe/unsubscribe for later processing
+   */
+  private synchronized void postPendingSubscriptionEvent (Tariff tariff,
+                                                          CustomerInfo customer,
+                                                          int customerCount)
+  {
+    PendingSubscription event =
+            new PendingSubscription(tariff, customer, customerCount);
+    pendingSubscriptionEvents.add(event);
+  }
+  
+  /**
+   * Handles pending subscription/unsubscription events
+   */
+  private synchronized void processPendingSubscriptions()
+  {
+    for (PendingSubscription pending : pendingSubscriptionEvents) {
+      TariffSubscription sub =
+              tariffSubscriptionRepo.getSubscription(pending.customer,
+                                                     pending.tariff);
+      if (pending.count > 0)
+        sub.subscribe(pending.count);
+      else
+        sub.deferredUnsubscribe(-pending.count);
+    }
+    pendingSubscriptionEvents.clear();
   }
   
   // ------------------ Helper stuff ---------------
@@ -628,6 +664,7 @@ public class TariffMarketService
     return new ValidationResult(tariff, null);
   }
 
+  // data structure for message validation result
   private class ValidationResult
   {
     Tariff tariff;
@@ -638,6 +675,22 @@ public class TariffMarketService
       super();
       this.tariff = tariff;
       this.message = msg;
+    }
+  }
+  
+  // data structure for pending subscription events
+  private class PendingSubscription
+  {
+    Tariff tariff;
+    CustomerInfo customer;
+    int count;
+    
+    PendingSubscription (Tariff tariff, CustomerInfo customer, int count)
+    {
+      super();
+      this.tariff = tariff;
+      this.customer = customer;
+      this.count = count;
     }
   }
 
