@@ -659,6 +659,7 @@ public class CompetitionControlService
   /**
    * Expose simulation-running flag
    */
+  @Override
   public boolean isRunning()
   {
     return simRunning;
@@ -676,6 +677,7 @@ public class CompetitionControlService
   /**
    * Shuts down the simulation and cleans up.
    */
+  @Override
   public void shutDown ()
   {
     running = false;
