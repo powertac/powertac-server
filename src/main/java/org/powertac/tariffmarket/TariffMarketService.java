@@ -593,8 +593,15 @@ public class TariffMarketService
                                  CustomerInfo customer,
                                  int customerCount)
   {
-    if (!tariff.isExpired())
+    if (!tariff.isExpired()) {
       postPendingSubscriptionEvent(tariff, customer, customerCount);
+      List<TariffSubscription> existingSubscriptions =
+              tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
+      if (0 == existingSubscriptions.size()) {
+        // immediate processing of initial subscriptions
+        processPendingSubscriptions();
+      }
+    }
     else
       log.warn("Attempt to subscribe to expired tariff");
   }
@@ -606,6 +613,7 @@ public class TariffMarketService
                                                           CustomerInfo customer,
                                                           int customerCount)
   {
+    
     PendingSubscription event =
             new PendingSubscription(tariff, customer, customerCount);
     pendingSubscriptionEvents.add(event);

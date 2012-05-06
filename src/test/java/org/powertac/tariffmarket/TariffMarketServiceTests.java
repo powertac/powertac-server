@@ -635,7 +635,7 @@ public class TariffMarketServiceTests
     tariffMarketService.subscribeToTariff(tc1, sally, 4);
     tariffMarketService.subscribeToTariff(tc2, sally, 24); 
     tariffMarketService.subscribeToTariff(tc3, sally, 42);
-    assertNull("no subscription yet", tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, charley));
+    //assertNull("no subscription yet", tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, charley));
     tariffMarketService.activate(start, 4);
     
     TariffSubscription cs1 = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tc1, charley);
