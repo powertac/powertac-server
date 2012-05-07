@@ -67,6 +67,9 @@ implements CapacityControl, InitializationService
   // future economic controls
   HashMap<Integer, List<EconomicControlEvent>> pendingEconomicControls =
       new HashMap<Integer, List<EconomicControlEvent>>();
+  
+  // ignore quantities less than epsilon
+  private double epsilon = 1e-6;
 
   /* (non-Javadoc)
    * @see org.powertac.common.interfaces.CapacityControl#exerciseBalancingControl(org.powertac.common.msg.BalancingOrder, double)
@@ -75,6 +78,8 @@ implements CapacityControl, InitializationService
   public void exerciseBalancingControl (BalancingOrder order,
                                         double kwh, double payment)
   {
+    if (Math.abs(kwh) < epsilon)
+      return;
     Tariff tariff = tariffRepo.findTariffById(order.getTariffId());
     if (null == tariff) {
       // should not happen
@@ -89,12 +94,19 @@ implements CapacityControl, InitializationService
     HashMap<TariffSubscription, Double> amts =
         new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
-      double value = sub.getMaxRemainingCurtailment();
-      amts.put(sub, value);
-      curtailable += value;
+      if (sub.getCustomersCommitted() > 0) {
+        double value = sub.getMaxRemainingCurtailment();
+        amts.put(sub, value);
+        curtailable += value;
+      }
+    }
+    if (Math.abs(curtailable) < epsilon) {
+      log.warn("Unable to exercise balancing control: curtailable == 0");
+      return;
     }
     for (TariffSubscription sub : subs) {
-      sub.postBalancingControl(kwh * amts.get(sub) / curtailable);
+      if (sub.getCustomersCommitted() > 0)
+        sub.postBalancingControl(kwh * amts.get(sub) / curtailable);
     }
     // send off the event to the broker
     BalancingControlEvent bce = 
