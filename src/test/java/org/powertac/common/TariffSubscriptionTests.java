@@ -311,7 +311,7 @@ public class TariffSubscriptionTests
   }
   
   @Test
-  public void testCurtailmentUnsubscribe ()
+  public void testCurtailmentUnsubscribe1 ()
   {
     spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
       .withExpiration(baseTime.plus(TimeService.DAY * 10))
@@ -329,9 +329,48 @@ public class TariffSubscriptionTests
     sub.usePower(100.0);
     assertEquals("correct remaining curtailment",
                  50.0, sub.getMaxRemainingCurtailment(), 1e-6);
+  }
+  
+  @Test
+  public void testCurtailmentUnsubscribe2 ()
+  {
+    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+      .withExpiration(baseTime.plus(TimeService.DAY * 10))
+      .withMinDuration(TimeService.DAY * 5)
+      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(10);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+
+    sub.usePower(100.0);
     sub.unsubscribe(2);
     assertEquals("correct remaining curtailment",
                  40.0, sub.getMaxRemainingCurtailment(), 1e-6);
+  }
+  
+  @Test
+  public void testCurtailmentUnsubscribe3 ()
+  {
+    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+      .withExpiration(baseTime.plus(TimeService.DAY * 10))
+      .withMinDuration(TimeService.DAY * 5)
+      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(10);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+
+    sub.usePower(100.0);
+    sub.unsubscribe(2);
     sub.unsubscribe(8);
     assertEquals("correct remaining curtailment",
                  0.0, sub.getMaxRemainingCurtailment(), 1e-6);

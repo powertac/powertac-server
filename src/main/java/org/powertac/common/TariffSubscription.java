@@ -170,6 +170,7 @@ public class TariffSubscription
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
+    maxRemainingCurtailment = 0;
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
     // find the number of customers who can withdraw without penalty
@@ -324,15 +325,16 @@ public class TariffSubscription
    */
   public double getMaxRemainingCurtailment ()
   {
+    double result = maxRemainingCurtailment;
     if (0 == pendingUnsubscribeCount) {
-      return maxRemainingCurtailment;
+      return result;
     }
     else {
       // need to adjust 
       double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
                               / customersCommitted;
       log.info("remaining curtailment reduced by " + ratio);
-      return (maxRemainingCurtailment * ratio);
+      return (result * ratio);
     }
   }
   
