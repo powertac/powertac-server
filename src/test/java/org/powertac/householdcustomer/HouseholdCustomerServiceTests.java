@@ -304,12 +304,6 @@ public class HouseholdCustomerServiceTests
             .getVillageList().size());
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      // capture subscription method args
-//      ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//      ArgumentCaptor<CustomerInfo> customerArg =
-//        ArgumentCaptor.forClass(CustomerInfo.class);
-//      ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
       TariffSubscription defaultSub =
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(0), defaultTariff);
@@ -319,11 +313,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -360,12 +349,6 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      // capture subscription method args
-//      ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//      ArgumentCaptor<CustomerInfo> customerArg =
-//        ArgumentCaptor.forClass(CustomerInfo.class);
-//      ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
       TariffSubscription defaultSub =
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(0), defaultTariff);
@@ -375,11 +358,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -410,7 +388,7 @@ public class HouseholdCustomerServiceTests
                                   .get(0).getTotalUsage() < 0);
     }
 
-    assertEquals("Tariff Transactions Created", 10 * householdCustomerService
+    assertEquals("Tariff Transactions Created", 4 * householdCustomerService
             .getVillageList().size(), accountingArgs.size());
 
   }
@@ -446,11 +424,6 @@ public class HouseholdCustomerServiceTests
 
     assertEquals("Four tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -465,11 +438,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -495,11 +463,7 @@ public class HouseholdCustomerServiceTests
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(1), tariff2);
       sub2.subscribe(customer.getCustomerInfo().get(1).getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
+
       when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
               .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
 
@@ -518,22 +482,22 @@ public class HouseholdCustomerServiceTests
       customer.changeSubscription(mockTariffMarket
               .getDefaultTariff(PowerType.CONSUMPTION), customer
               .getCustomerInfo().get(1));
-      // JEC - tests fail after #531
-//      assertFalse("Changed from default tariff",
-//                  tariffSubscriptionRepo
-//                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                      .get(0))
-//                          .get(0).getTariff() == mockTariffMarket
-//                          .getDefaultTariff(customer.getCustomerInfo().get(0)
-//                                  .getPowerType()));
-//
-//      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
-//                  tariffSubscriptionRepo
-//                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                .get(1)).get(1)
-//                          .getTariff() == mockTariffMarket
-//                          .getDefaultTariff(customer.getCustomerInfo().get(1)
-//                                  .getPowerType()));
+
+      assertFalse("Changed from default tariff",
+                  tariffSubscriptionRepo
+                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                      .get(0))
+                          .get(1).getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(0)
+                                  .getPowerType()));
+
+      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                .get(1)).get(1)
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(1)
+                                  .getPowerType()));
 
       // Changing back from the new tariff to the default one in order to check
       // every changeSubscription Method
@@ -545,12 +509,6 @@ public class HouseholdCustomerServiceTests
         tariffSubscriptionRepo
                 .findSubscriptionsForCustomer(customer.getCustomerInfo().get(1))
                 .get(1).getTariff();
-
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
@@ -580,11 +538,6 @@ public class HouseholdCustomerServiceTests
       sub.subscribe(customer.getHouses("SS").size());
       sub2.subscribe(customer.getHouses("SS").size());
 
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
       customer.changeSubscription(mockTariffMarket
               .getDefaultTariff(PowerType.CONSUMPTION), lastTariff, customer
               .getHouses("SS").size(), customer.getCustomerInfo().get(0));
@@ -608,14 +561,6 @@ public class HouseholdCustomerServiceTests
 
       sub.subscribe(customer.getHouses("NS").size());
       sub2.subscribe(customer.getHouses("NS").size());
-
-      // Changing back from the new tariff to the default one in order to check
-      // every changeSubscription Method
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
 
       customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
               .getCustomerInfo().get(0).getPowerType()), "NS", customer
@@ -650,12 +595,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
     for (Village customer: householdCustomerService.getVillageList()) {
 
       TariffSubscription defaultSub =
@@ -667,11 +606,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -782,15 +716,26 @@ public class HouseholdCustomerServiceTests
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    //JEC - test fails after #531
-//    for (Village customer: householdCustomerService.getVillageList()) {
-//      assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
-//                   1,
-//                   tariffSubscriptionRepo
-//                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                       .get(1))
-//                           .size());
-//    }
+    householdCustomerService.activate(timeService.getCurrentTime(), 4);
+
+    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
+            .getMillis() + 2 * TimeService.HOUR));
+
+    householdCustomerService.activate(timeService.getCurrentTime(), 1);
+    householdCustomerService.activate(timeService.getCurrentTime(), 4);
+
+    // for (Village customer: householdCustomerService.getVillageList()) {
+    //
+    // System.out.println(tariffSubscriptionRepo
+    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+    // .get(1)).toString());
+    // assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
+    // 1,
+    // tariffSubscriptionRepo
+    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+    // .get(1))
+    // .size());
+    // }
 
     TariffStatus st2 =
       new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
@@ -803,14 +748,14 @@ public class HouseholdCustomerServiceTests
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     // JEC - tests fail after #531
-//    for (Village customer: householdCustomerService.getVillageList()) {
-//      assertEquals("2 Subscriptions for customer",
-//                   2,
-//                   tariffSubscriptionRepo
-//                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                       .get(0))
-//                           .size());
-//    }
+    // for (Village customer: householdCustomerService.getVillageList()) {
+    // assertEquals("2 Subscriptions for customer",
+    // 2,
+    // tariffSubscriptionRepo
+    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+    // .get(0))
+    // .size());
+    // }
 
   }
 
@@ -820,11 +765,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -839,11 +779,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -901,11 +836,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -920,11 +850,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1010,11 +935,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -1029,11 +949,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1144,14 +1059,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-//    ArgumentCaptor<PowerType> powerArg =
-//      ArgumentCaptor.forClass(PowerType.class);
-
     for (Village customer: householdCustomerService.getVillageList()) {
 
       TariffSubscription defaultSub =
@@ -1163,11 +1070,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1217,14 +1119,6 @@ public class HouseholdCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-//    ArgumentCaptor<PowerType> powerArg =
-//      ArgumentCaptor.forClass(PowerType.class);
-
     for (Village customer: householdCustomerService.getVillageList()) {
 
       TariffSubscription defaultSub =
@@ -1236,11 +1130,6 @@ public class HouseholdCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
