@@ -956,9 +956,24 @@ public class OfficeComplex extends AbstractCustomer
     double summary = 0;
     double summaryControllable = 0;
 
+    HashMap<TariffSubscription, Double> subs =
+      new HashMap<TariffSubscription, Double>();
+
+    for (TariffSubscription sub: subscriptionMap.values()) {
+
+      subs.put(sub, Double.valueOf(0));
+
+    }
+
+    for (TariffSubscription sub: controllableSubscriptionMap.values()) {
+
+      subs.put(sub, Double.valueOf(0));
+
+    }
+
+    // log.debug(subs.toString());
+
     for (String type: subscriptionMap.keySet()) {
-      TariffSubscription sub = subscriptionMap.get(type);
-      TariffSubscription sub2 = controllableSubscriptionMap.get(type);
 
       if (ts == null) {
         log.debug("Current timeslot is null");
@@ -969,18 +984,30 @@ public class OfficeComplex extends AbstractCustomer
         summaryControllable = getConsumptionByTimeslot(serial, type, true);
       }
       else {
+        log.debug("Timeslot Serial: " + ts.getSerialNumber());
         summary = getConsumptionByTimeslot(ts.getSerialNumber(), type, false);
         summaryControllable =
           getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
       }
 
-      log.debug("Consumption Load for " + type + ": Base Load " + summary
-                + " Controllable Load " + summaryControllable);
+      // log.debug("Consumption Load for " + type + ": Base Load " + summary
+      // + " Controllable Load " + summaryControllable);
+
+      TariffSubscription tempSub = subscriptionMap.get(type);
+      TariffSubscription tempContSub = controllableSubscriptionMap.get(type);
+
+      subs.put(tempSub, summary + subs.get(tempSub));
+      subs.put(tempContSub, summaryControllable + subs.get(tempContSub));
+
+    }
+
+    for (TariffSubscription sub: subs.keySet()) {
+
+      log.debug("Consumption Load for Customer " + sub.getCustomer().toString()
+                + ": " + subs.get(sub));
 
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(summary);
-      if (sub2.getCustomersCommitted() > 0)
-        sub2.usePower(summaryControllable);
 
     }
 

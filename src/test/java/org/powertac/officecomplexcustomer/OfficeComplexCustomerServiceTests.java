@@ -292,12 +292,6 @@ public class OfficeComplexCustomerServiceTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      // capture subscription method args
-//      ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//      ArgumentCaptor<CustomerInfo> customerArg =
-//        ArgumentCaptor.forClass(CustomerInfo.class);
-//      ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
       TariffSubscription defaultSub =
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(0), defaultTariff);
@@ -307,11 +301,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -349,12 +338,6 @@ public class OfficeComplexCustomerServiceTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      // capture subscription method args
-//      ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//      ArgumentCaptor<CustomerInfo> customerArg =
-//        ArgumentCaptor.forClass(CustomerInfo.class);
-//      ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
       TariffSubscription defaultSub =
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(0), defaultTariff);
@@ -364,11 +347,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -401,7 +379,7 @@ public class OfficeComplexCustomerServiceTests
     }
 
     assertEquals("Tariff Transactions Created",
-                 6 * officeComplexCustomerService.getOfficeComplexList().size(),
+                 4 * officeComplexCustomerService.getOfficeComplexList().size(),
                  accountingArgs.size());
 
   }
@@ -437,11 +415,6 @@ public class OfficeComplexCustomerServiceTests
 
     assertEquals("Four tariffs", 4, tariffRepo.findAllTariffs().size());
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -457,11 +430,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -488,11 +456,7 @@ public class OfficeComplexCustomerServiceTests
         tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
                 .get(1), tariff2);
       sub2.subscribe(customer.getCustomerInfo().get(1).getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
+
       when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
               .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION));
 
@@ -511,22 +475,22 @@ public class OfficeComplexCustomerServiceTests
       customer.changeSubscription(mockTariffMarket
               .getDefaultTariff(PowerType.CONSUMPTION), customer
               .getCustomerInfo().get(1));
-      // JEC - tests fails after #531 fix
-//      assertFalse("Changed from default tariff",
-//                  tariffSubscriptionRepo
-//                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                      .get(0))
-//                          .get(0).getTariff() == mockTariffMarket
-//                          .getDefaultTariff(customer.getCustomerInfo().get(0)
-//                                  .getPowerType()));
-//
-//      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
-//                  tariffSubscriptionRepo
-//                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                .get(1)).get(1)
-//                          .getTariff() == mockTariffMarket
-//                          .getDefaultTariff(customer.getCustomerInfo().get(1)
-//                                  .getPowerType()));
+
+      assertFalse("Changed from default tariff",
+                  tariffSubscriptionRepo
+                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                      .get(0))
+                          .get(1).getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(0)
+                                  .getPowerType()));
+
+      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
+                  tariffSubscriptionRepo
+                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
+                                                                .get(1)).get(1)
+                          .getTariff() == mockTariffMarket
+                          .getDefaultTariff(customer.getCustomerInfo().get(1)
+                                  .getPowerType()));
 
       // Changing back from the new tariff to the default one in order to check
       // every changeSubscription Method
@@ -538,12 +502,6 @@ public class OfficeComplexCustomerServiceTests
         tariffSubscriptionRepo
                 .findSubscriptionsForCustomer(customer.getCustomerInfo().get(1))
                 .get(1).getTariff();
-
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
@@ -573,11 +531,6 @@ public class OfficeComplexCustomerServiceTests
       sub.subscribe(customer.getOffices("SS").size());
       sub2.subscribe(customer.getOffices("SS").size());
 
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
       customer.changeSubscription(mockTariffMarket
               .getDefaultTariff(PowerType.CONSUMPTION), lastTariff, customer
               .getOffices("SS").size(), customer.getCustomerInfo().get(0));
@@ -601,14 +554,6 @@ public class OfficeComplexCustomerServiceTests
 
       sub.subscribe(customer.getOffices("NS").size());
       sub2.subscribe(customer.getOffices("NS").size());
-
-      // Changing back from the new tariff to the default one in order to check
-      // every changeSubscription Method
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(sub).thenReturn(sub2);
 
       customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
               .getCustomerInfo().get(0).getPowerType()), "NS", customer
@@ -643,12 +588,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
@@ -661,11 +600,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -778,15 +712,15 @@ public class OfficeComplexCustomerServiceTests
 
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
     // JEC - tests fails after #531 fix
-//    for (OfficeComplex customer: officeComplexCustomerService
-//            .getOfficeComplexList()) {
-//      assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
-//                   1,
-//                   tariffSubscriptionRepo
-//                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                       .get(1))
-//                           .size());
-//    }
+    // for (OfficeComplex customer: officeComplexCustomerService
+    // .getOfficeComplexList()) {
+    // assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
+    // 1,
+    // tariffSubscriptionRepo
+    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+    // .get(1))
+    // .size());
+    // }
 
     TariffStatus st2 =
       new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
@@ -799,15 +733,15 @@ public class OfficeComplexCustomerServiceTests
 
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
     // JEC - tests fails after #531 fix
-//    for (OfficeComplex customer: officeComplexCustomerService
-//            .getOfficeComplexList()) {
-//      assertEquals("2 Subscriptions for customer",
-//                   2,
-//                   tariffSubscriptionRepo
-//                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-//                                                                       .get(0))
-//                           .size());
-//    }
+    // for (OfficeComplex customer: officeComplexCustomerService
+    // .getOfficeComplexList()) {
+    // assertEquals("2 Subscriptions for customer",
+    // 2,
+    // tariffSubscriptionRepo
+    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
+    // .get(0))
+    // .size());
+    // }
 
   }
 
@@ -817,11 +751,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -837,11 +766,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -899,11 +823,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -919,11 +838,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1009,11 +923,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
     ArgumentCaptor<PowerType> powerArg =
       ArgumentCaptor.forClass(PowerType.class);
 
@@ -1029,11 +938,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1144,14 +1048,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-//    ArgumentCaptor<PowerType> powerArg =
-//      ArgumentCaptor.forClass(PowerType.class);
-
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
@@ -1164,11 +1060,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
@@ -1219,12 +1110,6 @@ public class OfficeComplexCustomerServiceTests
   {
     initializeService();
 
-    // capture subscription method args
-//    ArgumentCaptor<Tariff> tariffArg = ArgumentCaptor.forClass(Tariff.class);
-//    ArgumentCaptor<CustomerInfo> customerArg =
-//      ArgumentCaptor.forClass(CustomerInfo.class);
-//    ArgumentCaptor<Integer> countArg = ArgumentCaptor.forClass(Integer.class);
-
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
@@ -1237,11 +1122,6 @@ public class OfficeComplexCustomerServiceTests
                 .get(1), defaultTariff);
       defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
               .getPopulation());
-//      when(
-//           mockTariffMarket.subscribeToTariff(tariffArg.capture(),
-//                                              customerArg.capture(),
-//                                              countArg.capture()))
-//              .thenReturn(defaultSub).thenReturn(defaultControllableSub);
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
