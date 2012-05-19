@@ -213,6 +213,7 @@ public class CompetitionControlService
     for (String broker : list) {
       authorizedBrokerList.add(broker);
     }
+    log.info("Authorized brokers: " + list);
   }
   
   /**

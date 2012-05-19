@@ -81,6 +81,7 @@ public class SimulationClockControl
   private long rate;
   private long modulo;
   private long tickInterval;
+  private long scheduledTickTime;
 
   private Status state = Status.CLEAR; // package visibility for testing
   private int nextTick = -1;
@@ -234,6 +235,24 @@ public class SimulationClockControl
         wait();
       }
       catch (InterruptedException ie) { }
+
+      // find the delay offset for this tick
+      long offset = new Date().getTime() - scheduledTickTime;
+      if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+        log.warn("clock delay: " + offset + " msec");
+        updateStart(offset);
+      }
+      
+      // update the time, set the watchdog, and schedule the next tick.
+      timeService.updateTime();
+      setState(Status.CLEAR);
+      long earliestPause = new Date().getTime() + minPauseInterval;
+      long wdTime = computeNextTickTime() - minWindow;
+      if (wdTime < earliestPause)
+        wdTime = earliestPause;
+      //System.out.println("watchdog set for " + wdTime);
+      currentWatchdog = new WatchdogAction(this);
+      theTimer.schedule(currentWatchdog, new Date(wdTime));
     }
   }
   
@@ -374,21 +393,7 @@ public class SimulationClockControl
     public void run ()
     {
       //System.out.println("TickAction.run() " + new Date().getTime());
-      // find the delay offset for this tick
-      long offset = new Date().getTime() - scheduledExecutionTime();
-      if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
-        log.warn("clock delay: " + offset + " msec");
-        updateStart(offset);
-      }
-      timeService.updateTime();
-      scc.setState(Status.CLEAR);
-      long earliestPause = new Date().getTime() + minPauseInterval;
-      long wdTime = computeNextTickTime() - minWindow;
-      if (wdTime < earliestPause)
-        wdTime = earliestPause;
-      //System.out.println("watchdog set for " + wdTime);
-      currentWatchdog = new WatchdogAction(scc);
-      theTimer.schedule(currentWatchdog, new Date(wdTime));
+      scc.scheduledTickTime = scheduledExecutionTime();
       scc.notifyTick();
     }
   }
