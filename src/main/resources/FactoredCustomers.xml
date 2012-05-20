@@ -337,7 +337,7 @@
                 </influenceFactors>
             </capacity>
         </capacityBundle>
-        <capacityBundle id="2" population="30" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
+        <capacityBundle id="2" population="40" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />
@@ -349,7 +349,7 @@
             </tariffSubscriber>
             <capacity count="1" description="Second subset of small windmills.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="125" stdDev="15" />
+                    <individualCapacity distribution="NORMAL" mean="180" stdDev="15" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
