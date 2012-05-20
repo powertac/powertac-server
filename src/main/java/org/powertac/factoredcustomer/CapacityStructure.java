@@ -52,7 +52,7 @@ public final class CapacityStructure
     final InfluenceKind windDirectionInfluence;
     final Map<Integer, Double> windDirectionMap = new HashMap<Integer, Double>();  // key: angle 0-360
     final InfluenceKind cloudCoverInfluence;
-    final Map<Integer, Double> cloudCoverMap = new HashMap<Integer, Double>();  // key: 0 (cloudy) - 255 (clear) 
+    final Map<Integer, Double> cloudCoverMap = new HashMap<Integer, Double>();  // key: 0 (clear) - 100 (cloudy) 
         
     final Map<Integer, Double> benchmarkRates = new HashMap<Integer, Double>();  // key: hour of day
     final ElasticityModelType elasticityModelType;
@@ -120,7 +120,7 @@ public final class CapacityStructure
         Element cloudCoverInfluenceElement = (Element) xml.getElementsByTagName("cloudCover").item(0);
         cloudCoverInfluence = Enum.valueOf(InfluenceKind.class, cloudCoverInfluenceElement.getAttribute("influence"));
         if (cloudCoverInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(cloudCoverInfluenceElement.getAttribute("rangeMap"), cloudCoverMap);
+            ParserFunctions.parseRangeMap(cloudCoverInfluenceElement.getAttribute("percentMap"), cloudCoverMap);
         }
 
         Element priceElasticityElement = (Element) xml.getElementsByTagName("priceElasticity").item(0);

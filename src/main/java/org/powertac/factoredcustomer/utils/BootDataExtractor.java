@@ -9,8 +9,8 @@ import javax.xml.parsers.*;
  */
 public class BootDataExtractor
 {
-    static String inFile = "../server-main/boot-data.xml";
-    static String outFile = "../factored-customer/fcm-boot-data.csv";
+    static String inFile = "../server-main/bootstrap.xml";
+    static String outFile = "../factored-customer/fcm-bootdata.csv";
     		
     public static void main(String[] args) 
     {

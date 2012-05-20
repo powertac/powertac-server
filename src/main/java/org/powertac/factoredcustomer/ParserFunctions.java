@@ -58,6 +58,6 @@ final class ParserFunctions
             }
         }        
     }
-    
+        
 } // end class
 
