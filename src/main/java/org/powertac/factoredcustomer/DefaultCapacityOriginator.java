@@ -295,7 +295,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
             }
         }
         if (capacityStructure.cloudCoverInfluence == InfluenceKind.DIRECT) {
-            int cloudCover = (int) Math.round(weather.getCloudCover());
+            int cloudCover = (int) Math.round(100 * weather.getCloudCover());  // [0,1] to ##%
             weatherFactor = weatherFactor * capacityStructure.cloudCoverMap.get(cloudCover);
         }
         if (verbose) logCapacityDetails(logIdentifier + ": weather factor = " + weatherFactor);

@@ -93,7 +93,7 @@
     </customer>
 
     <customer name="DowntownOffices" count="1" creatorKey="" entityType="COMMERCIAL">
-        <capacityBundle id="" population="60" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
+        <capacityBundle id="" population="30" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.7" />
@@ -105,12 +105,43 @@
             </tariffSubscriber>
             <capacity count="1" description="Downtown office buildings.">
                 <baseCapacity type="POPULATION">  
-                    <populationCapacity distribution="NORMAL" mean="15000" stdDev="1000" />
+                    <populationCapacity distribution="NORMAL" mean="8000" stdDev="500" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.6" />
                     <hourlySkew array="0.3, 0.3, 0.3, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.7, 0.5, 0.4, 0.3, 0.3, 0.3" />
                     <temperature influence="DEVIATION" reference="20" rangeMap="-50~-21: +0.005, -20~0: +0.01, 1~16: +0.02, 17~24: 0.00, 25~35: +0.01, 36~50: +0.005" />
+                    <windSpeed influence="NONE" />
+                    <windDirection influence="NONE" />
+                    <cloudCover influence="NONE" />
+                    <priceElasticity>
+                        <benchmarkRates rangeMap="00~05: -0.10, 06~19: -0.20, 20~23: -0.10" />
+                        <elasticityModel type="STEPWISE" map="1.5: 0.9, 2.0: 0.8" />
+                    </priceElasticity>
+                </influenceFactors>
+            </capacity>
+        </capacityBundle>
+    </customer>
+
+    <customer name="EastsideOffices" count="1" creatorKey="LEARNING" entityType="COMMERCIAL">
+        <capacityBundle id="" population="25" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
+            <tariffSubscriber>
+                <allocation method="LOGIT_CHOICE">
+                    <logitChoice rationality="0.7" />
+                </allocation>
+                <reconsideration period="16"/>
+                <switchingInertia>
+                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                </switchingInertia>
+            </tariffSubscriber>
+            <capacity count="1" description="Suburban office buildings.">
+                <baseCapacity type="POPULATION">  
+                    <populationCapacity distribution="NORMAL" mean="8000" stdDev="500" />
+                </baseCapacity>
+                <influenceFactors>
+                    <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 0.6, 0.6" />
+                    <hourlySkew array="0.3, 0.3, 0.3, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.9, 0.7, 0.5, 0.4, 0.3, 0.3, 0.3" />
+                    <temperature influence="DEVIATION" reference="20" rangeMap="-50~0: +0.005, 1~16: +0.01, 17~30: 0.00, 31~40: +0.01, 41~50: +0.005" />
                     <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
                     <cloudCover influence="NONE" />
@@ -136,7 +167,7 @@
             </tariffSubscriber>
             <capacity count="3" description="Refrigerated storage warehouses.">
                 <baseCapacity type="POPULATION">  
-                    <populationCapacity distribution="NORMAL" mean="7800" stdDev="400" />
+                    <populationCapacity distribution="NORMAL" mean="5700" stdDev="300" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
@@ -150,6 +181,38 @@
                         <elasticityModel type="STEPWISE" map="1.5: 0.8, 2.0: 0.7" />
                     </priceElasticity>
                     <curtailment shifts="0.5, 0.25" />
+                </influenceFactors>
+            </capacity>
+        </capacityBundle>
+    </customer>
+
+    <customer name="HextraChemical" count="1" creatorKey="" entityType="INDUSTRIAL">
+        <capacityBundle id="" population="5" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
+            <tariffSubscriber>
+                <allocation method="LOGIT_CHOICE">
+                    <logitChoice rationality="0.8" />
+                </allocation>
+                <reconsideration period="28"/>
+                <switchingInertia>
+                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                </switchingInertia>
+            </tariffSubscriber>
+            <capacity count="1" description="Chemical processing plants.">
+                <baseCapacity type="INDIVIDUAL">  
+                    <individualCapacity distribution="UNIFORM" low="700" high="1000" />
+                </baseCapacity>
+                <influenceFactors>
+                    <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 0.05, 0.05" />
+                    <hourlySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
+                    <temperature influence="NONE" />
+                    <windSpeed influence="NONE" />
+                    <windDirection influence="NONE" />
+                    <cloudCover influence="NONE" />
+                    <priceElasticity>
+                        <benchmarkRates rangeMap="00~05: -0.10, 06~19: -0.20, 20~23: -0.10" />
+                        <elasticityModel type="STEPWISE" map="2.0: 0.8" />
+                    </priceElasticity>
+                    <curtailment shifts="0.25, 0.25, 0.25, 0.25" />
                 </influenceFactors>
             </capacity>
         </capacityBundle>
@@ -196,15 +259,15 @@
             </tariffSubscriber>
             <capacity count="1" description="Solar capacity in hospital complex.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="2000" stdDev="200" />
+                    <individualCapacity distribution="NORMAL" mean="1000" stdDev="50" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
                     <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
-                    <temperature influence="DIRECT" rangeMap="-50~-10: 0.0, -9~0: 0.2, 1~15: 0.5, 16~25: 0.8, 26~50: 1.0" />
-		    <windSpeed influence="NONE" />
+                    <temperature influence="NONE" />
+                    <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
-                    <cloudCover influence="NONE" /> <!-- TEMP -->
+                    <cloudCover influence="DIRECT" percentMap="0~40: 1.0, 41~60: 0.95, 61~75: 0.9, 76~90: 0.8, 91~100: 0.7" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
                         <elasticityModel type="CONTINUOUS" ratio="-0.0001" range="0.9~1.0"/>
@@ -227,15 +290,15 @@
             </tariffSubscriber>
             <capacity count="1" description="Midsize solar farm.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="7000" stdDev="700" />
+                    <individualCapacity distribution="NORMAL" mean="6000" stdDev="300" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
                     <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8, 0.8, 0.6, 0.4, 0.0, 0.0, 0.0" />
-                    <temperature influence="DIRECT" rangeMap="-50~-10: 0.0, -9~0: 0.2, 1~15: 0.5, 16~25: 0.8, 26~50: 1.0" />
-		    <windSpeed influence="NONE" />
+                    <temperature influence="NONE" />
+                    <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
-                    <cloudCover influence="NONE" /> <!-- TEMP -->
+                    <cloudCover influence="DIRECT" percentMap="0~30: 1.0, 31~50: 1.1, 51~70: 1.0, 71~80: 0.9, 81~90: 0.8, 91~100: 0.7" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
                         <elasticityModel type="CONTINUOUS" ratio="-0.001" range="0.8~1.0"/>
@@ -246,7 +309,7 @@
     </customer>
 
     <customer name="WindmillCoOp" count="1" creatorKey="" entityType="INDUSTRIAL">
-        <capacityBundle id="" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
+        <capacityBundle id="1" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.6" />
@@ -256,7 +319,7 @@
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity count="1" description="Cooperative of small windmill owners.">
+            <capacity count="1" description="First subset of small windmills.">
                 <baseCapacity type="INDIVIDUAL">  
                     <individualCapacity distribution="NORMAL" mean="100" stdDev="20" />
                 </baseCapacity>
@@ -266,6 +329,34 @@
                     <temperature influence="NONE" />
 		    <windSpeed influence="DIRECT" rangeMap="0~3: 0.0, 3~6: 0.5, 7~17: 1.0, 18~30: 1.2, 31~105: 0.0" />
                     <windDirection influence="DIRECT" rangeMap="0~90: 0.5, 91~180: 0.8, 181~270: 1.0, 271~360: 0.9" />
+                    <cloudCover influence="NONE" />
+                    <priceElasticity>
+                        <benchmarkRates rangeMap="00~23: 0.08" />
+                        <elasticityModel type="STEPWISE" map="0.5: 0.8, 0.75: 0.9" />
+                    </priceElasticity>
+                </influenceFactors>
+            </capacity>
+        </capacityBundle>
+        <capacityBundle id="2" population="30" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
+            <tariffSubscriber>
+                <allocation method="LOGIT_CHOICE">
+                    <logitChoice rationality="0.6" />
+                </allocation>
+                <reconsideration period="12"/>
+                <switchingInertia>
+                    <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
+                </switchingInertia>
+            </tariffSubscriber>
+            <capacity count="1" description="Second subset of small windmills.">
+                <baseCapacity type="INDIVIDUAL">  
+                    <individualCapacity distribution="NORMAL" mean="125" stdDev="15" />
+                </baseCapacity>
+                <influenceFactors>
+                    <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
+                    <hourlySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
+                    <temperature influence="NONE" />
+                    <windSpeed influence="DIRECT" rangeMap="0~2: 0.0, 3~4: 0.4, 5~6: 0.7, 7~17: 1.0, 18~30: 1.2, 31~105: 0.0" />
+                    <windDirection influence="DIRECT" rangeMap="0~90: 0.8, 91~180: 1.0, 181~270: 0.9, 271~360: 0.5" />
                     <cloudCover influence="NONE" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
