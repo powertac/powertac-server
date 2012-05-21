@@ -447,7 +447,11 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 int allocation;
                 if (i < (numTariffs - 1)) {
                     allocation = (int) Math.round(population * probabilities.get(i));
+                    if ((sumAllocations + allocation) > population) {
+                        allocation = population - sumAllocations;
+                    }
                     sumAllocations += allocation;
+                    if (sumAllocations == population) break;
                 } else {
                     allocation = population - sumAllocations;
                 }
