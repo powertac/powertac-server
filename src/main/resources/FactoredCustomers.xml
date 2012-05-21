@@ -1,4 +1,4 @@
-<customers logAllocationDetails="TRUE" logCapacityDetails="TRUE" logUsageCharges="TRUE">
+<customers>
 
     <customer name="BrooksideHomes" count="1" creatorKey="" entityType="RESIDENTIAL">
         <capacityBundle id="" population="30000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
