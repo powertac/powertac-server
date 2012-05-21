@@ -9,7 +9,11 @@
 	                    http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core-5.3.0.xsd">
 
   <context:annotation-config />
-  <context:component-scan base-package="org.powertac" />
+  <context:component-scan base-package="org.powertac">
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.*" />       
+  </context:component-scan>
+  <!-- <context:component-scan base-package="org.powertac" /> -->
 
 	<!-- Embedded ActiveMQ Broker -->
 <!--   <amq:broker id="broker" useJmx="true" persistent="false">
