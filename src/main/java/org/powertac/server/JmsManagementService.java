@@ -90,14 +90,14 @@ public class JmsManagementService
   public void stop ()
   {
     unregisterAllMessageListeners();
+    try {
+      // let's wait a few seconds before shutting down
+      Thread.sleep(3000);
+    }
+    catch (InterruptedException e) {
+      log.info("Hey, why did you bother me??", e);
+    }
     if (isServingJms()) {
-      try {
-        // let's wait a few seconds before shutting down
-        Thread.sleep(3000);
-      }
-      catch (InterruptedException e) {
-        log.info("Hey, why did you bother me??", e);
-      }
       stopProvider();
     }
   }
