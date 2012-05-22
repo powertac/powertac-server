@@ -1313,7 +1313,7 @@ public class Village extends AbstractCustomer
                 + ": " + subs.get(sub));
 
       if (sub.getCustomersCommitted() > 0)
-        sub.usePower(summary);
+        sub.usePower(subs.get(sub));
 
     }
 
