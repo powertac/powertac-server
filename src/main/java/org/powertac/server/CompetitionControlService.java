@@ -344,7 +344,7 @@ public class CompetitionControlService
                     + competition.getBootstrapDiscardedTimeslots();
     if (!bootstrapMode) {
       // #486 - add bootstrap count to computed game length
-      timeslotCount += computeGameLength(competition.getMinimumTimeslotCount(),
+      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
                                          competition.getExpectedTimeslotCount());
       log.info("timeslotCount = " + timeslotCount);
     }

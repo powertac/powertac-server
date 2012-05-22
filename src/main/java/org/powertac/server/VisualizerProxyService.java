@@ -49,7 +49,7 @@ implements VisualizerProxy, InitializationService
   
   @ConfigurableValue(valueType = "String",
           description = "name of queue for remote visualizer")
-  private String visualizerQueueName = "visualizer";
+  private String visualizerQueueName = "remote-visualizer";
   
   @Override
   public void registerVisualizerMessageListener (VisualizerMessageListener listener)
