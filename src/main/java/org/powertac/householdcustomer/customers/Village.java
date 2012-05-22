@@ -1847,13 +1847,15 @@ public class Village extends AbstractCustomer
     Vector<Integer> possibilities = new Vector<Integer>();
 
     for (int i = 0; i < estimation.size(); i++) {
+
       summedEstimations +=
         Math.pow(VillageConstants.EPSILON, lamda * estimation.get(i));
-      log.debug("Cost variable: " + estimation.get(i));
+      log.debug("Cost variable: " + 50 * estimation.get(i));
       log.debug("Summary of Estimation: " + summedEstimations);
     }
 
     for (int i = 0; i < estimation.size(); i++) {
+
       possibilities
               .add((int) (VillageConstants.PERCENTAGE * (Math
                       .pow(VillageConstants.EPSILON, lamda * estimation.get(i)) / summedEstimations)));
