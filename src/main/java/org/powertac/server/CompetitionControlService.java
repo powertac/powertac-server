@@ -391,6 +391,7 @@ public class CompetitionControlService
       }
       catch (InterruptedException ie) {
         authorizedBrokerList.clear();
+        log.info("first login wait is interrupted");
       }
     }
     // need to wait for additional logins
