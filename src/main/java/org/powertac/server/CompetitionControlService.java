@@ -140,6 +140,8 @@ public class CompetitionControlService
   @ConfigurableValue(valueType = "Integer",
       description = "Maximum time in msec to wait for broker login")
   private int loginTimeout = 0;
+  private ArrayList<String> pendingLogins; // external logins expected
+  private int loginCount = 0; // number of external brokers logged in so far
 
   @ConfigurableValue(valueType = "Long",
           description = "Milliseconds/timeslot in boot mode. Should be > 300.")
@@ -209,6 +211,8 @@ public class CompetitionControlService
   @Override
   public void setAuthorizedBrokerList (List<String> list)
   {
+    loginCount = list.size();
+    pendingLogins = new ArrayList<String>(list);
     authorizedBrokerList = new ArrayList<String>(alwaysAuthorizedBrokers);
     for (String broker : list) {
       authorizedBrokerList.add(broker);
@@ -364,7 +368,6 @@ public class CompetitionControlService
   }
   
   // blocks until all brokers have logged in.
-  // TODO -- add a timeout
   private synchronized void waitForBrokerLogin ()
   {
     if (authorizedBrokerList == null || authorizedBrokerList.size() == 0) {
@@ -379,16 +382,32 @@ public class CompetitionControlService
       }
       log.info(msg.toString());
     }
+    if (loginCount == pendingLogins.size()) {
+      // no external brokers logged in yet
+      try {
+        // wait unconditionally for the first login
+        wait();
+        log.info("first login observed");
+      }
+      catch (InterruptedException ie) {
+        authorizedBrokerList.clear();
+      }
+    }
+    // need to wait for additional logins
+    int sz = authorizedBrokerList.size();
     try {
-      //while (authorizedBrokerList.size() > 0) {
-      wait(loginTimeout);
-      //}  
+      // limit the wait time for subsequent timeouts
+      while (sz >= authorizedBrokerList.size()
+             && authorizedBrokerList.size() > 0) {
+        wait(loginTimeout);
+        sz -= 1;
+      }
     }
     catch (InterruptedException ie) {
       authorizedBrokerList.clear();
     }
     if (authorizedBrokerList.size() > 0) {
-      log.warn("Some brokers did not log in: " + authorizedBrokerList.size());
+      log.warn("Some brokers did not log in: " + authorizedBrokerList);
       authorizedBrokerList.clear();
     }
   }
@@ -435,9 +454,9 @@ public class CompetitionControlService
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
     authorizedBrokerList.remove(username);
-    if (authorizedBrokerList.size() == 0) {
-      notifyAll();
-    }
+    if (pendingLogins.contains(username))
+      loginCount -= 1;
+    notifyAll();
     return true;
   }
   
