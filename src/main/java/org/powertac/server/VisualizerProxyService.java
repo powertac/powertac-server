@@ -8,6 +8,7 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
@@ -15,6 +16,7 @@ import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
+import org.powertac.common.msg.VisualizerStatusRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
@@ -28,6 +30,8 @@ import org.springframework.stereotype.Service;
 public class VisualizerProxyService
 implements VisualizerProxy, InitializationService
 {
+  static private Logger log = Logger.getLogger(VisualizerProxyService.class);
+
   @Autowired
   private ServerConfiguration serverConfig;
   
@@ -66,6 +70,7 @@ implements VisualizerProxy, InitializationService
     if (remoteVisualizer) {
       // send messages to queue
       final String text = converter.toXML(message);
+      //log.info("send " + text);
 
       template.send(visualizerQueueName, new MessageCreator() {
         @Override
@@ -91,8 +96,16 @@ implements VisualizerProxy, InitializationService
     serverConfig.configureMe(this);
     if (remoteVisualizer) {
       // set up the output queue
-      jmsManagementService.createQueue(visualizerQueueName);
+      //jmsManagementService.createQueue(visualizerQueueName);
     }
     return "VisualizerProxy";
+  }
+  
+  // handle ping request from remote visualizer
+  void respondToPing ()
+  {
+    if (remoteVisualizer) {
+      forwardMessage(new VisualizerStatusRequest());
+    }
   }
 }

@@ -22,13 +22,16 @@ public class ServerMessageReceiver implements MessageListener
   static private Logger log = Logger.getLogger(ServerMessageReceiver.class);
   
   @Autowired
-  XMLMessageConverter converter;
+  private XMLMessageConverter converter;
   
   @Autowired 
-  BrokerProxy brokerProxy;
+  private BrokerProxy brokerProxy;
   
   @Autowired
-  BrokerRepo brokerRepo;
+  private VisualizerProxyService visualizerProxy;
+  
+  @Autowired
+  private BrokerRepo brokerRepo;
   
   private Pattern brokerRegex = Pattern.compile("<broker>([A-Za-z0-9_ ]+)</broker>");
 
@@ -54,10 +57,16 @@ public class ServerMessageReceiver implements MessageListener
 
   void onMessage (String xml) {
     // validate broker's key, then strip it off
-    String validXml;
+    String validXml = null;
     if (xml.startsWith("<broker-authentication")) {
       // don't validate the broker-authentication messages
       validXml = xml;
+    }
+    else if (xml.startsWith("<visualizer-status")) {
+      // visualizer ping request
+      log.info("received visualizer ping request");
+      visualizerProxy.respondToPing();
+      return;
     }
     else {
       // complain if message spoofed or missing validation prefix

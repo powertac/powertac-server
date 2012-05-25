@@ -382,7 +382,7 @@ public class CompetitionControlService
       }
       log.info(msg.toString());
     }
-    log.info("pendingLogins.size()=" + pendingLogins.size() + ", loginCount="+ loginCount);
+    //log.info("pendingLogins.size()=" + pendingLogins.size() + ", loginCount="+ loginCount);
     if (loginCount == pendingLogins.size()) {
       // no external brokers logged in yet
       try {
