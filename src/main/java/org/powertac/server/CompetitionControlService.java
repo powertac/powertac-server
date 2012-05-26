@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -41,8 +42,8 @@ import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
-import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.msg.TimeslotComplete;
+import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -118,6 +119,9 @@ public class CompetitionControlService
   
   @Autowired
   private TournamentSchedulerService tournamentSchedulerService;
+  
+  @Autowired 
+  private VisualizerProxyService visualizerProxyService;
 
   // Server JMS Queue Name
   private String serverQueueName = "serverInput";
@@ -627,11 +631,27 @@ public class CompetitionControlService
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
     
+    detectAndKillHangingQueues();
+       
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
     if (--timeslotCount <= 0) {
       log.info("Stopping simulation");
       stop();
+    }
+  }
+  
+  private void detectAndKillHangingQueues() {
+    Set<String> badQueues = jmsManagementService.processQueues();
+    if (badQueues != null && badQueues.size() > 0) {
+      for (Broker broker : brokerRepo.list()) {
+        if (badQueues.contains(broker.toQueueName())) {
+          broker.setEnabled(false);
+        }
+      }
+      if (badQueues.contains(visualizerProxyService.getVisualizerQueueName())) {
+        visualizerProxyService.setRemoteVisualizer(false);
+      }
     }
   }
 

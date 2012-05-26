@@ -55,6 +55,22 @@ implements VisualizerProxy, InitializationService
           description = "name of queue for remote visualizer")
   private String visualizerQueueName = "remote-visualizer";
   
+  /**
+   * @param remoteVisualizer the remoteVisualizer to set
+   */
+  public void setRemoteVisualizer (boolean remoteVisualizer)
+  {
+    this.remoteVisualizer = remoteVisualizer;
+  }
+
+  /**
+   * @return the visualizerQueueName
+   */
+  public String getVisualizerQueueName ()
+  {
+    return visualizerQueueName;
+  }
+
   @Override
   public void registerVisualizerMessageListener (VisualizerMessageListener listener)
   {
