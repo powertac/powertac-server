@@ -1,7 +1,9 @@
 package org.powertac.server;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executor;
 
 import javax.annotation.Resource;
@@ -12,12 +14,15 @@ import javax.jms.MessageListener;
 import javax.jms.Queue;
 import javax.jms.Session;
 
+import org.apache.activemq.broker.Broker;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerRegistry;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.broker.region.Destination;
+import org.apache.activemq.broker.region.DestinationStatistics;
+import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.apache.log4j.Logger;
-import org.powertac.common.Broker;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +50,12 @@ public class JmsManagementService
   private boolean servingJms = true;
   private String jmsBrokerUrl = "tcp://localhost:61616";
   private String jmsBrokerName = "simJmsProvider";
+  private long maxQueueDepth = 1000;
+
+  private BrokerService getProvider ()
+  {
+    return BrokerRegistry.getInstance().lookup(getJmsBrokerName());
+  }
 
   public void initializeServerQueue (String serverQueueName)
   {
@@ -67,8 +78,7 @@ public class JmsManagementService
 
   public void startProvider ()
   {
-    BrokerService brokerService = BrokerRegistry.getInstance()
-            .lookup(getJmsBrokerName());
+    BrokerService brokerService = getProvider();
     if (brokerService != null) {
       log.info("JMS Server is already started.");
       return;
@@ -116,8 +126,7 @@ public class JmsManagementService
 
   public void stopProvider ()
   {
-    BrokerService brokerService = BrokerRegistry.getInstance()
-            .lookup(getJmsBrokerName());
+    BrokerService brokerService = getProvider();
     try {
       if (brokerService != null) {
         brokerService.stop();
@@ -131,7 +140,7 @@ public class JmsManagementService
       log.error("Failed to stop JMS Server", e);
     }
   }
-  
+
   public Queue createQueue (String queueName)
   {
     Queue queue = null;
@@ -242,5 +251,60 @@ public class JmsManagementService
   public void setJmsBrokerName (String jmsBrokerName)
   {
     this.jmsBrokerName = jmsBrokerName;
+  }
+
+  /**
+   * @return the maxQueueDepth
+   */
+  public long getMaxQueueDepth ()
+  {
+    return maxQueueDepth;
+  }
+
+  /**
+   * @param maxQueueDepth
+   *          the maxQueueDepth to set
+   */
+  @ConfigurableValue(valueType = "Long", description = "Maximum Queue Depth")
+  public void setMaxQueueDepth (long maxQueueDepth)
+  {
+    this.maxQueueDepth = maxQueueDepth;
+  }
+
+  private boolean queueLimitReached (Destination dst)
+  {
+    DestinationStatistics stats = dst.getDestinationStatistics();
+    long queueDepth = stats.getEnqueues().getCount()
+                      - stats.getDequeues().getCount();
+    log.info("queue " + dst.getName() + " - queueDepth:" + queueDepth);
+    return queueDepth > getMaxQueueDepth();
+  }
+
+  public Set<String> processQueues ()
+  {
+    BrokerService brokerService = getProvider();
+    if (brokerService == null) {
+      log.info("JMS Server has not been started");
+      return null;
+    }
+
+    Set<String> badQueues = new HashSet<String>();
+    try {
+      Broker broker = brokerService.getBroker();
+      Map<ActiveMQDestination, Destination> dstMap = broker.getDestinationMap();
+      for (Map.Entry<ActiveMQDestination, Destination> entry: dstMap.entrySet()) {
+        ActiveMQDestination amqDestination = entry.getKey();
+        Destination destination = entry.getValue();
+        if (queueLimitReached(destination)) {
+          badQueues.add(destination.getName());
+          broker.removeDestination(null, amqDestination, 0);
+        }
+      }
+    }
+    catch (Exception e) {
+      log.error("Encounter exception while getting jms broker", e);
+    }
+
+    return badQueues;
   }
 }

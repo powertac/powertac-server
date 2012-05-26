@@ -627,6 +627,8 @@ public class CompetitionControlService
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
     
+    jmsManagementService.processQueues();
+
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
     if (--timeslotCount <= 0) {
