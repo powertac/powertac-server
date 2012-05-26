@@ -622,6 +622,10 @@ public class CompetitionControlService
 
     int ts = activateNextTimeslot();
     log.info("step at " + time.toString());
+    
+    // check queue status before sending new messages
+    detectAndKillHangingQueues();
+
     for (int index = 0; index < phaseRegistrations.size(); index++) {
       log.info("activate phase " + (index + 1));
       for (TimeslotPhaseProcessor fn : phaseRegistrations.get(index)) {
@@ -630,8 +634,6 @@ public class CompetitionControlService
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
-    
-    detectAndKillHangingQueues();
        
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
