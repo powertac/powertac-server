@@ -217,11 +217,16 @@ public class TariffSubscription
     // that new tariff
     Tariff newTariff = tariff.getIsSupersededBy();
     if (newTariff == null) {
-      // there is no superseding tariff, so we have to revert to the default
-      // tariff.
+      // there is no superseding tariff, so we have to revert to the default tariff.
       newTariff =
         tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
                 .getPowerType());
+    }
+    if (newTariff == null) {
+      // there is exact match for original power type - choose generic
+      newTariff =
+        tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
+                .getPowerType().getGenericType());
     }
 
     tariffMarketService.subscribeToTariff(tariff, customer,

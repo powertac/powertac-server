@@ -179,6 +179,40 @@ public class TariffSubscriptionTests
     verify(mockTariffMarket).subscribeToTariff(defaultTariff, customer, 33);
   }
   
+  @Test
+  public void testHandleRevokedTariffDefaultPT ()
+  {
+    List<List<Object>>results = new ArrayList<List<Object>>();
+    CustomerInfo ptcustomer = new CustomerInfo("Podunk", 21).withPowerType(PowerType.SOLAR_PRODUCTION);
+    TariffSpecification ptspec = new TariffSpecification(broker, PowerType.SOLAR_PRODUCTION)
+      .withExpiration(baseTime.plus(TimeService.DAY * 10))
+      .withMinDuration(TimeService.DAY * 5)
+      .addRate(new Rate().withValue(0.11));
+    Tariff pttariff = new Tariff(ptspec);
+    pttariff.init();
+ // set up default tariff, install in tariff market
+    TariffSpecification defaultSpec = new TariffSpecification(broker, PowerType.PRODUCTION)
+        .addRate(new Rate().withValue(0.09));
+    Tariff defaultTariff = new Tariff(defaultSpec);
+    defaultTariff.init();
+    when(mockTariffMarket.getDefaultTariff(PowerType.PRODUCTION))
+        .thenReturn(defaultTariff);
+
+    // subscribe some customers to the original tariff
+    TariffSubscription sub = new TariffSubscription(ptcustomer, pttariff);
+    sub.subscribe(19);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                pttariff, ptcustomer, 19, 0.0, -0.0);
+
+    // revoke the original subscription
+    pttariff.setState(Tariff.State.KILLED);
+    sub.handleRevokedTariff();
+    // should have called tariff market twice
+    verify(mockTariffMarket).getDefaultTariff(PowerType.PRODUCTION);
+    verify(mockTariffMarket).subscribeToTariff(pttariff, ptcustomer, -19);
+    verify(mockTariffMarket).subscribeToTariff(defaultTariff, ptcustomer, 19);
+  }
+  
   // TODO - public void handleRevokedTariffSuperseded ()
 
   @Test
