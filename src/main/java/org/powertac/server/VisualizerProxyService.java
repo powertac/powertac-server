@@ -118,7 +118,7 @@ implements VisualizerProxy, InitializationService
   }
   
   // handle ping request from remote visualizer
-  void respondToPing ()
+  public void respondToPing ()
   {
     if (remoteVisualizer) {
       forwardMessage(new VisualizerStatusRequest());

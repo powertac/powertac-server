@@ -9,6 +9,13 @@
 	       http://www.springframework.org/schema/context/spring-context-3.0.xsd"
 	       >
 
+  <!-- Spring JMS Template -->
+  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+    <property name="connectionFactory">
+      <ref local="jmsFactory"/>
+    </property>
+  </bean>
+
   <bean id="brokerProxy"
         class="org.mockito.Mockito"
         factory-method="mock">
@@ -39,9 +46,11 @@
     <constructor-arg value="org.powertac.server.ServerMessageReceiver"/>
   </bean>
  
-  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/> 
- 
   <context:annotation-config />
+ 
+  <bean id="taskExecutor"
+        class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" 
+        p:corePoolSize="5" p:maxPoolSize="25"/> 
 
   <bean id="timeService"
         class="org.powertac.common.TimeService">
@@ -117,6 +126,10 @@
   
   <bean id="serverPropertiesService"
         class="org.powertac.server.ServerPropertiesService">
+  </bean>
+  
+  <bean id="visualizerProxyService"
+        class="org.powertac.server.VisualizerProxyService">
   </bean>
 
   <bean id="springApplicationContext"

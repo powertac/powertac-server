@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

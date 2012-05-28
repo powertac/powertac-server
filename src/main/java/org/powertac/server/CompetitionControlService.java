@@ -142,8 +142,13 @@ public class CompetitionControlService
   private int idPrefix = 0;
   
   @ConfigurableValue(valueType = "Integer",
-      description = "Maximum time in msec to wait for broker login")
+      description = "Maximum time in msec to wait for first broker login")
+  private int firstLoginTimeout = 0;
+  
+  @ConfigurableValue(valueType = "Integer",
+      description = "Maximum time in msec to wait for subsequent broker login")
   private int loginTimeout = 0;
+
   private ArrayList<String> pendingLogins; // external logins expected
   private int loginCount = 0; // number of external brokers logged in so far
 
@@ -391,7 +396,7 @@ public class CompetitionControlService
       // no external brokers logged in yet
       try {
         // wait unconditionally for the first login
-        wait();
+        wait(firstLoginTimeout);
         log.info("first login observed");
       }
       catch (InterruptedException ie) {
