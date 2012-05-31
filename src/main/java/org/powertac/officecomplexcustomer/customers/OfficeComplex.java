@@ -432,12 +432,6 @@ public class OfficeComplex extends AbstractCustomer
       if (controllableSubscriptionMap.get("NS") == ts
           || controllableSubscriptionMap.get("NS") == null)
         controllableSubscriptionMap.put("NS", newTs);
-      if (controllableSubscriptionMap.get("RaS") == ts
-          || controllableSubscriptionMap.get("RaS") == null)
-        controllableSubscriptionMap.put("RaS", newTs);
-      if (controllableSubscriptionMap.get("ReS") == ts
-          || controllableSubscriptionMap.get("ReS") == null)
-        controllableSubscriptionMap.put("ReS", newTs);
       if (controllableSubscriptionMap.get("SS") == ts
           || controllableSubscriptionMap.get("SS") == null)
         controllableSubscriptionMap.put("SS", newTs);
@@ -449,12 +443,6 @@ public class OfficeComplex extends AbstractCustomer
 
       if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
         subscriptionMap.put("NS", newTs);
-      if (subscriptionMap.get("RaS") == ts
-          || subscriptionMap.get("RaS") == null)
-        subscriptionMap.put("RaS", newTs);
-      if (subscriptionMap.get("ReS") == ts
-          || subscriptionMap.get("ReS") == null)
-        subscriptionMap.put("ReS", newTs);
       if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
         subscriptionMap.put("SS", newTs);
 
@@ -487,12 +475,6 @@ public class OfficeComplex extends AbstractCustomer
       if (type.equals("NS")) {
         controllableSubscriptionMap.put("NS", newTs);
       }
-      else if (type.equals("RaS")) {
-        controllableSubscriptionMap.put("RaS", newTs);
-      }
-      else if (type.equals("ReS")) {
-        controllableSubscriptionMap.put("ReS", newTs);
-      }
       else {
         controllableSubscriptionMap.put("SS", newTs);
       }
@@ -505,12 +487,6 @@ public class OfficeComplex extends AbstractCustomer
 
       if (type.equals("NS")) {
         subscriptionMap.put("NS", newTs);
-      }
-      else if (type.equals("RaS")) {
-        subscriptionMap.put("RaS", newTs);
-      }
-      else if (type.equals("ReS")) {
-        subscriptionMap.put("ReS", newTs);
       }
       else {
         subscriptionMap.put("SS", newTs);
@@ -972,6 +948,11 @@ public class OfficeComplex extends AbstractCustomer
     }
 
     // log.debug(subs.toString());
+    // log.debug("Subscription Map : " + subscriptionMap.toString());
+    // log.debug("Controllable Subscription Map : " +
+    // controllableSubscriptionMap.toString());
+    // log.debug("Subscription Keys : " + subscriptionMap.keySet());
+    // log.debug(subs.toString());
 
     for (String type: subscriptionMap.keySet()) {
 
@@ -1253,8 +1234,6 @@ public class OfficeComplex extends AbstractCustomer
     return offices;
 
   }
-
-  // =====EVALUATION FUNCTIONS===== //
 
   // =====EVALUATION FUNCTIONS===== //
 
