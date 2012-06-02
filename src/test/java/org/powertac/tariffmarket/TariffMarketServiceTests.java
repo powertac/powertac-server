@@ -428,8 +428,14 @@ public class TariffMarketServiceTests
     assertEquals("correct hc start", start, hc.getAtTime());
     assertEquals("correct current time", start, timeService.getCurrentTime());
     
+    int msgsize = msgs.size();
     tariffMarketService.handleMessage(vru);
-    TariffStatus vrs = (TariffStatus)msgs.get(2);
+    assertEquals("no messages yet", msgsize, msgs.size());
+
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
+    assertEquals("one new message", msgsize + 3, msgs.size());
+
+    TariffStatus vrs = (TariffStatus)msgs.get(msgsize - 1);
     assertNotNull("non-null vru status", vrs);
     assertEquals("success vru", TariffStatus.Status.success, vrs.getStatus());
     assertEquals("correct current time", start, timeService.getCurrentTime());

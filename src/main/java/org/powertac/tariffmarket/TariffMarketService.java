@@ -146,6 +146,9 @@ public class TariffMarketService
   private List<PendingSubscription> pendingSubscriptionEvents =
           new ArrayList<PendingSubscription>();
   
+  // list of pending variable-rate updates.
+  private List<VariableRateUpdate> pendingVrus = new ArrayList<VariableRateUpdate>();
+  
   /**
    * Default constructor
    */
@@ -185,6 +188,7 @@ public class TariffMarketService
     
     pendingSubscriptionEvents.clear();
     pendingRevokedTariffs.clear();
+    pendingVrus.clear();
     revokedTariffs = null;
     lastRevokeProcess = new Instant(0);
 
@@ -372,17 +376,8 @@ public class TariffMarketService
     ValidationResult result = validateUpdate(update);
     if (result.tariff == null)
       send(result.message);
-    else if (result.tariff.addHourlyCharge(update.getHourlyCharge(), update.getRateId())) {
-      success(update);
-    }
-    else {
-      // failed to add hourly charge
-      send(new TariffStatus(update.getBroker(),
-                            update.getTariffId(),
-                            update.getId(),
-                            TariffStatus.Status.invalidUpdate)
-          .withMessage("update: could not add hourly charge"));
-    }
+    else 
+      addVru(update);
   }
   
   /**
@@ -514,6 +509,7 @@ public class TariffMarketService
     log.info("Activate");
     processPendingSubscriptions();
     removeRevokedTariffs();
+    processPendingVrus();
     long msec = timeService.getCurrentTime().getMillis();
     if (!firstPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
@@ -634,6 +630,41 @@ public class TariffMarketService
         sub.deferredUnsubscribe(-pending.count);
     }
     pendingSubscriptionEvents.clear();
+  }
+  
+  /**
+   * Handles pending vru messages
+   */
+  private void processPendingVrus ()
+  {
+    for (VariableRateUpdate vru: getVruList()) {
+      Tariff tariff = tariffRepo.findTariffById(vru.getTariffId());
+      if (tariff.addHourlyCharge(vru.getHourlyCharge(), vru.getRateId())) {
+        success(vru);
+      }
+      else {
+        // failed to add hourly charge
+        send(new TariffStatus(vru.getBroker(),
+                              vru.getTariffId(),
+                              vru.getId(),
+                              TariffStatus.Status.invalidUpdate)
+          .withMessage("update: could not add hourly charge"));
+      }
+    }
+  }
+  
+  // adds a VariableRateUpdate to the shared list
+  private synchronized void addVru (VariableRateUpdate newVru)
+  {
+    pendingVrus.add(newVru);
+  }
+  
+  // transfers the contents of the pending VRU list to the caller
+  private synchronized List<VariableRateUpdate> getVruList()
+  {
+    ArrayList<VariableRateUpdate> result = new ArrayList<VariableRateUpdate>(pendingVrus);
+    pendingVrus.clear();
+    return result;
   }
   
   // ------------------ Helper stuff ---------------
