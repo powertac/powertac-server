@@ -14,7 +14,7 @@ import javax.faces.application.ResourceHandlerWrapper;
 import javax.faces.context.FacesContext;
 import javax.servlet.http.HttpServletResponse;
 
-import org.primefaces.application.PrimeResource;
+//import org.primefaces.application.PrimeResource;
 import org.primefaces.model.StreamedContent;
 import org.primefaces.util.Constants;
 
@@ -35,18 +35,7 @@ public class CustomResourceHandler extends ResourceHandlerWrapper {
 	        return this.wrapped;
 	    }
 
-	    @Override
-	    public Resource createResource(String resourceName, String libraryName) {
-	        Resource resource = super.createResource(resourceName, libraryName);
-
-	        if(resource != null && libraryName != null && libraryName.equalsIgnoreCase(Constants.LIBRARY)) {
-	            return new PrimeResource(resource);
-	        }
-	        else {
-	            return resource;
-	        }
-	    }
-
+	  
 	    @Override
 	    public void handleResourceRequest(FacesContext context) throws IOException {
 	        Map<String,String> params = context.getExternalContext().getRequestParameterMap();

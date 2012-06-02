@@ -5,7 +5,9 @@
 
 	<application>
 		<message-bundle>JsfMessageResources</message-bundle>
-		
+		<el-resolver> 
+org.springframework.web.jsf.el.SpringBeanFacesELResolver 
+</el-resolver> 
 	</application>
 
 

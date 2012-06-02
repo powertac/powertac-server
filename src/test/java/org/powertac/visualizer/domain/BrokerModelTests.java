@@ -86,7 +86,6 @@ public class BrokerModelTests {
 		// string output which is generated based on set elements.
 		Set<CustomerModel> customerModels = new TreeSet<CustomerModel>(new Comparator<CustomerModel>() {
 
-			@Override
 			public int compare(CustomerModel o1, CustomerModel o2) {
 				int result;
 				int population1 = o1.getCustomerInfo().getPopulation();
