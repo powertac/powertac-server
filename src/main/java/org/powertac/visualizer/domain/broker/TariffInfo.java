@@ -52,18 +52,45 @@ public class TariffInfo implements TimeslotModelUpdate {
 			json.setRatesLineChartMaxValue(rateInfo.getJson().getRateLineChartMaxValue());
 			json.setRatesLineChartMinValue(rateInfo.getJson().getRateLineChartMinValue());
 		} else {
-
+			
+			JSONArray ratesJsonMax = new JSONArray();
+			JSONArray ratesJsonMin = new JSONArray();
+			
 			for (Iterator iterator = rates.iterator(); iterator.hasNext();) {
 				Rate rate = (Rate) iterator.next();
 				RateInfo rateInfo = new RateInfo(rate);
 				rateInfos.add(rateInfo);
-
-				json.getRatesLineChartMaxValue().put(rateInfo.getJson().getRateLineChartMaxValue());
-				json.getRatesLineChartMinValue().put(rateInfo.getJson().getRateLineChartMinValue());
+				
+				JSONArray maxArray = rateInfo.getJson().getRateLineChartMaxValue();
+				JSONArray minArray = rateInfo.getJson().getRateLineChartMinValue();
+				
+				for(int i=0;i<maxArray.length();i++)
+				{
+					try {
+						ratesJsonMax.put(maxArray.get(i));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				for(int i=0;i<minArray.length();i++)
+				{
+					try {
+						ratesJsonMin.put(minArray.get(i));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+				
+				
+				
 			}
-
+			
+			json.setRatesLineChartMaxValue(ratesJsonMax);
+			json.setRatesLineChartMinValue(ratesJsonMin);
 			
 		}
+		
 		tariffLifecycle.add(tariffSpecification.toString());
 	}
 
