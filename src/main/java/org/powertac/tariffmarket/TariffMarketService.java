@@ -29,6 +29,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Broker;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffMessage;
 import org.powertac.common.TariffSpecification;
@@ -309,6 +310,24 @@ public class TariffMarketService
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff));
       return;
+    }
+    if (null == spec.getRates()) {
+      log.warn("no rates given for spec " + spec.getId());
+      send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                            TariffStatus.Status.invalidTariff));
+      return;
+    }
+    else {
+      for (Rate rate : spec.getRates()) {
+        if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
+                rate.getWeeklyBegin() == 0 || rate.getWeeklyBegin() > 7 ||
+                rate.getWeeklyEnd() == 0 || rate.getWeeklyEnd() > 7) {
+          log.warn("invalid rate for spec " + spec.getId());
+          send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                                TariffStatus.Status.invalidTariff));
+          return;
+        }
+      }
     }
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);

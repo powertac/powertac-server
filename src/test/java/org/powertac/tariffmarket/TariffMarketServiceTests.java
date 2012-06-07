@@ -348,6 +348,76 @@ public class TariffMarketServiceTests
     timeService.setCurrentTime(newExp);
     assertTrue("tariff is expired", tf.isExpired());
   }
+  
+  // bogus time-of-day
+  @Test
+  public void bogusTimeOfDay ()
+  {
+    initializeService();
+    TariffSpecification ts2 =
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+                .withMinDuration(TimeService.WEEK * 4);
+    Rate r1 = new Rate()
+          .withFixed(true)
+          .withMinValue(0.1)
+          .withDailyBegin(1)
+          .withDailyEnd(24);
+    ts2.addRate(r1);  
+    tariffMarketService.handleMessage(ts2);
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+    TariffSpecification ts3 =
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+                .withMinDuration(TimeService.WEEK * 4);
+    Rate r2 = new Rate()
+          .withFixed(true)
+          .withMinValue(0.1)
+          .withDailyBegin(24)
+          .withDailyEnd(2);
+    ts3.addRate(r2);  
+    tariffMarketService.handleMessage(ts3);
+    status = (TariffStatus)msgs.get(1);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts3.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+  }
+  
+  // bogus day-of-week
+  @Test
+  public void bogusDayOfWeek ()
+  {
+    initializeService();
+    TariffSpecification ts2 =
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+                .withMinDuration(TimeService.WEEK * 4);
+    Rate r1 = new Rate()
+          .withFixed(true)
+          .withMinValue(0.1)
+          .withWeeklyBegin(0)
+          .withWeeklyEnd(3);
+    ts2.addRate(r1);  
+    tariffMarketService.handleMessage(ts2);
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+    TariffSpecification ts3 =
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+                .withMinDuration(TimeService.WEEK * 4);
+    Rate r2 = new Rate()
+          .withFixed(true)
+          .withMinValue(0.1)
+          .withWeeklyBegin(1)
+          .withWeeklyEnd(8);
+    ts3.addRate(r2);  
+    tariffMarketService.handleMessage(ts3);
+    status = (TariffStatus)msgs.get(1);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts3.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+  }
 
   // TODO - bogus revoke
   
