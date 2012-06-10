@@ -805,24 +805,31 @@ public class OfficeComplexControllableCapacitiesTests
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    assertEquals("5 consumption tariffs", 5, tclist.size());
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("3 consumption tariffs", 3, tclist1.size());
+    assertEquals("2 interruptible consumption tariffs", 2, tclist2.size());
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
+            .thenReturn(tclist1).thenReturn(tclist2);
 
     // Test the function with different inputs, in order to get the same result.
-    officeComplexCustomerService.publishNewTariffs(tclist);
-    List<Tariff> tclist2 = new ArrayList<Tariff>();
+    officeComplexCustomerService.publishNewTariffs(tclist1);
+
+    tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    tclist2 = tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist1).thenReturn(tclist2);
+
     officeComplexCustomerService.publishNewTariffs(tclist2);
 
-    officeComplexCustomerService.publishNewTariffs(tclist);
-    officeComplexCustomerService.publishNewTariffs(tclist2);
   }
 
-  // @Repeat(20)
   @Test
-  public void testSupersedingTariffs ()
+  public void testAbnormalTariffs ()
   {
     initializeService();
 
@@ -845,28 +852,24 @@ public class OfficeComplexControllableCapacitiesTests
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
-
     }
 
     Rate r2 = new Rate().withValue(-0.222);
-    Rate r3 = new Rate().withValue(-0.111);
+    Rate r3 = new Rate().withValue(-8).withMaxCurtailment(0.1);
+    Rate r4 = new Rate().withValue(-1700000);
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
               .withExpiration(now.plus(TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+              .withMinDuration(TimeService.WEEK * 8).addRate(r4);
     TariffSpecification tsc2 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(2 * TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+      new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
     TariffSpecification tsc3 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
               .withExpiration(now.plus(3 * TimeService.DAY))
               .withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc4 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
@@ -874,50 +877,26 @@ public class OfficeComplexControllableCapacitiesTests
     tariff2.init();
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
-    Tariff tariff4 = new Tariff(tsc4);
-    tariff4.init();
 
-    tsc4.addSupersedes(tsc3.getId());
-    assertEquals("correct length", 1, tsc4.getSupersedes().size());
-    assertEquals("correct first element", tsc3.getId(), (long) tsc4
-            .getSupersedes().get(0));
+    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
+            .size());
 
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
-    assertEquals("Six consumption tariffs", 6, tariffRepo.findAllTariffs()
-            .size());
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    assertEquals("6 consumption tariffs", 6, tclist.size());
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("3 consumption tariffs", 3, tclist1.size());
+    assertEquals("2 interruptible consumption tariffs", 2, tclist2.size());
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
-
+            .thenReturn(tclist1).thenReturn(tclist2);
     // Test the function with different inputs, in order to get the same result.
-    officeComplexCustomerService.publishNewTariffs(tclist);
+    officeComplexCustomerService.publishNewTariffs(tclist1);
 
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
-    TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
-    tariff3.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff3.isRevoked());
-
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
-
-    tclist = tariffRepo.findAllTariffs();
-    assertEquals("6 consumption tariffs", 6, tclist.size());
-    List<Tariff> tcactivelist = new ArrayList<Tariff>();
-    for (Tariff tariff: tclist) {
-      if (tariff.isRevoked() == false)
-        tcactivelist.add(tariff);
-    }
-
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tcactivelist);
-
-    officeComplexCustomerService.publishNewTariffs(tcactivelist);
   }
 
   // @Repeat(20)
@@ -1032,11 +1011,16 @@ public class OfficeComplexControllableCapacitiesTests
 
     assertNotNull("first tariff found", tariff1);
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    officeComplexCustomerService.publishNewTariffs(tclist);
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("1 interruptible consumption tariffs", 1, tclist2.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist1).thenReturn(tclist2);
+    officeComplexCustomerService.publishNewTariffs(tclist1);
 
     // }
     timeService.setBase(now.getMillis());
@@ -1081,7 +1065,7 @@ public class OfficeComplexControllableCapacitiesTests
     weatherReportRepo.add(wr);
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 30; i++) {
       timeService.setBase(now.getMillis());
       timeService.setCurrentTime(timeService.getCurrentTime()
               .plus(TimeService.HOUR * 1));
@@ -1152,17 +1136,17 @@ public class OfficeComplexControllableCapacitiesTests
     weatherReportRepo.add(wr);
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 1700; i < 1730; i++) {
       timeService.setCurrentTime(timeService.getCurrentTime()
               .plus(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
-      if (i > 1700) {
-        temperature = 40 * Math.random();
-        wr = new WeatherReport(ts1, temperature, 2, 3, 4);
-        weatherReportRepo.add(wr);
-        officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-      }
+
+      temperature = 40 * Math.random();
+      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      weatherReportRepo.add(wr);
+      officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
+
     }
 
   }
