@@ -362,6 +362,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
     publishedTariffs.addAll(temp);
 
+    /*
+    System.out.println(" New Tariffs ALL " + publishedTariffs.toString());
+    */
     // For each village of the server //
     for (Village village: villageList) {
 

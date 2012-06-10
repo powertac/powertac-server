@@ -830,6 +830,75 @@ public class HouseholdControllableCapacitiesTests
     householdCustomerService.publishNewTariffs(tclist2);
   }
 
+  @Test
+  public void testAbnormalTariffs ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariffControllable);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+    }
+
+    Rate r2 = new Rate().withValue(-0.222);
+    Rate r3 = new Rate().withValue(-8).withMaxCurtailment(0.1);
+    Rate r4 = new Rate().withValue(-1700000);
+
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r4);
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
+    TariffSpecification tsc3 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(3 * TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    Tariff tariff2 = new Tariff(tsc2);
+    tariff2.init();
+    Tariff tariff3 = new Tariff(tsc3);
+    tariff3.init();
+
+    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
+            .size());
+
+    assertNotNull("first tariff found", tariff1);
+    assertNotNull("second tariff found", tariff2);
+    assertNotNull("third tariff found", tariff3);
+
+    List<Tariff> tclist = tariffRepo.findAllTariffs();
+    assertEquals("5 consumption tariffs", 5, tclist.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist);
+
+    // Test the function with different inputs, in order to get the same result.
+    householdCustomerService.publishNewTariffs(tclist);
+    householdCustomerService.publishNewTariffs(tclist);
+    householdCustomerService.publishNewTariffs(tclist);
+
+  }
+
   // @Repeat(20)
 
   @Test
