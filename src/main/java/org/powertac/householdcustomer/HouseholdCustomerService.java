@@ -352,6 +352,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
+
+    publishedTariffs.clear();
+
     publishingPeriods++;
     publishedTariffs =
       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
