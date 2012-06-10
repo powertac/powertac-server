@@ -165,7 +165,6 @@ public class HouseholdCustomerServiceTests
 
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
-    // when(mockTariffMarket.getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION)).thenReturn(defaultTariff);
 
     accountingArgs = new ArrayList<Object[]>();
 
@@ -814,19 +813,18 @@ public class HouseholdCustomerServiceTests
     assertNotNull("second tariff found", tariff2);
     assertNotNull("third tariff found", tariff3);
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    assertEquals("4 consumption tariffs", 4, tclist.size());
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("4 consumption tariffs", 4, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
+            .thenReturn(tclist1).thenReturn(tclist2);
 
     // Test the function with different inputs, in order to get the same result.
-    householdCustomerService.publishNewTariffs(tclist);
-    List<Tariff> tclist2 = new ArrayList<Tariff>();
-    householdCustomerService.publishNewTariffs(tclist2);
-
-    householdCustomerService.publishNewTariffs(tclist);
-    householdCustomerService.publishNewTariffs(tclist2);
+    householdCustomerService.publishNewTariffs(tclist1);
 
   }
 
@@ -897,14 +895,15 @@ public class HouseholdCustomerServiceTests
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
             .size());
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    assertEquals("5 consumption tariffs", 5, tclist.size());
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
+            .thenReturn(tclist1).thenReturn(tclist2);
 
     // Test the function with different inputs, in order to get the same result.
-    householdCustomerService.publishNewTariffs(tclist);
+    householdCustomerService.publishNewTariffs(tclist1);
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
@@ -915,16 +914,18 @@ public class HouseholdCustomerServiceTests
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
 
-    tclist = tariffRepo.findAllTariffs();
-    assertEquals("5 consumption tariffs", 5, tclist.size());
+    tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    tclist2 = tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("4 consumption tariffs", 4, tclist1.size());
     List<Tariff> tcactivelist = new ArrayList<Tariff>();
-    for (Tariff tariff: tclist) {
+    for (Tariff tariff: tclist1) {
       if (tariff.isRevoked() == false)
         tcactivelist.add(tariff);
     }
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tcactivelist);
+            .thenReturn(tcactivelist).thenReturn(tclist2);
 
     householdCustomerService.publishNewTariffs(tcactivelist);
   }
@@ -1040,11 +1041,17 @@ public class HouseholdCustomerServiceTests
 
     assertNotNull("first tariff found", tariff1);
 
-    List<Tariff> tclist = tariffRepo.findAllTariffs();
-    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-            .thenReturn(tclist);
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    householdCustomerService.publishNewTariffs(tclist);
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist1).thenReturn(tclist2);
+
+    householdCustomerService.publishNewTariffs(tclist1);
 
     // }
     timeService.setBase(now.getMillis());
@@ -1088,7 +1095,7 @@ public class HouseholdCustomerServiceTests
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 30; i++) {
       timeService.setBase(now.getMillis());
       timeService.setCurrentTime(timeService.getCurrentTime()
               .plus(TimeService.HOUR * 1));
@@ -1156,17 +1163,17 @@ public class HouseholdCustomerServiceTests
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 1700; i < 1730; i++) {
       timeService.setCurrentTime(timeService.getCurrentTime()
               .plus(TimeService.HOUR * 1));
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
-      if (i > 1700) {
-        temperature = 40 * Math.random();
-        wr = new WeatherReport(ts1, temperature, 2, 3, 4);
-        weatherReportRepo.add(wr);
-        householdCustomerService.activate(timeService.getCurrentTime(), 1);
-      }
+
+      temperature = 40 * Math.random();
+      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      weatherReportRepo.add(wr);
+      householdCustomerService.activate(timeService.getCurrentTime(), 1);
+
     }
 
   }
