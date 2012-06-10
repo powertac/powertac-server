@@ -247,13 +247,13 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     publishingPeriods++;
     publishedTariffs =
       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    /*
+        List<Tariff> temp =
+          tariffMarketService
+                  .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    List<Tariff> temp =
-      tariffMarketService
-              .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
-
-    publishedTariffs.addAll(temp);
-
+        publishedTariffs.addAll(temp);
+    */
     // For each village of the server //
     for (OfficeComplex officeComplex: officeComplexList) {
 
