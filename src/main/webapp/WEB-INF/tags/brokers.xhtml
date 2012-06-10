@@ -28,6 +28,20 @@
 	var customersBubble#{broker.id}=null;
 	
 	</script>
+
+			<ui:repeat var="tariffInfo" value="#{broker.tariffInfos}">
+				<script type="text/javascript">
+	var  ratesLineChartMinValue#{tariffInfo.tariffSpecification.id} = null;
+	var  ratesLineChartMaxValue#{tariffInfo.tariffSpecification.id} = null;
+
+	var  totalRevenueLineChart#{tariffInfo.tariffSpecification.id} = null;
+	var  hourlyRevenueLineChart#{tariffInfo.tariffSpecification.id} = null;
+	
+	var  totalKWhLineChart#{tariffInfo.tariffSpecification.id} = null;
+	var  hourlyKWhLineChart#{tariffInfo.tariffSpecification.id} = null;
+	
+	</script>
+			</ui:repeat>
 		</ui:repeat>
 
 
@@ -55,14 +69,11 @@
 									<td><h:outputText value="#{broker.cashBalance}"
 											style="font-weight: bold">
 											<f:convertNumber maxFractionDigits="2" />
-										</h:outputText>
-										<h:outputText value=" &euro;"
-											style="font-weight: bold"/></td>
+										</h:outputText> <h:outputText value=" &euro;" style="font-weight: bold" /></td>
 									<td><h:outputText value="#{broker.energyBalance}"
 											style="font-weight: bold">
 											<f:convertNumber maxFractionDigits="2" />
-										</h:outputText><h:outputText value=" kWh"
-											style="font-weight: bold"/></td>
+										</h:outputText> <h:outputText value=" kWh" style="font-weight: bold" /></td>
 									<td><h:outputText value="#{broker.customerCount}"
 											style="font-weight: bold">
 											<f:convertNumber maxFractionDigits="2" />
@@ -326,6 +337,297 @@
 								
 							</script>
 
+
+					</p:tab>
+
+					<p:tab title="Tariff Viewer">
+
+						<p:dataTable var="tariffInfo" value="#{broker.tariffInfos}"
+							tableStyle="width:auto" rows="5" paginator="true">
+
+							<p:column style="width:40px" headerText="ID">
+								<h:outputText value="#{tariffInfo.tariffSpecification.id}" />
+							</p:column>
+
+							<p:column style="width:40px" headerText="expiration">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.expiration}" />
+							</p:column>
+
+							<p:column style="width:20px" headerText="minDuration">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.minDuration}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="powerType">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.powerType}">
+
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="signupPayment">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.signupPayment}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="earlyWithdrawPayment">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.earlyWithdrawPayment}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="periodicPayment">
+								<h:outputText
+									value="#{tariffInfo.tariffSpecification.periodicPayment}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="subscribedPopulation">
+								<h:outputText value="#{tariffInfo.subscribedPopulation}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<p:column style="width:40px" headerText="totalRevenue">
+								<h:outputText value="#{tariffInfo.totalRevenue}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<!-- 	<p:column style="width:40px" headerText="totalRevenuePerUnit">
+								<h:outputText value="#{tariffInfo.totalRevenuePerUnit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column> -->
+							<p:column style="width:40px" headerText="totalKWh">
+								<h:outputText value="#{tariffInfo.totalKWh}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column>
+							<!-- <p:column style="width:40px" headerText="totalKWhPerUnit">
+								<h:outputText value="#{tariffInfo.totalKWhPerUnit}">
+									<f:convertNumber maxFractionDigits="2" />
+								</h:outputText>
+							</p:column> -->
+							<p:column style="width:20px">
+
+
+								<p:commandButton id="selectButton" icon="ui-icon-search"
+									title="View">
+									<f:setPropertyActionListener value="#{tariffInfo}"
+										target="#{brokersBean.selectedTariffInfo}" />
+								</p:commandButton>
+
+							</p:column>
+						</p:dataTable>
+
+						<p:tabView dynamic="true" cache="true">
+							<p:tab title="Total Revenue">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="totalRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (totalRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.totalRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.totalRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('totalRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}',    [#{brokersBean.selectedTariffInfo.json.totalRevenueLineChart}],{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Total Revenue', 
+								axesDefaults: {
+							        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									
+							        axes: {
+										xaxis: {
+									            label: "timeslot",
+									            pad: 0},
+									    yaxis: {
+									            label: "cash/&euro;"}},
+									seriesDefaults: {
+													showMarker: false
+													}
+							
+									}); 
+							</script>
+								</p:panel>
+
+							</p:tab>
+
+							<p:tab title="Hourly Revenue">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="hourlyRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (hourlyRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.hourlyRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.hourlyRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('hourlyRevenueLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}',    [#{brokersBean.selectedTariffInfo.json.hourlyRevenueLineChart}],{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Hourly Revenue', 
+								axesDefaults: {
+							        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									
+							        axes: {
+										xaxis: {
+									            label: "timeslot",
+									            pad: 0},
+									    yaxis: {
+									            label: "cash/&euro;"}},
+									seriesDefaults: {
+													showMarker: false
+													}
+							
+									}); 
+							</script>
+								</p:panel>
+							</p:tab>
+
+							<p:tab title="Total kWh">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="totalKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (totalKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.totalKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.totalKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('totalKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}',    [#{brokersBean.selectedTariffInfo.json.totalKWhLineChart}],{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Total kWh', 
+								axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+								
+						        axes: {
+									xaxis: {
+								            label: "timeslot",
+								            pad: 0},
+								    yaxis: {
+								            label: "energy/kWh"}},
+								seriesDefaults: {
+												showMarker: false
+												}
+						
+								}); 
+							</script>
+								</p:panel>
+							</p:tab>
+
+							<p:tab title="Hourly kWh">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="hourlyKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (hourlyKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.hourlyKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.hourlyKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('hourlyKWhLineChart#{brokersBean.selectedTariffInfo.tariffSpecification.id}',    [#{brokersBean.selectedTariffInfo.json.hourlyKWhLineChart}],{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Hourly kWh', 
+								axesDefaults: {
+							        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									
+							        axes: {
+										xaxis: {
+									            label: "timeslot",
+									            pad: 0},
+									    yaxis: {
+									            label: "energy/kWh"}},
+									seriesDefaults: {
+													showMarker: false
+													}
+							
+									}); 
+							</script>
+								</p:panel>
+							</p:tab>
+
+							<p:tab title="Rates: Min Values">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="ratesLineChartMinValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (ratesLineChartMinValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.ratesLineChartMinValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.ratesLineChartMinValue#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('ratesLineChartMinValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}',  #{brokersBean.selectedTariffInfo.json.ratesLineChartMinValue},{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Min Values (per kWh)', 
+								axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+								axes: {
+									xaxis: {
+						        	    label: "timeslot",
+						        	    min: 0,
+						        	    max: 167,
+						            	pad: 0
+						            	},
+						 	   		yaxis: {
+							       		label: "price/&euro;",
+							       		min: -1,    
+							            max: 1}},
+									seriesDefaults: {
+										showMarker: false
+										}
+						
+								}); 
+							</script>
+								</p:panel>
+							</p:tab>
+							<p:tab title="Rates: Max Values">
+								<p:panel rendered="#{not empty brokersBean.selectedTariffInfo}">
+									<!-- Energy chart for a specific broker (24 timeslot average value) -->
+									<div
+										id="ratesLineChartMaxValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}"
+										style="width: 700px; height: 250px"></div>
+									<script type="text/javascript">
+				
+		 						if (ratesLineChartMaxValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}!=null) {
+								window.ratesLineChartMaxValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}.destroy();
+								}
+								window.ratesLineChartMaxValue#{brokersBean.selectedTariffInfo.tariffSpecification.id} = $.jqplot('ratesLineChartMaxValue#{brokersBean.selectedTariffInfo.tariffSpecification.id}',  #{brokersBean.selectedTariffInfo.json.ratesLineChartMaxValue},{
+								title: '#{brokersBean.selectedTariffInfo.tariffSpecification}: Max Values (per kWh)', 
+								axesDefaults: {
+						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+								axes: {
+									xaxis: {
+						        	    label: "timeslot",
+						        	    min: 0,
+						        	    max: 167,
+						            	pad: 0
+						            	},
+						 	   		yaxis: {
+							       		label: "price/&euro;",
+							       		min: -1,    
+							            max: 1}},
+									seriesDefaults: {
+										showMarker: false
+										}
+						
+								}); 
+							</script>
+								</p:panel>
+							</p:tab>
+
+							<!-- <p:tab title="Tariff Lifecycle">
+							<p:dataTable var="msg" value="#{brokersBean.selectedTariffInfo.tariffLifecycle}"
+							tableStyle="width:auto" rows="5" paginator="true">
+
+							<p:column style="width:40px" headerText="Message">
+								<h:outputText value="#{msg}" />
+							</p:column>
+							</p:dataTable>
+							</p:tab>
+ -->
+
+						</p:tabView>
 
 					</p:tab>
 

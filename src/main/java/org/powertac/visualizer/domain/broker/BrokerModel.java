@@ -39,8 +39,6 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	private DayState currentDayState = new DayState(this);
 	private DayState displayableDayState;
 
-	private List<TariffSpecification> tariffSpecifications;
-	private List<TariffTransaction> tariffTransactions;
 	private List<BalancingTransaction> balancingTransactions;
 	// customers
 	private Set<CustomerModel> customerModels;
@@ -48,15 +46,14 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	private int firstTimeslotIndex;
 
 	private BrokerJSON json;
-
-	// array of names for each customer
+	
+	private HashMap<Long, TariffInfo> tariffInfoMaps = new HashMap<Long, TariffInfo>(); 
+	private ArrayList<TariffInfo> tariffInfos = new ArrayList<TariffInfo>();
 
 	public BrokerModel(String name, Appearance appearance) {
 		this.name = name;
 		this.appearance = appearance;
 		// collections:
-		tariffSpecifications = new ArrayList<TariffSpecification>();
-		tariffTransactions = new ArrayList<TariffTransaction>();
 		balancingTransactions = new ArrayList<BalancingTransaction>();
 		customerModels = new HashSet<CustomerModel>();
 
@@ -94,15 +91,16 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	}
 
 	public void addTariffSpecification(TariffSpecification tariffSpecification) {
-		tariffSpecifications.add(tariffSpecification);
+		TariffInfo info = new TariffInfo(tariffSpecification);
+		tariffInfoMaps.put(tariffSpecification.getId(), info);
+		tariffInfos.add(info);
 		log.info("\n" + name + ": my tariffSpec: +\n" + tariffSpecification.toString());
 		currentDayState.addTariffSpecification(tariffSpecification);
 	}
 
 	public void addTariffTransaction(TariffTransaction tariffTransaction) {
 		log.info("\n" + name + ": my tariffTrans: +\n" + tariffTransaction.toString());
-		tariffTransactions.add(tariffTransaction);
-
+		
 		// find customer of this transaction:
 		if (tariffTransaction.getCustomerInfo() != null) {
 			for (Iterator<CustomerModel> iterator = customerModels.iterator(); iterator.hasNext();) {
@@ -120,6 +118,9 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 		this.customerCount += customerCount;
 
 		currentDayState.addTariffTransaction(tariffTransaction);
+		
+		//tariff info:
+		tariffInfoMaps.get(tariffTransaction.getTariffSpec().getId()).addTariffTransaction(tariffTransaction);
 
 	}
 
@@ -194,18 +195,7 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 		return displayableDayState;
 	}
 
-	public long getOfferedTarrifsCount() {
-		return tariffSpecifications.size();
-	}
-
-	public List<TariffSpecification> getTariffSpecifications() {
-		return tariffSpecifications;
-	}
-
-	public List<TariffTransaction> getTariffTransactions() {
-		return tariffTransactions;
-	}
-
+	
 	public List<BalancingTransaction> getBalancingTransactions() {
 		return balancingTransactions;
 	}
@@ -236,6 +226,13 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	 * @see org.powertac.visualizer.interfaces.TimeslotModelUpdate#update(int)
 	 */
 	public void update(int timeslotIndex) {
+		
+		//update tariff Infos:
+		for (Iterator iterator = tariffInfos.iterator(); iterator.hasNext();) {
+			TariffInfo type = (TariffInfo) iterator.next();
+			type.update(timeslotIndex);
+		}
+		
 		final int DAY_FIX = 1; // to avoid array-like displaying of days (day
 		// one should be 1, not 0)
 
@@ -288,4 +285,13 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	public BrokerJSON getJson() {
 		return json;
 	}
+	
+	public HashMap<Long, TariffInfo> getTariffInfoMaps() {
+		return tariffInfoMaps;
+	}
+	
+	public ArrayList<TariffInfo> getTariffInfos() {
+		return (ArrayList<TariffInfo>) tariffInfos.clone();
+	}
+
 }

@@ -17,6 +17,10 @@ import org.powertac.common.DistributionTransaction;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
+import org.powertac.common.msg.TariffExpire;
+import org.powertac.common.msg.TariffRevoke;
+import org.powertac.common.msg.TariffStatus;
+import org.powertac.common.msg.TariffUpdate;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
@@ -35,7 +39,7 @@ import org.springframework.stereotype.Service;
 public class BrokerMessageHandler implements Initializable {
 
 	private Logger log = Logger.getLogger(BrokerMessageHandler.class);
-	
+
 	@Autowired
 	private MessageDispatcher router;
 	@Autowired
@@ -45,7 +49,8 @@ public class BrokerMessageHandler implements Initializable {
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Competition.class, TariffSpecification.class, CashPosition.class,
-				TariffTransaction.class, DistributionTransaction.class, BalancingTransaction.class)) {
+				TariffTransaction.class, DistributionTransaction.class, BalancingTransaction.class, TariffExpire.class,
+				TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 	}
@@ -53,13 +58,13 @@ public class BrokerMessageHandler implements Initializable {
 	public void handleMessage(Competition competition) {
 		List<String> brokersName = competition.getBrokers();
 		HashMap<String, BrokerModel> map = new HashMap<String, BrokerModel>();
-		
+
 		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
 
 		JSONArray brokerSeriesColors = new JSONArray();
-		//StringBuilder seriesOptions = new StringBuilder();
-		//String prefix = "";
-		
+		// StringBuilder seriesOptions = new StringBuilder();
+		// String prefix = "";
+
 		JSONArray seriesOptions = new JSONArray();
 
 		for (Iterator<String> iterator = brokersName.iterator(); iterator.hasNext();) {
@@ -171,4 +176,31 @@ public class BrokerMessageHandler implements Initializable {
 		}
 	}
 
+	public void handleMessage(TariffExpire msg) {
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
+		if (broker != null) {
+			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getNewExpiration());
+		}
+	}
+
+	public void handleMessage(TariffRevoke msg) {
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
+		if (broker != null) {
+			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName());
+		}
+	}
+
+	public void handleMessage(TariffStatus msg) {
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
+		if (broker != null) {
+			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getMessage());
+		}
+	}
+
+	public void handleMessage(TariffUpdate msg) {
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
+		if (broker != null) {
+			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName());
+		}
+	}
 }

@@ -88,6 +88,7 @@
   	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
 	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="request"/>
 	<bean id="gencosBean" class="org.powertac.visualizer.user.GencosBean" scope="request" />
+	<bean id="brokersBean" class="org.powertac.visualizer.user.BrokersBean" scope="session"/>
 		
 	</beans>
 	

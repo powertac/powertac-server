@@ -28,10 +28,6 @@ public interface VisualBroker {
 
 	public void setCustomerModels(Set<CustomerModel> customerModels);
 
-	public List<TariffSpecification> getTariffSpecifications();
-
-	public long getOfferedTarrifsCount();
-
 	public double getCashBalance();
 
 	public double getEnergyBalance();
