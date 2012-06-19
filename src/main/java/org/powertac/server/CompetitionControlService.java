@@ -273,6 +273,9 @@ public class CompetitionControlService
     // run the simulation, wait for completion
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
 		  competition.getSimulationRate()));
+    
+    // log broker stats
+    logBrokerStats();
 
     // wrap up
     shutDown();
@@ -331,6 +334,17 @@ public class CompetitionControlService
     // get brokers logged in
     //jmsManagementService.createQueues()
 
+    // sim length for bootstrap mode comes from the competition instance;
+    // for non-bootstrap mode, it is computed from competition parameters.
+    timeslotCount = competition.getBootstrapTimeslotCount()
+                    + competition.getBootstrapDiscardedTimeslots();
+    if (!bootstrapMode) {
+      // #486 - add bootstrap count to computed game length
+      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
+                                         competition.getExpectedTimeslotCount());
+      log.info("timeslotCount = " + timeslotCount);
+    }
+
     waitForBrokerLogin();
 
     // Publish Competition object at right place - after plugins
@@ -350,17 +364,6 @@ public class CompetitionControlService
       brokerProxyService.broadcastMessages(bootstrapDataset);
     }
     brokerProxyService.broadcastDeferredMessages();
-
-    // sim length for bootstrap mode comes from the competition instance;
-    // for non-bootstrap mode, it is computed from competition parameters.
-    timeslotCount = competition.getBootstrapTimeslotCount()
-                    + competition.getBootstrapDiscardedTimeslots();
-    if (!bootstrapMode) {
-      // #486 - add bootstrap count to computed game length
-      timeslotCount = computeGameLength(competition.getMinimumTimeslotCount(),
-                                         competition.getExpectedTimeslotCount());
-      log.info("timeslotCount = " + timeslotCount);
-    }
 
     // Send out the first timeslot update
     brokerProxyService.broadcastMessage(makeTimeslotUpdate());
@@ -395,7 +398,7 @@ public class CompetitionControlService
     if (loginCount == pendingLogins.size()) {
       // no external brokers logged in yet
       try {
-        // wait unconditionally for the first login
+        // wait longer for the first login
         wait(firstLoginTimeout);
         log.info("first login observed");
       }
@@ -417,10 +420,15 @@ public class CompetitionControlService
     catch (InterruptedException ie) {
       authorizedBrokerList.clear();
     }
+    // too late - no more logins
     if (authorizedBrokerList.size() > 0) {
       log.warn("Some brokers did not log in: " + authorizedBrokerList);
       authorizedBrokerList.clear();
     }
+    // if nobody logged in, then abort the game.
+    if (loginCount == pendingLogins.size()) {
+      timeslotCount = 1;
+    }    
   }
   
   /**
@@ -599,6 +607,20 @@ public class CompetitionControlService
     for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
       timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
     }
+  }
+  
+  // Dumps final broker statistics to the trace log
+  private void logBrokerStats ()
+  {
+    StringBuffer buf = new StringBuffer();
+    buf.append("Final balance (brokername:balance) [");
+    for (String brokerName : competition.getBrokers()) {
+      Broker broker = brokerRepo.findByUsername(brokerName);
+      buf.append(" \"").append(brokerName).append("\":");
+      buf.append(broker.getCash().getBalance());
+    }
+    buf.append(" ]");
+    log.info(buf.toString());
   }
 
   // ------------- simulation start and run ----------------
