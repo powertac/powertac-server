@@ -532,10 +532,13 @@ public class CompetitionSetupService
     }
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading boot dataset: " + xee.toString());
+      System.out.println("preGame: Error reading boot dataset: " + xee.toString());
       return false;
     }
     catch (IOException ioe) {
       log.error("preGame: Error opening file " + bootFile + ": " + ioe.toString());
+      System.out.println("preGame: Error opening file " + bootFile + ": " + ioe.toString());
+      return false;
     }
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
