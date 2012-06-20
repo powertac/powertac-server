@@ -454,7 +454,7 @@ public class TariffMarketService
       pendingRevokedTariffs.clear();
       return result;
     }
-    return null;
+    return null; // only get non-null result once/timeslot
   }
   
   /**
@@ -608,7 +608,7 @@ public class TariffMarketService
                                  CustomerInfo customer,
                                  int customerCount)
   {
-    if (!tariff.isExpired()) {
+    if (!(tariff.isExpired() || tariff.isRevoked())) {
       postPendingSubscriptionEvent(tariff, customer, customerCount);
       List<TariffSubscription> existingSubscriptions =
               tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
@@ -618,7 +618,9 @@ public class TariffMarketService
       }
     }
     else
-      log.warn("Attempt to subscribe to expired tariff");
+      log.warn("Attempt to subscribe to " +
+               (tariff.isRevoked() ? "revoked" : "expired") +
+               " tariff");
   }
   
   /**
