@@ -123,15 +123,6 @@ public class Tariff
       rateIdMap.put(r.getId(), r);
     }
     tiers = new ArrayList<Double>();
-    if (spec.getSupersedes() != null) {
-      for (long supId : spec.getSupersedes()) {
-        Tariff supersededTariff = tariffRepo.findTariffById(supId);
-        if (supersededTariff == null)
-          log.error("Superseded tariff " + supId + " not found");
-        else
-          supersededTariff.isSupersededBy = this;
-      }
-    }
   }
 
   /**
@@ -147,6 +138,15 @@ public class Tariff
       log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
     tariffRepo.addTariff(this);
+    if (tariffSpec.getSupersedes() != null) {
+      for (long supId : tariffSpec.getSupersedes()) {
+        Tariff supersededTariff = tariffRepo.findTariffById(supId);
+        if (supersededTariff == null)
+          log.error("Superseded tariff " + supId + " not found");
+        else
+          supersededTariff.isSupersededBy = this;
+      }
+    }
     analyze();
   }
   
