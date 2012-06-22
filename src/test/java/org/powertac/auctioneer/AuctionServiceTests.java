@@ -32,6 +32,7 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +59,9 @@ public class AuctionServiceTests
   
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private OrderbookRepo orderbookRepo;
   
   // get access to the mock services
   @Autowired
@@ -232,6 +236,13 @@ public class AuctionServiceTests
     assertEquals("correct timeslot", ts1, ct.getTimeslot());
     assertEquals("correct mWh", 1.0, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 21.0, ct.getExecutionPrice(), 1e-6);
+    // check minAsk data
+    Double[] minAsks = orderbookRepo.getMinAskPrices();
+    assertEquals("four prices", 4, minAsks.length);
+    assertEquals("correct first price", 20.0, minAsks[0], 1e-6);
+    assertNull("second price null", minAsks[1]);
+    assertNull("third price null", minAsks[2]);
+    assertNull("fourth price null", minAsks[3]);
   }
 
   // one ask, one bid, equal qty, not tradeable
@@ -260,6 +271,13 @@ public class AuctionServiceTests
                  ob.getBids().first().getMWh(), 1e-6);
     assertEquals("correct price", -22.0,
                  ob.getBids().first().getLimitPrice(), 1e-6);
+    // check minAsk data
+    Double[] minAsks = orderbookRepo.getMinAskPrices();
+    assertEquals("four prices", 4, minAsks.length);
+    assertEquals("correct first price", 23.0, minAsks[0], 1e-6);
+    assertNull("second price null", minAsks[1]);
+    assertNull("third price null", minAsks[2]);
+    assertNull("fourth price null", minAsks[3]);
   }
 
   // one ask, one bid, equal qty, different timeslots
@@ -662,6 +680,14 @@ public class AuctionServiceTests
       // buy1
       assertEquals("mWh", -6.0, (Double)args[2], 1e-6);
     }
-  }
+
+    // check minAsk data
+    Double[] minAsks = orderbookRepo.getMinAskPrices();
+    assertEquals("four prices", 4, minAsks.length);
+    assertNull("first price null", minAsks[0]);
+    assertEquals("correct first price", sell1.getLimitPrice(), minAsks[1], 1e-6);
+    assertNull("third price null", minAsks[2]);
+    assertNull("fourth price null", minAsks[3]);
+}
   
 }

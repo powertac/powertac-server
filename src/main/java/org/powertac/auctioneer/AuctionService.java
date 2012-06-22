@@ -227,9 +227,24 @@ public class AuctionService
     if (enabledTimeslots == null) {
       enabledTimeslots = timeslotRepo.enabledTimeslots();
     }
+    // Prepare to collect minimum ask prices
+    Double[] priceArray = new Double[enabledTimeslots.size()];
+    int timeslotIndex = 0;
     for (Timeslot timeslot : enabledTimeslots) {
+      if (null == sortedAsks || null == sortedAsks.get(timeslot))
+        priceArray[timeslotIndex++] = null;
+      else {
+        OrderWrapper minAsk = sortedAsks.get(timeslot).get(0);
+        if (null == minAsk || minAsk.isMarketOrder())
+          priceArray[timeslotIndex++] = null;
+        else
+          priceArray[timeslotIndex++] = minAsk.getLimitPrice();
+      }
       clearTimeslot(timeslot);
     }
+    // store min ask prices in orderbookRepo
+    orderbookRepo.setMinAskPrices(priceArray);
+    
     // save a copy of the current set of enabled timeslots for the next clearing
     enabledTimeslots = new ArrayList<Timeslot>(timeslotRepo.enabledTimeslots());
   }
