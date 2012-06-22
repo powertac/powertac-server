@@ -98,5 +98,17 @@ public class OrderbookRepoTests
     assertNull("ts2 empty", repo.findByTimeslot(timeslot2));
     assertEquals("size zero", 0, repo.size());
   }
+  
+  @Test
+  public void testMinAsk ()
+  {
+    Double[] minAskPrices = {1.0, 2.0, 3.0};
+    repo.setMinAskPrices(minAskPrices);
+    Double[] val = repo.getMinAskPrices();
+    assertEquals("same length", minAskPrices.length, val.length);
+    for (int i = 0; i < minAskPrices.length; i++) {
+      assertEquals("same value", minAskPrices[i], val[i], 1e-8);
+    }
+  }
 
 }
