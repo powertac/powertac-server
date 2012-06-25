@@ -46,6 +46,7 @@ public class OrderbookRepo implements DomainRepo
   private HashMap<Timeslot, Orderbook> timeslotIndex;
   private HashMap<Timeslot, Orderbook> spotIndex;
   private Double[] minAskPrices;
+  private Double[] maxAskPrices;
   
   /** Standard constructor */
   public OrderbookRepo ()
@@ -107,18 +108,37 @@ public class OrderbookRepo implements DomainRepo
    * when clearing the market, and so the data reflects the prices for
    * the most recent market clearing.
    */
-  public void setMinAskPrices (Double[] values)
+  public void setMinAskPrices(Double[] values)
   {
     minAskPrices = values;
+  }
+  
+  /**
+   * 
+   * @param values
+   */
+  public void setMaxAskPrices(Double[] values)
+  {
+	  this.maxAskPrices = values;
   }
   
   /**
    * Returns the minAskPrices array, representing the minimum ask prices
    * for the most recent clearing of the wholesale market.
    */
-  public Double[] getMinAskPrices ()
+  public Double[] getMinAskPrices()
   {
     return minAskPrices;
+  }
+  
+  /**
+   * Returns maxAskPrices array, representing the maximum ask prices
+   * for the most recent clearing of the wholesale market.
+   * @return maximum ask prices.
+   */
+  public Double[] getMaxAskPrices()
+  {
+	  return this.maxAskPrices;
   }
   
   /**
