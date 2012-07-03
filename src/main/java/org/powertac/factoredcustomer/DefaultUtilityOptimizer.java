@@ -207,7 +207,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 	ignoredTariffs.clear();		
 	List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(bundle.getCustomerInfo());
         for (TariffSubscription subscription: subscriptions) {
-            currTariffs.put(subscription.getTariff().getId(), subscription.getTariff());
+            Tariff subTariff = subscription.getTariff();
+            if (!(subTariff.isExpired() || subTariff.isExpired())) {
+                currTariffs.put(subTariff.getId(), subTariff);
+            }
         }
         for (Tariff newTariff: newTariffs) {
             currTariffs.put(newTariff.getId(), newTariff);
@@ -511,20 +514,18 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     private void usePower(Timeslot timeslot) 
     {        
         for (CapacityBundle bundle: capacityBundles) {
-            List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findSubscriptionsForCustomer(bundle.getCustomerInfo());
+            List<TariffSubscription> subscriptions = tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(bundle.getCustomerInfo());
             double totalCapacity = 0.0; 
             double totalUsageCharge = 0.0;
             for (TariffSubscription subscription: subscriptions) {
-                if (subscription.getCustomersCommitted() > 0) {
-                    double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
-                    double currCapacity = usageSign * useCapacity(subscription, bundle); 
-                    if (factoredCustomerService.getUsageChargesLogging() == true) {
-                        double charge = subscription.getTariff().getUsageCharge(currCapacity, subscription.getTotalUsage(), false);
-                        totalUsageCharge += charge;
-                    }
-                    subscription.usePower(currCapacity);
-                    totalCapacity += currCapacity;
+                double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
+                double currCapacity = usageSign * useCapacity(subscription, bundle); 
+                if (factoredCustomerService.getUsageChargesLogging() == true) {
+                    double charge = subscription.getTariff().getUsageCharge(currCapacity, subscription.getTotalUsage(), false);
+                    totalUsageCharge += charge;
                 }
+                subscription.usePower(currCapacity);
+                totalCapacity += currCapacity;
             }
             log.info(bundle.getName() + ": Total " + bundle.getPowerType() + " capacity for timeslot " + timeslot.getSerialNumber() + " = " + totalCapacity);
             logUsageCharges(bundle.getName() + ": Total " + bundle.getPowerType() + " usage charge for timeslot " + timeslot.getSerialNumber() + " = " + totalUsageCharge);     
