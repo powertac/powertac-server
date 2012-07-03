@@ -306,6 +306,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 double fixedPayments = estimateFixedTariffPayments(tariff);
                 double variablePayment = forecastDailyUsageCharge(bundle, tariff);
                 double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);
+                
+                //System.out.println("Estimated payments for tariff " + tariff.getId() + " = "
+                //        + totalPayment + "(fixed = " + fixedPayments + " + variable = " + variablePayment + ")");
+                
                 estimatedPayments.add(totalPayment);
             } 
         }      
@@ -417,25 +421,33 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 probabilities.add(1.0 / numTariffs);
             }               
         } else {
-            double sumPayments = 0.0;
+            double midPayment = (worstPayment + bestPayment) / 2.0;           
+            double basis = Math.max((bestPayment - midPayment), (midPayment - worstPayment));
+
+            double absMin = Double.MAX_VALUE;
+            double absMax = Double.MIN_VALUE;
             for (int i=0; i < numTariffs; ++i) {
-                sumPayments += estimatedPayments.get(i);
-            }
-            double meanPayment = sumPayments / numTariffs;
-            
+                double absPayment = Math.abs(estimatedPayments.get(i));
+                absMin = Math.min(absPayment, absMin);
+                absMax = Math.max(absPayment, absMax);
+            }   
+            double kappa = Math.min(10.0, Math.max(1.0, absMax / absMin));  // utility curve shape factor
             double lambda = bundle.getSubscriberStructure().logitChoiceRationality;  // [0.0 = irrational, 1.0 = perfectly rational] 
+
             List<Double> numerators = new ArrayList<Double>(numTariffs);
             double denominator = 0.0;
             for (int i=0; i < numTariffs; ++i) {  
-                double basis = Math.max((bestPayment - meanPayment), (meanPayment - worstPayment));
-                double utility = ((estimatedPayments.get(i) - meanPayment) / basis) * 3.0;  // [-3.0, +3.0] 
+                double utility = ((estimatedPayments.get(i) - midPayment) / basis) * kappa;  // [-kappa, +kappa] 
+                //System.out.println("***** utility for tariff[" + i + "] = " + utility);
                 double numerator = Math.exp(lambda * utility);
+                if (Double.isNaN(numerator)) numerator = 0.0;
                 numerators.add(numerator);
                 denominator += numerator;
             }
             for (int i=0; i < numTariffs; ++i) {
                 probabilities.add(numerators.get(i) / denominator);
             }   
+            //System.out.println("***** allocation probabilities: " + probabilities);
         }
         // Now determine allocations based on above probabilities
         List<Integer> allocations = new ArrayList<Integer>(numTariffs);
