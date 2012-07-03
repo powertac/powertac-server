@@ -160,8 +160,8 @@ public class TariffSubscriptionRepo implements DomainRepo
   /**
    * Returns the list of subscriptions for this customer that have been
    * revoked and have non-zero committed customer counts. Note that the
-   * returned subscriptions are removed from the repository, so a second call
-   * in the same timeslot cycle will return an empty list.
+   * returned subscriptions are removed from the repository when the
+   * tariffMarket is next activated, typically later in the same timeslot.
    */
   public List<TariffSubscription>
   getRevokedSubscriptionList (CustomerInfo customer)
