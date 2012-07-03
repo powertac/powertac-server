@@ -200,8 +200,9 @@ public class TariffSubscription
   
   /**
    * Handles the subscription switch in case the underlying Tariff has been
-   * revoked. Returns the new subscription just in case the Tariff was
-   * revoked, otherwise returns null.
+   * revoked. The actual processing of tariff revocations, including switching
+   * subscriptions to superseding tariffs, is deferred to be handled by the
+   * tariff market.
    */
   public void handleRevokedTariff ()
   {
