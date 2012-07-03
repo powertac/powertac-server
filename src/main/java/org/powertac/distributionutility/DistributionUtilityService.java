@@ -16,6 +16,8 @@
 
 package org.powertac.distributionutility;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -91,17 +93,27 @@ implements SettlementContext, InitializationService
   private Double distributionFee = null;
 
   @ConfigurableValue(valueType = "Double",
-      description = "Low end of balancing cost range")
+      description = "Low end of balancing cost range for simple settlement processor")
   private double balancingCostMin = -0.01;
 
   @ConfigurableValue(valueType = "Double",
-      description = "High end of balancing cost range")
+      description = "High end of balancing cost range for simple settlement processor")
   private double balancingCostMax = -0.02;
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
-      description = "Balancing cost: overrides random value selection")
+      description = "Balancing cost for simple settlement processor: overrides random value selection")
   private Double balancingCost = null;
+  
+  @ConfigurableValue(valueType = "Double",
+          publish = true,
+          description = "Slope of up-regulation cost /kwh")
+  private double pPlusPrime = 0.0; // -.05/kwh
+  
+  @ConfigurableValue(valueType = "Double",
+          publish = true,
+          description = "Slope of down-regulation cost /kwh")
+  private double pMinusPrime = 0.0; // .04/kwh
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
@@ -116,14 +128,14 @@ implements SettlementContext, InitializationService
   
   // map settlement process to strategy instances
   @SuppressWarnings("serial")
-  private Map<String, SettlementProcessor> settlementMap =
-          new HashMap<String, SettlementProcessor> () {{
-            put("simple", new SimpleSettlementProcessor());
-            put("static", new StaticSettlementProcessor());
-            put("dynamic", new DynamicSettlementProcessor());
+  private Map<String, Class<?>> settlementMap =
+          new HashMap<String, Class<?>> () {{
+            put("simple", SimpleSettlementProcessor.class);
+            put("static", StaticSettlementProcessor.class);
+            put("dynamic", DynamicSettlementProcessor.class);
           }};
 
-  private SettlementProcessor processor = null;
+  //private SettlementProcessor processor = null;
   
   @Override
   public void setDefaults ()
@@ -153,15 +165,6 @@ implements SettlementContext, InitializationService
                        * (balancingCostMax - balancingCostMin));
     log.info("Configured DU: distro fee = " + distributionFee
              + ", balancing cost = " + balancingCost);
-    
-    // determine and record settlement process
-    if (settlementProcess.equals(""))
-      settlementProcess = "simple";
-    processor = settlementMap.get(settlementProcess);
-    if (null == processor) {
-      log.error("Null settlement processor for " + settlementProcess);
-      processor = settlementMap.get("simple");
-    }
     
     serverProps.publishConfiguration(this);
     return "DistributionUtility";
@@ -219,7 +222,7 @@ implements SettlementContext, InitializationService
     log.info("balancing prices: pPlus=" + getPPlus()
              + ", pMinus=" + getPMinus());
     List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>(chargeInfoMap.values());
-    processor.settle(this, brokerData);
+    getSettlementProcessor().settle(this, brokerData);
     
     // add balancing transactions
     for (ChargeInfo info : brokerData) {
@@ -311,18 +314,30 @@ implements SettlementContext, InitializationService
     return result / 1000.0;
   }
 
+  @Override
+  public double getPPlusPrime ()
+  {
+    return pPlusPrime;
+  }
+
+  @Override
+  public double getPMinusPrime ()
+  {
+    return pMinusPrime;
+  }
+
   // ---------- Getters and setters for settlement processsors ---------
-  @Override
-  public CapacityControl getCapacityControlService ()
-  {
-    return capacityControlService;
-  }
-  
-  @Override
-  public TariffRepo getTariffRepo ()
-  {
-    return tariffRepo;
-  }
+//  @Override
+//  public CapacityControl getCapacityControlService ()
+//  {
+//    return capacityControlService;
+//  }
+//  
+//  @Override
+//  public TariffRepo getTariffRepo ()
+//  {
+//    return tariffRepo;
+//  }
   
   double getDistributionFeeMin ()
   {
@@ -359,9 +374,28 @@ implements SettlementContext, InitializationService
   {
     return defaultSpotPrice;
   }
-  
-  void setSettlementProcessor (SettlementProcessor proc)
+
+  private SettlementProcessor getSettlementProcessor ()
   {
-    processor = proc;
+    // determine and record settlement process
+    if (settlementProcess.equals(""))
+      settlementProcess = "simple";
+    Class<?> processor = settlementMap.get(settlementProcess);
+    if (null == processor) {
+      log.error("Null settlement processor for " + settlementProcess);
+      processor = settlementMap.get("simple");
+    }
+    SettlementProcessor result = null;
+    try {
+      Constructor<?> constructor =
+              processor.getDeclaredConstructor(TariffRepo.class,
+                                               CapacityControl.class);
+      result = (SettlementProcessor) constructor.newInstance(tariffRepo, capacityControlService);
+    }
+    catch (Exception e) {
+      // TODO Auto-generated catch block
+      log.error("cannot create settlement processor: " + e.toString());
+    }
+    return result;
   }
 }

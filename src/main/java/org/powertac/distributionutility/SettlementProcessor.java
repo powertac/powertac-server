@@ -17,18 +17,35 @@ package org.powertac.distributionutility;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.powertac.common.interfaces.CapacityControl;
+import org.powertac.common.repo.TariffRepo;
+
 /**
  * Computes charges to settle broker imbalances.
  * @author John Collins
  */
-public interface SettlementProcessor
-{  
+public abstract class SettlementProcessor
+{
+  protected static Logger log = Logger.getLogger(SettlementProcessor.class.getName());
+
+  protected TariffRepo tariffRepo;
+  protected CapacityControl capacityControlService;
+  protected double epsilon = 1e-6; // 1 milliwatt-hour
+
+  SettlementProcessor (TariffRepo tariffRepo, CapacityControl capacityControl)
+  {
+    super();
+    this.tariffRepo = tariffRepo;
+    this.capacityControlService = capacityControl;
+  }
+  
   /**
    * Computes charges to settle broker imbalances. 
    * The brokers and their imbalances, along with results from the
    * settlement, are represented by a Collection of ChargeInfo instances.
    * Requires access to utility methods in DistributionUtilityService.
    */
-  public void settle(SettlementContext service,
+  public abstract void settle(SettlementContext service,
                      List<ChargeInfo> brokerData);
 }

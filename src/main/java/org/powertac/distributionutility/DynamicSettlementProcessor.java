@@ -17,13 +17,21 @@ package org.powertac.distributionutility;
 
 import java.util.List;
 
+import org.powertac.common.interfaces.CapacityControl;
+import org.powertac.common.repo.TariffRepo;
+
 /**
  * DU settlement processor for Scenario 3 - controllable capacities, dynamic
  * solution over multiple timeslots.
  * @author John Collins
  */
-public class DynamicSettlementProcessor implements SettlementProcessor
+public class DynamicSettlementProcessor extends SettlementProcessor
 {
+  
+  DynamicSettlementProcessor (TariffRepo tariffRepo, CapacityControl capacityControl)
+  {
+    super(tariffRepo, capacityControl);
+  }
 
   /* (non-Javadoc)
    * @see org.powertac.distributionutility.SettlementProcessor#settle(java.util.Collection)

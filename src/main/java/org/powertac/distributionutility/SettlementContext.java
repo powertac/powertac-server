@@ -26,26 +26,36 @@ import org.powertac.common.repo.TariffRepo;
  * @author jcollins
  */
 public interface SettlementContext
-{
+{  
   /**
-   * Returns the current TariffRepo.
-   */
-  public TariffRepo getTariffRepo ();
-  
-  /**
-   * Returns the current CapacityControlService.
-   */
-  public CapacityControl getCapacityControlService ();
-  
-  /**
-   * Returns the current value of pPlus.
+   * Returns the current value of pPlus. This is the marginal cost for
+   * up-regulating power. Value is normally negative, because brokers must
+   * pay. Cost increases (becomes more negative) with quantity according 
+   * to pPlusPrime.
    */
   public double getPPlus ();
   
   /**
-   * Returns the current value of pMinus.
+   * Returns the slope of cost curve for up-regulation. Total cost for
+   * up-regulation by x kwh is pPlus + x * pPlusPrime. Note that x is
+   * positive for up-regulation.
+   */
+  public double getPPlusPrime();
+  
+  /**
+   * Returns the current value of pMinus. This is the marginal cost for
+   * down-regulation. Value is normally positive, because brokers are paid.
+   * Cost increases with quantity (becomes less positive, eventually becoming
+   * negative) with quantity accoring to the value of pMinusPrime.
    */
   public double getPMinus ();
+  
+  /**
+   * Returns the slope of cost curve for down-regulation. Total cost for
+   * down-regulation by x kwh is pMinus + x * pMinusPrime. Note that x is
+   * negative for down-regulation.
+   */
+  public double getPMinusPrime();
   
   /**
    * Returns the DU charge for running the balancing market

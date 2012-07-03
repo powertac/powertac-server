@@ -22,21 +22,18 @@ import org.ojalgo.matrix.BasicMatrix;
 import org.ojalgo.matrix.BigMatrix;
 import org.ojalgo.optimisation.quadratic.QuadraticSolver;
 import org.ojalgo.type.StandardType;
+import org.powertac.common.interfaces.CapacityControl;
+import org.powertac.common.repo.TariffRepo;
 
 /**
  * DU settlement processor for Scenario 1 - no controllable capacities.
  * @author John Collins, Travis Daudelin
  */
-public class SimpleSettlementProcessor implements SettlementProcessor
+public class SimpleSettlementProcessor extends SettlementProcessor
 {
-  static Logger log = null; // init once
-
-  public SimpleSettlementProcessor ()
+  public SimpleSettlementProcessor (TariffRepo tariffRepo, CapacityControl capacityControl)
   {
-    super();
-    if (null == log)
-      // one-time initialization of logger
-      log = Logger.getLogger(this.getClass().getName());
+    super(tariffRepo, capacityControl);
   }
   
   /* (non-Javadoc)
@@ -133,7 +130,7 @@ public class SimpleSettlementProcessor implements SettlementProcessor
     BasicMatrix result = myQuadraticSolver.solve().getSolution();
     //List<Double> solutionList = new ArrayList<Double>();
     for (int i = 0; i < numOfBrokers; i++) {
-      brokerData.get(i).setBalanceCharge(-result.doubleValue(i, 0));
+      brokerData.get(i).setBalanceChargeP1(-result.doubleValue(i, 0));
     }
     //log.debug("result=" + solutionList);
     //return solutionList;

@@ -29,7 +29,8 @@ class ChargeInfo
 {
   private Broker broker = null;
   private double netLoadKWh = 0.0;
-  private double balanceCharge = 0.0;
+  private double balanceChargeP1 = 0.0;
+  private double balanceChargeP2 = 0.0;
   private List<BalancingOrder> balancingOrders = null;
 
   ChargeInfo (Broker broker, double netLoad)
@@ -56,14 +57,19 @@ class ChargeInfo
   
   double getBalanceCharge ()
   {
-    return balanceCharge;
+    return balanceChargeP1 + balanceChargeP2;
   }
-  
-  void setBalanceCharge (double charge)
+
+  void setBalanceChargeP1 (double charge)
   {
-    balanceCharge = charge;
+    balanceChargeP1 = charge;
   }
-  
+
+  void setBalanceChargeP2 (double charge)
+  {
+    balanceChargeP2 = charge;
+  }
+
   List<BalancingOrder> getBalancingOrders ()
   {
     return balancingOrders;
