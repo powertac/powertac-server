@@ -66,7 +66,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     protected Random tariffSelector;
     
     protected final List<Tariff> allTariffs = new ArrayList<Tariff>();
-    private int tariffEvaluationCounter = 0;
+    protected int tariffEvaluationCounter = 0;
+    
+    protected List<CapacityBundle> bundlesWithRevokedTariffs = new ArrayList<CapacityBundle>();
     
     
     DefaultUtilityOptimizer(CustomerStructure structure, List<CapacityBundle> bundles) 
@@ -139,6 +141,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         for (CapacityBundle bundle: capacityBundles) {
             evaluateTariffs(bundle, newTariffs); 
         }
+        bundlesWithRevokedTariffs.clear();
     }
 	
     private boolean isTariffApplicable(Tariff tariff, CapacityBundle bundle)
@@ -153,7 +156,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     
     private void evaluateTariffs(CapacityBundle bundle, List<Tariff> newTariffs) 
     {
-        if ((tariffEvaluationCounter % bundle.getSubscriberStructure().reconsiderationPeriod) == 0) { 
+        if ((tariffEvaluationCounter % bundle.getSubscriberStructure().reconsiderationPeriod) == 0 
+             || bundlesWithRevokedTariffs.contains(bundle)) { 
             reevaluateAllTariffs(bundle);
         } 
         else if (! ignoredTariffs.isEmpty()) {
@@ -307,8 +311,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
             Tariff tariff = evalTariffs.get(i);
             double fixedPayments = estimateFixedTariffPayments(tariff);
             double variablePayment = forecastDailyUsageCharge(bundle, tariff);
-            double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);                
-            estimatedPayments.add(totalPayment); 
+            double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);    
+            double adjustedPayment = adjustForInterruptibility(bundle, tariff, totalPayment);
+            estimatedPayments.add(adjustedPayment); 
         }      
         return estimatedPayments;
     }
@@ -337,8 +342,28 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
                 totalUsage += hourlyUsage;
             }
+        }        
+        double realizedPrice = tariff.getRealizedPrice();
+        if (Math.abs(realizedPrice) > 0.01) {  // != 0.0
+            double estHourlyPrice = totalCharge / totalUsage;           
+            if (Math.abs(estHourlyPrice - realizedPrice) > 0.05 * Math.abs(estHourlyPrice)) {
+                double realizedPriceWeight = bundle.getSubscriberStructure().realizedPriceWeight;
+                totalCharge = realizedPriceWeight * (realizedPrice * totalUsage) + (1 - realizedPriceWeight) * totalCharge;
+            }
         }
         return totalCharge;
+    }
+    
+    private double adjustForInterruptibility(CapacityBundle bundle, Tariff tariff, double totalPayment) 
+    {
+        double interruptibilityDiscount = bundle.getSubscriberStructure().interruptibilityDiscount;
+        if (interruptibilityDiscount > 0.0 && tariff.getPowerType().isInterruptible()) {
+            double effectSign = tariff.getPowerType().isConsumption() ? -1 : +1;
+            double adjustedPayment = (1.0 + effectSign * interruptibilityDiscount) * totalPayment;
+            return adjustedPayment;
+        } else {
+            return totalPayment;
+        }
     }
 
     private List<Integer> determineAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
@@ -381,17 +406,17 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         boolean benchmarkRiskEnabled = bundle.getSubscriberStructure().benchmarkRiskEnabled;
         boolean tariffThrottlingEnabled = bundle.getSubscriberStructure().tariffThrottlingEnabled;
         
-        //Map<Long, Double> brokerBest = new HashMap<Long, Double>();
+        Map<Long, Integer> brokerBests = new HashMap<Long, Integer>();  // brokerId -> tariffIndex
         
         for (int i=0; i < evalTariffs.size(); ++i) {
-            Tariff tariff = evalTariffs.get(i);           
+            Tariff evalTariff = evalTariffs.get(i);           
             // #1: Default tariff is always valid.
-            if (tariff == defaultTariff) {
+            if (evalTariff == defaultTariff) {
                 validityIndex.add(true); continue;
             }
             // #2: If tariff is expired, don't consider it.
-            if (tariff.isExpired() || tariff.isRevoked()) {
-                log.info("Tariff " + tariff.getId() + " has expired or been revoked; being ignored.");
+            if (evalTariff.isExpired() || evalTariff.isRevoked()) {
+                log.info("Tariff " + evalTariff.getId() + " has expired or been revoked; being ignored.");
                 validityIndex.add(false); continue;
             }
             // #3: Tariff payments cannot be too much worse than those of default tariff.
@@ -399,18 +424,39 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 double evalRatio = estimatedPayments.get(i) / defaultPayment;
                 if ((bundle.getPowerType().isConsumption() && evalRatio > bundle.getSubscriberStructure().benchmarkRiskRatio) ||
                     (bundle.getPowerType().isProduction() && evalRatio < bundle.getSubscriberStructure().benchmarkRiskRatio)) {
-                    log.info(bundle.getName() + ": Tariff " + tariff.getId() + " failed the benchmark risk constraint at: " + evalRatio);
+                    logAllocationDetails(bundle.getName() + ": Tariff " + evalTariff.getId() + " has a worse than constrained benchmark risk at: " + evalRatio);
                     validityIndex.add(false); continue;
                 }
             }
             // #4: Only include best N tariffs per broker.
             if (tariffThrottlingEnabled) {
-          //      Long brokerId = tariff.getBroker().getId();
-                // TODO
+                Long brokerId = evalTariff.getBroker().getId();
+                if (! brokerBests.containsKey(brokerId)) {
+                    brokerBests.put(brokerId, i);
+                } else {
+                    TariffSubscription evalSub = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(evalTariff, bundle.getCustomerInfo());
+                    if (evalSub == null || evalSub.getCustomersCommitted() == 0) {
+                        double evalPayment = estimatedPayments.get(i);
+                        double bestPayment = estimatedPayments.get(brokerBests.get(brokerId));
+                        if ((bundle.getPowerType().isConsumption() && evalPayment <= bestPayment) ||
+                            (bundle.getPowerType().isProduction() && evalPayment >= bestPayment)) {                           
+                            logAllocationDetails(bundle.getName() + ": Tariff " + evalTariff.getId() + " is no better than " 
+                                    + evalTariffs.get(brokerBests.get(brokerId)).getId());
+                            validityIndex.add(false); continue;
+                        } else {
+                            // reevaluate previous brokerBest
+                            TariffSubscription sub = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(evalTariff, bundle.getCustomerInfo());
+                            if (sub == null || sub.getCustomersCommitted() == 0) {
+                                validityIndex.set(brokerBests.get(brokerId), false);
+                                brokerBests.put(brokerId, i);
+                            }
+                        }
+                    }
+                }
             }
             validityIndex.add(true);
         }
-        logAllocationDetails(bundle.getName() + ": Tariff validity index: " + validityIndex);
+        logAllocationDetails(bundle.getName() + ": Tariff constraint validation index: " + validityIndex);
         return validityIndex;
    }
     
@@ -572,6 +618,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
             List<TariffSubscription> revoked = tariffSubscriptionRepo.getRevokedSubscriptionList(bundle.getCustomerInfo());
             for (TariffSubscription revokedSubscription : revoked) {
                 revokedSubscription.handleRevokedTariff();
+                bundlesWithRevokedTariffs.add(bundle);
             }
         }
     }

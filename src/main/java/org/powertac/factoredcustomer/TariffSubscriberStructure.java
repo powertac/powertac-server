@@ -39,8 +39,9 @@ public final class TariffSubscriberStructure
     final boolean benchmarkRiskEnabled;
     final double benchmarkRiskRatio;
     final boolean tariffThrottlingEnabled;
-    final int tariffThrottlingNewLimit;
-    final int tariffThrottlingAllLimit;
+    final double interruptibilityDiscount;
+    final double realizedPriceWeight;
+    final double realizedPriceThreshold;
     final AllocationMethod allocationMethod;
     final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
     final double logitChoiceRationality; 
@@ -68,19 +69,28 @@ public final class TariffSubscriberStructure
             } else {
                 benchmarkRiskEnabled = false;
                 benchmarkRiskRatio = Double.NaN;
-            }
-            
+            }          
             Element tariffThrottlingElement = (Element) constraintsElement.getElementsByTagName("tariffThrottling").item(0);
             if (tariffThrottlingElement != null) {
                 tariffThrottlingEnabled = Boolean.parseBoolean(tariffThrottlingElement.getAttribute("enable"));
-                tariffThrottlingNewLimit = Integer.parseInt(tariffThrottlingElement.getAttribute("newLimit"));
-                tariffThrottlingAllLimit = Integer.parseInt(tariffThrottlingElement.getAttribute("allLimit"));
-            } else {
-                tariffThrottlingEnabled = false;
-                tariffThrottlingNewLimit = -1;
-                tariffThrottlingAllLimit = -1;
-            }
+            } else tariffThrottlingEnabled = false;
         } else throw new Error("Tariff subscriber constraints element must be included, even if empty.");
+
+        Element influenceFactorsElement = (Element) xml.getElementsByTagName("influenceFactors").item(0);
+        if (influenceFactorsElement != null) {
+            Element interruptibilityElement = (Element) influenceFactorsElement.getElementsByTagName("interruptibility").item(0);
+            if (interruptibilityElement != null) {
+                interruptibilityDiscount = Double.parseDouble(interruptibilityElement.getAttribute("discount"));
+            } else interruptibilityDiscount = 0.0;
+            Element realizedPriceElement = (Element) influenceFactorsElement.getElementsByTagName("realizedPrice").item(0);
+            if (realizedPriceElement != null) {
+                realizedPriceWeight = Double.parseDouble(realizedPriceElement.getAttribute("weight"));
+                realizedPriceThreshold = Double.parseDouble(realizedPriceElement.getAttribute("threshold"));
+            } else {
+                realizedPriceWeight = 0.0;
+                realizedPriceThreshold = Double.NaN;
+            }
+        } else throw new Error("Tariff subscriber influence factors element must be included, even if empty.");
 
         Element allocationElement = (Element) xml.getElementsByTagName("allocation").item(0);
         allocationMethod = Enum.valueOf(AllocationMethod.class, allocationElement.getAttribute("method"));

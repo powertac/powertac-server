@@ -4,20 +4,22 @@
         <capacityBundle id="" population="30000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <contractNegotiator /> <!-- N/A -->
             <tariffSubscriber>
-                <influenceFactors> <!-- N/A -->
-                    <brokerReputation />
-                    <energySources />
-                    <interruptibility />
-                    <realizedPrice />
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.75" threshold="0.05" />
+                    <energySources /> <!-- N/A -->
+                    <brokerReputation /> <!-- N/A -->
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE"> <!-- TOTAL_ORDER | LOGIT_CHOICE -->
                     <!-- <totalOrder rules="0.7:0.3, 0.5:0.3:0.2, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05" /> --> 
-                    <logitChoice rationality="0.5" />
+                    <logitChoice rationality="0.9" />
                 </allocation>
                 <reconsideration period="28"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="POINTMASS" value="0.0" /> 
-                    <!-- <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" /> -->
+                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                     <inertiaFactors> <!-- N/A -->
                         <customerWealth distribution="NORMAL" mean="30000" stdDev="5000" referenceMedian="50000" />
                         <newTariffsExposure distribution="NORMAL" mean="0.3" stdDev="0.1" />
@@ -28,7 +30,7 @@
             </tariffSubscriber>
             <capacity count="1" description="Collection of suburban households.">
                 <baseCapacity type="TIMESERIES">  <!-- POPULATION | INDIVIDUAL | TIMESERIES -->
-                    <!-- <populationCapacity distribution="POINTMASS" value="8000" /> -->
+                    <!-- <populationCapacity distribution="POINTMASS" value="22000" /> -->
                     <!-- <populationCapacity distribution="NORMAL" mean="22000" stdDev="2000" /> -->
                     <!-- <individualCapacity distribution="NORMAL" mean="0.8" stdDev="0.05" /> -->
                     <timeseriesModel type="ARIMA_101x101"> 
@@ -54,8 +56,6 @@
                         <elasticityModel type="CONTINUOUS" ratio="-0.01" range="0.7~1.0" />
                         <!-- <elasticityModel type="STEPWISE" map="1.1: 0.9, 1.2: 0.8, 1.3: 0.75" /> -->
                     </priceElasticity>
-                    <interruptibility /> <!-- N/A -->
-                    <shiftability /> <!-- N/A -->
                 </influenceFactors>
             </capacity>
         </capacityBundle>
@@ -64,10 +64,17 @@
     <customer name="CentervilleHomes" count="1" creatorKey="LEARNING" entityType="RESIDENTIAL">
         <capacityBundle id="" population="20000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="1.0" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE"> 
-                    <logitChoice rationality="0.6" />
+                    <logitChoice rationality="1.0" />
                 </allocation>
-                <reconsideration period="28"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -95,10 +102,17 @@
     <customer name="DowntownOffices" count="1" creatorKey="" entityType="COMMERCIAL">
         <capacityBundle id="" population="30" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.7" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.7" />
+                    <logitChoice rationality="0.9" />
                 </allocation>
-                <reconsideration period="16"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -126,10 +140,17 @@
     <customer name="EastsideOffices" count="1" creatorKey="LEARNING" entityType="COMMERCIAL">
         <capacityBundle id="" population="25" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.7" threshold="0.05" />
+                </influenceFactors>            
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.7" />
+                    <logitChoice rationality="0.9" />
                 </allocation>
-                <reconsideration period="16"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -157,10 +178,18 @@
     <customer name="FrostyStorage" count="1" creatorKey="" entityType="COMMERCIAL">
         <capacityBundle id="" population="3" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.8" threshold="0.05" />
+                    <interruptibility discount="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.9" />
+                    <logitChoice rationality="0.95" />
                 </allocation>
-                <reconsideration period="16"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -189,10 +218,18 @@
     <customer name="HextraChemical" count="1" creatorKey="" entityType="INDUSTRIAL">
         <capacityBundle id="" population="5" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.8" threshold="0.05" />
+                    <interruptibility discount="0.15" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.8" />
+                    <logitChoice rationality="0.9" />
                 </allocation>
-                <reconsideration period="28"/>
+                <reconsideration period="12"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -221,10 +258,17 @@
     <customer name="MedicalCenter" count="1" creatorKey="" entityType="COMMERCIAL">
         <capacityBundle id="1" population="1" powerType="CONSUMPTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.75" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.8" />
+                    <logitChoice rationality="0.9" />
                 </allocation>
-                <reconsideration period="12"/>
+                <reconsideration period="16"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -249,10 +293,17 @@
         </capacityBundle>
         <capacityBundle id="2" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.5" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.8" />
+                    <logitChoice rationality="0.95" />
                 </allocation>
-                <reconsideration period="12"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="POINTMASS" value="0.5" />
                 </switchingInertia>
@@ -280,10 +331,17 @@
     <customer name="SunnyhillSolar" count="1" creatorKey="" entityType="INDUSTRIAL">
         <capacityBundle id="" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.75" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.9" />
+                    <logitChoice rationality="0.95" />
                 </allocation>
-                <reconsideration period="12"/>
+                <reconsideration period="8"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="POINTMASS" value="0.1" />
                 </switchingInertia>
@@ -311,10 +369,17 @@
     <customer name="WindmillCoOp" count="1" creatorKey="" entityType="INDUSTRIAL">
         <capacityBundle id="1" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.5" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.6" />
+                    <logitChoice rationality="0.95" />
                 </allocation>
-                <reconsideration period="12"/>
+                <reconsideration period="28"/>
                 <switchingInertia>
                     <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
@@ -339,12 +404,19 @@
         </capacityBundle>
         <capacityBundle id="2" population="40" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <realizedPrice weight="0.75" threshold="0.05" />
+                </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
-                    <logitChoice rationality="0.6" />
+                    <logitChoice rationality="1.0" />
                 </allocation>
-                <reconsideration period="12"/>
+                <reconsideration period="4"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="POINTMASS" value="0.0" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Second subset of small windmills.">
@@ -366,7 +438,7 @@
             </capacity>
         </capacityBundle>
     </customer>
-
+    
 </customers>
 
 
