@@ -36,6 +36,11 @@ public final class TariffSubscriberStructure
     private final CustomerStructure customerStructure;
     private final CapacityBundle capacityBundle;
     
+    final boolean benchmarkRiskEnabled;
+    final double benchmarkRiskRatio;
+    final boolean tariffThrottlingEnabled;
+    final int tariffThrottlingNewLimit;
+    final int tariffThrottlingAllLimit;
     final AllocationMethod allocationMethod;
     final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
     final double logitChoiceRationality; 
@@ -52,7 +57,31 @@ public final class TariffSubscriberStructure
     {
         customerStructure = structure;
         capacityBundle = bundle;
-        
+
+        Element constraintsElement = (Element) xml.getElementsByTagName("constraints").item(0);
+        if (constraintsElement != null) {
+            Element benchmarkRiskElement = (Element) constraintsElement.getElementsByTagName("benchmarkRisk").item(0);
+            if (benchmarkRiskElement != null) {
+                benchmarkRiskEnabled = Boolean.parseBoolean(benchmarkRiskElement.getAttribute("enable"));
+                double[][] ratio = ParserFunctions.parseMapToDoubleArray(benchmarkRiskElement.getAttribute("ratio"));
+                benchmarkRiskRatio = ratio[0][0] / ratio[0][1];
+            } else {
+                benchmarkRiskEnabled = false;
+                benchmarkRiskRatio = Double.NaN;
+            }
+            
+            Element tariffThrottlingElement = (Element) constraintsElement.getElementsByTagName("tariffThrottling").item(0);
+            if (tariffThrottlingElement != null) {
+                tariffThrottlingEnabled = Boolean.parseBoolean(tariffThrottlingElement.getAttribute("enable"));
+                tariffThrottlingNewLimit = Integer.parseInt(tariffThrottlingElement.getAttribute("newLimit"));
+                tariffThrottlingAllLimit = Integer.parseInt(tariffThrottlingElement.getAttribute("allLimit"));
+            } else {
+                tariffThrottlingEnabled = false;
+                tariffThrottlingNewLimit = -1;
+                tariffThrottlingAllLimit = -1;
+            }
+        } else throw new Error("Tariff subscriber constraints element must be included, even if empty.");
+
         Element allocationElement = (Element) xml.getElementsByTagName("allocation").item(0);
         allocationMethod = Enum.valueOf(AllocationMethod.class, allocationElement.getAttribute("method"));
         if (allocationMethod == AllocationMethod.TOTAL_ORDER) {

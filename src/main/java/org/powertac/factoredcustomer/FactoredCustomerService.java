@@ -61,11 +61,11 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     private String configResource = null;
 
     @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of tariff allocation details")
-    private boolean allocationDetailsLogging = false;
+    private boolean allocationDetailsLogging = true;
     @ConfigurableValue(valueType = "Boolean", description = "Toogle logging of capacity adjustment details")
     private boolean capacityDetailsLogging = false;
     @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of expected usage charges")
-    private boolean usageChargesLogging = false;
+    private boolean usageChargesLogging = true;
 
     private List<CustomerStructure> customerStructures = new ArrayList<CustomerStructure>();
     private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();

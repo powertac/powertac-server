@@ -141,6 +141,16 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         }
     }
 	
+    private boolean isTariffApplicable(Tariff tariff, CapacityBundle bundle)
+    {
+        PowerType bundlePowerType = bundle.getCustomerInfo().getPowerType();
+        if (tariff.getPowerType() == bundlePowerType ||
+            tariff.getPowerType() == bundlePowerType.getGenericType()) {
+            return true;
+        }
+        return false;
+    }
+    
     private void evaluateTariffs(CapacityBundle bundle, List<Tariff> newTariffs) 
     {
         if ((tariffEvaluationCounter % bundle.getSubscriberStructure().reconsiderationPeriod) == 0) { 
@@ -173,17 +183,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
             }
         }
         assertNotEmpty(bundle, evalTariffs);
+        ignoredTariffs.clear();         
         manageSubscriptions(bundle, evalTariffs);
-    }
-    
-    private boolean isTariffApplicable(Tariff tariff, CapacityBundle bundle)
-    {
-        PowerType bundlePowerType = bundle.getCustomerInfo().getPowerType();
-        if (tariff.getPowerType() == bundlePowerType ||
-            tariff.getPowerType() == bundlePowerType.getGenericType()) {
-            return true;
-        }
-        return false;
     }
     
     private void evaluateCurrentTariffs(CapacityBundle bundle, List<Tariff> newTariffs) 
@@ -198,8 +199,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 return;
             }
         }
-        // Include previously ignored tariffs and currently subscribed tariffs in evaluation.
-        // Use map instead of list to eliminate duplicate tariffs.
+        // Include previously ignored tariffs, currently subscribed tariffs, and default 
+        // tariff in evaluation. Use map instead of list to eliminate duplicate tariffs.
         Map<Long, Tariff> currTariffs = new HashMap<Long, Tariff>();
 	for (Tariff ignoredTariff: ignoredTariffs) {
 	    currTariffs.put(ignoredTariff.getId(), ignoredTariff);
@@ -215,6 +216,11 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         for (Tariff newTariff: newTariffs) {
             currTariffs.put(newTariff.getId(), newTariff);
         }
+        Tariff defaultTariff = getDefaultTariff(bundle);
+        if (! currTariffs.containsKey(defaultTariff.getId())) {
+            currTariffs.put(defaultTariff.getId(), defaultTariff);
+        }
+
         List<Tariff> evalTariffs = new ArrayList<Tariff>();
         for (Tariff tariff: currTariffs.values()) {
             if (isTariffApplicable(tariff, bundle)) {
@@ -231,10 +237,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
             throw new Error(bundle.getName() + ": The evaluation tariffs list is unexpectedly empty!");
         }
     }
-
+    
     private void manageSubscriptions(CapacityBundle bundle, List<Tariff> evalTariffs)
     {
-	Collections.shuffle(evalTariffs);
+        Collections.shuffle(evalTariffs);
         
         PowerType powerType = bundle.getCustomerInfo().getPowerType();        
         List<Long> tariffIds = new ArrayList<Long>(evalTariffs.size());
@@ -242,10 +248,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         logAllocationDetails(bundle.getName() + ": " + powerType + " tariffs for evaluation: " + tariffIds);
 
 	List<Double> estimatedPayments = estimatePayments(bundle, evalTariffs);
-	logAllocationDetails(bundle.getName() + ": Estimated payments for evaluated tariffs: " + estimatedPayments);
+	logAllocationDetails(bundle.getName() + ": Estimated payments for tariffs: " + estimatedPayments);
         
 	List<Integer> allocations = determineAllocations(bundle, evalTariffs, estimatedPayments);
-	logAllocationDetails(bundle.getName() + ": Allocations for evaluated tariffs: " + allocations);
+	logAllocationDetails(bundle.getName() + ": Allocations for tariffs: " + allocations);
 		
 	int overAllocations = 0;
 	for (int i=0; i < evalTariffs.size(); ++i) {
@@ -299,22 +305,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         List<Double> estimatedPayments = new ArrayList<Double>(evalTariffs.size());
         for (int i=0; i < evalTariffs.size(); ++i) {
             Tariff tariff = evalTariffs.get(i);
-            if (tariff.isExpired()) {
-                if (bundle.getCustomerInfo().getPowerType().isConsumption()) {
-                    estimatedPayments.add(Double.POSITIVE_INFINITY);  // assume worst case
-                } else {  // PRODUCTION or STORAGE
-                    estimatedPayments.add(Double.NEGATIVE_INFINITY);  // assume worst case
-                }
-            } else {
-                double fixedPayments = estimateFixedTariffPayments(tariff);
-                double variablePayment = forecastDailyUsageCharge(bundle, tariff);
-                double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);
-                
-                //System.out.println("Estimated payments for tariff " + tariff.getId() + " = "
-                //        + totalPayment + "(fixed = " + fixedPayments + " + variable = " + variablePayment + ")");
-                
-                estimatedPayments.add(totalPayment);
-            } 
+            double fixedPayments = estimateFixedTariffPayments(tariff);
+            double variablePayment = forecastDailyUsageCharge(bundle, tariff);
+            double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);                
+            estimatedPayments.add(totalPayment); 
         }      
         return estimatedPayments;
     }
@@ -350,23 +344,80 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     private List<Integer> determineAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
                                                List<Double> estimatedPayments) 
     {
-        if (evalTariffs.size() == 1) {
-            List<Integer> allocations = new ArrayList<Integer>();
-            allocations.add(bundle.getPopulation());
-            return allocations;
-        } else {        
-            if (bundle.getSubscriberStructure().allocationMethod == AllocationMethod.TOTAL_ORDER) {
-                return determineTotalOrderAllocations(bundle, evalTariffs, estimatedPayments);
-            } else { // LOGIT_CHOICE
-                return determineLogitChoiceAllocations(bundle, evalTariffs, estimatedPayments);
+        List<Boolean> validTariffsIndex = enforceTariffConstraints(bundle, evalTariffs, estimatedPayments);
+
+        List<Tariff> checkedTariffs = new ArrayList<Tariff>();
+        List<Double> checkedPayments = new ArrayList<Double>();
+        for (int i=0; i < evalTariffs.size(); ++i) {
+            if (validTariffsIndex.get(i)) {
+                checkedTariffs.add(evalTariffs.get(i));
+                checkedPayments.add(estimatedPayments.get(i));
             }
         }
+        List<Integer> allocations = new ArrayList<Integer>();
+        if (checkedTariffs.size() == 1) {
+            allocations.add(bundle.getPopulation());
+            return allocations;
+        }
+        List<Integer> checkedAllocs = bundle.getSubscriberStructure().allocationMethod == AllocationMethod.TOTAL_ORDER ?
+            determineTotalOrderAllocations(bundle, checkedTariffs, checkedPayments) :
+            determineLogitChoiceAllocations(bundle, checkedTariffs, checkedPayments);
+        int checkedCounter = 0;
+        for (int i=0; i < evalTariffs.size(); ++i) {
+            allocations.add(validTariffsIndex.get(i) ? checkedAllocs.get(checkedCounter++) : 0);
+        }
+        return allocations;
     }
     
-    private List<Integer> determineTotalOrderAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
+    private List<Boolean> enforceTariffConstraints(CapacityBundle bundle, List<Tariff> evalTariffs, 
+                                                   List<Double> estimatedPayments)
+   {
+        List<Boolean> validityIndex = new ArrayList<Boolean>();
+        
+        Tariff defaultTariff = getDefaultTariff(bundle);
+        if (defaultTariff == null) throw new Error("Default tariff not found amongst eval tariffs!");
+        double defaultPayment = estimatedPayments.get(evalTariffs.indexOf(defaultTariff));
+        
+        boolean benchmarkRiskEnabled = bundle.getSubscriberStructure().benchmarkRiskEnabled;
+        boolean tariffThrottlingEnabled = bundle.getSubscriberStructure().tariffThrottlingEnabled;
+        
+        //Map<Long, Double> brokerBest = new HashMap<Long, Double>();
+        
+        for (int i=0; i < evalTariffs.size(); ++i) {
+            Tariff tariff = evalTariffs.get(i);           
+            // #1: Default tariff is always valid.
+            if (tariff == defaultTariff) {
+                validityIndex.add(true); continue;
+            }
+            // #2: If tariff is expired, don't consider it.
+            if (tariff.isExpired() || tariff.isRevoked()) {
+                log.info("Tariff " + tariff.getId() + " has expired or been revoked; being ignored.");
+                validityIndex.add(false); continue;
+            }
+            // #3: Tariff payments cannot be too much worse than those of default tariff.
+            if (benchmarkRiskEnabled) {
+                double evalRatio = estimatedPayments.get(i) / defaultPayment;
+                if ((bundle.getPowerType().isConsumption() && evalRatio > bundle.getSubscriberStructure().benchmarkRiskRatio) ||
+                    (bundle.getPowerType().isProduction() && evalRatio < bundle.getSubscriberStructure().benchmarkRiskRatio)) {
+                    log.info(bundle.getName() + ": Tariff " + tariff.getId() + " failed the benchmark risk constraint at: " + evalRatio);
+                    validityIndex.add(false); continue;
+                }
+            }
+            // #4: Only include best N tariffs per broker.
+            if (tariffThrottlingEnabled) {
+          //      Long brokerId = tariff.getBroker().getId();
+                // TODO
+            }
+            validityIndex.add(true);
+        }
+        logAllocationDetails(bundle.getName() + ": Tariff validity index: " + validityIndex);
+        return validityIndex;
+   }
+    
+    private List<Integer> determineTotalOrderAllocations(CapacityBundle bundle, List<Tariff> checkedTariffs, 
                                                          List<Double> estimatedPayments) 
     {
-        int numTariffs = evalTariffs.size();
+        int numTariffs = checkedTariffs.size();
         List<Double> allocationRule;
         if (bundle.getSubscriberStructure().totalOrderRules.isEmpty()) {
             allocationRule = new ArrayList<Double>(numTariffs);
@@ -409,12 +460,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         return allocations;
     }
     
-    private List<Integer> determineLogitChoiceAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
+    private List<Integer> determineLogitChoiceAllocations(CapacityBundle bundle, List<Tariff> checkedTariffs, 
                                                           List<Double> estimatedPayments) 
     {
         // logit choice model:  p_i = e^(lambda * utility_i) / sum_i(e^(lambda * utility_i))
-        
-        int numTariffs = evalTariffs.size();
+
+        int numTariffs = checkedTariffs.size();
         double bestPayment = Collections.max(estimatedPayments);
         double worstPayment = Collections.min(estimatedPayments);
         
@@ -491,6 +542,20 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         }
         return allocations;
     }
+
+    private Tariff getDefaultTariff(CapacityBundle bundle)
+    {
+        Tariff defaultTariff;
+        defaultTariff = tariffMarketService.getDefaultTariff(bundle.getPowerType());
+        if (defaultTariff == null) {
+            defaultTariff = tariffMarketService.getDefaultTariff(bundle.getPowerType().getGenericType()); 
+        }
+        if (defaultTariff == null) {
+            throw new Error(bundle.getName() + ": There is no default tariff for bundle type or it's generic type!");
+        }
+        return defaultTariff;
+    }
+    
 
     ///////////////// TIMESLOT ACTIVITY //////////////////////
 
