@@ -116,10 +116,10 @@ public class CompetitionControlService
 
   @Autowired
   private JmsManagementService jmsManagementService;
-  
-  @Autowired
-  private TournamentSchedulerService tournamentSchedulerService;
-  
+
+  //@Autowired
+  //private TournamentSchedulerService tournamentSchedulerService;
+
   @Autowired 
   private VisualizerProxyService visualizerProxyService;
 

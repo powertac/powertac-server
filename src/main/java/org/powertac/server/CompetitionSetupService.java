@@ -50,7 +50,7 @@ import joptsimple.OptionSpec;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
-import org.powertac.common.TimeService;
+//import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
@@ -124,11 +124,11 @@ public class CompetitionSetupService
       processCli(args);
       waitForSession();
     }
-    else if (args.length == 1) {
-      // old-style script file
-      processScript(args);
-      waitForSession();
-    }
+//    else if (args.length == 1) {
+//      // old-style script file
+//      processScript(args);
+//      waitForSession();
+//    }
     else { // args.length == 0
       // running from web interface
       System.out.println("Server BootStrap");
@@ -255,70 +255,70 @@ public class CompetitionSetupService
 
   // handles the original script format. This capability can presumably
   // be jettisoned eventually.
-  private void processScript (String[] args)
-  {
-    // running from config file
-    System.out.println("old-style scriptfile interface");
-    try {
-      BufferedReader config = new BufferedReader(new FileReader(args[0]));
-      String input;
-      while ((input = config.readLine()) != null) {
-        String[] tokens = input.split("\\s+");
-        if ("bootstrap".equals(tokens[0])) {
-          // bootstrap mode - optional config fn is tokens[2]
-          if (tokens.length == 2 || tokens.length > 3) {
-            System.out.println("Bad input " + input);
-          }
-          else {
-            if (tokens.length == 3 && "--config".equals(tokens[1])) {
-              // explicit config file - convert to URL format
-              setConfigMaybe(tokens[2]);
-            }
-            String bootstrapFilename =
-                serverProps.getProperty("server.bootstrapDataFile",
-                                        "/bd-noname.xml");
-            startBootSession(new File(bootstrapFilename));
-          }
-        }
-        else if ("sim".equals(tokens[0])) {
-          int brokerIndex = 1;
-          // sim mode, check for --config in tokens[1]
-          if (tokens.length > 2 && "--config".equals(tokens[1])) {
-            // explicit config file in tokens[2]
-            setConfigMaybe(tokens[2]);
-            brokerIndex = 3;
-          }
-          log.info("In Simulation mode!!!");
-          String bootstrapFilename =
-              serverProps.getProperty("server.bootstrapDataFile",
-                                      "bd-noname.xml");
-          File bootFile = new File(bootstrapFilename);
-          if (!bootFile.canRead()) {
-            System.out.println("Cannot read bootstrap data file " +
-                               bootstrapFilename);
-          }
-          else {
-            // collect broker names, hand to CC for login control
-            ArrayList<String> brokerList = new ArrayList<String>();
-            for (int i = brokerIndex; i < tokens.length; i++) {
-              brokerList.add(tokens[i]);
-            }
-            URL bootDataset = new URL("file:" + bootFile);
-            startSimSession(brokerList, bootDataset);
-          }
-        }
-      }
-    }
-    catch (FileNotFoundException fnf) {
-      System.out.println("Cannot find file " + args[0]);
-    }
-    catch (IOException ioe ) {
-      System.out.println("Error reading file " + args[0]);
-    }
-    catch (ConfigurationException ce) {
-      System.out.println("Error setting configuration: " + ce.toString());
-    }
-  }
+//  private void processScript (String[] args)
+//  {
+//    // running from config file
+//    System.out.println("old-style scriptfile interface");
+//    try {
+//      BufferedReader config = new BufferedReader(new FileReader(args[0]));
+//      String input;
+//      while ((input = config.readLine()) != null) {
+//        String[] tokens = input.split("\\s+");
+//        if ("bootstrap".equals(tokens[0])) {
+//          // bootstrap mode - optional config fn is tokens[2]
+//          if (tokens.length == 2 || tokens.length > 3) {
+//            System.out.println("Bad input " + input);
+//          }
+//          else {
+//            if (tokens.length == 3 && "--config".equals(tokens[1])) {
+//              // explicit config file - convert to URL format
+//              setConfigMaybe(tokens[2]);
+//            }
+//            String bootstrapFilename =
+//                serverProps.getProperty("server.bootstrapDataFile",
+//                                        "/bd-noname.xml");
+//            startBootSession(new File(bootstrapFilename));
+//          }
+//        }
+//        else if ("sim".equals(tokens[0])) {
+//          int brokerIndex = 1;
+//          // sim mode, check for --config in tokens[1]
+//          if (tokens.length > 2 && "--config".equals(tokens[1])) {
+//            // explicit config file in tokens[2]
+//            setConfigMaybe(tokens[2]);
+//            brokerIndex = 3;
+//          }
+//          log.info("In Simulation mode!!!");
+//          String bootstrapFilename =
+//              serverProps.getProperty("server.bootstrapDataFile",
+//                                      "bd-noname.xml");
+//          File bootFile = new File(bootstrapFilename);
+//          if (!bootFile.canRead()) {
+//            System.out.println("Cannot read bootstrap data file " +
+//                               bootstrapFilename);
+//          }
+//          else {
+//            // collect broker names, hand to CC for login control
+//            ArrayList<String> brokerList = new ArrayList<String>();
+//            for (int i = brokerIndex; i < tokens.length; i++) {
+//              brokerList.add(tokens[i]);
+//            }
+//            URL bootDataset = new URL("file:" + bootFile);
+//            startSimSession(brokerList, bootDataset);
+//          }
+//        }
+//      }
+//    }
+//    catch (FileNotFoundException fnf) {
+//      System.out.println("Cannot find file " + args[0]);
+//    }
+//    catch (IOException ioe ) {
+//      System.out.println("Error reading file " + args[0]);
+//    }
+//    catch (ConfigurationException ce) {
+//      System.out.println("Error setting configuration: " + ce.toString());
+//    }
+//  }
   
   // ---------- top-level boot and sim session control ----------
 
