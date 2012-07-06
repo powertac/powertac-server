@@ -436,7 +436,7 @@ public class CompetitionControlService
    * Returns true if the broker is authorized, otherwise false.
    */
   @Override
-  public synchronized boolean loginBroker (String username, String queueName)
+  public synchronized boolean loginBroker (String username)
   {
     // cannot log in if there's no list, or if the broker is not on the list
     if (authorizedBrokerList == null
@@ -456,7 +456,7 @@ public class CompetitionControlService
     // or create a new ID prefix.
     Broker broker = brokerRepo.findByUsername(username);
     log.info("Log in " + ((null == broker)?"":"existing ") +
-             "broker " + username + ", queue " + queueName);
+             "broker " + username);
     if (null == broker) {
       broker = new Broker(username);
       brokerRepo.add(broker);
@@ -464,7 +464,7 @@ public class CompetitionControlService
     
     // only enabled brokers get messages
     broker.setEnabled(true);
-    broker.setQueueName(queueName);
+    //broker.setQueueName(queueName);
     //computeBrokerKey(broker);
     // assign prefix and key with accept message
     brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, null));
@@ -866,8 +866,8 @@ public class CompetitionControlService
    */
   public void handleMessage(BrokerAuthentication msg) {
     log.info("receiveMessage(BrokerAuthentication) " + 
-             msg.getUsername() + ", " + msg.getQueueName());
-    loginBroker(msg.getUsername(), msg.getQueueName());
+             msg.getUsername());
+    loginBroker(msg.getUsername());
   }
   
   /**
