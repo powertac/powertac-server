@@ -44,8 +44,8 @@ public class BrokerAuthentication
   @XStreamAsAttribute
   private String password;
   
-  @XStreamAsAttribute
-  private String queueName;
+  //@XStreamAsAttribute
+  //private String queueName;
   
   /**
    * Creates an instance from a broker
@@ -55,7 +55,7 @@ public class BrokerAuthentication
     super();
     this.username = broker.getUsername();
     this.password = broker.getPassword();
-    this.queueName = broker.toQueueName();
+    //this.queueName = broker.toQueueName();
   }
   
   /**
@@ -68,16 +68,15 @@ public class BrokerAuthentication
     this.password = password;
   }
   
-  /**
-   * Creates an instance with a queue name
-   */
-  public BrokerAuthentication (String username,
-                               String password,
-                               String queueName)
-  {
-    this(username, password);
-    this.queueName = queueName;
-  }
+//  /**
+//   * Creates an instance with a queue name
+//   */
+//  public BrokerAuthentication (String username,
+//                               String password)
+//  {
+//    this(username, password);
+//    //this.queueName = queueName;
+//  }
 
   /**
    * @return the broker username
@@ -95,17 +94,17 @@ public class BrokerAuthentication
     return password;
   }
 
-  /**
-   * Returns the queue name
-   */
-  public String getQueueName ()
-  {
-    return queueName;
-  }
+//  /**
+//   * Returns the queue name
+//   */
+//  public String getQueueName ()
+//  {
+//    return queueName;
+//  }
   
-  /**
-   * @param password new password
-   */
+//  /**
+//   * @param password new password
+//   */
 //  @StateChange
 //  public void setPassword (String password)
 //  {

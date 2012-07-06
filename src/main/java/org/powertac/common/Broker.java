@@ -51,7 +51,7 @@ public class Broker
   private String password;
   
   /** the broker's jms key. Must be copied over from the BrokerAccept message */
-  private String key;
+  //private String key;
   private String queueName = null;
   
   private boolean enabled;
@@ -99,21 +99,21 @@ public class Broker
     return id;
   }
   
-  /**
-   * Sets the jms key for a remote broker.
-   */
-  public void setKey (String key)
-  {
-    this.key = key;
-  }
-  
-  /**
-   * Returns the jms ID for this broker.
-   */
-  public String getKey() 
-  {
-    return key;
-  }
+//  /**
+//   * Sets the jms key for a remote broker.
+//   */
+//  public void setKey (String key)
+//  {
+//    this.key = key;
+//  }
+//  
+//  /**
+//   * Returns the jms ID for this broker.
+//   */
+//  public String getKey() 
+//  {
+//    return key;
+//  }
 
   /**
    * Returns the CashPosition for this broker, which is either the CashPosition
@@ -251,7 +251,7 @@ public class Broker
     if (null != queueName)
       return (queueName);
     else
-      return ("brokers." + getUsername() + ".outputQueue");
+      return (getUsername());
   }
 
   /**
