@@ -121,6 +121,7 @@ public class DefaultBrokerService
   
   // local state
   private TariffSpecification defaultConsumption;
+  private TariffSpecification defaultInterruptibleConsumption;
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
@@ -187,6 +188,13 @@ public class DefaultBrokerService
     tariffMarketService.setDefaultTariff(defaultConsumption);
     customerSubscriptions.put(defaultConsumption,
                               new HashMap<CustomerInfo, CustomerRecord>());
+
+    defaultInterruptibleConsumption =
+            new TariffSpecification(face, PowerType.INTERRUPTIBLE_CONSUMPTION)
+                .addRate(new Rate().withValue(defaultConsumptionRate));
+    tariffMarketService.setDefaultTariff(defaultInterruptibleConsumption);
+    customerSubscriptions.put(defaultInterruptibleConsumption,
+                          new HashMap<CustomerInfo, CustomerRecord>());
 
     defaultProduction = new TariffSpecification(face, PowerType.PRODUCTION)
         .addRate(new Rate().withValue(defaultProductionRate));
@@ -469,14 +477,20 @@ public class DefaultBrokerService
    */
   public void handleMessage (CustomerBootstrapData cbd)
   {
-    CustomerInfo customer = customerRepo.findByName(cbd.getCustomerName());
+    CustomerInfo customer =
+            customerRepo.findByNameAndPowerType(cbd.getCustomerName(),
+                                                cbd.getPowerType());
     TariffSpecification tariff = null;
     for (TariffSpecification spec : customerSubscriptions.keySet()) {
-      if (spec.getPowerType() == cbd.getPowerType()) {
+      if (cbd.getPowerType().canUse(spec.getPowerType())) {
         tariff = spec;
         break;
       }
     }
+    if (tariff == null) {
+      log.error("Failed to find tariff for powerType " + cbd.getPowerType());
+    }
+
     HashMap<CustomerInfo, CustomerRecord> customerMap = 
       customerSubscriptions.get(tariff);
     CustomerRecord record = customerMap.get(customer); // subscription exists
@@ -594,7 +608,7 @@ public class DefaultBrokerService
         for (int i = 0; i < usage.length; i++)
           usage[i] = usageList.get(i + startIndex);
         result.add(new CustomerBootstrapData(customer,
-                                             spec.getPowerType(),
+                                             customer.getPowerType(),
                                              usage));
       }
     }
