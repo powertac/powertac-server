@@ -44,10 +44,8 @@ public interface CompetitionControl
    * login is successful. The intent is that login will be successful if the
    * username is on the authorizedBrokerList, or if it is one of the
    * pre-configured brokers (usually only the default broker).
-   * The queueName value is the name of the queue used to communicate
-   * with remote brokers.
    */
-  public boolean loginBroker (String username, String queueName);
+  public boolean loginBroker (String username);
 
   /**
    * Sets the list of brokers authorized to log in to the next game. Must
