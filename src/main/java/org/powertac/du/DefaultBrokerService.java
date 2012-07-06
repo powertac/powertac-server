@@ -157,7 +157,7 @@ public class DefaultBrokerService
     }
 
     // log in to ccs
-    competitionControlService.loginBroker(face.getUsername(), null);
+    competitionControlService.loginBroker(face.getUsername());
     
     // set up local state
     bootstrapMode = competitionControlService.isBootstrapMode();
