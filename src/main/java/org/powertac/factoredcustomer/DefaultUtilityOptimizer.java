@@ -369,8 +369,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     private List<Integer> determineAllocations(CapacityBundle bundle, List<Tariff> evalTariffs, 
                                                List<Double> estimatedPayments) 
     {
+        List<Integer> allocations = new ArrayList<Integer>();
+        if (evalTariffs.size() == 1) {
+            allocations.add(bundle.getPopulation());
+            return allocations;
+        }
         List<Boolean> validTariffsIndex = enforceTariffConstraints(bundle, evalTariffs, estimatedPayments);
-
         List<Tariff> checkedTariffs = new ArrayList<Tariff>();
         List<Double> checkedPayments = new ArrayList<Double>();
         for (int i=0; i < evalTariffs.size(); ++i) {
@@ -378,11 +382,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                 checkedTariffs.add(evalTariffs.get(i));
                 checkedPayments.add(estimatedPayments.get(i));
             }
-        }
-        List<Integer> allocations = new ArrayList<Integer>();
-        if (checkedTariffs.size() == 1) {
-            allocations.add(bundle.getPopulation());
-            return allocations;
         }
         List<Integer> checkedAllocs = bundle.getSubscriberStructure().allocationMethod == AllocationMethod.TOTAL_ORDER ?
             determineTotalOrderAllocations(bundle, checkedTariffs, checkedPayments) :
