@@ -15,12 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.joda.time.Instant;
 import org.powertac.common.IdGenerator;
-import org.powertac.common.Timeslot;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.*;
@@ -39,17 +35,24 @@ public class TimeslotUpdate
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
-  @XStreamImplicit(itemFieldName="timeslot")
-  private ArrayList<Timeslot> enabled;
+  //@XStreamImplicit(itemFieldName="timeslot")
+  //private ArrayList<Timeslot> enabled;
+  @XStreamAsAttribute
+  private int firstEnabled;
+  
+  @XStreamAsAttribute
+  private int lastEnabled;
   
   @XStreamAsAttribute
   private Instant postedTime;
 
-  public TimeslotUpdate (Instant postedTime, List<Timeslot> enabled)
+  public TimeslotUpdate (Instant postedTime, int firstEnabled, int lastEnabled)
   {
     super();
     this.postedTime = postedTime;
-    this.enabled = new ArrayList<Timeslot>(enabled);
+    this.firstEnabled = firstEnabled;
+    this.lastEnabled = lastEnabled;
+    //this.enabled = new ArrayList<Timeslot>(enabled);
   }
 
   public long getId ()
@@ -63,11 +66,19 @@ public class TimeslotUpdate
   }
 
   /**
-   * Returns the list of timeslots that are enabled for the coming
+   * Returns the serial number of the first enabled timeslot.
    */
-  public ArrayList<Timeslot> getEnabled ()
+  public int getFirstEnabled ()
   {
-    return enabled;
+    return firstEnabled;
+  }
+
+  /**
+   * Returns the serial number of the first enabled timeslot.
+   */
+  public int getLastEnabled ()
+  {
+    return lastEnabled;
   }
   
   /**
@@ -75,6 +86,6 @@ public class TimeslotUpdate
    */
   public int size ()
   {
-    return enabled.size();
+    return lastEnabled - firstEnabled + 1;
   }
 }

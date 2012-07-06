@@ -16,6 +16,7 @@
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.msg.BalancingOrder;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -37,6 +39,7 @@ public class TariffRepo implements DomainRepo
   private HashMap<Long, TariffSpecification> specs;
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
+  private HashMap<Long, BalancingOrder> balancingOrders;
   
   public TariffRepo ()
   {
@@ -44,6 +47,7 @@ public class TariffRepo implements DomainRepo
     specs = new HashMap<Long, TariffSpecification>();
     tariffs = new HashMap<Long, Tariff>();
     rates = new HashMap<Long, Rate>();
+    balancingOrders = new HashMap<Long, BalancingOrder>();
   }
   
   public synchronized void addSpecification (TariffSpecification spec)
@@ -57,6 +61,11 @@ public class TariffRepo implements DomainRepo
   public synchronized TariffSpecification findSpecificationById (long id)
   {
     return specs.get(id);
+  }
+  
+  public synchronized List<TariffSpecification> findAllTariffSpecifications()
+  {
+    return new ArrayList<TariffSpecification>(specs.values());
   }
   
   public synchronized void addTariff (Tariff tariff)
@@ -101,10 +110,39 @@ public class TariffRepo implements DomainRepo
     return rates.get(id);
   }
   
+  /**
+   * Removes a tariff and its specification from the repo
+   */
+  public synchronized void removeTariff (Tariff tariff)
+  {
+    tariffs.remove(tariff.getId());
+    specs.remove(tariff.getId());
+  }
+  
+  /**
+   * Adds a balancing order, indexed by its TariffSpec
+   */
+  public synchronized void addBalancingOrder (BalancingOrder order)
+  {
+    if (null != specs.get(order.getTariffId())) {
+      balancingOrders.put(order.getTariffId(), order);
+    }
+  }
+  
+  /**
+   * Retrieves the complete set of balancing orders
+   */
+  public synchronized Collection<BalancingOrder> getBalancingOrders ()
+  {
+    return balancingOrders.values();
+  }
+  
+  @Override
   public synchronized void recycle ()
   {
     specs.clear();
     tariffs.clear();
     rates.clear();
+    balancingOrders.clear();
   }
 }

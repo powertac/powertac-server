@@ -123,15 +123,6 @@ public class Tariff
       rateIdMap.put(r.getId(), r);
     }
     tiers = new ArrayList<Double>();
-    if (spec.getSupersedes() != null) {
-      for (long supId : spec.getSupersedes()) {
-        Tariff supersededTariff = tariffRepo.findTariffById(supId);
-        if (supersededTariff == null)
-          log.error("Superseded tariff " + supId + " not found");
-        else
-          supersededTariff.isSupersededBy = this;
-      }
-    }
   }
 
   /**
@@ -147,6 +138,15 @@ public class Tariff
       log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
     tariffRepo.addTariff(this);
+    if (tariffSpec.getSupersedes() != null) {
+      for (long supId : tariffSpec.getSupersedes()) {
+        Tariff supersededTariff = tariffRepo.findTariffById(supId);
+        if (supersededTariff == null)
+          log.error("Superseded tariff " + supId + " not found");
+        else
+          supersededTariff.isSupersededBy = this;
+      }
+    }
     analyze();
   }
   
@@ -190,10 +190,13 @@ public class Tariff
    */
   public double getRealizedPrice ()
   {
-    if (totalUsage == 0.0)
+    if (totalUsage == 0.0) {
       return 0.0;
-    else
-      return totalCost / totalUsage;
+    }
+    else {
+      double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
+      return sign * totalCost / totalUsage;
+    }
   }
 
   /** 
@@ -309,6 +312,11 @@ public class Tariff
   {
     // first, get the time index
     int di = getTimeIndex(when);
+    
+    // next, adjust the sign of the result. Production is kwh<0, and rate>0.
+    // Consumption is kwh>0 and rate<0. If we multiply them, we get the same
+    // sign. So this is the adjustment:
+    double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
 
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
@@ -317,7 +325,7 @@ public class Tariff
       return 0.0;
     }
     else if (tiers.size() == 1) {
-      return kwh * rateValue(0, di, when);
+      return sign * kwh * rateValue(0, di, when);
     }
     else {
       double result = 0.0;
@@ -325,7 +333,7 @@ public class Tariff
       for (RateKwh rk : rkList) {
         result += rk.kwh * rk.rate.getValue(when);
       }
-      return result;
+      return sign * result;
     }
   }
 

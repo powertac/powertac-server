@@ -28,7 +28,7 @@ public class CustomerInfoTests
     assertNotNull("not null", info);
     assertEquals("name", "t1", info.getName());
     assertEquals("population", 33, info.getPopulation());
-    assertEquals("no power types", 0, info.getPowerTypes().size());
+    assertEquals("correct power type", PowerType.CONSUMPTION, info.getPowerType());
     assertFalse("no multicontracting", info.isMultiContracting());
     assertFalse("can't negotiate", info.isCanNegotiate());
   }
@@ -42,13 +42,12 @@ public class CustomerInfoTests
   }
 
   @Test
-  public void testAddPowerType ()
+  public void testWithPowerType ()
   {
     CustomerInfo info = new CustomerInfo("t1", 33);
-    CustomerInfo result = info.addPowerType(PowerType.CONSUMPTION);
+    CustomerInfo result = info.withPowerType(PowerType.PRODUCTION);
     assertEquals("correct return", info, result);
-    assertEquals("one type", 1, info.getPowerTypes().size());
-    assertEquals("correct type", PowerType.CONSUMPTION, info.getPowerTypes().get(0));
+    assertEquals("correct type", PowerType.PRODUCTION, info.getPowerType());
   }
 
   @Test
@@ -80,7 +79,7 @@ public class CustomerInfoTests
   public void xmlSerializationTest ()
   {
     CustomerInfo ci = new CustomerInfo("Sam", 44);
-    ci.addPowerType(PowerType.CONSUMPTION).addPowerType(PowerType.ELECTRIC_VEHICLE);
+    ci.withPowerType(PowerType.ELECTRIC_VEHICLE);
     XStream xstream = new XStream();
     xstream.processAnnotations(CustomerInfo.class);
     StringWriter serialized = new StringWriter();
@@ -91,8 +90,9 @@ public class CustomerInfoTests
     assertEquals("correct id", ci.getId(), xci.getId());
     assertEquals("correct name", "Sam", xci.getName());
     assertEquals("correct population", 44, xci.getPopulation());
-    assertEquals("correct number of PowerTypes", 2, xci.getPowerTypes().size());
-    assertTrue("contains CONSUMPTION", xci.getPowerTypes().contains(PowerType.CONSUMPTION));
+    //assertEquals("correct number of PowerTypes", 2, xci.getPowerTypes().size());
+    assertEquals("electric vehicle", PowerType.ELECTRIC_VEHICLE,
+                 xci.getPowerType());
   }
 
 }

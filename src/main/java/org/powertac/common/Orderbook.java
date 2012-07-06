@@ -63,7 +63,7 @@ public class Orderbook
   @XStreamImplicit(itemFieldName = "bid")
   private SortedSet<OrderbookOrder> bids = new TreeSet<OrderbookOrder>();
 
-  /** sorted set of OrderbookOrders represenging asks ascending */
+  /** sorted set of OrderbookOrders representing asks ascending */
   @XStreamImplicit(itemFieldName = "ask")
   private SortedSet<OrderbookOrder> asks = new TreeSet<OrderbookOrder>();
 

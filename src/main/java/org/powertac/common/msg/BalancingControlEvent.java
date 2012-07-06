@@ -28,12 +28,15 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * imbalance.
  * @author John Collins
  */
-@Domain(fields = { "kwh" })
+@Domain(fields = { "kwh", "payment" })
 @XStreamAlias("balancing-control")
 public class BalancingControlEvent extends ControlEvent
 {
   @XStreamAsAttribute
   private double kwh = 0.0;
+
+  @XStreamAsAttribute
+  private double payment = 0.0;
   
   /**
    * Creates a new BalancingControlEvent to represent a curtailment in the 
@@ -47,14 +50,20 @@ public class BalancingControlEvent extends ControlEvent
    * specifying the same amount of energy.
    */
   public BalancingControlEvent (TariffSpecification spec,
-                         double kwh, int timeslotIndex)
+                                double kwh, double payment, int timeslotIndex)
   {
     super(spec.getBroker(), spec, timeslotIndex);
     this.kwh = kwh;
+    this.payment = payment;
   }
   
   public double getKwh()
   {
     return kwh;
+  }
+  
+  public double getPayment()
+  {
+    return payment;
   }
 }

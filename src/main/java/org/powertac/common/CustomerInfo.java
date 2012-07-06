@@ -58,8 +58,8 @@ public class CustomerInfo //implements Serializable
   private int population;
 
   /** gives the available power classifications of the customer */
-  @XStreamImplicit(itemFieldName = "power-type")
-  private ArrayList<PowerType> powerTypes;
+  @XStreamAsAttribute
+  private PowerType powerType;
   
   /** describes whether or not this customer engages in multiple contracts at the same time.
    * Defaults to false. */
@@ -72,13 +72,14 @@ public class CustomerInfo //implements Serializable
   private boolean canNegotiate = false;
   
   /**
-   * Creates a new CustomerInfo, with no power types set. Chain calls
-   * to addPowerType() to add the correct power types.
+   * Creates a new CustomerInfo, with default power type set to
+   * CONSUMPTION. Chain a call
+   * to withPowerType() to set the correct power types.
    */
   public CustomerInfo (String name, int population)
   {
     super();
-    powerTypes = new ArrayList<PowerType>();
+    powerType = PowerType.CONSUMPTION;
     this.name = name;
     this.population = population;
   }
@@ -118,45 +119,22 @@ public class CustomerInfo //implements Serializable
     this.population = population;
   }
 
-  /** 
-   * Gives a "rough" classification what type of customer to 
-   * expect based on the CustomerType enumeration, i.e. a fixed set of 
-   * customer types. Defaults to CustomerHousehold. */
-  //public CustomerType getCustomerType ()
-  //{
-  //  return customerType;
-  //}
-  
-  /**
-   * Fluent setter for customer classification.
-   */
-  //@StateChange
-  //public CustomerInfo withCustomerType (CustomerType type)
-  //{
-  //  customerType = type;
-  //  return this;
-  //}
-
   /**
    * The types of power consumption and/or production modalities available in
    * the customer model.
    */
-  public ArrayList<PowerType> getPowerTypes ()
+  public PowerType getPowerType ()
   {
-    if (powerTypes == null) {
-      // deserialization can leave this null
-      powerTypes = new ArrayList<PowerType>();
-    }
-    return powerTypes;
+    return powerType;
   }
   
   /**
-   * Fluent setter to add PowerType flags to this CustomerInfo.
+   * Fluent setter to set PowerType fpr this CustomerInfo.
    */
   @StateChange
-  public CustomerInfo addPowerType (PowerType type)
+  public CustomerInfo withPowerType (PowerType type)
   {
-    powerTypes.add(type);
+    powerType = type;
     return this;
   }
 

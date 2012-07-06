@@ -45,6 +45,7 @@ public class OrderbookRepo implements DomainRepo
   private HashMap<Timeslot, List<Orderbook>> orderbookIndex;
   private HashMap<Timeslot, Orderbook> timeslotIndex;
   private HashMap<Timeslot, Orderbook> spotIndex;
+  private Double[] minAskPrices;
   
   /** Standard constructor */
   public OrderbookRepo ()
@@ -102,6 +103,25 @@ public class OrderbookRepo implements DomainRepo
   }
   
   /**
+   * Set the minAskPrices array. This is presumably done by the auctioneer
+   * when clearing the market, and so the data reflects the prices for
+   * the most recent market clearing.
+   */
+  public void setMinAskPrices (Double[] values)
+  {
+    minAskPrices = values;
+  }
+  
+  /**
+   * Returns the minAskPrices array, representing the minimum ask prices
+   * for the most recent clearing of the wholesale market.
+   */
+  public Double[] getMinAskPrices ()
+  {
+    return minAskPrices;
+  }
+  
+  /**
    * Returns the count of instances in this repo
    */
   public int size()
@@ -112,8 +132,10 @@ public class OrderbookRepo implements DomainRepo
   /** Clears the index in preparation for a new simulation */
   public void recycle ()
   {
+    orderbookIndex.clear();
     timeslotIndex.clear();
     spotIndex.clear();
+    minAskPrices = null;
   }
 
 }

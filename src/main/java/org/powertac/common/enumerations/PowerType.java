@@ -119,6 +119,18 @@ public class PowerType
   }
   
   /**
+   * Returns true just in case this powerType is a supertype (can use) 
+   * the tariffType.
+   */
+  public boolean canUse (PowerType tariffType)
+  {
+    return (this.equals(tariffType)
+            || (isConsumption() && tariffType.label == TypeLabel.CONSUMPTION)
+            || (isProduction() && tariffType.label == TypeLabel.PRODUCTION)
+            || (isInterruptible() && tariffType.label == TypeLabel.INTERRUPTIBLE_CONSUMPTION));
+  }
+  
+  /**
    * Returns true just in case this type is interruptible.
    */
   public boolean isInterruptible ()

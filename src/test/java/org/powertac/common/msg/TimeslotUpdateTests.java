@@ -62,26 +62,33 @@ public class TimeslotUpdateTests
   @Test
   public void testTimeslotUpdate ()
   {
+    List<Timeslot> enabled = timeslotRepo.enabledTimeslots();
     TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(),
-                                            timeslotRepo.enabledTimeslots());
+                                            enabled.get(0).getSerialNumber(),
+                                            enabled.get(enabled.size() - 1).getSerialNumber());
     assertNotNull("message not null", tsu);
     assertEquals("15 timeslots", 15, tsu.size());
     assertEquals("correct posted time",
                  timeService.getCurrentTime(),
                  tsu.getPostedTime());
-    List<Timeslot> result = tsu.getEnabled();
-    assertNotNull("non-null result", result);
-    assertEquals("15 elements in list", 15, result.size());
+    int first = tsu.getFirstEnabled();
+    int last = tsu.getLastEnabled();
+    assertEquals("15 elements in list", 14, last - first);
     assertEquals("correct first element",
-                 timeslotRepo.enabledTimeslots().get(0),
-                 result.get(0));
+                 timeslotRepo.enabledTimeslots().get(0).getSerialNumber(),
+                 first);
+    assertEquals("correct last element",
+                 timeslotRepo.enabledTimeslots().get(14).getSerialNumber(),
+                 last);
   }
 
   @Test
   public void xmlSerializationTest ()
   {
+    List<Timeslot> enabled = timeslotRepo.enabledTimeslots();
     TimeslotUpdate tsu = new TimeslotUpdate(timeService.getCurrentTime(),
-                                            timeslotRepo.enabledTimeslots());
+                                            enabled.get(0).getSerialNumber(),
+                                            enabled.get(enabled.size() - 1).getSerialNumber());
     XStream xstream = new XStream();
     xstream.processAnnotations(TimeslotUpdate.class);
     StringWriter serialized = new StringWriter();
@@ -92,6 +99,8 @@ public class TimeslotUpdateTests
     assertEquals("correct time",
                  timeService.getCurrentTime(),
                  xtsu.getPostedTime());
-    assertEquals("correct list length", 15, xtsu.size());
+    assertEquals("correct first", enabled.get(0).getSerialNumber(), xtsu.getFirstEnabled());
+    assertEquals("correct last", enabled.get(14).getSerialNumber(), xtsu.getLastEnabled());
+    assertEquals("correct length", 15, xtsu.size());
   }
 }

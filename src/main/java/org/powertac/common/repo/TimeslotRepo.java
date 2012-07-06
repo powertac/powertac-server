@@ -104,6 +104,14 @@ public class TimeslotRepo implements DomainRepo
     log.debug("current: " + current.toString());
     return current;
   }
+  
+  /**
+   * Returns the serial number of the current timeslot
+   */
+  public int currentSerialNumber ()
+  {
+    return currentTimeslot().getSerialNumber();
+  }
 
   /**
    * Returns the timeslot (if any) with the given serial number.

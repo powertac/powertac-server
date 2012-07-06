@@ -23,5 +23,5 @@ package org.powertac.util;
  */
 public interface Predicate<T>
 {
-  boolean apply (T type);
+  boolean apply (T item);
 }
