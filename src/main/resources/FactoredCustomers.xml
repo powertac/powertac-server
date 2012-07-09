@@ -1,6 +1,15 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="./DescribeConfig.xsl"?>
+
 <customers>
 
     <customer name="BrooksideHomes" count="1" creatorKey="" entityType="RESIDENTIAL">
+        <description>
+        A prototypical multicontracting consumer population of 30000 households in a suburban area 
+        with consumption peaking in the morning and evening. The aggregate capacity is generated 
+        using a timeseries forecasting model learned from a fine-grained model based on the MEREGIO 
+        project household model developed by Gottwalt, et al.
+        </description>
         <capacityBundle id="" population="30000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <contractNegotiator /> <!-- N/A -->
             <tariffSubscriber>
@@ -62,6 +71,13 @@
     </customer>
 
     <customer name="CentervilleHomes" count="1" creatorKey="LEARNING" entityType="RESIDENTIAL">
+        <description>
+        A multicontracting consumer population of 20000 households that is similar to BrooksideHomes in many aspects. 
+        There are three key distinctions: (i) the capacities for these customers are generated using a population 
+        distribution model instead of a timeseries forecastign model, (ii) the capacities exhibit decision-theoretic 
+        adaptive behavior whereby they adjust the time-shifting of capacities dynamically when presented with TOU tariffs, 
+        and (iii) tariffs are reevaluated more frequently.
+        </description>
         <capacityBundle id="" population="20000" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -100,6 +116,11 @@
     </customer>
 
     <customer name="DowntownOffices" count="1" creatorKey="" entityType="COMMERCIAL">
+        <description>
+        A multicontracting consumer population of 30 urban offices that are similar to household populations 
+        in most aspects except that the consumption pattern is consistently sustained at a higher level 
+        during weekdays and is lower at night and on the weekends. 
+        </description>
         <capacityBundle id="" population="30" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -138,6 +159,11 @@
     </customer>
 
     <customer name="EastsideOffices" count="1" creatorKey="LEARNING" entityType="COMMERCIAL">
+        <description>
+        A multicontracting consumer population of 25 suburban offices similar to DowntownOffices in 
+        many aspects except that the generated capacities employ dynamically learned time-shifting 
+        behavior similar to the capabilities of CentervilleHomes and tariffs are reevaluated more frequently.
+        </description>
         <capacityBundle id="" population="25" powerType="CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -176,6 +202,15 @@
     </customer>
 
     <customer name="FrostyStorage" count="1" creatorKey="" entityType="COMMERCIAL">
+        <description>
+        A centrally-managed set of 3 cold-storage facilities with interruptible consumption.  
+        Each facility in turn has 3 capacity generators, each of which draws from an individual 
+        probability distribution. The consumption capacity is consistent regardless of the 
+        week of the day. Interrupted capacity is typically shifted over to the next two timeslots.
+        Since the population units are centrally managed, they do use similar 
+        tariff evaluation criteria but the facilities are individually metered so they can be 
+        allocated to different tariffs if needed, i.e., the aggregate customer is multicontracting. 
+        </description>
         <capacityBundle id="" population="3" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -195,8 +230,8 @@
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="3" description="Refrigerated storage warehouses.">
-                <baseCapacity type="POPULATION">  
-                    <populationCapacity distribution="NORMAL" mean="5700" stdDev="300" />
+                <baseCapacity type="INDIVIDUAL">  
+                    <individualCapacity distribution="NORMAL" mean="1900" stdDev="100" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
@@ -216,6 +251,12 @@
     </customer>
 
     <customer name="HextraChemical" count="1" creatorKey="" entityType="INDUSTRIAL">
+        <description>
+        A multicontracting installation of 5 chemical manufacturing plants with interruptible consumption.
+        The capacity generated from each plant is drawn from a uniform distribution for all weekdays 
+        with minimal consumption over the weekends.  Interrupted capacity is typically shifted over to 
+        the next four timeslots.         
+        </description>
         <capacityBundle id="" population="5" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -256,6 +297,14 @@
     </customer>
 
     <customer name="MedicalCenter" count="1" creatorKey="" entityType="COMMERCIAL">
+        <description>
+        A hybrid customer representing a single large hospital complex with a large consumption 
+        capacity and a small solar production capacity. The consumption and production capacities 
+        may be allocated to tariffs from different brokers.  Consumption is skewed towards slightly 
+        lower consumption at night and notably lower over the weekend, although much higher than 
+        is typical for commercial office buildings.  Production capacity is mostly governed by 
+        daylight and cloud cover.
+        </description>
         <capacityBundle id="1" population="1" powerType="CONSUMPTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -329,6 +378,11 @@
     </customer>
 
     <customer name="SunnyhillSolar" count="1" creatorKey="" entityType="INDUSTRIAL">
+        <description>
+        A small community-owned PEV farm that is managed as a single unit and therefore 
+        has no multicontracting capabilities.  The generated capacity is driven largely 
+        by daylight and cloud cover. 
+        </description>
         <capacityBundle id="" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
@@ -346,7 +400,7 @@
                     <inertiaDistribution distribution="POINTMASS" value="0.1" />
                 </switchingInertia>
             </tariffSubscriber>
-            <capacity count="1" description="Midsize solar farm.">
+            <capacity count="1" description="Community solar farm.">
                 <baseCapacity type="INDIVIDUAL">  
                     <individualCapacity distribution="NORMAL" mean="6000" stdDev="300" />
                 </baseCapacity>
@@ -367,6 +421,11 @@
     </customer>
 
     <customer name="WindmillCoOp" count="1" creatorKey="" entityType="INDUSTRIAL">
+        <description>
+        A cooperative of 90 rural wind turbines with muticontracting production.  50 of the 
+        wind turbines are placed to maximize production from south-westerly winds and 40 are 
+        placed to maximize production from south-easterly winds.
+        </description>
         <capacityBundle id="1" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
