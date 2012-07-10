@@ -89,6 +89,14 @@ public class Competition //implements Serializable
   /** the start time of the simulation scenario, in sim time. */
   @XStreamAsAttribute
   private Instant simulationBaseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+
+  /** timezone offset for scenario locale */
+  @XStreamAsAttribute
+  private int timezoneOffset = 0;
+  
+  /** approximate latitude in degrees north for scenario locale */
+  @XStreamAsAttribute
+  private int latitude = 45;
   
   /** the time-compression ratio for the simulation. So if we are running one-hour timeslots every 5 seconds, the rate would be 720 (=default).    */
   @XStreamAsAttribute
@@ -322,7 +330,7 @@ public class Competition //implements Serializable
   {
     return withSimulationBaseTime(simulationBaseTime.getMillis());
   }
-  
+
   /**
    * Fluent setter for simulation base time that takes a String, interpreted
    * as a standard DateTimeFormat as yyy-MM-dd.
@@ -335,7 +343,7 @@ public class Competition //implements Serializable
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
     return withSimulationBaseTime(fmt.parseDateTime(baseTime).toInstant()); 
   }
-  
+
   /**
    * Fluent setter for simulation base time that takes a long.
    */
@@ -345,6 +353,46 @@ public class Competition //implements Serializable
   public Competition withSimulationBaseTime (long baseTime)
   {
     this.simulationBaseTime = new Instant(baseTime);
+    return this;
+  }
+
+  /**
+   * Returns timezone offset for sim locale.
+   */
+  public int getTimezoneOffset ()
+  {
+    return timezoneOffset;
+  }
+
+  /**
+   * Fluent setter for timezone offset
+   */
+  @ConfigurableValue(valueType = "Integer",
+          description = "Timezone offset from UTC for sim locale")
+  @StateChange
+  public Competition withTimezoneOffset (int offset)
+  {
+    this.timezoneOffset = offset;
+    return this;
+  }
+
+  /**
+   * Returns approximate latitude in degrees for sim locale.
+   */
+  public int getLatitude ()
+  {
+    return latitude;
+  }
+
+  /**
+   * Fluent setter for latitude value
+   */
+  @ConfigurableValue(valueType = "Integer",
+          description = "Approximate latitude of sim locale")
+  @StateChange
+  public Competition withLatitude (int latitude)
+  {
+    this.latitude = latitude;
     return this;
   }
 
