@@ -465,9 +465,9 @@ public class CompetitionControlService
     // only enabled brokers get messages
     broker.setEnabled(true);
     //broker.setQueueName(queueName);
-    //computeBrokerKey(broker);
+    computeBrokerKey(broker);
     // assign prefix and key with accept message
-    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, null));
+    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, broker.getKey()));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
@@ -478,15 +478,15 @@ public class CompetitionControlService
     return true;
   }
 
-//  private void computeBrokerKey (Broker broker)
-//  {
-//    long time = new Date().getTime() & 0xffffffff;
-//    int hash = broker.hashCode();
-//    int code = (int)((hash * time) & 0x7fffffff);
-//    String key = Integer.toString(code, 36);
-//    log.info("Broker " + broker.getUsername() + " key: " + key);
-//    //broker.setKey(key);
-//  }
+  private void computeBrokerKey (Broker broker)
+  {
+    long time = new Date().getTime() & 0xffffffff;
+    int hash = broker.hashCode();
+    int code = (int)((hash * time) & 0x7fffffff);
+    String key = Integer.toString(code, 36);
+    log.info("Broker " + broker.getUsername() + " key: " + key);
+    broker.setKey(key);
+  }
 
   // set simulation time parameters, making sure that simulationStartTime
   // is still sufficiently in the future.
