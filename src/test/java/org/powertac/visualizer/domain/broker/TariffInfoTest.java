@@ -50,19 +50,19 @@ public class TariffInfoTest {
 		TariffTransaction transaction = new TariffTransaction(broker, null, Type.SIGNUP, tariffSpecification,
 				new CustomerInfo("Purgeri", 200), 35, 0, 100);
 		tariffInfo.addTariffTransaction(transaction);
-		tariffInfo.update(0);
+		tariffInfo.update(0,null);
 		System.out.println(tariffInfo.getJson());
 
 		transaction = new TariffTransaction(broker, null, Type.CONSUME, tariffSpecification, new CustomerInfo(
 				"Srakari", 200), 10, -100, 15);
 		tariffInfo.addTariffTransaction(transaction);
-		tariffInfo.update(1);
+		tariffInfo.update(1,null);
 		System.out.println(tariffInfo.getJson());
 
 		transaction = new TariffTransaction(broker, null, Type.WITHDRAW, tariffSpecification, new CustomerInfo(
 				"Purgeri", 200), 35, 0, 100);
 		tariffInfo.addTariffTransaction(transaction);
-		tariffInfo.update(2);
+		tariffInfo.update(2,null);
 		System.out.println(tariffInfo.getJson());
 
 		System.out.println();

@@ -9,41 +9,44 @@
 <h:head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>PowerTAC Visualizer</title>
-	<ui:insert name="headIncludes" />
+	<ui:insert name="headInclude" />
 	<h:outputScript library="js" name="scripts.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
+	<h:outputScript library="js" name="highcharts.js"/>
+	<h:outputScript library="js" name="highstock.js"/>
+	<h:outputScript library="js/modules" name="exporting.js"/>
 	<script type="text/javascript">
 		var cashChartGlobal;
 		var subscriptionsPieChart;
 	</script>
+	<ui:insert name="headIncludes" />
 
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true" stateful="false">
+	<p:layout id="mainLayout" fullPage="true" stateful="true">
 		<p:layoutUnit id="north" position="north" size="80" collapsible="true"
-			header="LOL" styleClass="custom">
+			header="LOL" styleClass="custom" resizable="true">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
 			<h:form id="northForm">
 				<table cellspacing="5" align="right">
 					<tr>
-						<th>Week:</th>
-						<th>Day:</th>
-						<th>Hour:</th>
+						<th>Time:</th>
 						<th>Timeslot:</th>
 						<th>Name:</th>
 						<th>Description:</th>
-						<!-- <th>Poll counter (dev. stage):</th>  -->
+						
+						
 						
 					</tr>
 					<tr>
-						<td>#{visualizerBean.week}</td>
-						<td>#{visualizerBean.day}</td>
-						<td>#{visualizerBean.hour}</td>
+					<td><h:outputLabel value="#{visualizerBean.timeslotUpdate.postedTime.millis}" >
+						<f:convertDateTime type="both" pattern="HH:mm, E, MMM d, y"/>
+						</h:outputLabel>  </td> 
 						<td>#{visualizerBean.currentTimeslotSerialNumber}</td>
 						<td>#{visualizerBean.competition.name}</td>
 						<td>#{visualizerBean.competition.description}</td>
-						<!-- <td>#{trainingService.counter}</td> -->
+						
 						<td><p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol"/>	</td>
 
 					</tr>
@@ -52,7 +55,7 @@
 			</h:form>
 		</p:layoutUnit>
 
-		<p:layoutUnit position="center" size="1000">
+		<p:layoutUnit position="center" size="800" resizable="true">
 			<h2 class="alt" style="text-align: center;">
 
 				<ui:insert name="title"></ui:insert>
@@ -64,7 +67,7 @@
 		</p:layoutUnit>
 
 		<p:layoutUnit position="east" size="400" collapsible="true"
-			header="LOL" styleClass="custom">
+			header="LOL" styleClass="custom" resizable="true">
 
 			<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 			<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml" />
@@ -74,7 +77,7 @@
 
 		</p:layoutUnit>
 
-		<p:layoutUnit position="south" size="20">
+		<p:layoutUnit position="south" size="20" >
 			<p:dock>
 				<p:menuitem value="Game Overview"
 					icon="/app/resources/resources/images/dock/eye.png"

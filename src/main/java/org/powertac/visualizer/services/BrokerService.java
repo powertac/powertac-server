@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
@@ -56,7 +57,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 		this.json = json;
 	}
 
-	public void activate(int timeslotIndex) {
+	public void activate(int timeslotIndex, Instant postedTime ) {
 		// cash lineChart:
 		JSONArray cashChartData = new JSONArray();
 		// subscription pieChart:
@@ -67,7 +68,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 			
 			log.trace("Updating broker model:"+broker.getName());
 			// update broker's model
-			broker.update(timeslotIndex);
+			broker.update(timeslotIndex, postedTime);
 			// collect data for global charts:
 			cashChartData.put(broker.getJson().getCashBalanceJson());
 			customerCountData.put(broker.getCustomerCount());

@@ -3,6 +3,8 @@ package org.powertac.visualizer;
 import java.math.BigDecimal;
 
 import org.apache.log4j.Logger;
+import org.joda.time.Chronology;
+import org.joda.time.Instant;
 import org.powertac.common.TariffTransaction;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
@@ -56,6 +58,20 @@ public class Helper {
 
 	public static double roundNumberTwoDecimal(double number) {
 		return new BigDecimal(number).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+	}
+	
+	public static String getJsonDate(Instant time){
+		
+		int year = time.get(time.getChronology().year());
+		int month = time.get(time.getChronology().monthOfYear());
+		month--;
+		int day = time.get(time.getChronology().dayOfMonth());
+		int hour = time.get(time.getChronology().hourOfDay());
+		
+		String jsonDate = "Date.UTC("+year+","+month+","+day+","+hour+")";
+		
+		return jsonDate;
+		
 	}
 
 }

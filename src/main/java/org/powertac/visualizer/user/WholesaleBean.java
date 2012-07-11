@@ -30,9 +30,13 @@ public class WholesaleBean implements Serializable {
 	@Autowired
 	public WholesaleBean(WholesaleService wholesaleService) {
 		model = wholesaleService;
+		refresh();
+	}
+
+	private void refresh() {
 		markets = new ArrayList<WholesaleMarket>(model.getWholesaleMarkets().values());
 		totalTradedQuantityMWh = model.getTotalTradedQuantityMWh();
-	}
+			}
 
 	public WholesaleSnapshot getSelectedSnapshot() {
 		return selectedSnapshot;
@@ -42,7 +46,7 @@ public class WholesaleBean implements Serializable {
 		this.selectedSnapshot = selectedSnapshot;
 		beforeAsks = selectedSnapshot.getBeforeAsks();
 		afterAsks = selectedSnapshot.getAfterAsks();
-	}
+		}
 
 	public WholesaleMarket getSelectedMarket() {
 		return selectedMarket;
@@ -53,6 +57,7 @@ public class WholesaleBean implements Serializable {
 	}
 
 	public double getTotalTradedQuantityMWh() {
+		
 		return totalTradedQuantityMWh;
 
 	}
@@ -62,6 +67,7 @@ public class WholesaleBean implements Serializable {
 	}
 
 	public Collection<WholesaleMarket> getMarkets() {
+		refresh();
 		return markets;
 	}
 	public List<OrderbookOrder> getAfterAsks() {
@@ -69,6 +75,11 @@ public class WholesaleBean implements Serializable {
 	}
 	public List<OrderbookOrder> getBeforeAsks() {
 		return beforeAsks;
+	}
+	
+	public void clearSelections(){
+		selectedSnapshot = null;
+		selectedMarket = null;
 	}
 
 }

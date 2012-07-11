@@ -12,9 +12,7 @@ public class CustomerJSON {
 	private JSONArray totalkWhLineChartData = new JSONArray();
 	private JSONArray productionKWhLineChartData = new JSONArray();
 	private JSONArray consumptionKWhLineChartData = new JSONArray();
-
 	
-
 	public void setBootstrapLineChartData(JSONArray bootstrapLineChartData) {
 		this.bootstrapLineChartData = bootstrapLineChartData;
 	}
@@ -74,4 +72,7 @@ public class CustomerJSON {
 	public JSONArray getTotalkWhLineChartData() {
 		return totalkWhLineChartData;
 	}
+	
+
+
 }

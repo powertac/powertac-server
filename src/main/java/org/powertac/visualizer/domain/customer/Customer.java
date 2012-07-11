@@ -1,9 +1,17 @@
 package org.powertac.visualizer.domain.customer;
 
+import javax.swing.text.DefaultEditorKit.CutAction;
+
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeField;
+import org.joda.time.Instant;
+import org.joda.time.ReadableDateTime;
+import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.CustomerBootstrapData;
+import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.interfaces.TimeslotModelUpdate;
 import org.powertac.visualizer.json.CustomerJSON;
@@ -30,10 +38,12 @@ public class Customer implements TimeslotModelUpdate {
 	private double currentInflowCharge;
 	private double currentOutflowCharge;
 
+
 	public Customer(CustomerInfo customerInfo) {
 		customerJson = new CustomerJSON();
 		customerModel = new CustomerModel(customerInfo);
 		this.customerInfo = customerInfo;
+		// charts = new CustomerCharts();
 	}
 
 	public CustomerModel getCustomerModel() {
@@ -44,9 +54,9 @@ public class Customer implements TimeslotModelUpdate {
 		return customerJson;
 	}
 
-	public void addCustomerBootstrapData(CustomerBootstrapData data) {
+	public void addCustomerBootstrapData(CustomerBootstrapData data, Competition competition) {
 		bootstrapData = data;
-		buildBootstrapDataJSON();
+		buildBootstrapDataJSON(competition);
 
 	}
 
@@ -67,9 +77,20 @@ public class Customer implements TimeslotModelUpdate {
 		customerModel.addTariffTransaction(transaction);
 	}
 
-	private void buildBootstrapDataJSON() {
+	private void buildBootstrapDataJSON(Competition competition) {
 		try {
-			JSONArray array = new JSONArray(bootstrapData.getNetUsage());
+			JSONArray array = new JSONArray();
+			double[] energyUsage = bootstrapData.getNetUsage();
+			
+			long baseTime = competition.getSimulationBaseTime().getMillis();
+			
+			for (int i = 0; i < energyUsage.length; i++) {
+				JSONArray point = new JSONArray();
+				point.put(baseTime).put(energyUsage[i]);
+				array.put(point);
+				baseTime+=competition.getSimulationModulo();
+			}
+			
 			customerJson.setBootstrapLineChartData(array);
 		} catch (JSONException e) {
 			log.warn("Unable to create JSON Array from bootstrap data");
@@ -77,26 +98,31 @@ public class Customer implements TimeslotModelUpdate {
 
 	}
 
-	public void update(int timeslotIndex) {
+	public void update(int timeslotIndex, Instant postedTime) {
 		try {
-			JSONArray chargeTotal = new JSONArray().put(timeslotIndex).put(currentInflowCharge+currentOutflowCharge);
-			customerJson.getTotalChargeLineChartData().put(chargeTotal);
-			JSONArray kWhTotal = new JSONArray().put(timeslotIndex).put(currentKWhConsumed+currentKWhProduced);
-			customerJson.getTotalkWhLineChartData().put(kWhTotal);
-			
-			JSONArray chargeInflow = new JSONArray().put(timeslotIndex).put(currentInflowCharge);
-			customerJson.getInflowChargeLineChartData().put(chargeInflow);
-			JSONArray chargeOutflow = new JSONArray().put(timeslotIndex).put(currentOutflowCharge);
-			customerJson.getOutflowChargeLineChartData().put(chargeOutflow);
-			
-			JSONArray kWhProd = new JSONArray().put(timeslotIndex).put(currentKWhProduced);
-			customerJson.getProductionKWhLineChartData().put(kWhProd);
-			
-			JSONArray kWhCons = new JSONArray().put(timeslotIndex).put(currentKWhConsumed);
-			customerJson.getConsumptionKWhLineChartData().put(kWhCons);
-		
 
 			
+			customerJson.getTotalChargeLineChartData().put(new JSONArray().put(postedTime.getMillis()).put(
+					currentInflowCharge + currentOutflowCharge));
+
+			JSONArray kWhTotal = new JSONArray().put(postedTime.getMillis()).put(
+					currentKWhConsumed + currentKWhProduced);
+			customerJson.getTotalkWhLineChartData().put(kWhTotal);
+
+			JSONArray chargeInflow = new JSONArray().put(postedTime.getMillis()).put(
+					currentInflowCharge);
+			customerJson.getInflowChargeLineChartData().put(chargeInflow);
+			JSONArray chargeOutflow = new JSONArray().put(postedTime.getMillis()).put(
+					currentOutflowCharge);
+			customerJson.getOutflowChargeLineChartData().put(chargeOutflow);
+
+			JSONArray kWhProd = new JSONArray().put(timeslotIndex).put(
+					currentKWhProduced);
+			customerJson.getProductionKWhLineChartData().put(kWhProd);
+
+			JSONArray kWhCons = new JSONArray().put(timeslotIndex).put(
+					currentKWhConsumed);
+			customerJson.getConsumptionKWhLineChartData().put(kWhCons);
 
 		} catch (JSONException e) {
 			log.warn("Problem with customers JSON object update!");
@@ -113,5 +139,7 @@ public class Customer implements TimeslotModelUpdate {
 	public CustomerInfo getCustomerInfo() {
 		return customerInfo;
 	}
+
+	
 
 }

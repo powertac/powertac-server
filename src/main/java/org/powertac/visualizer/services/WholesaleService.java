@@ -18,6 +18,7 @@ import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.interfaces.Recyclable;
+import org.powertac.visualizer.json.WholesaleServiceJSON;
 import org.primefaces.model.DefaultTreeNode;
 import org.primefaces.model.TreeNode;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,8 @@ public class WholesaleService implements Serializable, Recyclable {
 	private Map<Integer, WholesaleMarket> wholesaleMarkets;
 
 	private double totalTradedQuantityMWh;
+	
+	private WholesaleServiceJSON json;
 
 	public WholesaleService() {
 		recycle();
@@ -68,7 +71,12 @@ public class WholesaleService implements Serializable, Recyclable {
 	public void recycle() {
 		wholesaleMarkets = new ConcurrentSkipListMap<Integer, WholesaleMarket>();
 		totalTradedQuantityMWh = 0;
+		json = new WholesaleServiceJSON();
 
+	}
+	
+	public WholesaleServiceJSON getJson() {
+		return json;
 	}
 
 }

@@ -10,142 +10,158 @@
 <h:body>
 	<ui:fragment>
 
-		<ui:repeat var="customer" value="#{customers}">
-			<script type="text/javascript">
-	var bootstrapLineChartData#{customer.customerInfo.id}=null;
-	
-	var totalkWhLineChartData#{customer.customerInfo.id}=null;
-	var productionKWhLineChartData#{customer.customerInfo.id}=null;
-	var consumptionKWhLineChartData#{customer.customerInfo.id}=null;
-	
-	var totalChargeLineChartData#{customer.customerInfo.id}=null;
-	var inflowChargeLineChartData#{customer.customerInfo.id}=null;
-	var outflowChargeLineChartData#{customer.customerInfo.id}=null;
-	
-	</script>
-		</ui:repeat>
+		
 
+		<h:form>
+			<p:poll autoStart="true" update="@(.update)"  interval="8" widgetVar="customerPoll" stop="#{visualizerBean.finished}" />
+		</h:form>
+			
+		<h:form>
+			<h:panelGrid columns="3" style="margin-bottom:10px" cellpadding="5">
+				<h:outputText value="Select generic type:" />
 
-		<p:tabView id="tabCustomers" var="customer" value="#{customers}"
-			dynamic="true" cache="true">
+				<p:selectOneMenu value="#{userSessionBean.genericType}" styleClass="update">
+					<f:selectItem itemLabel="Consumption" itemValue="CONSUMPTION" />
+					<f:selectItem itemLabel="Production" itemValue="PRODUCTION" />
+					<f:selectItem itemLabel="Storage" itemValue="STORAGE" />
+				</p:selectOneMenu>
+				<p:commandButton value="Submit" update=":tabForm" />
+			</h:panelGrid>
+	
+</h:form>
 
+<h:form id="tabForm">
+		<p:tabView id="tabCustomers" var="customer"
+			value="#{customersBean.customers}" dynamic="true" cache="false">
+			
+			
 
 
 
 			<p:tab title="#{customer.customerInfo.name}">
+				<script type="text/javascript">
+				//on chart initial load:
+			
+				var cashChart#{customer.customerInfo.id};
+				var currentCashChart = cashChart#{customer.customerInfo.id};
+				var currentCashChartString = 'cashChart#{customer.customerInfo.id}';
+				
+				var totalChargeLineChartData = #{customer.customerJson.totalChargeLineChartData};
+				var outflowChargeLineChartData = #{customer.customerJson.outflowChargeLineChartData};
+				var inflowChargeLineChartData = #{customer.customerJson.inflowChargeLineChartData};
+				makeCashChart();
+				
+				var energyChart#{customer.customerInfo.id};
+				var currentEnergyChart = energyChart#{customer.customerInfo.id};
+				var currentEnergyChartString = 'energyChart#{customer.customerInfo.id}';
+				var totalkWhLineChartData = #{customer.customerJson.totalkWhLineChartData};
+				makeEnergyChart();
+				
+			
+				var bootstrapEnergyChart#{customer.customerInfo.id};
+				var currentBootstrapEnergyChart = bootstrapEnergyChart#{customer.customerInfo.id};
+				var currentBootstrapEnergyChartString = 'currentBootstrapEnergyChart#{customer.customerInfo.id}';
+				var bootstrapEnergyData = #{customer.customerJson.bootstrapLineChartData};
+				makeBootstrapEnergyChart();
+				
+				</script>
+				
+			
+			
 
-				<table cellspacing="10">
-					<tr>
-						<th><h:outputText value="Population:"
-								style="font-weight: normal" /></th>
-						<th><h:outputText value="Subscriptions:"
-								style="font-weight: normal" /></th>
-						<th><h:outputText value="Power types:"
-								style="font-weight: normal" /></th>
-					</tr>
-					<tr>
-						<td><h:outputText value="#{customer.customerInfo.population}"
-								style="font-weight: bold" /></td>
-						<td><h:outputText
-								value="#{customer.customerModel.customerCount}"
-								style="font-weight: bold" /></td>
-						<td>
-								<p:graphicImage
-									value="/app/resources/resources/images/customers/producer.png"
-									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.production}" title="Producer" />
+				<p:panel styleClass="update">
+				
+				
+				
+					<table cellspacing="10">
+						<tr>
+							<th><h:outputText value="Population:"
+									style="font-weight: normal" /></th>
+							<th><h:outputText value="Subscriptions:"
+									style="font-weight: normal" /></th>
+							<th><h:outputText value="Specific type:"
+									style="font-weight: normal" /></th>
+							<th><h:outputText value="Interruptible:"
+									style="font-weight: normal" /></th>
+						</tr>
+						<tr>
+							<td><h:outputText
+									value="#{customer.customerInfo.population}"
+									style="font-weight: bold" /></td>
+							<td><h:outputText
+									value="#{customer.customerModel.customerCount}"
+									style="font-weight: bold" /></td>
+							<td><h:outputText value="#{customer.customerInfo.powerType}"
+									style="font-weight: bold" /></td>
+							<td><p:graphicImage
+									value="/app/resources/resources/images/kvacica.png"
+									height="55" width="55"
+									rendered="#{customer.customerInfo.powerType.interruptible}"
+									title="YES" /></td>
 
-								<p:graphicImage
-									value="/app/resources/resources/images/customers/consumer.png"
-									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.consumption}" title="Consumer" />
-									
-								<p:graphicImage
-									value="/app/resources/resources/images/customers/storage.png"
-									height="55px" width="55px" rendered="#{customer.customerInfo.powerType.storage}" title="Storage" />
-						</td>
-					</tr>
-				</table>
 
-				<p:tabView dynamic="true" cache="true">
+						</tr>
+					</table>
+				</p:panel>
+
+				<p:tabView dynamic="false">
 
 					<p:tab title="Cash">
-						<table cellspacing="10">
-							<tr>
-								<th><h:outputText value="Cash inflow:"
-										style="font-weight: normal" /></th>
-								<th><h:outputText value="Cash outflow:"
-										style="font-weight: normal" /></th>
-								<th><h:outputText value="Total:"
-										style="font-weight: normal" /></th>
-							</tr>
-							<tr>
-								<td><h:outputText
-										value="#{customer.customerModel.cashInflow}"
-										style="font-weight: bold">
-										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
-								<td><h:outputText
-										value="#{customer.customerModel.cashOutflow}"
-										style="font-weight: bold">
-										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
-								<td><h:outputText
-										value="#{customer.customerModel.totalCash}"
-										style="font-weight: bold">
-										<f:convertNumber maxFractionDigits="2" />
-									</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
-							</tr>
-						</table>
-
-						<p:panel
-							rendered="#{not empty customer.customerJson.totalChargeLineChartData}">
-							<div id="totalChargeLineChartData#{customer.customerInfo.id}"
-								style="width: 700px; height: 350px"></div>
+					
+					
+										
+						<p:panel styleClass="update">
+						
+							<table cellspacing="10">
+								<tr>
+									<th><h:outputText value="Cash inflow:"
+											style="font-weight: normal" /></th>
+									<th><h:outputText value="Cash outflow:"
+											style="font-weight: normal" /></th>
+									<th><h:outputText value="Total:"
+											style="font-weight: normal" /></th>
+								</tr>
+								<tr>
+									<td><h:outputText
+											value="#{customer.customerModel.cashInflow}"
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
+									<td><h:outputText
+											value="#{customer.customerModel.cashOutflow}"
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
+									<td><h:outputText
+											value="#{customer.customerModel.totalCash}"
+											style="font-weight: bold">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText> <h:outputText style="font-weight: bold" value=" &euro;" /></td>
+								</tr>
+							</table>
 							<script type="text/javascript">
-				
-		 			if (window.totalChargeLineChartData#{customer.customerInfo.id}!=null) {
-						window.totalChargeLineChartData#{customer.customerInfo.id}.destroy();					
-					}
-					window.totalChargeLineChartData#{customer.customerInfo.id} = $.jqplot('totalChargeLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.totalChargeLineChartDataText},#{customer.customerJson.inflowChargeLineChartDataText},#{customer.customerJson.outflowChargeLineChartDataText} ],{
-						title: 'Cash', 
-						axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-						axes: {
-							xaxis: {
-						            label: "timeslot",
-						            pad: 0},
-						    yaxis: {
-						            label: "&euro;"}},
-						seriesDefaults: {
-							showMarker: false
-						},
-						series:[
-								{ label: 'total',      // label to use in the legend for this line.
-								       color: '#000000'
-								},
-								{ label: 'inflow',      // label to use in the legend for this line.
-								       color: '#7FFF00'
-								},
-								{ label: 'outflow',      // label to use in the legend for this line.
-								       color: '#D80000'
-								}
+														$(document).ready(function() {	
+								window.currentCashChart.series[0].setData(#{customer.customerJson.totalChargeLineChartData},false);
+								window.currentCashChart.series[1].setData(#{customer.customerJson.outflowChargeLineChartData},false);
+								window.currentCashChart.series[2].setData(#{customer.customerJson.inflowChargeLineChartData},false);
+								window.currentCashChart.setTitle(" ",#{customer.customerModel.cashInflow});
+								window.currentCashChart.redraw();
 								
-							   ]	,
-						legend: {
-							     show: true,
-							     location: 'se',     // compass direction, nw, n, ne, e, se, s, sw, w.
-							     xoffset: 12,        // pixel offset of the legend box from the x (or x2) axis.
-							     yoffset: 12,        // pixel offset of the legend box from the y (or y2) axis.
-							    },
-						
-						
-						
-						}); 
-					</script>
+							});
+</script>
+							
 						</p:panel>
+						<div id="cashChart#{customer.customerInfo.id}" style="width: 600px; height: 350px;" />
+						
+						
+
 					</p:tab>
 
 					<p:tab title="Energy">
-
+					
+					
+										
+						<p:panel styleClass="update">
 						<table cellspacing="10">
 							<tr>
 								<th><h:outputText value="Energy consumption:"
@@ -173,97 +189,24 @@
 									</h:outputText> <h:outputText style="font-weight: bold" value=" kWh" /></td>
 							</tr>
 						</table>
-
-						<p:panel
-							rendered="#{not empty customer.customerJson.totalkWhLineChartData}">
-							<div id="totalkWhLineChartData#{customer.customerInfo.id}"
-								style="width: 700px; height: 350px"></div>
+						
 							<script type="text/javascript">
-				
-		 			if (window.totalkWhLineChartData#{customer.customerInfo.id}!=null) {
-						window.totalkWhLineChartData#{customer.customerInfo.id}.destroy();					
-					}
-					window.totalkWhLineChartData#{customer.customerInfo.id} = $.jqplot('totalkWhLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.totalkWhLineChartData},#{customer.customerJson.productionKWhLineChartData},#{customer.customerJson.consumptionKWhLineChartData} ],{
-						title: 'Energy', 
-						axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-						axes: {
-							xaxis: {
-						            label: "timeslot",
-						            pad: 0},
-						    yaxis: {
-						            label: "kWh"}},
-						seriesDefaults: {
-							showMarker: false
-						},
-						series:[
-								{ label: 'total',      // label to use in the legend for this line.
-								       color: '#000000'
-								},
-								{ label: 'production',      // label to use in the legend for this line.
-								       color: '#7FFF00'
-								},
-								{ label: 'consumption',      // label to use in the legend for this line.
-								       color: '#D80000'
-								}
+														$(document).ready(function() {	
+								window.currentEnergyChart.series[0].setData(#{customer.customerJson.totalkWhLineChartData},false);
+								window.currentEnergyChart.redraw();
 								
-							   ]	,
-						legend: {
-							     show: true,
-							     location: 'se',     // compass direction, nw, n, ne, e, se, s, sw, w.
-							     xoffset: 12,        // pixel offset of the legend box from the x (or x2) axis.
-							     yoffset: 12,        // pixel offset of the legend box from the y (or y2) axis.
-							    },
-						
-						
-						
-						}); 
-					</script>
+							});
+</script>
+							
 						</p:panel>
-					</p:tab>
-
-					<p:tab title="Bootstrap">
-						<p:panel
-							rendered="#{not empty customer.customerJson.bootstrapLineChartData}">
-							<div id="bootstrapLineChartData#{customer.customerInfo.id}"
-								style="width: 700px; height: 350px"></div>
-							<script type="text/javascript">
+						<div id="energyChart#{customer.customerInfo.id}" style="width: 600px; height: 350px;" />
 				
-		 			if (window.bootstrapLineChartData#{customer.customerInfo.id}!=null) {
-						window.bootstrapLineChartData#{customer.customerInfo.id}.destroy();					
-					}
-					window.bootstrapLineChartData#{customer.customerInfo.id} = $.jqplot('bootstrapLineChartData#{customer.customerInfo.id}', [ #{customer.customerJson.bootstrapLineChartData}],{
-						title: 'Net usage', 
-						axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-						axes: {
-							xaxis: {
-						            label: "time",
-						            pad: 0},
-						    yaxis: {
-						            label: "kWh"}},
-						seriesDefaults: {
-							showMarker: false
-						},
-						series:[
-								{ label: 'usage',      // label to use in the legend for this line.
-								       color: '#000000'
-								},
-																
-							   ]	/*,
-						legend: {
-							     show: true,
-							     location: 'se',     // compass direction, nw, n, ne, e, se, s, sw, w.
-							     xoffset: 12,        // pixel offset of the legend box from the x (or x2) axis.
-							     yoffset: 12,        // pixel offset of the legend box from the y (or y2) axis.
-							    },
-							   */
+					</p:tab>
+					
+					<p:tab title="Bootstrap data" rendered="#{not empty customer.customerJson.bootstrapLineChartData}">
 						
+						<div id="currentBootstrapEnergyChart#{customer.customerInfo.id}" style="width: 600px; height: 350px;" />
 						
-						}); 
-					</script>
-						</p:panel>
-
 					</p:tab>
 
 
@@ -271,15 +214,13 @@
 				</p:tabView>
 
 
-
+		
 
 
 			</p:tab>
 
 		</p:tabView>
-
-
-
+		</h:form>
 	</ui:fragment>
 </h:body>
 

@@ -97,7 +97,7 @@
     <dependency>
       <groupId>org.primefaces</groupId>
       <artifactId>primefaces</artifactId>
-      <version>3.3</version>
+      <version>3.4-SNAPSHOT</version>
     </dependency>
     <!-- Primefaces theme -->
     <dependency>

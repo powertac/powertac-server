@@ -7,10 +7,6 @@
 	<!-- Also see ../parent-flow.xml. -->
 
 
-
-
-
-
 	<view-state id="view">
 
 	<on-render>

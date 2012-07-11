@@ -21,13 +21,15 @@ public class CustomerMessageHandler implements Initializable {
 	private MessageDispatcher router;
 	@Autowired
 	private CustomerService customerService;
+	@Autowired
+	private VisualizerBean visualizerBean;
 	private static Logger log = Logger.getLogger(CustomerMessageHandler.class);
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Competition.class, TariffTransaction.class, CustomerBootstrapData.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
-	}
+	} 
 
 	public void handleMessage(Competition competition) {
 		customerService.addCustomers(competition.getCustomers());
@@ -45,7 +47,7 @@ public class CustomerMessageHandler implements Initializable {
 	public void handleMessage(CustomerBootstrapData data) {
 		Customer customer = customerService.findCustomerByNameAndType(data.getCustomerName(), data.getPowerType());
 		if (customer != null) {
-			customer.addCustomerBootstrapData(data);
+			customer.addCustomerBootstrapData(data, visualizerBean.getCompetition());
 		}
 
 	}

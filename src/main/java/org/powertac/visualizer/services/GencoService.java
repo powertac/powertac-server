@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.domain.genco.Genco;
@@ -66,10 +67,10 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 		return (List<Genco>) gencoList.clone();
 	}
 
-	public void activate(int timeslotIndex) {
+	public void activate(int timeslotIndex, Instant postedTime) {
 		for (Iterator iterator = gencoList.iterator(); iterator.hasNext();) {
 			Genco genco = (Genco) iterator.next();
-			genco.update(timeslotIndex);
+			genco.update(timeslotIndex,postedTime);
 
 		}
 

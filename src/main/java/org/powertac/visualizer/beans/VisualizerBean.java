@@ -62,6 +62,7 @@ public class VisualizerBean implements Serializable {
 	private boolean finished;
 	private boolean running;
 	private int firstTimeslotIndex;
+	private long currentMillis;
 
 	@Autowired
 	private AppearanceListBean appearanceList;
@@ -117,6 +118,7 @@ public class VisualizerBean implements Serializable {
 		finished = false;
 		running = false;
 		firstTimeslotIndex = -1;
+		currentMillis = 0;
 
 	}
 
@@ -134,6 +136,7 @@ public class VisualizerBean implements Serializable {
 
 	public TimeslotUpdate getTimeslotUpdate() {
 		return timeslotUpdate;
+		
 	}
 
 	public void setTimeslotUpdate(TimeslotUpdate timeslotUpdate) {
@@ -256,6 +259,13 @@ public class VisualizerBean implements Serializable {
 
 	public void setFirstTimeslotIndex(int firstTimeslotIndex) {
 		this.firstTimeslotIndex = firstTimeslotIndex;
+	}
+	
+	public long getCurrentMillis() {
+		return currentMillis;
+	}
+	public void setCurrentMillis(long currentMillis) {
+		this.currentMillis = currentMillis;
 	}
 
 }

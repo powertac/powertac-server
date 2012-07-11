@@ -10,11 +10,7 @@ body, html { height:100%; padding:0; margin:0;}
 	border: 0px solid #d4ccb0
 }
 
-.ui-ring-item {
-	height: "200px";
-	width: "300px";
-	cursor: pointer;
-}
+
 /*centered no border*/
 .tableBrokersPanel.ui-panel{
 	margin-left: auto;
@@ -33,4 +29,22 @@ body, html { height:100%; padding:0; margin:0;}
 
 .ui-sortable-column-icon{
 visibility: hidden;
+}
+
+.update{
+	
+}
+
+.specificClearing{
+	
+}
+
+.customerChart{
+	height:250px;
+	width:700px;
+	margin-top:20px"
+}
+
+.label{
+	font-weight:bold;
 }

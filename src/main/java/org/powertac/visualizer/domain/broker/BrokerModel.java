@@ -225,12 +225,12 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	 * 
 	 * @see org.powertac.visualizer.interfaces.TimeslotModelUpdate#update(int)
 	 */
-	public void update(int timeslotIndex) {
+	public void update(int timeslotIndex, org.joda.time.Instant postedTime) {
 		
 		//update tariff Infos:
 		for (Iterator iterator = tariffInfos.iterator(); iterator.hasNext();) {
 			TariffInfo type = (TariffInfo) iterator.next();
-			type.update(timeslotIndex);
+			type.update(timeslotIndex,postedTime);
 		}
 		
 		final int DAY_FIX = 1; // to avoid array-like displaying of days (day

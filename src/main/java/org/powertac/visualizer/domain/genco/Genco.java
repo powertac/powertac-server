@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;
 import org.powertac.common.Timeslot;
@@ -70,7 +71,7 @@ public class Genco implements TimeslotModelUpdate {
 		return cash;
 	}
 
-	public void update(int timeslotIndex) {
+	public void update(int timeslotIndex, Instant postedTime) {
 		
 		try {
 			JSONArray cashPoint = new JSONArray();

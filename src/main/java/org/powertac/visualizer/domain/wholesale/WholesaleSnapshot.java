@@ -30,10 +30,13 @@ public class WholesaleSnapshot {
 
 	// timeslot serial number value in which the snapshot is created.
 	private int timeslotSerialNumberCreated;
+	// millis in which the snapshot is created.
+	private long millisCreated;
 	// snapshot is built for this timeslot:
 	private int timeslotSerialNumber;
 	private Timeslot timeslot;
 	private double totalTradedQuantity;
+	
 
 	private WholesaleSnapshotJSON wholesaleSnapshotJSON;
 	// filled with actual received Orders that are previously converted to
@@ -49,6 +52,7 @@ public class WholesaleSnapshot {
 	 * set.
 	 */
 	private boolean closed;
+	private boolean cleared;
 
 	private OrderbookOrder marketAskOrder;
 	private OrderbookOrder marketBidOrder;
@@ -58,11 +62,12 @@ public class WholesaleSnapshot {
 	private List<OrderbookOrder> afterAsks;
 	private List<OrderbookOrder> afterBids;
 
-	public WholesaleSnapshot(Timeslot timeslot, int timeslotSerialNumberCreated) {
+	public WholesaleSnapshot(long millisCreated, Timeslot timeslot, int timeslotSerialNumberCreated) {
 		this.timeslotSerialNumber = timeslot.getSerialNumber();
 		orders = new Orderbook(timeslot, null, null);
 		this.timeslot = timeslot;
 		this.timeslotSerialNumberCreated = timeslotSerialNumberCreated;
+		this.millisCreated = millisCreated;
 	}
 
 	public void addOrder(Order order) {
@@ -102,6 +107,7 @@ public class WholesaleSnapshot {
 
 	public void setClearedTrade(ClearedTrade clearedTrade) {
 		this.clearedTrade = clearedTrade;
+		cleared = true;
 	}
 
 	public Orderbook getOrderbook() {
@@ -448,5 +454,12 @@ public class WholesaleSnapshot {
 	public List<OrderbookOrder> getBeforeBids() {
 		return beforeBids;
 	}
-
+	
+	public long getMillisCreated() {
+		return millisCreated;
+	}
+	
+	public boolean isCleared() {
+		return cleared;
+	}
 }

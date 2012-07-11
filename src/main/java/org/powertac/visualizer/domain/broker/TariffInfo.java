@@ -112,7 +112,7 @@ public class TariffInfo implements TimeslotModelUpdate {
 		hourlyKWh = 0;
 	}
 
-	public void update(int timeslotIndex) {
+	public void update(int timeslotIndex, org.joda.time.Instant postedTime) {
 
 		// double hourlyKWhPerUnit = 0;
 		// double hourlyRevenuePerUnit = 0;

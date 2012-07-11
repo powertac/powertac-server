@@ -71,6 +71,9 @@ public class VisualizerMessageHandlerService implements Initializable {
 
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
 		visualizerBean.setTimeslotUpdate(timeslotUpdate);
+		
+		//millis: should include timezone in the future.
+		visualizerBean.setCurrentMillis(timeslotUpdate.getPostedTime().getMillis());
 
 		// for the first timeslot:
 		if (visualizerBean.getFirstTimeslotInstant() == null)
@@ -114,7 +117,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 		List<TimeslotCompleteActivation> activators = VisualizerApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
 		for (TimeslotCompleteActivation active : activators) {
 			log.debug("activating..." + active.getClass().getSimpleName());
-			active.activate(complete.getTimeslotIndex());
+			active.activate(complete.getTimeslotIndex(), visualizerBean.getTimeslotUpdate().getPostedTime());
 		}
 
 		// new day? if so, make new day overview:

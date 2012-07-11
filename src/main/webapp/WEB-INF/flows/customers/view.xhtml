@@ -6,14 +6,35 @@
 	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
-	<ui:define name="title">Customers</ui:define>
+	<!-- <ui:define name="title">Customers</ui:define> -->
+
+	<ui:define name="headInclude">
+	
+	
+		<ui:repeat var="customer" value="#{customersBean.customers}">
+			<script type="text/javascript">
+	var bootstrapLineChartData#{customer.customerInfo.id}=null;
+	
+	var totalkWhLineChartData#{customer.customerInfo.id}=null;
+	var productionKWhLineChartData#{customer.customerInfo.id}=null;
+	var consumptionKWhLineChartData#{customer.customerInfo.id}=null;
+	
+	
+
+	
+	
+	</script>
+		</ui:repeat>
+	
+		<h:outputScript library="js" name="customers.js" />
+	</ui:define>
 
 	<ui:define name="content">
-		<h:form>
-			<ui:include src="/WEB-INF/tags/customers.xhtml" />
 
-			<p:poll autoStart="true" update="tabCustomers" interval="5" />
-		</h:form>
+		<ui:include src="/WEB-INF/tags/customers.xhtml" />
+		
+			
+
 
 	</ui:define>
 

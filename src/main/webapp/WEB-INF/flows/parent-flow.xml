@@ -10,8 +10,8 @@
 	<on-start>
 		<evaluate expression="brokerService.getBrokers()"
 			result="conversationScope.brokersClone"></evaluate>
-		<evaluate expression="customerService.getCustomerList()"
-			result="conversationScope.customers"></evaluate>
+		<!-- <evaluate expression="customerService.getCustomerList()"
+			result="conversationScope.customers"></evaluate> -->
 	</on-start>
 
 	<end-state id="end"

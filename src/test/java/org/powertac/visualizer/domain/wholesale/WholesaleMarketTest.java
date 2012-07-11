@@ -24,14 +24,14 @@ public class WholesaleMarketTest {
 
 	@Before
 	public void setUp() throws Exception {
-		market = new WholesaleMarket(timeslotSerialNumber);
+		market = new WholesaleMarket(new Timeslot(timeslotSerialNumber, null, null), timeslotSerialNumber);
 
 		Timeslot timeslot;
 		WholesaleSnapshot snapshot;
 
 		for (int i = 0; i < 5; i++) {
 			timeslot = new Timeslot(360 + i, null, null);
-			snapshot = new WholesaleSnapshot(timeslot, 360 + i);
+			snapshot = new WholesaleSnapshot(1258, timeslot, 360 + i);
 			snapshot.setClearedTrade(new ClearedTrade(timeslot, 10, i, null));
 			snapshot.setOrderbook(new Orderbook(timeslot, 0.0, new Instant()));
 			snapshot.close();

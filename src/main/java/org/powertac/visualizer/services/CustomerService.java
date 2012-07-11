@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.DomainRepo;
@@ -30,6 +31,9 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	
 	private HashMap<CustomerInfo, Customer> customerMap;
 	private ArrayList<Customer> customerList;
+	private ArrayList<Customer> producers;
+	private ArrayList<Customer> consumers;
+	private ArrayList<Customer> storages;
 
 	public CustomerService() {
 		recycle();
@@ -42,7 +46,20 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	public void addCustomers(List<CustomerInfo> customerInfos) {
 		for (Iterator<CustomerInfo> iterator = customerInfos.iterator(); iterator.hasNext();) {
 			CustomerInfo customerInfo = (CustomerInfo) iterator.next();
-			customerMap.put(customerInfo, new Customer(customerInfo));	
+			
+			Customer customer = new Customer(customerInfo);
+			customerMap.put(customerInfo, customer);	
+			
+			PowerType genericType = customerInfo.getPowerType().getGenericType();
+			
+			if(genericType == PowerType.CONSUMPTION){
+				consumers.add(customer);
+			} else if (genericType == PowerType.PRODUCTION){
+				producers.add(customer);
+			} else if (genericType==PowerType.STORAGE){
+				storages.add(customer);
+			}
+			
 		}
 		//build list:
 		customerList=new ArrayList<Customer>(customerMap.values());
@@ -70,6 +87,9 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	public void recycle() {
 		customerMap = new HashMap<CustomerInfo, Customer>();
 		customerList = new ArrayList<Customer>();
+		producers = new ArrayList<Customer>();
+		consumers = new ArrayList<Customer>();
+		storages = new ArrayList<Customer>();
 		
 	}
 	
@@ -78,12 +98,12 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 		return (List<Customer>) customerList.clone();
 	}
 
-	public void activate(int timeslotIndex) {
+	public void activate(int timeslotIndex, Instant postedTime) {
 		//update jsons for all customers:
 		
 	for (Iterator<Customer> iterator = customerList.iterator(); iterator.hasNext();) {
 		Customer type = (Customer) iterator.next();
-		type.update(timeslotIndex);
+		type.update(timeslotIndex, postedTime);
 		
 	}
 	log.debug("Customer service activation complete. Timeslotindex:"+timeslotIndex);
@@ -92,6 +112,18 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 
 	public Customer findCustomerByCustomerInfo(CustomerInfo customerInfo) {
 		return customerMap.get(customerInfo);
+	}
+	
+	public ArrayList<Customer> getConsumers() {
+		return (ArrayList<Customer>) consumers.clone();
+	}
+	
+	public ArrayList<Customer> getProducers() {
+		return (ArrayList<Customer>) producers.clone();
+	}
+	
+	public ArrayList<Customer> getStorages() {
+		return (ArrayList<Customer>) storages.clone();
 	}
 
 	

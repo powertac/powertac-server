@@ -14,7 +14,11 @@ import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.interfaces.Initializable;
+import org.powertac.visualizer.json.WholesaleServiceJSON;
 import org.powertac.visualizer.services.WholesaleService;
+import org.primefaces.json.JSONArray;
+import org.primefaces.json.JSONException;
+import org.primefaces.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,13 +52,14 @@ public class WholesaleMessageHandler implements Initializable {
 		int timeslotSerialNumber = order.getTimeslot().getSerialNumber();
 		// create new wholesale market if it doesn't exists
 		if (!wholesaleService.getWholesaleMarkets().containsKey(timeslotSerialNumber)) {
-			wholesaleService.getWholesaleMarkets().put(timeslotSerialNumber, new WholesaleMarket(timeslotSerialNumber));
+			wholesaleService.getWholesaleMarkets().put(timeslotSerialNumber, new WholesaleMarket(order.getTimeslot(),timeslotSerialNumber));
 		}
 		WholesaleMarket wholesaleMarket = wholesaleService.findWholesaleMarket(timeslotSerialNumber);
 		// same stuff for the snapshot:
 		if (!wholesaleMarket.getSnapshotsMap().containsKey(currentTimeslot)) {
+			WholesaleSnapshot snapshot = new WholesaleSnapshot(visualizerBean.getCurrentMillis(), order.getTimeslot(), currentTimeslot); 
 			wholesaleMarket.getSnapshotsMap().put(currentTimeslot,
-					new WholesaleSnapshot(order.getTimeslot(), currentTimeslot));
+					snapshot);
 		}
 		WholesaleSnapshot snapshot = wholesaleMarket.findSnapshot(currentTimeslot);
 		snapshot.addOrder(order);
@@ -95,8 +100,9 @@ public class WholesaleMessageHandler implements Initializable {
 		log.debug(builder.toString());
 
 	}
-
+ 
 	private void checkWholesaleMarket(WholesaleMarket market) {
+		
 		// what about market? should be closed when all of its snapshots
 		// have been closed and when its timeslot equals the current
 		// timeslot
@@ -105,7 +111,23 @@ public class WholesaleMessageHandler implements Initializable {
 			market.close();
 			// update model:
 			wholesaleService.addTradedQuantityMWh(market.getTotalTradedQuantityMWh());
-		}
+			// let wholesaleMarket contribute to global charts:
+			WholesaleSnapshot lastSnapshot = market.getLastWholesaleSnapshotWithClearing();
+			if(lastSnapshot!=null){
+				
+			WholesaleServiceJSON json = wholesaleService.getJson();
+			try {
+				json.getGlobalLastClearingPrices().put(new JSONArray().put(lastSnapshot.getTimeslot().getStartInstant().getMillis()).put(lastSnapshot.getClearedTrade().getExecutionPrice()));
+				json.getGlobalLastClearingVolumes().put(new JSONArray().put(lastSnapshot.getTimeslot().getStartInstant().getMillis()).put(lastSnapshot.getClearedTrade().getExecutionMWh()));
+							
+				json.getGlobalTotalClearingVolumes().put(new JSONArray().put(lastSnapshot.getTimeslot().getStartInstant().getMillis()).put(market.getTotalTradedQuantityMWh()));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			
+			}
+			
+			}
 
 	}
 
@@ -124,6 +146,10 @@ public class WholesaleMessageHandler implements Initializable {
 		snapshot.setClearedTrade(clearedTrade);
 		// the end for this snapshot:
 		snapshot.close();
+		// this snapshot has cleared trade so it will be the most recent snapshot with clearing as well:
+		market.setLastWholesaleSnapshotWithClearing(snapshot);
+		
+		
 		// what about market? should be closed when all of its snapshots have
 		// been closed and when its timeslot equals the current timeslot
 		checkWholesaleMarket(market);
