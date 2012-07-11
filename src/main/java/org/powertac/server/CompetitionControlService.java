@@ -18,6 +18,7 @@ package org.powertac.server;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -138,7 +139,8 @@ public class CompetitionControlService
 
   // broker interaction state
   private ArrayList<String> alwaysAuthorizedBrokers;
-  private ArrayList<String> authorizedBrokerList;
+  //private ArrayList<String> authorizedBrokerMap;
+  private HashMap<String, String> authorizedBrokerMap;
   private int idPrefix = 0;
   
   @ConfigurableValue(valueType = "Integer",
@@ -177,7 +179,7 @@ public class CompetitionControlService
     jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
     
     // create broker queues
-    //String[] brokerArray = new String[authorizedBrokerList.size()];
+    //String[] brokerArray = new String[authorizedBrokerMap.size()];
     
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
@@ -200,7 +202,7 @@ public class CompetitionControlService
     else
       timeslotPhaseCount = count;
   }
-  
+
   /**
    * Sets the list of broker usernames that are always authorized, even in
    * bootstrap mode. Normally this is just "defaultBroker". This method is
@@ -211,7 +213,7 @@ public class CompetitionControlService
     // copy the list out of Spring space
     alwaysAuthorizedBrokers = new ArrayList<String>(brokerList);
   }
-  
+
   /**
    * Sets the list of brokers allowed and expected to log in before
    * starting a simulation. The simulation will not start until all 
@@ -221,14 +223,29 @@ public class CompetitionControlService
   public void setAuthorizedBrokerList (List<String> brokerList)
   {
     loginCount = brokerList.size();
-    pendingLogins = new ArrayList<String>(brokerList);
-    authorizedBrokerList = new ArrayList<String>(alwaysAuthorizedBrokers);
-    for (String broker : brokerList) {
-      authorizedBrokerList.add(broker);
+    pendingLogins = new ArrayList<String>();
+    authorizedBrokerMap = new HashMap<String, String>();
+    for (String brokerName : alwaysAuthorizedBrokers) {
+      authorizedBrokerMap.put(brokerName, brokerName);
+      log.info("pre-authorized " + brokerName);
     }
-    log.info("Authorized brokers: " + brokerList);
+    for (String broker : brokerList) {
+      // check for broker spec of the form name/queue
+      String[] components = broker.split("/");
+      if (components.length < 1)
+        log.error("Bad broker spec " + broker);
+      else {
+        String brokerName = components[0];
+        String queueName = brokerName;
+        if (components.length > 1)
+          queueName = components[1];
+        authorizedBrokerMap.put(brokerName, queueName);
+        log.info("Authorized broker " + brokerName + " / " + queueName);
+        pendingLogins.add(brokerName);
+      }
+    }
   }
-  
+
   /**
    * Sets up the bootstrap dataset extracted from its external source.
    */
@@ -382,19 +399,19 @@ public class CompetitionControlService
   // blocks until all brokers have logged in.
   private synchronized void waitForBrokerLogin ()
   {
-    if (authorizedBrokerList == null || authorizedBrokerList.size() == 0) {
+    if (authorizedBrokerMap == null || authorizedBrokerMap.size() == 0) {
       // nothing to do here
       return;
     }
     if (log.isInfoEnabled()) {
       StringBuffer msg = new StringBuffer();
       msg.append("waiting for logins from");
-      for (String name : authorizedBrokerList) {
+      for (String name : authorizedBrokerMap.keySet()) {
         msg.append(" ").append(name);
       }
       log.info(msg.toString());
     }
-    //log.info("pendingLogins.size()=" + pendingLogins.size() + ", loginCount="+ loginCount);
+    log.info("pendingLogins.size()=" + pendingLogins.size() + ", loginCount="+ loginCount);
     if (loginCount == pendingLogins.size()) {
       // no external brokers logged in yet
       try {
@@ -403,27 +420,27 @@ public class CompetitionControlService
         log.info("first login observed");
       }
       catch (InterruptedException ie) {
-        authorizedBrokerList.clear();
+        authorizedBrokerMap.clear();
         log.info("first login wait is interrupted");
       }
     }
     // need to wait for additional logins
-    int sz = authorizedBrokerList.size();
+    int sz = authorizedBrokerMap.size();
     try {
       // limit the wait time for subsequent timeouts
-      while (sz >= authorizedBrokerList.size()
-             && authorizedBrokerList.size() > 0) {
+      while (sz >= authorizedBrokerMap.size()
+             && authorizedBrokerMap.size() > 0) {
         wait(loginTimeout);
         sz -= 1;
       }
     }
     catch (InterruptedException ie) {
-      authorizedBrokerList.clear();
+      authorizedBrokerMap.clear();
     }
     // too late - no more logins
-    if (authorizedBrokerList.size() > 0) {
-      log.warn("Some brokers did not log in: " + authorizedBrokerList);
-      authorizedBrokerList.clear();
+    if (authorizedBrokerMap.size() > 0) {
+      log.warn("Some brokers did not log in: " + authorizedBrokerMap);
+      authorizedBrokerMap.clear();
     }
     // if nobody logged in, then abort the game.
     if (loginCount == pendingLogins.size()) {
@@ -432,16 +449,16 @@ public class CompetitionControlService
   }
   
   /**
-   * Logs in a broker, just in case the broker is on the authorizedBrokerList.
+   * Logs in a broker, just in case the broker is on the authorizedBrokerMap.
    * Returns true if the broker is authorized, otherwise false.
    */
   @Override
   public synchronized boolean loginBroker (String username)
   {
     // cannot log in if there's no list, or if the broker is not on the list
-    if (authorizedBrokerList == null
-        || authorizedBrokerList.size() == 0
-        || !authorizedBrokerList.contains(username)) {
+    if (authorizedBrokerMap == null
+        || authorizedBrokerMap.size() == 0
+        || !authorizedBrokerMap.containsKey(username)) {
       log.info("Unauthorized attempt to log in " + username);
       return false;
     }
@@ -456,7 +473,7 @@ public class CompetitionControlService
     // or create a new ID prefix.
     Broker broker = brokerRepo.findByUsername(username);
     log.info("Log in " + ((null == broker)?"":"existing ") +
-             "broker " + username);
+             "broker " + username + ", queue " + authorizedBrokerMap.get(username));
     if (null == broker) {
       broker = new Broker(username);
       brokerRepo.add(broker);
@@ -464,14 +481,14 @@ public class CompetitionControlService
     
     // only enabled brokers get messages
     broker.setEnabled(true);
-    //broker.setQueueName(queueName);
+    broker.setQueueName(authorizedBrokerMap.get(username));
     computeBrokerKey(broker);
     // assign prefix and key with accept message
     brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, broker.getKey()));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
-    authorizedBrokerList.remove(username);
+    authorizedBrokerMap.remove(username);
     if (pendingLogins.contains(username))
       loginCount -= 1;
     notifyAll();
