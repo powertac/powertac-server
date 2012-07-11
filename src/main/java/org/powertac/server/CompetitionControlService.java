@@ -218,15 +218,15 @@ public class CompetitionControlService
    * brokers in the list are logged in, unless a timeout is configured.
    */
   @Override
-  public void setAuthorizedBrokerList (List<String> list)
+  public void setAuthorizedBrokerList (List<String> brokerList)
   {
-    loginCount = list.size();
-    pendingLogins = new ArrayList<String>(list);
+    loginCount = brokerList.size();
+    pendingLogins = new ArrayList<String>(brokerList);
     authorizedBrokerList = new ArrayList<String>(alwaysAuthorizedBrokers);
-    for (String broker : list) {
+    for (String broker : brokerList) {
       authorizedBrokerList.add(broker);
     }
-    log.info("Authorized brokers: " + list);
+    log.info("Authorized brokers: " + brokerList);
   }
   
   /**

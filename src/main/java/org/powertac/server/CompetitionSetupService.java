@@ -15,11 +15,8 @@
  */
 package org.powertac.server;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +47,6 @@ import joptsimple.OptionSpec;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
-//import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
@@ -438,13 +434,13 @@ public class CompetitionSetupService
   }
 
   // Runs a simulation session
-  private void startSimSession (final List<String> list,
+  private void startSimSession (final List<String> brokers,
                                 final URL bootDataset)
   {
     session = new Thread() {
       @Override
       public void run () {
-        cc.setAuthorizedBrokerList(list);
+        cc.setAuthorizedBrokerList(brokers);
         if (preGame(bootDataset)) {
           cc.setBootstrapDataset(processBootDataset(bootDataset));
           cc.runOnce(false);
