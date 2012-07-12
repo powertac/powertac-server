@@ -14,7 +14,7 @@
 							if (window.cashChartGlobal != null) {
 								window.cashChartGlobal.destroy();
 							}
-							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{brokerService.json.cashChartData}, 
+							window.cashChartGlobal=$.jqplot('cashChartGlobal',  #{visualizerBean.running or visualizerBean.finished ? brokerService.json.cashChartData:"[0,0]"}, 
 									{
 									title: 'Cash balance', 
 								
@@ -32,7 +32,7 @@
 									seriesDefaults: {
 										showMarker: false
 									},
-									series:#{brokerService.json.seriesOptions},
+									series:#{visualizerBean.running or visualizerBean.finished  ? brokerService.json.seriesOptions: "{show: true}"},
 									legend: {
 								        show: false,
 								        location: 'nw',     // compass direction, nw, n, ne, e, se, s, sw, w.

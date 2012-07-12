@@ -37,7 +37,7 @@ public class TariffInfoTest {
 
 		System.out.println("\nTest spec with three rates, max value chart:");
 		System.out.println(tariffInfo.getJson().getRatesLineChartMaxValue());
-		assertEquals(3, tariffInfo.getJson().getRatesLineChartMaxValue().length());
+		assertEquals(16, tariffInfo.getJson().getRatesLineChartMaxValue().length());
 		System.out.println("\nTest spec with three rates, min value chart:");
 		System.out.println(tariffInfo.getJson().getRatesLineChartMinValue());
 

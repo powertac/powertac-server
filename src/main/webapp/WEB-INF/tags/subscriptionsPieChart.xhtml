@@ -7,6 +7,7 @@
 <h:body>
 	<ui:fragment>
 		<h:form id="subscriptionsPieChartForm">
+		
 				<!-- Subscriptions PieChart -->
 							<div id="subscriptionsPieChart"
 								style="height: 250px; width: 250px;"></div>
@@ -14,7 +15,7 @@
 							if (window.subscriptionsPieChart != null) {
 								window.subscriptionsPieChart.destroy();
 							}
-							window.subscriptionsPieChart=jQuery.jqplot ('subscriptionsPieChart', [#{brokerService.json.customerCountData}],
+							window.subscriptionsPieChart=jQuery.jqplot ('subscriptionsPieChart', [#{visualizerBean.running or visualizerBean.finished ? brokerService.json.customerCountData : "[0,10]"}],
 								    {
 									title: 'Number of subscriptions for each broker',
 									highlighter: { show: false },
@@ -31,7 +32,7 @@
 								          lineWidth: 4
 								        }
 								      },
-								      seriesColors: #{brokerService.json.brokerSeriesColors},
+								      seriesColors: #{visualizerBean.running or visualizerBean.finished ? brokerService.json.brokerSeriesColors : "['#4bb2c5','#4bccc5']"},
 								     
 								     legend: { show:false, location: 's' }
 								    }

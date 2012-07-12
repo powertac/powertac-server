@@ -5,7 +5,7 @@ import org.primefaces.json.JSONArray;
 public class BrokersJSON {
 	
 	private JSONArray brokerSeriesColors = new JSONArray();
-	private JSONArray seriesOptions;
+	private JSONArray seriesOptions = new JSONArray();
 	private JSONArray cashChartData = new JSONArray();
 	private JSONArray customerCountData = new JSONArray();
 	

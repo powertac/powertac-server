@@ -48,3 +48,9 @@ visibility: hidden;
 .label{
 	font-weight:bold;
 }
+
+.updateInvisiblePanel{
+	background-image: none;
+	border:0;
+	
+}

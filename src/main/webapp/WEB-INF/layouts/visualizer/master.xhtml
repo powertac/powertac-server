@@ -15,47 +15,166 @@
 	<h:outputScript library="js" name="highcharts.js"/>
 	<h:outputScript library="js" name="highstock.js"/>
 	<h:outputScript library="js/modules" name="exporting.js"/>
+	<script type='text/javascript' src='https://www.google.com/jsapi'/>
+	
 	<script type="text/javascript">
-		var cashChartGlobal;
+	
+		
+	
+		var windSpeed = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.windSpeed:0 }*100)/100;
+		var temperature = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.temperature:0}*100)/100;
+		var cover = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.cloudCover: 0}*100)/100;
+		
+	
+	var cashChartGlobal;
 		var subscriptionsPieChart;
+		
+		var windSpeedData;
+		var cloudCoverData;
+		var temperatureData;
+		var windSpeedOptions;
+		var cloudCoverOptions;
+		var temperatureOptions;
+		var windSpeedGauge;
+		var cloudCoverGauge;
+		var temperatureGauge;
+		var weatherGaugesDefined=false;
+		
+	      google.load('visualization', '1', {packages:['gauge']});
+	      
+	      
+	         
+	      google.setOnLoadCallback(drawCharts);
+
+	      function drawCharts() {
+	    	 windSpeedData = google.visualization.arrayToDataTable([
+	          ['Label', 'Value'],
+	          ['Wind(m/s)', windSpeed]
+	        ]);
+	        
+	         cloudCoverData = google.visualization.arrayToDataTable([
+	            ['Label', 'Value'],
+	            ['Clouds', cover]
+	        ]);
+	        
+	         temperatureData = google.visualization.arrayToDataTable([
+	                                                    	            ['Label', 'Value'],
+	                                                    	            ['Temp.(°C)', temperature]
+	                                                    	        ]);
+
+	         windSpeedOptions = {
+	          min: 0, max: 20,
+	          width: 85, height: 85,
+	          //redFrom: 90, redTo: 100,
+	          //yellowFrom:75, yellowTo: 90,
+	          minorTicks: 5
+	        };
+	         cloudCoverOptions = {
+	  	          min: 0, max: 100,
+	  	          width: 85, height: 85,
+	  	          //redFrom: 90, redTo: 100,
+	  	          //yellowFrom:75, yellowTo: 90,
+	  	          minorTicks: 5
+	  	        };
+	        
+	         temperatureOptions = {
+		  	          min: 0, max: 30,
+		  	          width: 85, height: 85,
+		  	          //redFrom: 90, redTo: 100,
+		  	          //yellowFrom:75, yellowTo: 90,
+		  	          minorTicks: 5
+		  	        };
+
+	         windSpeedGauge = new google.visualization.Gauge(document.getElementById('windSpeedGauge'));
+	        windSpeedGauge.draw(windSpeedData, windSpeedOptions);
+	        
+	         cloudCoverGauge = new google.visualization.Gauge(document.getElementById('cloudCoverGauge'));
+	        cloudCoverGauge.draw(cloudCoverData, cloudCoverOptions);
+	        
+	         temperatureGauge = new google.visualization.Gauge(document.getElementById('temperatureGauge'));
+	        temperatureGauge.draw(temperatureData, temperatureOptions);
+	        
+	        weatherGaugesDefined = true;
+	      };
+	   
+	  
+				
+		
+
+		
+		
 	</script>
 	<ui:insert name="headIncludes" />
 
 </h:head>
 <h:body>
 
-	<p:layout id="mainLayout" fullPage="true" stateful="true">
-		<p:layoutUnit id="north" position="north" size="80" collapsible="true"
+	<p:layout id="mainLayout" fullPage="true" stateful="true" >
+		<p:layoutUnit id="north" position="north" size="90" collapsible="true"
 			header="LOL" styleClass="custom" resizable="true">
 			<ui:include src="/WEB-INF/tags/logo.xhtml" />
+			
+			
 			<h:form id="northForm">
-				<table cellspacing="5" align="right">
+			
+			<script type="text/javascript">
+			
+			if(weatherGaugesDefined){
+				
+				var windSpeed = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.windSpeed:0 }*100)/100;
+				var temperature = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.temperature:0}*100)/100;
+				var cover = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.cloudCover: 0}*100)/100;
+				
+				//alert('speed '+windSpeed+' temp:'+temperature+' cover: '+cover);
+				
+     
+				
+				windSpeedData.setValue(0, 1, windSpeed);
+				windSpeedGauge.draw(windSpeedData, windSpeedOptions);
+				
+				cloudCoverData.setValue(0, 1, cover);
+				cloudCoverGauge.draw(cloudCoverData, cloudCoverOptions);
+				
+				temperatureData.setValue(0, 1,temperature);
+				temperatureGauge.draw(temperatureData, temperatureOptions);
+			}
+			
+</script>
+			
+				<table cellspacing="5" style="float:right">
 					<tr>
 						<th>Time:</th>
 						<th>Timeslot:</th>
 						<th>Name:</th>
 						<th>Description:</th>
-						
+											
 						
 						
 					</tr>
 					<tr>
-					<td><h:outputLabel value="#{visualizerBean.timeslotUpdate.postedTime.millis}" >
+					<th><h:outputText value="#{visualizerBean.timeslotUpdate.postedTime.millis}" >
 						<f:convertDateTime type="both" pattern="HH:mm, E, MMM d, y"/>
-						</h:outputLabel>  </td> 
+						</h:outputText>  </th>
 						<td>#{visualizerBean.currentTimeslotSerialNumber}</td>
 						<td>#{visualizerBean.competition.name}</td>
 						<td>#{visualizerBean.competition.description}</td>
-						
 						<td><p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol"/>	</td>
 
 					</tr>
 				</table>
+			
+						
+						
 
 			</h:form>
+			<div id="cloudCoverGauge" style="float:right"/>
+			<div id="windSpeedGauge" style="float:right"/>
+			<div id="temperatureGauge" style="float:right"/>
+			
+			
 		</p:layoutUnit>
 
-		<p:layoutUnit position="center" size="800" resizable="true">
+		<p:layoutUnit position="center" resizable="true">
 			<h2 class="alt" style="text-align: center;">
 
 				<ui:insert name="title"></ui:insert>
@@ -74,7 +193,7 @@
 			<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml" />
 			<p:lineChart style="height: 1px; width: 1px;"
 				value="#{imageControl.fakeChart}" rendered="false" />
-
+		
 		</p:layoutUnit>
 
 		<p:layoutUnit position="south" size="20" >
@@ -93,6 +212,9 @@
 				<p:menuitem value="Wholesale"
 					icon="/app/resources/resources/images/dock/wholesale.png"
 					url="wholesale" />
+				<p:menuitem value="Weather"
+					icon="/app/resources/resources/images/dock/weather.png"
+					url="weather" />
 			</p:dock>
 		</p:layoutUnit>
 

@@ -52,8 +52,6 @@ public class VisualizerBean implements Serializable {
 	private Instant firstTimeslotInstant;
 	private TimeslotUpdate timeslotUpdate;
 	private String simulationStatus;
-	private WeatherReport weatherReport;
-	private WeatherForecast weatherForecast;
 	private int currentTimeslotSerialNumber;
 	private int relativeTimeslotIndex;
 	private int week;
@@ -108,8 +106,6 @@ public class VisualizerBean implements Serializable {
 
 		timeslotUpdate = null;
 		simulationStatus = null;
-		weatherReport = null;
-		weatherForecast = null;
 		currentTimeslotSerialNumber = -1;
 		relativeTimeslotIndex = -1;
 		week = -1;
@@ -157,22 +153,6 @@ public class VisualizerBean implements Serializable {
 
 	public void setSimulationStatus(String simulationStatus) {
 		this.simulationStatus = simulationStatus;
-	}
-
-	public WeatherReport getWeatherReport() {
-		return weatherReport;
-	}
-
-	public void setWeatherReport(WeatherReport weatherReport) {
-		this.weatherReport = weatherReport;
-	}
-
-	public WeatherForecast getWeatherForecast() {
-		return weatherForecast;
-	}
-
-	public void setWeatherForecast(WeatherForecast weatherForecast) {
-		this.weatherForecast = weatherForecast;
 	}
 
 	public int getCurrentTimeslotSerialNumber() {

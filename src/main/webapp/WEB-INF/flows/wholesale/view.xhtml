@@ -35,7 +35,7 @@
 
 	<ui:define name="content">
 		<h:form>
-			<p:poll interval="5" update="@(.update)" />
+			<p:poll interval="5" update="@(.updateInvisiblePanel)" />
 		</h:form>
 		<p:layout fullPage="false" style="width:800px;height:800px"
 			stateful="true">
@@ -48,7 +48,7 @@
 
 
 					<p:dataTable var="market" value="#{wholesaleBean.markets}"
-						paginator="true" rows="24" pageLinks="3" tableStyle="width:auto" styleClass="update"> 
+						paginator="true" rows="24" pageLinks="3" tableStyle="width:auto" styleClass="updateInvisiblePanel"> 
 
 						<!-- <f:facet name="header">  
           				   Expand rows to see detailed information  
@@ -77,7 +77,13 @@
 						</p:column>
 
 						<f:facet name="footer">
-						<script type="text/javascript">
+						
+						
+						Total traded quantity: #{wholesaleBean.totalTradedQuantityMWh} MWh
+						</f:facet>
+					</p:dataTable>
+					<p:panel styleClass="updateInvisiblePanel">
+<script type="text/javascript">
 						$(document).ready(function() {	
 							window.globalWholesaleLastChart.series[0].setData(#{wholesaleService.json.globalLastClearingPrices},false);
 							window.globalWholesaleLastChart.series[1].setData(#{wholesaleService.json.globalLastClearingVolumes},false);
@@ -85,10 +91,7 @@
 							
 						});
 						</script>
-						
-						Total traded quantity: #{wholesaleBean.totalTradedQuantityMWh} MWh
-						</f:facet>
-					</p:dataTable>
+</p:panel>
 
 				</h:form>
 
@@ -106,7 +109,7 @@
 	
 				<h:form id="selectClearingForm">
 				
-				<p:panel>
+				<p:panel styleClass="updateInvisiblePanel" rendered="#{not empty wholesaleBean.selectedMarket}">
 		<script type="text/javascript">
 
 $(document).ready(function() {	
@@ -120,7 +123,7 @@ $(document).ready(function() {
 				
 					
 					<p:carousel id="carousel" var="snapshot"
-						value="#{wholesaleBean.selectedMarket.snapshots}"
+						value="#{wholesaleBean.selectedMarket.snapshots}" rendered="#{not empty wholesaleBean.selectedMarket}"
 						headerText="Clearings for timeslot #{wholesaleBean.selectedMarket.timeslotSerialNumber}" rows="6">
 						
 						<p:column>
