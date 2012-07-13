@@ -159,6 +159,7 @@ public class CompetitionSetupService
   {
     // set up command-line options
     OptionParser parser = new OptionParser();
+    parser.accepts("sim");
     OptionSpec<String> bootOutput = 
         parser.accepts("boot").withRequiredArg().ofType(String.class);
     OptionSpec<URL> controllerOption =
@@ -169,11 +170,12 @@ public class CompetitionSetupService
         parser.accepts("config").withRequiredArg().ofType(String.class);
     OptionSpec<String> logSuffixOption =
         parser.accepts("log-suffix").withRequiredArg();
-    parser.accepts("sim");
     OptionSpec<URL> bootData =
         parser.accepts("boot-data").withRequiredArg().ofType(URL.class);
     OptionSpec<String> jmsUrl =
         parser.accepts("jms-url").withRequiredArg().ofType(String.class);
+    OptionSpec<String> inputQueue =
+        parser.accepts("input-queue").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
     
@@ -210,7 +212,8 @@ public class CompetitionSetupService
                    serverConfig,
                    options.valueOf(jmsUrl),
                    logSuffix,
-                   options.valuesOf(brokerList));
+                   options.valuesOf(brokerList),
+                   options.valueOf(inputQueue));
       }
       else {
         // Must be either boot or sim
@@ -248,73 +251,6 @@ public class CompetitionSetupService
     serverProps.setProperty("server.logfileSuffix", logSuffix);
     //String realSuffix = serverProps.getProperty("server.logfileSuffix");
   }
-
-  // handles the original script format. This capability can presumably
-  // be jettisoned eventually.
-//  private void processScript (String[] args)
-//  {
-//    // running from config file
-//    System.out.println("old-style scriptfile interface");
-//    try {
-//      BufferedReader config = new BufferedReader(new FileReader(args[0]));
-//      String input;
-//      while ((input = config.readLine()) != null) {
-//        String[] tokens = input.split("\\s+");
-//        if ("bootstrap".equals(tokens[0])) {
-//          // bootstrap mode - optional config fn is tokens[2]
-//          if (tokens.length == 2 || tokens.length > 3) {
-//            System.out.println("Bad input " + input);
-//          }
-//          else {
-//            if (tokens.length == 3 && "--config".equals(tokens[1])) {
-//              // explicit config file - convert to URL format
-//              setConfigMaybe(tokens[2]);
-//            }
-//            String bootstrapFilename =
-//                serverProps.getProperty("server.bootstrapDataFile",
-//                                        "/bd-noname.xml");
-//            startBootSession(new File(bootstrapFilename));
-//          }
-//        }
-//        else if ("sim".equals(tokens[0])) {
-//          int brokerIndex = 1;
-//          // sim mode, check for --config in tokens[1]
-//          if (tokens.length > 2 && "--config".equals(tokens[1])) {
-//            // explicit config file in tokens[2]
-//            setConfigMaybe(tokens[2]);
-//            brokerIndex = 3;
-//          }
-//          log.info("In Simulation mode!!!");
-//          String bootstrapFilename =
-//              serverProps.getProperty("server.bootstrapDataFile",
-//                                      "bd-noname.xml");
-//          File bootFile = new File(bootstrapFilename);
-//          if (!bootFile.canRead()) {
-//            System.out.println("Cannot read bootstrap data file " +
-//                               bootstrapFilename);
-//          }
-//          else {
-//            // collect broker names, hand to CC for login control
-//            ArrayList<String> brokerList = new ArrayList<String>();
-//            for (int i = brokerIndex; i < tokens.length; i++) {
-//              brokerList.add(tokens[i]);
-//            }
-//            URL bootDataset = new URL("file:" + bootFile);
-//            startSimSession(brokerList, bootDataset);
-//          }
-//        }
-//      }
-//    }
-//    catch (FileNotFoundException fnf) {
-//      System.out.println("Cannot find file " + args[0]);
-//    }
-//    catch (IOException ioe ) {
-//      System.out.println("Error reading file " + args[0]);
-//    }
-//    catch (ConfigurationException ce) {
-//      System.out.println("Error setting configuration: " + ce.toString());
-//    }
-//  }
   
   // ---------- top-level boot and sim session control ----------
 
@@ -359,7 +295,8 @@ public class CompetitionSetupService
 
   @Override
   public String simSession (String bootData, String config, String jmsUrl,
-                            String logfileSuffix, List<String> brokerUsernames)
+                            String logfileSuffix, List<String> brokerUsernames,
+                            String inputQueueName)
   {
     String error = null;
     try {
@@ -381,10 +318,10 @@ public class CompetitionSetupService
       if (bootData != null) {
         if (!bootData.contains(":"))
           bootData = "file:" + bootData;
-        startSimSession(brokerUsernames, new URL(bootData));
+        startSimSession(brokerUsernames, inputQueueName, new URL(bootData));
       }        
       else if (controllerURL != null) {
-        startSimSession(brokerUsernames, new URL(controllerURL, "bootstrap-data"));
+        startSimSession(brokerUsernames, inputQueueName, new URL(controllerURL, "bootstrap-data"));
       }
       else {
         error = "bootstrap data source not given";
@@ -435,12 +372,14 @@ public class CompetitionSetupService
 
   // Runs a simulation session
   private void startSimSession (final List<String> brokers,
+                                final String inputQueueName,
                                 final URL bootDataset)
   {
     session = new Thread() {
       @Override
       public void run () {
         cc.setAuthorizedBrokerList(brokers);
+        cc.setInputQueueName(inputQueueName);
         if (preGame(bootDataset)) {
           cc.setBootstrapDataset(processBootDataset(bootDataset));
           cc.runOnce(false);

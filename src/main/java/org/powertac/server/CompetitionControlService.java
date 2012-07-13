@@ -255,6 +255,15 @@ public class CompetitionControlService
   }
   
   /**
+   * Sets the name of the server's JMS input queue.
+   */
+  void setInputQueueName (String queueName)
+  {
+    if (null != queueName && !queueName.isEmpty())
+      serverQueueName = queueName;
+  }
+  
+  /**
    * Runs a simulation that is already set up. This is intended to be called
    * from a method that knows whether we are running a bootstrap sim or a 
    * normal sim.
