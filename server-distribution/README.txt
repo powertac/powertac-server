@@ -107,6 +107,14 @@ options as in bootstrap mode, as well as
   usernames that are expected to log in to the simulation before it
   starts. If this option is missing and --control is provided, then
   the broker list will be retrieved from controller-url/broker-list.
+  A broker name can be given as username/queue-name, in which case the
+  broker's input queue will be called queue-name. If the queue-name is
+  not given, then the broker's input queue name will be the same as
+  its username.
+
+  --input-queue name
+  gives the name of the jms input queue for the server. If not given,
+  then the jms input queue is called 'serverInput'.
 
   --log-suffix suffix
   defaults to "sim" rather than "boot".
