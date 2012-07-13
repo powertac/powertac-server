@@ -62,13 +62,18 @@ public interface CompetitionSetup
    * <li>logfileSuffix is an (optional) filename suffix for the log output
    * files; default value is "sim".</li>
    * <li>brokerUsernames is a list of Strings giving the usernames of brokers
-   * who are expected to log in to the simulation before it starts. If empty,
-   * the simulation will start without brokers.</li>
+   * who are expected to log in to the simulation before it starts. If a username
+   * is of the form string1/string2, then string1 is the broker's username,
+   * and string2 is the name of that broker's JMS input queue. If this argument
+   * is null or empty, the simulation will start without brokers.</li>
+   * <li>inputQueueName is the name of the server's JMS input queue. If not
+   * given, then the default value of 'serverInput' will be used.
    * </ul> 
    */
   public String simSession (String bootData,
                             String config,
                             String jmsUrl,
                             String logfileSuffix,
-                            List<String> brokerUsernames);
+                            List<String> brokerUsernames,
+                            String inputQueueName);
 }
