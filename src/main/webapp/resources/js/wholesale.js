@@ -107,11 +107,11 @@ function makeGlobalWholesaleLastChart(){
 			
 			
 			series : [{
-		        name: 'Clearing price',
+		        name: 'Clearing price (EUR)',
 		        data: globalLastClearingPrices
 		    }, {
 		        type: 'column',
-		        name: 'Traded quantity',
+		        name: 'Cleared trade (MWh)',
 		        data: globalLastClearingVolumes,
 		        yAxis: 1
 		       
@@ -232,11 +232,11 @@ function makeSpecificWholesaleChart(){
 			
 			
 			series : [{
-		        name: 'Clearing price',
+		        name: 'Clearing price (EUR)',
 		        data: specificWholesaleChartPrices
 		    }, {
 		        type: 'column',
-		        name: 'Traded quantity',
+		        name: 'Traded quantity (MWh)',
 		        data: specificWholesaleChartVolumes,
 		        yAxis: 1
 		       
