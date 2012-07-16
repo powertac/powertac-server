@@ -94,14 +94,16 @@ public class TimeslotRepo implements DomainRepo
    */
   public Timeslot currentTimeslot () 
   {
-    if (first == null)
+    if (null == first)
       return null;
     Instant time = timeService.getCurrentTime();
+    if (null == time)
+      return null;
     if (current != null && current.getStartInstant().isEqual(time)) {
       return current;
     }
     current = findByInstant(time);
-    log.debug("current: " + current.toString());
+    //log.debug("current: " + current.toString());
     return current;
   }
   
