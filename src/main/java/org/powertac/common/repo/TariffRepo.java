@@ -161,7 +161,7 @@ public class TariffRepo implements DomainRepo
   /**
    * Tests whether a tariff has been deleted.
    */
-  public synchronized boolean isDeleted (Long tariffId)
+  public synchronized boolean isDeleted (long tariffId)
   {
     return deletedTariffs.contains(tariffId);
   }
