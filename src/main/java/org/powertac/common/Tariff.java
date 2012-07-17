@@ -417,9 +417,17 @@ public class Tariff
    * Updates the state of this tariff.
    */
   @StateChange
-  public void setState(State newState)
+  public void setState (State newState)
   {
     state = newState;
+  }
+  
+  /**
+   * True just in case this tariff is OFFERED or ACTIVE
+   */
+  public boolean isActive ()
+  {
+    return (State.OFFERED == state || State.ACTIVE == state); 
   }
 
   public Tariff getIsSupersededBy ()

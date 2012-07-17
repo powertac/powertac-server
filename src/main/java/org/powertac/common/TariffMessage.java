@@ -15,7 +15,6 @@
  */
 package org.powertac.common;
 
-import org.powertac.common.state.Domain;
 import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 

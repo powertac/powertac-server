@@ -18,8 +18,10 @@ package org.powertac.common.repo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
@@ -34,9 +36,10 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffRepo implements DomainRepo
 {
-  //static private Logger log = Logger.getLogger(TariffRepo.class.getName());
+  static private Logger log = Logger.getLogger(TariffRepo.class.getName());
 
   private HashMap<Long, TariffSpecification> specs;
+  private HashSet<Long> deletedTariffs;
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
   private HashMap<Long, BalancingOrder> balancingOrders;
@@ -45,13 +48,22 @@ public class TariffRepo implements DomainRepo
   {
     super();
     specs = new HashMap<Long, TariffSpecification>();
+    deletedTariffs = new HashSet<Long>();
     tariffs = new HashMap<Long, Tariff>();
     rates = new HashMap<Long, Rate>();
     balancingOrders = new HashMap<Long, BalancingOrder>();
   }
   
+  /**
+   * Adds a TariffSpecification to the repo just in case another spec
+   * (or this one) has not already been added sometime in the past.
+   */
   public synchronized void addSpecification (TariffSpecification spec)
   {
+    if (isDeleted(spec.getId()) || null != specs.get(spec.getId())) {
+      log.error("Attempt to insert tariff spec with duplicate ID " + spec.getId());
+      return;
+    }
     specs.put(spec.getId(), spec);
     for (Rate r : spec.getRates()) {
       rates.put(r.getId(), r);
@@ -93,18 +105,40 @@ public class TariffRepo implements DomainRepo
     }
     return result;
   }
-  
+
+  /**
+   * Returns the list of active tariffs that exactly match the given
+   * PowerType.
+   */
   public synchronized List<Tariff> findActiveTariffs (PowerType type)
   {
     List<Tariff> result = new ArrayList<Tariff>();
     for (Tariff tariff : tariffs.values()) {
-      if (tariff.getPowerType() == type && !tariff.isExpired() && !tariff.isRevoked()) {
+      if (tariff.getPowerType() == type && tariff.isActive() &&
+              !tariff.isExpired() && !tariff.isRevoked()) {
         result.add(tariff);
       }
     }
     return result;
   }
-  
+
+  /**
+   * Returns the list of active tariffs that can be used by a customer
+   * of the given PowerType, including those that are more generic than
+   * the specific type.
+   */
+  public synchronized List<Tariff> findAllActiveTariffs (PowerType type)
+  {
+    List<Tariff> result = new ArrayList<Tariff>();
+    for (Tariff tariff : tariffs.values()) {
+      if (type.canUse(tariff.getPowerType()) && tariff.isActive() &&
+              !tariff.isExpired() && !tariff.isRevoked()) {
+        result.add(tariff);
+      }
+    }
+    return result;
+  }
+
   public synchronized Rate findRateById (long id)
   {
     return rates.get(id);
@@ -116,7 +150,16 @@ public class TariffRepo implements DomainRepo
   public synchronized void removeTariff (Tariff tariff)
   {
     tariffs.remove(tariff.getId());
+    deletedTariffs.add(tariff.getId());
     specs.remove(tariff.getId());
+  }
+  
+  /**
+   * Tests whether a tariff has been deleted.
+   */
+  public synchronized boolean isDeleted (Long tariffId)
+  {
+    return deletedTariffs.contains(tariffId);
   }
   
   /**
