@@ -304,7 +304,8 @@ public class TariffMarketService
    */
   public void handleMessage (TariffSpecification spec)
   {
-    if (null != tariffRepo.findSpecificationById(spec.getId())) {
+    if (null != tariffRepo.findSpecificationById(spec.getId()) &&
+            !tariffRepo.isDeleted(spec.getId())) {
       log.warn("duplicate tariff spec from " + spec.getBroker().getUsername() +
                ", id = " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),

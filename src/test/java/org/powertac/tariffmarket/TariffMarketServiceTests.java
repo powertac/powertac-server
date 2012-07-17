@@ -24,7 +24,6 @@ import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
@@ -63,7 +62,6 @@ import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.VariableRateUpdate;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -249,15 +247,6 @@ public class TariffMarketServiceTests
     assertNull("needs AccountingService in the list", result);
     inits.add("AccountingService");
   }
-  
-  // bogus message, not an instance of TariffMessage
-//  @Test
-//  public void testBogusMessage1 ()
-//  {
-//    initializeService();
-//    tariffMarketService.receiveMessage(broker);
-//    assertEquals("no messages sent", 0, msgs.size());
-//  }
   
   // valid tariffSpec
   @Test
@@ -663,7 +652,6 @@ public class TariffMarketServiceTests
   }
 
   // create some subscriptions and then revoke a tariff
-  @SuppressWarnings("unused")
   @Test
   public void testGetRevokedSubscriptionList ()
   {
