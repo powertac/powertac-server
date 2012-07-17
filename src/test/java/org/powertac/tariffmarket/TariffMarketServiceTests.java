@@ -548,10 +548,24 @@ public class TariffMarketServiceTests
     tariffMarketService.handleMessage(tsp2);
     assertEquals("five tariffs", 5, tariffRepo.findAllTariffs().size());
     
-    // make sure all tariffs are active
+    // no active tariffs yet; they are all pending
     List<Tariff> tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
-    assertEquals("3 consumption tariffs", 3, tclist.size());
+    assertEquals("0 consumption tariffs", 0, tclist.size());
     List<Tariff> tplist = tariffMarketService.getActiveTariffList(PowerType.PRODUCTION);
+    assertEquals("0 production tariffs", 0, tplist.size());
+
+    // make them offered
+    long[] ids = {tsc1.getId(), tsc2.getId(), tsc3.getId(), tsp1.getId(), tsp2.getId()};
+    for (long id : ids) {
+      Tariff tf = tariffRepo.findTariffById(id);
+      assertNotNull(tf);
+      tf.setState(Tariff.State.OFFERED);
+    }
+    
+    // make sure all tariffs are active
+    tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
+    assertEquals("3 consumption tariffs", 3, tclist.size());
+    tplist = tariffMarketService.getActiveTariffList(PowerType.PRODUCTION);
     assertEquals("2 production tariffs", 2, tplist.size());
     
     // forward one day, try again
@@ -686,6 +700,14 @@ public class TariffMarketServiceTests
     CustomerInfo sally = new CustomerInfo("Sally", 100);
     //AbstractCustomer sally = new AbstractCustomer(sallyInfo);
     //sally.init();
+
+    // make them offered
+    long[] ids = {tsc1.getId(), tsc2.getId(), tsc3.getId()};
+    for (long id : ids) {
+      Tariff tf = tariffRepo.findTariffById(id);
+      assertNotNull(tf);
+      tf.setState(Tariff.State.OFFERED);
+    }
 	
     // make sure we have three active tariffs
     List<Tariff> tclist = tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
