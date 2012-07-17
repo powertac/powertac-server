@@ -278,8 +278,8 @@ public class TariffRepoTest
     repo.removeTariff(t2);
     assertEquals("2 tariffs", 2, repo.findAllTariffs().size());
     assertEquals("2 specs", 2, repo.findAllTariffSpecifications().size());
-    assertFalse("t3 not deleted", repo.isDeleted(t3.getId()));
-    assertTrue("t2 is deleted", repo.isDeleted(t2.getId()));
+    assertFalse("t3 not deleted", repo.isRemoved(t3.getId()));
+    assertTrue("t2 is deleted", repo.isRemoved(t2.getId()));
   }
 
   /**

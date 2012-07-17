@@ -60,7 +60,7 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized void addSpecification (TariffSpecification spec)
   {
-    if (isDeleted(spec.getId()) || null != specs.get(spec.getId())) {
+    if (isRemoved(spec.getId()) || null != specs.get(spec.getId())) {
       log.error("Attempt to insert tariff spec with duplicate ID " + spec.getId());
       return;
     }
@@ -82,7 +82,7 @@ public class TariffRepo implements DomainRepo
   
   public synchronized void addTariff (Tariff tariff)
   {
-    if (isDeleted(tariff.getId()) || null != tariffs.get(tariff.getId())) {
+    if (isRemoved(tariff.getId()) || null != tariffs.get(tariff.getId())) {
       log.error("Attempt to insert tariff with duplicate ID " + tariff.getId());
       return;
     }
@@ -142,11 +142,6 @@ public class TariffRepo implements DomainRepo
     }
     return result;
   }
-
-  public synchronized Rate findRateById (long id)
-  {
-    return rates.get(id);
-  }
   
   /**
    * Removes a tariff and its specification from the repo
@@ -161,9 +156,14 @@ public class TariffRepo implements DomainRepo
   /**
    * Tests whether a tariff has been deleted.
    */
-  public synchronized boolean isDeleted (long tariffId)
+  public synchronized boolean isRemoved (long tariffId)
   {
     return deletedTariffs.contains(tariffId);
+  }
+
+  public synchronized Rate findRateById (long id)
+  {
+    return rates.get(id);
   }
   
   /**
