@@ -82,6 +82,10 @@ public class TariffRepo implements DomainRepo
   
   public synchronized void addTariff (Tariff tariff)
   {
+    if (isDeleted(tariff.getId()) || null != tariffs.get(tariff.getId())) {
+      log.error("Attempt to insert tariff with duplicate ID " + tariff.getId());
+      return;
+    }
     tariffs.put(tariff.getId(), tariff);
   }
   
