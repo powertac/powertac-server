@@ -118,8 +118,8 @@ public class CompetitionControlService
   @Autowired
   private JmsManagementService jmsManagementService;
 
-  //@Autowired
-  //private TournamentSchedulerService tournamentSchedulerService;
+  @Autowired
+  private TournamentSchedulerService tournamentSchedulerService;
 
   @Autowired 
   private VisualizerProxyService visualizerProxyService;
@@ -276,9 +276,9 @@ public class CompetitionControlService
     
 
     // start JMS provider
-    jmsManagementService.start();    
+    jmsManagementService.start();   
    
-    init();    
+    init();
     
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
@@ -291,6 +291,10 @@ public class CompetitionControlService
     if (competition == null) {
       log.error("null competition instance");
     }
+    
+    // enable remote broker login here
+    tournamentSchedulerService.ready();
+
     if (!setup()) {
       simRunning = false;
       return;
@@ -353,13 +357,6 @@ public class CompetitionControlService
       competition.addCustomer(customer);
     }
 
-    // Send ready message to tournament scheduler
-    // -- but only if we have a tournament scheduler --
-    //tournamentSchedulerService.ready();
-    
-    // get brokers logged in
-    //jmsManagementService.createQueues()
-
     // sim length for bootstrap mode comes from the competition instance;
     // for non-bootstrap mode, it is computed from competition parameters.
     timeslotCount = competition.getBootstrapTimeslotCount()
@@ -379,6 +376,10 @@ public class CompetitionControlService
     for (String retailer : brokerRepo.findRetailBrokerNames()) {
       competition.addBroker(retailer);
     }
+    
+    // notify tournament scheduler that game is starting, assuming there
+    // is a tournament scheduler to notify.
+    tournamentSchedulerService.inProgress();
     
     // send the Competition instance, then the public PluginConfig instances,
     // and finally broadcast deferred messages
@@ -490,8 +491,13 @@ public class CompetitionControlService
     
     // only enabled brokers get messages
     broker.setEnabled(true);
-    broker.setQueueName(authorizedBrokerMap.get(username));
-    computeBrokerKey(broker);
+    if (!broker.isLocal()) {
+      // non-local brokers need queues and keys
+      String queueName = authorizedBrokerMap.get(username);
+      broker.setQueueName(authorizedBrokerMap.get(username));
+      jmsManagementService.createQueue(queueName);
+      computeBrokerKey(broker);
+    }
     // assign prefix and key with accept message
     brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, broker.getKey()));
     

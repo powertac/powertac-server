@@ -170,8 +170,8 @@ public class CompetitionSetupService
         parser.accepts("config").withRequiredArg().ofType(String.class);
     OptionSpec<String> logSuffixOption =
         parser.accepts("log-suffix").withRequiredArg();
-    OptionSpec<URL> bootData =
-        parser.accepts("boot-data").withRequiredArg().ofType(URL.class);
+    OptionSpec<String> bootData =
+        parser.accepts("boot-data").withRequiredArg().ofType(String.class);
     OptionSpec<String> jmsUrl =
         parser.accepts("jms-url").withRequiredArg().ofType(String.class);
     OptionSpec<String> inputQueue =
@@ -190,14 +190,14 @@ public class CompetitionSetupService
       String serverConfig = options.valueOf(serverConfigUrl);
       
       // process tournament scheduler based info
-      if (controllerURL != null && game != null){
-          tss.setTournamentSchedulerUrl(controllerURL.toString());
-          tss.setGameId(game);
-      }
-
-      if (serverConfig == null && controllerURL != null) {
-        // offset from controller
-        serverConfig = new URL(controllerURL, "server-config").toExternalForm();
+      if (controllerURL != null) {
+        if (null == game) {
+          log.error("controller URL " + controllerURL + " without gameId");
+          game = 0;
+        }
+        tss.setTournamentSchedulerUrl(controllerURL.toString());
+        tss.setGameId(game);
+        serverConfig = tss.getConfigUrl().toExternalForm();
       }
       
       if (options.has(bootOutput)) {
@@ -208,7 +208,7 @@ public class CompetitionSetupService
       }
       else if (options.has("sim")) {
         // sim session
-        simSession(options.valueOf(bootData).toExternalForm(),
+        simSession(options.valueOf(bootData),
                    serverConfig,
                    options.valueOf(jmsUrl),
                    logSuffix,
@@ -223,10 +223,6 @@ public class CompetitionSetupService
     }
     catch (OptionException e) {
       System.err.println("Bad command argument: " + e.toString());
-    }
-    catch (MalformedURLException e) {
-      System.err.println("Cannot parse command line: " + e.toString());
-      System.exit(1);
     }
   }
 
@@ -300,6 +296,10 @@ public class CompetitionSetupService
   {
     String error = null;
     try {
+      log.info("simSession: bootData=" + bootData
+               + ", config=" + config
+               + ", jmsUrl=" + jmsUrl
+               + ", inputQueue=" + inputQueueName);
       // process serverConfig now, because other options may override
       // parts of it
       serverProps.recycle();
@@ -315,17 +315,22 @@ public class CompetitionSetupService
       }
       
       // boot data access
-      if (bootData != null) {
+      URL bootUrl = null;
+      if (controllerURL != null) {
+        bootUrl = tss.getBootUrl();
+      }
+      else if (bootData != null) {
         if (!bootData.contains(":"))
           bootData = "file:" + bootData;
-        startSimSession(brokerUsernames, inputQueueName, new URL(bootData));
-      }        
-      else if (controllerURL != null) {
-        startSimSession(brokerUsernames, inputQueueName, new URL(controllerURL, "bootstrap-data"));
+        bootUrl = new URL(bootData);
+      }
+      if (null == bootUrl) {
+        error = "bootstrap data source not given";
+        System.out.println(error);        
       }
       else {
-        error = "bootstrap data source not given";
-        System.out.println(error);
+        log.info("bootUrl=" + bootUrl.toExternalForm());
+        startSimSession(brokerUsernames, inputQueueName, bootUrl);
       }
     }
     catch (MalformedURLException e) {
