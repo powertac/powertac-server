@@ -76,7 +76,7 @@ public class ServerMessageReceiver implements MessageListener
         return;
       }
     }
-    log.info("onMessage(String) - received message:\n" + validXml);
+    log.debug("onMessage(String) - received message:\n" + validXml);
     Object message = converter.fromXML(validXml);
     log.debug("onMessage(String) - received message of type " + message.getClass().getSimpleName());
     brokerProxy.routeMessage(message);
