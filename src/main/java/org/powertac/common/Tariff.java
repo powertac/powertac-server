@@ -62,7 +62,7 @@ public class Tariff
 
   public enum State
   {
-    PENDING, OFFERED, ACTIVE, WITHDRAWN, KILLED, INACTIVE
+    PENDING, OFFERED, ACTIVE, WITHDRAWN, KILLED
   }
 
   private TimeService timeService;
