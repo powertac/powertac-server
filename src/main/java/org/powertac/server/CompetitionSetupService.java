@@ -98,6 +98,7 @@ public class CompetitionSetupService
   private TournamentSchedulerService tss;
 
   private Competition competition;
+  private int gameId = 0;
   private URL controllerURL;
   private Thread session = null;
   
@@ -165,7 +166,7 @@ public class CompetitionSetupService
         parser.accepts("boot").withRequiredArg().ofType(String.class);
     OptionSpec<URL> controllerOption =
         parser.accepts("control").withRequiredArg().ofType(URL.class);
-    OptionSpec<Integer> gameId = 
+    OptionSpec<Integer> gameOpt = 
     	parser.accepts("game-id").withRequiredArg().ofType(Integer.class);
     OptionSpec<String> serverConfigUrl =
         parser.accepts("config").withRequiredArg().ofType(String.class);
@@ -187,14 +188,17 @@ public class CompetitionSetupService
       // process common options
       String logSuffix = options.valueOf(logSuffixOption);
       controllerURL = options.valueOf(controllerOption);
-      Integer game = options.valueOf(gameId);
+      Integer game = options.valueOf(gameOpt);
       String serverConfig = options.valueOf(serverConfigUrl);
       
       // process tournament scheduler based info
       if (controllerURL != null) {
         if (null == game) {
           log.error("controller URL " + controllerURL + " without gameId");
-          game = 0;
+          gameId = 0;
+        }
+        else {
+          gameId = game;
         }
         tss.setTournamentSchedulerUrl(controllerURL.toString());
         tss.setGameId(game);
@@ -232,17 +236,17 @@ public class CompetitionSetupService
                              String defaultSuffix)
                                  throws IOException
   {
-    if (logSuffix == null && controllerURL != null) {
-      URL suffixUrl = new URL(controllerURL, "log-suffix");
-      log.info("retrieving logSuffix from " + suffixUrl.toExternalForm());
-      InputStream stream = suffixUrl.openStream();
-      byte[] buffer = new byte[64];
-      int len = stream.read(buffer);
-      if (len > 0) {
-        logSuffix = new String(buffer, 0, len);
-        log.info("log suffix " + logSuffix + " retrieved");
-      }
-    }
+//    if (logSuffix == null && controllerURL != null) {
+//      URL suffixUrl = new URL(controllerURL, "log-suffix");
+//      log.info("retrieving logSuffix from " + suffixUrl.toExternalForm());
+//      InputStream stream = suffixUrl.openStream();
+//      byte[] buffer = new byte[64];
+//      int len = stream.read(buffer);
+//      if (len > 0) {
+//        logSuffix = new String(buffer, 0, len);
+//        log.info("log suffix " + logSuffix + " retrieved");
+//      }
+//    }
     if (logSuffix == null)
       logSuffix = defaultSuffix;
     serverProps.setProperty("server.logfileSuffix", logSuffix);
@@ -307,7 +311,7 @@ public class CompetitionSetupService
       setConfigMaybe(config);
 
       // set the logfile suffix
-      setLogSuffix(logfileSuffix, "sim");
+      setLogSuffix(logfileSuffix, "sim-" + gameId);
     
       // jms setup
       if (jmsUrl != null) {
@@ -389,6 +393,7 @@ public class CompetitionSetupService
         if (preGame(bootDataset)) {
           cc.setBootstrapDataset(processBootDataset(bootDataset));
           cc.runOnce(false);
+          gameId += 1;
         }        
       }
     };
@@ -411,8 +416,8 @@ public class CompetitionSetupService
     logService.startLog(suffix);
     log.info("preGame() - start");
     IdGenerator.recycle();
-    // Create default competition
-    competition = Competition.newInstance("defaultCompetition");
+    // Create competition instance
+    competition = Competition.newInstance("game-" + gameId);
     
     // Set up all the plugin configurations
     log.info("pre-game initialization");
