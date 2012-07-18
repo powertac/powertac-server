@@ -332,7 +332,7 @@ public class TariffMarketService
     }
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
-    tariffRepo.addTariff(tariff);
+    //tariffRepo.addTariff(tariff);
     tariff.init();
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
@@ -587,7 +587,8 @@ public class TariffMarketService
     tariffRepo.addSpecification(newSpec);
     Tariff tariff = new Tariff(newSpec);
     tariff.init();
-    tariffRepo.addTariff(tariff);
+    tariff.setState(Tariff.State.OFFERED);
+    //tariffRepo.addTariff(tariff);
     defaultTariff.put(newSpec.getPowerType(), tariff.getId());
     return true;
   }
