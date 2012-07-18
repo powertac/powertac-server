@@ -47,6 +47,7 @@ import joptsimple.OptionSpec;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
+import org.powertac.common.IdGenerator;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
@@ -409,6 +410,7 @@ public class CompetitionSetupService
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
     logService.startLog(suffix);
     log.info("preGame() - start");
+    IdGenerator.recycle();
     // Create default competition
     competition = Competition.newInstance("defaultCompetition");
     
