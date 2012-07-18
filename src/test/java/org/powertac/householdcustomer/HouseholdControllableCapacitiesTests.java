@@ -162,6 +162,7 @@ public class HouseholdControllableCapacitiesTests
               .addRate(new Rate().withValue(-0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
+    defaultTariff.setState(Tariff.State.OFFERED);
 
     defaultTariffSpecControllable =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
@@ -169,6 +170,7 @@ public class HouseholdControllableCapacitiesTests
               .addRate(new Rate().withValue(-0.121).withMaxCurtailment(0.3));
     defaultTariffControllable = new Tariff(defaultTariffSpecControllable);
     defaultTariffControllable.init();
+    defaultTariffControllable.setState(Tariff.State.OFFERED);
 
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
@@ -431,10 +433,13 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five tariffs", 5, tariffRepo.findAllTariffs().size());
 
@@ -654,10 +659,13 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
             .size());
@@ -803,10 +811,13 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
             .size());
@@ -882,10 +893,13 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
             .size());
@@ -1018,6 +1032,7 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
 
     assertNotNull("first tariff found", tariff1);
 
@@ -1191,6 +1206,8 @@ public class HouseholdControllableCapacitiesTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
+
     assertEquals("Three tariffs", 3, tariffRepo.findAllTariffs().size());
 
     for (Village customer: householdCustomerService.getVillageList()) {
