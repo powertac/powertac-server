@@ -162,6 +162,7 @@ public class OfficeComplexCustomerServiceTests
               .addRate(new Rate().withValue(-0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
+    defaultTariff.setState(Tariff.State.OFFERED);
 
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
@@ -408,10 +409,13 @@ public class OfficeComplexCustomerServiceTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Four tariffs", 4, tariffRepo.findAllTariffs().size());
 
@@ -637,10 +641,13 @@ public class OfficeComplexCustomerServiceTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs()
             .size());
@@ -789,10 +796,13 @@ public class OfficeComplexCustomerServiceTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs()
             .size());
@@ -866,12 +876,16 @@ public class OfficeComplexCustomerServiceTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
     Tariff tariff2 = new Tariff(tsc2);
     tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
     Tariff tariff3 = new Tariff(tsc3);
     tariff3.init();
+    tariff3.setState(Tariff.State.OFFERED);
     Tariff tariff4 = new Tariff(tsc4);
     tariff4.init();
+    tariff4.setState(Tariff.State.OFFERED);
 
     tsc4.addSupersedes(tsc3.getId());
     assertEquals("correct length", 1, tsc4.getSupersedes().size());
@@ -1028,6 +1042,7 @@ public class OfficeComplexCustomerServiceTests
 
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
 
     assertNotNull("first tariff found", tariff1);
 
