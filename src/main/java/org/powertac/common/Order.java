@@ -114,4 +114,11 @@ public class Order extends XStreamStateLoggable
   {
     return limitPrice;
   }
+  
+  public String toString()
+  {
+    return ("Order " + id + " from " + broker.getUsername()
+            + " for " + mWh + " mwh at " + limitPrice
+            + " in ts " + timeslot.getSerialNumber());
+  }
 }
