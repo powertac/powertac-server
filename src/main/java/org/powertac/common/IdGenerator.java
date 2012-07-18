@@ -61,4 +61,13 @@ public class IdGenerator
   {
     return Long.toString(id / multiplier) + "." + Long.toString(id % multiplier);
   }
+  
+  /**
+   * Recycles the generator. This should only be used in a setting where multiple
+   * sessions are run in a single process.
+   */
+  public static void recycle ()
+  {
+    counter = 0;
+  }
 }
