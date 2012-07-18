@@ -172,6 +172,7 @@ public class AuctionService
       synchronized(incoming) {
         incoming.add((Order)msg);
       }
+      log.info("Received " + msg.toString());
     }
   }
   
