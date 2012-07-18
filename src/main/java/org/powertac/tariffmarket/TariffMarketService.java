@@ -587,7 +587,7 @@ public class TariffMarketService
     tariffRepo.addSpecification(newSpec);
     Tariff tariff = new Tariff(newSpec);
     tariff.init();
-    tariff.setState(Tariff.State.OFFERED);
+    //tariff.setState(Tariff.State.OFFERED);
     //tariffRepo.addTariff(tariff);
     defaultTariff.put(newSpec.getPowerType(), tariff.getId());
     return true;
