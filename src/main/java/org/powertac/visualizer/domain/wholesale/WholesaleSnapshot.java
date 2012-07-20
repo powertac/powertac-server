@@ -40,12 +40,12 @@ public class WholesaleSnapshot {
 
 	private WholesaleSnapshotJSON wholesaleSnapshotJSON;
 	// filled with actual received Orders that are previously converted to
-	// OrderbookOrder.
-	private Orderbook orders;
+	// VisualizerOrderbookOrder.
+	private VisualizerOrderbook orders;
 	// cleared trade, null if there is no trade
 	private ClearedTrade clearedTrade;
 	// standard orderbook:
-	private Orderbook orderbook;
+	private VisualizerOrderbook orderbook;
 	/*
 	 * indicates whether the observed snapshot is closed. Snapshot can be closed
 	 * when there is null price in orderbook, or when the clearedTrade object is
@@ -54,17 +54,17 @@ public class WholesaleSnapshot {
 	private boolean closed;
 	private boolean cleared;
 
-	private OrderbookOrder marketAskOrder;
-	private OrderbookOrder marketBidOrder;
+	private VisualizerOrderbookOrder marketAskOrder;
+	private VisualizerOrderbookOrder marketBidOrder;
 
-	private List<OrderbookOrder> beforeAsks;
-	private List<OrderbookOrder> beforeBids;
-	private List<OrderbookOrder> afterAsks;
-	private List<OrderbookOrder> afterBids;
+	private List<VisualizerOrderbookOrder> beforeAsks;
+	private List<VisualizerOrderbookOrder> beforeBids;
+	private List<VisualizerOrderbookOrder> afterAsks;
+	private List<VisualizerOrderbookOrder> afterBids;
 
 	public WholesaleSnapshot(long millisCreated, Timeslot timeslot, int timeslotSerialNumberCreated) {
 		this.timeslotSerialNumber = timeslot.getSerialNumber();
-		orders = new Orderbook(timeslot, null, null);
+		orders = new VisualizerOrderbook(timeslot, null, null);
 		this.timeslot = timeslot;
 		this.timeslotSerialNumberCreated = timeslotSerialNumberCreated;
 		this.millisCreated = millisCreated;
@@ -72,7 +72,7 @@ public class WholesaleSnapshot {
 
 	public void addOrder(Order order) {
 
-		OrderbookOrder orderbookOrder = new OrderbookOrder(order.getMWh(), order.getLimitPrice());
+		VisualizerOrderbookOrder orderbookOrder = new VisualizerOrderbookOrder(order.getMWh(), order.getLimitPrice());
 
 		// bid:
 		if (order.getMWh() > 0) {
@@ -93,11 +93,11 @@ public class WholesaleSnapshot {
 		}
 	}
 
-	public Orderbook getOrders() {
+	public VisualizerOrderbook getOrders() {
 		return orders;
 	}
 
-	public void setOrders(Orderbook orders) {
+	public void setOrders(VisualizerOrderbook orders) {
 		this.orders = orders;
 	}
 
@@ -110,12 +110,14 @@ public class WholesaleSnapshot {
 		cleared = true;
 	}
 
-	public Orderbook getOrderbook() {
+	public VisualizerOrderbook getOrderbook() {
 		return orderbook;
 	}
 
-	public void setOrderbook(Orderbook orderbook) {
+	public void setOrderbook(VisualizerOrderbook orderbook) {
+		
 		this.orderbook = orderbook;
+		
 	}
 
 	public Timeslot getTimeslot() {
@@ -134,15 +136,15 @@ public class WholesaleSnapshot {
 		builder.append("____________ORDERS:________\n");
 		if (orders != null) {
 			builder.append("ASKS:\n");
-			SortedSet<OrderbookOrder> asks = orders.getAsks();
-			for (Iterator iterator = asks.iterator(); iterator.hasNext();) {
-				OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+			SortedSet<VisualizerOrderbookOrder> asks = orders.getAsks();
+			for (Iterator<VisualizerOrderbookOrder> iterator = asks.iterator(); iterator.hasNext();) {
+				VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 				builder.append(orderbookOrder).append("\n");
 			}
 			builder.append("ORDERS:\nBIDS:");
-			SortedSet<OrderbookOrder> bids = orders.getBids();
-			for (Iterator iterator = bids.iterator(); iterator.hasNext();) {
-				OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+			SortedSet<VisualizerOrderbookOrder> bids = orders.getBids();
+			for (Iterator<VisualizerOrderbookOrder> iterator = bids.iterator(); iterator.hasNext();) {
+				VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 				builder.append(orderbookOrder).append("\n");
 			}
 			if (marketAskOrder != null) {
@@ -159,15 +161,15 @@ public class WholesaleSnapshot {
 
 		if (orderbook != null) {
 			builder.append("ASKS:\n");
-			SortedSet<OrderbookOrder> asks = orderbook.getAsks();
-			for (Iterator iterator = asks.iterator(); iterator.hasNext();) {
-				OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+			SortedSet<VisualizerOrderbookOrder> asks = orderbook.getAsks();
+			for (Iterator<VisualizerOrderbookOrder> iterator = asks.iterator(); iterator.hasNext();) {
+				VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 				builder.append(orderbookOrder).append("\n");
 			}
 			builder.append("BIDS:\n");
-			SortedSet<OrderbookOrder> bids = orderbook.getBids();
-			for (Iterator iterator = bids.iterator(); iterator.hasNext();) {
-				OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+			SortedSet<VisualizerOrderbookOrder> bids = orderbook.getBids();
+			for (Iterator<VisualizerOrderbookOrder> iterator = bids.iterator(); iterator.hasNext();) {
+				VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 				builder.append(orderbookOrder).append("\n");
 			}
 		}
@@ -205,8 +207,8 @@ public class WholesaleSnapshot {
 		// create JSON for before-clearing graph:
 		JSONArray graphDataBeforeClearing = new JSONArray();
 		JSONArray seriesColorsBeforeClearing = new JSONArray();
-		SortedSet<OrderbookOrder> asks = orders.getAsks();
-		SortedSet<OrderbookOrder> bids = orders.getBids();
+		SortedSet<VisualizerOrderbookOrder> asks = orders.getAsks();
+		SortedSet<VisualizerOrderbookOrder> bids = orders.getBids();
 
 		modifyMarketOrders();
 
@@ -214,8 +216,8 @@ public class WholesaleSnapshot {
 
 		JSONArray graphDataAfterClearing = new JSONArray();
 		JSONArray seriesColorsAfterClearing = new JSONArray();
-		SortedSet<OrderbookOrder> asksAfter = orderbook.getAsks();
-		SortedSet<OrderbookOrder> bidsAfter = orderbook.getBids();
+		SortedSet<VisualizerOrderbookOrder> asksAfter = orderbook.getAsks();
+		SortedSet<VisualizerOrderbookOrder> bidsAfter = orderbook.getBids();
 
 		buildAfterData(asksAfter, bidsAfter, graphDataAfterClearing, seriesColorsAfterClearing);
 
@@ -227,22 +229,22 @@ public class WholesaleSnapshot {
 				+ " is closed: \n" + this.toString());
 
 		// make arraylists:
-		beforeAsks = new ArrayList<OrderbookOrder>(orders.getAsks());
-		beforeBids = new ArrayList<OrderbookOrder>(orders.getBids());
+		beforeAsks = new ArrayList<VisualizerOrderbookOrder>(orders.getAsks());
+		beforeBids = new ArrayList<VisualizerOrderbookOrder>(orders.getBids());
 
-		afterAsks = new ArrayList<OrderbookOrder>(orderbook.getAsks());
-		afterBids = new ArrayList<OrderbookOrder>(orderbook.getBids());
+		afterAsks = new ArrayList<VisualizerOrderbookOrder>(orderbook.getAsks());
+		afterBids = new ArrayList<VisualizerOrderbookOrder>(orderbook.getBids());
 
 	}
 
 	private void modifyMarketOrders() {
-		SortedSet<OrderbookOrder> asks = orders.getAsks();
-		SortedSet<OrderbookOrder> bids = orders.getBids();
+		SortedSet<VisualizerOrderbookOrder> asks = orders.getAsks();
+		SortedSet<VisualizerOrderbookOrder> bids = orders.getBids();
 
-		OrderbookOrder lowestAsk = null;
-		OrderbookOrder highestAsk = null;
-		OrderbookOrder lowestBid = null;
-		OrderbookOrder highestBid = null;
+		VisualizerOrderbookOrder lowestAsk = null;
+		VisualizerOrderbookOrder highestAsk = null;
+		VisualizerOrderbookOrder lowestBid = null;
+		VisualizerOrderbookOrder highestBid = null;
 
 		if (!asks.isEmpty()) {
 			lowestAsk = asks.first();
@@ -262,7 +264,7 @@ public class WholesaleSnapshot {
 			} else {
 				newPrice = MARKET_PRICE;
 			}
-			marketAskOrder = new OrderbookOrder(marketAskOrder.getMWh(), newPrice);
+			marketAskOrder = new VisualizerOrderbookOrder(marketAskOrder.getMWh(), newPrice);
 		}
 		if (marketBidOrder != null) {
 			double newPrice;
@@ -272,12 +274,12 @@ public class WholesaleSnapshot {
 			} else {
 				newPrice = -1 * MARKET_PRICE;
 			}
-			marketBidOrder = new OrderbookOrder(marketBidOrder.getMWh(), newPrice);
+			marketBidOrder = new VisualizerOrderbookOrder(marketBidOrder.getMWh(), newPrice);
 		}
 
 	}
 
-	private void buildAfterData(SortedSet<OrderbookOrder> asksAfter, SortedSet<OrderbookOrder> bidsAfter,
+	private void buildAfterData(SortedSet<VisualizerOrderbookOrder> asksAfter, SortedSet<VisualizerOrderbookOrder> bidsAfter,
 			JSONArray graphDataAfterClearing, JSONArray seriesColorsAfterClearing) {
 
 		double clearedTradeOffset = 0;
@@ -289,12 +291,12 @@ public class WholesaleSnapshot {
 
 		// asks:
 		double askOffset = clearedTradeOffset;
-		for (Iterator iterator = asksAfter.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+		for (Iterator<VisualizerOrderbookOrder> iterator = asksAfter.iterator(); iterator.hasNext();) {
+			VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 
 			// if a market order in orderbook can be found:
 			if (orderbookOrder.getLimitPrice() == null) {
-				OrderbookOrder newMarketAskOrder = modifyMarketOrder(orderbookOrder, asksAfter);
+				VisualizerOrderbookOrder newMarketAskOrder = modifyMarketOrder(orderbookOrder, asksAfter);
 				askOffset = buildLine(Math.abs(newMarketAskOrder.getMWh()),
 						Math.abs(newMarketAskOrder.getLimitPrice()), graphDataAfterClearing, seriesColorsAfterClearing,
 						askOffset, WholesaleSnapshotJSON.getMarketAskOrderColor());
@@ -307,11 +309,11 @@ public class WholesaleSnapshot {
 		}
 		// bids:
 		double bidOffset = clearedTradeOffset;
-		for (Iterator iterator = bidsAfter.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+		for (Iterator<VisualizerOrderbookOrder> iterator = bidsAfter.iterator(); iterator.hasNext();) {
+			VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 			// if a market order in orderbook can be found:
 			if (orderbookOrder.getLimitPrice() == null) {
-				OrderbookOrder newMarketAskOrder = modifyMarketOrder(orderbookOrder, bidsAfter);
+				VisualizerOrderbookOrder newMarketAskOrder = modifyMarketOrder(orderbookOrder, bidsAfter);
 				bidOffset = buildLine(Math.abs(newMarketAskOrder.getMWh()),
 						Math.abs(newMarketAskOrder.getLimitPrice()), graphDataAfterClearing, seriesColorsAfterClearing,
 						bidOffset, WholesaleSnapshotJSON.getMarketBidOrderColor());
@@ -325,7 +327,7 @@ public class WholesaleSnapshot {
 
 	}
 
-	private void buildBeforeData(SortedSet<OrderbookOrder> asks, SortedSet<OrderbookOrder> bids, JSONArray graphData,
+	private void buildBeforeData(SortedSet<VisualizerOrderbookOrder> asks, SortedSet<VisualizerOrderbookOrder> bids, JSONArray graphData,
 			JSONArray seriesColors) {
 		double askOffset = 0;
 		if (marketAskOrder != null) {
@@ -333,8 +335,8 @@ public class WholesaleSnapshot {
 			askOffset = buildLine(Math.abs(marketAskOrder.getMWh()), Math.abs(marketAskOrder.getLimitPrice()),
 					graphData, seriesColors, askOffset, WholesaleSnapshotJSON.getMarketAskOrderColor());
 		}
-		for (Iterator iterator = asks.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+		for (Iterator<VisualizerOrderbookOrder> iterator = asks.iterator(); iterator.hasNext();) {
+			VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 
 			askOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
 					graphData, seriesColors, askOffset, WholesaleSnapshotJSON.getLimitAskOrderColor());
@@ -347,8 +349,8 @@ public class WholesaleSnapshot {
 					graphData, seriesColors, bidOffset, WholesaleSnapshotJSON.getMarketBidOrderColor());
 		}
 
-		for (Iterator iterator = bids.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
+		for (Iterator<VisualizerOrderbookOrder> iterator = bids.iterator(); iterator.hasNext();) {
+			VisualizerOrderbookOrder orderbookOrder = (VisualizerOrderbookOrder) iterator.next();
 			bidOffset = buildLine(Math.abs(orderbookOrder.getMWh()), Math.abs(orderbookOrder.getLimitPrice()),
 					graphData, seriesColors, bidOffset, WholesaleSnapshotJSON.getLimitBidOrderColor());
 
@@ -356,10 +358,10 @@ public class WholesaleSnapshot {
 
 	}
 
-	private OrderbookOrder modifyMarketOrder(OrderbookOrder marketOrder, SortedSet<OrderbookOrder> offers) {
+	private VisualizerOrderbookOrder modifyMarketOrder(VisualizerOrderbookOrder marketOrder, SortedSet<VisualizerOrderbookOrder> offers) {
 		// get rid of a null price in market order:
 		try {
-			OrderbookOrder first = offers.first();
+			VisualizerOrderbookOrder first = offers.first();
 			Double limitPrice = first.getLimitPrice();
 			double newMarketPrice;
 			
@@ -377,12 +379,12 @@ public class WholesaleSnapshot {
 				newMarketPrice = (first.getMWh() > 0) ? (-1.2) * limitPrice : (0.8) * limitPrice;
 			}
 
-			return new OrderbookOrder(marketOrder.getMWh(), newMarketPrice);
+			return new VisualizerOrderbookOrder(marketOrder.getMWh(), newMarketPrice);
 
 		} catch (NoSuchElementException e) {
 			log.debug("market order is forever alone.");
 		}
-		return new OrderbookOrder(marketOrder.getMWh(), 0.0);
+		return new VisualizerOrderbookOrder(marketOrder.getMWh(), 0.0);
 
 	}
 
@@ -431,27 +433,27 @@ public class WholesaleSnapshot {
 		return timeslotSerialNumberCreated;
 	}
 
-	public OrderbookOrder getMarketAskOrder() {
+	public VisualizerOrderbookOrder getMarketAskOrder() {
 		return marketAskOrder;
 	}
 
-	public OrderbookOrder getMarketBidOrder() {
+	public VisualizerOrderbookOrder getMarketBidOrder() {
 		return marketBidOrder;
 	}
 
-	public List<OrderbookOrder> getAfterAsks() {
+	public List<VisualizerOrderbookOrder> getAfterAsks() {
 		return afterAsks;
 	}
 
-	public List<OrderbookOrder> getAfterBids() {
+	public List<VisualizerOrderbookOrder> getAfterBids() {
 		return afterBids;
 	}
 
-	public List<OrderbookOrder> getBeforeAsks() {
+	public List<VisualizerOrderbookOrder> getBeforeAsks() {
 		return beforeAsks;
 	}
 
-	public List<OrderbookOrder> getBeforeBids() {
+	public List<VisualizerOrderbookOrder> getBeforeBids() {
 		return beforeBids;
 	}
 	

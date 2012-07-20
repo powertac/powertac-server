@@ -191,10 +191,10 @@ public class BrokerMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(TariffStatus msg) {
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
-		if (broker != null) {
-			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getMessage());
-		}
+//		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker().getUsername());
+//		if (broker != null) {
+//			broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getMessage());
+//		}
 	}
 
 	public void handleMessage(TariffUpdate msg) {

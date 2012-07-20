@@ -11,6 +11,7 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.VisualizerBean;
+import org.powertac.visualizer.domain.wholesale.VisualizerOrderbook;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.interfaces.Initializable;
@@ -91,7 +92,7 @@ public class WholesaleMessageHandler implements Initializable {
 
 		WholesaleMarket market = wholesaleService.findWholesaleMarket(orderbook.getTimeslot().getSerialNumber());
 		WholesaleSnapshot snapshot = market.findSnapshot(targetTimeslotIndex);
-		snapshot.setOrderbook(orderbook);
+		snapshot.setOrderbook(new VisualizerOrderbook(orderbook));
 		// the end for this snapshot if there is null clearing price:
 		if (orderbook.getClearingPrice() == null) {
 			snapshot.close();

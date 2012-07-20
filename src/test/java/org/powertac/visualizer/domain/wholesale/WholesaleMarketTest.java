@@ -33,7 +33,7 @@ public class WholesaleMarketTest {
 			timeslot = new Timeslot(360 + i, null, null);
 			snapshot = new WholesaleSnapshot(1258, timeslot, 360 + i);
 			snapshot.setClearedTrade(new ClearedTrade(timeslot, 10, i, null));
-			snapshot.setOrderbook(new Orderbook(timeslot, 0.0, new Instant()));
+			snapshot.setOrderbook(new VisualizerOrderbook(timeslot, 0.0, new Instant()));
 			snapshot.close();
 			market.getSnapshotsMap().put(i, snapshot);
 		}

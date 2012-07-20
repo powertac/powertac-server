@@ -33,12 +33,12 @@ public class WholesaleSnapshotTest {
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 5.0, null));
 		wholesaleSnapshot.addOrder(new Order(null, timeslot, 6.0, -6.0));
 		
-		Orderbook orderbookWithNulls = new Orderbook(timeslot, 0.0, null).addAsk(new OrderbookOrder(10, null)).addBid(new OrderbookOrder(-10, null));
+		VisualizerOrderbook orderbookWithNulls = new VisualizerOrderbook(timeslot, 0.0, null).addAsk(new VisualizerOrderbookOrder(10, null)).addBid(new VisualizerOrderbookOrder(-10, null));
 		wholesaleSnapshot.setOrderbook(orderbookWithNulls);
 		wholesaleSnapshot.close();
 		assertEquals("Wholesale snapshot should be successfully closed", wholesaleSnapshot.isClosed(), true);
 		
-		Orderbook orderbookWithoutNulls = new Orderbook(timeslot, 0.0, null).addAsk(new OrderbookOrder(10, -10.0)).addBid(new OrderbookOrder(-10, 10.0));
+		VisualizerOrderbook orderbookWithoutNulls = new VisualizerOrderbook(timeslot, 0.0, null).addAsk(new VisualizerOrderbookOrder(10, -10.0)).addBid(new VisualizerOrderbookOrder(-10, 10.0));
 		wholesaleSnapshot.setOrderbook(orderbookWithoutNulls);
 		wholesaleSnapshot.close();
 		assertEquals("Wholesale snapshot should be successfully closed", wholesaleSnapshot.isClosed(), true);

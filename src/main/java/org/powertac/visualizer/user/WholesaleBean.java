@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.powertac.common.OrderbookOrder;
 import org.powertac.visualizer.beans.VisualizerBean;
+import org.powertac.visualizer.domain.wholesale.VisualizerOrderbookOrder;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.services.WholesaleService;
@@ -24,8 +25,8 @@ public class WholesaleBean implements Serializable {
 	private WholesaleService model;
 	private Collection<WholesaleMarket> markets;
 
-	private List<OrderbookOrder> beforeAsks;
-	private List<OrderbookOrder> afterAsks;
+	private List<VisualizerOrderbookOrder> beforeAsks;
+	private List<VisualizerOrderbookOrder> afterAsks;
 
 	@Autowired
 	public WholesaleBean(WholesaleService wholesaleService) {
@@ -70,10 +71,10 @@ public class WholesaleBean implements Serializable {
 		refresh();
 		return markets;
 	}
-	public List<OrderbookOrder> getAfterAsks() {
+	public List<VisualizerOrderbookOrder> getAfterAsks() {
 		return afterAsks;
 	}
-	public List<OrderbookOrder> getBeforeAsks() {
+	public List<VisualizerOrderbookOrder> getBeforeAsks() {
 		return beforeAsks;
 	}
 	

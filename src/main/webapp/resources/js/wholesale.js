@@ -71,7 +71,7 @@ function makeGlobalWholesaleLastChart(){
 			},
 			
 			title : {
-				text : 'Most recent clearings for each timeslot'
+				text : 'Most recent clearing for each timeslot'
 			},
 			
 			exporting: {
