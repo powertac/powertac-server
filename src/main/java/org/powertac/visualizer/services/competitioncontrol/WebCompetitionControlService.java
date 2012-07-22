@@ -82,7 +82,7 @@ public class WebCompetitionControlService
       System.out.println(boot + serverConfig + jmsUrl + logSuffix + names);
 
       String result =
-        css.simSession(boot, serverConfig, jmsUrl, logSuffix, names);
+        css.simSession(boot, serverConfig, jmsUrl, logSuffix, names, null);
 
       if (result == null) {
         message = "Simulation started.";
