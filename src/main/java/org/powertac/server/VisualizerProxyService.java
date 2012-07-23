@@ -112,7 +112,7 @@ implements VisualizerProxy, InitializationService
     serverConfig.configureMe(this);
     if (remoteVisualizer) {
       // set up the output queue
-      //jmsManagementService.createQueue(visualizerQueueName);
+      jmsManagementService.createQueue(visualizerQueueName);
     }
     return "VisualizerProxy";
   }
