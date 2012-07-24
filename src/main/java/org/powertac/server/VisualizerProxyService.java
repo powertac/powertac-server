@@ -1,6 +1,7 @@
 package org.powertac.server;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.jms.JMSException;
@@ -54,6 +55,8 @@ implements VisualizerProxy, InitializationService
   @ConfigurableValue(valueType = "String",
           description = "name of queue for remote visualizer")
   private String visualizerQueueName = "remote-visualizer";
+
+  private boolean remoteVizActive = false;
   
   /**
    * @param remoteVisualizer the remoteVisualizer to set
@@ -122,6 +125,47 @@ implements VisualizerProxy, InitializationService
   {
     if (remoteVisualizer) {
       forwardMessage(new VisualizerStatusRequest());
+      synchronized(this) {
+        remoteVizActive  = true;
+        notifyAll();
+      }
+    }
+  }
+  
+  /**
+   * True just in case a remote visualizer has pinged this server
+   */
+  public boolean isActive ()
+  {
+    return remoteVizActive;
+  }
+  
+  /**
+   * Waits at most maxDelay for a remote visualizer to check in with a ping.
+   */
+  public synchronized void waitForRemoteViz (long maxDelay)
+  {
+    if (!remoteVisualizer || remoteVizActive)
+      return;
+    long start = new Date().getTime();
+    boolean complete = false;
+    try {
+      while (!complete) {
+        wait(maxDelay);
+        if (remoteVizActive) {
+          complete = true;
+        }
+        else {
+          long now = new Date().getTime();
+          if ((now - start) >= maxDelay) {
+            // kill off the remote viz
+            remoteVisualizer = false;
+          }
+        }
+      }
+    }
+    catch (InterruptedException ie) {
+      remoteVisualizer = false;
     }
   }
 }

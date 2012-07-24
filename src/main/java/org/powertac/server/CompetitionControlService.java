@@ -369,6 +369,7 @@ public class CompetitionControlService
     }
 
     waitForBrokerLogin();
+    visualizerProxyService.waitForRemoteViz(loginTimeout);
 
     // Publish Competition object at right place - after plugins
     // are initialized. This is necessary because some may need to
