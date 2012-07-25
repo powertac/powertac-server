@@ -68,6 +68,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       totalQty += Math.abs(info.getNetLoadKWh());
     }
     log.debug("totalImbalance=" + totalImbalance);
+    // fudge to prevent divide-by-zero errors
     if (Math.abs(totalImbalance) < epsilon) {
       if (totalQty < epsilon)
         // nothing to settle; just return
@@ -322,34 +323,39 @@ public class StaticSettlementProcessor extends SettlementProcessor
       nonContributors.remove(info);
       info.setBalanceChargeP1(p1 * info.getNetLoadKWh() / totalImbalance);
     }
-    
-    // do the non-contributors
-    double penalty = pPlus;
-    if (totalImbalance < 0.0)
-      penalty = pMinus;
-    for (ChargeInfo info : nonContributors) {
-      info.setBalanceChargeP1(penalty * info.getNetLoadKWh());
-    }
-//    HashSet<ChargeInfo> excludes = new HashSet<ChargeInfo>();
-//    for (ChargeInfo info : nonContributors) {
-//      excludes.add(info);
-//      double originalMC = computeMarginalPrice(totalImbalance, 
-//                                               candidates, 
-//                                               excludes);
-//      double p1 = originalMC * (-rpQty - getExercisedCapacity(info, candidates));
-//      for (ChargeInfo other : brokerData) {
-//        if (other == info)
-//          continue;
-//        excludes.add(other);
-//        double newMC = computeMarginalPrice(totalImbalance, 
-//                                            candidates,
-//                                            nonContributors);
-//        excludes.remove(other);
-//        p1 -= newMC * getExercisedCapacity(other, candidates);
+
+    // handle the no-imbalance case
+//    if (Math.abs(totalImbalance) < epsilon) {
+//      double penalty = pPlus;
+//      if (totalImbalance < 0.0)
+//        penalty = pMinus;
+//      for (ChargeInfo info : nonContributors) {
+//        info.setBalanceChargeP1(penalty * info.getNetLoadKWh());
 //      }
-//      excludes.remove(info);
-//      info.setBalanceChargeP1(p1 * info.getNetLoadKWh() / totalImbalance);
 //    }
+//    else {
+    // do the non-contributors
+    HashSet<ChargeInfo> excludes = new HashSet<ChargeInfo>();
+    for (ChargeInfo info : nonContributors) {
+      excludes.add(info);
+      double originalMC = computeMarginalPrice(totalImbalance, 
+                                               candidates, 
+                                               excludes);
+      double p1 = originalMC * (-rpQty - getExercisedCapacity(info, candidates));
+      for (ChargeInfo other : brokerData) {
+        if (other == info)
+          continue;
+        excludes.add(other);
+        double newMC = computeMarginalPrice(totalImbalance, 
+                                            candidates,
+                                            nonContributors);
+        excludes.remove(other);
+        p1 -= newMC * getExercisedCapacity(other, candidates);
+      }
+      excludes.remove(info);
+      info.setBalanceChargeP1(p1 * info.getNetLoadKWh() / totalImbalance);
+    }
+//  }
   }
   
   private double computeMarginalPrice (double imbalance,
