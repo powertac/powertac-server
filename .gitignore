@@ -5,8 +5,8 @@
 .idea/
 
 # Eclipse project files
-#.project
-#.classpath
+.project
+.classpath
 
 # Deployment directories
 target/
