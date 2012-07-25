@@ -8,6 +8,11 @@
      development; there is no need to release it.
    -->
 
+  <!--
+     Update - this does not seem to work, because maven does not do
+     the right thing with the git submodules.
+   -->
+
   <!-- pull in the project master pom -->
   <parent>
     <groupId>org.powertac</groupId>
