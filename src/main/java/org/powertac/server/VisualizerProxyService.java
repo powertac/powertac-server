@@ -115,6 +115,7 @@ implements VisualizerProxy, InitializationService
     serverConfig.configureMe(this);
     if (remoteVisualizer) {
       // set up the output queue
+      log.info("Remote visualizer on queue " + visualizerQueueName);
       jmsManagementService.createQueue(visualizerQueueName);
     }
     return "VisualizerProxy";
@@ -127,6 +128,7 @@ implements VisualizerProxy, InitializationService
       forwardMessage(new VisualizerStatusRequest());
       synchronized(this) {
         remoteVizActive  = true;
+        log.info("ping received from remote viz");
         notifyAll();
       }
     }
@@ -152,6 +154,7 @@ implements VisualizerProxy, InitializationService
     try {
       while (!complete) {
         wait(maxDelay);
+        log.info("woke up");
         if (remoteVizActive) {
           complete = true;
         }
@@ -160,11 +163,13 @@ implements VisualizerProxy, InitializationService
           if ((now - start) >= maxDelay) {
             // kill off the remote viz
             remoteVisualizer = false;
+            complete = true;
           }
         }
       }
     }
     catch (InterruptedException ie) {
+      log.warn("failed to hear from remote visualizer");
       remoteVisualizer = false;
     }
   }
