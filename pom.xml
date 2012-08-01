@@ -114,7 +114,7 @@
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
     <repository>
-      <id>sonatype</id>
+      <id>sonatype-staging</id>
       <url>https://oss.sonatype.org/content/repositories/staging/</url>
     </repository>
   </repositories>
