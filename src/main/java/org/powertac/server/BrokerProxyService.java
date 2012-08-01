@@ -14,6 +14,7 @@ import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
+import org.powertac.common.TariffSpecification;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.VisualizerProxy;
@@ -178,7 +179,10 @@ public class BrokerProxyService implements BrokerProxy
   {
     if (router.route(message)) {
       // dispatch to visualizers
-      visualizerProxyService.forwardMessage(message);
+      if (!(message instanceof TariffSpecification)) {
+        // don't forward incoming TS; wait for publication
+        visualizerProxyService.forwardMessage(message);
+      }
     }
   }
 
