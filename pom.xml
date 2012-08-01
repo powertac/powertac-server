@@ -10,7 +10,7 @@
 
   <artifactId>officecomplex-customer</artifactId>
   <name>Power TAC office complex customer</name>
-  <version>0.6.1</version>
+  <version>0.6.2-SNAPSHOT</version>
   <description>Bottom-up model of an office complex energy customer</description>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
