@@ -10,7 +10,7 @@
 
   <artifactId>auctioneer</artifactId>
   <name>Power TAC wholesale market</name>
-    <version>0.6.1</version>
+    <version>0.6.2-SNAPSHOT</version>
   <description>
     simulation of day-ahead wholesale market for trading electric power
   </description>
