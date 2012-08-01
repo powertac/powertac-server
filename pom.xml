@@ -10,7 +10,7 @@
 
   <artifactId>genco</artifactId>
   <name>Power TAC genco</name>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.6.1</version>
   <description>
     Models of simple wholesale power producers, and a wholesale buyer
   </description>
