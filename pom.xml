@@ -10,7 +10,7 @@
 
   <artifactId>server-main</artifactId>
   <name>Power TAC server main</name>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.6.1</version>
   <description>Top-level module of the Power TAC simulation server</description>
 
   <dependencies>
@@ -112,6 +112,10 @@
     <repository>
       <id>sonatype</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/staging/</url>
     </repository>
   </repositories>
   
