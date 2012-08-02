@@ -4,7 +4,7 @@
   <parent>
     <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
-    <version>0.6.1</version>
+    <version>0.6.2-SNAPSHOT</version>
     <relativePath />
   </parent>
   
@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>0.6.1</version>
+      <version>0.6.2-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.ojalgo</groupId>
