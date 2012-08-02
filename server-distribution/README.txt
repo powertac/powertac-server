@@ -1,11 +1,11 @@
-April 2012
+August 2012
 
-Welcome to the 0.5.0 release of the Power TAC server. This release
-contains the server and an initial version of the game visualizer,
-including a simple control panel that allows you to set up and run
-bootstrap and competition sessions. There is a compatible sample
-broker distributed separately. This release is intended to support
-broker development and simple experiments.
+Welcome to the 0.6.1 release of the Power TAC server. This release
+contains the server and a version of the game visualizer that works in
+"development" mode, including a simple control panel that allows you
+to set up and run bootstrap and competition sessions. There is a
+compatible sample broker distributed separately. This release is
+intended to support broker development and simple experiments.
 
 Release notes are available at
 http://www.powertac.org/wiki/index.php/Getting_Started.
@@ -164,8 +164,7 @@ Please let us know what you think of the Power TAC system, and how we
 can improve our software and processes.
 
 John Collins, Wolf Ketter, and the Power TAC development team: Jurica
-Babic, Mehdi Benyebka, Antonios Chrysopoulos, Travis Daudelin, Mathijs
-de Weerdt, Josh Edeen, Ryan Finneman, Nguyen Nguyen, Erik Onarheim,
-Shashank Pande, Markus Peters, Vedran Podobnik, Kailash Ramanathan,
-Prashant Reddy, Andreas Symeonidis, Philippe Souza Moraes Ribeiro, and
-Konstantina Valogianni
+Babic, Antonios Chrysopoulos, Mathijs de Weerdt, Josh Edeen, Ryan
+Finneman, Nguyen Nguyen, Erik Onarheim, Shashank Pande, Markus Peters,
+Vedran Podobnik, Kailash Ramanathan, Prashant Reddy, Andreas
+Symeonidis, and Konstantina Valogianni
