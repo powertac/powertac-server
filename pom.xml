@@ -4,12 +4,12 @@
   <artifactId>visualizer</artifactId>
   <name>PowerTAC Visualizer</name>
   <packaging>war</packaging>
-  <version>0.6.1-SNAPSHOT</version>
+  <version>0.6.1</version>
 
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>0.6.1-SNAPSHOT</version>
+    <version>0.6.1</version>
     <relativePath />
   </parent>
 
@@ -23,7 +23,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-main</artifactId>
-      <version>0.6.1-SNAPSHOT</version>
+      <version>0.6.1</version>
     </dependency>
 
     <!-- Spring -->
