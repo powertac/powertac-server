@@ -1353,13 +1353,12 @@ public class OfficeComplex extends AbstractCustomer
     // with the duration
     // because you don't know it.
     if (tariff.getMinDuration() == 0)
-      minDuration =
-        OfficeComplexConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
+      minDuration = OfficeComplexConstants.MEAN_TARIFF_DURATION;
     else
-      minDuration = tariff.getMinDuration();
+      minDuration = tariff.getMinDuration() / TimeService.DAY;
 
     log.debug("Minimum Duration: " + minDuration);
-    return (-tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
+    return ((-tariff.getPeriodicPayment() * OfficeComplexConstants.HOURS_OF_DAY) + (lifecyclePayment / minDuration));
   }
 
   /**
