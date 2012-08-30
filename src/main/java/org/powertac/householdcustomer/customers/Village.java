@@ -1744,12 +1744,12 @@ public class Village extends AbstractCustomer
     // with the duration
     // because you don't know it.
     if (tariff.getMinDuration() == 0)
-      minDuration = VillageConstants.MEAN_TARIFF_DURATION * TimeService.DAY;
+      minDuration = VillageConstants.MEAN_TARIFF_DURATION;
     else
-      minDuration = tariff.getMinDuration();
+      minDuration = tariff.getMinDuration() / TimeService.DAY;
 
     log.debug("Minimum Duration: " + minDuration);
-    return (-tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
+    return ((-tariff.getPeriodicPayment() * VillageConstants.HOURS_OF_DAY) + (lifecyclePayment / minDuration));
   }
 
   /**
