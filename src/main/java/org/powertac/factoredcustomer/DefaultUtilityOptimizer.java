@@ -321,12 +321,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     private double estimateFixedTariffPayments(Tariff tariff)
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
-  
         double minDuration;
-        if (tariff.getMinDuration() == 0) minDuration = MEAN_TARIFF_DURATION * TimeService.DAY;
-        else minDuration = tariff.getMinDuration();
-  
-        return ((double) tariff.getPeriodicPayment() + (lifecyclePayment / minDuration));
+        if (tariff.getMinDuration() == 0) minDuration = MEAN_TARIFF_DURATION;
+        else minDuration = tariff.getMinDuration() / TimeService.DAY;
+        double dailyLifecyclePayment = lifecyclePayment / minDuration;  
+        double dailyPeriodicPayment = tariff.getPeriodicPayment() * NUM_HOURS_IN_DAY;
+        return (dailyLifecyclePayment + dailyPeriodicPayment);
     }
   
     private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
