@@ -79,7 +79,7 @@ public class StaticSettlementProcessorTest
 
   // Example 1 Niels/John
   @Test
-  public void Ex1 ()
+  public void ex1 ()
   {
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 1.0);
     tariffRepo.addBalancingOrder(bo1);
@@ -100,6 +100,68 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
     assertEquals("b1 pays 3", -3, ci1.getBalanceCharge(), 1e-6);
     assertEquals("b2 pays 3", -3, ci2.getBalanceCharge(), 1e-6);
+  }
+  
+  // Example from spec
+  @Test
+  public void exSpec ()
+  {
+    // first, we need a third broker
+    Broker b3 = new Broker("Sara");
+    TariffSpecification spec3 =
+            new TariffSpecification(b3, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec3.addRate(rate);
+    Tariff tariff = new Tariff(spec3);
+    tariffRepo.addTariff(tariff);
+    
+    // next, the balancing orders
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.03);
+    tariffRepo.addBalancingOrder(bo1);
+    BalancingOrder bo2 = new BalancingOrder(b3, spec3, 0.6, 0.042);
+    tariffRepo.addBalancingOrder(bo2);
+    BalancingOrder bo3 = new BalancingOrder(b2, spec2, 0.6, 0.051);
+    tariffRepo.addBalancingOrder(bo3);
+    BalancingOrder bo4 = new BalancingOrder(b3, spec3, 0.6, 0.062);
+    tariffRepo.addBalancingOrder(bo4);
+    BalancingOrder bo5 = new BalancingOrder(b2, spec2, 0.6, 0.08);
+    tariffRepo.addBalancingOrder(bo5);
+    BalancingOrder bo6 = new BalancingOrder(b1, spec1, 0.6, 0.091);
+    
+    // ChargeInfo instances give the imbalance values
+    ChargeInfo ci1 = new ChargeInfo(b1, 4.0);
+    ci1.addBalancingOrder(bo1);
+    ci1.addBalancingOrder(bo6);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, -8.0);
+    ci2.addBalancingOrder(bo3);
+    ci2.addBalancingOrder(bo5);
+    brokerData.add(ci2);
+    ChargeInfo ci3 = new ChargeInfo(b3, -14.0);
+    ci3.addBalancingOrder(bo2);
+    ci3.addBalancingOrder(bo4);
+    brokerData.add(ci3);
+    
+    // Regulating market data
+    pplus = 0.1;
+    pplusPrime = 0.01;
+    pminus = 0.05;
+    pminusPrime = -0.005;
+
+    // Balancing capacity
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(3.5);
+    when(capacityControlService.getCurtailableUsage(bo2)).thenReturn(2.0);
+    when(capacityControlService.getCurtailableUsage(bo3)).thenReturn(6.7);
+    when(capacityControlService.getCurtailableUsage(bo4)).thenReturn(3.9);
+    when(capacityControlService.getCurtailableUsage(bo5)).thenReturn(3.0);
+    when(capacityControlService.getCurtailableUsage(bo6)).thenReturn(6.2);
+
+    // Run the market and check results
+    uut.settle(context, brokerData);
+    System.out.println(ci1.toString());
+    assertEquals("b1 pays -1.118",  1.1180, ci1.getBalanceCharge(), 1e-4);
+    assertEquals("b2 pays 1.2001", -1.2001, ci2.getBalanceCharge(), 1e-4);
+    assertEquals("b3 pays 1.6704", -1.6704, ci3.getBalanceCharge(), 1e-4);
   }
   
   // Simple balancing, no imbalance

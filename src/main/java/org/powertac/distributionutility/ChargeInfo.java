@@ -81,4 +81,10 @@ class ChargeInfo
       balancingOrders = new ArrayList<BalancingOrder>();
     balancingOrders.add(order);
   }
+  
+  public String toString ()
+  {
+    return ("CI(" + broker.getUsername() + "): p1=" + balanceChargeP1
+            + ", p2=" + balanceChargeP2);
+  }
 }
