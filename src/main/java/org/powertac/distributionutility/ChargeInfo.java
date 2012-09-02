@@ -60,9 +60,20 @@ class ChargeInfo
     return balanceChargeP1 + balanceChargeP2;
   }
 
+  double getBalanceChargeP1()
+  {
+    return balanceChargeP1;
+  }
+
   void setBalanceChargeP1 (double charge)
   {
     balanceChargeP1 = charge;
+  }
+
+  
+  double getBalanceChargeP2()
+  {
+    return balanceChargeP2;
   }
 
   void setBalanceChargeP2 (double charge)

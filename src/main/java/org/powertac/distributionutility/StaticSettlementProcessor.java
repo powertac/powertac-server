@@ -89,7 +89,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
     // insert dummy orders to represent available balancing power through
     // the wholesale regulating market.
-    insertDummyOrders(candidates, totalImbalance);
+    insertDummyOrders(candidates, totalImbalance * 2);
     
     // determine the set that will be exercised.
     double satisfied = determineExerciseSet(totalImbalance, candidates);
@@ -109,11 +109,24 @@ public class StaticSettlementProcessor extends SettlementProcessor
     }
 
     // compute VCG charges (p_2) by broker.
-    //SortedSet<BOWrapper> nonExercised = candidates.tailSet(lastExercised);
-    computeVcgCharges(brokerData, totalImbalance, candidates);
+    SortedSet<BOWrapper> nonExercised = candidates.tailSet(lastExercised);
+    HashSet<ChargeInfo> nonParticipants = new HashSet<ChargeInfo>(); 
+    for (ChargeInfo info : brokerData) {
+      nonParticipants.add(info);
+      info.setBalanceChargeP2
+        (computeVcgCharges(totalImbalance,
+                           candidates, nonExercised,
+                           nonParticipants));
+      nonParticipants.remove(info);
+    }
     
     // Determine imbalance payments (p_1) for each broker.
-    computeImbalanceCharges(brokerData, totalImbalance, candidates);
+    computeImbalanceCharges(brokerData, totalImbalance, candidates, nonExercised);
+    
+    // Exercise balancing controls
+    for (ChargeInfo info : brokerData) {
+      exerciseControls(info, candidates, info.getBalanceChargeP2());
+    }
   }
 
   // Produces the sorted list of balancing orders that are candidates
@@ -254,35 +267,69 @@ public class StaticSettlementProcessor extends SettlementProcessor
     return totalImbalance - remainingImbalance;
   }
 
-  // Computes VCG charge (p_2) for each broker.
-  private void computeVcgCharges (List<ChargeInfo> brokerData,
-                                 double totalImbalance,
-                                 SortedSet<BOWrapper> candidates)
+  // Computes VCG charge (p_2) for a broker represented by brokerData,
+  // by integrating the area under the non-exercised offers.
+  // Offers from the nonParticipants set are excluded
+  private double computeVcgCharges (double totalImbalance,
+                                    SortedSet<BOWrapper> candidates,
+                                    SortedSet<BOWrapper> nonExercised,
+                                    Set<ChargeInfo> nonParticipants)
   {
-    HashSet<ChargeInfo> nonParticipants = new HashSet<ChargeInfo>();
-    for (ChargeInfo info : brokerData) {
-      nonParticipants.add(info);
-      double newMC = computeMarginalPrice(totalImbalance, 
-                                          candidates, 
-                                          nonParticipants);
-      nonParticipants.remove(info);
-      info.setBalanceChargeP2(exerciseControls(info, candidates, newMC));
+    //HashSet<ChargeInfo> nonParticipants = new HashSet<ChargeInfo>();
+    //for (ChargeInfo info : brokerData) {
+    //  nonParticipants.add(info);
+    //  double newMC = computeMarginalPrice(totalImbalance, 
+    //                                      candidates, 
+    //                                      nonParticipants);
+    //  nonParticipants.remove(info);
+    //  info.setBalanceChargeP2(exerciseControls(info, candidates, newMC));
+    //}
+    // compute capacity (remainingQty) offered by nonParticipants
+    double remainingQty = 0;
+    double sgn = Math.signum(totalImbalance);
+    for (BOWrapper bow : candidates) {
+      if (0.0 == bow.exercisedCapacity)
+        break;
+      if (nonParticipants.contains(bow.info))
+        remainingQty += bow.exercisedCapacity;
+      if (Math.abs(bow.availableCapacity - bow.exercisedCapacity) > 0.0)
+        // stop on the last one
+        break;
     }
+    // compute price if this capacity is retrieved from other brokers
+    double price = 0;
+    for (BOWrapper nextNonExercised : nonExercised) {
+      if (Math.abs(remainingQty) < epsilon) 
+        break;
+      else if (!(nonParticipants.contains(nextNonExercised.info))) {
+        double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
+        double used = sgn * Math.max(sgn * avail,
+                                     sgn * remainingQty);
+        price += sgn * nextNonExercised.getTotalPrice(used);
+        remainingQty -= used;
+        log.debug("  VCG cost part of " + nextNonExercised.getTotalPrice(used) + " for " + used + " kWh" );
+      }
+    }
+    if(Math.abs(remainingQty) > epsilon)
+      log.error("Not enough orders to compute VCG price.");
+    log.debug("VCG price" + " is " + price );
+    return price;
   }
 
   // Computes imbalance costs for each broker. This is
   //    VCG(C,X)/X * x
   // where
   //    X is the total imbalance, 
-  //    VCG(C,X) is the sum of VCG payments to other brokers,
-  //       except that for brokers whose imbalance has the same sign as the 
+  //    VCG(C,X) is the sum of VCG payments to other brokers
+  //       (except that for brokers whose imbalance has the same sign as the 
   //       total imbalance it excludes balancing orders from brokers whose
-  //       imbalance has the opposite sign, plus the additional cost of
+  //       imbalance has the opposite sign) plus the additional cost of
   //       external regulating power.
   //    x is the broker's individual imbalance.
   private void computeImbalanceCharges (List<ChargeInfo> brokerData,
                                         double totalImbalance,
-                                        SortedSet<BOWrapper> candidates)
+                                        SortedSet<BOWrapper> candidates,
+                                        SortedSet<BOWrapper> nonExercised)
   {
     HashSet<ChargeInfo> contributors = new HashSet<ChargeInfo>();
     HashSet<ChargeInfo> nonContributors = new HashSet<ChargeInfo>();
@@ -296,32 +343,33 @@ public class StaticSettlementProcessor extends SettlementProcessor
         contributors.add(info);
     }
     
-    // get the quantity of regulating power
-    double rpQty = 0.0;
+    // get the cost of regulating power
+    double rpCost = 0.0;
     for (BOWrapper bid : candidates) {
       if (bid.isDummy())
-        rpQty += bid.exercisedCapacity;
+        rpCost -= (bid.exercisedCapacity
+                   * bid.getMarginalPrice(bid.exercisedCapacity));
     }
     
     // Do the contributors - the brokers on the imbalance side
     for (ChargeInfo info : contributors) {
       nonContributors.add(info);
-      double originalMC = computeMarginalPrice(totalImbalance, 
-                                               candidates, 
-                                               nonContributors);
-      double p1 = originalMC * (-rpQty - getExercisedCapacity(info, candidates));
-      for (ChargeInfo other : contributors) {
-        if (other == info)
-          continue;
-        nonContributors.add(other);
-        double newMC = computeMarginalPrice(totalImbalance, 
-                                            candidates,
-                                            nonContributors);
-        nonContributors.remove(other);
-        p1 -= newMC * getExercisedCapacity(other, candidates);
+      // imbalanceCost is the cost of regulating power plus the sum of
+      // vcg payments for each of the other brokers. For contributors, we
+      // do not include offers from non-contributors
+      double imbalanceCost = rpCost;
+      for (ChargeInfo exclude : contributors) {
+        if (exclude != info) {
+          nonContributors.add(exclude);
+          imbalanceCost -= computeVcgCharges(totalImbalance,
+                                             candidates, nonExercised,
+                                             nonContributors);
+          nonContributors.remove(exclude);
+        }
       }
       nonContributors.remove(info);
-      info.setBalanceChargeP1(p1 * info.getNetLoadKWh() / totalImbalance);
+      info.setBalanceChargeP1(imbalanceCost * info.getNetLoadKWh()
+                              / totalImbalance);
     }
 
     // handle the no-imbalance case
@@ -338,75 +386,69 @@ public class StaticSettlementProcessor extends SettlementProcessor
     HashSet<ChargeInfo> excludes = new HashSet<ChargeInfo>();
     for (ChargeInfo info : nonContributors) {
       excludes.add(info);
-      double originalMC = computeMarginalPrice(totalImbalance, 
-                                               candidates, 
-                                               excludes);
-      double p1 = originalMC * (-rpQty - getExercisedCapacity(info, candidates));
-      for (ChargeInfo other : brokerData) {
-        if (other == info)
-          continue;
-        excludes.add(other);
-        double newMC = computeMarginalPrice(totalImbalance, 
-                                            candidates,
-                                            nonContributors);
-        excludes.remove(other);
-        p1 -= newMC * getExercisedCapacity(other, candidates);
+      double imbalanceCost = rpCost;
+      for (ChargeInfo exclude : contributors) {
+        if (exclude != info) {
+          excludes.add(exclude);
+          imbalanceCost += computeVcgCharges(totalImbalance,
+                                             candidates, nonExercised,
+                                             excludes);
+          excludes.remove(exclude);
+        }
       }
       excludes.remove(info);
-      info.setBalanceChargeP1(p1 * info.getNetLoadKWh() / totalImbalance);
+      info.setBalanceChargeP1(imbalanceCost * info.getNetLoadKWh()
+                              / totalImbalance);
     }
 //  }
   }
   
-  private double computeMarginalPrice (double imbalance,
-                                       SortedSet<BOWrapper> candidates,
-                                       Set<ChargeInfo> exclude)
-  {
-    double result = 0.0;
-    double sgn = Math.signum(imbalance); // neg for deficit
-    double remaining = -imbalance;
-    for (BOWrapper bow : candidates) {
-      if ((null == exclude) || !(exclude.contains(bow.info))) {
-        if (sgn * bow.getCapacity() < (sgn * remaining + epsilon)) {
-          // this is the last one
-          result = bow.getMarginalPrice(remaining);
-          break;
-        }
-        else {
-          remaining -= bow.getCapacity();
-        }
-      }
-    }
-    return result;
-  }
+//  private double computeMarginalPrice (double imbalance,
+//                                       SortedSet<BOWrapper> candidates,
+//                                       Set<ChargeInfo> exclude)
+//  {
+//    double result = 0.0;
+//    double sgn = Math.signum(imbalance); // neg for deficit
+//    double remaining = -imbalance;
+//    for (BOWrapper bow : candidates) {
+//      if ((null == exclude) || !(exclude.contains(bow.info))) {
+//        if (sgn * bow.getCapacity() < (sgn * remaining + epsilon)) {
+//          // this is the last one
+//          result = bow.getMarginalPrice(remaining);
+//          break;
+//        }
+//        else {
+//          remaining -= bow.getCapacity();
+//        }
+//      }
+//    }
+//    return result;
+//  }
   
-  private double exerciseControls (ChargeInfo broker,
-                                   SortedSet<BOWrapper> candidates,
-                                   double marginalPrice)
+  private void exerciseControls (ChargeInfo broker,
+                                 SortedSet<BOWrapper> candidates,
+                                 double settlementPrice)
   {
-    double result = 0.0;
     for (BOWrapper candidate: candidates) {
       if (candidate.info == broker && 0.0 != candidate.exercisedCapacity) {
         capacityControlService.exerciseBalancingControl(candidate.balancingOrder,
                                                         candidate.exercisedCapacity,
-                                                        candidate.exercisedCapacity * marginalPrice);
-        result += candidate.exercisedCapacity * marginalPrice;
+                                                        candidate.exercisedCapacity * settlementPrice);
       }
     }
-    return result;
   }
   
-  private double getExercisedCapacity (ChargeInfo broker,
-                                       SortedSet<BOWrapper> candidates)
-  {
-    double result = 0.0;
-    for (BOWrapper candidate: candidates) {
-      if (candidate.info == broker) {
-        result += candidate.exercisedCapacity;
-      }
-    }
-    return result;
-  }
+//  private double getExercisedCapacity (ChargeInfo broker,
+//                                       SortedSet<BOWrapper> candidates)
+//  {
+//    double result = 0.0;
+//    for (BOWrapper candidate: candidates) {
+//      if (candidate.info == broker) {
+//        result += candidate.exercisedCapacity;
+//      }
+//    }
+//    return result;
+//  }
 
   // wrapper class for tracking order status
   class BOWrapper
@@ -460,6 +502,12 @@ public class StaticSettlementProcessor extends SettlementProcessor
     double getMarginalPrice (double qty)
     {
       return price + slope * qty;
+    }
+    
+    // Returns the total price (integral) for using qty from the order
+    double getTotalPrice (double qty)
+    {
+      return qty * 0.5 * (price + price + slope * qty);
     }
     
     @Override

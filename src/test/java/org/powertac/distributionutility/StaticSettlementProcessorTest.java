@@ -26,10 +26,9 @@ public class StaticSettlementProcessorTest
   double pplusPrime = 0.0;
   double pminus = 0.0;
   double pminusPrime = 0.0;
-  TariffSpecification spec1;
-  TariffSpecification spec2;
   
-  Broker b1, b2;
+  Broker b1, b2, b3, b4;
+  TariffSpecification spec1, spec2, spec3, spec4;
   
   StaticSettlementProcessor uut;
   ArrayList<ChargeInfo> brokerData;
@@ -41,8 +40,10 @@ public class StaticSettlementProcessorTest
     capacityControlService = mock(CapacityControl.class);
     context = new MockSettlementContext();
     uut = new StaticSettlementProcessor(tariffRepo, capacityControlService);
-    b1 = new Broker("Sally");
-    b2 = new Broker("Mary");
+    b1 = new Broker("A1");
+    b2 = new Broker("A2");
+    b3 = new Broker("A3");
+    b4 = new Broker("A4");
     brokerData = new ArrayList<ChargeInfo>();
     pplus = 0.06;
     pplusPrime = 0.00001;
@@ -57,6 +58,16 @@ public class StaticSettlementProcessorTest
     rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
     spec2.addRate(rate);
     tariff = new Tariff(spec2);
+    tariffRepo.addTariff(tariff);
+    spec3 = new TariffSpecification(b3, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec3.addRate(rate);
+    tariff = new Tariff(spec3);
+    tariffRepo.addTariff(tariff);
+    spec4 = new TariffSpecification(b4, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
+    spec4.addRate(rate);
+    tariff = new Tariff(spec4);
     tariffRepo.addTariff(tariff);
   }
 
@@ -77,29 +88,71 @@ public class StaticSettlementProcessorTest
     assertEquals("b2 pays 9", -9.0, ci2.getBalanceCharge(), 1e-6);
   }
 
-  // Example 1 Niels/John
+  // Example 1 spec, slope = 0
   @Test
   public void ex1 ()
   {
-    BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 1.0);
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.03);
     tariffRepo.addBalancingOrder(bo1);
-    BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 1.0);
+    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(3.5);
+
+    BalancingOrder bo2 = new BalancingOrder(b3, spec3, 0.6, 0.042);
     tariffRepo.addBalancingOrder(bo2);
-    ChargeInfo ci1 = new ChargeInfo(b1, -1.5);
+    when(capacityControlService.getCurtailableUsage(bo2)).thenReturn(2.0);
+
+    BalancingOrder bo3 = new BalancingOrder(b2, spec2, 0.6, 0.051);
+    tariffRepo.addBalancingOrder(bo3);
+    when(capacityControlService.getCurtailableUsage(bo3)).thenReturn(6.7);
+
+    BalancingOrder bo4 = new BalancingOrder(b3, spec3, 0.6, 0.062);
+    tariffRepo.addBalancingOrder(bo4);
+    when(capacityControlService.getCurtailableUsage(bo4)).thenReturn(3.9);
+
+    BalancingOrder bo5 = new BalancingOrder(b2, spec2, 0.6, 0.08);
+    tariffRepo.addBalancingOrder(bo5);
+    when(capacityControlService.getCurtailableUsage(bo5)).thenReturn(3.0);
+
+    BalancingOrder bo6 = new BalancingOrder(b1, spec1, 0.6, 0.091);
+    tariffRepo.addBalancingOrder(bo6);
+    when(capacityControlService.getCurtailableUsage(bo6)).thenReturn(6.2);
+
+    ChargeInfo ci1 = new ChargeInfo(b1, 0);
     ci1.addBalancingOrder(bo1);
+    ci1.addBalancingOrder(bo6);
     brokerData.add(ci1);
-    ChargeInfo ci2 = new ChargeInfo(b2, -1.5);
-    ci2.addBalancingOrder(bo2);
+
+    ChargeInfo ci2 = new ChargeInfo(b2, 4);
+    ci2.addBalancingOrder(bo3);
+    ci2.addBalancingOrder(bo5);
     brokerData.add(ci2);
-    pplus = 3.0;
-    pplusPrime = 1.0;
+    
+    ChargeInfo ci3 = new ChargeInfo(b3, -8);
+    ci3.addBalancingOrder(bo2);
+    ci3.addBalancingOrder(bo4);
+    
+    ChargeInfo ci4 = new ChargeInfo(b4, -14);
+    brokerData.add(ci4);
+    
+    pplus = 0.1;
+    pplusPrime = 0.0;
     pminus = 1.0;
-    pminusPrime = -1.0;
-    when(capacityControlService.getCurtailableUsage(bo1)).thenReturn(1.0);
-    when(capacityControlService.getCurtailableUsage(bo2)).thenReturn(1.0);
+    pminusPrime = 0.0;
     uut.settle(context, brokerData);
-    assertEquals("b1 pays 3", -3, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("b2 pays 3", -3, ci2.getBalanceCharge(), 1e-6);
+    
+    assertEquals("b1.p2 = -0.328",  -0.328,  ci1.getBalanceChargeP2(), 1e-6);
+    assertEquals("b2.p2 = -0.8042", -0.8042, ci2.getBalanceChargeP2(), 1e-6);
+    assertEquals("b3.p2 = -0.5248", -0.5248, ci3.getBalanceChargeP2(), 1e-6);
+    assertEquals("b4.p2 = 0",        0.0,    ci4.getBalanceChargeP2(), 1e-6);
+
+    assertEquals("b1.p1 = 0",     0.0, ci1.getBalanceChargeP1(), 1e-6);
+    assertEquals("b2.p1 = -0.4", -0.4, ci2.getBalanceChargeP1(), 1e-6);
+    assertEquals("b3.p1 = 0.8",   0.8, ci3.getBalanceChargeP1(), 1e-6);
+    assertEquals("b4.p1 = 1.4",   1.4, ci4.getBalanceChargeP1(), 1e-6);
+    //  (number, p_1,  p_2,     operating cost, utility)
+    //    0:       0: -0.328 :  0.105 :          0.223
+    //    1:    -0.4: -0.8042:  0.4937:          0.7105
+    //    2:     0.8: -0.5248:  0.3258:         -0.601
+    //    3:     1.4:  0.0   :  0.0   :         -1.4
   }
   
   // Example from spec
