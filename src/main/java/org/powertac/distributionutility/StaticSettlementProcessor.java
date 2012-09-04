@@ -68,12 +68,13 @@ public class StaticSettlementProcessor extends SettlementProcessor
       totalQty += Math.abs(info.getNetLoadKWh());
     }
     log.debug("totalImbalance=" + totalImbalance);
+
     // fudge to prevent divide-by-zero errors
     if (Math.abs(totalImbalance) < epsilon) {
       if (totalQty < epsilon)
         // nothing to settle; just return
         return;
-      totalImbalance = epsilon * totalQty;
+      totalImbalance = epsilon / 2.0; // make it slightly positive
     }
     
     // get balancing orders on correct side of imbalance, sort by price.
@@ -326,24 +327,29 @@ public class StaticSettlementProcessor extends SettlementProcessor
   //    x is the broker's individual imbalance.
   private void computeImbalanceCharges (List<ChargeInfo> brokerData,
                                         double totalImbalance,
-                                        SortedSet<BOWrapper> candidates)//,
-                                        //SortedSet<BOWrapper> nonExercised)
+                                        SortedSet<BOWrapper> candidates)
   {
     HashSet<ChargeInfo> contributors = new HashSet<ChargeInfo>();
     HashSet<ChargeInfo> nonContributors = new HashSet<ChargeInfo>();
     double sgn = Math.signum(totalImbalance);
 
     // handle the no-imbalance case
-//    if (Math.abs(totalImbalance) < epsilon) {
-//      double penalty = pPlus;
-//      if (totalImbalance < 0.0)
-//        penalty = pMinus;
-//      for (ChargeInfo info : nonContributors) {
-//        info.setBalanceChargeP1(penalty * info.getNetLoadKWh());
-//      }
-//      return;
-//    }
-
+    if (Math.abs(totalImbalance) < epsilon) {
+      // This is supposed to be the cheapest, but the condition is too
+      // rare to waste time on. We would have to find the cheapest controllable
+      // capacities on both sides, so it's not enough to use the candidates
+      // list.
+      double penaltyPlus = pPlus;
+      double penaltyMinus = pMinus;
+      for (ChargeInfo info : brokerData) {
+        double sign = Math.signum(info.getNetLoadKWh());
+        if (sign < 0.0)
+          info.setBalanceChargeP1(penaltyPlus * info.getNetLoadKWh());
+        else
+          info.setBalanceChargeP1(penaltyMinus * info.getNetLoadKWh());
+      }
+      return;
+    }
 
     // First, separate the brokers into contributors and non-contributors
     for (ChargeInfo info : brokerData) {
@@ -401,7 +407,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         if (target != info) {
           excludes.add(target);
           imbalanceCost -= computeVcgCharges(target, totalImbalance,
-                                             candidates, nonExercised,
+                                             remains, nonExercised,
                                              excludes);
           excludes.remove(target);
         }
@@ -420,8 +426,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       if (bid.isDummy())
         // cost is total dummy qty times final marginal price
         rpQty += bid.exercisedCapacity;
-        rpCost = -(bid.exercisedCapacity
-                   * bid.getMarginalPrice(rpQty));
+        rpCost = -rpQty * bid.getMarginalPrice(rpQty);
     }
     return rpCost;
   }
@@ -471,7 +476,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       if (candidate.info == broker && 0.0 != candidate.exercisedCapacity) {
         capacityControlService.exerciseBalancingControl(candidate.balancingOrder,
                                                         candidate.exercisedCapacity,
-                                                        candidate.exercisedCapacity * settlementPrice);
+                                                        settlementPrice);
       }
     }
   }

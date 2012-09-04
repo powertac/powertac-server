@@ -224,9 +224,11 @@ implements SettlementContext, InitializationService
     List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>(chargeInfoMap.values());
     getSettlementProcessor().settle(this, brokerData);
     
-    // add balancing transactions
+    // add balancing transactions - note that debits/credits for balancing
+    // orders (p2 values) will already have been posted in the process of
+    // exercising orders.
     for (ChargeInfo info : brokerData) {
-      double balanceCharge = info.getBalanceCharge();
+      double balanceCharge = info.getBalanceChargeP1();
       if (balanceCharge != 0.0) {
         accountingService.addBalancingTransaction(info.getBroker(),
                                                   info.getNetLoadKWh(),
