@@ -142,7 +142,7 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
 
     //  (broker, imbalance, p_1,    p_2
-    //    1:       0:       0.0:    0.218
+    //    1:       0:       0.0:    0.328
     //    2:       4:       0.2622: 0.8042
     //    3:      -8:      -0.8:    0.5248
     //    4:     -14:      -1.4:    0.0
@@ -226,33 +226,33 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
 
     // (broker  p_1,       p_2,       operating cost, utility)
-    //   0      0          -0.628     0.105           0.523
-    //   1      -2.748222  -1.1042    0.4937          3.358722
-    //   2      8.04        -0.5248   0.3258          -7.841
-    //   3      9.618778    0         0               -9.618778
+    //   0      0          0.616     0.105           0.523
+    //   1      2.748222   1.0922    0.4937          3.358722
+    //   2     -8.04       0.5248    0.3258         -7.841
+    //   3     -9.618778   0         0              -9.618778
     //   
 
-    System.out.println("P2 values (b0,b1,b2,b3,): ("
-            + ci0.getBalanceChargeP2()
-            + "," + ci1.getBalanceChargeP2()
-            + "," + ci2.getBalanceChargeP2()
-            + "," + ci3.getBalanceChargeP2()
-            + ")");
-    assertEquals("b0.p2 = 0.628",   0.628, ci0.getBalanceChargeP2(), 1e-6);
-    assertEquals("b1.p2 = 1.1042",   1.1042, ci1.getBalanceChargeP2(), 1e-6);
+    //System.out.println("P2 values (b0,b1,b2,b3,): ("
+    //        + ci0.getBalanceChargeP2()
+    //        + "," + ci1.getBalanceChargeP2()
+    //        + "," + ci2.getBalanceChargeP2()
+    //        + "," + ci3.getBalanceChargeP2()
+    //        + ")");
+    assertEquals("b0.p2 = 0.616", 0.616, ci0.getBalanceChargeP2(), 1e-6);
+    assertEquals("b1.p2 = 1.0922", 1.0922, ci1.getBalanceChargeP2(), 1e-6);
     assertEquals("b2.p2 = 0.5248", 0.5248, ci2.getBalanceChargeP2(), 1e-6);
     assertEquals("b3.p2 = 0", 0, ci3.getBalanceChargeP2(), 1e-6);
 
-    System.out.println("P1 values (b0,b1,b2,b3,): ("
-            + ci0.getBalanceChargeP1()
-            + "," + ci1.getBalanceChargeP1()
-            + "," + ci2.getBalanceChargeP1()
-            + "," + ci3.getBalanceChargeP1()
-            + ")");
+    //System.out.println("P1 values (b0,b1,b2,b3,): ("
+    //        + ci0.getBalanceChargeP1()
+    //        + "," + ci1.getBalanceChargeP1()
+    //        + "," + ci2.getBalanceChargeP1()
+    //        + "," + ci3.getBalanceChargeP1()
+    //        + ")");
     assertEquals("b0.p1 = 0", 0, ci0.getBalanceChargeP1(), 1e-4);
-    assertEquals("b1.p1 = 2.748222", 2.748222, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals("b2.p1 = -8.04", -8.04, ci2.getBalanceChargeP1(), 1e-4);
-    assertEquals("b3.p1 = -9.618778", -9.618778, ci3.getBalanceChargeP1(), 1e-4);
+    assertEquals("b1.p1 = 2.748222", 1.960222, ci1.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1 = -8.04", -15.2, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b3.p1 = -9.618778", -14.1411667, ci3.getBalanceChargeP1(), 1e-4);
   }
 
   // Example from spec
