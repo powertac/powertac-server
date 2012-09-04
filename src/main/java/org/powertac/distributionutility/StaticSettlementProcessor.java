@@ -303,7 +303,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
         double used = sgn * Math.max(sgn * avail,
                                      sgn * remainingQty);
-        price += sgn * nextNonExercised.getTotalPrice(used);
+        price += sgn * nextNonExercised.getTotalNEPrice(used);
         remainingQty -= used;
         log.debug("  VCG cost part of " + nextNonExercised.getTotalPrice(used) + " for " + used + " kWh" );
       }
@@ -502,7 +502,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     double exercisedCapacity = 0.0;
     double price = 0.0;
     double slope = 0.0;
-    
+
     // constructs one from a BalancingOrder
     BOWrapper (ChargeInfo info, BalancingOrder bo)
     {
@@ -511,7 +511,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       this.balancingOrder = bo;
       this.price = bo.getPrice(); 
     }
-    
+
     // constructs an intermediate dummy
     BOWrapper (double availableCapacity, double price)
     {
@@ -519,7 +519,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       this.availableCapacity = availableCapacity;
       this.price = price;
     }
-    
+
     // constructs a final dummy, with a non-zero slope
     BOWrapper (double availableCapacity, double price, double slope)
     {
@@ -528,7 +528,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       this.price = price;
       this.slope = slope;
     }
-    
+
     // constructs a clone
     BOWrapper duplicate ()
     {
@@ -540,31 +540,39 @@ public class StaticSettlementProcessor extends SettlementProcessor
         return null;
       }
     }
-    
+
     // Dummy orders don't wrap balancing orders.
     boolean isDummy ()
     {
       return (null == balancingOrder);
     }
-    
+
     // Returns the total capacity
     double getCapacity ()
     {
       return availableCapacity;
     }
-    
+
     // Returns the marginal price for using qty from the order
     double getMarginalPrice (double qty)
     {
       return price + slope * qty;
     }
-    
+
     // Returns the total price (integral) for using qty from the order
     double getTotalPrice (double qty)
     {
       return qty * 0.5 * (price + price + slope * qty);
     }
-    
+
+    // Returns the total price (integral) for using qty from the 
+    // non-exercised portion of order
+    double getTotalNEPrice (double qty)
+    {
+      double nePrice = getMarginalPrice(exercisedCapacity);
+      return qty * 0.5 * (nePrice + nePrice + slope * qty);
+    }
+
     @Override
     public String toString ()
     {
@@ -577,7 +585,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
                 + ":" + exercisedCapacity);
     }
   }
-  
+
   class BOComparator implements Comparator<BOWrapper>
   {
     @Override
