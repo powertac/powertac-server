@@ -108,12 +108,12 @@ implements SettlementContext, InitializationService
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of up-regulation cost /kwh")
-  private double pPlusPrime = 0.0; // -.05/kwh
+  private double pPlusPrime = 0.0; // .00002/kwh
   
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of down-regulation cost /kwh")
-  private double pMinusPrime = 0.0; // .04/kwh
+  private double pMinusPrime = 0.0; // -.00002/kwh
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
@@ -164,7 +164,8 @@ implements SettlementContext, InitializationService
       balancingCost = (balancingCostMin + randomGen.nextDouble()
                        * (balancingCostMax - balancingCostMin));
     log.info("Configured DU: distro fee = " + distributionFee
-             + ", balancing cost = " + balancingCost);
+             + ", balancing cost = " + balancingCost
+             + ", (pPlus',pMinus') = (" + pPlusPrime + "," + pMinusPrime + ")");
     
     serverProps.publishConfiguration(this);
     return "DistributionUtility";

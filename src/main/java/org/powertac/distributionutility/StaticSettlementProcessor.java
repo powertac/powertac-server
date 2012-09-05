@@ -67,7 +67,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       totalImbalance += info.getNetLoadKWh();
       totalQty += Math.abs(info.getNetLoadKWh());
     }
-    log.debug("totalImbalance=" + totalImbalance);
+    log.info("totalImbalance=" + totalImbalance);
 
     // fudge to prevent divide-by-zero errors
     if (Math.abs(totalImbalance) < epsilon) {
@@ -111,6 +111,34 @@ public class StaticSettlementProcessor extends SettlementProcessor
     // Exercise balancing controls
     for (ChargeInfo info : brokerData) {
       exerciseControls(info, candidates, info.getBalanceChargeP2());
+    }
+    if (log.isInfoEnabled()) {
+      // log payments
+      StringBuffer sb = new StringBuffer();
+      sb.append("DU static settlement <broker(p2,p1)>:");
+      for (ChargeInfo info : brokerData) {
+        sb.append(" ").append(info.getBrokerName()).append("(");
+        sb.append(info.getBalanceChargeP2()).append(",");
+        sb.append(info.getBalanceChargeP1()).append(")");
+      }
+      log.info(sb.toString());
+      
+      // compute actual DU costs
+      double rmQty = 0.0;
+      double rmCost = 0.0;
+      for (BOWrapper bo : candidates) {
+        if (bo.isDummy()) {
+          rmQty += bo.exercisedCapacity;
+          rmCost = bo.exercisedCapacity * bo.getMarginalPrice(bo.exercisedCapacity);
+        }
+      }
+      double brokerCost = 0.0;
+      for (ChargeInfo info : brokerData) {
+        brokerCost += info.getBalanceChargeP1() + info.getBalanceChargeP2();
+      }
+      
+      // log budget balance
+      log.info("DU budget: rm cost = " + rmCost + ", broker cost = " + brokerCost);
     }
   }
 
@@ -296,6 +324,8 @@ public class StaticSettlementProcessor extends SettlementProcessor
     // compute price if this capacity is retrieved from other brokers
     double price = 0;
     nonParticipants.add(target);
+    double rmQty = 0.0;
+    double rmMarginalPrice = 0.0;
     for (BOWrapper nextNonExercised : nonExercised) {
       if (Math.abs(remainingQty) < epsilon) 
         break;
@@ -303,11 +333,28 @@ public class StaticSettlementProcessor extends SettlementProcessor
         double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
         double used = sgn * Math.max(sgn * avail,
                                      sgn * remainingQty);
-        price += sgn * nextNonExercised.getTotalNEPrice(used);
+        //price += sgn * nextNonExercised.getTotalNEPrice(used);
+        if (nextNonExercised.isDummy()) {
+          rmQty += used;
+          rmMarginalPrice =
+                  nextNonExercised.getMarginalPrice(used + nextNonExercised.exercisedCapacity);
+        }
+        else {
+          price += sgn * nextNonExercised.getTotalPrice(used);
+        }
+//    for (BOWrapper nextNonExercised : nonExercised) {
+//      if (Math.abs(remainingQty) < epsilon) 
+//        break;
+//      else if (!(nonParticipants.contains(nextNonExercised.info))) {
+//        double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
+//        double used = sgn * Math.max(sgn * avail,
+//                                     sgn * remainingQty);
+//        price += sgn * nextNonExercised.getTotalNEPrice(used);
         remainingQty -= used;
         log.debug("  VCG cost part of " + nextNonExercised.getTotalPrice(used) + " for " + used + " kWh" );
       }
     }
+    price -= rmQty * rmMarginalPrice;
     nonParticipants.remove(target);
     if(Math.abs(remainingQty) > epsilon)
       log.error("Not enough orders to compute VCG price.");
