@@ -400,7 +400,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
     // First, separate the brokers into contributors and non-contributors
     for (ChargeInfo info : brokerData) {
-      if (sgn != Math.signum(info.getNetLoadKWh())) {
+      if (info.getNetLoadKWh() != 0 && sgn != Math.signum(info.getNetLoadKWh())) {
         // broker is on the other side of the balance
         nonContributors.add(info);
       }
