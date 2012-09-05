@@ -199,7 +199,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       slope = pMinusPrime;
     }
     BOWrapper dummy =
-            new BOWrapper(-totalImbalance, price, slope);
+            new BOWrapper(-totalImbalance, price, slope, 0.0);
     orders.add(dummy);
     
     // split the dummy order around the following order, if there is one
@@ -241,8 +241,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
     //   in which case we split the dummy around the following order.
     else {
       BOWrapper newDummy = new BOWrapper(dummy.availableCapacity - capacity,
-                                         nextBO.price + epsilon,
-                                         dummy.slope);
+                                         nextBO.price + epsilon/1000.0,
+                                         dummy.slope,
+                                         capacity + dummy.startX);
       dummy.availableCapacity = capacity;
       orders.add(newDummy);
       splitDummyOrder(orders, orders.tailSet(newDummy));
@@ -264,7 +265,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
                                  -sgn * bo.availableCapacity);
       bo.exercisedCapacity = -sgn * exercise;
       log.debug("exercising order " + bo.toString()
-                + " for " + bo.exercisedCapacity);
+                + " for " + bo.exercisedCapacity + " at " + bo.price);
       remainingImbalance -= sgn * exercise;
     }
     return totalImbalance - remainingImbalance;
@@ -326,22 +327,6 @@ public class StaticSettlementProcessor extends SettlementProcessor
     nonParticipants.add(target);
     double rmQty = 0.0;
     double rmMarginalPrice = 0.0;
-    for (BOWrapper nextNonExercised : nonExercised) {
-      if (Math.abs(remainingQty) < epsilon) 
-        break;
-      else if (!(nonParticipants.contains(nextNonExercised.info))) {
-        double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
-        double used = sgn * Math.max(sgn * avail,
-                                     sgn * remainingQty);
-        //price += sgn * nextNonExercised.getTotalNEPrice(used);
-        if (nextNonExercised.isDummy()) {
-          rmQty += used;
-          rmMarginalPrice =
-                  nextNonExercised.getMarginalPrice(used + nextNonExercised.exercisedCapacity);
-        }
-        else {
-          price += sgn * nextNonExercised.getTotalPrice(used);
-        }
 //    for (BOWrapper nextNonExercised : nonExercised) {
 //      if (Math.abs(remainingQty) < epsilon) 
 //        break;
@@ -349,9 +334,26 @@ public class StaticSettlementProcessor extends SettlementProcessor
 //        double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
 //        double used = sgn * Math.max(sgn * avail,
 //                                     sgn * remainingQty);
-//        price += sgn * nextNonExercised.getTotalNEPrice(used);
+//        //price += sgn * nextNonExercised.getTotalNEPrice(used);
+//        if (nextNonExercised.isDummy()) {
+//          rmQty += used;
+//          rmMarginalPrice =
+//                  nextNonExercised.getMarginalPrice(used + nextNonExercised.exercisedCapacity);
+//        }
+//        else {
+//          price += sgn * nextNonExercised.getTotalPrice(used);
+//        }
+    for (BOWrapper nextNonExercised : nonExercised) {
+      if (Math.abs(remainingQty) < epsilon) 
+        break;
+      else if (!(nonParticipants.contains(nextNonExercised.info))) {
+        double avail = (nextNonExercised.availableCapacity - nextNonExercised.exercisedCapacity);
+        double used = sgn * Math.max(sgn * avail,
+                                     sgn * remainingQty);
+        price += sgn * nextNonExercised.getTotalNEPrice(used);
         remainingQty -= used;
-        log.debug("  VCG cost part of " + nextNonExercised.getTotalPrice(used) + " for " + used + " kWh" );
+        log.debug("  VCG cost part of " + nextNonExercised.getTotalNEPrice(used)
+                  + " for " + used + " kWh at " + nextNonExercised.price);
       }
     }
     price -= rmQty * rmMarginalPrice;
@@ -468,12 +470,13 @@ public class StaticSettlementProcessor extends SettlementProcessor
   private double findRpCost (SortedSet<BOWrapper> remains)
   {
     double rpCost = 0.0;
-    double rpQty = 0.0;
+    //double rpQty = 0.0;
     for (BOWrapper bid : remains) {
       if (bid.isDummy())
         // cost is total dummy qty times final marginal price
-        rpQty += bid.exercisedCapacity;
-        rpCost = -rpQty * bid.getMarginalPrice(bid.exercisedCapacity);
+        //rpQty += bid.exercisedCapacity;
+        //rpCost = -rpQty * bid.getMarginalPrice(bid.exercisedCapacity);
+        rpCost = -bid.getTotalEPrice();
     }
     return rpCost;
   }
@@ -549,6 +552,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     double exercisedCapacity = 0.0;
     double price = 0.0;
     double slope = 0.0;
+    double startX = 0.0;
 
     // constructs one from a BalancingOrder
     BOWrapper (ChargeInfo info, BalancingOrder bo)
@@ -560,20 +564,22 @@ public class StaticSettlementProcessor extends SettlementProcessor
     }
 
     // constructs an intermediate dummy
-    BOWrapper (double availableCapacity, double price)
-    {
-      super();
-      this.availableCapacity = availableCapacity;
-      this.price = price;
-    }
+//    BOWrapper (double availableCapacity, double price)
+//    {
+//      super();
+//      this.availableCapacity = availableCapacity;
+//      this.price = price;
+//    }
 
-    // constructs a final dummy, with a non-zero slope
-    BOWrapper (double availableCapacity, double price, double slope)
+    // constructs a dummy with a non-zero slope
+    BOWrapper (double availableCapacity, double price,
+               double slope, double startX)
     {
       super();
       this.availableCapacity = availableCapacity;
       this.price = price;
       this.slope = slope;
+      this.startX = startX; // keeps track of x-distance to first dummy
     }
 
     // constructs a clone
@@ -607,18 +613,31 @@ public class StaticSettlementProcessor extends SettlementProcessor
     }
 
     // Returns the total price (integral) for using qty from the order
-    double getTotalPrice (double qty)
-    {
-      return qty * 0.5 * (price + price + slope * qty);
-    }
+//    double getTotalPrice (double qty)
+//    {
+//      return qty * 0.5 * (price + price + slope * qty);
+//    }
 
     // Returns the total price (integral) for using qty from the 
     // non-exercised portion of order
-//    double getTotalNEPrice (double qty)
-//    {
-//      double nePrice = getMarginalPrice(exercisedCapacity);
-//      return qty * 0.5 * (nePrice + nePrice + slope * qty);
-//    }
+    double getTotalNEPrice (double qty)
+    {
+      //double nePrice = getMarginalPrice(exercisedCapacity);
+      //return qty * 0.5 * (nePrice + nePrice + slope * qty);
+      double oldMPrice = getMarginalPrice(exercisedCapacity);
+      double newMPrice = getMarginalPrice(exercisedCapacity+qty);
+      return newMPrice * qty +        // costs of the additional qty 
+             (newMPrice - oldMPrice) * exercisedCapacity + // extra costs for the already exercisedCapacity
+             startX * (newMPrice - price);                 // extra costs for any earlier dummy orders
+    }
+    
+    // Returns total price of this order, including its effect on earlier dummy orders
+    double getTotalEPrice ()
+    {
+      double oldMPrice = getMarginalPrice(exercisedCapacity);
+      return oldMPrice * exercisedCapacity +  // costs for the already exercisedCapacity
+             startX * (oldMPrice - price);    // extra costs for any earlier dummy orders
+    }
 
     @Override
     public String toString ()
