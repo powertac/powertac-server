@@ -473,7 +473,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       if (bid.isDummy())
         // cost is total dummy qty times final marginal price
         rpQty += bid.exercisedCapacity;
-        rpCost = -rpQty * bid.getMarginalPrice(rpQty);
+        rpCost = -rpQty * bid.getMarginalPrice(bid.exercisedCapacity);
     }
     return rpCost;
   }
@@ -614,11 +614,11 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
     // Returns the total price (integral) for using qty from the 
     // non-exercised portion of order
-    double getTotalNEPrice (double qty)
-    {
-      double nePrice = getMarginalPrice(exercisedCapacity);
-      return qty * 0.5 * (nePrice + nePrice + slope * qty);
-    }
+//    double getTotalNEPrice (double qty)
+//    {
+//      double nePrice = getMarginalPrice(exercisedCapacity);
+//      return qty * 0.5 * (nePrice + nePrice + slope * qty);
+//    }
 
     @Override
     public String toString ()

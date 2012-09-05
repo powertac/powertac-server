@@ -251,12 +251,12 @@ public class StaticSettlementProcessorTest
     assertEquals("b2.p2", 0.5248, ci2.getBalanceChargeP2(), 1e-6);
     assertEquals("b3.p2", 0, ci3.getBalanceChargeP2(), 1e-6);
 
-    //System.out.println("P1 values (b0,b1,b2,b3,): ("
-    //        + ci0.getBalanceChargeP1()
-    //        + "," + ci1.getBalanceChargeP1()
-    //        + "," + ci2.getBalanceChargeP1()
-    //        + "," + ci3.getBalanceChargeP1()
-    //        + ")");
+    System.out.println("P1 values (b0,b1,b2,b3,): ("
+            + ci0.getBalanceChargeP1()
+            + "," + ci1.getBalanceChargeP1()
+            + "," + ci2.getBalanceChargeP1()
+            + "," + ci3.getBalanceChargeP1()
+            + ")");
     assertEquals("b0.p1", 0, ci0.getBalanceChargeP1(), 1e-4);
     assertEquals("b1.p1", 4.224444, ci1.getBalanceChargeP1(), 1e-4);
     assertEquals("b2.p1", -11.621778, ci2.getBalanceChargeP1(), 1e-4);
@@ -440,8 +440,8 @@ public class StaticSettlementProcessorTest
     verify(capacityControlService).exerciseBalancingControl(eq(bo1),
                                                             eq(5.0),
                                                             eq(0.350005, 1e-4));
-    assertEquals("-1.42 for b1", -1.42, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals(".6675 for b2", 0.68, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("-1.4 for b1", -1.4, ci1.getBalanceChargeP1(), 1e-4);
+    assertEquals(".675 for b2", 0.675, ci2.getBalanceChargeP1(), 1e-4);
   }
 
   // Simple balancing, net imbalance, single balancing order for b1
