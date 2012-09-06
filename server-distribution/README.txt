@@ -1,11 +1,12 @@
-August 2012
+September 2012
 
-Welcome to the 0.6.1 release of the Power TAC server. This release
-contains the server and a version of the game visualizer that works in
-"development" mode, including a simple control panel that allows you
-to set up and run bootstrap and competition sessions. There is a
-compatible sample broker distributed separately. This release is
-intended to support broker development and simple experiments.
+Welcome to the 0.6.2 release of the Power TAC server. This is a point
+release containing the server and a version of the game visualizer
+that works in "development" mode, including a simple control panel
+that allows you to set up and run bootstrap and competition
+sessions. There is a compatible sample broker distributed
+separately. This release is intended to support broker development and
+simple experiments.
 
 Release notes are available at
 http://www.powertac.org/wiki/index.php/Getting_Started.
