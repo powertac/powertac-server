@@ -304,8 +304,9 @@ public class CompetitionControlService
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
 		  competition.getSimulationRate()));
     
-    // log broker stats
+    // log and post broker stats
     logBrokerStats();
+    postBrokerStats();
 
     // wrap up
     shutDown();
@@ -654,6 +655,22 @@ public class CompetitionControlService
     buf.append(" ]");
     log.info(buf.toString());
   }
+  
+  // Posts broker stats to TS as a string of the form
+  // username:balance,...
+  private void postBrokerStats ()
+  {
+    StringBuffer buf = new StringBuffer();
+    String delimiter = "";
+    for (String brokerName : competition.getBrokers()) {
+      Broker broker = brokerRepo.findByUsername(brokerName);
+      buf.append(delimiter).append(brokerName).append(":");
+      buf.append(broker.getCash().getBalance());
+      delimiter = ",";
+    }
+    buf.append(" ]");
+    log.info(buf.toString());
+  }
 
   // ------------- simulation start and run ----------------
   /**
@@ -693,6 +710,7 @@ public class CompetitionControlService
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
+    tournamentSchedulerService.heartbeat(ts);
        
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));

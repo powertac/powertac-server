@@ -1,6 +1,8 @@
 package org.powertac.server;
 
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -124,6 +126,48 @@ public class TournamentSchedulerService
     } catch (Exception e) {
       e.printStackTrace();
       System.out.println("Jenkins failure");
+    }
+  }
+  
+  public void heartbeat (int timeslotIndex)
+  {
+    if (tournamentSchedulerUrl.isEmpty())
+      return;
+    String finalUrl = tournamentSchedulerUrl + interfaceUrl 
+        + "?action=heartbeat"
+        + "&message=" + timeslotIndex;
+
+    try {
+      URL url = new URL(finalUrl);
+      URLConnection conn = url.openConnection();
+      // Get the response
+      InputStream input = conn.getInputStream();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("heartbeat failure");
+    }
+  }
+  
+  public void sendResults (String results)
+  {
+    if (tournamentSchedulerUrl.isEmpty())
+      return;
+    String finalUrl = tournamentSchedulerUrl + interfaceUrl;
+    String postData = "action=gameresults"
+        + "&message=" + results;
+
+    try {
+      URL url = new URL(finalUrl);
+      URLConnection conn = url.openConnection();
+      conn.setDoOutput(true);
+      OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+      wr.write(postData);
+      wr.flush();
+      // Get the response
+      InputStream input = conn.getInputStream();
+    } catch (Exception e) {
+      e.printStackTrace();
+      System.out.println("heartbeat failure");
     }
   }
 }
