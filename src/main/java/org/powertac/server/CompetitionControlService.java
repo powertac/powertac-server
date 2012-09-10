@@ -668,8 +668,7 @@ public class CompetitionControlService
       buf.append(broker.getCash().getBalance());
       delimiter = ",";
     }
-    buf.append(" ]");
-    log.info(buf.toString());
+    tournamentSchedulerService.sendResults(buf.toString());
   }
 
   // ------------- simulation start and run ----------------
