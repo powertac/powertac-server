@@ -135,6 +135,7 @@ public class TournamentSchedulerService
       return;
     String finalUrl = tournamentSchedulerUrl + interfaceUrl 
         + "?action=heartbeat"
+        + "&gameId=" + gameId
         + "&message=" + timeslotIndex;
 
     try {
@@ -154,6 +155,7 @@ public class TournamentSchedulerService
       return;
     String finalUrl = tournamentSchedulerUrl + interfaceUrl;
     String postData = "action=gameresults"
+        + "&gameId=" + gameId
         + "&message=" + results;
 
     try {
