@@ -510,9 +510,9 @@ public class OfficeComplex extends AbstractCustomer
         revokedSubscription.handleRevokedTariff();
 
         Tariff tariff = revokedSubscription.getTariff();
-        Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
+        Tariff newTariff = null;//revokedSubscription.getTariff().getIsSupersededBy();
         Tariff defaultTariff =
-          tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
+          tariffMarketService.getDefaultTariff(tariff.getPowerType());
 
         log.debug("Tariff:" + tariff.toString() + " PowerType: "
                   + tariff.getPowerType());
