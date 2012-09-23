@@ -331,13 +331,13 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   
     private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
     {
+        double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
         Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
         double totalUsage = 0.0;
         double totalCharge = 0.0;            
         for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
             CapacityProfile forecast = capacityOriginator.getCurrentForecast();            
             for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-                double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
                 double hourlyUsage = usageSign * forecast.getCapacity(i);
                 totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
                 totalUsage += hourlyUsage;
@@ -345,10 +345,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         }        
         double realizedPrice = tariff.getRealizedPrice();
         if (Math.abs(realizedPrice) > 0.01) {  // != 0.0
-            double estHourlyPrice = totalCharge / totalUsage;           
+            double estHourlyPrice = totalCharge / (usageSign * totalUsage);           
             if (Math.abs(estHourlyPrice - realizedPrice) > 0.05 * Math.abs(estHourlyPrice)) {
                 double realizedPriceWeight = bundle.getSubscriberStructure().realizedPriceWeight;
-                totalCharge = realizedPriceWeight * (realizedPrice * totalUsage) + (1 - realizedPriceWeight) * totalCharge;
+                totalCharge = realizedPriceWeight * (realizedPrice * usageSign * totalUsage) + (1 - realizedPriceWeight) * totalCharge;
             }
         }
         return totalCharge;
