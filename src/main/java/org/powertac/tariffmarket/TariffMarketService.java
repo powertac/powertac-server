@@ -610,7 +610,7 @@ public class TariffMarketService
                                  CustomerInfo customer,
                                  int customerCount)
   {
-    if (!(tariff.isExpired() || tariff.isRevoked())) {
+    if (customerCount < 0 || !(tariff.isExpired() || tariff.isRevoked())) {
       postPendingSubscriptionEvent(tariff, customer, customerCount);
       List<TariffSubscription> existingSubscriptions =
               tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
