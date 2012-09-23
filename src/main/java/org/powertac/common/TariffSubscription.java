@@ -204,19 +204,21 @@ public class TariffSubscription
    * subscriptions to superseding tariffs, is deferred to be handled by the
    * tariff market.
    */
-  public void handleRevokedTariff ()
+  public Tariff handleRevokedTariff ()
   {
     // if the tariff is not revoked, then just return this subscription
     if (!tariff.isRevoked()) {
       log.warn("Tariff " + tariff.getId() + " is not revoked.");
+      return tariff;
     }
     // if no subscribers, we can ignore this
     if (0 == customersCommitted) {
-      return;
+      return null;
     }
     // if the tariff has already been superseded, then switch subscription to
     // that new tariff
-    Tariff newTariff = tariff.getIsSupersededBy();
+    Tariff newTariff = null;
+//    Tariff newTariff = tariff.getIsSupersededBy();
     if (newTariff == null) {
       // there is no superseding tariff, so we have to revert to the default tariff.
       newTariff =
@@ -224,7 +226,7 @@ public class TariffSubscription
                 .getPowerType());
     }
     if (newTariff == null) {
-      // there is exact match for original power type - choose generic
+      // there is no exact match for original power type - choose generic
       newTariff =
         tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
                 .getPowerType().getGenericType());
@@ -235,9 +237,9 @@ public class TariffSubscription
     tariffMarketService.subscribeToTariff(newTariff, customer,
                                           customersCommitted);
     log.info("Tariff " + tariff.getId() + " superseded by " + newTariff.getId()
-             + " for " + customersCommitted + "customers");
+             + " for " + customersCommitted + " customers");
     // customersCommitted = 0;
-    // return result;
+    return newTariff;
   }
 
   /**
