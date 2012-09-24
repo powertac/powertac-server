@@ -15,6 +15,7 @@
  */
 package org.powertac.server;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -157,6 +158,10 @@ public class CompetitionControlService
   @ConfigurableValue(valueType = "Long",
           description = "Milliseconds/timeslot in boot mode. Should be > 300.")
   private long bootstrapTimeslotMillis = 2000;
+  
+  @ConfigurableValue(valueType = "String",
+          description = "Name of abort file")
+  private String abortFileName = "abort";
   
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
@@ -692,6 +697,12 @@ public class CompetitionControlService
    */
   private void step ()
   {
+    // allow for controlled shutdown
+    if (checkAbort()) {
+      stop();
+      return;
+    }
+    
     Instant time = timeService.getCurrentTime();
     Date started = new Date();
 
@@ -731,6 +742,17 @@ public class CompetitionControlService
         visualizerProxyService.setRemoteVisualizer(false);
       }
     }
+  }
+  
+  private boolean checkAbort ()
+  {
+    File abortFile = new File(abortFileName);
+    if (abortFile.canRead()) {
+      log.warn("Abort file detected - shutting down");
+      abortFile.delete();
+      return true;
+    }
+    return false;
   }
 
   // activates the next timeslot - called once/timeslot. Returns the index
