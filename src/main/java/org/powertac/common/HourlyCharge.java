@@ -47,7 +47,7 @@ implements Comparable<HourlyCharge>
   @XStreamAsAttribute
   private double value;
 
-  private Instant atTime;
+  protected Instant atTime;
 
   /**
    * Creates a new HourlyCharge to communicate rate information to customers.

@@ -563,12 +563,13 @@ public class Rate extends XStreamStateLoggable
    * the requested time is beyond the notification interval of a
    * variable rate.
    */
+  ProbeCharge probe = new ProbeCharge(new Instant(0l), 0.0);
   public double getValue (AbstractInstant when)
   {
     if (isFixed)
       return minValue;
     else if (rateHistory.size() == 0) {
-      log.info("no rate history, return default");
+      log.debug("no rate history, return default");
       return expectedMean; // default
     }
     else {
@@ -580,10 +581,10 @@ public class Rate extends XStreamStateLoggable
       //  return expectedMean;
       //}
       // otherwise, return the most recent price announcement for the given time
-      HourlyCharge probe = new HourlyCharge(inst.plus(1000l), 0);
+      probe.setAtTime(inst.plus(1000l));
       SortedSet<HourlyCharge> head = rateHistory.headSet(probe);
       if (head == null || head.size() == 0) {
-        log.info("No hourly charge found for " + when.getMillis() + ", returning default");
+        log.debug("No hourly charge found for " + when.getMillis() + ", returning default");
         return expectedMean; // default
       }
       else {
@@ -627,5 +628,18 @@ public class Rate extends XStreamStateLoggable
     if (timeService == null)
       timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     return timeService.getCurrentTime();
+  }
+  
+  class ProbeCharge extends HourlyCharge
+  {
+    public ProbeCharge (Instant when, double charge)
+    {
+      super(when, charge);
+    }
+   
+    void setAtTime (Instant when)
+    {
+      atTime = when;
+    }
   }
 }
