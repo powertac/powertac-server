@@ -291,7 +291,8 @@ implements SettlementContext, InitializationService
         if (price != null && (max == null || price > max))
           max = price;
       }
-      result = max;
+      if (max != null)
+        result = max;
     }
     return result / 1000.0;
   }
@@ -312,7 +313,8 @@ implements SettlementContext, InitializationService
         if (price != null && (min == null || price < min))
           min = price;
       }
-      result = min;
+      if (min != null)
+        result = min;
     }
     return result / 1000.0;
   }
