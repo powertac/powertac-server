@@ -329,7 +329,7 @@ public class Rate extends XStreamStateLoggable
       long warning = newCharge.getAtTime().getMillis() - now.getMillis();
       if (warning < noticeInterval && !publish) {
         // too late
-        log.error("Too late (" + now.toString() + ") to change rate for " + newCharge.getAtTime().toString());
+        log.warn("Too late (" + now.toString() + ") to change rate for " + newCharge.getAtTime().toString());
       }
       else {
         if (probe == null) {
