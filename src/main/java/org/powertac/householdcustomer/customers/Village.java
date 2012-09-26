@@ -1726,7 +1726,7 @@ public class Village extends AbstractCustomer
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
 
-    double costFixed = estimateFixedTariffPayments(tariff);
+    double costFixed = estimateFixedTariffPayments(tariff) * getHouses(type).size();
     return (costVariable + costFixed) / VillageConstants.MILLION;
   }
 
