@@ -309,7 +309,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         List<Double> estimatedPayments = new ArrayList<Double>(evalTariffs.size());
         for (int i=0; i < evalTariffs.size(); ++i) {
             Tariff tariff = evalTariffs.get(i);
-            double fixedPayments = estimateFixedTariffPayments(tariff);
+            double fixedPayments = estimateFixedTariffPayments(bundle, tariff);
             double variablePayment = forecastDailyUsageCharge(bundle, tariff);
             double totalPayment = truncateTo2Decimals(fixedPayments + variablePayment);    
             double adjustedPayment = adjustForInterruptibility(bundle, tariff, totalPayment);
@@ -318,7 +318,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         return estimatedPayments;
     }
     
-    private double estimateFixedTariffPayments(Tariff tariff)
+    private double estimateFixedTariffPayments(CapacityBundle bundle, Tariff tariff)
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
         double minDuration;
@@ -326,7 +326,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         else minDuration = tariff.getMinDuration() / TimeService.DAY;
         double dailyLifecyclePayment = lifecyclePayment / minDuration;  
         double dailyPeriodicPayment = tariff.getPeriodicPayment() * NUM_HOURS_IN_DAY;
-        return dailyLifecyclePayment + dailyPeriodicPayment;
+        return bundle.getPopulation() * dailyLifecyclePayment + dailyPeriodicPayment;
     }
   
     private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
