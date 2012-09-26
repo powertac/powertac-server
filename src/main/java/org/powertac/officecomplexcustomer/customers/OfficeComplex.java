@@ -1335,7 +1335,7 @@ public class OfficeComplex extends AbstractCustomer
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
 
-    double costFixed = estimateFixedTariffPayments(tariff);
+    double costFixed = estimateFixedTariffPayments(tariff) * getOffices(type).size();
     return (costVariable + costFixed) / OfficeComplexConstants.MILLION;
   }
 
