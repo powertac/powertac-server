@@ -73,6 +73,7 @@ public class Rate extends XStreamStateLoggable
   private double maxCurtailment = 0.0; // maximum curtailment for controllable capacity
 
   private TreeSet<HourlyCharge> rateHistory; // history of values for variable rate
+  private ProbeCharge probe;
 
   // depends on TimeService
   @XStreamOmitField
@@ -86,6 +87,7 @@ public class Rate extends XStreamStateLoggable
   {
     super();
     rateHistory = new TreeSet<HourlyCharge>();
+    probe = new ProbeCharge(new Instant(0l), 0.0);
   }
 
   /**
@@ -330,8 +332,13 @@ public class Rate extends XStreamStateLoggable
         log.error("Too late (" + now.toString() + ") to change rate for " + newCharge.getAtTime().toString());
       }
       else {
+        if (probe == null) {
+          probe = new ProbeCharge(new Instant(0l), 0.0);
+          System.out.println("add: probe was null");
+        }
         // first, remove the existing charge for the specified time
-        HourlyCharge probe = new HourlyCharge(newCharge.getAtTime().plus(1000l), 0);
+        probe.setAtTime(newCharge.getAtTime().plus(1000l));
+        //HourlyCharge probe = new HourlyCharge(newCharge.getAtTime().plus(1000l), 0);
         SortedSet<HourlyCharge> head = rateHistory.headSet(probe);
         if (head != null && head.size() > 0) {
           HourlyCharge item = head.last();
@@ -563,7 +570,6 @@ public class Rate extends XStreamStateLoggable
    * the requested time is beyond the notification interval of a
    * variable rate.
    */
-  ProbeCharge probe = new ProbeCharge(new Instant(0l), 0.0);
   public double getValue (AbstractInstant when)
   {
     if (isFixed)
@@ -573,6 +579,10 @@ public class Rate extends XStreamStateLoggable
       return expectedMean; // default
     }
     else {
+      if (probe == null) {
+        probe = new ProbeCharge(new Instant(0l), 0.0);
+        System.out.println("get: probe was null");
+      }
       Instant inst = new Instant(when);
       // if looking beyond the notification interval, return default
       //long horizon = inst.getMillis() - timeService.getCurrentTime().getMillis();
