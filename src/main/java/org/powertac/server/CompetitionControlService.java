@@ -992,7 +992,13 @@ public class CompetitionControlService
       while (running) {
         log.info("Wait for tick " + currentSlot);
         clock.waitForTick(currentSlot);
-        step();
+        try {
+          step();
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+          running = false;
+        }
         currentSlot += 1;
         clock.complete();
       }
