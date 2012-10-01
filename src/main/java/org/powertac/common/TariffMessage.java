@@ -26,7 +26,9 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  * a TariffMessageProcessor.
  * @author John Collins
  */
-public abstract class TariffMessage extends XStreamStateLoggable
+public abstract class TariffMessage
+extends XStreamStateLoggable
+implements ValidatableMessage
 {
   @XStreamAsAttribute
   protected long id = IdGenerator.createId();
@@ -49,5 +51,11 @@ public abstract class TariffMessage extends XStreamStateLoggable
   public Broker getBroker ()
   {
     return broker;
+  }
+  
+  @Override
+  public boolean isValid ()
+  {
+    return true;
   }
 }

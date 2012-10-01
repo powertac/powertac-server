@@ -96,6 +96,7 @@ implements Comparable<HourlyCharge>
     return atTime;
   }
 
+  @Override
   public int compareTo (HourlyCharge obj) {
     return atTime.compareTo(obj.atTime);
   }

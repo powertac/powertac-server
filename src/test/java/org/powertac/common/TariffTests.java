@@ -342,12 +342,17 @@ public class TariffTests
 
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
+    Tariff te = new Tariff(tariffSpec);
+    te.init();
+    
+    // test r1 without hourly charge, uses expected mean
+    assertEquals("current charge, noon Sunday", -1.0, te.getUsageCharge(10.0, 0.0, false), 1e-6);
+
+    // test with hourly charges
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.09), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.11));
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.13));
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.14));
-    Tariff te = new Tariff(tariffSpec);
-    te.init();
     assertEquals("current charge, noon Sunday", -0.9, te.getUsageCharge(10.0, 0.0, false), 1e-6);
     assertEquals("13:00 charge, noon Sunday", -1.1,
       te.getUsageCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), 10.0, 0.0), 1e-6);

@@ -25,6 +25,7 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powertac.common.enumerations.PowerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -196,6 +197,102 @@ public class RateTests
     assertFalse("Does not apply at 99", r.applies(99.0));
     assertTrue("Applies at 6:00, 100", r.applies(100.0, new DateTime(2012, 2, 2, 6, 0, 0, 0, DateTimeZone.UTC)));
     assertFalse("Does not apply at 7:00, 80", r.applies(80.0, new DateTime(2012, 3, 3, 7, 0, 0, 0, DateTimeZone.UTC)));
+  }
+  
+  // Validity test: curtailment - note that it's supposed to be impossible to
+  // set maxCurtailment outside the valid range.
+  @Test
+  public void testCurtailmentValidity ()
+  {
+    Rate r = new Rate().withValue(-0.121) 
+        .withMaxCurtailment(-1.0);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.CONSUMPTION);
+    assertTrue("curtailment value valid", r.isValid(spec));
+    assertEquals("value 0.0", 0.0, r.getMaxCurtailment(), 1e-6);
+    r.withMaxCurtailment(1.01);
+    assertTrue("curtailment value valid", r.isValid(spec));
+    assertEquals("value 1.0", 1.0, r.getMaxCurtailment(), 1e-6);
+    r.withMaxCurtailment(0.5);
+    assertTrue("curtailment value valid", r.isValid(spec));
+    assertEquals("value 0.5", 0.5, r.getMaxCurtailment(), 1e-6);
+    r.withMaxCurtailment(0.0);
+    assertTrue("curtailment value valid", r.isValid(spec));
+    r.withMaxCurtailment(1.0);
+    assertTrue("curtailment value valid", r.isValid(spec));
+  }
+  
+  // Validity test: CONSUMPTION tier value
+  @Test
+  public void testTierCons ()
+  {
+    Rate r = new Rate().withValue(-0.121) 
+            .withTierThreshold(-1.0);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.INTERRUPTIBLE_CONSUMPTION);
+    assertFalse("tier theshold invalid", r.isValid(spec));
+    r.withTierThreshold(0.0);
+    assertTrue("tier theshold valid", r.isValid(spec));    
+    r.withTierThreshold(100000.0);
+    assertTrue("tier theshold valid", r.isValid(spec));    
+  }
+  
+  // Validity test: PRODUCTION tier value
+  @Test
+  public void testTierProd ()
+  {
+    Rate r = new Rate().withValue(0.121) 
+            .withTierThreshold(1.0);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.SOLAR_PRODUCTION);
+    assertFalse("tier theshold invalid", r.isValid(spec));
+    r.withTierThreshold(0.0);
+    assertTrue("tier theshold valid", r.isValid(spec));    
+    r.withTierThreshold(-100000.0);
+    assertTrue("tier theshold valid", r.isValid(spec));    
+  }
+  
+  // Validity test: maxValue, expectedMean, consumption
+  @Test
+  public void testMaxValueConsumption () {
+    Rate r = new Rate().withValue(-0.121).withFixed(false);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.CONSUMPTION);
+    assertFalse("Invalid - maxValue, expectedMean not given", r.isValid(spec));
+    r.withMaxValue(-0.5);
+    assertFalse("invalid - expectedMean not given", r.isValid(spec));
+    r.withExpectedMean(-0.3);
+    assertTrue("valid", r.isValid(spec));
+    r.withMaxValue(-0.121);
+    assertFalse("invalid - expectedMean OOR", r.isValid(spec));
+    r.withExpectedMean(-0.121);
+    assertTrue("valid", r.isValid(spec));
+  }
+  
+  // Validity test:
+  @Test
+  public void testMaxValueProduction () {
+    Rate r = new Rate().withValue(0.121).withFixed(false);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.SOLAR_PRODUCTION);
+    assertFalse("Invalid - maxValue, expectedMean not given", r.isValid(spec));
+    r.withMaxValue(0.5);
+    assertFalse("invalid - expectedMean not given", r.isValid(spec));
+    r.withExpectedMean(0.3);
+    assertTrue("valid", r.isValid(spec));
+    r.withMaxValue(0.121);
+    assertFalse("invalid - expectedMean OOR", r.isValid(spec));
+    r.withExpectedMean(0.121);
+    assertTrue("valid", r.isValid(spec));
+  }
+  
+  // Validity test: noticeInterval
+  @Test
+  public void testNoticeInterval ()
+  {
+    Rate r = new Rate().withFixed(false).withValue(-0.1)
+            .withMaxValue(-0.3).withExpectedMean(-0.2);
+    TariffSpecification spec = new TariffSpecification(null, PowerType.CONSUMPTION);
+    assertTrue("valid", r.isValid(spec));
+    r.withNoticeInterval(-1);
+    assertFalse("invalid noticeInterval", r.isValid(spec));
+    r.withNoticeInterval(1);
+    assertTrue("valid noticeInterval", r.isValid(spec));
   }
 
   @Test

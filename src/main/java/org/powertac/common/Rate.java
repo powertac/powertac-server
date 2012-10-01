@@ -608,6 +608,56 @@ public class Rate extends XStreamStateLoggable
       }
     }
   }
+  
+  /**
+   * Returns true just in case this Rate is internally valid, and valid
+   * with respect to the given TariffSpecification. 
+   * For all Rates, maxCurtailment is between 0.0 and 1.0.
+   * For a CONSUMPTION tariff, tierThreshold must be non-negative, while
+   * for a PRODUCTION tariff, tierThreshold must be non-positive.
+   * For a non-fixed rate, maxValue must be at least as "large"
+   * as minValue, where "larger" means more negative for a CONSUMPTION
+   * tariff, and more positive for a PRODUCTION tariff. Also, expectedMean
+   * must be between minValue and maxValue, and noticeInterval must be
+   * non-negative. 
+   */
+  public boolean isValid(TariffSpecification spec)
+  {
+    // curtailment test
+    if (maxCurtailment < 0.0 || maxCurtailment > 1.0) {
+      log.warn("Curtailment ratio " + maxCurtailment + " out of range");
+      return false;
+    }
+    // tier tests
+    if (spec.getPowerType().isConsumption() && tierThreshold < 0.0) {
+      log.warn("Negative tier threshold for consumption rate");
+      return false;
+    }
+    if (spec.getPowerType().isProduction() && tierThreshold > 0.0) {
+      log.warn("Positive tier threshold for production rate");
+      return false;
+    }
+    // non-fixed rates
+    if (isFixed())
+      return true;
+    double sgn = spec.getPowerType().isConsumption()? -1.0: 1.0;
+    // maxValue
+    if (sgn * maxValue < sgn * minValue) {
+      log.warn("maxValue " + maxValue + " out of range");
+      return false;
+    }
+    // expectedMean
+    if (sgn * expectedMean < sgn * minValue || sgn * expectedMean > sgn * maxValue) {
+      log.warn("expectedMean " + expectedMean + " out of range");
+      return false;
+    }
+    // noticeInterval
+    if (noticeInterval < 0l) {
+      log.warn("negative notice interval " + noticeInterval);
+      return false;
+    }
+    return true;
+  }
 
   @Override
   public String toString ()

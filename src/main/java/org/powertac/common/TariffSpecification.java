@@ -179,11 +179,13 @@ public class TariffSpecification extends TariffMessage
     return this;
   }
 
+  @Override
   public long getId ()
   {
     return id;
   }
 
+  @Override
   public Broker getBroker ()
   {
     return broker;
@@ -226,8 +228,36 @@ public class TariffSpecification extends TariffMessage
   }
   
   /**
+   * A TariffSpecification is valid if
+   * <ul>
+   *   <li>it has a least one Rate, and all its Rates are valid;</li>
+   *   <li>minDuration is non-negative;</li>
+   * </ul>
+   */
+  @Override
+  public boolean isValid ()
+  {
+    if (getRates().size() == 0) {
+      log.warn("invalid: no rates");
+      return false;
+    }
+    for (Rate rate : getRates()) {
+      if (!rate.isValid(this)) {
+        log.warn("invalid rate");
+        return false;
+      }
+    }
+    if (minDuration < 0l) {
+      log.warn("invalid: negative minDuration");
+      return false;
+    }
+    return true;
+  }
+  
+  /**
    * Returns a String giving the id, broker username, and powertype
    */
+  @Override
   public String toString ()
   {
     return ("TariffSpecification " + getId() + " "
