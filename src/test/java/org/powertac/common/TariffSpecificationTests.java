@@ -132,6 +132,23 @@ public class TariffSpecificationTests
     assertEquals("correct length", 1, spec2.getSupersedes().size());
     assertEquals("correct first element", spec1.getId(), (long)spec2.getSupersedes().get(0));
   }
+  
+  // validity test
+  @Test
+  public void  testValidity ()
+  {
+    TariffSpecification spec = new TariffSpecification(broker, PowerType.CONSUMPTION);
+    assertFalse("invalid - no rate", spec.isValid());
+    Rate r = new Rate().withValue(0.1);
+    spec.addRate(r);
+    assertTrue("valid - has rate", spec.isValid());
+    r.withMinValue(-.1).withFixed(false);
+    assertFalse("invalid - bad rate", spec.isValid());
+    r.withMaxValue(-0.3).withExpectedMean(-0.2);
+    assertTrue("valid rate", spec.isValid());
+    spec.withMinDuration(-1l);
+    assertFalse("invalid - bad minDuration", spec.isValid());
+  }
 
   @Test
   public void testXmlSerialization ()
