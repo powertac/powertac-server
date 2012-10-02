@@ -129,7 +129,7 @@ public class TournamentSchedulerService
     }
   }
   
-  public void heartbeat (int timeslotIndex)
+  public void heartbeat (int timeslotIndex, String standings)
   {
     if (tournamentSchedulerUrl.isEmpty())
       return;

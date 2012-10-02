@@ -665,6 +665,13 @@ public class CompetitionControlService
   // username:balance,...
   private void postBrokerStats ()
   {
+    tournamentSchedulerService.sendResults(composeBrokerStats());
+  }
+
+  // Generates a String containing names of external brokers and their
+  // current standings.
+  private String composeBrokerStats ()
+  {
     StringBuffer buf = new StringBuffer();
     String delimiter = "";
     for (String brokerName : competition.getBrokers()) {
@@ -673,7 +680,7 @@ public class CompetitionControlService
       buf.append(broker.getCash().getBalance());
       delimiter = ",";
     }
-    tournamentSchedulerService.sendResults(buf.toString());
+    return buf.toString();
   }
 
   // ------------- simulation start and run ----------------
@@ -720,7 +727,7 @@ public class CompetitionControlService
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
-    tournamentSchedulerService.heartbeat(ts);
+    tournamentSchedulerService.heartbeat(ts, composeBrokerStats());
        
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
