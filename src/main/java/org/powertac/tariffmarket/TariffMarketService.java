@@ -318,6 +318,12 @@ public class TariffMarketService
                             TariffStatus.Status.invalidTariff));
       return;
     }
+    else if (!spec.isValid()) {
+      log.warn("invalid spec " + spec.getId());
+      send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                            TariffStatus.Status.invalidTariff));
+      return;
+    }
     else {
       for (Rate rate : spec.getRates()) {
         if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
@@ -332,7 +338,6 @@ public class TariffMarketService
     }
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
-    //tariffRepo.addTariff(tariff);
     tariff.init();
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
@@ -394,10 +399,36 @@ public class TariffMarketService
   public void handleMessage (VariableRateUpdate update)
   {
     ValidationResult result = validateUpdate(update);
-    if (result.tariff == null)
+    if (result.tariff == null) {
       send(result.message);
-    else 
-      addVru(update);
+      return;
+    }
+    Rate rate = tariffRepo.findRateById(update.getRateId());
+    if (rate == null) {
+      send(new TariffStatus(update.getBroker(),
+                            update.getTariffId(),
+                            update.getId(),
+                            TariffStatus.Status.invalidUpdate)
+           .withMessage("Non-existent rate in VRU"));
+      return;
+    }
+    if (!result.tariff.getTariffSpecification().getRates().contains(rate)) {
+      send(new TariffStatus(update.getBroker(),
+                            update.getTariffId(),
+                            update.getId(),
+                            TariffStatus.Status.invalidUpdate)
+           .withMessage("Rate not associated with tariff in VRU"));
+      return;
+    }
+    if (!update.isValid(rate)) {
+      send(new TariffStatus(update.getBroker(),
+                            update.getTariffId(),
+                            update.getId(),
+                            TariffStatus.Status.invalidUpdate)
+           .withMessage("Invalid charge in VRU"));
+      return;
+    }
+    addVru(update);
   }
   
   /**

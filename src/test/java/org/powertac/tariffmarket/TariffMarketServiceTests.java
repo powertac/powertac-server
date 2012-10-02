@@ -437,21 +437,19 @@ public class TariffMarketServiceTests
   {
     initializeService();
     // what the broker does...
-    //TariffSpecification unpublished = new TariffSpecification(broker, PowerType.CONSUMPTION)
-    //.addRate(new Rate().setValue(0.121));
     TariffSpecification ts2 =
           new TariffSpecification(broker, PowerType.CONSUMPTION)
               .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
               .withMinDuration(TimeService.WEEK * 4);
     Rate r1 = new Rate()
         .withFixed(false)
-        .withMinValue(0.05)
-        .withMaxValue(0.50)
+        .withMinValue(-0.05)
+        .withMaxValue(-0.50)
         .withNoticeInterval(0)
-        .withExpectedMean(0.10);
+        .withExpectedMean(-0.10);
     ts2.addRate(r1);
     Instant lastHr = start.minus(TimeService.HOUR);
-    r1.addHourlyCharge(new HourlyCharge(lastHr, 0.07), true);    
+    r1.addHourlyCharge(new HourlyCharge(lastHr, -0.07), true);    
 
     // send to market
     tariffMarketService.handleMessage(tariffSpec);
@@ -480,7 +478,7 @@ public class TariffMarketServiceTests
     assertEquals("found r1", r1, tariffRepo.findRateById(r1.getId()));
     
     // update the hourly rate on tariff 2
-    HourlyCharge hc = new HourlyCharge(start, 0.09);
+    HourlyCharge hc = new HourlyCharge(start, -0.09);
     VariableRateUpdate vru = new VariableRateUpdate(broker, r1, hc);
 
     // check for correct times
@@ -499,8 +497,8 @@ public class TariffMarketServiceTests
     assertEquals("success vru", TariffStatus.Status.success, vrs.getStatus());
     assertEquals("correct current time", start, timeService.getCurrentTime());
     
-    assertEquals("Correct rate at 11:00", 0.07, tf2.getUsageCharge(lastHr, 1.0, 0.0), 1e-6);
-    assertEquals("Correct rate at 12:00", 0.09, tf2.getUsageCharge(start, 1.0, 0.0), 1e-6);
+    assertEquals("Correct rate at 11:00", -0.07, tf2.getUsageCharge(lastHr, 1.0, 0.0), 1e-6);
+    assertEquals("Correct rate at 12:00", -0.09, tf2.getUsageCharge(start, 1.0, 0.0), 1e-6);
 
     // make sure both tariffs are on the output list
     // TODO - this should be replaced with a check on an output channel.
@@ -510,7 +508,63 @@ public class TariffMarketServiceTests
     //assertEquals("correct third element", vru, tariffMarketService.broadcast.remove(0))
   }
   
-  // TODO - invalid variable-rate update
+  // invalid rate
+  @Test
+  public void testBogusRate ()
+  {
+    initializeService();
+    TariffSpecification ts2 =
+          new TariffSpecification(broker, PowerType.CONSUMPTION)
+              .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
+              .withMinDuration(TimeService.WEEK * 4);
+    Rate r1 = new Rate()
+        .withFixed(false)
+        .withMinValue(-0.05)
+        .withMaxValue(-0.50)
+        .withNoticeInterval(0);
+        //.withExpectedMean(0.10); // bogus
+    ts2.addRate(r1);
+    tariffMarketService.handleMessage(ts2);
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+  }
+  
+  // invalid VRU
+  @Test
+  public void testBogusVRU ()
+  {
+    initializeService();
+    TariffSpecification ts2 =
+          new TariffSpecification(broker, PowerType.CONSUMPTION)
+              .withExpiration(new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant())
+              .withMinDuration(TimeService.WEEK * 4);
+    Rate r1 = new Rate()
+        .withFixed(false)
+        .withMinValue(-0.05)
+        .withMaxValue(-0.50)
+        .withNoticeInterval(0)
+        .withExpectedMean(-0.10);
+    ts2.addRate(r1);
+    tariffMarketService.handleMessage(ts2);
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
+    assertEquals("valid", TariffStatus.Status.success, status.getStatus());
+    
+    // update the hourly rate on tariff 2
+    HourlyCharge hc = new HourlyCharge(start.plus(TimeService.HOUR), -0.9);
+    VariableRateUpdate vru = new VariableRateUpdate(broker, r1, hc);
+    
+    int msgsize = msgs.size();
+    tariffMarketService.handleMessage(vru);
+    assertEquals("Oe new message", msgsize + 1, msgs.size());
+
+    TariffStatus vrs = (TariffStatus)msgs.get(msgsize);
+    assertNotNull("non-null vru status", vrs);
+    assertEquals("bogus vru", TariffStatus.Status.invalidUpdate, vrs.getStatus());
+  }
 
   // check evolution of active tariff list
   @Test
