@@ -73,6 +73,8 @@ public class Rate extends XStreamStateLoggable
   private double maxCurtailment = 0.0; // maximum curtailment for controllable capacity
 
   private TreeSet<HourlyCharge> rateHistory; // history of values for variable rate
+
+  @XStreamOmitField
   private ProbeCharge probe;
 
   // depends on TimeService

@@ -58,4 +58,32 @@ public class VariableRateUpdate extends TariffUpdate
   {
     return rateId;
   }
+  
+  /**
+   * By default, these are invalid. You have to supply the Rate to
+   * test validity.
+   */
+  @Override
+  public boolean isValid ()
+  {
+    return false;
+  }
+  
+  /**
+   * Given a Rate, a VRU is valid if it has the correct ID, if the Rate
+   * is not fixed, and if the HourlyCharge specifies a value 
+   * between the minValue and maxValue of the Rate.
+   */
+  public boolean isValid (Rate rate)
+  {
+    if (rate.getId() != rateId)
+      return false;
+    if (rate.isFixed()) 
+      return false;
+    double value = payload.getValue();
+    double sgn = Math.signum(rate.getMinValue() + rate.getMaxValue());
+    if (sgn * value < sgn * rate.getMinValue() || sgn * value > sgn * rate.getMaxValue())
+      return false;
+    return true;
+  }
 }

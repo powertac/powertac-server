@@ -71,4 +71,16 @@ public class BalancingOrder extends TariffUpdate
   {
     return price;
   }
+  
+  /**
+   * Valid if exerciseRatio between 0 and 1
+   */
+  @Override
+  public boolean isValid()
+  {
+    if (exerciseRatio < 0.0 || exerciseRatio > 1.0) {
+      return false;
+    }
+    return true;
+  }
 }
