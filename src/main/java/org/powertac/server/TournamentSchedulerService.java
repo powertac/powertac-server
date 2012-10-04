@@ -108,14 +108,15 @@ public class TournamentSchedulerService
     }
   }
 
-  public void inProgress()
+  public void inProgress(int gameLength)
   {
     if (tournamentSchedulerUrl.isEmpty())
       return;
     String finalUrl = tournamentSchedulerUrl + interfaceUrl 
         + "?action=status"
         + "&gameId=" + gameId
-        + "&status=game_in_progress";
+        + "&status=game_in_progress"
+        + "&gameLength=" + gameLength;
     log.info("Sending game_in_progress message to controller at: " + finalUrl);
 
     try {
@@ -136,7 +137,8 @@ public class TournamentSchedulerService
     String finalUrl = tournamentSchedulerUrl + interfaceUrl 
         + "?action=heartbeat"
         + "&gameId=" + gameId
-        + "&message=" + timeslotIndex;
+        + "&message=" + timeslotIndex
+        + "&standings=" + standings;
 
     try {
       URL url = new URL(finalUrl);

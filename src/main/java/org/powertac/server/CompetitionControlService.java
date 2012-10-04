@@ -386,7 +386,7 @@ public class CompetitionControlService
     
     // notify tournament scheduler that game is starting, assuming there
     // is a tournament scheduler to notify.
-    tournamentSchedulerService.inProgress();
+    tournamentSchedulerService.inProgress(timeslotCount);
     
     // send the Competition instance, then the public PluginConfig instances,
     // and finally broadcast deferred messages
