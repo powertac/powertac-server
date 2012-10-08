@@ -685,9 +685,17 @@ public class AuctionServiceTests
     Double[] minAsks = orderbookRepo.getMinAskPrices();
     assertEquals("four prices", 4, minAsks.length);
     assertNull("first price null", minAsks[0]);
-    assertEquals("correct first price", sell1.getLimitPrice(), minAsks[1], 1e-6);
+    assertEquals("correct first min price", sell1.getLimitPrice(), minAsks[1], 1e-6);
     assertNull("third price null", minAsks[2]);
     assertNull("fourth price null", minAsks[3]);
+    
+    // check maxAsk data
+    Double[] maxAsks = orderbookRepo.getMaxAskPrices();
+    assertEquals("four prices", 4, maxAsks.length);
+    assertNull("first price null", maxAsks[0]);
+    assertEquals("correct first max price", sell3.getLimitPrice(), maxAsks[1], 1e-6);
+    assertNull("third price null", maxAsks[2]);
+    assertNull("fourth price null", maxAsks[3]);
 }
   
 }

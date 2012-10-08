@@ -229,22 +229,35 @@ public class AuctionService
       enabledTimeslots = timeslotRepo.enabledTimeslots();
     }
     // Prepare to collect minimum ask prices
-    Double[] priceArray = new Double[enabledTimeslots.size()];
+    Double[] minPriceArray = new Double[enabledTimeslots.size()];
+    Double[] maxPriceArray = new Double[enabledTimeslots.size()];
     int timeslotIndex = 0;
     for (Timeslot timeslot : enabledTimeslots) {
-      if (null == sortedAsks || null == sortedAsks.get(timeslot))
-        priceArray[timeslotIndex++] = null;
-      else {
+      if (null == sortedAsks || null == sortedAsks.get(timeslot)) {
+        minPriceArray[timeslotIndex] = null;
+        maxPriceArray[timeslotIndex] = null;
+        timeslotIndex++;
+      } else {
+    	int lastIndex = sortedAsks.get(timeslot).size() - 1;
         OrderWrapper minAsk = sortedAsks.get(timeslot).get(0);
-        if (null == minAsk || minAsk.isMarketOrder())
-          priceArray[timeslotIndex++] = null;
-        else
-          priceArray[timeslotIndex++] = minAsk.getLimitPrice();
+        OrderWrapper maxAsk = sortedAsks.get(timeslot).get(lastIndex);
+        if (null == minAsk || minAsk.isMarketOrder()) {
+          minPriceArray[timeslotIndex] = null;
+        } else {
+          minPriceArray[timeslotIndex] = minAsk.getLimitPrice();
+        }
+        if (null == maxAsk || maxAsk.isMarketOrder()) {
+          maxPriceArray[timeslotIndex] = null;
+        } else {
+          maxPriceArray[timeslotIndex] = maxAsk.getLimitPrice();
+        }                  
+        timeslotIndex++;
       }
       clearTimeslot(timeslot);
     }
     // store min ask prices in orderbookRepo
-    orderbookRepo.setMinAskPrices(priceArray);
+    orderbookRepo.setMinAskPrices(minPriceArray);
+    orderbookRepo.setMaxAskPrices(maxPriceArray);
     
     // save a copy of the current set of enabled timeslots for the next clearing
     enabledTimeslots = new ArrayList<Timeslot>(timeslotRepo.enabledTimeslots());
