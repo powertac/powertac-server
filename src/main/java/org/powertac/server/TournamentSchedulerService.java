@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -134,13 +135,14 @@ public class TournamentSchedulerService
   {
     if (tournamentSchedulerUrl.isEmpty())
       return;
-    String finalUrl = tournamentSchedulerUrl + interfaceUrl 
-        + "?action=heartbeat"
-        + "&gameId=" + gameId
-        + "&message=" + timeslotIndex
-        + "&standings=" + standings;
 
     try {
+			String finalUrl = tournamentSchedulerUrl + interfaceUrl 
+					+ "?action=heartbeat"
+          + "&gameId=" + gameId
+          + "&message=" + timeslotIndex
+          + "&standings=" + URLEncoder.encode(standings, "UTF-8");
+
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       // Get the response
@@ -155,12 +157,13 @@ public class TournamentSchedulerService
   {
     if (tournamentSchedulerUrl.isEmpty())
       return;
-    String finalUrl = tournamentSchedulerUrl + interfaceUrl;
-    String postData = "action=gameresults"
-        + "&gameId=" + gameId
-        + "&message=" + results;
 
     try {
+      String finalUrl = tournamentSchedulerUrl + interfaceUrl;
+      String postData = "action=gameresults"
+          + "&gameId=" + gameId
+          + "&message=" + URLEncoder.encode(results, "UTF-8");
+
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       conn.setDoOutput(true);
