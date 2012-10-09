@@ -30,6 +30,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.stereotype.Service;
@@ -92,6 +93,7 @@ public class JmsManagementService
     try {
       brokerService.setBrokerName(getJmsBrokerName());
       brokerService.setPersistent(false);
+      brokerService.setUseJmx(false);
       brokerService.addConnector(getJmsBrokerUrl());
       brokerService.start();
       brokerService.waitUntilStarted();
@@ -104,6 +106,13 @@ public class JmsManagementService
   public void stop ()
   {
     unregisterAllMessageListeners();
+    
+    // reset connection factory
+    if (connectionFactory instanceof CachingConnectionFactory) {
+      CachingConnectionFactory cachingConnectionFactory = (CachingConnectionFactory) connectionFactory;
+      cachingConnectionFactory.resetConnection();
+    }
+    
     try {
       // let's wait a few seconds before shutting down
       Thread.sleep(3000);
@@ -118,13 +127,24 @@ public class JmsManagementService
 
   public void initializeClientInterface ()
   {
+    ActiveMQConnectionFactory amqConnectionFactory = null;
     if (connectionFactory instanceof PooledConnectionFactory) {
       PooledConnectionFactory pooledConnectionFactory = (PooledConnectionFactory) connectionFactory;
       if (pooledConnectionFactory.getConnectionFactory() instanceof ActiveMQConnectionFactory) {
-        ActiveMQConnectionFactory amqConnectionFactory = (ActiveMQConnectionFactory) pooledConnectionFactory
+        amqConnectionFactory = (ActiveMQConnectionFactory) pooledConnectionFactory
                 .getConnectionFactory();
-        amqConnectionFactory.setBrokerURL(getJmsBrokerUrl());
       }
+    }
+    else if (connectionFactory instanceof CachingConnectionFactory) {
+      CachingConnectionFactory cachingConnectionFactory = (CachingConnectionFactory) connectionFactory;
+      if (cachingConnectionFactory.getTargetConnectionFactory() instanceof ActiveMQConnectionFactory) {
+        amqConnectionFactory = (ActiveMQConnectionFactory) cachingConnectionFactory
+                .getTargetConnectionFactory();
+      }
+    }
+
+    if (amqConnectionFactory != null) {
+      amqConnectionFactory.setBrokerURL(getJmsBrokerUrl());
     }
   }
 
