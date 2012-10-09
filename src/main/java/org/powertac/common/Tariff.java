@@ -132,8 +132,10 @@ public class Tariff
    */
   public void init ()
   {
-    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
-    tariffRepo= (TariffRepo)SpringApplicationContext.getBean("tariffRepo");
+    if (null == timeService)
+      timeService = (TimeService)SpringApplicationContext.getBean("timeService");
+    if (null == tariffRepo)
+      tariffRepo= (TariffRepo)SpringApplicationContext.getBean("tariffRepo");
     if (timeService == null)
       log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
@@ -303,13 +305,26 @@ public class Tariff
    * energy at some time in the past or future. The return value is typically
    * opposite in sign to the kwh parameter.
    * If the requested time is farther in the future 
-   * than maxHorizon, then the result will may be a default value, which 
+   * than maxHorizon, then the result will likely be a default value, which 
    * may not be useful. The cumulativeUsage parameter sets the base for
    * probing the rate tier structure. Do not use this method for billing,
    * because it does not update the realized-price data.
    */
-  public double getUsageCharge (Instant when, double kwh, double cumulativeUsage)
+  public double getUsageCharge (Instant when,
+                                double kwh, double cumulativeUsage)
   {
+    return getUsageCharge(when, kwh, cumulativeUsage, null);
+  }
+  
+  /**
+   * Returns a risk-adjusted usage charge, with prices for variable rates
+   * adjusted by the given TariffEvaluationHelper.
+   */
+  public double getUsageCharge (Instant when,
+                                double kwh, double cumulativeUsage,
+                                TariffEvaluationHelper helper)
+  {
+    double result = 0.0;
     // first, get the time index
     int di = getTimeIndex(when);
     
@@ -325,18 +340,18 @@ public class Tariff
       return 0.0;
     }
     else if (tiers.size() == 1) {
-      return sign * kwh * rateValue(0, di, when);
+      Rate rate = findRate(0, di);
+      result = kwh * rate.getValue(when, helper);
     }
     else {
-      double result = 0.0;
       List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
       for (RateKwh rk : rkList) {
-        result += rk.kwh * rk.rate.getValue(when);
+        result += rk.kwh * rk.rate.getValue(when, helper);
       }
-      return sign * result;
     }
+    return sign * result;
   }
-
+  
   private int getTimeIndex (Instant when)
   {
     DateTime dt = new DateTime(when, DateTimeZone.UTC);
@@ -617,14 +632,13 @@ public class Tariff
     return result;
   }
 
-  private double rateValue (int tierIndex, int timeIndex, Instant when)
+  private Rate findRate (int tierIndex, int timeIndex)
   {
     Rate rate = rateMap[tierIndex][timeIndex];
     if (rate == null) {
       log.error("could not find rate for tier " + tierIndex + ", ti " + timeIndex);
-      return 0.0;
     }
-    return rate.getValue(when);
+    return rate;
   }
 
   /**

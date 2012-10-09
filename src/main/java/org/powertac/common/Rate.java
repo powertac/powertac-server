@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011, 2012 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import com.thoughtworks.xstream.annotations.*;
  * of day, or above some usage threshold. Rates may be fixed or variable. 
  * Tariffs and their rates are public information. New tariffs and their Rates
  * are communicated to Customers and to Brokers when tariffs are published.
- * @author jcollins
+ * @author John Collins
  */
 @Domain (fields = {"tariffId", "weeklyBegin", "weeklyEnd", "dailyBegin", "dailyEnd",
                    "tierThreshold", "fixed", "minValue", "maxValue",
@@ -562,37 +562,43 @@ public class Rate extends XStreamStateLoggable
    */
   public double getValue ()
   {
-    //return getValue(Timeslot.currentTimeslot().getStartDateTime())
-    return getValue(getCurrentTime());
+    return getValue(getCurrentTime(), null);
+  }
+  
+  /**
+   * Shortcut to get value at an instant without a TEH.
+   */
+  public double getValue (AbstractInstant when)
+  {
+    return getValue(when, null);
   }
 
   /**
    * Returns the rate for some time in the past or future, regardless of
    * whether the Rate applies at that time, and regardless of whether
    * the requested time is beyond the notification interval of a
-   * variable rate.
+   * variable rate. If helper is given, and this rate is not fixed, and
+   * there is not an HourlyCharge for the requested timeslot, then 
+   * the helper is used to produce the value. 
    */
-  public double getValue (AbstractInstant when)
+  public double getValue (AbstractInstant when,
+                          TariffEvaluationHelper helper)
   {
     if (isFixed)
       return minValue;
+    else if (null != helper) {
+      return helper.getWeightedValue(this);
+    }
     else if (rateHistory.size() == 0) {
       log.debug("no rate history, return default");
-      return expectedMean; // default
+      return expectedMean;
     }
     else {
       if (probe == null) {
         probe = new ProbeCharge(new Instant(0l), 0.0);
-        System.out.println("get: probe was null");
       }
       Instant inst = new Instant(when);
-      // if looking beyond the notification interval, return default
-      //long horizon = inst.getMillis() - timeService.getCurrentTime().getMillis();
-      //if (horizon / TimeService.HOUR > noticeInterval) {
-      //  log.info("Horizon " + (horizon / TimeService.HOUR) + " > notice interval " + noticeInterval);
-      //  return expectedMean;
-      //}
-      // otherwise, return the most recent price announcement for the given time
+      // return the most recent price announcement for the given time
       probe.setAtTime(inst.plus(1000l));
       SortedSet<HourlyCharge> head = rateHistory.headSet(probe);
       if (head == null || head.size() == 0) {

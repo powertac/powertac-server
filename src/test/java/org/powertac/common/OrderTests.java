@@ -2,11 +2,7 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.StringWriter;
 
 import org.joda.time.DateTime;

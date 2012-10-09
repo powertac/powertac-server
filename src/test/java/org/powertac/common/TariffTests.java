@@ -44,17 +44,17 @@ public class TariffTests
 {
   @Autowired
   private TimeService timeService; // dependency injection
-  
+
   @Autowired
   private TariffRepo repo;
-  
+
   private TariffSpecification tariffSpec; // instance var
   private TariffSpecification productionSpec; // instance var
 
   private Instant start;
   private Instant exp;
   private Broker broker;
-  
+
   @AfterClass
   public static void saveLogs () throws Exception
   {
