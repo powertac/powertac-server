@@ -631,6 +631,11 @@ public class Rate extends XStreamStateLoggable
    */
   public boolean isValid(TariffSpecification spec)
   {
+    // numeric sanity test
+    if (Double.isNaN(minValue) || Double.isNaN(maxValue) || Double.isNaN(expectedMean)) {
+      log.warn("numeric insanity: (" + minValue + "," + maxValue + "," + expectedMean);
+      return false;
+    }
     // curtailment test
     if (maxCurtailment < 0.0 || maxCurtailment > 1.0) {
       log.warn("Curtailment ratio " + maxCurtailment + " out of range");
