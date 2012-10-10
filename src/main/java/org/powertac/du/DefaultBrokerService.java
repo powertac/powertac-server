@@ -419,14 +419,14 @@ public class DefaultBrokerService
       // if ttx count and subscribe population don't match, it will be hard
       // to estimate per-individual production
       if (ttx.getCustomerCount() != record.subscribedPopulation) {
-        log.warn("production by subset " + ttx.getCustomerCount() +
+        log.info("production by subset " + ttx.getCustomerCount() +
                  " of subscribed population " + record.subscribedPopulation);
       }
       record.produceConsume(ttx.getKWh(), ttx.getPostedTime());
     }
     else if (TariffTransaction.Type.CONSUME == txType) {
       if (ttx.getCustomerCount() != record.subscribedPopulation) {
-        log.warn("consumption by subset " + ttx.getCustomerCount() +
+        log.info("consumption by subset " + ttx.getCustomerCount() +
                  " of subscribed population " + record.subscribedPopulation);
       }
       record.produceConsume(ttx.getKWh(), ttx.getPostedTime());      
