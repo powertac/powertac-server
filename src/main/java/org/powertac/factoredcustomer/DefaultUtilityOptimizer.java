@@ -328,9 +328,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         if (tariff.getMinDuration() == 0) minDuration = MEAN_TARIFF_DURATION;
         else minDuration = tariff.getMinDuration() / TimeService.DAY;
         double dailyLifecyclePayment = lifecyclePayment / minDuration;  
-        double dailyPeriodicPayment = tariff.getPeriodicPayment() * NUM_HOURS_IN_DAY;
-        return bundle.getPopulation() * (dailyLifecyclePayment + dailyPeriodicPayment);
-    }
+        //double dailyPeriodicPayment = tariff.getPeriodicPayment() * NUM_HOURS_IN_DAY;
+        //return bundle.getPopulation() * (dailyLifecyclePayment + dailyPeriodicPayment);
+        return bundle.getPopulation() * (dailyLifecyclePayment);
+           }
   
     private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
     {
