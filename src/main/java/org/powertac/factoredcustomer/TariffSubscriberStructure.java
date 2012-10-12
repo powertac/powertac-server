@@ -40,8 +40,9 @@ public final class TariffSubscriberStructure
     final double benchmarkRiskRatio;
     final boolean tariffThrottlingEnabled;
     final double interruptibilityDiscount;
-    final double realizedPriceWeight;
-    final double realizedPriceThreshold;
+    final Double expMeanPriceWeight;
+    final Double maxValuePriceWeight;
+    final Double realizedPriceWeight;
     final AllocationMethod allocationMethod;
     final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
     final double logitChoiceRationality; 
@@ -82,13 +83,15 @@ public final class TariffSubscriberStructure
             if (interruptibilityElement != null) {
                 interruptibilityDiscount = Double.parseDouble(interruptibilityElement.getAttribute("discount"));
             } else interruptibilityDiscount = 0.0;
-            Element realizedPriceElement = (Element) influenceFactorsElement.getElementsByTagName("realizedPrice").item(0);
-            if (realizedPriceElement != null) {
-                realizedPriceWeight = Double.parseDouble(realizedPriceElement.getAttribute("weight"));
-                realizedPriceThreshold = Double.parseDouble(realizedPriceElement.getAttribute("threshold"));
+            Element priceWeightsElement = (Element) influenceFactorsElement.getElementsByTagName("priceWeights").item(0);
+            if (priceWeightsElement != null) {
+                expMeanPriceWeight = Double.parseDouble(priceWeightsElement.getAttribute("expMean"));
+                maxValuePriceWeight = Double.parseDouble(priceWeightsElement.getAttribute("maxValue"));
+                realizedPriceWeight = Double.parseDouble(priceWeightsElement.getAttribute("realized"));
             } else {
-                realizedPriceWeight = 0.0;
-                realizedPriceThreshold = Double.NaN;
+            	expMeanPriceWeight = null;
+            	maxValuePriceWeight = null;
+                realizedPriceWeight = null;
             }
         } else throw new Error("Tariff subscriber influence factors element must be included, even if empty.");
 

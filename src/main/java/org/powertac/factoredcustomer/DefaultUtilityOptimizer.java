@@ -25,6 +25,7 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -64,6 +65,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     protected final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
     protected Random inertiaSampler;
     protected Random tariffSelector;
+    
+    protected final TariffEvaluationHelper tariffEvalHelper = new TariffEvaluationHelper();
     
     protected final List<Tariff> allTariffs = new ArrayList<Tariff>();
     protected int tariffEvaluationCounter = 0;
@@ -251,57 +254,57 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         for (Tariff tariff: evalTariffs) tariffIds.add(tariff.getId());
         logAllocationDetails(bundle.getName() + ": " + powerType + " tariffs for evaluation: " + tariffIds);
 
-	List<Double> estimatedPayments = estimatePayments(bundle, evalTariffs);
-	logAllocationDetails(bundle.getName() + ": Estimated payments for tariffs: " + estimatedPayments);
-        
-	List<Integer> allocations = determineAllocations(bundle, evalTariffs, estimatedPayments);
-	logAllocationDetails(bundle.getName() + ": Allocations for tariffs: " + allocations);
-		
-	int overAllocations = 0;
-	for (int i=0; i < evalTariffs.size(); ++i) {
-	    Tariff evalTariff = evalTariffs.get(i);
-	    int allocation = allocations.get(i);
-	    TariffSubscription subscription = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(evalTariff, bundle.getCustomerInfo()); // could be null
-	    int currentCommitted = (subscription != null) ? subscription.getCustomersCommitted() : 0;
-	    int numChange = allocation - currentCommitted; 
+		List<Double> estimatedPayments = estimatePayments(bundle, evalTariffs);
+		logAllocationDetails(bundle.getName() + ": Estimated payments for tariffs: " + estimatedPayments);
+	        
+		List<Integer> allocations = determineAllocations(bundle, evalTariffs, estimatedPayments);
+		logAllocationDetails(bundle.getName() + ": Allocations for tariffs: " + allocations);
 			
-	    log.debug(bundle.getName() + ": evalTariff = " + evalTariff.getId() + ", numChange = " + numChange +
-	                  ", currentCommitted = " + currentCommitted + ", allocation = " + allocation);
-			
-	    if (numChange == 0) {
-	        if (currentCommitted > 0) {
-	            log.info(bundle.getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in tariff " + evalTariff.getId());
-	        } else {
-                    log.info(bundle.getName() + ": Not allocating any " + powerType + " customers to tariff " + evalTariff.getId());
-	        }
-	    } else if (numChange > 0) {
-	        if (evalTariff.isExpired()) {
-	            overAllocations += numChange;
-	            if (currentCommitted > 0) {
-	                log.info(bundle.getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in expired tariff " + evalTariff.getId());
-	            }
-	            log.info(bundle.getName() + ": Reallocating " + numChange + " " + powerType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
-	        } else { 
-                    log.info(bundle.getName() + ": Subscribing " + numChange + " " + powerType + " customers to tariff " + evalTariff.getId());
-                    subscribe(evalTariff, bundle, numChange, false);
-	        }
-	    } else if (numChange < 0) {
-	        log.info(bundle.getName() + ": Unsubscribing " + -numChange + " " + powerType + " customers from tariff " + evalTariff.getId());
-                unsubscribe(subscription, bundle, -numChange, false);
-	    }
-	}
-	if (overAllocations > 0) {
-	    int minIndex = 0;
-	    double minEstimate = Double.POSITIVE_INFINITY;
-	    for (int i=0; i < estimatedPayments.size(); ++i) {
-	        if (estimatedPayments.get(i) < minEstimate && ! evalTariffs.get(i).isExpired()) {
-	            minIndex = i;
-	            minEstimate = estimatedPayments.get(i);
-	        }
-	    }
-	    log.info(bundle.getName() + ": Subscribing " + overAllocations + " over-allocated customers to tariff " + evalTariffs.get(minIndex).getId());
-	    subscribe(evalTariffs.get(minIndex), bundle, overAllocations, false);
-	}
+		int overAllocations = 0;
+		for (int i=0; i < evalTariffs.size(); ++i) {
+		    Tariff evalTariff = evalTariffs.get(i);
+		    int allocation = allocations.get(i);
+		    TariffSubscription subscription = tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(evalTariff, bundle.getCustomerInfo()); // could be null
+		    int currentCommitted = (subscription != null) ? subscription.getCustomersCommitted() : 0;
+		    int numChange = allocation - currentCommitted; 
+				
+		    log.debug(bundle.getName() + ": evalTariff = " + evalTariff.getId() + ", numChange = " + numChange +
+		                  ", currentCommitted = " + currentCommitted + ", allocation = " + allocation);
+				
+		    if (numChange == 0) {
+		        if (currentCommitted > 0) {
+		            log.info(bundle.getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in tariff " + evalTariff.getId());
+		        } else {
+	                    log.info(bundle.getName() + ": Not allocating any " + powerType + " customers to tariff " + evalTariff.getId());
+		        }
+		    } else if (numChange > 0) {
+		        if (evalTariff.isExpired()) {
+		            overAllocations += numChange;
+		            if (currentCommitted > 0) {
+		                log.info(bundle.getName() + ": Maintaining " + currentCommitted + " " + powerType + " customers in expired tariff " + evalTariff.getId());
+		            }
+		            log.info(bundle.getName() + ": Reallocating " + numChange + " " + powerType + " customers from expired tariff " + evalTariff.getId() + " to other tariffs");
+		        } else { 
+	                    log.info(bundle.getName() + ": Subscribing " + numChange + " " + powerType + " customers to tariff " + evalTariff.getId());
+	                    subscribe(evalTariff, bundle, numChange, false);
+		        }
+		    } else if (numChange < 0) {
+		        log.info(bundle.getName() + ": Unsubscribing " + -numChange + " " + powerType + " customers from tariff " + evalTariff.getId());
+	                unsubscribe(subscription, bundle, -numChange, false);
+		    }
+		}
+		if (overAllocations > 0) {
+		    int minIndex = 0;
+		    double minEstimate = Double.POSITIVE_INFINITY;
+		    for (int i=0; i < estimatedPayments.size(); ++i) {
+		        if (estimatedPayments.get(i) < minEstimate && ! evalTariffs.get(i).isExpired()) {
+		            minIndex = i;
+		            minEstimate = estimatedPayments.get(i);
+		        }
+		    }
+		    log.info(bundle.getName() + ": Subscribing " + overAllocations + " over-allocated customers to tariff " + evalTariffs.get(minIndex).getId());
+		    subscribe(evalTariffs.get(minIndex), bundle, overAllocations, false);
+		}
     }
 	
     private List<Double> estimatePayments(CapacityBundle bundle, List<Tariff> evalTariffs) 
@@ -332,26 +335,18 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     private double forecastDailyUsageCharge(CapacityBundle bundle, Tariff tariff)
     {
         double usageSign = bundle.getPowerType().isConsumption() ? +1 : -1;  
-        Timeslot hourlyTimeslot = timeslotRepo.currentTimeslot();
-        double totalUsage = 0.0;
-        double totalCharge = 0.0;            
+        double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
         for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
             CapacityProfile forecast = capacityOriginator.getCurrentForecast();            
             for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
                 double hourlyUsage = usageSign * forecast.getCapacity(i);
-                totalCharge += tariff.getUsageCharge(hourlyTimeslot.getStartInstant(), hourlyUsage, totalUsage);
-                totalUsage += hourlyUsage;
+                usageForecast[i] += hourlyUsage;
             }
         }        
-        double realizedPrice = tariff.getRealizedPrice();
-        if (Math.abs(realizedPrice) > 0.01) {  // != 0.0
-            double estHourlyPrice = totalCharge / (usageSign * totalUsage);           
-            if (Math.abs(estHourlyPrice - realizedPrice) > 0.05 * Math.abs(estHourlyPrice)) {
-                double realizedPriceWeight = bundle.getSubscriberStructure().realizedPriceWeight;
-                totalCharge = realizedPriceWeight * (realizedPrice * usageSign * totalUsage) + (1 - realizedPriceWeight) * totalCharge;
-            }
-        }
-        return totalCharge;
+        TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
+        tariffEvalHelper.init(subStructure.expMeanPriceWeight, subStructure.maxValuePriceWeight, 
+        					  subStructure.realizedPriceWeight, tariffEvalHelper.getSoldThreshold());
+        return tariffEvalHelper.estimateCost(tariff, usageForecast);
     }
     
     private double adjustForInterruptibility(CapacityBundle bundle, Tariff tariff, double totalPayment) 

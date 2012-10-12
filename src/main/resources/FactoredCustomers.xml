@@ -18,7 +18,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.75" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.75" />  
                     <energySources /> <!-- N/A -->
                     <brokerReputation /> <!-- N/A -->
                 </influenceFactors>
@@ -74,7 +74,7 @@
         <description>
         A multicontracting consumer population of 20000 households that is similar to BrooksideHomes in many aspects. 
         There are three key distinctions: (i) the capacities for these customers are generated using a population 
-        distribution model instead of a timeseries forecastign model, (ii) the capacities exhibit decision-theoretic 
+        distribution model instead of a timeseries forecasting model, (ii) the capacities exhibit decision-theoretic 
         adaptive behavior whereby they adjust the time-shifting of capacities dynamically when presented with TOU tariffs, 
         and (iii) tariffs are reevaluated more frequently.
         </description>
@@ -85,7 +85,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="1.0" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.95" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE"> 
                     <logitChoice rationality="1.0" />
@@ -128,7 +128,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.7" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -171,7 +171,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.7" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.95" />  
                 </influenceFactors>            
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -218,7 +218,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.8" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                     <interruptibility discount="0.05" />
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
@@ -264,7 +264,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.8" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                     <interruptibility discount="0.15" />
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
@@ -312,7 +312,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.75" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.75" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.9" />
@@ -347,7 +347,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.5" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.6" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.95" />
@@ -390,7 +390,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.75" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.95" />
@@ -433,7 +433,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.5" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="0.95" />
@@ -468,7 +468,7 @@
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
-                    <realizedPrice weight="0.75" threshold="0.05" />
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
                 </influenceFactors>
                 <allocation method="LOGIT_CHOICE">
                     <logitChoice rationality="1.0" />
