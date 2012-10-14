@@ -29,6 +29,7 @@ import org.joda.time.Instant;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -139,6 +140,9 @@ public class Village extends AbstractCustomer
    * any given moment are the optimal for their consumption or production.
    **/
   Vector<Integer> daysList = new Vector<Integer>();
+
+  protected final TariffEvaluationHelper tariffEvalHelper =
+    new TariffEvaluationHelper();
 
   /**
    * This variable is utilized for the creation of the random numbers and is
@@ -585,7 +589,8 @@ public class Village extends AbstractCustomer
         Tariff tariff = revokedSubscription.getTariff();
         Tariff newTariff = revokedSubscription.handleRevokedTariff();
 
-        //Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
+        // Tariff newTariff =
+        // revokedSubscription.getTariff().getIsSupersededBy();
         Tariff defaultTariff =
           tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
 
@@ -1726,7 +1731,9 @@ public class Village extends AbstractCustomer
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
 
-    double costFixed = estimateFixedTariffPayments(tariff) * getHouses(type).size();
+    double costFixed =
+      estimateFixedTariffPayments(tariff) * getHouses(type).size();
+    log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
     return (costVariable + costFixed) / VillageConstants.MILLION;
   }
 
@@ -1749,7 +1756,7 @@ public class Village extends AbstractCustomer
       minDuration = tariff.getMinDuration() / TimeService.DAY;
 
     log.debug("Minimum Duration: " + minDuration);
-    return ((-tariff.getPeriodicPayment() * VillageConstants.HOURS_OF_DAY) + (lifecyclePayment / minDuration));
+    return (lifecyclePayment / minDuration);
   }
 
   /**
@@ -1771,26 +1778,31 @@ public class Village extends AbstractCustomer
     for (int day: daysList) {
       if (day < daylimit)
         day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
-      Instant now = base.plus(day * TimeService.DAY);
+
       double costSummary = 0;
-      double summary = 0, cumulativeSummary = 0;
+
+      double[] usage = new double[VillageConstants.HOURS_OF_DAY];
 
       for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
 
-        summary =
-          getBaseConsumptions(day, hour, type)
-                  + getControllableConsumptions(day, hour, type);
+        if (hour == VillageConstants.HOURS_OF_DAY - 1)
+          usage[hour] =
+            getBaseConsumptions(day, 0, type)
+                    + getControllableConsumptions(day, 0, type);
+        else
+          usage[hour] = getBaseConsumptions(day, hour + 1, type);
 
-        log.debug("Cost for hour " + hour + ":"
-                  + tariff.getUsageCharge(now, 1, 0));
-        cumulativeSummary += summary;
-        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = now.plus(TimeService.HOUR);
+        log.debug("Usage for hour " + hour + ":" + usage[hour]);
+
       }
-      log.debug("Variable Cost Summary: " + finalCostSummary);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
+
       finalCostSummary += costSummary;
+
     }
-    return finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
+    log.debug("Variable Cost Summary: " + finalCostSummary);
+    return -finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -1805,6 +1817,7 @@ public class Village extends AbstractCustomer
   {
 
     double finalCostSummary = 0;
+    double[] costVector = new double[VillageConstants.HOURS_OF_DAY];
 
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
@@ -1815,23 +1828,52 @@ public class Village extends AbstractCustomer
     for (int day: daysList) {
       if (day < daylimit)
         day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
-      Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
-      double summary = 0, cumulativeSummary = 0;
 
+      double[] usage = new double[VillageConstants.HOURS_OF_DAY];
+
+      Instant now = base.plus(day * TimeService.DAY);
+      /*
+            for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+              double[] usageVector = new double[i + 1];
+              usageVector[i] = 1;
+              log.debug(Arrays.toString(usageVector));
+              if (i == VillageConstants.HOURS_OF_DAY - 1) {
+                costVector[0] =
+                  tariffEvalHelper.estimateCost(tariff, usageVector)
+                          - tariff.getPeriodicPayment() * usageVector.length;
+                log.debug("Hour: " + 0 + " Cost: " + costVector[0]);
+              }
+              else {
+                costVector[i + 1] =
+                  tariffEvalHelper.estimateCost(tariff, usageVector)
+                          - tariff.getPeriodicPayment() * usageVector.length;
+                log.debug("Hour: " + (i + 1) + " Cost: " + costVector[i + 1]);
+              }
+            }
+      */
       long[] newControllableLoad = dailyShifting(tariff, now, day, type);
 
       for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
-        summary =
-          getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
-        cumulativeSummary += summary;
-        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = now.plus(TimeService.HOUR);
+
+        if (hour == VillageConstants.HOURS_OF_DAY - 1)
+          usage[hour] =
+            getBaseConsumptions(day, 0, type) + newControllableLoad[0];
+        else
+          usage[hour] =
+            getBaseConsumptions(day, hour + 1, type)
+                    + newControllableLoad[hour + 1];
+
+        log.debug("Usage for hour " + hour + ":" + usage[hour]);
+
       }
-      log.debug("Variable Cost Summary: " + finalCostSummary);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
       finalCostSummary += costSummary;
+      log.debug("Variable Cost Summary: " + finalCostSummary);
     }
-    return finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
+
+    return -finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -1847,7 +1889,7 @@ public class Village extends AbstractCustomer
     Vector<Integer> possibilities = new Vector<Integer>();
 
     for (int i = 0; i < estimation.size(); i++) {
-
+      log.debug("Estimation for " + i + ": " + estimation.get(i));
       summedEstimations +=
         Math.pow(VillageConstants.EPSILON, lamda * estimation.get(i));
       log.debug("Cost variable: " + 50 * estimation.get(i));
