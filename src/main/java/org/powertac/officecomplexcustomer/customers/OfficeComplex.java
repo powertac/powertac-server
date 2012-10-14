@@ -29,6 +29,7 @@ import org.joda.time.Instant;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -122,6 +123,9 @@ public class OfficeComplex extends AbstractCustomer
    * production.
    **/
   Vector<Integer> daysList = new Vector<Integer>();
+
+  protected final TariffEvaluationHelper tariffEvalHelper =
+    new TariffEvaluationHelper();
 
   /**
    * This variable is utilized for the creation of the random numbers and is
@@ -510,7 +514,8 @@ public class OfficeComplex extends AbstractCustomer
         Tariff tariff = revokedSubscription.getTariff();
         Tariff newTariff = revokedSubscription.handleRevokedTariff();
 
-        //Tariff newTariff = revokedSubscription.getTariff().getIsSupersededBy();
+        // Tariff newTariff =
+        // revokedSubscription.getTariff().getIsSupersededBy();
         Tariff defaultTariff =
           tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
 
@@ -1307,9 +1312,13 @@ public class OfficeComplex extends AbstractCustomer
   {
     double costVariable = 0;
 
-    /* if it is NotShifting offices the evaluation is done without shifting devices 
-       if it is RandomShifting offices the evaluation is may be done without shifting devices or maybe shifting will be taken into consideration
-       In any other case shifting will be done. */
+    /*
+     * if it is NotShifting Houses the evaluation is done without shifting
+     * devices
+     * if it is RandomShifting Houses the evaluation is may be done without
+     * shifting devices or maybe shifting will be taken into consideration
+     * In any other case shifting will be done.
+     */
     if (type.equals("NS")) {
       // System.out.println("Simple Evaluation for " + type);
       log.debug("Simple Evaluation for " + type);
@@ -1335,7 +1344,9 @@ public class OfficeComplex extends AbstractCustomer
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
 
-    double costFixed = estimateFixedTariffPayments(tariff) * getOffices(type).size();
+    double costFixed =
+      estimateFixedTariffPayments(tariff) * getOffices(type).size();
+    log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
     return (costVariable + costFixed) / OfficeComplexConstants.MILLION;
   }
 
@@ -1358,7 +1369,7 @@ public class OfficeComplex extends AbstractCustomer
       minDuration = tariff.getMinDuration() / TimeService.DAY;
 
     log.debug("Minimum Duration: " + minDuration);
-    return ((-tariff.getPeriodicPayment() * OfficeComplexConstants.HOURS_OF_DAY) + (lifecyclePayment / minDuration));
+    return (lifecyclePayment / minDuration);
   }
 
   /**
@@ -1381,26 +1392,31 @@ public class OfficeComplex extends AbstractCustomer
       if (day < daylimit)
         day =
           (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
-      Instant now = base.plus(day * TimeService.DAY);
+
       double costSummary = 0;
-      double summary = 0, cumulativeSummary = 0;
+
+      double[] usage = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
       for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
 
-        summary =
-          getBaseConsumptions(day, hour, type)
-                  + getControllableConsumptions(day, hour, type);
+        if (hour == OfficeComplexConstants.HOURS_OF_DAY - 1)
+          usage[hour] =
+            getBaseConsumptions(day, 0, type)
+                    + getControllableConsumptions(day, 0, type);
+        else
+          usage[hour] = getBaseConsumptions(day, hour + 1, type);
 
-        log.debug("Cost for hour " + hour + ":"
-                  + tariff.getUsageCharge(now, 1, 0));
-        cumulativeSummary += summary;
-        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = now.plus(TimeService.HOUR);
+        log.debug("Usage for hour " + hour + ":" + usage[hour]);
+
       }
-      log.debug("Variable Cost Summary: " + finalCostSummary);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
+
       finalCostSummary += costSummary;
+
     }
-    return finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
+    log.debug("Variable Cost Summary: " + finalCostSummary);
+    return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -1415,6 +1431,7 @@ public class OfficeComplex extends AbstractCustomer
   {
 
     double finalCostSummary = 0;
+    double[] costVector = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
@@ -1426,23 +1443,52 @@ public class OfficeComplex extends AbstractCustomer
       if (day < daylimit)
         day =
           (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
-      Instant now = base.plus(day * TimeService.DAY);
       double costSummary = 0;
-      double summary = 0, cumulativeSummary = 0;
 
+      double[] usage = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+      Instant now = base.plus(day * TimeService.DAY);
+      /*
+            for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+              double[] usageVector = new double[i + 1];
+              usageVector[i] = 1;
+              log.debug(Arrays.toString(usageVector));
+              if (i == VillageConstants.HOURS_OF_DAY - 1) {
+                costVector[0] =
+                  tariffEvalHelper.estimateCost(tariff, usageVector)
+                          - tariff.getPeriodicPayment() * usageVector.length;
+                log.debug("Hour: " + 0 + " Cost: " + costVector[0]);
+              }
+              else {
+                costVector[i + 1] =
+                  tariffEvalHelper.estimateCost(tariff, usageVector)
+                          - tariff.getPeriodicPayment() * usageVector.length;
+                log.debug("Hour: " + (i + 1) + " Cost: " + costVector[i + 1]);
+              }
+            }
+      */
       long[] newControllableLoad = dailyShifting(tariff, now, day, type);
 
       for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
-        summary =
-          getBaseConsumptions(day, hour, type) + newControllableLoad[hour];
-        cumulativeSummary += summary;
-        costSummary -= tariff.getUsageCharge(now, summary, cumulativeSummary);
-        now = now.plus(TimeService.HOUR);
+
+        if (hour == OfficeComplexConstants.HOURS_OF_DAY - 1)
+          usage[hour] =
+            getBaseConsumptions(day, 0, type) + newControllableLoad[0];
+        else
+          usage[hour] =
+            getBaseConsumptions(day, hour + 1, type)
+                    + newControllableLoad[hour + 1];
+
+        log.debug("Usage for hour " + hour + ":" + usage[hour]);
+
       }
-      log.debug("Variable Cost Summary: " + finalCostSummary);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
       finalCostSummary += costSummary;
+      log.debug("Variable Cost Summary: " + finalCostSummary);
     }
-    return finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
+
+    return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
