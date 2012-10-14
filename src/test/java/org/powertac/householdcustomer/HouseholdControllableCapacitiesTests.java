@@ -876,7 +876,7 @@ public class HouseholdControllableCapacitiesTests
 
     Rate r2 = new Rate().withValue(-0.222);
     Rate r3 = new Rate().withValue(-8).withMaxCurtailment(0.1);
-    Rate r4 = new Rate().withValue(-1700000);
+    Rate r4 = new Rate().withValue(-17000);
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
