@@ -828,6 +828,69 @@ public class OfficeComplexCustomerServiceTests
 
   // @Repeat(20)
   @Test
+  public void testPublishAndEvaluatingVariableTariffs ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+    }
+
+    Rate r1 =
+      new Rate().withFixed(false).withValue(.1).withMaxValue(.2)
+              .withExpectedMean(.15).withDailyBegin(0).withDailyEnd(13);
+    Rate r2 =
+      new Rate().withFixed(false).withValue(.15).withMaxValue(.9)
+              .withExpectedMean(.2).withDailyBegin(14).withDailyEnd(23);
+
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2).addRate(r1);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
+
+    assertEquals("Four consumption tariffs", 2, tariffRepo.findAllTariffs()
+            .size());
+
+    assertNotNull("first tariff found", tariff1);
+
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist1).thenReturn(tclist2);
+
+    // Test the function with different inputs, in order to get the same result.
+    officeComplexCustomerService.publishNewTariffs(tclist1);
+
+  }
+
+  // @Repeat(20)
+  @Test
   public void testSupersedingTariffs ()
   {
     initializeService();
