@@ -1698,38 +1698,40 @@ public class Village extends AbstractCustomer
   double costEstimation (Tariff tariff, String type)
   {
     double costVariable = 0;
+    //
+    // /*
+    // * if it is NotShifting Houses the evaluation is done without shifting
+    // * devices
+    // * if it is RandomShifting Houses the evaluation is may be done without
+    // * shifting devices or maybe shifting will be taken into consideration
+    // * In any other case shifting will be done.
+    // */
+    // if (type.equals("NS")) {
+    // // System.out.println("Simple Evaluation for " + type);
+    // log.debug("Simple Evaluation for " + type);
+    // costVariable = estimateVariableTariffPayment(tariff, type);
+    // }
+    // else if (type.equals("RaS")) {
+    // Double rand = gen.nextDouble();
+    // // System.out.println(rand);
+    // if (rand < getInertiaMap().get(type)) {
+    // // System.out.println("Simple Evaluation for " + type);
+    // log.debug("Simple Evaluation for " + type);
+    // costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+    // }
+    // else {
+    // // System.out.println("Shifting Evaluation for " + type);
+    // log.debug("Shifting Evaluation for " + type);
+    // costVariable = estimateVariableTariffPayment(tariff, type);
+    // }
+    // }
+    // else {
+    // // System.out.println("Shifting Evaluation for " + type);
+    // log.debug("Shifting Evaluation for " + type);
+    // costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+    // }
 
-    /*
-     * if it is NotShifting Houses the evaluation is done without shifting
-     * devices
-     * if it is RandomShifting Houses the evaluation is may be done without
-     * shifting devices or maybe shifting will be taken into consideration
-     * In any other case shifting will be done.
-     */
-    if (type.equals("NS")) {
-      // System.out.println("Simple Evaluation for " + type);
-      log.debug("Simple Evaluation for " + type);
-      costVariable = estimateVariableTariffPayment(tariff, type);
-    }
-    else if (type.equals("RaS")) {
-      Double rand = gen.nextDouble();
-      // System.out.println(rand);
-      if (rand < getInertiaMap().get(type)) {
-        // System.out.println("Simple Evaluation for " + type);
-        log.debug("Simple Evaluation for " + type);
-        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-      }
-      else {
-        // System.out.println("Shifting Evaluation for " + type);
-        log.debug("Shifting Evaluation for " + type);
-        costVariable = estimateVariableTariffPayment(tariff, type);
-      }
-    }
-    else {
-      // System.out.println("Shifting Evaluation for " + type);
-      log.debug("Shifting Evaluation for " + type);
-      costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-    }
+    costVariable = estimateVariableTariffPayment(tariff, type);
 
     double costFixed =
       estimateFixedTariffPayments(tariff) * getHouses(type).size();
@@ -2091,7 +2093,7 @@ public class Village extends AbstractCustomer
       for (String type: subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
           log.info("Rescheduling " + type);
-          rescheduleNextDay(type);
+          // rescheduleNextDay(type);
         }
 
       }
