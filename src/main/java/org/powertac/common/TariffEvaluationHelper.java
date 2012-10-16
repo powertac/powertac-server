@@ -113,27 +113,28 @@ public class TariffEvaluationHelper
   /**
    * Estimate the total cost of buying the given amounts of power
    * from the given tariff, starting in the following timeslot.
-   * Payments include usage charges and periodic payments. They do not
+   * Payments include usage charges, and periodic payments just in case
+   * <code>includePeriodicCharge</code> is true. They do not
    * include signup or withdrawal charges.
    * Note that there is a strong assumption that the projected usage
    * is for a single customer, not the total population in some model.
    * This assumption is embedded in the structure of usage tiers in the
    * tariff.
    */
-  public double estimateCost (Tariff tariff, double[] usage)
+  public double estimateCost (Tariff tariff, double[] usage,
+                              boolean includePeriodicCharge)
   {
     init();
     this.tariff = tariff;
-    alpha = 1.0 - getWtRealized()
-            * (1.0 - 1.0 / (1.0 + tariff.getTotalUsage()
-                                  / getSoldThreshold()));
+    computeAlpha(tariff);
     double dailyUsage = 0.0;
     double result = 0.0;
     Instant time = timeService.getCurrentTime();
     for (int index = 0; index < usage.length; index++) {
       time = time.plus(TimeService.HOUR);
       result += tariff.getUsageCharge(time, usage[index], dailyUsage, this);
-      result += tariff.getPeriodicPayment();
+      if (includePeriodicCharge)
+        result += tariff.getPeriodicPayment() / 24.0;
       if (timeService.getHourOfDay() == 0) {
         //reset the daily usage counter
         dailyUsage = 0.0;
@@ -144,7 +145,62 @@ public class TariffEvaluationHelper
     }
     return result;
   }
+
+  private void computeAlpha (Tariff tariff)
+  {
+    alpha = 1.0 - getWtRealized()
+            * (1.0 - 1.0 / (1.0 + tariff.getTotalUsage()
+                                  / getSoldThreshold()));
+  }
   
+  /**
+   * Returns aggregate estimated cost, including periodic charges
+   */
+  public double estimateCost (Tariff tariff, double[] usage)
+  {
+    return estimateCost(tariff, usage, true);
+  }
+  
+  
+  /**
+   * Returns the cost estimate in the form of an array of the same shape
+   * as the usage vector. Each element of the result corresponds to the
+   * corresponding element of the usage array. Periodic charges are included
+   * just in case <code>includePeriodicCharge</code> is true.
+   */
+  public double[] estimateCostArray (Tariff tariff, double[] usage,
+                                     boolean includePeriodicCharge)
+  {
+    init();
+    this.tariff = tariff;
+    computeAlpha(tariff);
+    double dailyUsage = 0.0;
+    double[] result = new double[usage.length];
+    Instant time = timeService.getCurrentTime();
+    for (int index = 0; index < usage.length; index++) {
+      time = time.plus(TimeService.HOUR);
+      result[index] = tariff.getUsageCharge(time, usage[index], dailyUsage, this);
+      if (includePeriodicCharge)
+        result[index] += tariff.getPeriodicPayment() / 24.0;
+      if (timeService.getHourOfDay() == 0) {
+        //reset the daily usage counter
+        dailyUsage = 0.0;
+      }
+      else {
+        dailyUsage += usage[index];
+      }
+    }
+    return result;    
+  }
+  
+  /**
+   * Returns a cost estimate in array form, including periodic charges.
+   */
+  public double[] estimateCostArray (Tariff tariff, double[] usage)
+  {
+    return estimateCostArray(tariff, usage, true);
+  }
+
   /**
    * Combines the expectedMean and maxValue of a Rate as specified by
    * parameters.

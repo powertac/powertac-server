@@ -229,6 +229,65 @@ public class TariffEvaluationHelperTest
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", expected, result, 1e-6);
   }
+
+  @Test
+  public void testEstimateCostTwoVarZeroUsagePeriodic ()
+  {
+    Rate r1 = new Rate().withFixed(false)
+            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withDailyBegin(0).withDailyEnd(13);
+    Rate r2 = new Rate().withFixed(false)
+            .withValue(.15).withMaxValue(.9).withExpectedMean(.2)
+            .withDailyBegin(14).withDailyEnd(23);
+    tariffSpec.withPeriodicPayment(0.24);
+    tariffSpec.addRate(r1);
+    tariffSpec.addRate(r2);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r1, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+
+    teh.init(.6, .4, .5, 10000.0);
+    double[] usage = {100.0, 200.0};
+    double expected = 100.0 * (.6 * .15 + .4 * .2)
+                      + 200.0 * (.6 * .2 + .4 * .9);
+    assertEquals("correct result", expected,
+                 teh.estimateCost(tariff, usage, false), 1e-6);
+    assertEquals("correct result", expected + 0.02,
+                 teh.estimateCost(tariff, usage), 1e-6);
+  }
+
+  @Test
+  public void testEstimateCostTwoVarZeroUsageArray ()
+  {
+    Rate r1 = new Rate().withFixed(false)
+            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withDailyBegin(0).withDailyEnd(13);
+    Rate r2 = new Rate().withFixed(false)
+            .withValue(.15).withMaxValue(.9).withExpectedMean(.2)
+            .withDailyBegin(14).withDailyEnd(23);
+    tariffSpec.withPeriodicPayment(0.24);
+    tariffSpec.addRate(r1);
+    tariffSpec.addRate(r2);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r1, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+
+    teh.init(.6, .4, .5, 10000.0);
+    double[] usage = {100.0, 200.0};
+    double[] expected = {100.0 * (.6 * .15 + .4 * .2),
+                         200.0 * (.6 * .2 + .4 * .9)};
+    double[] result = teh.estimateCostArray(tariff, usage, false);
+    assertEquals("correct first", expected[0], result[0], 1e-6);
+    assertEquals("correct result", expected[1], result[1], 1e-6);
+    result = teh.estimateCostArray(tariff, usage);
+    assertEquals("correct first", expected[0] + 0.01, result[0], 1e-6);
+    assertEquals("correct result", expected[1] + 0.01, result[1], 1e-6);
+  }
+  
   @Test
   public void testEstimateCostMixedZeroUsage ()
   {
