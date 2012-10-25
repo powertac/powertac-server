@@ -170,6 +170,12 @@ public class Tariff
     return specId;
   }
   
+  // set id for testing and log reconstruction
+  void setId (long id)
+  {
+    specId = id;
+  }
+  
   /**
    * Adds a new HourlyCharge to its Rate. Returns true just
    * in case the operation was successful.

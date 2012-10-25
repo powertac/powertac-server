@@ -54,4 +54,10 @@ public abstract class TariffUpdate extends TariffMessage
   {
     return tariffId;
   }
+  
+  // protected constructor for simplified deserialization
+  protected TariffUpdate ()
+  {
+    super();
+  }
 }

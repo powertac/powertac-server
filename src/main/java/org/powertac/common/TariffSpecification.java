@@ -263,4 +263,10 @@ public class TariffSpecification extends TariffMessage
     return ("TariffSpecification " + getId() + " "
             + getBroker().getUsername() + "." + getPowerType());
   }
+  
+  // protected default constructor to simplify deserialization
+  protected TariffSpecification ()
+  {
+    super();
+  }
 }

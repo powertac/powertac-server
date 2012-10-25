@@ -86,4 +86,10 @@ public class VariableRateUpdate extends TariffUpdate
       return false;
     return true;
   }
+  
+  // protected default constructor for reflection
+  protected VariableRateUpdate ()
+  {
+    super();
+  }
 }
