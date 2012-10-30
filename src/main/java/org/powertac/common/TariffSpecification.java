@@ -202,6 +202,9 @@ public class TariffSpecification extends TariffMessage
   @StateChange
   public TariffSpecification addRate (Rate rate)
   {
+    if (null == rates)
+      // readResolve does not create the list
+      rates = new ArrayList<Rate>();
     rates.add(rate);
     rate.setTariffId(id);
     return this;
