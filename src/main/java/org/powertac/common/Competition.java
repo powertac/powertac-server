@@ -131,7 +131,7 @@ public class Competition //implements Serializable
   public static Competition newInstance (String name)
   {
     Competition result = new Competition(name);
-    theCompetition = result;
+    //theCompetition = result;
     return result;
   }
 
@@ -165,6 +165,7 @@ public class Competition //implements Serializable
     brokers = new ArrayList<String>();
     //pluginConfigs = new ArrayList<PluginConfig>();
     customers = new ArrayList<CustomerInfo>();
+    theCompetition = this;
   }
 
   public long getId ()
