@@ -350,8 +350,8 @@ public class TariffTests
 
     // test with hourly charges
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.09), true);
-    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.11));
-    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.13));
+    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 13, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.11), true);
+    r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 14, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.13), true);
     r1.addHourlyCharge(new HourlyCharge(new DateTime(2011, 1, 1, 15, 0, 0, 0, DateTimeZone.UTC).toInstant(), -0.14));
     assertEquals("current charge, noon Sunday", -0.9, te.getUsageCharge(10.0, 0.0, false), 1e-6);
     assertEquals("13:00 charge, noon Sunday", -1.1,

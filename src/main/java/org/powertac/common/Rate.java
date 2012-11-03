@@ -328,10 +328,19 @@ public class Rate extends XStreamStateLoggable
     }
     else {
       Instant now = getCurrentTime();
+      double sgn = Math.signum(maxValue);
       long warning = newCharge.getAtTime().getMillis() - now.getMillis();
-      if (warning < noticeInterval && !publish) {
+      if (warning < noticeInterval * TimeService.HOUR && !publish) {
         // too late
         log.warn("Too late (" + now.toString() + ") to change rate for " + newCharge.getAtTime().toString());
+      }
+      else if (sgn * newCharge.getValue() > sgn * maxValue) {
+        // charge too high
+        log.warn("Excess charge: " + newCharge.getValue() + " > " + maxValue);
+      }
+      else if (sgn * newCharge.getValue() < sgn * minValue) {
+        // charge too low
+        log.warn("Charge too low: " + newCharge.getValue() + " < " + minValue);
       }
       else {
         if (probe == null) {
