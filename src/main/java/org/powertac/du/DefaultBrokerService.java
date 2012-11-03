@@ -94,7 +94,7 @@ public class DefaultBrokerService
   @Autowired
   private ServerConfiguration serverPropertiesService;
 
-  private LocalBroker face;
+  private DefaultBroker face;
   
   /** parameters */
   // keep in mind that brokers need to deal with two viewpoints. Tariffs
@@ -214,12 +214,13 @@ public class DefaultBrokerService
    */
   public Broker createBroker (String username)
   {
-    face = new LocalBroker(username);
+    face = new DefaultBroker(username);
     //face.setEnabled(true); // log in -- do not set this directly
+    face.setService(this);
     return face;
   }
 
-  public LocalBroker getFace ()
+  public DefaultBroker getFace ()
   {
     return face;
   }
@@ -738,30 +739,6 @@ public class DefaultBrokerService
   public void setSellLimitPriceMin (double sellLimitPriceMin)
   {
     this.sellLimitPriceMin = sellLimitPriceMin;
-  }
-
-  // ------------------- LocalBroker implementation -----------------------
-  /**
-   * Here's the actual "default broker". This is needed to intercept messages
-   * sent to the broker.
-   */
-  class LocalBroker extends Broker
-  {
-    public LocalBroker (String username)
-    {
-      super(username);
-      setLocal(true);
-    }
-
-    /**
-     * Receives a message intended for the broker, forwards it to the
-     * message handler in the enclosing service.
-     */
-    @Override
-    public void receiveMessage(Object object) 
-    {
-      receiveBrokerMessage(object);
-    }
   }
   
   //-------------------- Customer-model recording ---------------------
