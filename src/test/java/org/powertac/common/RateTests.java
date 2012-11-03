@@ -294,6 +294,40 @@ public class RateTests
     r.withNoticeInterval(1);
     assertTrue("valid noticeInterval", r.isValid(spec));
   }
+  
+  // test HC notice interval
+  @Test
+  public void addHCNotice ()
+  {
+    Rate r = new Rate().withFixed(false).withValue(-0.1)
+            .withMaxValue(-0.3).withExpectedMean(-0.2).withNoticeInterval(2);
+    Instant now = timeService.getCurrentTime();
+    HourlyCharge hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.25);
+    assertTrue("valid hc", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 2), -0.25);
+    assertTrue("still valid - boundary case", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 1), -0.25);
+    assertFalse("invalid - too short", r.addHourlyCharge(hc));
+  }
+
+  // test HC charge limits
+  @Test
+  public void addHCLimit ()
+  {
+    Rate r = new Rate().withFixed(false).withValue(-0.1)
+            .withMaxValue(-0.3).withExpectedMean(-0.2).withNoticeInterval(2);
+    Instant now = timeService.getCurrentTime();
+    HourlyCharge hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.25);
+    assertTrue("valid hc", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.1);
+    assertTrue("lower boundary case", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.3);
+    assertTrue("upper boundary case", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.09);
+    assertFalse("low out of bounds", r.addHourlyCharge(hc));
+    hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.31);
+    assertFalse("high out of bounds", r.addHourlyCharge(hc));
+  }
 
   @Test
   public void xmlSerializationTest ()
