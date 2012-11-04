@@ -220,8 +220,8 @@ public class Household
     }
 
     findDominantAppliance();
-
-    createDominantOperationVectors();
+    if (getDominantAppliance().getOverallPower() != 1)
+      createDominantOperationVectors();
     /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
