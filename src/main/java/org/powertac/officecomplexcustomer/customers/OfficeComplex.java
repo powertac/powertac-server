@@ -16,7 +16,6 @@
 package org.powertac.officecomplexcustomer.customers;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -267,13 +266,13 @@ public class OfficeComplex extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
-
-      System.out.println(toString() + " " + type);
-      System.out.println("Dominant Consumption:"
-                         + Arrays.toString(getDominantLoad(type)));
-      System.out.println("Non Dominant Consumption:"
-                         + Arrays.toString(getNonDominantLoad(type)));
-
+      /*
+            System.out.println(toString() + " " + type);
+            System.out.println("Dominant Consumption:"
+                               + Arrays.toString(getDominantLoad(type)));
+            System.out.println("Non Dominant Consumption:"
+                               + Arrays.toString(getNonDominantLoad(type)));
+      */
     }
     /*
         System.out.println("Subscriptions:" + subscriptionMap.toString());

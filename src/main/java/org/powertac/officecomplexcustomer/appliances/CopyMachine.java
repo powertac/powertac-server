@@ -86,7 +86,7 @@ public class CopyMachine extends SemiShiftingAppliance
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
 
       if ((i > OfficeComplexConstants.START_OF_FUNCTION && i < OfficeComplexConstants.END_OF_FUNCTION)
-          && !(applianceOf.isEmpty(weekday, i))) {
+          && !(applianceOf.isOnVacation(weekday))) {
         loadVector.add(standbyPower);
         dailyOperation.add(true);
 
@@ -170,10 +170,9 @@ public class CopyMachine extends SemiShiftingAppliance
   {
     boolean flag = true;
     int day = -1;
-
     while (flag) {
       day = (int) (Math.random() * operationDaysVector.size());
-
+      // System.out.println("CP Day " + day);
       if (operationDaysVector.get(day))
         flag = false;
 

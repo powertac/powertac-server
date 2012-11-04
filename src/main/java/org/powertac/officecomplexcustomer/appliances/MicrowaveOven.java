@@ -143,10 +143,12 @@ public class MicrowaveOven extends SemiShiftingAppliance
   {
     boolean flag = true;
     int day = -1;
+    // log.debug("MO operation: " + operationDaysVector.toString());
+    // log.debug("MO members: " + applianceOf.getMembers().size());
 
     while (flag) {
       day = (int) (Math.random() * operationDaysVector.size());
-
+      // System.out.println("MO Day " + day);
       if (operationDaysVector.get(day))
         flag = false;
 
