@@ -46,10 +46,16 @@ public class CopyMachine extends SemiShiftingAppliance
     // Filling the base variables
     name = office + " CopyMachine";
     saturation = Double.parseDouble(conf.getProperty("CopyMachineSaturation"));
-    power = (int) (OfficeComplexConstants.COPY_MACHINE_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.COPY_MACHINE_POWER_MEAN);
-    standbyPower = (int) (OfficeComplexConstants.COPY_MACHINE_STANDBY_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.COPY_MACHINE_STANDBY_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.COPY_MACHINE_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.COPY_MACHINE_POWER_MEAN);
+    standbyPower =
+      (int) (OfficeComplexConstants.COPY_MACHINE_STANDBY_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.COPY_MACHINE_STANDBY_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.COPY_MACHINE_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("CopyMachineDailyTimes")) + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
+    times =
+      Integer.parseInt(conf.getProperty("CopyMachineDailyTimes"))
+              + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
   }
 
   @Override
@@ -79,7 +85,8 @@ public class CopyMachine extends SemiShiftingAppliance
     // For each quarter of a day
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
 
-      if ((i > OfficeComplexConstants.START_OF_FUNCTION && i < OfficeComplexConstants.END_OF_FUNCTION) && !(applianceOf.isEmpty(weekday, i))) {
+      if ((i > OfficeComplexConstants.START_OF_FUNCTION && i < OfficeComplexConstants.END_OF_FUNCTION)
+          && !(applianceOf.isOnVacation(weekday))) {
         loadVector.add(standbyPower);
         dailyOperation.add(true);
 
@@ -88,7 +95,8 @@ public class CopyMachine extends SemiShiftingAppliance
           temp.add(i);
         }
 
-      } else {
+      }
+      else {
         loadVector.add(0);
         dailyOperation.add(false);
       }
@@ -115,18 +123,26 @@ public class CopyMachine extends SemiShiftingAppliance
 
     int[] minindex = new int[2];
     double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
-    Instant hour1 = new Instant(now.getMillis() + TimeService.HOUR * OfficeComplexConstants.START_OF_FUNCTION_HOURS);
+    Instant hour1 =
+      new Instant(now.getMillis() + TimeService.HOUR
+                  * OfficeComplexConstants.START_OF_FUNCTION_HOURS);
 
     for (int i = OfficeComplexConstants.START_OF_FUNCTION_HOURS; i < OfficeComplexConstants.END_OF_FUNCTION_HOUR; i++) {
 
-      newControllableLoad[i] = OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
+      newControllableLoad[i] =
+        OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
 
-      if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
+      if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0))
+          || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen
+                  .nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue[1] = minvalue[0];
         minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
         minindex[1] = minindex[0];
         minindex[0] = i;
-      } else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
+      }
+      else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0))
+               || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen
+                       .nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
         minindex[1] = i;
       }
@@ -137,14 +153,38 @@ public class CopyMachine extends SemiShiftingAppliance
 
     if (times > 4) {
 
-      newControllableLoad[minindex[0]] = OfficeComplexConstants.QUARTERS_OF_HOUR * power;
-      newControllableLoad[minindex[1]] = (times - OfficeComplexConstants.QUARTERS_OF_HOUR) * power;
+      newControllableLoad[minindex[0]] =
+        OfficeComplexConstants.QUARTERS_OF_HOUR * power;
+      newControllableLoad[minindex[1]] =
+        (times - OfficeComplexConstants.QUARTERS_OF_HOUR) * power;
 
-    } else {
+    }
+    else {
       newControllableLoad[minindex[0]] = times * power;
     }
 
     return newControllableLoad;
+  }
+
+  public void calculateOverallPower ()
+  {
+    boolean flag = true;
+    int day = -1;
+    while (flag) {
+      day = (int) (Math.random() * operationDaysVector.size());
+      // System.out.println("CP Day " + day);
+      if (operationDaysVector.get(day))
+        flag = false;
+
+      Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
+
+    }
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
   }
 
   @Override

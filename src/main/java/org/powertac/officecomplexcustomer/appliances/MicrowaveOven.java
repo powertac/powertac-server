@@ -47,10 +47,14 @@ public class MicrowaveOven extends SemiShiftingAppliance
   {
     // Filling the base variables
     name = office + " MicrowaveOven";
-    saturation = Double.parseDouble(conf.getProperty("MicrowaveOvenSaturation"));
-    power = (int) (OfficeComplexConstants.MICROWAVE_OVEN_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.MICROWAVE_OVEN_POWER_MEAN);
+    saturation =
+      Double.parseDouble(conf.getProperty("MicrowaveOvenSaturation"));
+    power =
+      (int) (OfficeComplexConstants.MICROWAVE_OVEN_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.MICROWAVE_OVEN_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.MICROWAVE_OVEN_DURATION_CYCLE;
-    operationPercentage = OfficeComplexConstants.MICROWAVE_OVEN_OPERATION_PERCENTAGE;
+    operationPercentage =
+      OfficeComplexConstants.MICROWAVE_OVEN_OPERATION_PERCENTAGE;
     times = Integer.parseInt(conf.getProperty("MicrowaveOvenDailyTimes"));
 
   }
@@ -70,8 +74,13 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
       if (applianceOf.isOnBreak(weekday, i)) {
 
-        double tempPercentage = operationPercentage + (OfficeComplexConstants.OPERATION_PARTITION * (applianceOf.employeeOnBreakNumber(weekday, i)));
-        if (tempPercentage > gen.nextDouble() && i > OfficeComplexConstants.START_OF_LAUNCH_BREAK && i < OfficeComplexConstants.END_OF_LAUNCH_BREAK) {
+        double tempPercentage =
+          operationPercentage
+                  + (OfficeComplexConstants.OPERATION_PARTITION * (applianceOf
+                          .employeeOnBreakNumber(weekday, i)));
+        if (tempPercentage > gen.nextDouble()
+            && i > OfficeComplexConstants.START_OF_LAUNCH_BREAK
+            && i < OfficeComplexConstants.END_OF_LAUNCH_BREAK) {
           dailyOperation.set(i, true);
           loadVector.set(i, power);
         }
@@ -105,7 +114,9 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
     int minindex = 0;
     double minvalue = Double.NEGATIVE_INFINITY;
-    Instant hour1 = new Instant(now.getMillis() + TimeService.HOUR * (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1));
+    Instant hour1 =
+      new Instant(now.getMillis() + TimeService.HOUR
+                  * (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1));
     long sumPower = 0;
 
     // Gather the Load Summary of the day
@@ -114,7 +125,8 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
     for (int i = OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1; i < OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2; i++) {
 
-      if ((minvalue < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
+      if ((minvalue < tariff.getUsageCharge(hour1, 1, 0))
+          || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
         minvalue = tariff.getUsageCharge(hour1, 1, 0);
         minindex = i;
       }
@@ -125,6 +137,30 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
     newControllableLoad[minindex] = sumPower;
     return newControllableLoad;
+  }
+
+  public void calculateOverallPower ()
+  {
+    boolean flag = true;
+    int day = -1;
+    // log.debug("MO operation: " + operationDaysVector.toString());
+    // log.debug("MO members: " + applianceOf.getMembers().size());
+
+    while (flag) {
+      day = (int) (Math.random() * operationDaysVector.size());
+      // System.out.println("MO Day " + day);
+      if (operationDaysVector.get(day))
+        flag = false;
+
+      Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
+
+    }
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
   }
 
   @Override

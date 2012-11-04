@@ -97,13 +97,15 @@ public class Office
    * This is a vector containing the controllable load from the appliances
    * installed inside the office for all the week days.
    **/
-  Vector<Vector<Integer>> weeklyControllableLoad = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyControllableLoad =
+    new Vector<Vector<Integer>>();
 
   /**
    * This is a vector containing the weather sensitive load from the appliances
    * installed inside the office for all the week days.
    **/
-  Vector<Vector<Integer>> weeklyWeatherSensitiveLoad = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoad =
+    new Vector<Vector<Integer>>();
 
   /** This is an aggregated vector containing each day's base load in hours. **/
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
@@ -127,13 +129,15 @@ public class Office
    * This is an aggregated vector containing the weekly controllable load in
    * hours.
    **/
-  Vector<Vector<Integer>> weeklyControllableLoadInHours = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyControllableLoadInHours =
+    new Vector<Vector<Integer>>();
 
   /**
    * This is an aggregated vector containing the weekly weather sensitive load
    * in hours.
    **/
-  Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours =
+    new Vector<Vector<Integer>>();
 
   /**
    * Helping variable showing the current week of competition for the correct
@@ -153,6 +157,26 @@ public class Office
   Vector<Appliance> appliances = new Vector<Appliance>();
 
   /**
+   * This is the index of most power consuming appliance of the office.
+   */
+  int dominantAppliance;
+
+  /**
+   * The number of days that the dominant appliance operates and not.
+   */
+  int daysDominant = 0;
+  int daysNonDominant = 0;
+
+  /**
+   * These are the mean consumptions when utilizing the dominant appliance and
+   * when not.
+   */
+  double[] dominantConsumption =
+    new double[OfficeComplexConstants.HOURS_OF_DAY];
+  double[] nonDominantConsumption =
+    new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+  /**
    * This variable is pointing to the village that this office is part of.
    */
   public OfficeComplex officeOf;
@@ -168,14 +192,15 @@ public class Office
    * @param gen
    * @return
    */
-  public void initialize (String OfficeName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String OfficeName, Properties conf,
+                          Vector<Integer> publicVacationVector, Random gen)
   {
     name = OfficeName;
     int persons = memberRandomizer(conf, gen);
     for (int i = 0; i < persons; i++)
       addPerson(i + 1, conf, publicVacationVector, gen);
 
-    for (Person member : members) {
+    for (Person member: members) {
       for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
         member.fillDailyRoutine(i, gen);
         member.getWeeklyRoutine().add(member.getDailyRoutine());
@@ -187,9 +212,14 @@ public class Office
     fillAppliances(conf, gen);
 
     for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
+      dailyBaseLoad =
+        fillDailyBaseLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad =
+        fillDailyControllableLoad(week * OfficeComplexConstants.DAYS_OF_WEEK
+                                  + i);
+      dailyWeatherSensitiveLoad =
+        fillDailyWeatherSensitiveLoad(week
+                                      * OfficeComplexConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -202,18 +232,31 @@ public class Office
       weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
     }
 
-    for (week = 1; week < OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP; week++) {
+    for (week = 1; week < OfficeComplexConstants.WEEKS_OF_COMPETITION
+                          + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP; week++) {
       refresh(conf, gen);
     }
 
-    for (Appliance appliance : appliances) {
+    for (Appliance appliance: appliances) {
       appliance.setOperationDays();
+      appliance.calculateOverallPower();
     }
+
+    findDominantAppliance();
+
+    if (getDominantAppliance().getOverallPower() != 1)
+      createDominantOperationVectors();
+
     /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
     
+    
+     System.out.println(this.toString() + " Dominant Appliance: "
+                       + getDominantAppliance()
+                       + " Overall Power Consumption: "
+                       + getDominantAppliance().getOverallPower());
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
@@ -231,7 +274,8 @@ public class Office
    * @param gen
    * @return
    */
-  void addPerson (int counter, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  void addPerson (int counter, Properties conf,
+                  Vector<Integer> publicVacationVector, Random gen)
   {
     // Taking parameters from configuration file
     // int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
@@ -240,6 +284,47 @@ public class Office
     ppp.initialize("PPP" + counter, conf, publicVacationVector, gen);
     members.add(ppp);
 
+  }
+
+  private void createDominantOperationVectors ()
+  {
+
+    Appliance app = appliances.get(dominantAppliance);
+    Vector<Boolean> op = app.getOperationDaysVector();
+
+    for (int i = 0; i < op.size(); i++) {
+      if (op.get(i))
+        daysDominant++;
+      else
+        daysNonDominant++;
+
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+        if (op.get(i))
+          dominantConsumption[j] +=
+            weeklyBaseLoadInHours.get(i).get(j)
+                    + weeklyControllableLoadInHours.get(i).get(j)
+                    + weeklyWeatherSensitiveLoadInHours.get(i).get(j);
+        else
+          nonDominantConsumption[j] +=
+            weeklyBaseLoadInHours.get(i).get(j)
+                    + weeklyControllableLoadInHours.get(i).get(j)
+                    + weeklyWeatherSensitiveLoadInHours.get(i).get(j);
+      }
+    }
+
+    for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+      if (daysDominant != 0)
+        dominantConsumption[j] /= daysDominant;
+      if (daysNonDominant != 0)
+        nonDominantConsumption[j] /= daysNonDominant;
+    }
+    /*
+        System.out.println("Household:" + toString());
+        System.out.println("Dominant Consumption:"
+                           + Arrays.toString(dominantConsumption));
+        System.out.println("Non Dominant Consumption:"
+                           + Arrays.toString(nonDominantConsumption));
+    */
   }
 
   /**
@@ -256,6 +341,44 @@ public class Office
   public Vector<Person> getMembers ()
   {
     return members;
+  }
+
+  /**
+   * This is a function returning the dominant Consumption Load for a certain
+   * hour.
+   */
+  public double getDominantConsumption (int hour)
+  {
+    return dominantConsumption[hour];
+  }
+
+  /**
+   * This is a function returning the non dominant Consumption Load for a
+   * certain hour.
+   */
+  public double getNonDominantConsumption (int hour)
+  {
+    return nonDominantConsumption[hour];
+  }
+
+  /** This function returns the dominant appliance of the household. */
+  public void findDominantAppliance ()
+  {
+    double maxConsumption = Double.NEGATIVE_INFINITY;
+
+    for (int i = 0; i < appliances.size(); i++) {
+      if (maxConsumption < appliances.get(i).getOverallPower()) {
+        maxConsumption = appliances.get(i).getOverallPower();
+        dominantAppliance = i;
+      }
+    }
+
+  }
+
+  /** This function returns the dominant appliance of the household. */
+  public Appliance getDominantAppliance ()
+  {
+    return appliances.get(dominantAppliance);
   }
 
   /**
@@ -276,14 +399,23 @@ public class Office
     int x = gen.nextInt(OfficeComplexConstants.PERCENTAGE);
     if (x < one) {
       returnValue = 1 + gen.nextInt(OfficeComplexConstants.PERSONS);
-    } else {
+    }
+    else {
       if (x >= one & x < (one + two)) {
-        returnValue = 1 + OfficeComplexConstants.PERSONS + gen.nextInt(OfficeComplexConstants.PERSONS);
-      } else {
+        returnValue =
+          1 + OfficeComplexConstants.PERSONS
+                  + gen.nextInt(OfficeComplexConstants.PERSONS);
+      }
+      else {
         if (x >= (one + two) & x < (one + two + three)) {
-          returnValue = 1 + 2 * OfficeComplexConstants.PERSONS + gen.nextInt(OfficeComplexConstants.PERSONS);
-        } else {
-          returnValue = 1 + 3 * OfficeComplexConstants.PERSONS + gen.nextInt(OfficeComplexConstants.PERSONS);
+          returnValue =
+            1 + 2 * OfficeComplexConstants.PERSONS
+                    + gen.nextInt(OfficeComplexConstants.PERSONS);
+        }
+        else {
+          returnValue =
+            1 + 3 * OfficeComplexConstants.PERSONS
+                    + gen.nextInt(OfficeComplexConstants.PERSONS);
         }
       }
     }
@@ -303,11 +435,13 @@ public class Office
     // Creating auxiliary variables
 
     int x = gen.nextInt(OfficeComplexConstants.PERCENTAGE);
-    int threshold = (int) (app.getSaturation() * OfficeComplexConstants.PERCENTAGE);
+    int threshold =
+      (int) (app.getSaturation() * OfficeComplexConstants.PERCENTAGE);
     if (x < threshold) {
       app.fillWeeklyOperation(gen);
       app.createWeeklyPossibilityOperationVector();
-    } else
+    }
+    else
       this.appliances.remove(app);
   }
 
@@ -423,8 +557,10 @@ public class Office
   public boolean isWorking (int weekday, int quarter)
   {
     boolean x = false;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Working)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+              .get(quarter) == Status.Working)
         x = true;
     }
     return x;
@@ -440,8 +576,10 @@ public class Office
   public boolean isOnBreak (int weekday, int quarter)
   {
     boolean x = false;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Break)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+              .get(quarter) == Status.Break)
         x = true;
     }
     return x;
@@ -457,9 +595,12 @@ public class Office
   public boolean isOnVacation (int weekday)
   {
     boolean x = true;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(0) != Status.Vacation
-          || member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(0) != Status.Sick)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(0) != Status.Vacation
+          || member.getWeeklyRoutine()
+                  .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+                  .get(0) != Status.Sick)
         x = false;
     }
     return x;
@@ -476,9 +617,13 @@ public class Office
   {
     boolean x = false;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
-      for (Person member : members) {
-        if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(i) == Status.Working
-            || member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(i) == Status.Break) {
+      for (Person member: members) {
+        if (member.getWeeklyRoutine()
+                .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+                .get(i) == Status.Working
+            || member.getWeeklyRoutine()
+                    .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+                    .get(i) == Status.Break) {
           x = true;
           i = OfficeComplexConstants.QUARTERS_OF_DAY;
           break;
@@ -499,8 +644,9 @@ public class Office
   {
     boolean x = false;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
-      for (Person member : members) {
-        if (member.getWeeklyRoutine().get(day).get(i) == Status.Working || member.getWeeklyRoutine().get(day).get(i) == Status.Break) {
+      for (Person member: members) {
+        if (member.getWeeklyRoutine().get(day).get(i) == Status.Working
+            || member.getWeeklyRoutine().get(day).get(i) == Status.Break) {
           x = true;
           i = OfficeComplexConstants.QUARTERS_OF_DAY;
           break;
@@ -538,8 +684,10 @@ public class Office
   public int employeeWorkingNumber (int weekday, int quarter)
   {
     int counter = 0;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Working)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+              .get(quarter) == Status.Working)
         counter++;
     }
     return counter;
@@ -556,8 +704,10 @@ public class Office
   public int employeeOnBreakNumber (int weekday, int quarter)
   {
     int counter = 0;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Break)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * OfficeComplexConstants.DAYS_OF_WEEK + weekday)
+              .get(quarter) == Status.Break)
         counter++;
     }
     return counter;
@@ -573,7 +723,9 @@ public class Office
    */
   public int employeeNumber (int weekday, int quarter)
   {
-    int counter = employeeWorkingNumber(weekday, quarter) + employeeOnBreakNumber(weekday, quarter);
+    int counter =
+      employeeWorkingNumber(weekday, quarter)
+              + employeeOnBreakNumber(weekday, quarter);
 
     return counter;
   }
@@ -605,24 +757,34 @@ public class Office
     */
     // Printing daily load
     log.info(" Daily Load = ");
-    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                        + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoad.get(i).listIterator();
-      ListIterator<Integer> iter3 = weeklyControllableLoad.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoad.get(i).listIterator();
+      ListIterator<Integer> iter3 =
+        weeklyControllableLoad.get(i).listIterator();
+      ListIterator<Integer> iter4 =
+        weeklyWeatherSensitiveLoad.get(i).listIterator();
       for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Quarter : " + j + " Base Load : " + iter2.next()
+                 + " Controllable Load: " + iter3.next()
+                 + " WeatherSensitive Load: " + iter4.next());
     }
 
     // Printing daily load in hours
     log.info(" Load In Hours = ");
-    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                        + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoadInHours.get(i).listIterator();
-      ListIterator<Integer> iter3 = weeklyControllableLoadInHours.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
+      ListIterator<Integer> iter3 =
+        weeklyControllableLoadInHours.get(i).listIterator();
+      ListIterator<Integer> iter4 =
+        weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
       for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++)
-        log.info("Hours : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Hours : " + j + " Base Load : " + iter2.next()
+                 + " Controllable Load: " + iter3.next()
+                 + " WeatherSensitive Load: " + iter4.next());
     }
   }
 
@@ -636,11 +798,12 @@ public class Office
   Vector<Integer> fillDailyBaseLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (appliance instanceof NotShiftingAppliance)
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -659,11 +822,12 @@ public class Office
   Vector<Integer> fillDailyControllableLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (!(appliance instanceof NotShiftingAppliance))
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -682,11 +846,12 @@ public class Office
   Vector<Integer> fillDailyWeatherSensitiveLoad (int day)
   {
     // Creating auxiliary variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (appliance instanceof WeatherSensitiveAppliance)
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -705,12 +870,19 @@ public class Office
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-          + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                    + 1)
+                + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                    + 2)
+                + dailyBaseLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                    + 3);
       v.add(sum);
     }
     return v;
@@ -726,12 +898,19 @@ public class Office
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyControllableLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + dailyControllableLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-          + dailyControllableLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + dailyControllableLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyControllableLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                + dailyControllableLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                + dailyControllableLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                + dailyControllableLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -747,12 +926,20 @@ public class Office
   {
 
     // Creating Auxiliary Variables
-    Vector<Integer> v = new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
     int sum = 0;
     for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyWeatherSensitiveLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR) + dailyWeatherSensitiveLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
-          + dailyWeatherSensitiveLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) + dailyWeatherSensitiveLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyWeatherSensitiveLoad
+                .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                + dailyWeatherSensitiveLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                + dailyWeatherSensitiveLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                + dailyWeatherSensitiveLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -771,19 +958,24 @@ public class Office
   {
 
     // For each member of the office
-    for (Person member : members) {
+    for (Person member: members) {
       member.refresh(conf, gen);
     }
 
     // For each appliance of the office
-    for (Appliance appliance : appliances) {
+    for (Appliance appliance: appliances) {
       appliance.refresh(gen);
     }
 
     for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
+      dailyBaseLoad =
+        fillDailyBaseLoad(week * OfficeComplexConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad =
+        fillDailyControllableLoad(week * OfficeComplexConstants.DAYS_OF_WEEK
+                                  + i);
+      dailyWeatherSensitiveLoad =
+        fillDailyWeatherSensitiveLoad(week
+                                      * OfficeComplexConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -807,22 +999,28 @@ public class Office
   {
     boolean flag = false;
 
-    for (Appliance appliance : appliances) {
+    for (Appliance appliance: appliances) {
 
       if ((appliance instanceof AirCondition) && (flag == false)) {
 
         appliance.weatherDailyFunction(day, hour, temperature);
 
-        if ((appliance.getWeeklyLoadVector().get(day).get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 1) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 3) > 0)) {
+        if ((appliance.getWeeklyLoadVector().get(day)
+                .get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 1) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 2) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + 3) > 0)) {
 
           // log.debug("Changed Air Condition indeed");
           dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day);
           weeklyWeatherSensitiveLoad.set(day, dailyWeatherSensitiveLoad);
-          dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
-          weeklyWeatherSensitiveLoadInHours.set(day, dailyWeatherSensitiveLoadInHours);
+          dailyWeatherSensitiveLoadInHours =
+            fillDailyWeatherSensitiveLoadInHours();
+          weeklyWeatherSensitiveLoadInHours
+                  .set(day, dailyWeatherSensitiveLoadInHours);
 
         }
       }
@@ -844,8 +1042,9 @@ public class Office
 
     long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
 
-    for (Appliance appliance : appliances) {
-      if (!(appliance instanceof NotShiftingAppliance) && !(appliance instanceof WeatherSensitiveAppliance)) {
+    for (Appliance appliance: appliances) {
+      if (!(appliance instanceof NotShiftingAppliance)
+          && !(appliance instanceof WeatherSensitiveAppliance)) {
         long[] temp = appliance.dailyShifting(tariff, now, day, gen);
         Vector<Long> tempVector = new Vector<Long>();
         Vector<Long> controllableVector = new Vector<Long>();
@@ -877,11 +1076,15 @@ public class Office
   public void printDailyLoad (int day)
   {
     ListIterator<Integer> iter = weeklyBaseLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter2 = weeklyControllableLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter3 = weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
+    ListIterator<Integer> iter2 =
+      weeklyControllableLoadInHours.get(day).listIterator();
+    ListIterator<Integer> iter3 =
+      weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
     log.info("Summary of Daily Load of House " + name);
     for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++)
-      log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next() + " Weather Sensitive Load : " + iter3.next());
+      log.info("Hour : " + j + 1 + " Base Load : " + iter.next()
+               + " Controllable Load : " + iter2.next()
+               + " Weather Sensitive Load : " + iter3.next());
   }
 
   @Override
