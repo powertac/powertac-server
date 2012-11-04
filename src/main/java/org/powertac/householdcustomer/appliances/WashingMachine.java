@@ -43,10 +43,13 @@ public class WashingMachine extends SemiShiftingAppliance
    * This variable is utilized to show if there's a dryer in the household or
    * not.
    */
-  public boolean dryerFlag = false;
+  protected boolean dryerFlag = false;
 
   /** This variable is utilized to show the dryer's power load. */
-  public int dryerPower = 0;
+  protected int dryerPower = 0;
+
+  /** This variable is utilized to find dryer in the household. */
+  protected int dryerIndex = -1;
 
   /**
    * The function mode of the washing machine. For more info, read the details
@@ -65,10 +68,14 @@ public class WashingMachine extends SemiShiftingAppliance
   {
     // Filling the base variables
     name = household + " Washing Machine";
-    saturation = Double.parseDouble(conf.getProperty("WashingMachineSaturation"));
-    power = (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
+    saturation =
+      Double.parseDouble(conf.getProperty("WashingMachineSaturation"));
+    power =
+      (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
     cycleDuration = VillageConstants.DISHWASHER_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("WashingMachineWeeklyTimes")) + (int) (applianceOf.getMembers().size() / 2);
+    times =
+      Integer.parseInt(conf.getProperty("WashingMachineWeeklyTimes"))
+              + (int) (applianceOf.getMembers().size() / 2);
   }
 
   @Override
@@ -83,7 +90,7 @@ public class WashingMachine extends SemiShiftingAppliance
       dailyOperation.add(false);
     }
 
-    if (lastWeek[weekday] > 0) {
+    if (lastWeek[weekday] >= 0) {
       Vector<Integer> temp = new Vector<Integer>();
 
       for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY - cycleDuration; i++) {
@@ -145,7 +152,10 @@ public class WashingMachine extends SemiShiftingAppliance
     if (quarter + VillageConstants.WASHING_MACHINE_DURATION_CYCLE >= VillageConstants.QUARTERS_OF_DAY)
       return true;
     else
-      return applianceOf.isEmpty(weekday, quarter + VillageConstants.WASHING_MACHINE_DURATION_CYCLE);
+      return applianceOf
+              .isEmpty(weekday,
+                       quarter
+                               + VillageConstants.WASHING_MACHINE_DURATION_CYCLE);
   }
 
   @Override
@@ -157,7 +167,8 @@ public class WashingMachine extends SemiShiftingAppliance
     if (days.get(day) > 0) {
 
       int[] minindex = new int[2];
-      double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+      double[] minvalue =
+        { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
       boolean[] functionMatrix = createShiftingOperationMatrix(day);
       Instant hour1 = now;
       Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
@@ -186,19 +197,28 @@ public class WashingMachine extends SemiShiftingAppliance
         if (possibleHours.contains(i)) {
 
           if (dryerFlag)
-            newValue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0) + tariff.getUsageCharge(hour3, 1, 0) + tariff.getUsageCharge(hour4, 1, 0);
+            newValue =
+              tariff.getUsageCharge(hour1, 1, 0)
+                      + tariff.getUsageCharge(hour2, 1, 0)
+                      + tariff.getUsageCharge(hour3, 1, 0)
+                      + tariff.getUsageCharge(hour4, 1, 0);
           else
-            newValue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0);
+            newValue =
+              tariff.getUsageCharge(hour1, 1, 0)
+                      + tariff.getUsageCharge(hour2, 1, 0);
 
           // System.out.println("Hour " + i + " Value " + newValue +
           // " Previous Best " + minvalue[0] + " Second Best " + minvalue[1]);
 
-          if ((minvalue[0] < newValue) || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+          if ((minvalue[0] < newValue)
+              || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
             minvalue[1] = minvalue[0];
             minvalue[0] = newValue;
             minindex[1] = minindex[0];
             minindex[0] = i;
-          } else if ((minvalue[1] < newValue) || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+          }
+          else if ((minvalue[1] < newValue)
+                   || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
             minvalue[1] = newValue;
             minindex[1] = i;
           }
@@ -216,26 +236,48 @@ public class WashingMachine extends SemiShiftingAppliance
 
       if (days.get(day) == VillageConstants.OPERATION_DAILY_TIMES_LIMIT) {
 
-        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
 
         if (dryerFlag) {
-          newControllableLoad[minindex[0] + 2] = VillageConstants.QUARTERS_OF_HOUR * dryerPower - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[0] + 3] = (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower - (VillageConstants.QUARTERS_OF_HOUR + 1) * VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[1] + 2] = VillageConstants.QUARTERS_OF_HOUR * dryerPower - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[1] + 3] = (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower - (VillageConstants.QUARTERS_OF_HOUR + 1) * VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[0] + 2] =
+            VillageConstants.QUARTERS_OF_HOUR * dryerPower
+                    - VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[0] + 3] =
+            (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
+                    - (VillageConstants.QUARTERS_OF_HOUR + 1)
+                    * VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[1] + 2] =
+            VillageConstants.QUARTERS_OF_HOUR * dryerPower
+                    - VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[1] + 3] =
+            (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
+                    - (VillageConstants.QUARTERS_OF_HOUR + 1)
+                    * VillageConstants.DRYER_THIRD_PHASE_LOAD;
 
         }
 
-      } else {
-        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+      }
+      else {
+        newControllableLoad[minindex[0]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
 
         if (dryerFlag) {
-          newControllableLoad[minindex[0] + 2] = VillageConstants.QUARTERS_OF_HOUR * dryerPower - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[0] + 3] = (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower - (VillageConstants.QUARTERS_OF_HOUR + 1) * VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[0] + 2] =
+            VillageConstants.QUARTERS_OF_HOUR * dryerPower
+                    - VillageConstants.DRYER_THIRD_PHASE_LOAD;
+          newControllableLoad[minindex[0] + 3] =
+            (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
+                    - (VillageConstants.QUARTERS_OF_HOUR + 1)
+                    * VillageConstants.DRYER_THIRD_PHASE_LOAD;
         }
       }
 
@@ -263,13 +305,59 @@ public class WashingMachine extends SemiShiftingAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+                  + iter4.next());
     }
+  }
+
+  public void calculateOverallPower ()
+  {
+    boolean flag = true;
+    int day = -1;
+
+    while (flag) {
+      day = (int) (Math.random() * operationDaysVector.size());
+      // log.debug("WM Choosen Day: " + day);
+      // log.debug("WM Times for that day: " + getTimesForDay(day));
+
+      if (getTimesForDay(day) == 1)
+        flag = false;
+
+      Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
+
+    }
+
+    if (dryerFlag) {
+      overallPower += getDryerOverallPower();
+    }
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
+  }
+
+  public int getDryerOverallPower ()
+  {
+
+    int power = 0;
+
+    Vector<Appliance> applianceList = applianceOf.getAppliances();
+    for (Appliance appliance: applianceList) {
+      if (appliance instanceof Dryer) {
+        power = appliance.getOverallPower();
+      }
+    }
+
+    return power;
+
   }
 
   @Override
@@ -282,9 +370,10 @@ public class WashingMachine extends SemiShiftingAppliance
     // if we have dryer in the household we refresh it too
     if (dryerFlag == true) {
       Vector<Appliance> applianceList = applianceOf.getAppliances();
-      for (Appliance appliance : applianceList) {
+      for (Appliance appliance: applianceList) {
         if (appliance instanceof Dryer) {
           appliance.refresh(gen);
+          break;
         }
       }
     }

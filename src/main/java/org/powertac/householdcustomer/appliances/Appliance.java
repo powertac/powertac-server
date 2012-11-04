@@ -66,6 +66,7 @@ public class Appliance
    * appliance.
    */
   protected int power;
+  protected int overallPower;
 
   /** This variable equals the duration of the operation cycle of the appliance. */
   protected int cycleDuration;
@@ -74,7 +75,8 @@ public class Appliance
    * This is a vector containing the quarters that the appliance can start
    * functioning.
    */
-  Vector<Vector<Boolean>> possibilityOperationVector = new Vector<Vector<Boolean>>();
+  Vector<Vector<Boolean>> possibilityOperationVector =
+    new Vector<Vector<Boolean>>();
 
   /**
    * This is a vector that contains the operation days of each appliance for the
@@ -118,6 +120,12 @@ public class Appliance
     return power;
   }
 
+  /** This function returns the power variable of the appliance. */
+  public int getOverallPower ()
+  {
+    return overallPower;
+  }
+
   /** This function returns the household where the appliance is installed. */
   public Household getApplianceOf ()
   {
@@ -146,6 +154,12 @@ public class Appliance
   public Vector<Vector<Integer>> getWeeklyLoadVector ()
   {
     return weeklyLoadVector;
+  }
+
+  /** This function returns the operation days vector of the appliance. */
+  public Vector<Boolean> getOperationDaysVector ()
+  {
+    return operationDaysVector;
   }
 
   /**
@@ -227,11 +241,19 @@ public class Appliance
   boolean[] createShiftingOperationMatrix (int day)
   {
 
-    boolean[] shiftingOperationMatrix = new boolean[VillageConstants.HOURS_OF_DAY];
+    boolean[] shiftingOperationMatrix =
+      new boolean[VillageConstants.HOURS_OF_DAY];
 
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-      boolean function = possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR) || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
-          || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 2) || possibilityOperationVector.get(day).get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+      boolean function =
+        possibilityOperationVector.get(day)
+                .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                || possibilityOperationVector.get(day)
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                || possibilityOperationVector.get(day)
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                || possibilityOperationVector.get(day)
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       shiftingOperationMatrix[i] = function;
     }
     return shiftingOperationMatrix;
@@ -279,12 +301,14 @@ public class Appliance
 
     // Printing Weekly Function Vector and Load
     log.debug("Weekly Operation Vector and Load = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter.next() + "   Load = " + iter2.next());
+        log.debug("Quarter " + j + " = " + iter.next() + "   Load = "
+                  + iter2.next());
     }
   }
 
@@ -324,6 +348,18 @@ public class Appliance
       }
       operationDaysVector.add(function);
     }
+  }
+
+  /**
+   * This is an function created to estimate the overall power consumption of a
+   * certain appliance in a single operation the vectors of each appliance
+   * during the runtime.
+   * 
+   * @return
+   */
+  public void calculateOverallPower ()
+  {
+    overallPower = -1;
   }
 
   public String toString ()

@@ -44,17 +44,19 @@ public class Dryer extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dryer";
     saturation = Double.parseDouble(conf.getProperty("DryerSaturation"));
-    power = (int) (VillageConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DRYER_POWER_MEAN);
+    power =
+      (int) (VillageConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DRYER_POWER_MEAN);
     cycleDuration = VillageConstants.DRYER_DURATION_CYCLE;
 
     // Inform the washing machine for the existence of the dryer
-    for (Appliance appliance : applianceOf.getAppliances()) {
+    for (Appliance appliance: applianceOf.getAppliances()) {
       if (appliance instanceof WashingMachine) {
         WashingMachine wm = (WashingMachine) appliance;
         times = wm.getTimes();
         days = wm.getDays();
         wm.dryerFlag = true;
         wm.dryerPower = power;
+        break;
       }
     }
 
@@ -83,12 +85,14 @@ public class Dryer extends SemiShiftingAppliance
             if (j == VillageConstants.QUARTERS_OF_DAY - 1)
               break;
           }
-          for (int k = i + VillageConstants.DRYER_SECOND_PHASE; k < i + VillageConstants.DRYER_THIRD_PHASE; k++) {
+          for (int k = i + VillageConstants.DRYER_SECOND_PHASE; k < i
+                                                                    + VillageConstants.DRYER_THIRD_PHASE; k++) {
             if (k >= VillageConstants.QUARTERS_OF_DAY) {
               // System.out.println("K out of bounds " + k);
               break;
             }
-            loadVector.set(k, loadVector.get(k - 1) - VillageConstants.DRYER_THIRD_PHASE_LOAD);
+            loadVector.set(k, loadVector.get(k - 1)
+                              - VillageConstants.DRYER_THIRD_PHASE_LOAD);
             dailyOperation.set(k, true);
 
           }
@@ -135,9 +139,12 @@ public class Dryer extends SemiShiftingAppliance
     int start = 0;
 
     // Search for the washing machine to take its schedule in consideration
-    for (Appliance appliance : applianceOf.getAppliances())
+    for (Appliance appliance: applianceOf.getAppliances())
       if (appliance instanceof WashingMachine)
-        v = appliance.getWeeklyOperation().get(weekday);
+        v =
+          appliance.getWeeklyOperation()
+                  .get(applianceOf.getWeek() * VillageConstants.DAYS_OF_WEEK
+                               + weekday);
 
     for (int i = (VillageConstants.QUARTERS_OF_DAY - 1); i > 0; i--) {
       if (v.get(i) == true) {
@@ -166,12 +173,14 @@ public class Dryer extends SemiShiftingAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "  Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "  Load = "
+                  + iter4.next());
     }
   }
 
@@ -184,9 +193,48 @@ public class Dryer extends SemiShiftingAppliance
     return newControllableLoad;
   }
 
+  public void calculateOverallPower ()
+  {
+    boolean flag = true;
+    int day = -1;
+
+    while (flag) {
+      day = (int) (Math.random() * operationDaysVector.size());
+      // System.out.println("Dryer Choosen Day: " + day);
+      // System.out.println("Dryer Times for that day: " + getTimesForDay(day));
+      // log.debug("Dryer Choosen Day: " + day);
+      // log.debug("Dryer Times for that day: " + getTimesForDay(day));
+
+      if (getTimesForDay(day) == 1)
+        flag = false;
+
+      Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
+      /*
+            if (overallPower == 0 && flag == false) {
+              flag = true;
+              System.out.println(weeklyOperation.get(day).toString());
+              System.out.println(weeklyLoadVector.get(day).toString());
+            }
+      */
+    }
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
+  }
+
   @Override
   public void refresh (Random gen)
   {
+    for (Appliance appliance: applianceOf.getAppliances()) {
+      if (appliance instanceof WashingMachine) {
+        WashingMachine wm = (WashingMachine) appliance;
+        days = wm.getDays();
+        break;
+      }
+    }
     fillWeeklyOperation(gen);
     createWeeklyPossibilityOperationVector();
   }
