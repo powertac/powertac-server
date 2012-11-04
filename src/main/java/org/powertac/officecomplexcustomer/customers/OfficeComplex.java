@@ -16,6 +16,7 @@
 package org.powertac.officecomplexcustomer.customers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -116,6 +117,19 @@ public class OfficeComplex extends AbstractCustomer
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS =
     new Vector<Vector<Long>>();
 
+  /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances working.
+   **/
+  double[] dominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+  double[] dominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+  /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances not working.
+   **/
+  double[] nonDominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+  double[] nonDominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
   /**
    * This is an vector containing the days of the competition that the office
    * complex model will use in order to check which of the tariffs that are
@@ -253,6 +267,13 @@ public class OfficeComplex extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
+
+      System.out.println(toString() + " " + type);
+      System.out.println("Dominant Consumption:"
+                         + Arrays.toString(getDominantLoad(type)));
+      System.out.println("Non Dominant Consumption:"
+                         + Arrays.toString(getNonDominantLoad(type)));
+
     }
     /*
         System.out.println("Subscriptions:" + subscriptionMap.toString());
@@ -575,6 +596,40 @@ public class OfficeComplex extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursSS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
+    }
+
+    fillAggDominantLoads(type);
+  }
+
+  private void fillAggDominantLoads (String type)
+  {
+
+    double[] dominant = new double[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] nonDominant = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+    Vector<Office> offices = getOffices(type);
+
+    for (int i = 0; i < offices.size(); i++) {
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+
+        dominant[j] += offices.get(i).getDominantConsumption(j);
+        nonDominant[j] += offices.get(i).getNonDominantConsumption(j);
+
+      }
+    }
+
+    if (type.equals("NS")) {
+
+      dominantLoadNS = dominant;
+      nonDominantLoadNS = nonDominant;
+
+    }
+
+    else {
+
+      dominantLoadSS = dominant;
+      nonDominantLoadSS = nonDominant;
+
     }
   }
 
@@ -1196,6 +1251,36 @@ public class OfficeComplex extends AbstractCustomer
     }
 
     return weatherSensitiveVector;
+  }
+
+  /**
+   * This function returns the dominant Consumption Load for a certain type of
+   * houses
+   */
+  public double[] getDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return dominantLoadNS;
+    }
+    else {
+      return dominantLoadSS;
+    }
+
+  }
+
+  /**
+   * This function returns the non dominant Consumption Load for a certain type
+   * of houses
+   */
+  public double[] getNonDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return nonDominantLoadNS;
+    }
+    else {
+      return nonDominantLoadSS;
+    }
+
   }
 
   /**
