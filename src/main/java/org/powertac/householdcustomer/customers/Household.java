@@ -87,8 +87,10 @@ public class Household
    * days.
    **/
   Vector<Vector<Integer>> weeklyBaseLoad = new Vector<Vector<Integer>>();
-  Vector<Vector<Integer>> weeklyControllableLoad = new Vector<Vector<Integer>>();
-  Vector<Vector<Integer>> weeklyWeatherSensitiveLoad = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyControllableLoad =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoad =
+    new Vector<Vector<Integer>>();
 
   /**
    * This is an aggregated vector containing each day's base, controllable and
@@ -103,8 +105,10 @@ public class Household
    * weather sensitive load in hours.
    **/
   Vector<Vector<Integer>> weeklyBaseLoadInHours = new Vector<Vector<Integer>>();
-  Vector<Vector<Integer>> weeklyControllableLoadInHours = new Vector<Vector<Integer>>();
-  Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyControllableLoadInHours =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours =
+    new Vector<Vector<Integer>>();
 
   /**
    * Helping variable showing the current week of competition for the correct
@@ -124,6 +128,24 @@ public class Household
   Vector<Appliance> appliances = new Vector<Appliance>();
 
   /**
+   * This is the index of most power consuming appliance of the household.
+   */
+  int dominantAppliance;
+
+  /**
+   * The number of days that the dominant appliance operates and not.
+   */
+  int daysDominant = 0;
+  int daysNonDominant = 0;
+
+  /**
+   * These are the mean consumptions when utilizing the dominant appliance and
+   * when not.
+   */
+  double[] dominantConsumption = new double[VillageConstants.HOURS_OF_DAY];
+  double[] nonDominantConsumption = new double[VillageConstants.HOURS_OF_DAY];
+
+  /**
    * This variable is pointing to the village that this household is part of.
    */
   public Village householdOf;
@@ -139,7 +161,8 @@ public class Household
    * @param gen
    * @return
    */
-  public void initialize (String HouseName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String HouseName, Properties conf,
+                          Vector<Integer> publicVacationVector, Random gen)
   {
     double va = Double.parseDouble(conf.getProperty("VacationAbsence"));
     name = HouseName;
@@ -147,7 +170,7 @@ public class Household
     for (int i = 0; i < persons; i++)
       addPerson(i + 1, conf, publicVacationVector, gen);
 
-    for (Person member : members) {
+    for (Person member: members) {
       for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
         member.fillDailyRoutine(i, va, gen);
         member.getWeeklyRoutine().add(member.getDailyRoutine());
@@ -159,9 +182,12 @@ public class Household
     fillAppliances(conf, gen);
 
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyBaseLoad =
+        fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad =
+        fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad =
+        fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -174,17 +200,37 @@ public class Household
       weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
     }
 
-    for (week = 1; week < VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP; week++) {
+    for (week = 1; week < VillageConstants.WEEKS_OF_COMPETITION
+                          + VillageConstants.WEEKS_OF_BOOTSTRAP; week++) {
       refresh(conf, gen);
     }
 
-    for (Appliance appliance : appliances) {
-      appliance.setOperationDays();
+    for (Appliance appliance: appliances) {
+      if (appliance instanceof Dryer) {
+        appliance.setOperationDays();
+        appliance.calculateOverallPower();
+      }
     }
+
+    for (Appliance appliance: appliances) {
+      if (!(appliance instanceof Dryer)) {
+        appliance.setOperationDays();
+        appliance.calculateOverallPower();
+      }
+    }
+
+    findDominantAppliance();
+    if (getDominantAppliance().getOverallPower() != 1)
+      createDominantOperationVectors();
     /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
+    
+    System.out.println(this.toString() + " Dominant Appliance: "
+                       + getDominantAppliance()
+                       + " Overall Power Consumption: "
+                       + getDominantAppliance().getOverallPower());
     
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
@@ -203,7 +249,8 @@ public class Household
    * @param gen
    * @return
    */
-  void addPerson (int counter, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  void addPerson (int counter, Properties conf,
+                  Vector<Integer> publicVacationVector, Random gen)
   {
     // Taking parameters from configuration file
     int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
@@ -215,17 +262,68 @@ public class Household
       ppp.initialize("PPP" + counter, conf, publicVacationVector, gen);
       members.add(ppp);
 
-    } else {
+    }
+    else {
       if (x >= pp & x < (pp + mp)) {
         MostlyPresentPerson mpp = new MostlyPresentPerson();
         mpp.initialize("MPP" + counter, conf, publicVacationVector, gen);
         members.add(mpp);
-      } else {
+      }
+      else {
         RandomlyAbsentPerson rap = new RandomlyAbsentPerson();
         rap.initialize("RAP" + counter, conf, publicVacationVector, gen);
         members.add(rap);
       }
     }
+  }
+
+  private void createDominantOperationVectors ()
+  {
+
+    Appliance app = appliances.get(dominantAppliance);
+    Vector<Boolean> op = app.getOperationDaysVector();
+
+    for (int i = 0; i < op.size(); i++) {
+      if (op.get(i))
+        daysDominant++;
+      else
+        daysNonDominant++;
+
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
+        if (op.get(i))
+          dominantConsumption[j] +=
+            weeklyBaseLoadInHours.get(i).get(j)
+                    + weeklyControllableLoadInHours.get(i).get(j)
+                    + weeklyWeatherSensitiveLoadInHours.get(i).get(j);
+        else
+          nonDominantConsumption[j] +=
+            weeklyBaseLoadInHours.get(i).get(j)
+                    + weeklyControllableLoadInHours.get(i).get(j)
+                    + weeklyWeatherSensitiveLoadInHours.get(i).get(j);
+      }
+    }
+
+    for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
+      if (daysDominant != 0)
+        dominantConsumption[j] /= daysDominant;
+      if (daysNonDominant != 0)
+        nonDominantConsumption[j] /= daysNonDominant;
+    }
+    /*
+        System.out.println("Household:" + toString());
+        System.out.println("Dominant Consumption:"
+                           + Arrays.toString(dominantConsumption));
+        System.out.println("Non Dominant Consumption:"
+                           + Arrays.toString(nonDominantConsumption));
+    */
+  }
+
+  /**
+   * This is a function that returns the week of refresh.
+   */
+  public int getWeek ()
+  {
+    return week;
   }
 
   /**
@@ -242,6 +340,44 @@ public class Household
   public Vector<Person> getMembers ()
   {
     return members;
+  }
+
+  /**
+   * This is a function returning the dominant Consumption Load for a certain
+   * hour.
+   */
+  public double getDominantConsumption (int hour)
+  {
+    return dominantConsumption[hour];
+  }
+
+  /**
+   * This is a function returning the non dominant Consumption Load for a
+   * certain hour.
+   */
+  public double getNonDominantConsumption (int hour)
+  {
+    return nonDominantConsumption[hour];
+  }
+
+  /** This function returns the dominant appliance of the household. */
+  public void findDominantAppliance ()
+  {
+    double maxConsumption = Double.NEGATIVE_INFINITY;
+
+    for (int i = 0; i < appliances.size(); i++) {
+      if (maxConsumption < appliances.get(i).getOverallPower()) {
+        maxConsumption = appliances.get(i).getOverallPower();
+        dominantAppliance = i;
+      }
+    }
+
+  }
+
+  /** This function returns the dominant appliance of the household. */
+  public Appliance getDominantAppliance ()
+  {
+    return appliances.get(dominantAppliance);
   }
 
   /**
@@ -263,16 +399,20 @@ public class Household
     int x = gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < one) {
       returnValue = VillageConstants.ONE_PERSON;
-    } else {
+    }
+    else {
       if (x >= one & x < (one + two)) {
         returnValue = VillageConstants.TWO_PERSONS;
-      } else {
+      }
+      else {
         if (x >= (one + two) & x < (one + two + three)) {
           returnValue = VillageConstants.THREE_PERSONS;
-        } else {
+        }
+        else {
           if (x >= (one + two + three) & x < (one + two + three + four)) {
             returnValue = VillageConstants.FOUR_PERSONS;
-          } else {
+          }
+          else {
             returnValue = VillageConstants.FIVE_PERSONS;
           }
         }
@@ -299,7 +439,8 @@ public class Household
     if (x < threshold) {
       app.fillWeeklyOperation(gen);
       app.createWeeklyPossibilityOperationVector();
-    } else
+    }
+    else
       this.appliances.remove(app);
   }
 
@@ -438,9 +579,12 @@ public class Household
   public boolean isEmpty (int weekday, int quarter)
   {
     boolean x = true;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
-          || member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Sick) {
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
+          || member.getWeeklyRoutine()
+                  .get(week * VillageConstants.DAYS_OF_WEEK + weekday)
+                  .get(quarter) == Status.Sick) {
         x = false;
       }
     }
@@ -458,9 +602,12 @@ public class Household
   public int tenantsNumber (int weekday, int quarter)
   {
     int counter = 0;
-    for (Person member : members) {
-      if (member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
-          || member.getWeeklyRoutine().get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Sick)
+    for (Person member: members) {
+      if (member.getWeeklyRoutine()
+              .get(week * VillageConstants.DAYS_OF_WEEK + weekday).get(quarter) == Status.Normal
+          || member.getWeeklyRoutine()
+                  .get(week * VillageConstants.DAYS_OF_WEEK + weekday)
+                  .get(quarter) == Status.Sick)
         counter++;
     }
     return counter;
@@ -481,24 +628,34 @@ public class Household
 
     // Printing daily load
     log.info(" Daily Load = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoad.get(i).listIterator();
-      ListIterator<Integer> iter3 = weeklyControllableLoad.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoad.get(i).listIterator();
+      ListIterator<Integer> iter3 =
+        weeklyControllableLoad.get(i).listIterator();
+      ListIterator<Integer> iter4 =
+        weeklyWeatherSensitiveLoad.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.info("Quarter : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Quarter : " + j + " Base Load : " + iter2.next()
+                 + " Controllable Load: " + iter3.next()
+                 + " WeatherSensitive Load: " + iter4.next());
     }
 
     // Printing daily load in hours
     log.info(" Load In Hours = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.info("Day " + i);
       ListIterator<Integer> iter2 = weeklyBaseLoadInHours.get(i).listIterator();
-      ListIterator<Integer> iter3 = weeklyControllableLoadInHours.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
+      ListIterator<Integer> iter3 =
+        weeklyControllableLoadInHours.get(i).listIterator();
+      ListIterator<Integer> iter4 =
+        weeklyWeatherSensitiveLoadInHours.get(i).listIterator();
       for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
-        log.info("Hours : " + j + " Base Load : " + iter2.next() + " Controllable Load: " + iter3.next() + " WeatherSensitive Load: " + iter4.next());
+        log.info("Hours : " + j + " Base Load : " + iter2.next()
+                 + " Controllable Load: " + iter3.next()
+                 + " WeatherSensitive Load: " + iter4.next());
     }
   }
 
@@ -516,7 +673,7 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (appliance instanceof NotShiftingAppliance)
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -539,7 +696,7 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (!(appliance instanceof NotShiftingAppliance))
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -562,7 +719,7 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
       sum = 0;
-      for (Appliance appliance : appliances) {
+      for (Appliance appliance: appliances) {
         if (appliance instanceof WeatherSensitiveAppliance)
           sum = sum + appliance.getWeeklyLoadVector().get(day).get(i);
       }
@@ -581,7 +738,7 @@ public class Household
   public boolean isOnVacation (int day)
   {
     boolean x = true;
-    for (Person member : members) {
+    for (Person member: members) {
       if (member.getWeeklyRoutine().get(day).get(0) != Status.Vacation)
         x = false;
     }
@@ -602,8 +759,11 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1) + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
-          + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR)
+                + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                + dailyBaseLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -623,8 +783,17 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
-          + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyControllableLoad.get(i * VillageConstants.QUARTERS_OF_HOUR)
+                + dailyControllableLoad.get(i
+                                            * VillageConstants.QUARTERS_OF_HOUR
+                                            + 1)
+                + dailyControllableLoad.get(i
+                                            * VillageConstants.QUARTERS_OF_HOUR
+                                            + 2)
+                + dailyControllableLoad.get(i
+                                            * VillageConstants.QUARTERS_OF_HOUR
+                                            + 3);
       v.add(sum);
     }
     return v;
@@ -644,8 +813,14 @@ public class Household
     int sum = 0;
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       sum = 0;
-      sum = dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR) + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
-          + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 2) + dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+      sum =
+        dailyWeatherSensitiveLoad.get(i * VillageConstants.QUARTERS_OF_HOUR)
+                + dailyWeatherSensitiveLoad
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                + dailyWeatherSensitiveLoad
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                + dailyWeatherSensitiveLoad
+                        .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }
     return v;
@@ -664,21 +839,24 @@ public class Household
   {
 
     // For each member of the household
-    for (Person member : members) {
+    for (Person member: members) {
       member.refresh(conf, gen);
     }
 
     // For each appliance of the household
-    for (Appliance appliance : appliances) {
+    for (Appliance appliance: appliances) {
       if (!(appliance instanceof Dryer))
         appliance.refresh(gen);
 
     }
 
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-      dailyBaseLoad = fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
-      dailyControllableLoad = fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
-      dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyBaseLoad =
+        fillDailyBaseLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyControllableLoad =
+        fillDailyControllableLoad(week * VillageConstants.DAYS_OF_WEEK + i);
+      dailyWeatherSensitiveLoad =
+        fillDailyWeatherSensitiveLoad(week * VillageConstants.DAYS_OF_WEEK + i);
       weeklyBaseLoad.add(dailyBaseLoad);
       weeklyControllableLoad.add(dailyControllableLoad);
       weeklyWeatherSensitiveLoad.add(dailyWeatherSensitiveLoad);
@@ -702,9 +880,10 @@ public class Household
   {
     boolean flag = false;
 
-    for (Appliance appliance : appliances) {
+    for (Appliance appliance: appliances) {
 
-      if (appliance instanceof SpaceHeater && hour == 23 && (day + 1 < VillageConstants.DAYS_OF_COMPETITION)) {
+      if (appliance instanceof SpaceHeater && hour == 23
+          && (day + 1 < VillageConstants.DAYS_OF_COMPETITION)) {
 
         appliance.weatherDailyOperation(day + 1, 0, temperature);
 
@@ -712,8 +891,10 @@ public class Household
           // log.debug("Changed Space Heater indeed");
           dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day + 1);
           weeklyWeatherSensitiveLoad.set(day + 1, dailyWeatherSensitiveLoad);
-          dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
-          weeklyWeatherSensitiveLoadInHours.set(day + 1, dailyWeatherSensitiveLoadInHours);
+          dailyWeatherSensitiveLoadInHours =
+            fillDailyWeatherSensitiveLoadInHours();
+          weeklyWeatherSensitiveLoadInHours
+                  .set(day + 1, dailyWeatherSensitiveLoadInHours);
           flag = true;
         }
       }
@@ -722,16 +903,22 @@ public class Household
 
         appliance.weatherDailyOperation(day, hour, temperature);
 
-        if ((appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 1) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 2) > 0)
-            || (appliance.getWeeklyLoadVector().get(day).get(hour * VillageConstants.QUARTERS_OF_HOUR + 3) > 0)) {
+        if ((appliance.getWeeklyLoadVector().get(day)
+                .get(hour * VillageConstants.QUARTERS_OF_HOUR) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * VillageConstants.QUARTERS_OF_HOUR + 1) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * VillageConstants.QUARTERS_OF_HOUR + 2) > 0)
+            || (appliance.getWeeklyLoadVector().get(day)
+                    .get(hour * VillageConstants.QUARTERS_OF_HOUR + 3) > 0)) {
 
           // log.debug("Changed Air Condition indeed");
           dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day);
           weeklyWeatherSensitiveLoad.set(day, dailyWeatherSensitiveLoad);
-          dailyWeatherSensitiveLoadInHours = fillDailyWeatherSensitiveLoadInHours();
-          weeklyWeatherSensitiveLoadInHours.set(day, dailyWeatherSensitiveLoadInHours);
+          dailyWeatherSensitiveLoadInHours =
+            fillDailyWeatherSensitiveLoadInHours();
+          weeklyWeatherSensitiveLoadInHours
+                  .set(day, dailyWeatherSensitiveLoadInHours);
 
         }
       }
@@ -754,8 +941,9 @@ public class Household
 
     long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
 
-    for (Appliance appliance : appliances) {
-      if (!(appliance instanceof NotShiftingAppliance) && !(appliance instanceof WeatherSensitiveAppliance)) {
+    for (Appliance appliance: appliances) {
+      if (!(appliance instanceof NotShiftingAppliance)
+          && !(appliance instanceof WeatherSensitiveAppliance)) {
         long[] temp = appliance.dailyShifting(tariff, now, day, gen);
         Vector<Long> tempVector = new Vector<Long>();
         Vector<Long> controllableVector = new Vector<Long>();
@@ -787,11 +975,15 @@ public class Household
   public void printDailyLoad (int day)
   {
     ListIterator<Integer> iter = weeklyBaseLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter2 = weeklyControllableLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter3 = weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
+    ListIterator<Integer> iter2 =
+      weeklyControllableLoadInHours.get(day).listIterator();
+    ListIterator<Integer> iter3 =
+      weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
     log.info("Summary of Daily Load of House " + name);
     for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
-      log.info("Hour : " + j + 1 + " Base Load : " + iter.next() + " Controllable Load : " + iter2.next() + " Weather Sensitive Load : " + iter3.next());
+      log.info("Hour : " + j + 1 + " Base Load : " + iter.next()
+               + " Controllable Load : " + iter2.next()
+               + " Weather Sensitive Load : " + iter3.next());
   }
 
   @Override

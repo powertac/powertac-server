@@ -86,4 +86,5 @@ class SemiShiftingAppliance extends Appliance
       fillDays(gen);
     super.fillWeeklyOperation(gen);
   }
+
 }

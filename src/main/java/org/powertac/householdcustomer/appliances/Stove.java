@@ -42,7 +42,8 @@ public class Stove extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Stove";
     saturation = Double.parseDouble(conf.getProperty("StoveSaturation"));
-    power = (int) (VillageConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.STOVE_POWER_MEAN);
+    power =
+      (int) (VillageConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.STOVE_POWER_MEAN);
     cycleDuration = VillageConstants.STOVE_DURATION_CYCLE;
     times = Integer.parseInt(conf.getProperty("StoveDailyTimes"));
 
@@ -64,7 +65,8 @@ public class Stove extends SemiShiftingAppliance
     Vector<Integer> temp = new Vector<Integer>();
 
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY - cycleDuration; i++) {
-      if (applianceOf.isEmpty(weekday, i) == false && applianceOf.isEmpty(weekday, i + 1) == false) {
+      if (applianceOf.isEmpty(weekday, i) == false
+          && applianceOf.isEmpty(weekday, i + 1) == false) {
         int count = applianceOf.tenantsNumber(weekday, i);
         for (int j = 0; j < count; j++) {
           temp.add(i);
@@ -98,7 +100,8 @@ public class Stove extends SemiShiftingAppliance
 
     // In order for stove to work someone must be in the house for half hour
     for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY - 1; j++) {
-      if (applianceOf.isEmpty(day, j) == false && applianceOf.isEmpty(day, j + 1) == false)
+      if (applianceOf.isEmpty(day, j) == false
+          && applianceOf.isEmpty(day, j + 1) == false)
         possibilityDailyOperation.add(true);
       else
         possibilityDailyOperation.add(false);
@@ -140,7 +143,9 @@ public class Stove extends SemiShiftingAppliance
     // find the all the available functioning hours of the appliance
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       if (possibleHours.contains(i)) {
-        if ((minvalue < tariff.getUsageCharge(hour1, 1, 0)) || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > VillageConstants.SAME)) {
+        if ((minvalue < tariff.getUsageCharge(hour1, 1, 0))
+            || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen
+                    .nextFloat() > VillageConstants.SAME)) {
           minvalue = tariff.getUsageCharge(hour1, 1, 0);
           minindex = i;
         }
@@ -150,6 +155,21 @@ public class Stove extends SemiShiftingAppliance
     newControllableLoad[minindex] = sumPower;
 
     return newControllableLoad;
+  }
+
+  public void calculateOverallPower ()
+  {
+    int day = -1;
+
+    day = (int) (Math.random() * operationDaysVector.size());
+
+    Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+    for (int i = 0; i < consumption.size(); i++)
+      overallPower += consumption.get(i);
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
   }
 
   @Override

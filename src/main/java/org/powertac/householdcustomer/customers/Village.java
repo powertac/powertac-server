@@ -135,6 +135,24 @@ public class Village extends AbstractCustomer
     new Vector<Vector<Long>>();
 
   /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances working.
+   **/
+  double[] dominantLoadNS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] dominantLoadRaS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] dominantLoadReS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] dominantLoadSS = new double[VillageConstants.HOURS_OF_DAY];
+
+  /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances not working.
+   **/
+  double[] nonDominantLoadNS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] nonDominantLoadRaS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] nonDominantLoadReS = new double[VillageConstants.HOURS_OF_DAY];
+  double[] nonDominantLoadSS = new double[VillageConstants.HOURS_OF_DAY];
+
+  /**
    * This is an vector containing the days of the competition that the household
    * model will use in order to check which of the tariffs that are available at
    * any given moment are the optimal for their consumption or production.
@@ -300,6 +318,13 @@ public class Village extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
+      /*
+            System.out.println(toString() + " " + type);
+            System.out.println("Dominant Consumption:"
+                               + Arrays.toString(getDominantLoad(type)));
+            System.out.println("Non Dominant Consumption:"
+                               + Arrays.toString(getNonDominantLoad(type)));
+                               */
     }
 
     /*
@@ -636,6 +661,7 @@ public class Village extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursNS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
+
     }
     else if (type.equals("RaS")) {
       for (int i = 0; i < VillageConstants.DAYS_OF_WEEK
@@ -678,6 +704,51 @@ public class Village extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursSS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
+    }
+
+    fillAggDominantLoads(type);
+
+  }
+
+  private void fillAggDominantLoads (String type)
+  {
+
+    double[] dominant = new double[VillageConstants.HOURS_OF_DAY];
+    double[] nonDominant = new double[VillageConstants.HOURS_OF_DAY];
+
+    Vector<Household> houses = getHouses(type);
+
+    for (int i = 0; i < houses.size(); i++) {
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
+
+        dominant[j] += houses.get(i).getDominantConsumption(j);
+        nonDominant[j] += houses.get(i).getNonDominantConsumption(j);
+
+      }
+    }
+
+    if (type.equals("NS")) {
+
+      dominantLoadNS = dominant;
+      nonDominantLoadNS = nonDominant;
+
+    }
+    else if (type.equals("RaS")) {
+
+      dominantLoadRaS = dominant;
+      nonDominantLoadRaS = nonDominant;
+    }
+    else if (type.equals("ReS")) {
+
+      dominantLoadReS = dominant;
+      nonDominantLoadReS = nonDominant;
+
+    }
+    else {
+
+      dominantLoadSS = dominant;
+      nonDominantLoadSS = nonDominant;
+
     }
   }
 
@@ -1433,6 +1504,48 @@ public class Village extends AbstractCustomer
 
     log.debug("Controllable Load for " + type + ":" + summaryControllable);
     return summaryControllable;
+  }
+
+  /**
+   * This function returns the dominant Consumption Load for a certain type of
+   * houses
+   */
+  public double[] getDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return dominantLoadNS;
+    }
+    else if (type.equals("RaS")) {
+      return dominantLoadRaS;
+    }
+    else if (type.equals("ReS")) {
+      return dominantLoadReS;
+    }
+    else {
+      return dominantLoadSS;
+    }
+
+  }
+
+  /**
+   * This function returns the non dominant Consumption Load for a certain type
+   * of houses
+   */
+  public double[] getNonDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return nonDominantLoadNS;
+    }
+    else if (type.equals("RaS")) {
+      return nonDominantLoadRaS;
+    }
+    else if (type.equals("ReS")) {
+      return nonDominantLoadReS;
+    }
+    else {
+      return nonDominantLoadSS;
+    }
+
   }
 
   /**

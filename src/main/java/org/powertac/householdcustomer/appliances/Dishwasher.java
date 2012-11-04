@@ -50,9 +50,12 @@ public class Dishwasher extends SemiShiftingAppliance
     // Filling the base variables
     name = household + " Dishwasher";
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
-    power = (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
+    power =
+      (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
     cycleDuration = VillageConstants.DISHWASHER_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("DishwasherWeeklyTimes")) + applianceOf.getMembers().size();
+    times =
+      Integer.parseInt(conf.getProperty("DishwasherWeeklyTimes"))
+              + applianceOf.getMembers().size();
   }
 
   @Override
@@ -67,18 +70,21 @@ public class Dishwasher extends SemiShiftingAppliance
     // Printing Function Day Vector
 
     log.debug("Days Vector = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++)
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++)
       log.debug("Day: " + i + " Times: " + days.get(i));
 
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+                  + iter4.next());
     }
   }
 
@@ -170,7 +176,8 @@ public class Dishwasher extends SemiShiftingAppliance
     if (days.get(day) > 0) {
 
       int[] minindex = new int[2];
-      double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+      double[] minvalue =
+        { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
       boolean[] functionMatrix = createShiftingOperationMatrix(day);
       Instant hour1 = now;
       Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
@@ -192,14 +199,19 @@ public class Dishwasher extends SemiShiftingAppliance
       for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
         if (possibleHours.contains(i)) {
 
-          newValue = tariff.getUsageCharge(hour1, 1, 0) + tariff.getUsageCharge(hour2, 1, 0);
+          newValue =
+            tariff.getUsageCharge(hour1, 1, 0)
+                    + tariff.getUsageCharge(hour2, 1, 0);
 
-          if ((minvalue[0] < newValue) || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+          if ((minvalue[0] < newValue)
+              || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
             minvalue[1] = minvalue[0];
             minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
             minindex[1] = minindex[0];
             minindex[0] = i;
-          } else if ((minvalue[1] < newValue) || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
+          }
+          else if ((minvalue[1] < newValue)
+                   || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
             minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
             minindex[1] = i;
           }
@@ -212,18 +224,49 @@ public class Dishwasher extends SemiShiftingAppliance
 
       if (days.get(day) == VillageConstants.OPERATION_DAILY_TIMES_LIMIT) {
 
-        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
 
-      } else {
-        newControllableLoad[minindex[0]] = VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] = VillageConstants.QUARTERS_OF_HOUR * power;
+      }
+      else {
+        newControllableLoad[minindex[0]] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[0] + 1] =
+          VillageConstants.QUARTERS_OF_HOUR * power;
       }
 
     }
     return newControllableLoad;
+  }
+
+  public void calculateOverallPower ()
+  {
+    boolean flag = true;
+    int day = -1;
+
+    while (flag) {
+      day = (int) (Math.random() * operationDaysVector.size());
+      // log.debug("Choosen Day: " + day);
+      // log.debug("Times for that day: " + getTimesForDay(day));
+
+      if (getTimesForDay(day) == 1)
+        flag = false;
+
+    }
+
+    Vector<Integer> consumption = weeklyLoadVector.get(day);
+
+    for (int i = 0; i < consumption.size(); i++)
+      overallPower += consumption.get(i);
+
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
   }
 
   @Override
