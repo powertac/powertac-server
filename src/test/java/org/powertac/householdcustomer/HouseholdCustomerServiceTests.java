@@ -159,7 +159,7 @@ public class HouseholdCustomerServiceTests
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
               .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-              .addRate(new Rate().withValue(-0.555));
+              .addRate(new Rate().withValue(-0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);
@@ -1006,6 +1006,7 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.publishNewTariffs(tcactivelist);
   }
 
+  // @Repeat(20)
   @Test
   public void testDailyShifting ()
   {
@@ -1110,7 +1111,7 @@ public class HouseholdCustomerServiceTests
     tsc1.addRate(r21);
     tsc1.addRate(r22);
     tsc1.addRate(r23);
-    tsc1.withPeriodicPayment(0.1);
+
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
     tariff1.setState(Tariff.State.OFFERED);
