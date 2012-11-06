@@ -174,7 +174,7 @@ public class TimeslotRepo implements DomainRepo
       // need to create the first timeslot before the rest will work
       makeTimeslot(Competition.currentCompetition().getSimulationBaseTime());
     }
-    findOrCreateBySerialNumber(getIndex(timeService.getCurrentTime()));
+    findOrCreateBySerialNumber(getTimeslotIndex(timeService.getCurrentTime()));
   }
   
   /**
@@ -183,12 +183,14 @@ public class TimeslotRepo implements DomainRepo
   public Timeslot findByInstant (Instant time)
   {
     log.debug("find " + time.toString());
-    int index = getIndex(time);
+    int index = getTimeslotIndex(time);
     return findBySerialNumber(index);
   }
 
-  // converts time to timeslot index
-  private int getIndex (Instant time)
+  /**
+   * Converts time to timeslot index without actually creating a timeslot
+   */
+  public int getTimeslotIndex (Instant time)
   {
     long offset = time.getMillis() - first.getStartInstant().getMillis();
     long duration = Competition.currentCompetition().getTimeslotDuration();
