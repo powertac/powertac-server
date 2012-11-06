@@ -135,7 +135,7 @@ public class CompetitionControlService
 
   private int timeslotCount = 0;
   private int currentSlot = 0;
-  private int currentSlotOffset = 0;
+  private int bootstrapOffset = 0; // non-zero for sim sessions
   private RandomSeed randomGen; // used to compute game length
 
   // broker interaction state
@@ -332,10 +332,10 @@ public class CompetitionControlService
     if (!bootstrapMode) {
       // Create the timeslots from the bootstrap period - they will be needed to 
       // instantiate weather reports. All are disabled.
-      currentSlotOffset = competition.getBootstrapTimeslotCount()
+      bootstrapOffset = competition.getBootstrapTimeslotCount()
                           + competition.getBootstrapDiscardedTimeslots();
       createInitialTimeslots(competition.getSimulationBaseTime(),
-                             (currentSlotOffset + 1),
+                             (bootstrapOffset + 1),
                              0);
       log.info("created " + timeslotRepo.count() + " bootstrap timeslots");
 
@@ -540,7 +540,7 @@ public class CompetitionControlService
     currentSlot = 0;
     
     if (!bootstrapMode) {
-      int slotCount = currentSlotOffset;
+      int slotCount = bootstrapOffset;
       log.info("first slot: " + slotCount);
       base = base.plus(slotCount * competition.getTimeslotDuration());
     }
@@ -709,7 +709,7 @@ public class CompetitionControlService
       stop();
       return;
     }
-    
+
     Instant time = timeService.getCurrentTime();
     Date started = new Date();
 
@@ -767,18 +767,15 @@ public class CompetitionControlService
   private int activateNextTimeslot ()
   {
     long timeslotMillis = competition.getTimeslotDuration();
-    // first, deactivate the oldest active timeslot
-    // remember that this runs at the beginning of a timeslot, so the current
-    // timeslot is the first one we consider.
-    Timeslot current = timeslotRepo.currentTimeslot();
+    Timeslot current = findCurrentTimeslot();
     if (current == null) {
       log.error("current timeslot is null at " + timeService.getCurrentTime());
       return -1;
     }
-    if (current.getSerialNumber() != currentSlot + currentSlotOffset) {
-      log.error("current timeslot serial is " + current.getSerialNumber() +
-                ", should be " + (currentSlot + currentSlotOffset));
-    }
+
+    // first, deactivate the oldest active timeslot
+    // remember that this runs at the beginning of a timeslot, so the current
+    // timeslot is the first one we consider.
     int oldSerial = (current.getSerialNumber() +
             competition.getDeactivateTimeslotsAhead() - 1);
     Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
@@ -802,6 +799,31 @@ public class CompetitionControlService
     // Communicate timeslot updates to brokers
     brokerProxyService.broadcastMessage(makeTimeslotUpdate());
     return current.getSerialNumber();
+  }
+
+  // Finds and returns the timeslot with the correct index, adjusting
+  // the clock if necessary
+  private synchronized Timeslot findCurrentTimeslot ()
+  {
+    // note that currentSlot got updated after the last call to step();
+    int expectedIndex = currentSlot + bootstrapOffset;
+    Timeslot currentTimeslot = timeslotRepo.findBySerialNumber(expectedIndex);
+    if (currentTimeslot == null) {
+      return null;
+    }
+
+    Instant now = timeService.getCurrentTime();
+    int nextIndex = timeslotRepo.getTimeslotIndex(now);
+    if (nextIndex > expectedIndex) {
+      // time has disappeared somewhere - may need to re-sync clocks
+      long sysTime = new Date().getTime();
+      long simTime = currentTimeslot.getStartInstant().getMillis();
+      long tickTime = timeService.getStart()
+              + (simTime - timeService.getBase()) / timeService.getRate();
+      log.warn("sysTime=" + sysTime + ", tickTime=" + tickTime);
+    }
+    
+    return currentTimeslot;
   }
 
   // ------------ simulation shutdown ------------
