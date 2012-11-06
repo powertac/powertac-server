@@ -159,7 +159,7 @@ public class OfficeComplexCustomerServiceTests
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
               .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-              .addRate(new Rate().withValue(-0.222));
+              .addRate(new Rate().withValue(-0.5));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);

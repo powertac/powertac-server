@@ -117,6 +117,20 @@ public class OfficeComplex extends AbstractCustomer
     new Vector<Vector<Long>>();
 
   /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances working.
+   **/
+  double[] dominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+  double[] dominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+  /**
+   * These are the mean consumption of the village types for the days with the
+   * dominant appliances not working.
+   **/
+  double[] nonDominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+  double[] nonDominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+  /**
    * This is an vector containing the days of the competition that the office
    * complex model will use in order to check which of the tariffs that are
    * available at any given moment are the optimal for their consumption or
@@ -253,6 +267,14 @@ public class OfficeComplex extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
+
+      /*
+      System.out.println(toString() + " " + type);
+      System.out.println("Dominant Consumption:"
+      + Arrays.toString(getDominantLoad(type)));
+      System.out.println("Non Dominant Consumption:"
+      + Arrays.toString(getNonDominantLoad(type)));
+      */
     }
     /*
         System.out.println("Subscriptions:" + subscriptionMap.toString());
@@ -575,6 +597,38 @@ public class OfficeComplex extends AbstractCustomer
         aggDailyWeatherSensitiveLoadInHoursSS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
       }
+    }
+    fillAggDominantLoads(type);
+  }
+
+  private void fillAggDominantLoads (String type)
+  {
+
+    double[] dominant = new double[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] nonDominant = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+    Vector<Office> houses = getOffices(type);
+
+    for (int i = 0; i < houses.size(); i++) {
+      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
+
+        dominant[j] += houses.get(i).getDominantConsumption(j);
+        nonDominant[j] += houses.get(i).getNonDominantConsumption(j);
+
+      }
+    }
+
+    if (type.equals("NS")) {
+
+      dominantLoadNS = dominant;
+      nonDominantLoadNS = nonDominant;
+
+    }
+    else {
+
+      dominantLoadSS = dominant;
+      nonDominantLoadSS = nonDominant;
+
     }
   }
 
@@ -1097,6 +1151,36 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
+   * This function returns the dominant Consumption Load for a certain type of
+   * houses
+   */
+  public double[] getDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return dominantLoadNS;
+    }
+    else {
+      return dominantLoadSS;
+    }
+
+  }
+
+  /**
+   * This function returns the non dominant Consumption Load for a certain type
+   * of houses
+   */
+  public double[] getNonDominantLoad (String type)
+  {
+    if (type.equals("NS")) {
+      return nonDominantLoadNS;
+    }
+    else {
+      return nonDominantLoadSS;
+    }
+
+  }
+
+  /**
    * This function curtails the quantity of controllable load given by the
    * subscription, by reducing current timeslots consumption and adding it to
    * the next timeslot.
@@ -1261,6 +1345,7 @@ public class OfficeComplex extends AbstractCustomer
       }
 
       Vector<Double> estimation = new Vector<Double>();
+      Double rand = gen.nextDouble();
 
       // getting the active tariffs for evaluation
       ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
@@ -1276,7 +1361,7 @@ public class OfficeComplex extends AbstractCustomer
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation.add(-(costEstimation(tariff, type)));
+            estimation.add(-(costEstimation(tariff, type, rand)));
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
@@ -1308,7 +1393,7 @@ public class OfficeComplex extends AbstractCustomer
    * fixed payments as well as the variable that are depending on the tariff
    * rates
    */
-  double costEstimation (Tariff tariff, String type)
+  double costEstimation (Tariff tariff, String type, Double rand)
   {
     double costVariable = 0;
 
@@ -1319,13 +1404,13 @@ public class OfficeComplex extends AbstractCustomer
      * shifting devices or maybe shifting will be taken into consideration
      * In any other case shifting will be done.
      */
-    /*   if (type.equals("NS")) {
+    if (type.equals("NS")) {
       // System.out.println("Simple Evaluation for " + type);
       log.debug("Simple Evaluation for " + type);
       costVariable = estimateVariableTariffPayment(tariff, type);
     }
     else if (type.equals("RaS")) {
-      Double rand = gen.nextDouble();
+
       // System.out.println(rand);
       if (rand < getInertiaMap().get(type)) {
         // System.out.println("Simple Evaluation for " + type);
@@ -1343,9 +1428,8 @@ public class OfficeComplex extends AbstractCustomer
       log.debug("Shifting Evaluation for " + type);
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
-    */
 
-    costVariable = estimateVariableTariffPayment(tariff, type);
+    // costVariable = estimateVariableTariffPayment(tariff, type);
 
     double costFixed =
       estimateFixedTariffPayments(tariff) * getOffices(type).size();
@@ -1430,9 +1514,33 @@ public class OfficeComplex extends AbstractCustomer
    */
   double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
   {
-    // TODO
+    double finalCostSummary = 0;
 
-    return 0;
+    double dominantCostSummary = 0, nonDominantCostSummary = 0;
+    double[] dominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] nonDominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+    if (type.equals("NS")) {
+
+      dominantUsage = dominantLoadNS;
+      nonDominantUsage = nonDominantLoadNS;
+
+    }
+    else {
+
+      dominantUsage = dominantLoadSS;
+      nonDominantUsage = nonDominantLoadSS;
+
+    }
+
+    dominantCostSummary = tariffEvalHelper.estimateCost(tariff, dominantUsage);
+    nonDominantCostSummary =
+      tariffEvalHelper.estimateCost(tariff, nonDominantUsage);
+
+    log.debug("Dominant Cost Summary: " + dominantCostSummary);
+    log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
+    finalCostSummary = dominantCostSummary + nonDominantCostSummary;
+    return -finalCostSummary;
   }
 
   /**
