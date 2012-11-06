@@ -92,6 +92,11 @@ public class WholesaleMessageHandler implements Initializable {
 
 		WholesaleMarket market = wholesaleService.findWholesaleMarket(orderbook.getTimeslot().getSerialNumber());
 		WholesaleSnapshot snapshot = market.findSnapshot(targetTimeslotIndex);
+		if (!market.getSnapshotsMap().containsKey(visualizerBean.getCurrentTimeslotSerialNumber())) {
+			WholesaleSnapshot snap = new WholesaleSnapshot(visualizerBean.getCurrentMillis(), orderbook.getTimeslot(), visualizerBean.getCurrentTimeslotSerialNumber()); 
+			market.getSnapshotsMap().put(visualizerBean.getCurrentTimeslotSerialNumber(),
+					snap);
+		}
 		snapshot.setOrderbook(new VisualizerOrderbook(orderbook));
 		// the end for this snapshot if there is null clearing price:
 		if (orderbook.getClearingPrice() == null) {

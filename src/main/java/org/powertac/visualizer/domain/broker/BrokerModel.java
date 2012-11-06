@@ -120,7 +120,11 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 		currentDayState.addTariffTransaction(tariffTransaction);
 		
 		//tariff info:
-		tariffInfoMaps.get(tariffTransaction.getTariffSpec().getId()).addTariffTransaction(tariffTransaction);
+		TariffInfo tariffInfo = tariffInfoMaps.get(tariffTransaction.getTariffSpec().getId());
+		if(tariffInfo!=null){
+			tariffInfo.addTariffTransaction(tariffTransaction);
+			
+		}
 
 	}
 
