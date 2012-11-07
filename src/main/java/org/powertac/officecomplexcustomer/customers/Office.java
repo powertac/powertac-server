@@ -74,69 +74,39 @@ public class Office
    * installed inside the office.
    **/
   Vector<Integer> dailyBaseLoad = new Vector<Integer>();
-
-  /**
-   * This is a vector containing each day's controllable load from the
-   * appliances installed inside the office.
-   **/
   Vector<Integer> dailyControllableLoad = new Vector<Integer>();
-
-  /**
-   * This is a vector containing each day's weather sensitive load from the
-   * appliances that are sensitive to weather conditions.
-   **/
   Vector<Integer> dailyWeatherSensitiveLoad = new Vector<Integer>();
+  Vector<Integer> dailyNonDominantLoad = new Vector<Integer>();
+  Vector<Integer> dailyDominantLoad = new Vector<Integer>();
 
   /**
    * This is a vector containing the base load from the appliances installed
    * inside the office for all the week days.
    **/
   Vector<Vector<Integer>> weeklyBaseLoad = new Vector<Vector<Integer>>();
-
-  /**
-   * This is a vector containing the controllable load from the appliances
-   * installed inside the office for all the week days.
-   **/
   Vector<Vector<Integer>> weeklyControllableLoad =
     new Vector<Vector<Integer>>();
-
-  /**
-   * This is a vector containing the weather sensitive load from the appliances
-   * installed inside the office for all the week days.
-   **/
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoad =
     new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyNonDominantLoad = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyDominantLoad = new Vector<Vector<Integer>>();
 
   /** This is an aggregated vector containing each day's base load in hours. **/
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
-
-  /**
-   * This is an aggregated vector containing each day's controllable load in
-   * hours.
-   **/
   Vector<Integer> dailyControllableLoadInHours = new Vector<Integer>();
-
-  /**
-   * This is an aggregated vector containing each day's weather sensitive load
-   * in hours.
-   **/
   Vector<Integer> dailyWeatherSensitiveLoadInHours = new Vector<Integer>();
+  Vector<Integer> dailyNonDominantLoadInHours = new Vector<Integer>();
+  Vector<Integer> dailyDominantLoadInHours = new Vector<Integer>();
 
   /** This is an aggregated vector containing the weekly base load in hours. **/
   Vector<Vector<Integer>> weeklyBaseLoadInHours = new Vector<Vector<Integer>>();
-
-  /**
-   * This is an aggregated vector containing the weekly controllable load in
-   * hours.
-   **/
   Vector<Vector<Integer>> weeklyControllableLoadInHours =
     new Vector<Vector<Integer>>();
-
-  /**
-   * This is an aggregated vector containing the weekly weather sensitive load
-   * in hours.
-   **/
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyNonDominantLoadInHours =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyDominantLoadInHours =
     new Vector<Vector<Integer>>();
 
   /**
@@ -247,21 +217,42 @@ public class Office
     if (getDominantAppliance().getOverallPower() != 1)
       createDominantOperationVectors();
 
+    int overallDays =
+      (OfficeComplexConstants.WEEKS_OF_COMPETITION + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP)
+              * OfficeComplexConstants.DAYS_OF_WEEK;
+
+    for (int i = 0; i < overallDays; i++) {
+      dailyNonDominantLoad = fillDailyNonDominantLoad(i);
+      weeklyNonDominantLoad.add(dailyNonDominantLoad);
+      dailyNonDominantLoadInHours = fillDailyNonDominantLoadInHours();
+      weeklyNonDominantLoadInHours.add(dailyNonDominantLoadInHours);
+      dailyDominantLoad = fillDailyDominantLoad(i);
+      weeklyDominantLoad.add(dailyDominantLoad);
+      dailyDominantLoadInHours = fillDailyDominantLoadInHours();
+      weeklyDominantLoadInHours.add(dailyDominantLoadInHours);
+    }
+
     /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
     }
     
     
-     System.out.println(this.toString() + " Dominant Appliance: "
-                       + getDominantAppliance()
-                       + " Overall Power Consumption: "
-                       + getDominantAppliance().getOverallPower());
+    
         System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
         System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
         System.out.println(this.toString() + "  " + weeklyControllableLoadInHours.size());
-    */
+    
+    System.out.println(this.toString() + " Dominant Appliance: "
+                       + getDominantAppliance()
+                       + " Overall Power Consumption: "
+                       + getDominantAppliance().getOverallPower());
+    System.out.println(this.toString() + "  "
+                       + weeklyDominantLoad.get(0).toString());
+    System.out.println(this.toString() + "  "
+                       + weeklyNonDominantLoad.get(0).toString());
+                       */
   }
 
   /**
@@ -861,6 +852,54 @@ public class Office
   }
 
   /**
+   * This function is used in order to fill the daily dominant load of
+   * the household for each quarter of the hour.
+   * 
+   * @param weekday
+   * @return
+   */
+  Vector<Integer> fillDailyDominantLoad (int day)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    int sum = 0;
+
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum =
+        appliances.get(dominantAppliance).getWeeklyLoadVector().get(day).get(i);
+
+      v.add(sum);
+    }
+
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the daily non dominant load of
+   * the household for each quarter of the hour.
+   * 
+   * @param weekday
+   * @return
+   */
+  Vector<Integer> fillDailyNonDominantLoad (int day)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (int j = 0; j < appliances.size(); j++) {
+        if (j != dominantAppliance)
+          sum = sum + appliances.get(j).getWeeklyLoadVector().get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
    * This function fills out the daily Base Load in hours vector taking in
    * consideration the load per quarter of an hour.
    * 
@@ -939,6 +978,62 @@ public class Office
                 + dailyWeatherSensitiveLoad
                         .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
                 + dailyWeatherSensitiveLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function fills out the daily dominant Load in hours vector
+   * taking in consideration the load per quarter of an hour.
+   * 
+   * @return
+   */
+  Vector<Integer> fillDailyDominantLoadInHours ()
+  {
+
+    // Creating Auxiliary Variables
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+      sum = 0;
+      sum =
+        dailyDominantLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                + dailyDominantLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                + dailyDominantLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                + dailyDominantLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function fills out the daily non dominant Load in hours vector
+   * taking in consideration the load per quarter of an hour.
+   * 
+   * @return
+   */
+  Vector<Integer> fillDailyNonDominantLoadInHours ()
+  {
+
+    // Creating Auxiliary Variables
+    Vector<Integer> v =
+      new Vector<Integer>(OfficeComplexConstants.HOURS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+      sum = 0;
+      sum =
+        dailyNonDominantLoad.get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                + dailyNonDominantLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                + dailyNonDominantLoad
+                        .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                + dailyNonDominantLoad
                         .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
       v.add(sum);
     }

@@ -92,6 +92,20 @@ public class OfficeComplex extends AbstractCustomer
     new Vector<Vector<Long>>();
 
   /**
+   * These are the vectors containing aggregated each day's dominant load from
+   * the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyDominantLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's non dominant load
+   * from the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyNonDominantLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadSS = new Vector<Vector<Long>>();
+
+  /**
    * These are the aggregated vectors containing each day's base load of all the
    * offices in hours.
    **/
@@ -114,6 +128,24 @@ public class OfficeComplex extends AbstractCustomer
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursNS =
     new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS =
+    new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's dominant load from
+   * the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursSS =
+    new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's non dominant load
+   * from the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursSS =
     new Vector<Vector<Long>>();
 
   /**
@@ -277,13 +309,19 @@ public class OfficeComplex extends AbstractCustomer
       */
     }
     /*
-        System.out.println("Subscriptions:" + subscriptionMap.toString());
-        System.out.println("Inertia:" + inertiaMap.toString());
-        System.out.println("Period:" + periodMap.toString());
-        System.out.println("Lamda:" + lamdaMap.toString());
+    System.out.println(toString() + " "
+                       + aggDailyDominantLoadInHoursNS.get(0).toString());
+
+    System.out.println(toString() + " "
+                       + aggDailyNonDominantLoadInHoursNS.get(0).toString());
+    
+      System.out.println("Subscriptions:" + subscriptionMap.toString());
+      System.out.println("Inertia:" + inertiaMap.toString());
+      System.out.println("Period:" + periodMap.toString());
+      System.out.println("Lamda:" + lamdaMap.toString());
     
     for (String type : subscriptionMap.keySet()) {
-      showAggLoad(type);
+    showAggLoad(type);
     }
     */
   }
@@ -582,6 +620,12 @@ public class OfficeComplex extends AbstractCustomer
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursNS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadNS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadNS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursNS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursNS.add(fillAggDailyNonDominantLoad(i,
+                                                                         type));
       }
     }
     else {
@@ -596,6 +640,12 @@ public class OfficeComplex extends AbstractCustomer
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursSS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadSS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadSS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursSS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursSS.add(fillAggDailyNonDominantLoad(i,
+                                                                         type));
       }
     }
     fillAggDominantLoads(type);
@@ -759,6 +809,73 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
+   * This function is used in order to fill the aggregated daily dominant Load
+   * of the office complex's offices for each quarter of the
+   * hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyDominantLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    }
+    else {
+      offices = smartShiftingoffices;
+    }
+
+    Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Office office: offices) {
+        sum = sum + office.weeklyDominantLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily non dominant
+   * Load
+   * of the office complex's offices for each quarter of the
+   * hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyNonDominantLoad (int day, String type)
+  {
+
+    Vector<Office> offices = new Vector<Office>();
+
+    if (type.equals("NS")) {
+      offices = notShiftingoffices;
+    }
+    else {
+      offices = smartShiftingoffices;
+    }
+
+    Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Office office: offices) {
+        sum = sum + office.weeklyNonDominantLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
    * This function is used in order to fill the daily Base Load of the office
    * for each hour for a certain type of offices.
    * 
@@ -897,6 +1014,108 @@ public class OfficeComplex extends AbstractCustomer
                   + aggDailyWeatherSensitiveLoadSS.get(dayTemp)
                           .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
                   + aggDailyWeatherSensitiveLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to fill the daily dominant Load of
+   * the office for each hour for a certain type of offices.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyDominantLoadInHours (int day, String type)
+  {
+
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadNS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadSS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to fill the daily dominant Load of
+   * the office for each hour for a certain type of offices.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyNonDominantLoadInHours (int day, String type)
+  {
+
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadNS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else {
+      for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadSS.get(dayTemp)
+                  .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
+                          .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
                           .get(i * OfficeComplexConstants.QUARTERS_OF_HOUR + 3);
         daily.add(sum);
       }
