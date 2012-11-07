@@ -302,6 +302,8 @@ public class WaterHeater extends FullyShiftingAppliance
         overallPower += consumption.get(i);
 
     }
+    // log.debug("Overall Operation Power of " + toString() + ":" +
+    // overallPower);
 
   }
 

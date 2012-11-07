@@ -199,9 +199,8 @@ public class Dryer extends SemiShiftingAppliance
     int day = -1;
 
     while (flag) {
+      overallPower = 0;
       day = (int) (Math.random() * operationDaysVector.size());
-      // System.out.println("Dryer Choosen Day: " + day);
-      // System.out.println("Dryer Times for that day: " + getTimesForDay(day));
       // log.debug("Dryer Choosen Day: " + day);
       // log.debug("Dryer Times for that day: " + getTimesForDay(day));
 
@@ -212,13 +211,9 @@ public class Dryer extends SemiShiftingAppliance
 
       for (int i = 0; i < consumption.size(); i++)
         overallPower += consumption.get(i);
-      /*
-            if (overallPower == 0 && flag == false) {
-              flag = true;
-              System.out.println(weeklyOperation.get(day).toString());
-              System.out.println(weeklyLoadVector.get(day).toString());
-            }
-      */
+
+      if (overallPower == 0)
+        flag = true;
     }
 
     // log.debug("Overall Operation Power of " + toString() + ":" +

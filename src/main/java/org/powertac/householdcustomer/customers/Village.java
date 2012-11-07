@@ -100,6 +100,24 @@ public class Village extends AbstractCustomer
     new Vector<Vector<Long>>();
 
   /**
+   * These are the vectors containing aggregated each day's dominant load from
+   * the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyDominantLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadRaS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadReS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadSS = new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's non dominant load
+   * from the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyNonDominantLoadNS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadRaS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadReS = new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadSS = new Vector<Vector<Long>>();
+
+  /**
    * These are the aggregated vectors containing each day's base load of all the
    * households in hours.
    **/
@@ -132,6 +150,32 @@ public class Village extends AbstractCustomer
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursReS =
     new Vector<Vector<Long>>();
   Vector<Vector<Long>> aggDailyWeatherSensitiveLoadInHoursSS =
+    new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's dominant load from
+   * the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursRaS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursReS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyDominantLoadInHoursSS =
+    new Vector<Vector<Long>>();
+
+  /**
+   * These are the vectors containing aggregated each day's non dominant load
+   * from the appliances installed inside the households of each type.
+   **/
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursNS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursRaS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursReS =
+    new Vector<Vector<Long>>();
+  Vector<Vector<Long>> aggDailyNonDominantLoadInHoursSS =
     new Vector<Vector<Long>>();
 
   /**
@@ -320,15 +364,22 @@ public class Village extends AbstractCustomer
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
 
       /*
-      System.out.println(toString() + " " + type);
-      System.out.println("Dominant Consumption:"
-      + Arrays.toString(getDominantLoad(type)));
-      System.out.println("Non Dominant Consumption:"
-      + Arrays.toString(getNonDominantLoad(type)));
-      */
+            
+            System.out.println(toString() + " " + type);
+            System.out.println("Dominant Consumption:"
+            + Arrays.toString(getDominantLoad(type)));
+            System.out.println("Non Dominant Consumption:"
+            + Arrays.toString(getNonDominantLoad(type)));
+            */
     }
-
     /*
+    System.out.println(toString() + " "
+                       + aggDailyDominantLoadInHoursNS.get(0).toString());
+
+    System.out.println(toString() + " "
+                       + aggDailyNonDominantLoadInHoursNS.get(0).toString());
+
+    
      * System.out.println("Subscriptions:" + subscriptionMap.toString());
      * System.out.println("Controllable Subscriptions:" +
      * controllableSubscriptionMap.toString());
@@ -656,11 +707,18 @@ public class Village extends AbstractCustomer
         aggDailyControllableLoadNS.add(fillAggDailyControllableLoad(i, type));
         aggDailyWeatherSensitiveLoadNS
                 .add(fillAggDailyWeatherSensitiveLoad(i, type));
+
         aggDailyBaseLoadInHoursNS.add(fillAggDailyBaseLoadInHours(i, type));
         aggDailyControllableLoadInHoursNS
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursNS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadNS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadNS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursNS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursNS.add(fillAggDailyNonDominantLoad(i,
+                                                                         type));
       }
     }
     else if (type.equals("RaS")) {
@@ -675,6 +733,12 @@ public class Village extends AbstractCustomer
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursRaS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadRaS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadRaS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursRaS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursRaS
+                .add(fillAggDailyNonDominantLoad(i, type));
       }
     }
     else if (type.equals("ReS")) {
@@ -689,6 +753,12 @@ public class Village extends AbstractCustomer
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursReS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadReS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadReS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursReS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursReS
+                .add(fillAggDailyNonDominantLoad(i, type));
       }
     }
     else {
@@ -703,6 +773,12 @@ public class Village extends AbstractCustomer
                 .add(fillAggDailyControllableLoadInHours(i, type));
         aggDailyWeatherSensitiveLoadInHoursSS
                 .add(fillAggDailyWeatherSensitiveLoadInHours(i, type));
+
+        aggDailyDominantLoadSS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadSS.add(fillAggDailyNonDominantLoad(i, type));
+        aggDailyDominantLoadInHoursSS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyNonDominantLoadInHoursSS.add(fillAggDailyNonDominantLoad(i,
+                                                                         type));
       }
     }
 
@@ -902,6 +978,82 @@ public class Village extends AbstractCustomer
       sum = 0;
       for (Household house: houses) {
         sum = sum + house.weeklyWeatherSensitiveLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily dominant
+   * Load of the village's households for each quarter of the hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyDominantLoad (int day, String type)
+  {
+
+    Vector<Household> houses = new Vector<Household>();
+
+    if (type.equals("NS")) {
+      houses = notShiftingHouses;
+    }
+    else if (type.equals("RaS")) {
+      houses = randomlyShiftingHouses;
+    }
+    else if (type.equals("ReS")) {
+      houses = regularlyShiftingHouses;
+    }
+    else {
+      houses = smartShiftingHouses;
+    }
+
+    Vector<Long> v = new Vector<Long>(VillageConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Household house: houses) {
+        sum = sum + house.weeklyDominantLoad.get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the aggregated daily non dominant
+   * Load of the village's households for each quarter of the hour.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyNonDominantLoad (int day, String type)
+  {
+
+    Vector<Household> houses = new Vector<Household>();
+
+    if (type.equals("NS")) {
+      houses = notShiftingHouses;
+    }
+    else if (type.equals("RaS")) {
+      houses = randomlyShiftingHouses;
+    }
+    else if (type.equals("ReS")) {
+      houses = regularlyShiftingHouses;
+    }
+    else {
+      houses = smartShiftingHouses;
+    }
+
+    Vector<Long> v = new Vector<Long>(VillageConstants.QUARTERS_OF_DAY);
+    long sum = 0;
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (Household house: houses) {
+        sum = sum + house.weeklyNonDominantLoad.get(day).get(i);
       }
       v.add(sum);
     }

@@ -159,15 +159,25 @@ public class Stove extends SemiShiftingAppliance
 
   public void calculateOverallPower ()
   {
+    boolean flag = true;
     int day = -1;
 
-    day = (int) (Math.random() * operationDaysVector.size());
+    while (flag) {
+      overallPower = 0;
+      day = (int) (Math.random() * operationDaysVector.size());
+      flag = false;
+      // log.debug("Choosen Day: " + day);
+      // log.debug("Times for that day: " + getTimesForDay(day));
 
-    Vector<Integer> consumption = weeklyLoadVector.get(day);
+      Vector<Integer> consumption = weeklyLoadVector.get(day);
 
-    for (int i = 0; i < consumption.size(); i++)
-      overallPower += consumption.get(i);
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
 
+      if (overallPower == 0)
+        flag = true;
+
+    }
     // log.debug("Overall Operation Power of " + toString() + ":" +
     // overallPower);
   }

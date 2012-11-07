@@ -144,6 +144,7 @@ public class Dishwasher extends SemiShiftingAppliance
             break;
         }
       }
+
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
@@ -249,21 +250,27 @@ public class Dishwasher extends SemiShiftingAppliance
   {
     boolean flag = true;
     int day = -1;
+    Vector<Integer> consumption = new Vector<Integer>();
 
     while (flag) {
+      overallPower = 0;
       day = (int) (Math.random() * operationDaysVector.size());
+
       // log.debug("Choosen Day: " + day);
       // log.debug("Times for that day: " + getTimesForDay(day));
 
       if (getTimesForDay(day) == 1)
         flag = false;
 
+      consumption = weeklyLoadVector.get(day);
+
+      for (int i = 0; i < consumption.size(); i++)
+        overallPower += consumption.get(i);
+
+      if (overallPower == 0)
+        flag = true;
+
     }
-
-    Vector<Integer> consumption = weeklyLoadVector.get(day);
-
-    for (int i = 0; i < consumption.size(); i++)
-      overallPower += consumption.get(i);
 
     // log.debug("Overall Operation Power of " + toString() + ":" +
     // overallPower);

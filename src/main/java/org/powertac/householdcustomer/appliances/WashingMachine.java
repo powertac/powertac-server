@@ -90,7 +90,7 @@ public class WashingMachine extends SemiShiftingAppliance
       dailyOperation.add(false);
     }
 
-    if (lastWeek[weekday] >= 0) {
+    if (lastWeek[weekday] > 0) {
       Vector<Integer> temp = new Vector<Integer>();
 
       for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY - cycleDuration; i++) {
@@ -287,6 +287,20 @@ public class WashingMachine extends SemiShiftingAppliance
 
   }
 
+  public boolean getDryerFlag ()
+  {
+
+    return dryerFlag;
+
+  }
+
+  public int getDryerIndex ()
+  {
+
+    return dryerIndex;
+
+  }
+
   @Override
   public void showStatus ()
   {
@@ -322,6 +336,7 @@ public class WashingMachine extends SemiShiftingAppliance
     int day = -1;
 
     while (flag) {
+      overallPower = 0;
       day = (int) (Math.random() * operationDaysVector.size());
       // log.debug("WM Choosen Day: " + day);
       // log.debug("WM Times for that day: " + getTimesForDay(day));
@@ -334,6 +349,8 @@ public class WashingMachine extends SemiShiftingAppliance
       for (int i = 0; i < consumption.size(); i++)
         overallPower += consumption.get(i);
 
+      if (overallPower == 0)
+        flag = true;
     }
 
     if (dryerFlag) {
@@ -370,9 +387,10 @@ public class WashingMachine extends SemiShiftingAppliance
     // if we have dryer in the household we refresh it too
     if (dryerFlag == true) {
       Vector<Appliance> applianceList = applianceOf.getAppliances();
-      for (Appliance appliance: applianceList) {
-        if (appliance instanceof Dryer) {
-          appliance.refresh(gen);
+      for (int i = 0; i < applianceList.size(); i++) {
+        if (applianceList.get(i) instanceof Dryer) {
+          dryerIndex = i;
+          applianceList.get(i).refresh(gen);
           break;
         }
       }

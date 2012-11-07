@@ -80,6 +80,8 @@ public class Household
   Vector<Integer> dailyBaseLoad = new Vector<Integer>();
   Vector<Integer> dailyControllableLoad = new Vector<Integer>();
   Vector<Integer> dailyWeatherSensitiveLoad = new Vector<Integer>();
+  Vector<Integer> dailyNonDominantLoad = new Vector<Integer>();
+  Vector<Integer> dailyDominantLoad = new Vector<Integer>();
 
   /**
    * This is a vector containing the base, controllable and weather sensitive
@@ -91,6 +93,8 @@ public class Household
     new Vector<Vector<Integer>>();
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoad =
     new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyNonDominantLoad = new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyDominantLoad = new Vector<Vector<Integer>>();
 
   /**
    * This is an aggregated vector containing each day's base, controllable and
@@ -99,6 +103,8 @@ public class Household
   Vector<Integer> dailyBaseLoadInHours = new Vector<Integer>();
   Vector<Integer> dailyControllableLoadInHours = new Vector<Integer>();
   Vector<Integer> dailyWeatherSensitiveLoadInHours = new Vector<Integer>();
+  Vector<Integer> dailyNonDominantLoadInHours = new Vector<Integer>();
+  Vector<Integer> dailyDominantLoadInHours = new Vector<Integer>();
 
   /**
    * This is an aggregated vector containing the weekly base, controllable and
@@ -108,6 +114,10 @@ public class Household
   Vector<Vector<Integer>> weeklyControllableLoadInHours =
     new Vector<Vector<Integer>>();
   Vector<Vector<Integer>> weeklyWeatherSensitiveLoadInHours =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyNonDominantLoadInHours =
+    new Vector<Vector<Integer>>();
+  Vector<Vector<Integer>> weeklyDominantLoadInHours =
     new Vector<Vector<Integer>>();
 
   /**
@@ -198,6 +208,7 @@ public class Household
       weeklyBaseLoadInHours.add(dailyBaseLoadInHours);
       weeklyControllableLoadInHours.add(dailyControllableLoadInHours);
       weeklyWeatherSensitiveLoadInHours.add(dailyWeatherSensitiveLoadInHours);
+
     }
 
     for (week = 1; week < VillageConstants.WEEKS_OF_COMPETITION
@@ -222,6 +233,22 @@ public class Household
     findDominantAppliance();
     if (getDominantAppliance().getOverallPower() != 1)
       createDominantOperationVectors();
+
+    int overallDays =
+      (VillageConstants.WEEKS_OF_COMPETITION + VillageConstants.WEEKS_OF_BOOTSTRAP)
+              * VillageConstants.DAYS_OF_WEEK;
+
+    for (int i = 0; i < overallDays; i++) {
+      dailyNonDominantLoad = fillDailyNonDominantLoad(i);
+      weeklyNonDominantLoad.add(dailyNonDominantLoad);
+      dailyNonDominantLoadInHours = fillDailyNonDominantLoadInHours();
+      weeklyNonDominantLoadInHours.add(dailyNonDominantLoadInHours);
+      dailyDominantLoad = fillDailyDominantLoad(i);
+      weeklyDominantLoad.add(dailyDominantLoad);
+      dailyDominantLoadInHours = fillDailyDominantLoadInHours();
+      weeklyDominantLoadInHours.add(dailyDominantLoadInHours);
+    }
+
     /*
     for (Appliance appliance : appliances) {
       appliance.showStatus();
@@ -232,10 +259,26 @@ public class Household
                        + " Overall Power Consumption: "
                        + getDominantAppliance().getOverallPower());
     
-        System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
-        System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
-        System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
-        System.out.println(this.toString() + "  " + weeklyControllableLoadInHours.size());
+    System.out.println(this.toString() + "  " + weeklyBaseLoad.size());
+    System.out.println(this.toString() + "  " + weeklyControllableLoad.size());
+    System.out.println(this.toString() + "  "
+                       + weeklyWeatherSensitiveLoad.size());
+    System.out.println(this.toString() + "  " + weeklyNonDominantLoad.size());
+    System.out.println(this.toString() + "  " + weeklyDominantLoad.size());
+    System.out.println(this.toString() + "  " + weeklyBaseLoadInHours.size());
+    System.out.println(this.toString() + "  "
+                       + weeklyControllableLoadInHours.size());
+    System.out.println(this.toString() + "  "
+                       + weeklyWeatherSensitiveLoadInHours.size());
+    System.out.println(this.toString() + "  "
+                       + weeklyNonDominantLoadInHours.size());
+    System.out.println(this.toString() + "  "
+                       + weeklyDominantLoadInHours.size());
+             
+    System.out.println(this.toString() + "  "
+                       + weeklyDominantLoad.get(0).toString());
+    System.out.println(this.toString() + "  "
+                       + weeklyNonDominantLoad.get(0).toString());
     */
   }
 
@@ -729,6 +772,65 @@ public class Household
   }
 
   /**
+   * This function is used in order to fill the daily dominant load of
+   * the household for each quarter of the hour.
+   * 
+   * @param weekday
+   * @return
+   */
+  Vector<Integer> fillDailyDominantLoad (int day)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.QUARTERS_OF_DAY);
+    int sum = 0;
+    int helpIndex = -1;
+
+    // Case of Washing Machine as dominant Appliance
+    Appliance app = appliances.get(dominantAppliance);
+    if (app instanceof WashingMachine) {
+      WashingMachine wm = (WashingMachine) app;
+      // Case there is dryer
+      if (wm.getDryerFlag())
+        helpIndex = wm.getDryerIndex();
+    }
+
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
+      sum =
+        appliances.get(dominantAppliance).getWeeklyLoadVector().get(day).get(i);
+
+      if (helpIndex != -1)
+        sum += appliances.get(helpIndex).getWeeklyLoadVector().get(day).get(i);
+
+      v.add(sum);
+    }
+
+    return v;
+  }
+
+  /**
+   * This function is used in order to fill the daily non dominant load of
+   * the household for each quarter of the hour.
+   * 
+   * @param weekday
+   * @return
+   */
+  Vector<Integer> fillDailyNonDominantLoad (int day)
+  {
+    // Creating auxiliary variables
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.QUARTERS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
+      sum = 0;
+      for (int j = 0; j < appliances.size(); j++) {
+        if (j != dominantAppliance)
+          sum = sum + appliances.get(j).getWeeklyLoadVector().get(day).get(i);
+      }
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
    * This function checks if all the inhabitants of the household are away on
    * vacation on a certain day
    * 
@@ -821,6 +923,63 @@ public class Household
                         .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
                 + dailyWeatherSensitiveLoad
                         .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function fills out the daily dominant Load in hours vector
+   * taking in consideration the load per quarter of an hour.
+   * 
+   * @return
+   */
+  Vector<Integer> fillDailyDominantLoadInHours ()
+  {
+
+    // Creating Auxiliary Variables
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.HOURS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+      sum = 0;
+      sum =
+        dailyDominantLoad.get(i * VillageConstants.QUARTERS_OF_HOUR)
+                + dailyDominantLoad.get(i * VillageConstants.QUARTERS_OF_HOUR
+                                        + 1)
+                + dailyDominantLoad.get(i * VillageConstants.QUARTERS_OF_HOUR
+                                        + 2)
+                + dailyDominantLoad.get(i * VillageConstants.QUARTERS_OF_HOUR
+                                        + 3);
+      v.add(sum);
+    }
+    return v;
+  }
+
+  /**
+   * This function fills out the daily non dominant Load in hours vector
+   * taking in consideration the load per quarter of an hour.
+   * 
+   * @return
+   */
+  Vector<Integer> fillDailyNonDominantLoadInHours ()
+  {
+
+    // Creating Auxiliary Variables
+    Vector<Integer> v = new Vector<Integer>(VillageConstants.HOURS_OF_DAY);
+    int sum = 0;
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+      sum = 0;
+      sum =
+        dailyNonDominantLoad.get(i * VillageConstants.QUARTERS_OF_HOUR)
+                + dailyNonDominantLoad.get(i
+                                           * VillageConstants.QUARTERS_OF_HOUR
+                                           + 1)
+                + dailyNonDominantLoad.get(i
+                                           * VillageConstants.QUARTERS_OF_HOUR
+                                           + 2)
+                + dailyNonDominantLoad.get(i
+                                           * VillageConstants.QUARTERS_OF_HOUR
+                                           + 3);
       v.add(sum);
     }
     return v;
