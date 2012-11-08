@@ -143,6 +143,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     daysOfCompetition =
       Competition.currentCompetition().getExpectedTimeslotCount()
               / OfficeComplexConstants.HOURS_OF_DAY;
+    OfficeComplexConstants.setDaysOfWeek();
     OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
     daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
 

@@ -11,6 +11,9 @@
 
 package org.powertac.officecomplexcustomer.configurations;
 
+import org.joda.time.Instant;
+import org.powertac.common.Competition;
+
 /**
  * This class contains constant definitions used throughout the office complex
  * models.
@@ -62,13 +65,13 @@ public class OfficeComplexConstants
   public static final int END_OF_LAUNCH_BREAK = 60;
   public static final int END_OF_LAUNCH_BREAK_HOUR = 15;
 
-  public static final int MONDAY = 1;
-  public static final int TUESDAY = 2;
-  public static final int WEDNESDAY = 3;
-  public static final int THURSDAY = 4;
-  public static final int FRIDAY = 5;
-  public static final int SATURDAY = 6;
-  public static final int SUNDAY = 0;
+  public static int MONDAY = 1;
+  public static int TUESDAY = 2;
+  public static int WEDNESDAY = 3;
+  public static int THURSDAY = 4;
+  public static int FRIDAY = 5;
+  public static int SATURDAY = 6;
+  public static int SUNDAY = 0;
 
   public static final int ONE_WORKING_DAY = 1;
   public static final int TWO_WORKING_DAYS = 2;
@@ -189,10 +192,27 @@ public class OfficeComplexConstants
    **/
   public static void setDaysOfCompetition (int days)
   {
-    WEEKS_OF_COMPETITION = (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));
+    WEEKS_OF_COMPETITION =
+      (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));
     DAYS_OF_COMPETITION = WEEKS_OF_COMPETITION * DAYS_OF_WEEK;
 
     // System.out.println("Days:" + DAYS_OF_COMPETITION + " Weeks:" +
     // WEEKS_OF_COMPETITION);
+  }
+
+  @SuppressWarnings("deprecation")
+  public static void setDaysOfWeek ()
+  {
+    Instant base = Competition.currentCompetition().getSimulationBaseTime();
+    int bias = DAYS_OF_WEEK % base.toDate().getDay();
+
+    MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
+    TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
+    WEDNESDAY = (WEDNESDAY + bias) % DAYS_OF_WEEK;
+    THURSDAY = (THURSDAY + bias) % DAYS_OF_WEEK;
+    FRIDAY = (FRIDAY + bias) % DAYS_OF_WEEK;
+    SATURDAY = (SATURDAY + bias) % DAYS_OF_WEEK;
+    SUNDAY = (SUNDAY + bias) % DAYS_OF_WEEK;
+
   }
 }
