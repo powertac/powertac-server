@@ -332,26 +332,10 @@ public class WashingMachine extends SemiShiftingAppliance
 
   public void calculateOverallPower ()
   {
-    boolean flag = true;
-    int day = -1;
+    overallPower = 0;
 
-    while (flag) {
-      overallPower = 0;
-      day = (int) (Math.random() * operationDaysVector.size());
-      // log.debug("WM Choosen Day: " + day);
-      // log.debug("WM Times for that day: " + getTimesForDay(day));
-
-      if (getTimesForDay(day) == 1)
-        flag = false;
-
-      Vector<Integer> consumption = weeklyLoadVector.get(day);
-
-      for (int i = 0; i < consumption.size(); i++)
-        overallPower += consumption.get(i);
-
-      if (overallPower == 0)
-        flag = true;
-    }
+    for (int j = 0; j < cycleDuration; j++)
+      overallPower += power;
 
     if (dryerFlag) {
       overallPower += getDryerOverallPower();

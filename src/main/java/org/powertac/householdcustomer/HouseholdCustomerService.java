@@ -154,6 +154,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       Competition.currentCompetition().getExpectedTimeslotCount()
               / VillageConstants.HOURS_OF_DAY;
     VillageConstants.setDaysOfCompetition(daysOfCompetition);
+    VillageConstants.setDaysOfWeek();
     daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
 
     if (daysOfCompetition == 0) {

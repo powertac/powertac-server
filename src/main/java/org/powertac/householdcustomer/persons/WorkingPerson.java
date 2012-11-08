@@ -73,21 +73,25 @@ public class WorkingPerson extends Person
       }
       java.util.Collections.sort(v);
       return v;
-    } else {
+    }
+    else {
       v.add(VillageConstants.MONDAY);
       v.add(VillageConstants.TUESDAY);
       v.add(VillageConstants.WEDNESDAY);
       v.add(VillageConstants.THURSDAY);
       v.add(VillageConstants.FRIDAY);
       if (days == VillageConstants.WEEKDAYS) {
-      } else {
+      }
+      else {
         if (days == VillageConstants.DAYS_OF_WEEK) {
           v.add(VillageConstants.SATURDAY);
           v.add(VillageConstants.SUNDAY);
-        } else {
+        }
+        else {
           if (gen.nextFloat() > 0.5) {
             v.add(VillageConstants.SATURDAY);
-          } else {
+          }
+          else {
             v.add(VillageConstants.SUNDAY);
           }
         }
@@ -115,7 +119,9 @@ public class WorkingPerson extends Person
     int counter = duration;
     int counter2 = 0;
     while (counter > 0) {
-      int x = (int) gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP - 1) + 1;
+      int x =
+        (int) gen.nextInt(VillageConstants.DAYS_OF_COMPETITION
+                          + VillageConstants.DAYS_OF_BOOTSTRAP - 1) + 1;
       counter2 = 1 + (int) (gen.nextInt(counter));
       while (counter2 > 0) {
         v.add(x);
@@ -150,22 +156,31 @@ public class WorkingPerson extends Person
     int x = (int) gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < fiveDays) {
       returnValue = VillageConstants.FIVE_WORKING_DAYS;
-    } else {
+    }
+    else {
       if (x >= fiveDays & x < (fiveDays + sixDays)) {
         returnValue = VillageConstants.SIX_WORKING_DAYS;
-      } else {
+      }
+      else {
         if (x >= (fiveDays + sixDays) & x < (fiveDays + sixDays + fourDays)) {
           returnValue = VillageConstants.FOUR_WORKING_DAYS;
-        } else {
-          if (x >= (fiveDays + sixDays + fourDays) & x < (fiveDays + sixDays + fourDays + threeDays)) {
+        }
+        else {
+          if (x >= (fiveDays + sixDays + fourDays)
+              & x < (fiveDays + sixDays + fourDays + threeDays)) {
             returnValue = VillageConstants.THREE_WORKING_DAYS;
-          } else {
-            if (x >= (fiveDays + sixDays + fourDays + threeDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays)) {
+          }
+          else {
+            if (x >= (fiveDays + sixDays + fourDays + threeDays)
+                & x < (fiveDays + sixDays + fourDays + threeDays + twoDays)) {
               returnValue = VillageConstants.TWO_WORKING_DAYS;
-            } else {
-              if (x >= (fiveDays + sixDays + fourDays + threeDays + twoDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays + sevenDays)) {
+            }
+            else {
+              if (x >= (fiveDays + sixDays + fourDays + threeDays + twoDays)
+                  & x < (fiveDays + sixDays + fourDays + threeDays + twoDays + sevenDays)) {
                 returnValue = VillageConstants.SEVEN_WORKING_DAYS;
-              } else {
+              }
+              else {
                 returnValue = VillageConstants.ONE_WORKING_DAY;
               }
             }
@@ -221,7 +236,8 @@ public class WorkingPerson extends Person
     log.debug("Weekly Routine : ");
     ListIterator<Status> iter2 = weeklyRoutine.get(0).listIterator();
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)

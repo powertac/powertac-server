@@ -195,26 +195,14 @@ public class Dryer extends SemiShiftingAppliance
 
   public void calculateOverallPower ()
   {
-    boolean flag = true;
-    int day = -1;
+    overallPower = 0;
 
-    while (flag) {
-      overallPower = 0;
-      day = (int) (Math.random() * operationDaysVector.size());
-      // log.debug("Dryer Choosen Day: " + day);
-      // log.debug("Dryer Times for that day: " + getTimesForDay(day));
+    for (int j = 0; j < VillageConstants.DRYER_SECOND_PHASE; j++)
+      overallPower += power;
 
-      if (getTimesForDay(day) == 1)
-        flag = false;
-
-      Vector<Integer> consumption = weeklyLoadVector.get(day);
-
-      for (int i = 0; i < consumption.size(); i++)
-        overallPower += consumption.get(i);
-
-      if (overallPower == 0)
-        flag = true;
-    }
+    for (int k = 0; k < VillageConstants.DRYER_THIRD_PHASE
+                        - VillageConstants.DRYER_SECOND_PHASE; k++)
+      overallPower += power - (k + 1) * VillageConstants.DRYER_THIRD_PHASE_LOAD;
 
     // log.debug("Overall Operation Power of " + toString() + ":" +
     // overallPower);

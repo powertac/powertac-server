@@ -11,6 +11,9 @@
 
 package org.powertac.householdcustomer.configurations;
 
+import org.joda.time.Instant;
+import org.powertac.common.Competition;
+
 /**
  * This class contains constant definitions used throughout the household
  * models.
@@ -233,10 +236,25 @@ public class VillageConstants
    **/
   public static void setDaysOfCompetition (int days)
   {
-    WEEKS_OF_COMPETITION = (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));
+    WEEKS_OF_COMPETITION =
+      (int) (Math.ceil(((float) days) / ((float) DAYS_OF_WEEK)));
     DAYS_OF_COMPETITION = WEEKS_OF_COMPETITION * DAYS_OF_WEEK;
 
     // System.out.println("Days:" + DAYS_OF_COMPETITION + " Weeks:" +
     // WEEKS_OF_COMPETITION);
+  }
+
+  @SuppressWarnings("deprecation")
+  public static void setDaysOfWeek ()
+  {
+    Instant base = Competition.currentCompetition().getSimulationBaseTime();
+    /*
+        System.out.println(base.toDate());
+        System.out.println(base.toDate().getDay());
+    */
+    for (int i = 0; i < DAYS_OF_WEEK; i++) {
+
+    }
+
   }
 }
