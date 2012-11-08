@@ -248,7 +248,11 @@ public class VillageConstants
   public static void setDaysOfWeek ()
   {
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
-    int bias = DAYS_OF_WEEK % base.toDate().getDay();
+
+    int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
+
+    System.out.println(base.toDate().toString());
+    System.out.println("Bias: " + bias);
 
     MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
@@ -257,6 +261,14 @@ public class VillageConstants
     FRIDAY = (FRIDAY + bias) % DAYS_OF_WEEK;
     SATURDAY = (SATURDAY + bias) % DAYS_OF_WEEK;
     SUNDAY = (SUNDAY + bias) % DAYS_OF_WEEK;
-
+    /*
+        System.out.println(MONDAY);
+        System.out.println(TUESDAY);
+        System.out.println(WEDNESDAY);
+        System.out.println(THURSDAY);
+        System.out.println(FRIDAY);
+        System.out.println(SATURDAY);
+        System.out.println(SUNDAY);
+    */
   }
 }
