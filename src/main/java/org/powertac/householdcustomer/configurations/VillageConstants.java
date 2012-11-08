@@ -82,13 +82,13 @@ public class VillageConstants
   public static final int SHIFT_START_1 = 0;
   public static final int SHIFT_START_2 = 33;
   public static final int SHIFT_START_3 = 65;
-  public static final int MONDAY = 1;
-  public static final int TUESDAY = 2;
-  public static final int WEDNESDAY = 3;
-  public static final int THURSDAY = 4;
-  public static final int FRIDAY = 5;
-  public static final int SATURDAY = 6;
-  public static final int SUNDAY = 0;
+  public static int MONDAY = 1;
+  public static int TUESDAY = 2;
+  public static int WEDNESDAY = 3;
+  public static int THURSDAY = 4;
+  public static int FRIDAY = 5;
+  public static int SATURDAY = 6;
+  public static int SUNDAY = 0;
 
   public static final int ONE_WORKING_DAY = 1;
   public static final int TWO_WORKING_DAYS = 2;
@@ -248,13 +248,15 @@ public class VillageConstants
   public static void setDaysOfWeek ()
   {
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
-    /*
-        System.out.println(base.toDate());
-        System.out.println(base.toDate().getDay());
-    */
-    for (int i = 0; i < DAYS_OF_WEEK; i++) {
+    int bias = DAYS_OF_WEEK % base.toDate().getDay();
 
-    }
+    MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
+    TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
+    WEDNESDAY = (WEDNESDAY + bias) % DAYS_OF_WEEK;
+    THURSDAY = (THURSDAY + bias) % DAYS_OF_WEEK;
+    FRIDAY = (FRIDAY + bias) % DAYS_OF_WEEK;
+    SATURDAY = (SATURDAY + bias) % DAYS_OF_WEEK;
+    SUNDAY = (SUNDAY + bias) % DAYS_OF_WEEK;
 
   }
 }
