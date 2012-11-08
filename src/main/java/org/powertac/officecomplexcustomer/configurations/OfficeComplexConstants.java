@@ -206,10 +206,7 @@ public class OfficeComplexConstants
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
 
     int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
-
-    System.out.println(base.toDate().toString());
-    System.out.println("Bias: " + bias);
-
+    
     MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
     WEDNESDAY = (WEDNESDAY + bias) % DAYS_OF_WEEK;
