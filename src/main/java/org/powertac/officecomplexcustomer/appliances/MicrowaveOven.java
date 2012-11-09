@@ -141,26 +141,7 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
   public void calculateOverallPower ()
   {
-    boolean flag = true;
-    int day = -1;
-    // log.debug("MO operation: " + operationDaysVector.toString());
-    // log.debug("MO members: " + applianceOf.getMembers().size());
-
-    while (flag) {
-      day = (int) (Math.random() * operationDaysVector.size());
-      // System.out.println("MO Day " + day);
-      if (operationDaysVector.get(day))
-        flag = false;
-
-      Vector<Integer> consumption = weeklyLoadVector.get(day);
-
-      for (int i = 0; i < consumption.size(); i++)
-        overallPower += consumption.get(i);
-
-    }
-
-    // log.debug("Overall Operation Power of " + toString() + ":" +
-    // overallPower);
+    overallPower = power * times;
   }
 
   @Override

@@ -168,23 +168,14 @@ public class CopyMachine extends SemiShiftingAppliance
 
   public void calculateOverallPower ()
   {
-    boolean flag = true;
-    int day = -1;
-    while (flag) {
-      day = (int) (Math.random() * operationDaysVector.size());
-      // System.out.println("CP Day " + day);
-      if (operationDaysVector.get(day))
-        flag = false;
+    overallPower = 0;
 
-      Vector<Integer> consumption = weeklyLoadVector.get(day);
+    for (int i = OfficeComplexConstants.START_OF_FUNCTION_HOURS; i < OfficeComplexConstants.END_OF_FUNCTION_HOUR; i++)
+      overallPower += OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
 
-      for (int i = 0; i < consumption.size(); i++)
-        overallPower += consumption.get(i);
+    for (int i = 0; i < times; i++)
+      overallPower += power - standbyPower;
 
-    }
-
-    // log.debug("Overall Operation Power of " + toString() + ":" +
-    // overallPower);
   }
 
   @Override

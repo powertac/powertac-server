@@ -866,8 +866,10 @@ public class Office
     int sum = 0;
 
     for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
-      sum =
-        appliances.get(dominantAppliance).getWeeklyLoadVector().get(day).get(i);
+      if (appliances.get(dominantAppliance).getOverallPower() != -1)
+        sum =
+          appliances.get(dominantAppliance).getWeeklyLoadVector().get(day)
+                  .get(i);
 
       v.add(sum);
     }
