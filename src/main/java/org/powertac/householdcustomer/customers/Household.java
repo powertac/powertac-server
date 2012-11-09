@@ -795,12 +795,15 @@ public class Household
     }
 
     for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
-      sum =
-        appliances.get(dominantAppliance).getWeeklyLoadVector().get(day).get(i);
+      if (appliances.get(dominantAppliance).getOverallPower() != -1) {
+        sum =
+          appliances.get(dominantAppliance).getWeeklyLoadVector().get(day)
+                  .get(i);
 
-      if (helpIndex != -1)
-        sum += appliances.get(helpIndex).getWeeklyLoadVector().get(day).get(i);
-
+        if (helpIndex != -1)
+          sum +=
+            appliances.get(helpIndex).getWeeklyLoadVector().get(day).get(i);
+      }
       v.add(sum);
     }
 
