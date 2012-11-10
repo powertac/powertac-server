@@ -26,9 +26,10 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * A BalancingControlEvent can only be used by the DU in response to a
  * BalancingOrder issued by a Broker, and only if needed to resolve an
  * imbalance.
+ * 
  * @author John Collins
  */
-@Domain(fields = { "kwh", "payment" })
+@Domain
 @XStreamAlias("balancing-control")
 public class BalancingControlEvent extends ControlEvent
 {

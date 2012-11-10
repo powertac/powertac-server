@@ -23,7 +23,11 @@ import com.thoughtworks.xstream.annotations.*;
 
 /**
  * Message created by a broker to request revocation of an existing tariff.
- * @author jcollins
+ * 
+ * State log fields for readResolve():<br>
+ * new(long brokerId, long tariffId)
+ * 
+ * @author John Collins
  */
 @Domain (fields = {"broker", "tariffId"})
 @XStreamAlias("tariff-rev")

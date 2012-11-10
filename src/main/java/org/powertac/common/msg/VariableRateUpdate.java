@@ -26,7 +26,11 @@ import com.thoughtworks.xstream.annotations.*;
  * Conveys an HourlyCharge instance, labeled by its Tariff and
  * Rate. When received by the server, the HourlyCharge simply
  * needs to be added to its Rate.
- * @author jcollins
+ * 
+ * State log fields for readResolve():<br>
+ * new(long brokerId, long tariffId, long hourlyChargeId, long rateId)
+ * 
+ * @author John Collins
  */
 @Domain (fields = {"broker", "tariffId", "hourlyChargeId", "rateId"})
 @XStreamAlias("tariff-vru")

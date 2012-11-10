@@ -38,6 +38,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * it simply offsets the payment the broker would otherwise have had to
  * make to the DU for the shortage or surplus.
  * 
+ * State log fields for readResolve():<br>
+ * new(double exerciseRatio, double price, long tariffId, long brokerId)
+ * 
  * @author John Collins
  */
 @Domain(fields = { "exerciseRatio", "price", "tariffId", "broker" })
