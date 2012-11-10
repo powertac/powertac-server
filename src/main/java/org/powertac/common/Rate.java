@@ -35,6 +35,13 @@ import com.thoughtworks.xstream.annotations.*;
  * of day, or above some usage threshold. Rates may be fixed or variable. 
  * Tariffs and their rates are public information. New tariffs and their Rates
  * are communicated to Customers and to Brokers when tariffs are published.
+ * 
+ * State log fields for readResolve():<br>
+ * new(long tariffId, int weeklyBegin, int weeklyEnd,<br>
+ * &nbsp;&nbsp;int dailyBegin, int dailyEnd, double tierThreshold,<br>
+ * &nbsp;&nbsp;boolean fixed, double minValue, double maxValue,<br>
+ * &nbsp;&nbsp;long noticeInterval, double expectedMean, double maxCurtailment)
+ * 
  * @author John Collins
  */
 @Domain (fields = {"tariffId", "weeklyBegin", "weeklyEnd", "dailyBegin", "dailyEnd",

@@ -26,7 +26,11 @@ import com.thoughtworks.xstream.annotations.*;
  * Request to change expiration date on an existing tariff. There are no
  * constraints on the new expiration date, but dates in the past will not
  * have retroactive effect. Created by brokers.
- * @author jcollins
+ * 
+ * State log fields for readResolve():<br>
+ * new(long brokerId, long tariffId, Instant expiration)
+ * 
+ * @author John Collins
  */
 @Domain (fields = {"broker", "tariffId", "newExpiration"})
 @XStreamAlias("tariff-exp")

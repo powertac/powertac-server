@@ -30,6 +30,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * from atTime until atTime + 1 hour. These are created by brokers and sent
  * to the server to update tariff pricing.
  * 
+ * State log fields for readResolve():<br>
+ * new(long rateId, double value, Instant atTime)
+ * 
  * @author jcollins
  */
 @Domain (fields = {"rateId", "value", "atTime"})

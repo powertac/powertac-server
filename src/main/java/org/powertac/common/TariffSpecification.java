@@ -42,6 +42,12 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * <p>
  * <strong>Note:</strong> Must be serialized "deep" to gather up the Rates and
  * associated HourlyCharge instances.</p>
+ * 
+ * State log fields for readResolve():<br>
+ * new(long brokerId, PowerType powerType, long minDuration,<br>
+ * &nbsp;&nbsp;double signupPayment, double earlyWithdrawPayment,<br>
+ * &nbsp;&nbsp;double periodicPayment)
+ * 
  * @author John Collins
  */
 @Domain(fields = {"broker", "powerType", "minDuration", "signupPayment", "earlyWithdrawPayment", "periodicPayment"})

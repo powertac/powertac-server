@@ -33,6 +33,10 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * have been used otherwise; second, it might be that the specified proportion
  * of the population represented by the customer model is completely curtailed
  * during that timeslot.
+ * 
+ * State log fields for readResolve():<br>
+ * new(long tariffId, double curtailmentRatio, long timeslotIndex)
+ * 
  * @author John Collins
  */
 @Domain(fields = { "tariffId", "curtailmentRatio", "timeslotIndex" })
