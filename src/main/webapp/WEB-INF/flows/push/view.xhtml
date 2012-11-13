@@ -1,0 +1,111 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<!-- <ui:define name="title">Customers</ui:define> -->
+
+	<ui:define name="headInclude">
+		<script type="text/javascript">
+			function handleMessage(data) {
+				$('.display1').html(data);
+			}
+		</script>
+
+
+			<script type="text/javascript">
+			var chart;
+		</script>
+	
+
+	</ui:define>
+
+	<ui:define name="content">
+		<h:body>
+
+			<h:form>
+				<h:outputText value="#{globalCounterBean.count}" styleClass="display1" />
+				<p:commandButton value="Click"
+					actionListener="#{globalCounterBean.increment}" />
+			</h:form>
+			<p:socket onMessage="handleMessage" channel="/counter" />
+			
+					
+			<div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
+			<script type="text/javascript">
+
+//(function($){ // encapsulate jQuery
+
+$(function () {
+
+	window.chart = new Highcharts.Chart({
+	            
+	    chart: {
+	        renderTo: 'container',
+	        polar: true,
+	        type: 'line'
+	    },
+	    
+	    title: {
+	        text: 'Budget vs spending',
+	        x: -80
+	    },
+	    
+	    pane: {
+	    	size: '80%'
+	    },
+	    
+	    xAxis: {
+	        categories: ['Sales', 'Marketing', 'Development', 'Customer Support', 
+	                'Information Technology', 'Administration'],
+	        tickmarkPlacement: 'on',
+	        lineWidth: 0
+	    },
+	        
+	    yAxis: {
+	        gridLineInterpolation: 'polygon',
+	        lineWidth: 0,
+	        min: 0
+	    },
+	    
+	    tooltip: {
+	    	shared: true,
+	        valuePrefix: '$'
+	    },
+	    
+	    legend: {
+	        align: 'right',
+	        verticalAlign: 'top',
+	        y: 100,
+	        layout: 'vertical'
+	    },
+	    
+	    series: [{
+	        name: 'Allocated Budget',
+	        data: [43000, 19000, 60000, 35000, 17000, 10000],
+	        pointPlacement: 'on'
+	    }, {
+	        name: 'Actual Spending',
+	        data: [50000, 39000, 42000, 31000, 26000, 14000],
+	        pointPlacement: 'on'
+	    }]
+	
+	});
+});
+//})(jQuery);
+</script>
+
+
+
+		</h:body>
+
+
+
+
+
+	</ui:define>
+
+</ui:composition>
