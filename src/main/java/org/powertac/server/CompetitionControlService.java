@@ -859,7 +859,13 @@ public class CompetitionControlService
     simRunning = false;
     
     // need to wait for clock control stop before shutting down JMS provider
-    clock.waitUntilStop();
+    System.out.println("\n\nHIER!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    System.out.println(clock);
+    System.out.println(jmsManagementService);
+    if (clock != null) {
+      clock.waitUntilStop();
+    }
+    System.out.println("\n\nHIER!!!!!!!!!!!!!!!!!!!!!!!!!!");
     jmsManagementService.stop();
     
     logService.stopLog();
