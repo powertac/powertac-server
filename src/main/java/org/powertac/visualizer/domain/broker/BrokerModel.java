@@ -39,7 +39,6 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	private DayState currentDayState = new DayState(this);
 	private DayState displayableDayState;
 
-	private List<BalancingTransaction> balancingTransactions;
 	// customers
 	private Set<CustomerModel> customerModels;
 
@@ -54,7 +53,6 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 		this.name = name;
 		this.appearance = appearance;
 		// collections:
-		balancingTransactions = new ArrayList<BalancingTransaction>();
 		customerModels = new HashSet<CustomerModel>();
 
 		id = RandomStringUtils.random(7, "abcdefghijklomnopqrstuvxy".toCharArray());
@@ -86,7 +84,6 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 
 	public void addBalancingTransaction(BalancingTransaction balancingTransaction) {
 		this.energyBalance = Helper.roundNumberTwoDecimal(balancingTransaction.getKWh());
-		balancingTransactions.add(balancingTransaction);
 		currentDayState.addBalancingTransaction(balancingTransaction);
 	}
 
@@ -194,12 +191,7 @@ public class BrokerModel implements VisualBroker, DisplayableBroker, TimeslotMod
 	public DayState getDisplayableDayState() {
 		return displayableDayState;
 	}
-
-	
-	public List<BalancingTransaction> getBalancingTransactions() {
-		return balancingTransactions;
-	}
-
+		
 	public Set<CustomerModel> getCustomerModels() {
 		return customerModels;
 	}
