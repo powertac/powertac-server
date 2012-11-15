@@ -16,6 +16,7 @@
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -48,6 +49,7 @@ public class TimeslotRepo implements DomainRepo
   private Timeslot firstEnabled;
   private Timeslot current;
   private ArrayList<Timeslot> indexedTimeslots;
+  private HashMap<Long, Timeslot> idTable;
 
   @Autowired
   private TimeService timeService;
@@ -57,6 +59,7 @@ public class TimeslotRepo implements DomainRepo
   {
     super();
     indexedTimeslots = new ArrayList<Timeslot>();
+    idTable = new HashMap<Long, Timeslot>();
   }
 
   /** 
@@ -84,6 +87,7 @@ public class TimeslotRepo implements DomainRepo
       first = result;
     last = result;
     indexedTimeslots.add(timeslotIndex, result);
+    idTable.put(result.getId(), result);
     timeslotIndex += 1;
     return result;
   }
@@ -153,15 +157,25 @@ public class TimeslotRepo implements DomainRepo
         first = 
             new Timeslot(0, Competition.currentCompetition().getSimulationBaseTime(), null);
         indexedTimeslots.add(0, first);
+        idTable.put(first.getId(), first);
         last = first;
       }
       // at this point, the serial number should be >= count 
       for (int sn = last.getSerialNumber() + 1; sn <= serialNumber; sn++) {
         last = new Timeslot(sn, last.getEndInstant(), last);
         indexedTimeslots.add(sn, last);
+        idTable.put(last.getId(), last);
       }
       return last;
     }
+  }
+  
+  /**
+   * Returns a timeslot by id. Needed for logfile analysis.
+   */
+  public Timeslot findById (long id)
+  {
+    return idTable.get(id);
   }
   
   /**
@@ -233,7 +247,28 @@ public class TimeslotRepo implements DomainRepo
   {
     return indexedTimeslots.size();
   }
+  
+  /**
+   * Adds a timeslot that already exists. Needed for logfile analysis, should
+   * not be used in other contexts.
+   */
+  public void add (Timeslot timeslot)
+  {
+    // do nothing if the timeslot is already in the id table.
+    if (null == findById(timeslot.getId())) {
+      if (indexedTimeslots.size() != timeslot.getSerialNumber()) {
+        log.error("Timeslot sequence error: " + timeslot.getSerialNumber());
+      }
+      indexedTimeslots.add(timeslot);
+      idTable.put(timeslot.getId(), timeslot);
+      if (0 == timeslot.getSerialNumber()) {
+        // first timeslot
+        first = timeslot;
+      }
+    }
+  }
 
+  @Override
   public void recycle ()
   {
     log.debug("recycle");
@@ -243,6 +278,7 @@ public class TimeslotRepo implements DomainRepo
     firstEnabled = null;
     current = null;
     indexedTimeslots.clear();
+    idTable.clear();
   }
 
 }
