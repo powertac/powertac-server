@@ -16,6 +16,7 @@
  */
 package org.powertac.officecomplexcustomer.customers;
 
+import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
@@ -24,6 +25,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.appliances.AirCondition;
 import org.powertac.officecomplexcustomer.appliances.Appliance;
 import org.powertac.officecomplexcustomer.appliances.CoffeeMachine;
@@ -147,7 +149,7 @@ public class Office
     new double[OfficeComplexConstants.HOURS_OF_DAY];
 
   /**
-   * This variable is pointing to the village that this office is part of.
+   * This variable is pointing to the OfficeComplex that this office is part of.
    */
   public OfficeComplex officeOf;
 
@@ -1126,41 +1128,34 @@ public class Office
   }
 
   /**
-   * This is the function that takes every appliance in the office and reads the
-   * shifted Controllable Consumption for the needs of the tariff evaluation.
+   * This is the function that takes every appliance in the office and reads
+   * the shifted Controllable Consumption for the needs of the tariff
+   * evaluation.
    * 
    * @param tariff
    * @param now
    * @param day
    * @return
    */
-  long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
+                          TariffEvaluationHelper tariffEvalHelper, int day,
+                          Random gen)
   {
 
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] dominantLoad = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-    for (Appliance appliance: appliances) {
-      if (!(appliance instanceof NotShiftingAppliance)
-          && !(appliance instanceof WeatherSensitiveAppliance)) {
-        long[] temp = appliance.dailyShifting(tariff, now, day, gen);
-        Vector<Long> tempVector = new Vector<Long>();
-        Vector<Long> controllableVector = new Vector<Long>();
-        // log.info("Appliance " + appliance.toString());
-        // log.info("Load: " +
-        // appliance.getWeeklyLoadVector().get(day).toString());
+    Appliance appliance = appliances.get(dominantAppliance);
 
-        for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++)
-          tempVector.add(temp[i]);
-        // log.info("Temp: " + tempVector.toString());
+    if (appliance.getOverallPower() != -1)
+      dominantLoad =
+        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day,
+                                gen);
 
-        for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-          newControllableLoad[j] += temp[j];
-          controllableVector.add(newControllableLoad[j]);
-        }
-        // log.info("New Load: " + controllableVector.toString());
-      }
-    }
-    return newControllableLoad;
+    log.info("Dominant Appliance " + appliance.toString() + " Overall Power: "
+             + appliance.getOverallPower());
+    log.info("New Dominant Load: " + Arrays.toString(dominantLoad));
+
+    return dominantLoad;
   }
 
   /**

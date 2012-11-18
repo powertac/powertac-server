@@ -722,16 +722,6 @@ public class OfficeComplexControllableCapacitiesTests
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-    // JEC - tests fail after #531 fix
-    // for (OfficeComplex customer: officeComplexCustomerService
-    // .getOfficeComplexList()) {
-    // assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
-    // 1,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(1))
-    // .size());
-    // }
 
     TariffStatus st2 =
       new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
@@ -743,16 +733,6 @@ public class OfficeComplexControllableCapacitiesTests
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-    // JEC - tests fail after #531 fix
-    // for (OfficeComplex customer: officeComplexCustomerService
-    // .getOfficeComplexList()) {
-    // assertEquals("2 Subscriptions for customer",
-    // 2,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(0))
-    // .size());
-    // }
 
   }
 

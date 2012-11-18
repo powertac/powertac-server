@@ -16,13 +16,13 @@
 
 package org.powertac.officecomplexcustomer.appliances;
 
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -108,34 +108,60 @@ public class MicrowaveOven extends SemiShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] newControllableLoad =
+      new double[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] newTemp = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-    int minindex = 0;
-    double minvalue = Double.NEGATIVE_INFINITY;
-    Instant hour1 =
-      new Instant(now.getMillis() + TimeService.HOUR
-                  * (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1));
-    long sumPower = 0;
+    for (int i = 0; i < times; i++) {
 
-    // Gather the Load Summary of the day
-    for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++)
-      sumPower += weeklyLoadVector.get(day).get(i);
+      int minIndex = -1;
+      int counter = 1;
+      double minCost = Double.POSITIVE_INFINITY;
 
-    for (int i = OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1; i < OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2; i++) {
+      for (int j = OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1; j < OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2; j++) {
 
-      if ((minvalue < tariff.getUsageCharge(hour1, 1, 0))
-          || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
-        minvalue = tariff.getUsageCharge(hour1, 1, 0);
-        minindex = i;
+        newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+
+        newTemp[j] += power;
+
+        double cost = Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+        // log.debug("Overall Cost for hour " + j + " : " + cost);
+
+        if (minCost == cost)
+          counter++;
+
+        if ((minCost > cost)
+            || ((minCost == cost) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
+          minCost = cost;
+          minIndex = j;
+        }
+
       }
 
-      hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
+      if (counter == OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2
+                     - (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1)) {
+        minIndex =
+          (int) (Math.random() * counter)
+                  + OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1;
+        // log.debug("All the same, I choose: " + minIndex);
+      }
+
+      log.debug("Less costly hour: " + minIndex);
+
+      newControllableLoad[minIndex] += power;
+
+      newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+      newTemp[minIndex] += OfficeComplexConstants.QUARTERS_OF_HOUR * power;
+
+      nonDominantUsage = Arrays.copyOf(newTemp, newTemp.length);
 
     }
 
-    newControllableLoad[minindex] = sumPower;
     return newControllableLoad;
   }
 

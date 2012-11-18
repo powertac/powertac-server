@@ -15,13 +15,13 @@
 
 package org.powertac.officecomplexcustomer.appliances;
 
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -117,55 +117,120 @@ public class CopyMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
 
-    int[] minindex = new int[2];
-    double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
-    Instant hour1 =
-      new Instant(now.getMillis() + TimeService.HOUR
-                  * OfficeComplexConstants.START_OF_FUNCTION_HOURS);
+    double[] newControllableLoad =
+      new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-    for (int i = OfficeComplexConstants.START_OF_FUNCTION_HOURS; i < OfficeComplexConstants.END_OF_FUNCTION_HOUR; i++) {
+    double[] newTemp = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-      newControllableLoad[i] =
+    for (int j = OfficeComplexConstants.START_OF_FUNCTION_HOURS; j < OfficeComplexConstants.END_OF_FUNCTION_HOUR; j++)
+      newControllableLoad[j] =
         OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
 
-      if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0))
-          || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen
-                  .nextFloat() > OfficeComplexConstants.SAME)) {
-        minvalue[1] = minvalue[0];
-        minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
-        minindex[1] = minindex[0];
-        minindex[0] = i;
+    for (int i = 0; i < times; i++) {
+
+      int minIndex = -1;
+      int counter = 1;
+      double minCost = Double.POSITIVE_INFINITY;
+
+      for (int j = OfficeComplexConstants.START_OF_FUNCTION_HOURS; j < OfficeComplexConstants.END_OF_FUNCTION_HOUR; j++) {
+
+        newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+
+        newTemp[j] += OfficeComplexConstants.QUARTERS_OF_HOUR * power;
+
+        double cost = Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+        // log.debug("Overall Cost for hour " + j + " : " + cost);
+
+        if (minCost == cost)
+          counter++;
+
+        if ((minCost > cost)
+            || ((minCost == cost) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
+          minCost = cost;
+          minIndex = j;
+        }
+
       }
-      else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0))
-               || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen
-                       .nextFloat() > OfficeComplexConstants.SAME)) {
-        minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
-        minindex[1] = i;
+
+      if (counter == OfficeComplexConstants.END_OF_FUNCTION_HOUR
+                     - OfficeComplexConstants.START_OF_FUNCTION_HOURS) {
+        minIndex =
+          (int) (Math.random() * counter)
+                  + OfficeComplexConstants.START_OF_FUNCTION_HOURS;
+        // log.debug("All the same, I choose: " + minIndex);
       }
 
-      hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
+      log.debug("Less costly hour: " + minIndex);
 
-    }
+      newControllableLoad[minIndex] += power;
 
-    if (times > 4) {
+      newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+      newTemp[minIndex] += power;
 
-      newControllableLoad[minindex[0]] =
-        OfficeComplexConstants.QUARTERS_OF_HOUR * power;
-      newControllableLoad[minindex[1]] =
-        (times - OfficeComplexConstants.QUARTERS_OF_HOUR) * power;
+      nonDominantUsage = Arrays.copyOf(newTemp, newTemp.length);
 
-    }
-    else {
-      newControllableLoad[minindex[0]] = times * power;
     }
 
     return newControllableLoad;
   }
 
+  /*
+    @Override
+    public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+    {
+      long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
+
+      int[] minindex = new int[2];
+      double[] minvalue = { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+      Instant hour1 =
+        new Instant(now.getMillis() + TimeService.HOUR
+                    * OfficeComplexConstants.START_OF_FUNCTION_HOURS);
+
+      for (int i = OfficeComplexConstants.START_OF_FUNCTION_HOURS; i < OfficeComplexConstants.END_OF_FUNCTION_HOUR; i++) {
+
+        newControllableLoad[i] =
+          OfficeComplexConstants.QUARTERS_OF_HOUR * standbyPower;
+
+        if ((minvalue[0] < tariff.getUsageCharge(hour1, 1, 0))
+            || (minvalue[0] == tariff.getUsageCharge(hour1, 1, 0) && gen
+                    .nextFloat() > OfficeComplexConstants.SAME)) {
+          minvalue[1] = minvalue[0];
+          minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
+          minindex[1] = minindex[0];
+          minindex[0] = i;
+        }
+        else if ((minvalue[1] < tariff.getUsageCharge(hour1, 1, 0))
+                 || (minvalue[1] == tariff.getUsageCharge(hour1, 1, 0) && gen
+                         .nextFloat() > OfficeComplexConstants.SAME)) {
+          minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
+          minindex[1] = i;
+        }
+
+        hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
+
+      }
+
+      if (times > 4) {
+
+        newControllableLoad[minindex[0]] =
+          OfficeComplexConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[minindex[1]] =
+          (times - OfficeComplexConstants.QUARTERS_OF_HOUR) * power;
+
+      }
+      else {
+        newControllableLoad[minindex[0]] = times * power;
+      }
+
+      return newControllableLoad;
+    }
+  */
   public void calculateOverallPower ()
   {
     overallPower = 0;

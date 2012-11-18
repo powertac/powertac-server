@@ -22,8 +22,8 @@ import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.Office;
 
@@ -218,9 +218,11 @@ public class Appliance
    * @param day
    * @return
    */
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
-    return new long[OfficeComplexConstants.HOURS_OF_DAY];
+    return new double[OfficeComplexConstants.HOURS_OF_DAY];
   }
 
   /**

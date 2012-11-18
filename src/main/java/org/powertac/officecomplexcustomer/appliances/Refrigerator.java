@@ -20,9 +20,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
-import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -44,7 +41,9 @@ public class Refrigerator extends FullyShiftingAppliance
     // Filling the base variables
     name = office + " Refrigerator";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
-    power = (int) (OfficeComplexConstants.REFRIGERATOR_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.REFRIGERATOR_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.REFRIGERATOR_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.REFRIGERATOR_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.REFRIGERATOR_DURATION_CYCLE;
   }
 
@@ -74,39 +73,14 @@ public class Refrigerator extends FullyShiftingAppliance
       if (i % cycleDuration == k) {
         loadVector.add(power);
         dailyOperation.add(true);
-      } else {
+      }
+      else {
         loadVector.add(0);
         dailyOperation.add(false);
       }
     }
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-  }
-
-  @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
-  {
-
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
-
-    Instant now2 = now;
-
-    // Daily operation is seperated in shifting periods
-    for (int i = 0; i < OfficeComplexConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
-      double minvalue = Double.NEGATIVE_INFINITY;
-      int minindex = 0;
-
-      // For each shifting period we search the best value
-      for (int j = 0; j < OfficeComplexConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
-        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
-          minvalue = tariff.getUsageCharge(now2, 1, 0);
-          minindex = j;
-        }
-        now2 = new Instant(now2.getMillis() + TimeService.HOUR);
-      }
-      newControllableLoad[OfficeComplexConstants.REFRIGERATOR_SHIFTING_INTERVAL * i + minindex] = OfficeComplexConstants.QUARTERS_OF_HOUR * power;
-    }
-    return newControllableLoad;
   }
 
   @Override

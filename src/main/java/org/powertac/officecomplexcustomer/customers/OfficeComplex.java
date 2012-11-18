@@ -16,6 +16,7 @@
 package org.powertac.officecomplexcustomer.customers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -149,14 +150,16 @@ public class OfficeComplex extends AbstractCustomer
     new Vector<Vector<Long>>();
 
   /**
-   * These are the mean consumption of the village types for the days with the
+   * These are the mean consumption of the OfficeComplex types for the days with
+   * the
    * dominant appliances working.
    **/
   double[] dominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
   double[] dominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
   /**
-   * These are the mean consumption of the village types for the days with the
+   * These are the mean consumption of the OfficeComplex types for the days with
+   * the
    * dominant appliances not working.
    **/
   double[] nonDominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
@@ -201,8 +204,8 @@ public class OfficeComplex extends AbstractCustomer
    * subscriptions during the game. 2) Smart Shifting offices: They change their
    * tariff subscriptions in a smart way in order to minimize their costs.
    */
-  Vector<Office> notShiftingoffices = new Vector<Office>();
-  Vector<Office> smartShiftingoffices = new Vector<Office>();
+  Vector<Office> notShiftingOffices = new Vector<Office>();
+  Vector<Office> smartShiftingOffices = new Vector<Office>();
 
   /** This is the constructor function of the OfficeComplex customer */
   public OfficeComplex (String name)
@@ -228,7 +231,7 @@ public class OfficeComplex extends AbstractCustomer
     }
   }
 
-  /** This is the second constructor function of the Village customer */
+  /** This is the second constructor function of the OfficeComplex customer */
   public OfficeComplex (String name, ArrayList<CustomerInfo> customerInfo)
   {
     super(name, customerInfo);
@@ -280,7 +283,7 @@ public class OfficeComplex extends AbstractCustomer
       Office of = new Office();
       of.initialize(toString() + " NSoffice" + i, conf, publicVacationVector,
                     gen);
-      notShiftingoffices.add(of);
+      notShiftingOffices.add(of);
       of.officeOf = this;
     }
 
@@ -289,7 +292,7 @@ public class OfficeComplex extends AbstractCustomer
       Office hh = new Office();
       hh.initialize(toString() + " SSoffice" + i, conf, publicVacationVector,
                     gen);
-      smartShiftingoffices.add(hh);
+      smartShiftingOffices.add(hh);
       hh.officeOf = this;
     }
 
@@ -623,9 +626,10 @@ public class OfficeComplex extends AbstractCustomer
 
         aggDailyDominantLoadNS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadNS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursNS.add(fillAggDailyDominantLoad(i, type));
-        aggDailyNonDominantLoadInHoursNS.add(fillAggDailyNonDominantLoad(i,
-                                                                         type));
+        aggDailyDominantLoadInHoursNS
+                .add(fillAggDailyDominantLoadInHours(i, type));
+        aggDailyNonDominantLoadInHoursNS
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
     else {
@@ -643,9 +647,10 @@ public class OfficeComplex extends AbstractCustomer
 
         aggDailyDominantLoadSS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadSS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursSS.add(fillAggDailyDominantLoad(i, type));
-        aggDailyNonDominantLoadInHoursSS.add(fillAggDailyNonDominantLoad(i,
-                                                                         type));
+        aggDailyDominantLoadInHoursSS
+                .add(fillAggDailyDominantLoadInHours(i, type));
+        aggDailyNonDominantLoadInHoursSS
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
     fillAggDominantLoads(type);
@@ -725,10 +730,10 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
@@ -757,10 +762,10 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
@@ -790,10 +795,10 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
@@ -823,10 +828,10 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
@@ -857,10 +862,10 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     Vector<Long> v = new Vector<Long>(OfficeComplexConstants.QUARTERS_OF_DAY);
@@ -1275,7 +1280,7 @@ public class OfficeComplex extends AbstractCustomer
   /**
    * This method takes as an input the time-slot serial number (in order to know
    * in the current time) and estimates the consumption for this time-slot over
-   * the population under the Village Household Consumer.
+   * the population under the OfficeComplex Household Consumer.
    */
   double
     getConsumptionByTimeslot (int serial, String type, boolean controllable)
@@ -1305,7 +1310,7 @@ public class OfficeComplex extends AbstractCustomer
     return subscriptionMap;
   }
 
-  /** This function returns the subscription Map variable of the village. */
+  /** This function returns the subscription Map variable of the OfficeComplex. */
   public HashMap<String, TariffSubscription> getControllableSubscriptionMap ()
   {
     return controllableSubscriptionMap;
@@ -1370,6 +1375,55 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day and hour of that day for a specific type of office.
+   */
+  long getWeatherSensitiveConsumptions (int day, int hour, String type)
+  {
+    long summaryWeatherSensitive = 0;
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
+    }
+    else {
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("WeatherSensitive Load for " + type + ":"
+              + summaryWeatherSensitive);
+    return summaryWeatherSensitive;
+  }
+
+  /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day and hour of that day for a specific type of household.
+   */
+  long getNonDominantConsumptions (int day, int hour, String type)
+  {
+    long summaryNonDominant = 0;
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursNS.get(dayTemp).get(hour);
+    }
+    else {
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursSS.get(dayTemp).get(hour);
+    }
+
+    log.debug("NonDominant Load for " + type + ":" + summaryNonDominant);
+    return summaryNonDominant;
+  }
+
+  /**
    * This function returns the dominant Consumption Load for a certain type of
    * houses
    */
@@ -1431,31 +1485,6 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
-   * This function returns the quantity of weather sensitive load for a specific
-   * day and hour of that day for a specific type of office.
-   */
-  long getWeatherSensitiveConsumptions (int day, int hour, String type)
-  {
-    long summaryWeatherSensitive = 0;
-    int dayTemp =
-      day
-              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
-
-    if (type.equals("NS")) {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
-    }
-    else {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
-    }
-
-    log.debug("WeatherSensitive Load for " + type + ":"
-              + summaryWeatherSensitive);
-    return summaryWeatherSensitive;
-  }
-
-  /**
    * This function returns the quantity of controllable load for a specific day
    * in form of a vector for a certain type of offices.
    */
@@ -1502,6 +1531,48 @@ public class OfficeComplex extends AbstractCustomer
   }
 
   /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day in form of a vector for a certain type of households.
+   */
+  Vector<Long> getNonDominantConsumptions (int day, String type)
+  {
+
+    Vector<Long> nonDominantVector = new Vector<Long>();
+    int dayTemp =
+      day
+              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      nonDominantVector = aggDailyNonDominantLoadInHoursNS.get(dayTemp);
+    }
+    else {
+      nonDominantVector = aggDailyNonDominantLoadInHoursSS.get(dayTemp);
+    }
+
+    return nonDominantVector;
+  }
+
+  double[] getNonDominantUsage (int day, String type)
+  {
+
+    double[] nonDominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+    for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
+
+      if (hour == OfficeComplexConstants.HOURS_OF_DAY - 1)
+        nonDominantUsage[hour] = getNonDominantConsumptions(day, 0, type);
+      else
+        nonDominantUsage[hour] =
+          getNonDominantConsumptions(day, hour + 1, type);
+      log.debug("Non Dominant Usage for hour " + hour + ":"
+                + nonDominantUsage[hour]);
+
+    }
+
+    return nonDominantUsage;
+  }
+
+  /**
    * This function returns a vector with all the offices that are present in
    * this office complex.
    */
@@ -1510,9 +1581,9 @@ public class OfficeComplex extends AbstractCustomer
 
     Vector<Office> offices = new Vector<Office>();
 
-    for (Office office: notShiftingoffices)
+    for (Office office: notShiftingOffices)
       offices.add(office);
-    for (Office office: smartShiftingoffices)
+    for (Office office: smartShiftingOffices)
       offices.add(office);
 
     return offices;
@@ -1529,12 +1600,12 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      for (Office office: notShiftingoffices) {
+      for (Office office: notShiftingOffices) {
         offices.add(office);
       }
     }
     else {
-      for (Office office: smartShiftingoffices) {
+      for (Office office: smartShiftingOffices) {
         offices.add(office);
       }
     }
@@ -1687,54 +1758,6 @@ public class OfficeComplex extends AbstractCustomer
 
     double finalCostSummary = 0;
 
-    int serial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-    Instant base =
-      new Instant(timeService.getCurrentTime().getMillis() - serial
-                  * TimeService.HOUR);
-    int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
-
-    for (int day: daysList) {
-      if (day < daylimit)
-        day =
-          (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
-
-      double costSummary = 0;
-      double[] usage = new double[OfficeComplexConstants.HOURS_OF_DAY];
-
-      for (int hour = 0; hour < OfficeComplexConstants.HOURS_OF_DAY; hour++) {
-
-        if (hour == OfficeComplexConstants.HOURS_OF_DAY - 1)
-          usage[hour] =
-            getBaseConsumptions(day, 0, type)
-                    + getControllableConsumptions(day, 0, type);
-        else
-          usage[hour] =
-            getBaseConsumptions(day, hour + 1, type)
-                    + getControllableConsumptions(day, hour + 1, type);
-        log.debug("Usage for hour " + hour + ":" + usage[hour]);
-
-      }
-
-      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
-      finalCostSummary += costSummary;
-    }
-    log.debug("Variable Cost Summary: " + finalCostSummary);
-    return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
-  }
-
-  /**
-   * This is the new function, used in order to find the most cost efficient
-   * tariff over the available ones. It is using Daily shifting in order to put
-   * the appliances operation in most suitable hours (less costly) of the day.
-   * 
-   * @param tariff
-   * @return
-   */
-  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
-  {
-    double finalCostSummary = 0;
-
     double dominantCostSummary = 0, nonDominantCostSummary = 0;
     double[] dominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
     double[] nonDominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
@@ -1760,6 +1783,44 @@ public class OfficeComplex extends AbstractCustomer
     log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
     finalCostSummary = dominantCostSummary + nonDominantCostSummary;
     return -finalCostSummary;
+  }
+
+  /**
+   * This is the new function, used in order to find the most cost efficient
+   * tariff over the available ones. It is using Daily shifting in order to put
+   * the appliances operation in most suitable hours (less costly) of the day.
+   * 
+   * @param tariff
+   * @return
+   */
+  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
+  {
+    double finalCostSummary = 0;
+    double costSummary = 0;
+
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+
+    int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
+
+    for (int day: daysList) {
+      if (day < daylimit)
+        day =
+          (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
+
+      double[] nonDominantUsage = getNonDominantUsage(day, type);
+
+      double[] overallUsage =
+        dailyShifting(tariff, nonDominantUsage, day, type);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, overallUsage);
+      log.debug("Variable Dominant Cost Summary: " + costSummary);
+
+      finalCostSummary += costSummary;
+    }
+    log.debug("Variable Cost Summary: " + finalCostSummary);
+    return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
+
   }
 
   /**
@@ -1813,10 +1874,11 @@ public class OfficeComplex extends AbstractCustomer
    * @param type
    * @return
    */
-  long[] dailyShifting (Tariff tariff, Instant now, int day, String type)
+  double[] dailyShifting (Tariff tariff, double[] nonDominantUsage, int day,
+                          String type)
   {
 
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = nonDominantUsage;
     int dayTemp =
       day
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
@@ -1824,26 +1886,29 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Office> offices = new Vector<Office>();
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     for (Office office: offices) {
-      long[] temp = office.dailyShifting(tariff, now, dayTemp, gen);
+      double[] temp =
+        office.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
+                             dayTemp, gen);
+
+      log.debug("New Dominant Load for house " + office.toString()
+                + " for Tariff " + tariff.toString() + ": "
+                + Arrays.toString(temp));
+
       for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++)
         newControllableLoad[j] += temp[j];
     }
 
-    log.debug("New Controllable Load of OfficeComplex " + toString() + " type "
-              + type + " for Tariff " + tariff.toString());
+    log.debug("New Overall Load of OfficeComplex " + toString() + " type "
+              + type + " for Tariff " + tariff.toString() + ": "
+              + Arrays.toString(newControllableLoad));
 
-    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
-      log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0)
-                + " Load For Type " + type + " : " + newControllableLoad[i]);
-      now = new Instant(now.getMillis() + TimeService.HOUR);
-    }
     return newControllableLoad;
   }
 
@@ -1866,10 +1931,10 @@ public class OfficeComplex extends AbstractCustomer
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     if (type.equals("NS")) {
-      offices = notShiftingoffices;
+      offices = notShiftingOffices;
     }
     else {
-      offices = smartShiftingoffices;
+      offices = smartShiftingOffices;
     }
 
     log.debug("Day " + day);
@@ -1966,7 +2031,7 @@ public class OfficeComplex extends AbstractCustomer
       for (String type: subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
           log.info("Rescheduling " + type);
-          // rescheduleNextDay(type);
+          rescheduleNextDay(type);
         }
 
       }
@@ -2078,12 +2143,12 @@ public class OfficeComplex extends AbstractCustomer
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
-    Instant now =
-      new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
 
     int dayTemp =
       day
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+
+    double[] nonDominantUsage = getNonDominantUsage(dayTemp, type);
 
     Vector<Long> controllableVector = new Vector<Long>();
 
@@ -2091,10 +2156,16 @@ public class OfficeComplex extends AbstractCustomer
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
-    long[] newControllableLoad =
-      dailyShifting(sub.getTariff(), now, dayTemp, type);
-    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++)
-      controllableVector.add(newControllableLoad[i]);
+    double[] newControllableLoad =
+      dailyShifting(sub.getTariff(), nonDominantUsage, dayTemp, type);
+
+    for (int i = 0; i < OfficeComplexConstants.HOURS_OF_DAY; i++) {
+      String newControllableLoadString =
+        Double.toString(newControllableLoad[i]);
+      newControllableLoadString = newControllableLoadString.replace(".0", "");
+      controllableVector.add(Long.parseLong(newControllableLoadString));
+    }
+
     log.debug("New Consumption for day " + day + ": "
               + controllableVector.toString());
 

@@ -20,9 +20,6 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
-import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -47,7 +44,9 @@ public class CoffeeMachine extends FullyShiftingAppliance
     // Filling the base variables
     name = office + " CoffeeMachine";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
-    power = (int) (OfficeComplexConstants.COFFEE_MACHINE_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.COFFEE_MACHINE_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.COFFEE_MACHINE_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.COFFEE_MACHINE_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.COFFEE_MACHINE_DURATION_CYCLE;
     standByPower = (int) (power / (cycleDuration - 1));
   }
@@ -87,7 +86,8 @@ public class CoffeeMachine extends FullyShiftingAppliance
         if (i % cycleDuration == k) {
           loadVector.set(i, power);
           dailyOperation.set(i, true);
-        } else {
+        }
+        else {
           loadVector.set(i, standByPower);
           dailyOperation.set(i, true);
         }
@@ -96,35 +96,6 @@ public class CoffeeMachine extends FullyShiftingAppliance
 
     weeklyLoadVector.add(loadVector);
     weeklyOperation.add(dailyOperation);
-  }
-
-  @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
-  {
-
-    long[] newControllableLoad = new long[OfficeComplexConstants.HOURS_OF_DAY];
-
-    if (applianceOf.isWorkingDay(day)) {
-      Instant now2 = new Instant(now.getMillis() + TimeService.HOUR * (OfficeComplexConstants.COFFEE_MACHINE_START_OPERATION / OfficeComplexConstants.QUARTERS_OF_HOUR));
-
-      // Daily operation is seperated in shifting periods
-      for (int i = 0; i < OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_PERIODS; i++) {
-        double minvalue = Double.NEGATIVE_INFINITY;
-        int minindex = 0;
-
-        // For each shifting period we search the best value
-        for (int j = 0; j < OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_INTERVAL; j++) {
-          if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > OfficeComplexConstants.SAME)) {
-            minvalue = tariff.getUsageCharge(now2, 1, 0);
-            minindex = j;
-          }
-          now2 = new Instant(now2.getMillis() + TimeService.HOUR);
-        }
-        newControllableLoad[(OfficeComplexConstants.COFFEE_MACHINE_START_OPERATION / OfficeComplexConstants.QUARTERS_OF_HOUR) + OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_INTERVAL * i + minindex] = ((OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_INTERVAL * power) + (2 * (OfficeComplexConstants.COFFEE_MACHINE_SHIFTING_INTERVAL + 1))
-            * standByPower);
-      }
-    }
-    return newControllableLoad;
   }
 
   @Override
