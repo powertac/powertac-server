@@ -21,8 +21,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -48,6 +48,12 @@ public class Dryer extends SemiShiftingAppliance
       (int) (VillageConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DRYER_POWER_MEAN);
     cycleDuration = VillageConstants.DRYER_DURATION_CYCLE;
 
+  }
+
+  @Override
+  public void fillDailyOperation (int weekday, Random gen)
+  {
+
     // Inform the washing machine for the existence of the dryer
     for (Appliance appliance: applianceOf.getAppliances()) {
       if (appliance instanceof WashingMachine) {
@@ -60,11 +66,6 @@ public class Dryer extends SemiShiftingAppliance
       }
     }
 
-  }
-
-  @Override
-  public void fillDailyOperation (int weekday, Random gen)
-  {
     // Initializing Variables
     loadVector = new Vector<Integer>();
     dailyOperation = new Vector<Boolean>();
@@ -185,10 +186,12 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
-    // Dryer's daily shifting is done by the washing machine for safety
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+
+    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
 
     return newControllableLoad;
   }

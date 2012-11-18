@@ -20,9 +20,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -50,7 +49,8 @@ public class Freezer extends FullyShiftingAppliance
     // Filling the base variables
     name = household + " Freezer";
     saturation = Double.parseDouble(conf.getProperty("FreezerSaturation"));
-    power = (int) (VillageConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.FREEZER_POWER_MEAN);
+    power =
+      (int) (VillageConstants.FREEZER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.FREEZER_POWER_MEAN);
     cycleDuration = VillageConstants.FREEZER_DURATION_CYCLE;
 
   }
@@ -81,7 +81,8 @@ public class Freezer extends FullyShiftingAppliance
       if (i % cycleDuration == k) {
         loadVector.add(power);
         dailyOperation.add(true);
-      } else {
+      }
+      else {
         loadVector.add(0);
         dailyOperation.add(false);
       }
@@ -91,28 +92,33 @@ public class Freezer extends FullyShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
+    /*
+        // Daily operation is seperated in shifting periods
+        for (int i = 0; i < VillageConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
+          double minvalue = Double.NEGATIVE_INFINITY;
+          int minindex = 0;
 
-    Instant now2 = now;
-
-    // Daily operation is seperated in shifting periods
-    for (int i = 0; i < VillageConstants.REFRIGERATOR_SHIFTING_PERIODS; i++) {
-      double minvalue = Double.NEGATIVE_INFINITY;
-      int minindex = 0;
-
-      // For each shifting period we search the best value
-      for (int j = 0; j < VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
-        if ((minvalue < tariff.getUsageCharge(now2, 1, 0)) || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen.nextFloat() > VillageConstants.SAME)) {
-          minvalue = tariff.getUsageCharge(now2, 1, 0);
-          minindex = j;
+          // For each shifting period we search the best value
+          for (int j = 0; j < VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL; j++) {
+            if ((minvalue < tariff.getUsageCharge(now2, 1, 0))
+                || (minvalue == tariff.getUsageCharge(now2, 1, 0) && gen
+                        .nextFloat() > VillageConstants.SAME)) {
+              minvalue = tariff.getUsageCharge(now2, 1, 0);
+              minindex = j;
+            }
+            now2 = new Instant(now2.getMillis() + TimeService.HOUR);
+          }
+          newControllableLoad[VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL * i
+                              + minindex] =
+            VillageConstants.QUARTERS_OF_HOUR * power;
         }
-        now2 = new Instant(now2.getMillis() + TimeService.HOUR);
-      }
-      newControllableLoad[VillageConstants.REFRIGERATOR_SHIFTING_INTERVAL * i + minindex] = VillageConstants.QUARTERS_OF_HOUR * power;
-    }
+        */
     return newControllableLoad;
   }
 

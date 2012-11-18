@@ -16,6 +16,7 @@
  */
 package org.powertac.householdcustomer.customers;
 
+import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
@@ -24,6 +25,7 @@ import java.util.Vector;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.appliances.AirCondition;
 import org.powertac.householdcustomer.appliances.Appliance;
 import org.powertac.householdcustomer.appliances.CirculationPump;
@@ -564,19 +566,19 @@ public class Household
     fr.initialize(this.name, conf, gen);
     checkProbability(fr, gen);
 
-    // Water Heater
-    WaterHeater wh = new WaterHeater();
-    appliances.add(wh);
-    wh.setApplianceOf(this);
-    wh.initialize(this.name, conf, gen);
-    checkProbability(wh, gen);
-
     // Space Heater
     SpaceHeater sh = new SpaceHeater();
     appliances.add(sh);
     sh.setApplianceOf(this);
     sh.initialize(this.name, conf, gen);
     checkProbability(sh, gen);
+
+    // Water Heater
+    WaterHeater wh = new WaterHeater();
+    appliances.add(wh);
+    wh.setApplianceOf(this);
+    wh.initialize(this.name, conf, gen);
+    checkProbability(wh, gen);
 
     // SEMI SHIFTING ================================
 
@@ -1098,33 +1100,25 @@ public class Household
    * @param day
    * @return
    */
-  long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
+                          TariffEvaluationHelper tariffEvalHelper, int day,
+                          Random gen)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] dominantLoad = new double[VillageConstants.HOURS_OF_DAY];
 
-    for (Appliance appliance: appliances) {
-      if (!(appliance instanceof NotShiftingAppliance)
-          && !(appliance instanceof WeatherSensitiveAppliance)) {
-        long[] temp = appliance.dailyShifting(tariff, now, day, gen);
-        Vector<Long> tempVector = new Vector<Long>();
-        Vector<Long> controllableVector = new Vector<Long>();
-        // log.info("Appliance " + appliance.toString());
-        // log.info("Load: " +
-        // appliance.getWeeklyLoadVector().get(day).toString());
+    Appliance appliance = appliances.get(dominantAppliance);
 
-        for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++)
-          tempVector.add(temp[i]);
-        // log.info("Temp: " + tempVector.toString());
+    if (appliance.getOverallPower() != -1)
+      dominantLoad =
+        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day,
+                                gen);
 
-        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-          newControllableLoad[j] += temp[j];
-          controllableVector.add(newControllableLoad[j]);
-        }
-        // log.info("New Load: " + controllableVector.toString());
-      }
-    }
-    return newControllableLoad;
+    log.info("Dominant Appliance " + appliance.toString() + " Overall Power: "
+             + appliance.getOverallPower());
+    log.info("New Dominant Load: " + Arrays.toString(dominantLoad));
+
+    return dominantLoad;
   }
 
   /**

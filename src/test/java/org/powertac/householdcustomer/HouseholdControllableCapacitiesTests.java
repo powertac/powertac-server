@@ -734,15 +734,6 @@ public class HouseholdControllableCapacitiesTests
     assertTrue("tariff revoked", tariff2.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    // JEC - not working after #531
-    // for (Village customer: householdCustomerService.getVillageList()) {
-    // assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
-    // 1,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(1))
-    // .size());
-    // }
 
     TariffStatus st2 =
       new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
@@ -754,15 +745,6 @@ public class HouseholdControllableCapacitiesTests
     assertTrue("tariff revoked", tariff3.isRevoked());
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    // JEC - not working after #531
-    // for (Village customer: householdCustomerService.getVillageList()) {
-    // assertEquals("2 Subscriptions for customer",
-    // 2,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(0))
-    // .size());
-    // }
 
   }
 

@@ -16,14 +16,14 @@
 
 package org.powertac.householdcustomer.appliances;
 
+import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.HeaterType;
 
@@ -209,80 +209,136 @@ public class WaterHeater extends FullyShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
 
     // If the heater is working the day of the shifting
     if (operationDaysVector.get(day)) {
 
-      int minindex = 0;
-      boolean[] functionMatrix = createShiftingOperationMatrix(day);
-      double minvalue = Double.NEGATIVE_INFINITY;
-      Instant hour1 = now;
+      double[] newTemp = new double[VillageConstants.HOURS_OF_DAY];
 
       // If the heater is instant Heater
       if (type == HeaterType.InstantHeater) {
 
+        boolean[] functionMatrix = createShiftingOperationMatrix(day);
+        Vector<Integer> possibleHours = new Vector<Integer>();
+
         // find the all the available functioning hours of the appliance
         for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
           if (functionMatrix[i]) {
-            if ((minvalue < tariff.getUsageCharge(hour1, 1, 0))
-                || (minvalue == tariff.getUsageCharge(hour1, 1, 0) && gen
-                        .nextFloat() > VillageConstants.SAME)) {
-              minvalue = tariff.getUsageCharge(hour1, 1, 0);
-              minindex = i;
-            }
+            possibleHours.add(i);
           }
-          hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
         }
 
-        newControllableLoad[minindex] = times * power;
+        log.debug("Possible Hours: " + possibleHours.toString());
+
+        if (possibleHours.size() == 0) {
+          log.debug("Not possible to shifting due to absence.");
+          return newControllableLoad;
+        }
+
+        for (int i = 0; i < times; i++) {
+
+          int minIndex = -1;
+          int counter = 1;
+          double minCost = Double.POSITIVE_INFINITY;
+
+          for (int j = 0; j < possibleHours.size(); j++) {
+
+            newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+
+            newTemp[possibleHours.get(j)] +=
+              VillageConstants.QUARTERS_OF_HOUR * power;
+
+            double cost =
+              Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+            // log.debug("Overall Cost for hour " + possibleHours.get(j) + " : "
+            // + cost);
+            if (minCost == cost)
+              counter++;
+
+            if ((minCost > cost)
+                || ((minCost == cost) && gen.nextFloat() > VillageConstants.SAME)) {
+              minCost = cost;
+              minIndex = j;
+            }
+
+          }
+
+          if (counter == possibleHours.size()) {
+            minIndex = (int) (Math.random() * possibleHours.size());
+            // log.debug("All the same, I choose: " + minIndex);
+          }
+
+          log.debug("Less costly hour: " + possibleHours.get(minIndex));
+
+          newControllableLoad[possibleHours.get(minIndex)] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+
+          newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+          newTemp[possibleHours.get(minIndex)] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+
+          nonDominantUsage = Arrays.copyOf(newTemp, newTemp.length);
+
+        }
 
       }
-      // If heater is storage
       else {
-
-        double newValue = 0;
+        int minIndex = -1;
+        int counter = 1;
+        double minCost = Double.POSITIVE_INFINITY;
 
         // find the all the available functioning hours of the appliance
         for (int i = 0; i < VillageConstants.STORAGE_HEATER_SHIFTING_END; i++) {
 
-          newValue =
-            tariff.getUsageCharge(hour1, 1, 0)
-                    + tariff.getUsageCharge(new Instant(hour1.getMillis()
-                                                        + TimeService.HOUR), 1,
-                                            0)
-                    + tariff.getUsageCharge(new Instant(hour1.getMillis() + 2
-                                                        * TimeService.HOUR), 1,
-                                            0)
-                    + tariff.getUsageCharge(new Instant(hour1.getMillis() + 3
-                                                        * TimeService.HOUR), 1,
-                                            0)
-                    + tariff.getUsageCharge(new Instant(hour1.getMillis() + 4
-                                                        * TimeService.HOUR), 1,
-                                            0);
+          newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
 
-          if ((minvalue < newValue)
-              || (minvalue == newValue && gen.nextFloat() > VillageConstants.SAME)) {
-            minvalue = newValue;
-            minindex = i;
+          newTemp[i] += VillageConstants.QUARTERS_OF_HOUR * power;
+
+          double cost =
+            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+          log.debug("Overall Cost for hour " + i + " : " + cost);
+
+          if (minCost == cost)
+            counter++;
+
+          if ((minCost > cost)
+              || ((minCost == cost) && gen.nextFloat() > VillageConstants.SAME)) {
+            minCost = cost;
+            minIndex = i;
           }
-          hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
+
         }
 
+        if (counter == VillageConstants.STORAGE_HEATER_SHIFTING_END) {
+          minIndex =
+            (int) (Math.random() * VillageConstants.STORAGE_HEATER_SHIFTING_END);
+          log.debug("All the same, I choose: " + minIndex);
+        }
+
+        log.debug("Less costly hour: " + minIndex);
+
         for (int i = 0; i <= VillageConstants.STORAGE_HEATER_PHASES; i++) {
-          newControllableLoad[minindex + i] =
+          newControllableLoad[minIndex + i] =
             VillageConstants.QUARTERS_OF_HOUR * power;
         }
 
         for (int i = 1; i < VillageConstants.STORAGE_HEATER_PHASES; i++) {
-          newControllableLoad[VillageConstants.STORAGE_HEATER_PHASES + minindex
+          newControllableLoad[VillageConstants.STORAGE_HEATER_PHASES + minIndex
                               + i] = power;
         }
+
       }
+
     }
+
     return newControllableLoad;
   }
 

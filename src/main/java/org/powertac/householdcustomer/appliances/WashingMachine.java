@@ -16,14 +16,14 @@
 
 package org.powertac.householdcustomer.appliances;
 
+import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -159,24 +159,19 @@ public class WashingMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
 
     if (days.get(day) > 0) {
 
-      int[] minindex = new int[2];
-      double[] minvalue =
-        { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+      double[] newTemp = new double[VillageConstants.HOURS_OF_DAY];
       boolean[] functionMatrix = createShiftingOperationMatrix(day);
-      Instant hour1 = now;
-      Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
-      Instant hour3 = new Instant(now.getMillis() + 2 * TimeService.HOUR);
-      Instant hour4 = new Instant(now.getMillis() + 3 * TimeService.HOUR);
 
       Vector<Integer> possibleHours = new Vector<Integer>();
-      double newValue = 0;
 
       // find the all the available functioning hours of the appliance
       for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
@@ -185,102 +180,102 @@ public class WashingMachine extends SemiShiftingAppliance
         }
       }
 
-      log.debug(possibleHours.toString());
-      // System.out.println(possibleHours.toString());
+      // log.debug("With Dryer: " + dryerFlag);
+
+      log.debug("Possible Hours: " + possibleHours.toString());
 
       if (possibleHours.size() == 0) {
+        log.debug("Not possible to shifting due to absence.");
         return newControllableLoad;
       }
 
-      // find the all the available functioning hours of the appliance
-      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-        if (possibleHours.contains(i)) {
+      for (int i = 0; i < days.get(day); i++) {
 
-          if (dryerFlag)
-            newValue =
-              tariff.getUsageCharge(hour1, 1, 0)
-                      + tariff.getUsageCharge(hour2, 1, 0)
-                      + tariff.getUsageCharge(hour3, 1, 0)
-                      + tariff.getUsageCharge(hour4, 1, 0);
-          else
-            newValue =
-              tariff.getUsageCharge(hour1, 1, 0)
-                      + tariff.getUsageCharge(hour2, 1, 0);
+        int minIndex = -1;
+        int counter = 1;
+        double minCost = Double.POSITIVE_INFINITY;
 
-          // System.out.println("Hour " + i + " Value " + newValue +
-          // " Previous Best " + minvalue[0] + " Second Best " + minvalue[1]);
+        for (int j = 0; j < possibleHours.size(); j++) {
 
-          if ((minvalue[0] < newValue)
-              || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
-            minvalue[1] = minvalue[0];
-            minvalue[0] = newValue;
-            minindex[1] = minindex[0];
-            minindex[0] = i;
-          }
-          else if ((minvalue[1] < newValue)
-                   || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
-            minvalue[1] = newValue;
-            minindex[1] = i;
-          }
+          newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
 
-          hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
-          hour2 = new Instant(hour2.getMillis() + TimeService.HOUR);
+          newTemp[possibleHours.get(j)] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+          newTemp[possibleHours.get(j) + 1] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+
           if (dryerFlag) {
-            hour3 = new Instant(hour3.getMillis() + TimeService.HOUR);
-            hour4 = new Instant(hour4.getMillis() + TimeService.HOUR);
+            newTemp[possibleHours.get(j) + 2] =
+              VillageConstants.QUARTERS_OF_HOUR * dryerPower
+                      - VillageConstants.DRYER_THIRD_PHASE_LOAD;
+            newTemp[possibleHours.get(j) + 3] =
+              (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
+                      - (VillageConstants.QUARTERS_OF_HOUR + 1)
+                      * VillageConstants.DRYER_THIRD_PHASE_LOAD;
           }
+
+          double cost =
+            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+          // log.debug("Overall Cost for hour " + possibleHours.get(j) + " : "
+          // + cost);
+
+          if (minCost == cost)
+            counter++;
+
+          if ((minCost > cost)
+              || ((minCost == cost) && gen.nextFloat() > VillageConstants.SAME)) {
+            minCost = cost;
+            minIndex = j;
+          }
+
         }
-      }
 
-      // System.out.println("minindexes" + minindex[0] + " , " + minindex[1]);
+        if (counter == possibleHours.size()) {
+          minIndex = (int) (Math.random() * possibleHours.size());
+          // log.debug("All the same, I choose: " +
+          // possibleHours.get(minIndex));
+        }
 
-      if (days.get(day) == VillageConstants.OPERATION_DAILY_TIMES_LIMIT) {
+        log.debug("Less costly hour: " + possibleHours.get(minIndex));
 
-        newControllableLoad[minindex[0]] =
+        newControllableLoad[possibleHours.get(minIndex)] +=
           VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1]] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1] + 1] =
+        newControllableLoad[possibleHours.get(minIndex) + 1] +=
           VillageConstants.QUARTERS_OF_HOUR * power;
 
         if (dryerFlag) {
-          newControllableLoad[minindex[0] + 2] =
+          newControllableLoad[possibleHours.get(minIndex) + 2] =
             VillageConstants.QUARTERS_OF_HOUR * dryerPower
                     - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[0] + 3] =
+          newControllableLoad[possibleHours.get(minIndex) + 3] =
             (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
                     - (VillageConstants.QUARTERS_OF_HOUR + 1)
                     * VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[1] + 2] =
-            VillageConstants.QUARTERS_OF_HOUR * dryerPower
-                    - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[1] + 3] =
-            (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
-                    - (VillageConstants.QUARTERS_OF_HOUR + 1)
-                    * VillageConstants.DRYER_THIRD_PHASE_LOAD;
-
         }
 
-      }
-      else {
-        newControllableLoad[minindex[0]] =
+        newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+        newTemp[possibleHours.get(minIndex)] +=
           VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] =
+        newTemp[possibleHours.get(minIndex) + 1] +=
           VillageConstants.QUARTERS_OF_HOUR * power;
-
         if (dryerFlag) {
-          newControllableLoad[minindex[0] + 2] =
+          newTemp[possibleHours.get(minIndex) + 2] =
             VillageConstants.QUARTERS_OF_HOUR * dryerPower
                     - VillageConstants.DRYER_THIRD_PHASE_LOAD;
-          newControllableLoad[minindex[0] + 3] =
+          newTemp[possibleHours.get(minIndex) + 3] =
             (VillageConstants.QUARTERS_OF_HOUR / 2) * dryerPower
                     - (VillageConstants.QUARTERS_OF_HOUR + 1)
                     * VillageConstants.DRYER_THIRD_PHASE_LOAD;
         }
+
+        nonDominantUsage = Arrays.copyOf(newTemp, newTemp.length);
+
       }
 
+    }
+    else {
+      log.debug("Not operating today");
     }
 
     return newControllableLoad;

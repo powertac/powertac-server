@@ -16,6 +16,7 @@
 package org.powertac.householdcustomer.customers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -716,9 +717,10 @@ public class Village extends AbstractCustomer
 
         aggDailyDominantLoadNS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadNS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursNS.add(fillAggDailyDominantLoad(i, type));
-        aggDailyNonDominantLoadInHoursNS.add(fillAggDailyNonDominantLoad(i,
-                                                                         type));
+        aggDailyDominantLoadInHoursNS
+                .add(fillAggDailyDominantLoadInHours(i, type));
+        aggDailyNonDominantLoadInHoursNS
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
     else if (type.equals("RaS")) {
@@ -736,9 +738,10 @@ public class Village extends AbstractCustomer
 
         aggDailyDominantLoadRaS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadRaS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursRaS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyDominantLoadInHoursRaS
+                .add(fillAggDailyDominantLoadInHours(i, type));
         aggDailyNonDominantLoadInHoursRaS
-                .add(fillAggDailyNonDominantLoad(i, type));
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
     else if (type.equals("ReS")) {
@@ -756,9 +759,10 @@ public class Village extends AbstractCustomer
 
         aggDailyDominantLoadReS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadReS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursReS.add(fillAggDailyDominantLoad(i, type));
+        aggDailyDominantLoadInHoursReS
+                .add(fillAggDailyDominantLoadInHours(i, type));
         aggDailyNonDominantLoadInHoursReS
-                .add(fillAggDailyNonDominantLoad(i, type));
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
     else {
@@ -776,9 +780,10 @@ public class Village extends AbstractCustomer
 
         aggDailyDominantLoadSS.add(fillAggDailyDominantLoad(i, type));
         aggDailyNonDominantLoadSS.add(fillAggDailyNonDominantLoad(i, type));
-        aggDailyDominantLoadInHoursSS.add(fillAggDailyDominantLoad(i, type));
-        aggDailyNonDominantLoadInHoursSS.add(fillAggDailyNonDominantLoad(i,
-                                                                         type));
+        aggDailyDominantLoadInHoursSS
+                .add(fillAggDailyDominantLoadInHours(i, type));
+        aggDailyNonDominantLoadInHoursSS
+                .add(fillAggDailyNonDominantLoadInHours(i, type));
       }
     }
 
@@ -1298,6 +1303,168 @@ public class Village extends AbstractCustomer
   }
 
   /**
+   * This function is used in order to fill the daily dominant Load of
+   * the household for each hour for a certain type of households.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyDominantLoadInHours (int day, String type)
+  {
+
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadNS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else if (type.equals("RaS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadRaS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else if (type.equals("ReS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadReS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyDominantLoadSS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
+   * This function is used in order to fill the daily non dominant Load of
+   * the household for each hour for a certain type of households.
+   * 
+   * @param day
+   * @param type
+   * @return
+   */
+  Vector<Long> fillAggDailyNonDominantLoadInHours (int day, String type)
+  {
+
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+    Vector<Long> daily = new Vector<Long>();
+    long sum = 0;
+
+    if (type.equals("NS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadNS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadNS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else if (type.equals("RaS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadRaS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadRaS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else if (type.equals("ReS")) {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadReS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadReS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+    else {
+      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+        sum = 0;
+        sum =
+          aggDailyNonDominantLoadSS.get(dayTemp)
+                  .get(i * VillageConstants.QUARTERS_OF_HOUR)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 1)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 2)
+                  + aggDailyNonDominantLoadSS.get(dayTemp)
+                          .get(i * VillageConstants.QUARTERS_OF_HOUR + 3);
+        daily.add(sum);
+      }
+    }
+
+    return daily;
+  }
+
+  /**
    * This function is used in order to print the aggregated hourly load of the
    * village's households.
    * 
@@ -1658,45 +1825,68 @@ public class Village extends AbstractCustomer
   }
 
   /**
-   * This function returns the dominant Consumption Load for a certain type of
-   * houses
+   * This function returns the quantity of weather sensitive load for a specific
+   * day and hour of that day for a specific type of household.
    */
-  public double[] getDominantLoad (String type)
+  long getNonDominantConsumptions (int day, int hour, String type)
   {
+    long summaryNonDominant = 0;
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+
     if (type.equals("NS")) {
-      return dominantLoadNS;
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursNS.get(dayTemp).get(hour);
     }
     else if (type.equals("RaS")) {
-      return dominantLoadRaS;
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursRaS.get(dayTemp).get(hour);
     }
     else if (type.equals("ReS")) {
-      return dominantLoadReS;
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursReS.get(dayTemp).get(hour);
     }
     else {
-      return dominantLoadSS;
+      summaryNonDominant =
+        aggDailyNonDominantLoadInHoursSS.get(dayTemp).get(hour);
     }
 
+    log.debug("NonDominant Load for " + type + ":" + summaryNonDominant);
+    return summaryNonDominant;
   }
 
   /**
-   * This function returns the non dominant Consumption Load for a certain type
-   * of houses
+   * This function returns the quantity of non dominant load for a specific
+   * day and hour of that day for a specific type of household.
    */
-  public double[] getNonDominantLoad (String type)
+  long getWeatherSensitiveConsumptions (int day, int hour, String type)
   {
+    long summaryWeatherSensitive = 0;
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+
     if (type.equals("NS")) {
-      return nonDominantLoadNS;
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
     }
     else if (type.equals("RaS")) {
-      return nonDominantLoadRaS;
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursRaS.get(dayTemp).get(hour);
     }
     else if (type.equals("ReS")) {
-      return nonDominantLoadReS;
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursReS.get(dayTemp).get(hour);
     }
     else {
-      return nonDominantLoadSS;
+      summaryWeatherSensitive =
+        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
     }
 
+    log.debug("WeatherSensitive Load for " + type + ":"
+              + summaryWeatherSensitive);
+    return summaryWeatherSensitive;
   }
 
   /**
@@ -1740,39 +1930,6 @@ public class Village extends AbstractCustomer
     log.debug("Controllable Load for " + type + ": Before Curtailment "
               + before + " After Curtailment " + after);
 
-  }
-
-  /**
-   * This function returns the quantity of weather sensitive load for a specific
-   * day and hour of that day for a specific type of household.
-   */
-  long getWeatherSensitiveConsumptions (int day, int hour, String type)
-  {
-    long summaryWeatherSensitive = 0;
-    int dayTemp =
-      day
-              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
-
-    if (type.equals("NS")) {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursNS.get(dayTemp).get(hour);
-    }
-    else if (type.equals("RaS")) {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursRaS.get(dayTemp).get(hour);
-    }
-    else if (type.equals("ReS")) {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursReS.get(dayTemp).get(hour);
-    }
-    else {
-      summaryWeatherSensitive =
-        aggDailyWeatherSensitiveLoadInHoursSS.get(dayTemp).get(hour);
-    }
-
-    log.debug("WeatherSensitive Load for " + type + ":"
-              + summaryWeatherSensitive);
-    return summaryWeatherSensitive;
   }
 
   /**
@@ -1836,6 +1993,34 @@ public class Village extends AbstractCustomer
   }
 
   /**
+   * This function returns the quantity of weather sensitive load for a specific
+   * day in form of a vector for a certain type of households.
+   */
+  Vector<Long> getNonDominantConsumptions (int day, String type)
+  {
+
+    Vector<Long> nonDominantVector = new Vector<Long>();
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+
+    if (type.equals("NS")) {
+      nonDominantVector = aggDailyNonDominantLoadInHoursNS.get(dayTemp);
+    }
+    else if (type.equals("RaS")) {
+      nonDominantVector = aggDailyNonDominantLoadInHoursRaS.get(dayTemp);
+    }
+    else if (type.equals("ReS")) {
+      nonDominantVector = aggDailyNonDominantLoadInHoursReS.get(dayTemp);
+    }
+    else {
+      nonDominantVector = aggDailyNonDominantLoadInHoursSS.get(dayTemp);
+    }
+
+    return nonDominantVector;
+  }
+
+  /**
    * This function returns a vector with all the houses that are present in this
    * village.
    */
@@ -1889,6 +2074,26 @@ public class Village extends AbstractCustomer
 
     return houses;
 
+  }
+
+  double[] getNonDominantUsage (int day, String type)
+  {
+
+    double[] nonDominantUsage = new double[VillageConstants.HOURS_OF_DAY];
+
+    for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
+
+      if (hour == VillageConstants.HOURS_OF_DAY - 1)
+        nonDominantUsage[hour] = getNonDominantConsumptions(day, 0, type);
+      else
+        nonDominantUsage[hour] =
+          getNonDominantConsumptions(day, hour + 1, type);
+      log.debug("Non Dominant Usage for hour " + hour + ":"
+                + nonDominantUsage[hour]);
+
+    }
+
+    return nonDominantUsage;
   }
 
   // =====EVALUATION FUNCTIONS===== //
@@ -2035,53 +2240,8 @@ public class Village extends AbstractCustomer
 
     double finalCostSummary = 0;
 
-    int serial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-
-    int daylimit = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
-
-    for (int day: daysList) {
-      if (day < daylimit)
-        day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
-
-      double costSummary = 0;
-      double[] usage = new double[VillageConstants.HOURS_OF_DAY];
-
-      for (int hour = 0; hour < VillageConstants.HOURS_OF_DAY; hour++) {
-
-        if (hour == VillageConstants.HOURS_OF_DAY - 1)
-          usage[hour] =
-            getBaseConsumptions(day, 0, type)
-                    + getControllableConsumptions(day, 0, type);
-        else
-          usage[hour] =
-            getBaseConsumptions(day, hour + 1, type)
-                    + getControllableConsumptions(day, hour + 1, type);
-        log.debug("Usage for hour " + hour + ":" + usage[hour]);
-
-      }
-
-      costSummary = tariffEvalHelper.estimateCost(tariff, usage);
-      finalCostSummary += costSummary;
-    }
-    log.debug("Variable Cost Summary: " + finalCostSummary);
-    return -finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
-  }
-
-  /**
-   * This is the new function, used in order to find the most cost efficient
-   * tariff over the available ones. It is using Daily shifting in order to put
-   * the appliances operation in most suitable hours (less costly) of the day.
-   * 
-   * @param tariff
-   * @return
-   */
-  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
-  {
-
-    double finalCostSummary = 0;
-
     double dominantCostSummary = 0, nonDominantCostSummary = 0;
+
     double[] dominantUsage = new double[VillageConstants.HOURS_OF_DAY];
     double[] nonDominantUsage = new double[VillageConstants.HOURS_OF_DAY];
 
@@ -2117,6 +2277,44 @@ public class Village extends AbstractCustomer
     log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
     finalCostSummary = dominantCostSummary + nonDominantCostSummary;
     return -finalCostSummary;
+
+  }
+
+  /**
+   * This is the new function, used in order to find the most cost efficient
+   * tariff over the available ones. It is using Daily shifting in order to put
+   * the appliances operation in most suitable hours (less costly) of the day.
+   * 
+   * @param tariff
+   * @return
+   */
+  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
+  {
+
+    double finalCostSummary = 0;
+    double costSummary = 0;
+
+    int serial =
+      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+
+    int daylimit = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
+
+    for (int day: daysList) {
+      if (day < daylimit)
+        day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
+
+      double[] nonDominantUsage = getNonDominantUsage(day, type);
+
+      double[] overallUsage =
+        dailyShifting(tariff, nonDominantUsage, day, type);
+
+      costSummary = tariffEvalHelper.estimateCost(tariff, overallUsage);
+      log.debug("Variable Dominant Cost Summary: " + costSummary);
+
+      finalCostSummary += costSummary;
+    }
+    log.debug("Variable Cost Summary: " + finalCostSummary);
+    return -finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
   }
 
   /**
@@ -2169,10 +2367,11 @@ public class Village extends AbstractCustomer
    * @param type
    * @return
    */
-  long[] dailyShifting (Tariff tariff, Instant now, int day, String type)
+  double[] dailyShifting (Tariff tariff, double[] nonDominantUsage, int day,
+                          String type)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = nonDominantUsage;
     int dayTemp =
       day
               % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
@@ -2193,19 +2392,23 @@ public class Village extends AbstractCustomer
     }
 
     for (Household house: houses) {
-      long[] temp = house.dailyShifting(tariff, now, dayTemp, gen);
+      double[] temp =
+        house.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
+                            dayTemp, gen);
+
+      log.debug("New Dominant Load for house " + house.toString()
+                + " for Tariff " + tariff.toString() + ": "
+                + Arrays.toString(temp));
+
       for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
         newControllableLoad[j] += temp[j];
+
     }
 
-    log.debug("New Controllable Load of Village " + toString() + " type "
-              + type + " for Tariff " + tariff.toString());
+    log.debug("New Overall Load of Village " + toString() + " type " + type
+              + " for Tariff " + tariff.toString() + ": "
+              + Arrays.toString(newControllableLoad));
 
-    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-      log.debug("Hour: " + i + " Cost: " + tariff.getUsageCharge(now, 1, 0)
-                + " Load For Type " + type + " : " + newControllableLoad[i]);
-      now = new Instant(now.getMillis() + TimeService.HOUR);
-    }
     return newControllableLoad;
   }
 
@@ -2334,7 +2537,7 @@ public class Village extends AbstractCustomer
       for (String type: subscriptionMap.keySet()) {
         if (!(type.equals("NS"))) {
           log.info("Rescheduling " + type);
-          // rescheduleNextDay(type);
+          rescheduleNextDay(type);
         }
 
       }
@@ -2449,12 +2652,12 @@ public class Village extends AbstractCustomer
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
-    Instant now =
-      new Instant(timeService.getCurrentTime().getMillis() + TimeService.HOUR);
 
     int dayTemp =
       day
               % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+
+    double[] nonDominantUsage = getNonDominantUsage(dayTemp, type);
 
     Vector<Long> controllableVector = new Vector<Long>();
 
@@ -2462,10 +2665,16 @@ public class Village extends AbstractCustomer
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
-    long[] newControllableLoad =
-      dailyShifting(sub.getTariff(), now, dayTemp, type);
-    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++)
-      controllableVector.add(newControllableLoad[i]);
+    double[] newControllableLoad =
+      dailyShifting(sub.getTariff(), nonDominantUsage, dayTemp, type);
+
+    for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
+      String newControllableLoadString =
+        Double.toString(newControllableLoad[i]);
+      newControllableLoadString = newControllableLoadString.replace(".0", "");
+      controllableVector.add(Long.parseLong(newControllableLoadString));
+    }
+
     log.debug("New Consumption for day " + day + ": "
               + controllableVector.toString());
 

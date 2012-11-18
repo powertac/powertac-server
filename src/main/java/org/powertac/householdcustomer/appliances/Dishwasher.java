@@ -16,14 +16,14 @@
 
 package org.powertac.householdcustomer.appliances;
 
+import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 
-import org.joda.time.Instant;
 import org.powertac.common.Tariff;
-import org.powertac.common.TimeService;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -169,21 +169,19 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   @Override
-  public long[] dailyShifting (Tariff tariff, Instant now, int day, Random gen)
+  public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
+                                 TariffEvaluationHelper tariffEvalHelper,
+                                 int day, Random gen)
   {
 
-    long[] newControllableLoad = new long[VillageConstants.HOURS_OF_DAY];
+    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
 
     if (days.get(day) > 0) {
 
-      int[] minindex = new int[2];
-      double[] minvalue =
-        { Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY };
+      double[] newTemp = new double[VillageConstants.HOURS_OF_DAY];
       boolean[] functionMatrix = createShiftingOperationMatrix(day);
-      Instant hour1 = now;
-      Instant hour2 = new Instant(now.getMillis() + TimeService.HOUR);
+
       Vector<Integer> possibleHours = new Vector<Integer>();
-      double newValue = 0;
 
       // find the all the available functioning hours of the appliance
       for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
@@ -192,56 +190,70 @@ public class Dishwasher extends SemiShiftingAppliance
         }
       }
 
+      log.debug("Possible Hours: " + possibleHours.toString());
+
       if (possibleHours.size() == 0) {
+        log.debug("Not possible to shifting due to absence.");
         return newControllableLoad;
       }
 
-      // find the all the available functioning hours of the appliance
-      for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
-        if (possibleHours.contains(i)) {
+      for (int i = 0; i < days.get(day); i++) {
 
-          newValue =
-            tariff.getUsageCharge(hour1, 1, 0)
-                    + tariff.getUsageCharge(hour2, 1, 0);
+        int minIndex = -1;
+        int counter = 1;
+        double minCost = Double.POSITIVE_INFINITY;
 
-          if ((minvalue[0] < newValue)
-              || (minvalue[0] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
-            minvalue[1] = minvalue[0];
-            minvalue[0] = tariff.getUsageCharge(hour1, 1, 0);
-            minindex[1] = minindex[0];
-            minindex[0] = i;
+        for (int j = 0; j < possibleHours.size(); j++) {
+
+          newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+
+          newTemp[possibleHours.get(j)] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+          newTemp[possibleHours.get(j) + 1] +=
+            VillageConstants.QUARTERS_OF_HOUR * power;
+
+          double cost =
+            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+
+          // log.debug("Overall Cost for hour " + possibleHours.get(j) + " : "
+          // + cost);
+
+          if (minCost == cost)
+            counter++;
+
+          if ((minCost > cost)
+              || ((minCost == cost) && gen.nextFloat() > VillageConstants.SAME)) {
+            minCost = cost;
+            minIndex = j;
           }
-          else if ((minvalue[1] < newValue)
-                   || (minvalue[1] == newValue && gen.nextFloat() > VillageConstants.SAME)) {
-            minvalue[1] = tariff.getUsageCharge(hour1, 1, 0);
-            minindex[1] = i;
-          }
-
-          hour1 = new Instant(hour1.getMillis() + TimeService.HOUR);
-          hour2 = new Instant(hour2.getMillis() + TimeService.HOUR);
 
         }
+
+        if (counter == possibleHours.size()) {
+          minIndex = (int) (Math.random() * possibleHours.size());
+          // log.debug("All the same, I choose: " + minIndex);
+        }
+
+        log.debug("Less costly hour: " + possibleHours.get(minIndex));
+
+        newControllableLoad[possibleHours.get(minIndex)] +=
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newControllableLoad[possibleHours.get(minIndex) + 1] +=
+          VillageConstants.QUARTERS_OF_HOUR * power;
+
+        newTemp = Arrays.copyOf(nonDominantUsage, nonDominantUsage.length);
+        newTemp[possibleHours.get(minIndex)] +=
+          VillageConstants.QUARTERS_OF_HOUR * power;
+        newTemp[possibleHours.get(minIndex) + 1] +=
+          VillageConstants.QUARTERS_OF_HOUR * power;
+
+        nonDominantUsage = Arrays.copyOf(newTemp, newTemp.length);
+
       }
 
-      if (days.get(day) == VillageConstants.OPERATION_DAILY_TIMES_LIMIT) {
-
-        newControllableLoad[minindex[0]] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1]] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[1] + 1] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-
-      }
-      else {
-        newControllableLoad[minindex[0]] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-        newControllableLoad[minindex[0] + 1] =
-          VillageConstants.QUARTERS_OF_HOUR * power;
-      }
-
+    }
+    else {
+      log.debug("Not operating today");
     }
     return newControllableLoad;
   }

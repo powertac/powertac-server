@@ -60,7 +60,6 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -718,6 +717,7 @@ public class HouseholdCustomerServiceTests
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
+
     TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff2.isRevoked());
@@ -730,39 +730,6 @@ public class HouseholdCustomerServiceTests
 
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     householdCustomerService.activate(timeService.getCurrentTime(), 4);
-
-    // for (Village customer: householdCustomerService.getVillageList()) {
-    //
-    // System.out.println(tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(1)).toString());
-    // assertEquals("1 Subscriptions for customer INTERRUPTIBLE_CONSUMPTION",
-    // 1,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(1))
-    // .size());
-    // }
-
-    TariffStatus st2 =
-      new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
-                       TariffStatus.Status.success);
-
-    TariffRevoke tex2 =
-      new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
-    tariff3.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff3.isRevoked());
-
-    householdCustomerService.activate(timeService.getCurrentTime(), 1);
-    // JEC - tests fail after #531
-    // for (Village customer: householdCustomerService.getVillageList()) {
-    // assertEquals("2 Subscriptions for customer",
-    // 2,
-    // tariffSubscriptionRepo
-    // .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-    // .get(0))
-    // .size());
-    // }
 
   }
 
