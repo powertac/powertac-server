@@ -71,6 +71,7 @@ public class WeatherServiceTest {
 	Instant start;
 	Instant next;
 
+	private Competition comp;
 	private Configurator config;
 
 	@BeforeClass
@@ -115,6 +116,8 @@ public class WeatherServiceTest {
 		ReflectionTestUtils.setField(weatherService,
 				"competitionControlService", competitionControlService);
 
+		comp = Competition.newInstance("weather-test");
+
 		// Set up serverProperties mock
 		config = new Configurator();
 		doAnswer(new Answer() {
@@ -125,7 +128,6 @@ public class WeatherServiceTest {
 				return null;
 			}
 		}).when(serverPropertiesService).configureMe(anyObject());
-
 	}
 
 	/*
