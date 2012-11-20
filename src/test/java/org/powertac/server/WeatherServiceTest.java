@@ -1,15 +1,5 @@
 package org.powertac.server;
 
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.reset;
-
-import java.util.ArrayList;
-import java.util.TreeMap;
-
-//import javax.annotation.Resource;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
 import org.apache.log4j.Level;
@@ -39,6 +29,16 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.ArrayList;
+import java.util.TreeMap;
+
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+
+//import javax.annotation.Resource;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:weather-test-config.xml" })
@@ -71,7 +71,6 @@ public class WeatherServiceTest {
 	Instant start;
 	Instant next;
 
-	private Competition comp;
 	private Configurator config;
 
 	@BeforeClass
@@ -116,8 +115,6 @@ public class WeatherServiceTest {
 		ReflectionTestUtils.setField(weatherService,
 				"competitionControlService", competitionControlService);
 
-		comp = Competition.newInstance("weather-test");
-
 		// Set up serverProperties mock
 		config = new Configurator();
 		doAnswer(new Answer() {
@@ -139,7 +136,7 @@ public class WeatherServiceTest {
 	// initialization without a configuration
 	@Test
 	public void testNormalInitialization() {
-		String properUrl = "http://tac05.cs.umn.edu:8080/WeatherServer/faces/index.xhtml";
+    String properUrl = "http://wolf-08.fbk.eur.nl:8080/WeatherServer/faces/index.xhtml";
 		String result = weatherService
 				.initialize(comp, new ArrayList<String>());
 		assertEquals("correct return value", "WeatherService", result);
@@ -147,7 +144,7 @@ public class WeatherServiceTest {
 				weatherService.getWeatherReqInterval() == 12);
 		assertTrue("correct forecast horizon",
 				weatherService.getForecastHorizon() == 24);
-		assertTrue("correct blocking mode", weatherService.isBlocking() == true);
+		assertTrue("correct blocking mode", weatherService.isBlocking());
 		assertTrue("correct server url", weatherService.getServerUrl()
 				.compareTo(properUrl) == 0);
 	}
@@ -229,8 +226,6 @@ public class WeatherServiceTest {
 		assertEquals(false, weatherReportRepo.allWeatherReports().get(0)
 				.getCurrentTimeslot() == weatherReportRepo.allWeatherReports()
 				.get(1).getCurrentTimeslot());
-		// System.out.println(weatherReportRepo.allWeatherReports().get(0).getCurrentTimeslot());
-		// System.out.println(weatherReportRepo.allWeatherReports().get(1).getCurrentTimeslot());
 
 	}
 
@@ -254,18 +249,15 @@ public class WeatherServiceTest {
 		weatherService.activate(start, 1);
 
 		WeatherReport wr = weatherReportRepo.allWeatherReports().get(0);
-		// System.out.println(wr.getCurrentTimeslot());
-		// System.out.println(wr.getId());
-		assertEquals((53 - 32) * 5.0 / 9.0, wr.getTemperature(), .0001);
-		assertEquals(0, wr.getWindSpeed(), .0001);
-		assertEquals(0, wr.getWindDirection(), .0001);
-		assertEquals(0, wr.getCloudCover(), .0001);
+		assertEquals(6.6,   wr.getTemperature(), .0001);
+		assertEquals(10.0,  wr.getWindSpeed(), .0001);
+		assertEquals(260.0, wr.getWindDirection(), .0001);
+		assertEquals(0.5,   wr.getCloudCover(), .0001);
 
 		// Test that currentWeatherId increments correctly
 		Instant reqTime = timeslotRepo.enabledTimeslots().get(24)
 				.getStartInstant();
 		assertNotNull(reqTime);
-		//System.out.println(timeslotRepo.currentTimeslot());
 		assertEquals(24, weatherReportRepo.count());
 
 		timeService.setCurrentTime(reqTime);
@@ -275,9 +267,6 @@ public class WeatherServiceTest {
 
 		// Check that 48 weather forecast enterd the repo
 		assertEquals(48, weatherForecastRepo.count());
-
-		//System.out.println(timeslotRepo.currentTimeslot());
-		//System.out.println(weatherReportRepo.currentWeatherReport().getCurrentTimeslot());
 
 		assertEquals(48, weatherReportRepo.count());
 		// Check beginning weather
