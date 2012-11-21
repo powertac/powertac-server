@@ -9,8 +9,20 @@
 	<!-- <ui:define name="title">Customers</ui:define> -->
 
 	<ui:define name="headInclude">
+	
+	<h:outputScript library="js" name="MetroJs.js"/>
+	<h:outputStylesheet library="css" name="MetroJs.css"/>
+	
+	
+	
 		<script type="text/javascript">
 			function handleMessage(data) {
+				$('.display1').html(data);
+			}
+		</script>
+		
+		<script type="text/javascript">
+			function handleBrokersMessage(data) {
 				$('.display1').html(data);
 			}
 		</script>
@@ -25,6 +37,40 @@
 
 	<ui:define name="content">
 		<h:body>
+		
+	<h1>FlipList Simple</h1>
+<div class="mango">
+    <div class="list-tile">
+        <span class="tile-title">flip list</span>
+        <ul id="flip1" class="flip-list fourTiles" data-initdelay="500" data-mode="flip-list" data-delay="3000">
+            <li>
+                <div class="myClass" id="container"><!-- Put images or other content here --></div>
+                <div>LOLEMBE</div>
+            </li>
+            <li>
+                <div class="myClass"><!-- Put images or other content here --></div>
+                <div><!-- Put images or other content here --></div>
+            </li>
+            <li>
+                <div class="myClass"><!-- Put images or other content here --></div>
+                <div><!-- Put images or other content here --></div>
+            </li>
+            <li data-direction="horizontal">
+                <div class="myClass"><!-- Put images or other content here --></div>
+                <div><!-- Put images or other content here --></div>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script type="text/javascript">
+//flip-list simple
+//using data attributes
+$(".flip-list").liveTile();
+//without data-attributes
+//$("#flip1").liveTile({ delay:3000, initDelay:500, mode:'flip-list' });
+</script>
+		
 
 			<h:form>
 				<h:outputText value="#{globalCounterBean.count}" styleClass="display1" />
@@ -33,11 +79,11 @@
 			</h:form>
 			<p:socket onMessage="handleMessage" channel="/counter" />
 			
+			<p:socket onMessage="handleBrokersMessage" channel="/brokers" />
 					
-			<div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
-			<script type="text/javascript">
+			<!-- <div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
+			 --><script type="text/javascript">
 
-//(function($){ // encapsulate jQuery
 
 $(function () {
 

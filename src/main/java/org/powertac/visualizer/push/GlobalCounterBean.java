@@ -6,12 +6,11 @@ import org.primefaces.push.PushContext;
 import org.primefaces.push.PushContextFactory;
 import org.springframework.stereotype.Service;
 
-@Service
 public class GlobalCounterBean implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private int count;
+	private double count;
 
-	public int getCount() {
+	public double getCount() {
 		return count;
 	}
 
@@ -21,7 +20,7 @@ public class GlobalCounterBean implements Serializable {
 
 	public synchronized void increment() {
 		
-		count++;
+		count= Math.random();
 		PushContext pushContext = PushContextFactory.getDefault()
 				.getPushContext();
 		pushContext.push("/counter", String.valueOf(count));

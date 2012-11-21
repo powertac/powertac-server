@@ -1,4 +1,4 @@
-package org.powertac.visualizer.domain.broker;
+package org.powertac.visualizer.statistical;
 
 /**
  * This class will compute broker's grade for a particular category.
@@ -15,7 +15,7 @@ public class GradingSystem {
 	 * @param totalKWh Total kWh of imbalance for all the brokers.
 	 * @return Returns a grade.
 	 */
-	public static Enum<Grade> getBalancingGrade(double brokerKWh, double totalKWh) {
+	public static Grade getBalancingGrade(double brokerKWh, double totalKWh) {
 		if (totalKWh == 0) {
 			return Grade.X;
 		} else {

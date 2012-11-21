@@ -73,42 +73,5 @@ public class BrokerModelTests {
 		assertEquals("Size of an Array<Double> with one element:", 1, cashBalances.size());
 	}
 
-	@Test
-	public void testBuildCustomersBubble() {
-
-		CustomerModel customerModel1 = new CustomerModel(new CustomerInfo("Customer1", 1));
-		CustomerModel customerModel2 = new CustomerModel(new CustomerInfo("Customer2", 2));
-
-		// Set will be sorted by population count (from CustomerInfo) so we can
-		// assume the
-		// predictable order of elements. This is needed because we want to test
-		// the JSON
-		// string output which is generated based on set elements.
-		Set<CustomerModel> customerModels = new TreeSet<CustomerModel>(new Comparator<CustomerModel>() {
-
-			public int compare(CustomerModel o1, CustomerModel o2) {
-				int result;
-				int population1 = o1.getCustomerInfo().getPopulation();
-				int population2 = o2.getCustomerInfo().getPopulation();
-
-				if (population1 == population2) {
-					result = 0;
-				} else {
-					result = (population1 < population2) ? -1 : 1;
-				}
-				return result;
-			}
-		});
-		customerModels.add(customerModel1);
-		customerModels.add(customerModel2);
-
-		brokerModel.setCustomerModels(customerModels);
-
-		brokerModel.buildCustomersBubble();
-
-		assertEquals("Built JSON Array text: ", "[[0,0,0,\"Customer1\"],[0,0,0,\"Customer2\"]]", brokerModel.getJson()
-				.getCustomersBubbleJson().toString());
-
-	}
 
 }

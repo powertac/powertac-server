@@ -30,6 +30,8 @@ import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.CustomerService;
+import org.powertac.visualizer.services.VisualizerService;
+import org.powertac.visualizer.statistical.BalancingData;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,14 +59,7 @@ public class BrokerMessageHandler implements Initializable {
 
 	public void handleMessage(Competition competition) {
 		List<String> brokersName = competition.getBrokers();
-		HashMap<String, BrokerModel> map = new HashMap<String, BrokerModel>();
-
-		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
-
 		JSONArray brokerSeriesColors = new JSONArray();
-		// StringBuilder seriesOptions = new StringBuilder();
-		// String prefix = "";
-
 		JSONArray seriesOptions = new JSONArray();
 
 		for (Iterator<String> iterator = brokersName.iterator(); iterator.hasNext();) {
@@ -76,20 +71,18 @@ public class BrokerMessageHandler implements Initializable {
 			// build colors:
 			brokerSeriesColors.put(brokerModel.getAppearance().getColorCode());
 
-			// for each broker, build its customer list.
-			Set<CustomerModel> customerModels = new HashSet<CustomerModel>();
-			for (Iterator<CustomerInfo> iterator2 = competition.getCustomers().iterator(); iterator2.hasNext();) {
-				CustomerInfo customerInfo = (CustomerInfo) iterator2.next();
-				customerModels.add(new CustomerModel(customerInfo));
+//			// for each broker, build its customer list.
+//			Set<CustomerModel> customerModels = new HashSet<CustomerModel>();
+//			for (Iterator<CustomerInfo> iterator2 = competition.getCustomers().iterator(); iterator2.hasNext();) {
+//				CustomerInfo customerInfo = (CustomerInfo) iterator2.next();
+//				customerModels.add(new CustomerModel(customerInfo));
+//
+//			}
+//			brokerModel.setCustomerModels(customerModels);
 
-			}
-			brokerModel.setCustomerModels(customerModels);
-
-			map.put(brokerModel.getName(), brokerModel);
-			list.add(brokerModel);
+			brokerService.addBroker(brokerModel);
+			
 		}
-		brokerService.setMap(map);
-		brokerService.setBrokers(list);
 		brokerService.getJson().setBrokerSeriesColors(brokerSeriesColors);
 		brokerService.getJson().setSeriesOptions(seriesOptions);
 
@@ -137,10 +130,6 @@ public class BrokerMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(TariffTransaction tariffTransaction) {
-		log.debug("Broker: " + tariffTransaction.getBroker() + " Charge: " + tariffTransaction.getCharge()
-				+ " CustomerCount: " + tariffTransaction.getCustomerCount() + "\n KWh: " + tariffTransaction.getKWh()
-				+ " CustomerInfo: " + tariffTransaction.getCustomerInfo() + "Posted time: "
-				+ tariffTransaction.getPostedTime() + "\n TxType: " + tariffTransaction.getTxType());
 		// broker, not genco:
 		BrokerModel brokerModel = brokerService.findBrokerByName(tariffTransaction.getBroker().getUsername());
 		if (brokerModel != null) {
@@ -151,28 +140,14 @@ public class BrokerMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(DistributionTransaction distributionTransaction) {
-		log.debug("Broker: " + distributionTransaction.getBroker() + "\nCharge: " + distributionTransaction.getCharge()
-				+ "\nkWh: " + distributionTransaction.getKWh());
-
-		// fix for brokers that do not receive balancing transaction (because
-		// their distributionTransaction is 0 KWh!)
-		if (distributionTransaction.getKWh() == 0) {
-
-			BrokerModel brokerModel = brokerService.findBrokerByName(distributionTransaction.getBroker().getUsername());
-			if (brokerModel != null) {
-				brokerModel.updateEnergyBalance(0);
-			}
-		}
-
+	
 	}
 
 	public void handleMessage(BalancingTransaction balancingTransaction) {
-		log.debug("Broker: " + balancingTransaction.getBroker() + "\nCharge: " + balancingTransaction.getCharge()
-				+ "\nkWh: " + balancingTransaction.getKWh() + "\n");
-
 		BrokerModel broker = brokerService.findBrokerByName(balancingTransaction.getBroker().getUsername());
 		if (broker != null) {
-			broker.addBalancingTransaction(balancingTransaction);
+			BalancingData data = new BalancingData(balancingTransaction.getKWh(),balancingTransaction.getCharge(), balancingTransaction.getPostedTime().getMillis());
+			broker.getBalancingCategory().addBalancingData(data);
 		}
 	}
 

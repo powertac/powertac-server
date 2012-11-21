@@ -70,7 +70,7 @@
 											style="font-weight: bold">
 											<f:convertNumber maxFractionDigits="2" />
 										</h:outputText> <h:outputText value=" &euro;" style="font-weight: bold" /></td>
-									<td><h:outputText value="#{broker.energyBalance}"
+									<td><h:outputText value="#{broker.balancingCategory.lastBalancingData.kWhImbalance}"
 											style="font-weight: bold">
 											<f:convertNumber maxFractionDigits="2" />
 										</h:outputText> <h:outputText value=" kWh" style="font-weight: bold" /></td>
@@ -147,128 +147,7 @@
 						</p:panel>
 
 
-						<p:panel
-							rendered="#{selectedBrokerChartsBean.currentDayValues and not empty broker.currentDayState.json.dayCashBalancesJson}">
-							<!-- Cash line chart for a specific broker (Current day)-->
-							<div id="cashLineChartCurrentDay#{broker.id}"
-								style="width: 700px; height: 250px"></div>
-							<script type="text/javascript">
-				
-		 			if (window.cashLineChartCurrentDay#{broker.id}!=null) {
-						window.cashLineChartCurrentDay#{broker.id}.destroy();					
-					}
-					window.cashLineChartCurrentDay#{broker.id} = $.jqplot('cashLineChartCurrentDay#{broker.id}', [ #{broker.currentDayState.json.dayCashBalancesJson} ],{
-						title: 'Current Day Cash balance', 
-						axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-						axes: {
-							xaxis: {
-						            label: "timeslot",
-						            pad: 0,
-							        ticks: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]},
-						    yaxis: {
-						            label: "cash/&euro;"}},
-						seriesDefaults: {
-							showMarker: false
-						},
-						
-						series:[#{broker.json.seriesOptions}],
-						
-						}); 
-					</script>
-						</p:panel>
-
-					</p:tab>
-
-					<p:tab title="Energy">
-						<p:panel rendered="#{selectedBrokerChartsBean.allTimeslots}">
-							<!-- Energy chart for a specific broker (all timeslots) -->
-							<div id="energyChart#{broker.id}"
-								style="width: 700px; height: 250px"></div>
-							<script type="text/javascript">
-				
-		 			if (window.energyChart#{broker.id}!=null) {
-						window.energyChart#{broker.id}.destroy();
-						}
-					window.energyChart#{broker.id} = $.jqplot('energyChart#{broker.id}', [ #{broker.json.energyBalanceJson} ],{
-						title: 'Energy balance', 
-						axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-						axes: {
-							xaxis: {
-						            label: "timeslot",
-						            pad: 0},
-						    yaxis: {
-						            label: "energy/kWh"}},
-						seriesDefaults: {
-										showMarker: false
-										},
-						series:[#{broker.json.seriesOptions}]
-						
-						}); 
-				</script>
-						</p:panel>
-
-						<!--....................................................... DAILY AVG VALUES .................................... -->
-						<p:panel
-							rendered="#{selectedBrokerChartsBean.dailyAVGValues and not empty broker.json.energyBalanceDailyAVGJson}">
-							<!-- Energy chart for a specific broker (24 timeslot average value) -->
-							<div id="energyLineChartDailyAVG#{broker.id}"
-								style="width: 700px; height: 250px"></div>
-							<script type="text/javascript">
-				
-		 						if (energyLineChartDailyAVG#{broker.id}!=null) {
-								window.energyLineChartDailyAVG#{broker.id}.destroy();
-								}
-								window.energyLineChartDailyAVG#{broker.id} = $.jqplot('energyLineChartDailyAVG#{broker.id}', [ #{broker.json.energyBalanceDailyAVGJson} ],{
-									title: 'Daily Average Energy balance', 
-									axesDefaults: {
-						    		    labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-										axes: {
-											xaxis: {
-						 			           label: "day",
-						        			    pad: 0},
-						  				    yaxis: {
-						         			   label: "energy/kWh"}},
-									    	seriesDefaults: {
-												showMarker: false
-											},
-										series:[#{broker.json.seriesOptions}]
-						
-									}); 
-							</script>
-						</p:panel>
-
-						<!--....................................................... Current day VALUES .................................... -->
-						<p:panel
-							rendered="#{selectedBrokerChartsBean.currentDayValues and not empty broker.currentDayState.json.dayEnergyBalancesJson}">
-							<!-- Energy chart for a specific broker (24 timeslot average value) -->
-							<div id="energyLineChartCurrentDay#{broker.id}"
-								style="width: 700px; height: 250px"></div>
-							<script type="text/javascript">
-				
-		 						if (energyLineChartCurrentDay#{broker.id}!=null) {
-								window.energyLineChartCurrentDay#{broker.id}.destroy();
-								}
-								window.energyLineChartCurrentDay#{broker.id} = $.jqplot('energyLineChartCurrentDay#{broker.id}', [ #{broker.currentDayState.json.dayEnergyBalancesJson} ],{
-								title: 'Current Day Energy balance', 
-								axesDefaults: {
-						        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
-								axes: {
-									xaxis: {
-						        	    label: "timeslot",
-						            	pad: 0,
-								        ticks: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]},
-						 	   		yaxis: {
-							       		label: "energy/kWh"}},
-									seriesDefaults: {
-										showMarker: false
-										},
-								series:[#{broker.json.seriesOptions}]
-						
-								}); 
-							</script>
-						</p:panel>
+		
 					</p:tab>
 
 					<p:tab title="Customers">

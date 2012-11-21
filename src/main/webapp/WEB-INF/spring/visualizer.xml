@@ -88,11 +88,10 @@
   	<bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
 	<bean id="wholesaleBean" class="org.powertac.visualizer.user.WholesaleBean" scope="session"/>
 	<bean id="gencosBean" class="org.powertac.visualizer.user.GencosBean" scope="request" />
-	<bean id="brokersBean" class="org.powertac.visualizer.user.BrokersBean" scope="session"/>
+	<bean id="brokersBean" class="org.powertac.visualizer.user.BrokersBean" scope="request"/>
 	<bean id="customersBean" class="org.powertac.visualizer.user.CustomersBean"
               autowire="byType" scope="request"/>
 	<bean id="userSessionBean" class="org.powertac.visualizer.user.UserSessionBean" scope="session"/>
-	
-		
+	<bean id="globalCounterBean" class="org.powertac.visualizer.push.GlobalCounterBean" scope="request"/>	
 	</beans>
 	

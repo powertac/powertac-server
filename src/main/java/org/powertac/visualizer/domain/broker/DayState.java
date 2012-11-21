@@ -2,7 +2,6 @@ package org.powertac.visualizer.domain.broker;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -10,9 +9,7 @@ import org.powertac.common.BalancingTransaction;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.Helper;
-import org.powertac.visualizer.interfaces.DisplayableBroker;
 import org.powertac.visualizer.json.DayStateJSON;
-import org.primefaces.json.JSONArray;
 
 /**
  * Represents the day state from a broker.
@@ -25,7 +22,7 @@ public class DayState {
 	Logger log = Logger.getLogger(DayState.class);
 
 	private int day = -1;
-	private DisplayableBroker broker;
+	private BrokerModel broker;
 
 	private ArrayList<Double> cashBalances = new ArrayList<Double>();
 	private double totalCashBalance;
@@ -49,12 +46,12 @@ public class DayState {
 	// Same thing as sumEnergyBalance!!!
 	private double totalBalancingKWh;
 
-	public DayState(int day, DisplayableBroker displayableBroker) {
+	public DayState(int day, BrokerModel displayableBroker) {
 		this.day = day;
 		broker = displayableBroker;
 	}
 
-	public DayState(DisplayableBroker broker) {
+	public DayState(BrokerModel broker) {
 		this.broker = broker;
 	}
 
@@ -141,7 +138,7 @@ public class DayState {
 		return day;
 	}
 
-	public DisplayableBroker getBroker() {
+	public BrokerModel getBroker() {
 		return broker;
 	}
 

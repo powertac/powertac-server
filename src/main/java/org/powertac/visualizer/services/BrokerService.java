@@ -2,10 +2,14 @@ package org.powertac.visualizer.services;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -13,24 +17,39 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.json.BrokersJSON;
+import org.powertac.visualizer.statistical.BalancingData;
 import org.primefaces.json.JSONArray;
+import org.primefaces.json.JSONException;
+import org.primefaces.json.JSONObject;
+import org.primefaces.push.PushContext;
+import org.primefaces.push.PushContextFactory;
 import org.springframework.stereotype.Service;
 
+/**
+ * 
+ * @author Jurica Babic
+ *
+ */
 @Service
-public class BrokerService implements TimeslotCompleteActivation, Recyclable,Serializable {
+public class BrokerService implements TimeslotCompleteActivation, Recyclable,
+		Serializable {
 
-	private Logger log = Logger.getLogger(BrokerService.class);
-	private static final long serialVersionUID = 1L;
-	private Map<String, BrokerModel> map;
-	private ArrayList<BrokerModel> brokers = new ArrayList<BrokerModel>();
-	private BrokersJSON json = new BrokersJSON();
+	private static final long serialVersionUID = 15L;
+	private ConcurrentHashMap<String, BrokerModel> brokersMap;
+	private ArrayList<BrokerModel> brokers;
+	private BrokersJSON json;
 
-	public void setMap(Map<String, BrokerModel> map) {
-		this.map = map;
+	public BrokerService() {
+		recycle();
 	}
-	
-	public void setBrokers(ArrayList<BrokerModel> brokers) {
-		this.brokers = brokers;
+
+	public ConcurrentHashMap<String, BrokerModel> getBrokersMap() {
+		return brokersMap;
+	}
+
+	public void addBroker(BrokerModel broker) {
+		brokersMap.put(broker.getName(), broker);
+		brokers.add(broker);
 	}
 
 	/**
@@ -39,12 +58,12 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 	 *         broker cannot be found.
 	 */
 	public BrokerModel findBrokerByName(String name) {
-		return map.get(name);
+		return brokersMap.get(name);
 
 	}
 
 	public void recycle() {
-		map = null;
+		brokersMap = new ConcurrentHashMap<String, BrokerModel>();
 		brokers = new ArrayList<BrokerModel>();
 		json = new BrokersJSON();
 	}
@@ -57,25 +76,46 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 		this.json = json;
 	}
 
-	public void activate(int timeslotIndex, Instant postedTime ) {
-		// cash lineChart:
-		JSONArray cashChartData = new JSONArray();
-		// subscription pieChart:
-		JSONArray customerCountData = new JSONArray();
+	public void activate(int timeslotIndex, Instant postedTime) {
 
+		// System.out.println("Aktivator to sam ja");
+
+		// // do the push:
+		PushContext pushContext = PushContextFactory.getDefault()
+				.getPushContext();
+
+		JSONObject brokersJsonObject = new JSONObject();
+
+		Collection<BrokerModel> brokers = brokersMap.values();
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-			BrokerModel broker = (BrokerModel) iterator.next();
-			
-			log.trace("Updating broker model:"+broker.getName());
-			// update broker's model
-			broker.update(timeslotIndex, postedTime);
-			// collect data for global charts:
-			cashChartData.put(broker.getJson().getCashBalanceJson());
-			customerCountData.put(broker.getCustomerCount());
+			BrokerModel b = (BrokerModel) iterator.next();
+
+			JSONObject balancingObject = new JSONObject();
+			BalancingData balancingData = b.getBalancingCategory()
+					.getLastBalancingData();
+
+			try {
+				balancingObject.put("lastKwhImbalance",
+						"[" + balancingData.getTimestamp() + ","
+								+ balancingData.getkWhImbalance() + "]");
+				balancingObject.put("lastMoneyImbalance",
+						"[" + balancingData.getTimestamp() + ","
+								+ balancingData.getPriceImbalance() + "]");
+				balancingObject.put("lastUnitPriceImbalance",
+						"[" + balancingData.getTimestamp() + ","
+								+ balancingData.getUnitPrice() + "]");
+
+				JSONObject jsonData = new JSONObject();
+				jsonData.put("balancing", balancingObject);
+
+				brokersJsonObject.put(b.getId(), jsonData);
+			} catch (JSONException e) {
+				System.out.println("Error with JSON," + e.getMessage());
+			}
 		}
-		// update global charts:
-		json.setCashChartData(cashChartData);
-		json.setCustomerCountData(customerCountData);
+
+		pushContext.push("/brokers",
+				String.valueOf(brokersJsonObject.toString()));
 
 	}
 
