@@ -260,9 +260,13 @@ public class CompetitionSetupService
                              String logSuffix)
   {
     String error = null;
-    // process serverConfig now, because other options may override
-    // parts of it
+
     try {
+      log.info("bootSession: bootFilename=" + bootFilename
+          + ", config=" + config
+          + ", logSuffix=" + logSuffix);
+      // process serverConfig now, because other options may override
+      // parts of it
       serverProps.recycle();
       setConfigMaybe(config);
 
@@ -274,11 +278,14 @@ public class CompetitionSetupService
               .getParentFile()
               .canWrite()) {
         error = "Cannot write to bootstrap data file " + bootFilename;
-        System.out.println(error);                
+        System.out.println(error);
       }
       else {
         startBootSession(bootFile);
       }
+    }
+    catch (NullPointerException npe) {
+      error = "Bootstrap filename not given";
     }
     catch (MalformedURLException e) {
       // Note that this should not happen from the web interface
