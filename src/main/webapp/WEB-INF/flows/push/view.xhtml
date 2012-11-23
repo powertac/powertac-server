@@ -44,7 +44,7 @@
         <span class="tile-title">flip list</span>
         <ul id="flip1" class="flip-list fourTiles" data-initdelay="500" data-mode="flip-list" data-delay="3000">
             <li>
-                <div class="myClass" id="container"><!-- Put images or other content here --></div>
+                <div class="myClass"><!-- Put images or other content here --></div>
                 <div>LOLEMBE</div>
             </li>
             <li>
@@ -81,8 +81,8 @@ $(".flip-list").liveTile();
 			
 			<p:socket onMessage="handleBrokersMessage" channel="/brokers" />
 					
-			<!-- <div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
-			 --><script type="text/javascript">
+			 <div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
+			 <script type="text/javascript">
 
 
 $(function () {
@@ -145,6 +145,20 @@ $(function () {
 </script>
 
 
+	 <p:tabView value="#{brokersBean.brokerList}" var="broker">
+	<p:tab  title="#{broker.name}">
+	<p:panel>
+	#{broker.appearance.colorCode}
+	#{broker.balancing.totalKwh}
+	#{broker.balancing.totalMoney}
+	#{broker.balancing.kWhImbalanceJson}
+	#{broker.balancing.priceImbalanceJson}
+	#{broker.balancing.unitPriceImbalanceJson}
+	
+	</p:panel>
+	</p:tab>
+	
+	</p:tabView>
 
 		</h:body>
 

@@ -25,10 +25,12 @@ import org.primefaces.push.PushContext;
 import org.primefaces.push.PushContextFactory;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
+
 /**
  * 
  * @author Jurica Babic
- *
+ * 
  */
 @Service
 public class BrokerService implements TimeslotCompleteActivation, Recyclable,
@@ -78,37 +80,49 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 
 	public void activate(int timeslotIndex, Instant postedTime) {
 
-		// System.out.println("Aktivator to sam ja");
+		System.out.println("Aktivator to sam ja");
 
 		// // do the push:
 		PushContext pushContext = PushContextFactory.getDefault()
 				.getPushContext();
 
 		JSONObject brokersJsonObject = new JSONObject();
-
+		
+		
 		Collection<BrokerModel> brokers = brokersMap.values();
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
+
 			BrokerModel b = (BrokerModel) iterator.next();
+
+			System.out.println("Broker " + b.getName());
 
 			JSONObject balancingObject = new JSONObject();
 			BalancingData balancingData = b.getBalancingCategory()
 					.getLastBalancingData();
+			double[] kWhImbalanceArray = { balancingData.getTimestamp(),
+					balancingData.getkWhImbalance() };
+			double[] priceImbalanceArray = { balancingData.getTimestamp(),
+					balancingData.getPriceImbalance() };
+			double[] unitPriceImbalanceArray = { balancingData.getTimestamp(),
+					balancingData.getUnitPrice() };
 
+			System.out.println("Last Balancing data uhvaćen " + b.getName());
 			try {
-				balancingObject.put("lastKwhImbalance",
-						"[" + balancingData.getTimestamp() + ","
-								+ balancingData.getkWhImbalance() + "]");
-				balancingObject.put("lastMoneyImbalance",
-						"[" + balancingData.getTimestamp() + ","
-								+ balancingData.getPriceImbalance() + "]");
-				balancingObject.put("lastUnitPriceImbalance",
-						"[" + balancingData.getTimestamp() + ","
-								+ balancingData.getUnitPrice() + "]");
+				balancingObject.put("lastKwhImbalance", kWhImbalanceArray);
+				balancingObject.put("lastMoneyImbalance", priceImbalanceArray);
+				balancingObject.put("lastUnitPriceImbalance",unitPriceImbalanceArray);
 
 				JSONObject jsonData = new JSONObject();
 				jsonData.put("balancing", balancingObject);
 
+				System.out
+						.println("Napravio balancing objekt, getanje lastbalancing data "
+								+ b.getName());
+
 				brokersJsonObject.put(b.getId(), jsonData);
+				System.out.println("stavio ga u zajednički json objekt "
+						+ b.getName());
+
 			} catch (JSONException e) {
 				System.out.println("Error with JSON," + e.getMessage());
 			}

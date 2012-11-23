@@ -20,7 +20,7 @@ public class BrokersBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private TariffInfo selectedTariffInfo;
-	private ArrayList<DisplayableBroker> brokerList;
+	private ArrayList<DisplayableBroker> brokerList = new ArrayList<DisplayableBroker>();
 	@Autowired
 	public BrokersBean(BrokerService brokerService) {
 		Enumeration<BrokerModel> brokers = brokerService.getBrokersMap().elements();

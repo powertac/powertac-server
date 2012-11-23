@@ -144,6 +144,7 @@ public class BrokerMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(BalancingTransaction balancingTransaction) {
+		System.out.println("Balancing:"+balancingTransaction.toString());
 		BrokerModel broker = brokerService.findBrokerByName(balancingTransaction.getBroker().getUsername());
 		if (broker != null) {
 			BalancingData data = new BalancingData(balancingTransaction.getKWh(),balancingTransaction.getCharge(), balancingTransaction.getPostedTime().getMillis());

@@ -18,7 +18,7 @@ public class BalancingCategory extends AbstractPerformanceCategory implements
 	private ConcurrentHashMap<Double, BalancingData> balancingDataMap = new ConcurrentHashMap<Double, BalancingData>(
 			2000, 0.75f, 1);
 	private AggregateBalancingData aggregateBalancingData = new AggregateBalancingData();
-	private BalancingData lastBalancingData;
+	private BalancingData lastBalancingData = new BalancingData(0, 0, 0);
 
 	
 	

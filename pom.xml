@@ -134,6 +134,12 @@
 			<version>1.0.0.RC1</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+
 
 	</dependencies>
 
@@ -185,6 +191,8 @@
 			<url>http://repository.primefaces.org</url>
 			<layout>default</layout>
 		</repository>
+
+
 	</repositories>
 
 	<build>
