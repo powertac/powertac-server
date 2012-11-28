@@ -1,22 +1,18 @@
 package org.powertac.visualizer.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.domain.customer.Customer;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
-import org.primefaces.component.log.Log;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Contains data about the customers.
@@ -44,27 +40,24 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	 * customerInfo.
 	 */
 	public void addCustomers(List<CustomerInfo> customerInfos) {
-		for (Iterator<CustomerInfo> iterator = customerInfos.iterator(); iterator.hasNext();) {
-			CustomerInfo customerInfo = (CustomerInfo) iterator.next();
-			
-			Customer customer = new Customer(customerInfo);
-			customerMap.put(customerInfo, customer);	
-			
-			PowerType genericType = customerInfo.getPowerType().getGenericType();
-			
-			if(genericType == PowerType.CONSUMPTION){
-				consumers.add(customer);
-			} else if (genericType == PowerType.PRODUCTION){
-				producers.add(customer);
-			} else if (genericType==PowerType.STORAGE){
-				storages.add(customer);
-			}
-			
-		}
+    for (CustomerInfo customerInfo: customerInfos) {
+      Customer customer = new Customer(customerInfo);
+      customerMap.put(customerInfo, customer);
+
+      PowerType genericType = customerInfo.getPowerType().getGenericType();
+
+      if (genericType == PowerType.CONSUMPTION) {
+        consumers.add(customer);
+      } else if (genericType == PowerType.PRODUCTION) {
+        producers.add(customer);
+      } else if (genericType == PowerType.STORAGE) {
+        storages.add(customer);
+      }
+
+    }
 		//build list:
 		customerList=new ArrayList<Customer>(customerMap.values());
 		log.info("Customers added: List size:"+customerList.size()+" Map size:"+customerMap.size());
-		
 	}
 
 	/**
@@ -81,7 +74,6 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 			}
 		}
 		return null;
-
 	}
 
 	public void recycle() {
@@ -90,7 +82,6 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 		producers = new ArrayList<Customer>();
 		consumers = new ArrayList<Customer>();
 		storages = new ArrayList<Customer>();
-		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -100,12 +91,11 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 
 	public void activate(int timeslotIndex, Instant postedTime) {
 		//update jsons for all customers:
-		
-	for (Iterator<Customer> iterator = customerList.iterator(); iterator.hasNext();) {
-		Customer type = (Customer) iterator.next();
-		type.update(timeslotIndex, postedTime);
-		
-	}
+
+    for (Customer type: customerList) {
+      type.update(timeslotIndex, postedTime);
+
+    }
 	log.debug("Customer service activation complete. Timeslotindex:"+timeslotIndex);
 		
 	}

@@ -1,29 +1,16 @@
 package org.powertac.visualizer.domain.wholesale;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentSkipListMap;
-
 import org.apache.log4j.Logger;
-import org.powertac.common.ClearedTrade;
-import org.powertac.common.Order;
-import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.json.WholesaleMarketJSON;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
-import org.primefaces.model.DefaultTreeNode;
-import org.primefaces.model.SelectableDataModel;
-import org.primefaces.model.TreeNode;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * 
@@ -104,32 +91,25 @@ public class WholesaleMarket  {
 		Collection<WholesaleSnapshot> wholesaleSnapshots = snapshotsMap.values();
 		JSONArray clearingPrices = new JSONArray();
 		JSONArray clearingVolumes = new JSONArray();
-		for (Iterator iterator = wholesaleSnapshots.iterator(); iterator.hasNext();) {
-			WholesaleSnapshot wholesaleSnapshot = (WholesaleSnapshot) iterator.next();
+    for (WholesaleSnapshot wholesaleSnapshot: wholesaleSnapshots) {
+      // build statistics:
+      if (wholesaleSnapshot.getClearedTrade() != null) {
+        double quantity = wholesaleSnapshot.getClearedTrade().getExecutionMWh();
+        double price = wholesaleSnapshot.getClearedTrade().getExecutionPrice();
+        totalTradedQuantityMWh += quantity;
+        weightSumTradedQuantityMWh += quantity * price;
+      }
+      if (wholesaleSnapshot.isCleared()) {
+        try {
+          clearingPrices.put(new JSONArray().put(wholesaleSnapshot.getMillisCreated()).put(wholesaleSnapshot.getClearedTrade().getExecutionPrice()));
+          clearingVolumes.put(new JSONArray().put(wholesaleSnapshot.getMillisCreated()).put(wholesaleSnapshot.getClearedTrade().getExecutionMWh()));
+        }
+        catch (JSONException e) {
+          e.printStackTrace();
+        }
+      }
+    }
 
-			// build statistics:
-			if (wholesaleSnapshot.getClearedTrade() != null) {
-				double quantity = wholesaleSnapshot.getClearedTrade().getExecutionMWh();
-				double price = wholesaleSnapshot.getClearedTrade().getExecutionPrice();
-				totalTradedQuantityMWh += quantity;
-				weightSumTradedQuantityMWh += quantity * price;
-			}
-			if(wholesaleSnapshot.isCleared()){
-				
-					
-				try {
-					clearingPrices.put(new JSONArray().put(wholesaleSnapshot.getMillisCreated()).put(wholesaleSnapshot.getClearedTrade().getExecutionPrice()));
-					clearingVolumes.put(new JSONArray().put(wholesaleSnapshot.getMillisCreated()).put(wholesaleSnapshot.getClearedTrade().getExecutionMWh()));
-				}
-				catch (JSONException e) {
-					e.printStackTrace();
-				}
-				}
-		}
-		
-		
-		
-		
 		json.setClearingPrices(clearingPrices);
 		json.setClearingVolumes(clearingVolumes);
 

@@ -1,21 +1,11 @@
 package org.powertac.visualizer.domain.wholesale;
 
-import static org.junit.Assert.*;
-
-import java.sql.Time;
-import java.util.Iterator;
-import java.util.List;
-
 import org.joda.time.Instant;
-import org.joda.time.field.OffsetDateTimeField;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.ClearedTrade;
-import org.powertac.common.Orderbook;
 import org.powertac.common.Timeslot;
-import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
-import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
-import org.primefaces.model.TreeNode;
+
 
 public class WholesaleMarketTest {
 

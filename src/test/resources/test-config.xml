@@ -10,7 +10,7 @@
 	 <bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext"/>
 
 	<bean id="visualizerLogService" class="org.powertac.visualizer.services.VisualizerLogService">
-		<constructor-arg name="outputFolderResource" value="WEB-INF/output/log" />
+		<constructor-arg name="outputFolderResource" value="WEB-INF/output/logs" />
 		<constructor-arg name="filenamePrefix" value="visualizer" />
 	</bean>
 

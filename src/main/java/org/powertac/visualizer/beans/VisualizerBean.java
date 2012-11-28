@@ -1,32 +1,17 @@
 package org.powertac.visualizer.beans;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.activemq.broker.BrokerService;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.visualizer.VisualizerApplicationContext;
-import org.powertac.visualizer.domain.*;
-import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
-import org.powertac.visualizer.interfaces.Recyclable;
-import org.powertac.visualizer.services.CustomerService;
-import org.powertac.visualizer.services.WholesaleService;
-
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.WeatherForecast;
-import org.powertac.common.WeatherReport;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.TimeslotUpdate;
-import org.primefaces.json.JSONArray;
-import org.primefaces.model.chart.CartesianChartModel;
+import org.powertac.visualizer.VisualizerApplicationContext;
+import org.powertac.visualizer.domain.DayOverview;
+import org.powertac.visualizer.interfaces.Recyclable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Holds properties of the Visualizer such as number of received messages from
@@ -37,9 +22,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisualizerBean implements Serializable {
 
-	/**
-     *
-     */
 	private static final long serialVersionUID = 1L;
 	private Logger log = Logger.getLogger(VisualizerBean.class);
 
@@ -67,7 +49,6 @@ public class VisualizerBean implements Serializable {
 
 	public VisualizerBean() {
 		init();
-
 	}
 
 	public void incrementMessageCounter() {

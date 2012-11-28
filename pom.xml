@@ -19,7 +19,7 @@
   </properties>
 
   <dependencies>
-
+    <!-- Power TAC -->
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-main</artifactId>
@@ -27,6 +27,21 @@
     </dependency>
 
     <!-- Spring -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-jms</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>    
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-core</artifactId>
+      <version>5.5.1</version>
+    </dependency>
+    <dependency>    
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-pool</artifactId>
+      <version>5.5.1</version>
+    </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
@@ -126,8 +141,18 @@
       <artifactId>commons-fileupload</artifactId>
       <version>1.2.2</version>
     </dependency>
+    <!-- JMS dependencies -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.6.4</version>
+    </dependency>
   </dependencies>
-
 
   <repositories>
     <repository>
@@ -158,7 +183,7 @@
       <name>JBoss Maven Release Repository</name>
       <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
       <snapshots>
-	<enabled>false</enabled>
+	      <enabled>false</enabled>
       </snapshots>
     </repository>
     <!-- For Sun Mojarra JSF 2 implementation -->
@@ -167,7 +192,7 @@
       <name>Java.net Repository for Maven</name>
       <url>http://download.java.net/maven/2/</url>
       <snapshots>
-	<enabled>false</enabled>
+	      <enabled>false</enabled>
       </snapshots>
     </repository>
     <!-- For PrimeFaces JSF component library -->
@@ -181,15 +206,42 @@
 
   <build>
     <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.2</version>
+        <configuration>
+          <webResources>
+            <resource>
+              <directory>src/main/webapp/WEB-INF/spring</directory>
+              <targetPath>WEB-INF/spring</targetPath>
+              <filtering>true</filtering>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>
 
       <!-- jetty-maven-plugin -->
       <plugin>
-	<groupId>org.mortbay.jetty</groupId>
-	<artifactId>maven-jetty-plugin</artifactId>
-	<version>6.1.26</version>
-	<configuration>
-	  <contextPath>/visualizer</contextPath>
-	</configuration>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>maven-jetty-plugin</artifactId>
+        <version>6.1.26</version>
+        <configuration>
+          <contextPath>/visualizer</contextPath>
+        </configuration>
+      </plugin>
+
+      <!--  tomcat plugin -->
+      <plugin>
+        <groupId>org.apache.tomcat.maven</groupId>
+        <artifactId>tomcat7-maven-plugin</artifactId>
+        <version>2.0-beta-1</version>
+        <configuration>
+          <url>http://localhost:8080/manager/text</url>
+          <username>admin</username>
+          <password>admin</password>
+          <path>/visualizer/${simNode}</path>
+          <update>true</update>
+        </configuration>
       </plugin>
 
     </plugins>

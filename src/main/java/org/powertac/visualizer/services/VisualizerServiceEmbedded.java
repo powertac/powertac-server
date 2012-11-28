@@ -16,19 +16,17 @@
 
 package org.powertac.visualizer.services;
 
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
-import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Initializable;
-import org.powertac.visualizer.services.handlers.VisualizerMessageHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * Main Visualizer service. Its main purpose is to register with Visualizer
@@ -39,8 +37,9 @@ import org.springframework.stereotype.Service;
  */
 
 @Service
-public class VisualizerService implements VisualizerMessageListener {
-	static private Logger log = Logger.getLogger(VisualizerService.class.getName());
+public class VisualizerServiceEmbedded implements VisualizerMessageListener {
+	static private Logger log =
+      Logger.getLogger(VisualizerServiceEmbedded.class.getName());
 
 	@Autowired
 	private VisualizerBean visualizerBean;
@@ -50,17 +49,11 @@ public class VisualizerService implements VisualizerMessageListener {
 	@Autowired
 	private MessageDispatcher dispatcher;
 
-	public VisualizerService() {
-		super();
-
-	}
-
 	/**
 	 * Should be called before simulator run in order to prepare/reset
 	 * Visualizer beans and register with the new simulator instance.
 	 */
 	public void init(VisualizerProxy visualizerProxy) {
-
 		visualizerBean.newRun();
 
 		// Register Visualizer with VisualizerProxy service
@@ -69,11 +62,10 @@ public class VisualizerService implements VisualizerMessageListener {
 			alreadyRegistered = true;
 		} 
 		
-		// visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
-
 		// registrations for message listeners:
-		List<Initializable> initializers = VisualizerApplicationContext.listBeansOfType(Initializable.class);
-		for (Initializable init : initializers) {
+		List<Initializable> initializers = VisualizerApplicationContext
+        .listBeansOfType(Initializable.class);
+		for (Initializable init: initializers) {
 			log.debug("initializing..." + init.getClass().getName());
 			init.initialize();
 		}
@@ -84,13 +76,12 @@ public class VisualizerService implements VisualizerMessageListener {
 		visualizerBean.incrementMessageCounter();
 
 		if (msg != null) {
-			log.debug("Counter: " + visualizerBean.getMessageCount() + ", Got message: " + msg.getClass().getName());
+			log.debug("Counter: " + visualizerBean.getMessageCount() +
+                ", Got message: " + msg.getClass().getName());
 			dispatcher.routeMessage(msg);
 		} else {
-
-			log.warn("Counter:" + visualizerBean.getMessageCount() + " Received message is NULL!");
+			log.warn("Counter:" + visualizerBean.getMessageCount() +
+               " Received message is NULL!");
 		}
-
 	}
-
 }

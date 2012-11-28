@@ -1,20 +1,14 @@
 package org.powertac.visualizer.domain.broker;
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.powertac.common.Broker;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.Rate;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction;
+import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.enumerations.PowerType;
+
+import java.util.ArrayList;
+
+import static org.junit.Assert.assertEquals;
 
 public class TariffInfoTest {
 
@@ -78,11 +72,10 @@ public class TariffInfoTest {
 		tariffInfo.addTariffMessage("Tariff updated");
 		
 		ArrayList<String> messages = tariffInfo.getTariffLifecycle();
-		
-		for (Iterator iterator = messages.iterator(); iterator.hasNext();) {
-			String string = (String) iterator.next();
-			System.out.println(string);
-		}
+
+    for (String string: messages) {
+      System.out.println(string);
+    }
 	}
 
 }

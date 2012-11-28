@@ -1,9 +1,5 @@
 package org.powertac.visualizer.domain.genco;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
-
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -14,6 +10,10 @@ import org.powertac.visualizer.interfaces.TimeslotModelUpdate;
 import org.powertac.visualizer.json.GencoJSON;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * Domain object that represents a single genco in the game.
@@ -33,7 +33,8 @@ public class Genco implements TimeslotModelUpdate {
 
 	public Genco(Broker broker) {
 		this.broker = broker;
-		id = "genco"+RandomStringUtils.random(7, "abcdefghijklomnopqrstuvxy".toCharArray());
+		id = "genco"+RandomStringUtils.random(7,
+        "abcdefghijklomnopqrstuvxy".toCharArray());
 		wholesaleDatas = new ConcurrentSkipListMap<Integer, WholesaleData>();
 		json = new GencoJSON();
 		
@@ -42,7 +43,8 @@ public class Genco implements TimeslotModelUpdate {
 	}
 	
 	/**
-	 * Finds (or creates one if cannot be found) wholesaleData by the specified timeslot 
+	 * Finds (or creates one if cannot be found) wholesaleData
+   * by the specified timeslot
 	 * @param timeslot
 	 * @return
 	 */
@@ -92,7 +94,8 @@ public class Genco implements TimeslotModelUpdate {
 	}
 	@Override
 	public String toString() {
-		return "Genco: "+this.broker.getUsername()+", apiKey: "+this.broker.getKey();
+		return "Genco : " + this.broker.getUsername()
+        + ", apiKey : " + this.broker.getKey();
 	}
 	public String getId() {
 		return id;

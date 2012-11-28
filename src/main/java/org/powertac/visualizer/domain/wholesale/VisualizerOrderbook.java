@@ -1,27 +1,23 @@
 package org.powertac.visualizer.domain.wholesale;
 
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.IdGenerator;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.Timeslot;
-import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.TimeslotConverter;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
- * This is a convenient class for wholesale visualization. It is a copy of Orderbook class. Purpose of this class is to avoid unnecessary entries created by original Orderbook for Power TAC server STATE log.
- * @author Jurica Babic
+ * This is a convenient class for wholesale visualization. It is a copy of
+ * Orderbook class. Purpose of this class is to avoid unnecessary entries
+ * created by original Orderbook for Power TAC server STATE log.
  *
+ * @author Jurica Babic
  */
 public class VisualizerOrderbook {
+  private Logger log = Logger.getLogger(VisualizerOrderbook.class);
 	
 	private Instant dateExecuted;
 
@@ -62,24 +58,31 @@ public class VisualizerOrderbook {
 		this.timeslot = orderbook.getTimeslot();
 		this.clearingPrice = orderbook.getClearingPrice();
 		this.dateExecuted = orderbook.getDateExecuted();
-		
-		SortedSet<OrderbookOrder> asks = orderbook.getAsks();
-		for (Iterator iterator = asks.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
-			this.addAsk(new VisualizerOrderbookOrder(orderbookOrder.getMWh(), orderbookOrder.getLimitPrice()));
-		}
-		
-		SortedSet<OrderbookOrder> bids = orderbook.getBids();
-		for (Iterator iterator = bids.iterator(); iterator.hasNext();) {
-			OrderbookOrder orderbookOrder = (OrderbookOrder) iterator.next();
-			this.addBid(new VisualizerOrderbookOrder(orderbookOrder.getMWh(), orderbookOrder.getLimitPrice()));
-		}
-		
-	}
 
-//	public long getId() {
-//		return id;
-//	}
+    SortedSet<OrderbookOrder> asks = orderbook.getAsks();
+    if (asks != null) {
+      for (OrderbookOrder orderbookOrder: asks) {
+        this.addAsk(
+            new VisualizerOrderbookOrder(orderbookOrder.getMWh(),
+                                         orderbookOrder.getLimitPrice()));
+      }
+    }
+    else {
+      log.warn("No asks for VisualizerOrderbook " + orderbook);
+    }
+
+    SortedSet<OrderbookOrder> bids = orderbook.getBids();
+    if (bids != null) {
+      for (OrderbookOrder orderbookOrder: bids) {
+        this.addBid(
+            new VisualizerOrderbookOrder(orderbookOrder.getMWh(),
+                                         orderbookOrder.getLimitPrice()));
+      }
+    }
+    else {
+      log.warn("No bids for VisualizerOrderbook " + orderbook);
+    }
+	}
 
 	/**
 	 * Returns the positive price at which the market cleared. This is the price

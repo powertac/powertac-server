@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:p="http://www.springframework.org/schema/p"
+  xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+                      http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	                    http://www.springframework.org/schema/context
+	                    http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <context:annotation-config />
+
+  <context:component-scan base-package="org.powertac.visualizer" />
+
+  <!-- MODIFIED FOR VISUALIZER: exclude visualizer from scanning-->
+  <context:annotation-config />
+  <context:component-scan base-package="org.powertac">
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.*" />
+  </context:component-scan>
+
+  <!-- need explicit list of beans that have properties to set -->
+  <bean id="competitionControlService"
+        class="org.powertac.server.CompetitionControlService">
+    <property name="timeslotPhaseCount" value="5" />
+    <property name="alwaysAuthorizedBrokers">
+      <list>
+        <value>default broker</value>
+      </list>
+    </property>
+  </bean>
+
+  <bean id="auctionService"
+        class="org.powertac.auctioneer.AuctionService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
+
+  <bean id="weatherService"
+        class="org.powertac.server.WeatherService">
+    <property name="timeslotPhase" value="1" />
+  </bean>
+
+  <bean id="householdCustomerService"
+        class="org.powertac.householdcustomer.HouseholdCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="officeComplexCustomerService"
+        class="org.powertac.officecomplexcustomer.OfficeComplexCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="factoredCustomerService"
+        class="org.powertac.factoredcustomer.FactoredCustomerService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
+  <bean id="distributionUtilityService"
+        class="org.powertac.distributionutility.DistributionUtilityService">
+    <property name="timeslotPhase" value="3" />
+  </bean>
+
+  <bean id="tariffMarketService"
+        class="org.powertac.tariffmarket.TariffMarketService">
+    <property name="timeslotPhase" value="4" />
+  </bean>
+
+  <bean id="simpleGencoService"
+        class="org.powertac.genco.SimpleGencoService">
+    <property name="timeslotPhase" value="5" />
+  </bean>
+
+  <bean id="accountingService"
+        class="org.powertac.accounting.AccountingService">
+    <property name="timeslotPhase" value="5" />
+  </bean>
+
+  <import resource="base.xml"/>
+</beans>

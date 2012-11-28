@@ -7,35 +7,12 @@
 	<!-- Also see ../parent-flow.xml. -->
 
 	<var name="message" class="java.lang.String" />
-	<!-- <var name="visualizerService" class="org.powertac.visualizer.services.VisualizerService"/> -->
-	
-	
 
 	<on-start>
 		<set name="flashScope.message" value="'output from competition control methods'" />
 	
 	</on-start>
 
-	<view-state id="view">
-
-	<!--  	<transition on="runSim">
-			<evaluate expression="webCompetitionControlService.runSim()"
-				result="requestScope.message"></evaluate>
-		</transition>
-		
-		<transition on="runBoot">
-			<evaluate expression="webCompetitionControlService.runBoot()"
-				result="requestScope.message"></evaluate>
-		</transition>
-
-		<transition on="forceClose">
-			<evaluate expression="webCompetitionControlService.forceClose()"
-				result="requestScope.message"></evaluate>
-		</transition>
-	 -->	
-	 
-		
-
-	</view-state>
+	<view-state id="view"/>
 
 </flow>

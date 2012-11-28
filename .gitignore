@@ -1,3 +1,8 @@
+# Don't commit changes to these files out unless you know what you are doing
+.classpath
+.project
+.settings
+
 # IntelliJ IDEA project files
 *.iml
 *.ipr
@@ -9,12 +14,18 @@
 .classpath
 .settings
 
-# Deployment directories
+# editor temp files
+*~
+
+# Deployment directories and runtime artifacts
+bin/
 target/
 activemq-data/
+logs/
 log/
 .settings/
-.springBeans/
+.springBeans
+boot.xml
 
 # OS generated files
 .DS_Store?

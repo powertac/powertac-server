@@ -50,13 +50,12 @@
 			<p:panel header="COMMON:" style="width:700px">
 				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
 
-
 					<h:outputText value="Server-config:" />
-					<p:inputText value="#{gameParamatersBean.serverConfig}"
+					<p:inputText value="#{gameParametersBean.serverConfig}"
 						title="Optional. If specified, it will override the standard server configuration. You can use a filename for config files contained inside the Visualizer's main directory. Other option is to use the URL." />
 
 					<h:outputText value="Log suffix:" />
-					<p:inputText value="#{gameParamatersBean.logSuffix}"
+					<p:inputText value="#{gameParametersBean.logSuffix}"
 						title="Optional. Gives the root name for the log files, and defaults to 'boot' (for bootstrap mode) or 'sim' (for sim mode) ; two log files are produced: powertac-suffix.trace and
   powertac-suffix.state." />
 
@@ -66,19 +65,17 @@
 			<p:panel header="SIM MODE:" style="width:700px">
 				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
 
-
 					<h:outputText value="Input Bootstrap data:" />
 					<p:inputText id="simBootstrap"
-						value="#{gameParamatersBean.bootstrapData}"
+						value="#{gameParametersBean.bootstrapData}"
 						title="Required. You can use a filename for bootstrap files contained inside the Visualizer's main directory. Other option is to use the URL." />
 
-
 					<h:outputText value="JMS URL:" />
-					<p:inputText value="#{gameParamatersBean.jmsUrl}"
+					<p:inputText value="#{gameParametersBean.jmsUrl}"
 						title="Optional. The URL of the jms message broker, which is typically, but not necessarily, instantiated inside the server. The default value is
   tcp://localhost:61616." />
 
-					<p:dataTable var="broker" value="#{gameParamatersBean.brokers}"
+					<p:dataTable var="broker" value="#{gameParametersBean.brokers}"
 						editable="true">
 						<f:facet name="header">  
             Brokers
@@ -97,15 +94,13 @@
 						<p:column headerText="Options" style="width:50px">
 							<p:rowEditor />
 						</p:column>
-
 					</p:dataTable>
-
 
 					<h:panelGroup layout="block">
 						<p:commandButton value="Add broker" update="display"
 							oncomplete="dialog.show()" />
 						<p:commandButton value="Reset"
-							actionListener="#{gameParamatersBean.resetBrokerList}"
+							actionListener="#{gameParametersBean.resetBrokerList}"
 							update="comp_form" />
 					</h:panelGroup>
 					<hr />
@@ -113,16 +108,13 @@
 					<p:commandButton value="Run"
 						actionListener="#{webCompetitionControlService.runSim}"
 						update="content" />
-
-
-
 				</h:panelGrid>
 			</p:panel>
 			<p:panel header="BOOTSTRAP MODE:" style="width:700px">
 				<h:panelGrid columns="2" style="margin-bottom:10px" cellpadding="5">
 
 					<h:outputText value="Bootstrap filename:" />
-					<p:inputText value="#{gameParamatersBean.bootstrapFilename}"
+					<p:inputText value="#{gameParametersBean.bootstrapFilename}"
 						title="Required. The name (not a URL) of the xml file that will be written with the results of the bootstrap run. An output file will be written in the Visualizer's main directory." />
 
 					<hr />
@@ -133,51 +125,25 @@
 				</h:panelGrid>
 			</p:panel>
 
-
-
-
-
-
-
 			<h:panelGroup layout="block">
-
-
-
-
-
-
 				<p:commandButton value="Shut down"
 					actionListener="#{webCompetitionControlService.shutDown}"
 					update="content" />
-
-
-
 			</h:panelGroup>
-
-
 
 			<p:dialog widgetVar="dialog" modal="true">
 				<h:panelGrid id="display" columns="2" cellpadding="5">
 
 					<h:outputText value="Name:" />
-					<p:inputText value="#{gameParamatersBean.newBrokerName}"
+					<p:inputText value="#{gameParametersBean.newBrokerName}"
 						label="text" />
 
 					<p:commandButton value="Add"
-						actionListener="#{gameParamatersBean.addBroker}"
+						actionListener="#{gameParametersBean.addBroker}"
 						update="comp_form" oncomplete="dialog.hide()" />
-
-
 				</h:panelGrid>
 			</p:dialog>
-
 			<hr />
-
-
-
-
 		</h:form>
-
 	</ui:define>
-
 </ui:composition>

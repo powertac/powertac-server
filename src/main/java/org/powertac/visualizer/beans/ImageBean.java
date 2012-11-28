@@ -1,8 +1,8 @@
 package org.powertac.visualizer.beans;
 
-import java.io.Serializable;
-
 import org.apache.log4j.Logger;
+
+import java.io.Serializable;
 
 /**
  * Backing bean that returns context-relative path of images for use in PrimeFaces components. This pattern is used for avoiding
@@ -14,21 +14,21 @@ import org.apache.log4j.Logger;
 
 public class ImageBean implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 1L;
 
-    Logger log = Logger.getLogger(ImageBean.class);
+  Logger log = Logger.getLogger(ImageBean.class);
 
-    private String logoPath;
-    private String offeredTarrifPath;
-    private String moneyPath;
+  private String logoPath;
+  private String offeredTarrifPath;
+  private String moneyPath;
 
-    public String getLogoPath() {
-	return logoPath;
-    }
+  public String getLogoPath() {
+	  return logoPath;
+  }
 
-    public void setLogoPath(String logoPath) {
-	this.logoPath = logoPath;
-    }
+  public void setLogoPath(String logoPath) {
+	  this.logoPath = logoPath;
+  }
 
 	public String getOfferedTarrifPath() {
 		return offeredTarrifPath;
@@ -45,6 +45,4 @@ public class ImageBean implements Serializable {
 	public void setMoneyPath(String moneyPath) {
 		this.moneyPath = moneyPath;
 	}
-    
-
 }

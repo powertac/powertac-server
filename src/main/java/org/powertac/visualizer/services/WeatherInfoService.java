@@ -1,24 +1,17 @@
 package org.powertac.visualizer.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.Broker;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
-import org.powertac.common.repo.DomainRepo;
-import org.powertac.visualizer.domain.genco.Genco;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.json.WeatherServiceJson;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 /**
  * Service for weather-related data
@@ -42,7 +35,6 @@ public class WeatherInfoService implements TimeslotCompleteActivation, Recyclabl
 		recycle();
 	}
 
-	
 	public void activate(int timeslotIndex, Instant postedTime) {
 		if(currentReport!=null){
 			reports.add(currentReport);
@@ -65,7 +57,6 @@ public class WeatherInfoService implements TimeslotCompleteActivation, Recyclabl
 		
 	}
 
-
 	public void recycle() {
 		reports = new ArrayList<WeatherReport>();
 		forecasts = new ArrayList<WeatherForecast>();
@@ -74,11 +65,9 @@ public class WeatherInfoService implements TimeslotCompleteActivation, Recyclabl
 		currentReport = null;
 	}
 
-
 	public WeatherReport getCurrentReport() {
 		return currentReport;
 	}
-
 
 	public void setCurrentReport(WeatherReport currentReport) {
 		this.currentReport = currentReport;
@@ -89,16 +78,13 @@ public class WeatherInfoService implements TimeslotCompleteActivation, Recyclabl
 		return currentForecast;
 	}
 
-
 	public void setCurrentForecast(WeatherForecast currentForecast) {
 		this.currentForecast = currentForecast;
 	}
 
-
 	public ArrayList<WeatherReport> getReports() {
 		return reports;
 	}
-
 
 	public ArrayList<WeatherForecast> getForecasts() {
 		return forecasts;
@@ -107,7 +93,5 @@ public class WeatherInfoService implements TimeslotCompleteActivation, Recyclabl
 	public WeatherServiceJson getJson() {
 		return json;
 	}
-	
-	
 
 }

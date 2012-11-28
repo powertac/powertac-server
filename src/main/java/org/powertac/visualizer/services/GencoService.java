@@ -2,14 +2,11 @@ package org.powertac.visualizer.services;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
-import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.domain.genco.Genco;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
@@ -57,9 +54,7 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 	 * @return
 	 */
 	public Genco findGencoByUsername(String username) {
-
 		return gencoMap.get(username);
-
 	}
 
 	@SuppressWarnings("unchecked")
@@ -68,12 +63,9 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 	}
 
 	public void activate(int timeslotIndex, Instant postedTime) {
-		for (Iterator iterator = gencoList.iterator(); iterator.hasNext();) {
-			Genco genco = (Genco) iterator.next();
-			genco.update(timeslotIndex,postedTime);
-
-		}
-
+    for (Genco genco: gencoList) {
+      genco.update(timeslotIndex, postedTime);
+    }
 	}
 
 	public void recycle() {

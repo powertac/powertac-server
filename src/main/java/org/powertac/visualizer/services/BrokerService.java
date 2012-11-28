@@ -1,12 +1,5 @@
 package org.powertac.visualizer.services;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.visualizer.domain.broker.BrokerModel;
@@ -15,6 +8,11 @@ import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.json.BrokersJSON;
 import org.primefaces.json.JSONArray;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class BrokerService implements TimeslotCompleteActivation, Recyclable,Serializable {
@@ -63,20 +61,17 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,Ser
 		// subscription pieChart:
 		JSONArray customerCountData = new JSONArray();
 
-		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-			BrokerModel broker = (BrokerModel) iterator.next();
-			
-			log.trace("Updating broker model:"+broker.getName());
-			// update broker's model
-			broker.update(timeslotIndex, postedTime);
-			// collect data for global charts:
-			cashChartData.put(broker.getJson().getCashBalanceJson());
-			customerCountData.put(broker.getCustomerCount());
-		}
+    for (BrokerModel broker: brokers) {
+      log.trace("Updating broker model:" + broker.getName());
+      // update broker's model
+      broker.update(timeslotIndex, postedTime);
+      // collect data for global charts:
+      cashChartData.put(broker.getJson().getCashBalanceJson());
+      customerCountData.put(broker.getCustomerCount());
+    }
 		// update global charts:
 		json.setCashChartData(cashChartData);
 		json.setCustomerCountData(customerCountData);
-
 	}
 
 	public List<BrokerModel> getBrokerList() {

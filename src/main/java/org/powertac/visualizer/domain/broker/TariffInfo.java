@@ -1,9 +1,5 @@
 package org.powertac.visualizer.domain.broker;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
@@ -13,6 +9,9 @@ import org.powertac.visualizer.interfaces.TimeslotModelUpdate;
 import org.powertac.visualizer.json.TariffInfoJSON;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TariffInfo tracks a tariff offered by a broker to customers.
@@ -55,40 +54,33 @@ public class TariffInfo implements TimeslotModelUpdate {
 			
 			JSONArray ratesJsonMax = new JSONArray();
 			JSONArray ratesJsonMin = new JSONArray();
-			
-			for (Iterator iterator = rates.iterator(); iterator.hasNext();) {
-				Rate rate = (Rate) iterator.next();
-				RateInfo rateInfo = new RateInfo(rate);
-				rateInfos.add(rateInfo);
-				
-				JSONArray maxArray = rateInfo.getJson().getRateLineChartMaxValue();
-				JSONArray minArray = rateInfo.getJson().getRateLineChartMinValue();
-				
-				for(int i=0;i<maxArray.length();i++)
-				{
-					try {
-						ratesJsonMax.put(maxArray.get(i));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				for(int i=0;i<minArray.length();i++)
-				{
-					try {
-						ratesJsonMin.put(minArray.get(i));
-					} catch (JSONException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				
-				
-			}
+
+      for (Rate rate: rates) {
+        RateInfo rateInfo = new RateInfo(rate);
+        rateInfos.add(rateInfo);
+
+        JSONArray maxArray = rateInfo.getJson().getRateLineChartMaxValue();
+        JSONArray minArray = rateInfo.getJson().getRateLineChartMinValue();
+
+        for (int i = 0; i < maxArray.length(); i++) {
+          try {
+            ratesJsonMax.put(maxArray.get(i));
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
+        }
+
+        for (int i = 0; i < minArray.length(); i++) {
+          try {
+            ratesJsonMin.put(minArray.get(i));
+          } catch (JSONException e) {
+            e.printStackTrace();
+          }
+        }
+      }
 			
 			json.setRatesLineChartMaxValue(ratesJsonMax);
 			json.setRatesLineChartMinValue(ratesJsonMin);
-			
 		}
 		
 		tariffLifecycle.add(tariffSpecification.toString());

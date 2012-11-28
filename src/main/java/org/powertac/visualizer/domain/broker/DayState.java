@@ -1,10 +1,5 @@
 package org.powertac.visualizer.domain.broker;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.TariffSpecification;
@@ -12,7 +7,10 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.interfaces.DisplayableBroker;
 import org.powertac.visualizer.json.DayStateJSON;
-import org.primefaces.json.JSONArray;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents the day state from a broker.

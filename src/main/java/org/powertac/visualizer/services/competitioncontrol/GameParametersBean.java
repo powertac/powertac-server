@@ -1,11 +1,11 @@
 package org.powertac.visualizer.services.competitioncontrol;
 
-import java.util.ArrayList;
-
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 @Service
-public class GameParamatersBean {
+public class GameParametersBean {
 	private String bootstrapData;
 	private String jmsUrl;
 	private String serverConfig;
@@ -14,7 +14,7 @@ public class GameParamatersBean {
 	private String newBrokerName;
 	private String bootstrapFilename;
 
-	public GameParamatersBean() {
+	public GameParametersBean() {
 		brokers = new ArrayList<FakeBroker>();
 	}
 

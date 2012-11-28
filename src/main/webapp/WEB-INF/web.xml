@@ -4,11 +4,10 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
 	<!-- SPRING ROOT WEB APPLICATION CONTEXT -->
-
-	<context-param>
-		<param-name>contextConfigLocation</param-name>
-		<param-value>/WEB-INF/spring/root-context.xml</param-value>
-	</context-param>
+  <context-param>
+    <param-name>contextClass</param-name>
+    <param-value>org.powertac.visualizer.DynaminApplicationContext</param-value>
+  </context-param>
 
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
@@ -20,9 +19,7 @@
 		<param-value>south-street</param-value>
 	</context-param>
 
-
 	<!-- JSF 2 IMPLEMENTATION -->
-
 	<!-- Use JSF view templates saved as *.xhtml, for use with Facelets -->
 	<context-param>
 		<param-name>javax.faces.DEFAULT_SUFFIX</param-name>
@@ -55,7 +52,6 @@
 	</servlet-mapping>
 
 	<!-- SPRING MVC -->
-
 	<servlet>
 		<servlet-name>Spring MVC Servlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -72,7 +68,6 @@
 	</servlet-mapping>
 
 	<!-- DEFAULT PAGE -->
-
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
 	</welcome-file-list>
@@ -82,6 +77,5 @@
 		<param-name>facelets.LIBRARIES</param-name>
 		<param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
 	</context-param>
-
 
 </web-app>

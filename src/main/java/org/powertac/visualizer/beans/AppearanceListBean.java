@@ -1,12 +1,10 @@
 package org.powertac.visualizer.beans;
 
+import org.powertac.visualizer.domain.Appearance;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import org.powertac.visualizer.domain.Appearance;
-import org.springframework.stereotype.Service;
 
 /**
  * Holds the list of appearances. Such list should be declared in xml
