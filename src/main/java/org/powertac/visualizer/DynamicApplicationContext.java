@@ -3,7 +3,7 @@ package org.powertac.visualizer;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 
-public class DynaminApplicationContext extends XmlWebApplicationContext {
+public class DynamicApplicationContext extends XmlWebApplicationContext {
 
   protected String[] getDefaultConfigLocations () {
     String cmd = System.getProperty("sun.java.command");

@@ -6,7 +6,7 @@
 	<!-- SPRING ROOT WEB APPLICATION CONTEXT -->
   <context-param>
     <param-name>contextClass</param-name>
-    <param-value>org.powertac.visualizer.DynaminApplicationContext</param-value>
+    <param-value>org.powertac.visualizer.DynamicApplicationContext</param-value>
   </context-param>
 
 	<listener>
