@@ -5,5 +5,5 @@ package org.powertac.visualizer.statistical;
  *
  */
 public interface PerformanceCategory {
-	public void grade();
+	
 }

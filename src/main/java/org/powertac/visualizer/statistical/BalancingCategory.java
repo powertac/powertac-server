@@ -19,9 +19,7 @@ public class BalancingCategory extends AbstractPerformanceCategory implements
 			2000, 0.75f, 1);
 	private AggregateBalancingData aggregateBalancingData = new AggregateBalancingData();
 	private BalancingData lastBalancingData = new BalancingData(0, 0, 0);
-
-	
-	
+		
 	public BalancingCategory(BrokerModel broker) {
 		super(broker);
 	}
@@ -30,8 +28,6 @@ public class BalancingCategory extends AbstractPerformanceCategory implements
 		balancingDataMap.put(data.getTimestamp(), data);
 		lastBalancingData = data;
 		aggregateBalancingData.processBalancingData(lastBalancingData);
-		grade();
-
 	}
 	
 	public AggregateBalancingData getAggregateBalancingData() {
@@ -46,10 +42,6 @@ public class BalancingCategory extends AbstractPerformanceCategory implements
 		return balancingDataMap;
 	}
 
-	@Override
-	public void grade() {
-		GradingSystem.getBalancingGrade(lastBalancingData.getPriceImbalance(),
-				lastBalancingData.getkWhImbalance());
-	}
+	
 
 }

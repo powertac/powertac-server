@@ -23,10 +23,12 @@ public class DisplayableBalancingCategory extends AbstractDisplayablePerformance
 	private static final long serialVersionUID = 1L;
 	private double totalKwh;
 	private double totalMoney;
+	private double lastKwh;
+	private double lastMoney;
 	private String kWhImbalanceJson;
 	private String priceImbalanceJson;
 	private String unitPriceImbalanceJson;
-	
+	 
 	public DisplayableBalancingCategory(BalancingCategory balancingCategory) {
 		super(balancingCategory.getGrade());
 		
@@ -34,6 +36,8 @@ public class DisplayableBalancingCategory extends AbstractDisplayablePerformance
 		
 		this.totalKwh = balancingCategory.getAggregateBalancingData().getTotalKwh();
 		this.totalMoney = balancingCategory.getAggregateBalancingData().getTotalMoney();
+		lastKwh = balancingCategory.getLastBalancingData().getkWhImbalance();
+		lastMoney = balancingCategory.getLastBalancingData().getPriceImbalance();
 		
 		ArrayList<Object> kWhImbalanceList = new ArrayList<Object>();
 		ArrayList<Object> priceImbalanceList = new ArrayList<Object>();
@@ -74,6 +78,13 @@ public class DisplayableBalancingCategory extends AbstractDisplayablePerformance
 	
 	public String getUnitPriceImbalanceJson() {
 		return unitPriceImbalanceJson;
+	}
+	
+	public double getLastKwh() {
+		return lastKwh;
+	}
+	public double getLastMoney() {
+		return lastMoney;
 	}
 	
 

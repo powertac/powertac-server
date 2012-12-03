@@ -14,11 +14,15 @@ public class DisplayableBroker implements Serializable {
 	private String name;
 	private Appearance appearance;
 	private DisplayableBalancingCategory balancing;
+	private DisplayableWholesaleCategory wholesale;
+	private DisplayableAggregateDistributionData distributionData;
 	
 	public DisplayableBroker(BrokerModel model) {
 		this.balancing = new DisplayableBalancingCategory(model.getBalancingCategory());
 		this.name = model.getName();
 		this.appearance = model.getAppearance();
+		this.wholesale = new DisplayableWholesaleCategory(model.getWholesaleCategory());
+		distributionData = new DisplayableAggregateDistributionData(model.getAggregateDistributionData().getkWh(), model.getAggregateDistributionData().getMoney());
 	}
 	
 	public String getName() {
@@ -29,6 +33,12 @@ public class DisplayableBroker implements Serializable {
 	}
 	public DisplayableBalancingCategory getBalancing() {
 		return balancing;
+	}
+	public DisplayableWholesaleCategory getWholesale() {
+		return wholesale;
+	}
+	public DisplayableAggregateDistributionData getDistributionData() {
+		return distributionData;
 	}
 
 }

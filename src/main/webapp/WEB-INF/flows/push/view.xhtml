@@ -148,12 +148,21 @@ $(function () {
 	 <p:tabView value="#{brokersBean.brokerList}" var="broker">
 	<p:tab  title="#{broker.name}">
 	<p:panel>
-	#{broker.appearance.colorCode}
-	#{broker.balancing.totalKwh}
-	#{broker.balancing.totalMoney}
-	#{broker.balancing.kWhImbalanceJson}
+KOLOR:	#{broker.appearance.colorCode}
+L:	#{broker.balancing.lastKwh}
+TOTALBALANCING:	#{broker.balancing.totalKwh}
+TOTALDISTRI:	#{broker.distributionData.kWh}
+
+GRADE: #{broker.balancing.grade}
+<!-- 	#{broker.balancing.kWhImbalanceJson}
 	#{broker.balancing.priceImbalanceJson}
-	#{broker.balancing.unitPriceImbalanceJson}
+	#{broker.balancing.unitPriceImbalanceJson} -->
+	
+NORDERS:	#{broker.wholesale.noOrders}
+NOMARKETTX:	#{broker.wholesale.noMarketTx}
+GRADE:	#{broker.wholesale.grade}
+	
+	
 	
 	</p:panel>
 	</p:tab>

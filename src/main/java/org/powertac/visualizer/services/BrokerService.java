@@ -36,11 +36,11 @@ import com.google.gson.Gson;
 public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		Serializable {
 
+	private Logger log = Logger.getLogger(BrokerService.class);
 	private static final long serialVersionUID = 15L;
 	private ConcurrentHashMap<String, BrokerModel> brokersMap;
 	private ArrayList<BrokerModel> brokers;
-	private BrokersJSON json;
-
+	
 	public BrokerService() {
 		recycle();
 	}
@@ -67,20 +67,10 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	public void recycle() {
 		brokersMap = new ConcurrentHashMap<String, BrokerModel>();
 		brokers = new ArrayList<BrokerModel>();
-		json = new BrokersJSON();
 	}
 
-	public BrokersJSON getJson() {
-		return json;
-	}
-
-	public void setJson(BrokersJSON json) {
-		this.json = json;
-	}
 
 	public void activate(int timeslotIndex, Instant postedTime) {
-
-		System.out.println("Aktivator to sam ja");
 
 		// // do the push:
 		PushContext pushContext = PushContextFactory.getDefault()
@@ -91,10 +81,12 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		
 		Collection<BrokerModel> brokers = brokersMap.values();
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-
+			
 			BrokerModel b = (BrokerModel) iterator.next();
-
-			System.out.println("Broker " + b.getName());
+			
+			b.getWholesaleCategory().//ZATVORIT WHOLESALE za timeslot prije
+			
+			b.grade();
 
 			JSONObject balancingObject = new JSONObject();
 			BalancingData balancingData = b.getBalancingCategory()
@@ -106,7 +98,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			double[] unitPriceImbalanceArray = { balancingData.getTimestamp(),
 					balancingData.getUnitPrice() };
 
-			System.out.println("Last Balancing data uhvaćen " + b.getName());
+			
 			try {
 				balancingObject.put("lastKwhImbalance", kWhImbalanceArray);
 				balancingObject.put("lastMoneyImbalance", priceImbalanceArray);
@@ -114,17 +106,12 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 
 				JSONObject jsonData = new JSONObject();
 				jsonData.put("balancing", balancingObject);
-
-				System.out
-						.println("Napravio balancing objekt, getanje lastbalancing data "
-								+ b.getName());
-
+				
 				brokersJsonObject.put(b.getId(), jsonData);
-				System.out.println("stavio ga u zajednički json objekt "
-						+ b.getName());
+				
 
 			} catch (JSONException e) {
-				System.out.println("Error with JSON," + e.getMessage());
+				log.error("Error with JSON," + e.getMessage());
 			}
 		}
 

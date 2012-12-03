@@ -15,18 +15,18 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
  */
 public abstract class AbstractPerformanceCategory {
 	BrokerModel broker;
-	Grade grade = Grade.X;
+	double grade = 0;
 	
 	public AbstractPerformanceCategory(BrokerModel broker) {
 		this.broker = broker;
 	}
 	
-	public Grade getGrade() {
+	public double getGrade() {
 		return grade;
 	}
 	
-	public void setGrade(Grade grade) {
-		this.grade = grade;
+	public void setGrade(double d) {
+		this.grade = d;
 	}
 	
 }

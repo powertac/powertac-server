@@ -29,12 +29,12 @@ public class Genco implements TimeslotModelUpdate {
 	private GencoJSON json; 
 	private String id;
 
-	private Map<Integer, WholesaleData> wholesaleDatas;
+	private Map<Integer, WholesaleDataGenco> wholesaleDatas;
 
 	public Genco(Broker broker) {
 		this.broker = broker;
 		id = "genco"+RandomStringUtils.random(7, "abcdefghijklomnopqrstuvxy".toCharArray());
-		wholesaleDatas = new ConcurrentSkipListMap<Integer, WholesaleData>();
+		wholesaleDatas = new ConcurrentSkipListMap<Integer, WholesaleDataGenco>();
 		json = new GencoJSON();
 		
 		log.info(this.toString()+" created.");
@@ -46,12 +46,12 @@ public class Genco implements TimeslotModelUpdate {
 	 * @param timeslot
 	 * @return
 	 */
-	public WholesaleData findWholesaleDataByTimeslot(Timeslot timeslot){
+	public WholesaleDataGenco findWholesaleDataByTimeslot(Timeslot timeslot){
 		int serialNumber = timeslot.getSerialNumber();
-		WholesaleData data = wholesaleDatas.get(serialNumber);
+		WholesaleDataGenco data = wholesaleDatas.get(serialNumber);
 		
 		if(data==null){
-			data = new WholesaleData(timeslot);
+			data = new WholesaleDataGenco(timeslot);
 			wholesaleDatas.put(serialNumber, data);
 		}
 		
@@ -83,8 +83,8 @@ public class Genco implements TimeslotModelUpdate {
 		
 	}
 	
-	public ArrayList<WholesaleData> getWholesaleDatasList() {
-		return new ArrayList<WholesaleData>(wholesaleDatas.values());
+	public ArrayList<WholesaleDataGenco> getWholesaleDatasList() {
+		return new ArrayList<WholesaleDataGenco>(wholesaleDatas.values());
 	}
 	
 	public GencoJSON getJson() {

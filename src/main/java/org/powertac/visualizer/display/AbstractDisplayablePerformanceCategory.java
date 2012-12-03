@@ -1,13 +1,12 @@
 package org.powertac.visualizer.display;
 
-import org.powertac.visualizer.statistical.Grade;
 
 public class AbstractDisplayablePerformanceCategory {
-	private Grade grade;
-	public AbstractDisplayablePerformanceCategory(Grade grade) {
-		this.grade = grade;
+	private double grade;
+	public AbstractDisplayablePerformanceCategory(double d) {
+		this.grade = d;
 	}
-	public Grade getGrade() {
+	public double getGrade() {
 		return grade;
 	}
 

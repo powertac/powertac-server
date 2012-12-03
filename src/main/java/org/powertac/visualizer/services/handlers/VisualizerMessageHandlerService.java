@@ -121,21 +121,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 		// TODO
 	}
 
-	public void handleMessage(MarketTransaction marketTransaction) {
-//		log.debug("\nBroker: " + marketTransaction.getBroker().getUsername() + " MWh: " + marketTransaction.getMWh() + "\n Price: " + marketTransaction.getPrice() + " Postedtime: " + marketTransaction.getPostedTime() + " Timeslot\n Serial Number: "
-//				+ marketTransaction.getTimeslot().getSerialNumber() + " Index: " + helper.computeRelativeTimeslotIndex(marketTransaction.getTimeslot().getStartInstant()));
-//
-//		// TODO
 
-	}
-
-	public void handleMessage(MarketPosition marketPosition) {
-
-//		log.debug("\nBroker: " + marketPosition.getBroker() + " Overall Balance: " + marketPosition.getOverallBalance() + "\n Timeslot:\n serialnumber: " + marketPosition.getTimeslot().getSerialNumber() + " Timeslot\n Serial Number: "
-//				+ marketPosition.getTimeslot().getSerialNumber() + " Index: " + helper.computeRelativeTimeslotIndex(marketPosition.getTimeslot().getStartInstant()));
-//		// TODO
-
-	}
 
 	public void handleMessage(SimResume simResume) {
 		// TODO
@@ -163,7 +149,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 	}
 
 	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class,SimEnd.class, MarketPosition.class, MarketTransaction.class, BankTransaction.class, SimPause.class, SimStart.class,
+		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class,SimEnd.class, BankTransaction.class, SimPause.class, SimStart.class,
 				TimeslotComplete.class, TimeslotUpdate.class, Competition.class, TariffExpire.class, TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}

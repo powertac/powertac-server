@@ -10,7 +10,10 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.Appearance;
 import org.powertac.visualizer.json.BrokerJSON;
+import org.powertac.visualizer.statistical.AggregateDistributionData;
 import org.powertac.visualizer.statistical.BalancingCategory;
+import org.powertac.visualizer.statistical.GradingSystem;
+import org.powertac.visualizer.statistical.WholesaleCategory;
 import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
 
@@ -30,6 +33,8 @@ public class BrokerModel {//implements TimeslotModelUpdate {
 	private ArrayList<TariffInfo> tariffInfos = new ArrayList<TariffInfo>();
 	
 	private BalancingCategory balancingCategory;
+	private WholesaleCategory wholesaleCategory;
+	private AggregateDistributionData aggregateDistributionData = new AggregateDistributionData();
 
 	public BrokerModel(String name, Appearance appearance) {
 		this.name = name;
@@ -49,6 +54,7 @@ public class BrokerModel {//implements TimeslotModelUpdate {
 		json = new BrokerJSON(seriesOptions);
 		
 		balancingCategory = new BalancingCategory(this);
+		wholesaleCategory = new WholesaleCategory(this);
 
 	}
 	
@@ -116,6 +122,19 @@ public class BrokerModel {//implements TimeslotModelUpdate {
 	
 	public ArrayList<TariffInfo> getTariffInfos() {
 		return (ArrayList<TariffInfo>) tariffInfos.clone();
+	}
+	
+	public WholesaleCategory getWholesaleCategory() {
+		return wholesaleCategory;
+	}
+	public AggregateDistributionData getAggregateDistributionData() {
+		return aggregateDistributionData;
+	}
+
+	public void grade() {
+		balancingCategory.setGrade(GradingSystem.getBalancingGrade(balancingCategory.getAggregateBalancingData().getTotalKwh(), aggregateDistributionData.getkWh()));
+		wholesaleCategory.setGrade(GradingSystem.getWholesaleMarketGrade(wholesaleCategory.getNoOrders(), wholesaleCategory.getNoMarketTransactions()));
+// NE ŠLJAKA KAKO SPADA?
 	}
 
 }
