@@ -84,10 +84,10 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			
 			BrokerModel b = (BrokerModel) iterator.next();
 			
-			b.getWholesaleCategory().//ZATVORIT WHOLESALE za timeslot prije
+			b.getWholesaleCategory();//ZATVORIT WHOLESALE za timeslot prije
 			
-			b.grade();
-
+			b.grade(); 
+ 
 			JSONObject balancingObject = new JSONObject();
 			BalancingData balancingData = b.getBalancingCategory()
 					.getLastBalancingData();

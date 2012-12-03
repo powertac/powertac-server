@@ -75,7 +75,7 @@ public class WholesaleMessageHandler implements Initializable {
 		
 		if(broker!=null){
 			WholesaleCategory cat = broker.getWholesaleCategory();
-			cat.processOrder(order, currentMillis);
+			//cat.processOrder(order, currentMillis);
 		}
 			
 	}
