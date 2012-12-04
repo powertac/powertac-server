@@ -23,7 +23,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * A {@code BalancingTransaction} instance represents the final supply/demand
+ * Represents the final supply/demand
  * imbalance in the current timeslot, and the Distribution Utility's charge
  * for this imbalance.
  *
