@@ -22,52 +22,45 @@ public class SingleTimeslotWholesaleData {
 	private double cashNegative;
 	private double energyPositive;
 	private double energyNegative;
-	
-	private ArrayList<Order> orders = new ArrayList<Order>(24);
-	private ArrayList<MarketTransaction> marketTransactions = new ArrayList<MarketTransaction>(24);
-	private boolean immutable = false;
-	
+
+	private ConcurrentHashMap<Long, Order> orders = new ConcurrentHashMap<Long, Order>(
+			24, 0.75f, 1);
+	private ConcurrentHashMap<Long, MarketTransaction> marketTransactions = new ConcurrentHashMap<Long, MarketTransaction>(
+			24, 0.75f, 1);
+
 	public SingleTimeslotWholesaleData(BrokerModel model, long millis) {
 		broker = model;
 		timeslotMillis = millis;
 	}
-	
-	/**
-	 * @return A list of Order objects if there are will not be any updates to a list. Otherwise, returns null;
-	 */
-	public ArrayList<Order> getOrders() {
-		if(immutable){
-		return orders;}
-		else{
-			return null;
-		}
+
+	public ConcurrentHashMap<Long, Order> getOrders() {
+		return orders;
 	}
-	
-	public void processOrder(Order order){
-		if(!immutable){
-		orders.add(order);
-		}
+
+	public void processOrder(Order order, long millisFrom) {
+		orders.put(millisFrom, order);
+
 	}
-	
-	public void processMarketTransaction(MarketTransaction tx){
-		if(!immutable){
+
+	public void processMarketTransaction(MarketTransaction tx, long millisFrom) {
+
 		double energy = tx.getMWh();
 		double cash = tx.getPrice();
-		
-		if (cash<0) {
-			cashNegative+=cash;
+
+		if (cash < 0) {
+			cashNegative += cash;
 		} else {
-			cashPositive+=cash;
+			cashPositive += cash;
 		}
-		
-		if (energy<0) {
-			energyNegative+=energy;
+
+		if (energy < 0) {
+			energyNegative += energy;
 		} else {
-			energyPositive+=energy;
+			energyPositive += energy;
 		}
-		
-		marketTransactions.add(tx);
-		}
+
+		marketTransactions.put(millisFrom, tx);
+
 	}
 
 	public BrokerModel getBroker() {
@@ -93,15 +86,5 @@ public class SingleTimeslotWholesaleData {
 	public double getEnergyNegative() {
 		return energyNegative;
 	}
-	
-	public void setImmutable(boolean immutable) {
-		this.immutable = immutable;
-	}
-	
-	public boolean isImmutable() {
-		return immutable;
-	}
-	
-	
 
 }

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -27,16 +28,20 @@ import org.springframework.stereotype.Service;
 public class WholesaleService implements Serializable, Recyclable {
 
 	private static final long serialVersionUID = 1L;
-		
+	private ConcurrentHashMap<Long, ArrayList<ClearedTrade>> clearedTrades;
+	
 	public WholesaleService() {
 		recycle();
-
 	}
 
 
 	public void recycle() {
+				clearedTrades = new ConcurrentHashMap<Long, ArrayList<ClearedTrade>>();
 				
 	}
 	
+	public ConcurrentHashMap<Long, ArrayList<ClearedTrade>> getClearedTrades() {
+		return clearedTrades;
+	}
 
 }

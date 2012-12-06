@@ -26,19 +26,19 @@ public class WholesaleCategory extends AbstractPerformanceCategory {
 		return singleTimeslotWholesaleMap;
 	}
 
-	public void processOrder(Order order) {
+	public void processOrder(Order order, long millisFrom) {
 		noOrders++;
 		singleTimeslotWholesaleMap.putIfAbsent(order.getTimeslot()
 				.getStartInstant().getMillis(),
 				new SingleTimeslotWholesaleData(broker, order.getTimeslot()
 						.getStartInstant().getMillis()));
 		SingleTimeslotWholesaleData data = singleTimeslotWholesaleMap.get(order.getTimeslot().getStartInstant().getMillis());
-		data.processOrder(order);	
+		data.processOrder(order, millisFrom);	
 	}
 		
-	public void processMarketTransaction(MarketTransaction tx){
+	public void processMarketTransaction(MarketTransaction tx, long millisFrom){
 		noMarketTransactions++;
-		singleTimeslotWholesaleMap.get(tx.getTimeslot().getStartInstant().getMillis()).processMarketTransaction(tx);
+		singleTimeslotWholesaleMap.get(tx.getTimeslot().getStartInstant().getMillis()).processMarketTransaction(tx, millisFrom);
 	}
 
 	public int getNoOrders() {

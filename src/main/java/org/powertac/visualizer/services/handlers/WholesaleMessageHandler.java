@@ -1,8 +1,11 @@
 package org.powertac.visualizer.services.handlers;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.SortedSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.ClearedTrade;
@@ -57,37 +60,42 @@ public class WholesaleMessageHandler implements Initializable {
 		
 		if(broker!=null){
 			WholesaleCategory cat = broker.getWholesaleCategory();
-			cat.processMarketTransaction(tx);
+			cat.processMarketTransaction(tx,visualizerBean.getTimeslotUpdate().getPostedTime().getMillis());
+			//NOTE: a market transaction will refer to a order that has been posted the timeslot before.
 		}
 	}
 
 	public void handleMessage(MarketPosition marketPosition) {
+		
 
 
 	}
 
 	public void handleMessage(Order order) {
 		
-		long currentMillis = visualizerBean.getCurrentMillis();
-		
+				
 		BrokerModel broker = brokerService.getBrokersMap().get(order.getBroker().getUsername());		
 		order.getTimeslot().getStartInstant().getMillis();		
 		
 		if(broker!=null){
 			WholesaleCategory cat = broker.getWholesaleCategory();
-			//cat.processOrder(order, currentMillis);
+			cat.processOrder(order, visualizerBean.getTimeslotUpdate().getPostedTime().getMillis());
 		}
 			
 	}
 
-	public void handleMessage(Orderbook orderbook) {
-
+	public void handleMessage(Orderbook orderbook) {		
 	}
  
 
 
 	public void handleMessage(ClearedTrade clearedTrade) {
+		ConcurrentHashMap<Long, ArrayList<ClearedTrade>> map = wholesaleService.getClearedTrades();	
 		
+		// if there is a new key:
+		map.putIfAbsent(clearedTrade.getTimeslot().getStartInstant().getMillis(), new ArrayList<ClearedTrade>(24));
+		
+		map.get(clearedTrade.getTimeslot().getStartInstant().getMillis()).add(clearedTrade);
 	}
 
 }

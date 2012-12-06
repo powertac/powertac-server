@@ -10,6 +10,7 @@
 
 	<ui:define name="headInclude">
 	
+	
 	<h:outputScript library="js" name="MetroJs.js"/>
 	<h:outputStylesheet library="css" name="MetroJs.css"/>
 	
@@ -19,6 +20,8 @@
 			function handleMessage(data) {
 				$('.display1').html(data);
 			}
+			
+			
 		</script>
 		
 		<script type="text/javascript">
@@ -82,7 +85,107 @@ $(".flip-list").liveTile();
 			<p:socket onMessage="handleBrokersMessage" channel="/brokers" />
 					
 			 <div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
+			 
+			 <div id="recentClearingsContainter" style="width: 700px; height: 400px; margin: 0 auto"></div>
+			 
 			 <script type="text/javascript">
+			
+			 
+			 $(document).ready(function() {
+
+					Highcharts.setOptions({
+						global : {
+							useUTC : true
+						}
+					//,
+						//colors: ['#356AA0','#D01F3C','#008C00']
+					});
+					
+					// Create the chart
+					var recentClearingsVar = new Highcharts.StockChart({
+						chart : {
+							renderTo : 'recentClearingsContainter',
+							alignTicks: false
+										
+						},
+						plotLines: [{
+							value: 0,
+							width: 1,
+							color: '#808080'
+						}],
+						yAxis: [{
+					        title: {
+					            text: 'Temperature(°C)'
+					        },
+					        height: 140,
+					        lineWidth: 2
+					    }, {
+					        title: {
+					            text: 'Wind speed (m/s)'
+					        },
+					        top: 230,
+					        height: 150,
+					        offset: 0,
+					        lineWidth: 2,
+					       // opposite: true
+					    }],
+						
+						rangeSelector: {
+							buttons: [{
+								count: 1,
+								type: 'hour',
+								text: '1H'
+							}, {
+								count: 1,
+								type: 'day',
+								text: '1D'
+							},{
+								count: 1,
+								type: 'week',
+								text: '1W'
+							},
+							{
+								count: 2,
+								type: 'week',
+								text: '2W'
+							},
+							{
+								count: 1,
+								type: 'month',
+								text: '1M'
+							},
+							{
+								type: 'all',
+								text: 'All'
+							}],
+							inputEnabled: true,
+							selected: 5
+						},
+						
+						title : {
+							text : 'Most recent clearings'
+						},
+						
+						exporting: {
+							enabled: true
+						},
+						tooltip: {
+							yDecimals : 2
+						},
+						
+						series : [{
+					        name: 'Energy(MWh)',
+					        data: #{wholesaleBean.energyMostRecentClearingsJson}
+					    }, {
+					        name: 'Cash (euros)',
+					        data: #{wholesaleBean.cashMostRecentClearingsJson},
+					        yAxis: 1					       
+					    }
+					    ]
+						
+					});   
+				
+				});
 
 
 $(function () {
@@ -143,7 +246,9 @@ $(function () {
 });
 //})(jQuery);
 </script>
-
+WHOLESALE RECENT CLEARINGS:
+#{wholesaleBean.energyMostRecentClearingsJson}
+#{wholesaleBean.cashMostRecentClearingsJson}
 
 	 <p:tabView value="#{brokersBean.brokerList}" var="broker">
 	<p:tab  title="#{broker.name}">
