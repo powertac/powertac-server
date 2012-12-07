@@ -49,9 +49,6 @@
   <bean id="timeslotRepo"
         class="org.powertac.common.repo.TimeslotRepo" />
   
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo" />
-        
   <bean id="randomSeedRepo"
         class="org.powertac.common.repo.RandomSeedRepo" />
         
