@@ -34,7 +34,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Order;
 import org.powertac.common.TimeService;

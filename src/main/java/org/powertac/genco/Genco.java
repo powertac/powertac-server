@@ -15,24 +15,17 @@
  */
 package org.powertac.genco;
 
-import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-
-import org.powertac.common.Broker;
-import org.powertac.common.Competition;
-import org.powertac.common.IdGenerator;
-import org.powertac.common.PluginConfig;
-import org.powertac.common.Order;
-import org.powertac.common.Timeslot;
-import org.powertac.common.MarketPosition;
+import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.RandomSeed;
+
+import java.util.List;
 
 /**
  * Represents a producer of power in the transmission domain. Individual

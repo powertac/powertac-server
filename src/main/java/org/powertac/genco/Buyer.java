@@ -19,7 +19,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
