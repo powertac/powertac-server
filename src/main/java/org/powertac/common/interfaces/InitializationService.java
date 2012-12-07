@@ -36,11 +36,10 @@ import org.powertac.common.Competition;
  * after all other plugins have been initialized. As long as there are no cycles in
  * the dependency graph, this approach will terminate.</p>
  * <p>
- * When the database is cleared, all the PluginConfig instances as well as the Competition
- * instance will be deleted. To make it easy to configure individual games through a
- * web interface, they must be re-created before the configuration process begins. This
- * is accomplished by calling the setDefaults method at bootstrap time and after the end 
- * of each game. There should be no sequence dependencies for this process.
+ * To make it easy to configure individual games through a web interface, they 
+ * must be re-created before the configuration process begins. This is 
+ * accomplished by calling the setDefaults method at bootstrap time and after 
+ * the end of each game. There should be no sequence dependencies for this process.
  *  
  * @author John Collins
  */
