@@ -27,7 +27,6 @@ import org.powertac.common.ClearedTrade;
 import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
-import org.powertac.common.PluginConfig;
 import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -120,13 +119,6 @@ public class AuctionService
   {
     super();
     incoming = new ArrayList<Order>();
-  }
-  
-  /**
-   * Registers for phase 2 activation, to drive tariff publication
-   */
-  public void init (PluginConfig config)
-  {
   }
 
   @Override

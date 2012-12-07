@@ -44,10 +44,6 @@
         class="org.powertac.common.repo.TimeslotRepo">
   </bean>
   
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo">
-  </bean>
-  
   <bean id="orderbookRepo"
         class="org.powertac.common.repo.OrderbookRepo">
   </bean>

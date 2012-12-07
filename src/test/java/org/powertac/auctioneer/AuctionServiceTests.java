@@ -33,7 +33,6 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.OrderbookRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -53,9 +52,6 @@ public class AuctionServiceTests
 
   @Autowired
   private Accounting accountingService;
-  
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
   
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -93,7 +89,6 @@ public class AuctionServiceTests
   public void setUp () throws Exception
   {
     // clean up from previous tests
-    pluginConfigRepo.recycle();
     timeslotRepo.recycle();
     reset(mockProxy);
     reset(mockControl);
