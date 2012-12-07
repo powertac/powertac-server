@@ -1,6 +1,7 @@
 package org.powertac.visualizer.statistical;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.powertac.common.MarketTransaction;
@@ -23,44 +24,54 @@ public class SingleTimeslotWholesaleData {
 	private double energyPositive;
 	private double energyNegative;
 
-	private ConcurrentHashMap<Long, Order> orders = new ConcurrentHashMap<Long, Order>(
-			24, 0.75f, 1);
-	private ConcurrentHashMap<Long, MarketTransaction> marketTransactions = new ConcurrentHashMap<Long, MarketTransaction>(
-			24, 0.75f, 1);
+	private boolean closed;
+
+	private HashMap<Long, Order> orders = new HashMap<Long, Order>(24);
+	private HashMap<Long, MarketTransaction> marketTransactions = new HashMap<Long, MarketTransaction>(
+			24);
 
 	public SingleTimeslotWholesaleData(BrokerModel model, long millis) {
 		broker = model;
 		timeslotMillis = millis;
 	}
 
-	public ConcurrentHashMap<Long, Order> getOrders() {
-		return orders;
+	/**
+	 * @return Returns the map of orders if the SingleTimeslotWholesaleData
+	 *         object is closed for modification.
+	 */
+	public HashMap<Long, Order> getOrders() {
+		if (closed) {
+			return orders;
+		} else {
+			return null;
+		}
 	}
 
 	public void processOrder(Order order, long millisFrom) {
-		orders.put(millisFrom, order);
-
+		if (!closed) {
+			orders.put(millisFrom, order);
+		}
 	}
 
 	public void processMarketTransaction(MarketTransaction tx, long millisFrom) {
+		if (!closed) {
+			double energy = tx.getMWh();
+			double cash = tx.getPrice();
 
-		double energy = tx.getMWh();
-		double cash = tx.getPrice();
+			if (cash < 0) {
+				cashNegative += cash;
+			} else {
+				cashPositive += cash;
+			}
 
-		if (cash < 0) {
-			cashNegative += cash;
-		} else {
-			cashPositive += cash;
+			if (energy < 0) {
+				energyNegative += energy;
+			} else {
+				energyPositive += energy;
+			}
+
+			marketTransactions.put(millisFrom, tx);
 		}
-
-		if (energy < 0) {
-			energyNegative += energy;
-		} else {
-			energyPositive += energy;
-		}
-
-		marketTransactions.put(millisFrom, tx);
-
 	}
 
 	public BrokerModel getBroker() {
@@ -86,5 +97,12 @@ public class SingleTimeslotWholesaleData {
 	public double getEnergyNegative() {
 		return energyNegative;
 	}
-
+	
+	public boolean isClosed() {
+		return closed;
+	}
+	public void setClosed(boolean closed) {
+		this.closed = closed;
+	}
+	
 }

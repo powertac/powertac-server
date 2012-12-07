@@ -18,6 +18,7 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.wholesale.VisualizerOrderbookOrder;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
+import org.powertac.visualizer.interfaces.WholesaleServiceBeanAccess;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.WholesaleService;
 import org.primefaces.component.datatable.DataTable;
@@ -36,7 +37,7 @@ public class WholesaleBean implements Serializable {
 
 	@Autowired
 	public WholesaleBean(BrokerService brokerService,
-			WholesaleService wholesaleService) {
+			WholesaleServiceBeanAccess wholesaleService) {
 		
 		Gson gson = new Gson();
 
@@ -44,15 +45,17 @@ public class WholesaleBean implements Serializable {
 		ArrayList<Object> energyMostRecentClearings = new ArrayList<Object>();
 		ArrayList<Object> cashMostRecentClearings = new ArrayList<Object>();
 		
-		ConcurrentHashMap<Long, ArrayList<ClearedTrade>> map = wholesaleService.getClearedTrades();
+		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService.getFinalClearedTrades();
 		
 		SortedSet<Long> keys = new TreeSet<Long>(map.keySet());
 		
 		for(Long key:keys){
-			ArrayList<ClearedTrade> clearedTrades = map.get(key);
+			ConcurrentHashMap<Long, ClearedTrade> clearedTrades = map.get(key);
 			if (clearedTrades != null) {
-				ClearedTrade mostRecentClearing = clearedTrades
-						.get(clearedTrades.size() - 1);
+				
+				Long lastKey = new TreeSet<Long>(clearedTrades.keySet()).last();
+				
+				ClearedTrade mostRecentClearing = clearedTrades.get(lastKey);
 				Object[] energy = { key,
 						mostRecentClearing.getExecutionMWh() };
 				Object[] cash = { key,

@@ -32,7 +32,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisualizerMessageHandlerService implements Initializable {
 
-	private Logger log = Logger.getLogger(VisualizerMessageHandlerService.class);
+	private Logger log = Logger
+			.getLogger(VisualizerMessageHandlerService.class);
 	@Autowired
 	private VisualizerBean visualizerBean;
 	@Autowired
@@ -41,7 +42,6 @@ public class VisualizerMessageHandlerService implements Initializable {
 	private AppearanceListBean appearanceListBean;
 	@Autowired
 	private MessageDispatcher router;
-	
 
 	public void handleMessage(Competition competition) {
 		visualizerBean.setRunning(true);
@@ -49,69 +49,82 @@ public class VisualizerMessageHandlerService implements Initializable {
 	}
 
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
-		visualizerBean.setTimeslotUpdate(timeslotUpdate);
-		
-		//millis: should include timezone in the future.
-		visualizerBean.setCurrentMillis(timeslotUpdate.getPostedTime().getMillis());
 
-//		// for the first timeslot:
-//		if (visualizerBean.getFirstTimeslotInstant() == null)
-//			visualizerBean.setFirstTimeslotInstant(timeslotUpdate.getPostedTime());
+		// if there was the timeslot update before:
+		if (visualizerBean.getTimeslotUpdate() != null) {
+			visualizerBean.setOldTimeslotUpdate(visualizerBean
+					.getTimeslotUpdate());
+		}
+
+		visualizerBean.setTimeslotUpdate(timeslotUpdate);
+
+		// millis: should include timezone in the future.
+		visualizerBean.setCurrentMillis(timeslotUpdate.getPostedTime()
+				.getMillis());
+
+		// // for the first timeslot:
+		// if (visualizerBean.getFirstTimeslotInstant() == null)
+		// visualizerBean.setFirstTimeslotInstant(timeslotUpdate.getPostedTime());
 
 		StringBuilder builder = new StringBuilder();
 		builder.append("Enabled timeslots:");
-		for (int i = timeslotUpdate.getFirstEnabled(); i < timeslotUpdate.getLastEnabled(); i++) {
+		for (int i = timeslotUpdate.getFirstEnabled(); i < timeslotUpdate
+				.getLastEnabled(); i++) {
 
 			builder.append(" ").append(i);
 		}
 
 		log.debug(builder + "\n");
 
-		//int relativeTimeslotIndex = helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
+		// int relativeTimeslotIndex =
+		// helper.computeRelativeTimeslotIndex(timeslotUpdate.getPostedTime());
 		// for all brokers and gencos:
 		// helper.updateTimeslotIndex(relativeTimeslotIndex);
 		// update for visualizerBean:
-//		visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
+		// visualizerBean.setRelativeTimeslotIndex(relativeTimeslotIndex);
 
-	//	log.debug("\nTimeslot index: " + relativeTimeslotIndex + "\nPostedtime:" + timeslotUpdate.getPostedTime());
+		// log.debug("\nTimeslot index: " + relativeTimeslotIndex +
+		// "\nPostedtime:" + timeslotUpdate.getPostedTime());
 
 		Competition comp = visualizerBean.getCompetition();
 		// timeslot serial number:
-		int timeslotSerialNumber = timeslotUpdate.getFirstEnabled() - comp.getDeactivateTimeslotsAhead();
+		int timeslotSerialNumber = timeslotUpdate.getFirstEnabled()
+				- comp.getDeactivateTimeslotsAhead();
 		visualizerBean.setCurrentTimeslotSerialNumber(timeslotSerialNumber);
 
-//		visualizerBean.setWeek(timeslotSerialNumber / (24 * 7));
-//		visualizerBean.setDay(timeslotSerialNumber / 24);
-//		visualizerBean.setHour(timeslotSerialNumber % 24);
+		// visualizerBean.setWeek(timeslotSerialNumber / (24 * 7));
+		// visualizerBean.setDay(timeslotSerialNumber / 24);
+		// visualizerBean.setHour(timeslotSerialNumber % 24);
 
 	}
 
 	public void handleMessage(TimeslotComplete complete) {
-		
-		List<TimeslotCompleteActivation> activators = VisualizerApplicationContext.listBeansOfType(TimeslotCompleteActivation.class);
+
+		List<TimeslotCompleteActivation> activators = VisualizerApplicationContext
+				.listBeansOfType(TimeslotCompleteActivation.class);
 		for (TimeslotCompleteActivation active : activators) {
-			//System.out.println("activating..." + active.getClass().getSimpleName());
-			active.activate(complete.getTimeslotIndex(), visualizerBean.getTimeslotUpdate().getPostedTime());
-			
+			// System.out.println("activating..." +
+			// active.getClass().getSimpleName());
+			active.activate(complete.getTimeslotIndex(), visualizerBean
+					.getTimeslotUpdate().getPostedTime());
+
 		}
 
-		//TODO call pushables:
-		
-		
-		//int relativeTimeslotIndex = complete.getTimeslotIndex() - visualizerBean.getFirstTimeslotIndex();
+		// TODO call pushables:
 
+		// int relativeTimeslotIndex = complete.getTimeslotIndex() -
+		// visualizerBean.getFirstTimeslotIndex();
 
 	}
 
 	public void handleMessage(SimStart simStart) {
-		
+
 	}
-	
+
 	public void handleMessage(SimEnd simEnd) {
 		visualizerBean.setRunning(false);
 		visualizerBean.setFinished(true);
 	}
-
 
 	public void handleMessage(SimPause simPause) {
 		// TODO
@@ -121,15 +134,14 @@ public class VisualizerMessageHandlerService implements Initializable {
 		// TODO
 	}
 
-
-
 	public void handleMessage(SimResume simResume) {
 		// TODO
 
 	}
 
 	public void handleMessage(DistributionReport report) {
-		log.debug("DIST REPORT: " + "PROD " + report.getTotalProduction() + "CONS " + report.getTotalConsumption());
+		log.debug("DIST REPORT: " + "PROD " + report.getTotalProduction()
+				+ "CONS " + report.getTotalConsumption());
 	}
 
 	public void handleMessage(TariffExpire msg) {
@@ -149,8 +161,11 @@ public class VisualizerMessageHandlerService implements Initializable {
 	}
 
 	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(DistributionReport.class, SimResume.class,SimEnd.class, BankTransaction.class, SimPause.class, SimStart.class,
-				TimeslotComplete.class, TimeslotUpdate.class, Competition.class, TariffExpire.class, TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
+		for (Class<?> clazz : Arrays.asList(DistributionReport.class,
+				SimResume.class, SimEnd.class, BankTransaction.class,
+				SimPause.class, SimStart.class, TimeslotComplete.class,
+				TimeslotUpdate.class, Competition.class, TariffExpire.class,
+				TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 	}

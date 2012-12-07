@@ -14,6 +14,7 @@ import org.powertac.common.MarketTransaction;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
+import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
@@ -47,55 +48,74 @@ public class WholesaleMessageHandler implements Initializable {
 	BrokerService brokerService;
 
 	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(Order.class, Orderbook.class, ClearedTrade.class, MarketPosition.class, MarketTransaction.class)) {
+		for (Class<?> clazz : Arrays.asList(Order.class, Orderbook.class,
+				ClearedTrade.class, MarketPosition.class,
+				MarketTransaction.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 
 	}
-	
+
 	public void handleMessage(MarketTransaction tx) {
-		
-		BrokerModel broker = brokerService.getBrokersMap().get(tx.getBroker().getUsername());		
-		tx.getTimeslot().getStartInstant().getMillis();		
-		
-		if(broker!=null){
+
+		BrokerModel broker = brokerService.getBrokersMap().get(
+				tx.getBroker().getUsername());
+		tx.getTimeslot().getStartInstant().getMillis();
+
+		if (broker != null) {
 			WholesaleCategory cat = broker.getWholesaleCategory();
-			cat.processMarketTransaction(tx,visualizerBean.getTimeslotUpdate().getPostedTime().getMillis());
-			//NOTE: a market transaction will refer to a order that has been posted the timeslot before.
+			
+			TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
+			
+			if(old!=null){
+			cat.processMarketTransaction(tx, old.getPostedTime().getMillis());
+			// NOTE: a market transaction will refer to a order that has been
+			// posted the timeslot before.
+			}
+			else{
+				log.warn("The old timeslot update does not exist.");
+			}
 		}
 	}
 
 	public void handleMessage(MarketPosition marketPosition) {
-		
-
 
 	}
 
 	public void handleMessage(Order order) {
-		
-				
-		BrokerModel broker = brokerService.getBrokersMap().get(order.getBroker().getUsername());		
-		order.getTimeslot().getStartInstant().getMillis();		
-		
-		if(broker!=null){
+
+		BrokerModel broker = brokerService.getBrokersMap().get(
+				order.getBroker().getUsername());
+		order.getTimeslot().getStartInstant().getMillis();
+
+		if (broker != null) {
 			WholesaleCategory cat = broker.getWholesaleCategory();
-			cat.processOrder(order, visualizerBean.getTimeslotUpdate().getPostedTime().getMillis());
+			cat.processOrder(order, visualizerBean.getTimeslotUpdate()
+					.getPostedTime().getMillis());
 		}
-			
+
 	}
 
-	public void handleMessage(Orderbook orderbook) {		
+	public void handleMessage(Orderbook orderbook) {
 	}
- 
-
 
 	public void handleMessage(ClearedTrade clearedTrade) {
-		ConcurrentHashMap<Long, ArrayList<ClearedTrade>> map = wholesaleService.getClearedTrades();	
-		
+		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService
+				.getClearedTrades();
 		// if there is a new key:
-		map.putIfAbsent(clearedTrade.getTimeslot().getStartInstant().getMillis(), new ArrayList<ClearedTrade>(24));
-		
-		map.get(clearedTrade.getTimeslot().getStartInstant().getMillis()).add(clearedTrade);
+		map.putIfAbsent(clearedTrade.getTimeslot().getStartInstant()
+				.getMillis(), new ConcurrentHashMap<Long, ClearedTrade>(24,
+				0.75f, 1));
+
+		TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
+
+		if (old != null) {
+			map.get(clearedTrade.getTimeslot().getStartInstant().getMillis())
+					.put(old.getPostedTime().getMillis(), clearedTrade);
+		} else{
+			log.warn("The old timeslot update does not exist.");
+		}
+
 	}
 
 }

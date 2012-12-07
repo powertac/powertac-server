@@ -37,29 +37,20 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisualizerBean implements Serializable {
 
-	/**
-     *
-     */
+	
 	private static final long serialVersionUID = 1L;
 	private Logger log = Logger.getLogger(VisualizerBean.class);
 
 	private int messageCounter;
 	private int visualizerRunCount;
 
-	//private DayOverview dayOverview;
-
 	private Competition competition;
-	//private Instant firstTimeslotInstant;
+	private TimeslotUpdate oldTimeslotUpdate;
 	private TimeslotUpdate timeslotUpdate;
 	private String simulationStatus;
 	private int currentTimeslotSerialNumber;
-	//private int relativeTimeslotIndex;
-	//private int week;
-	//private int day;
-	//private int hour;
 	private boolean finished;
 	private boolean running;
-	//private int firstTimeslotIndex;
 	private long currentMillis;
 
 	@Autowired
@@ -97,23 +88,14 @@ public class VisualizerBean implements Serializable {
 	public void init() {
 		messageCounter = 0;
 		visualizerRunCount++;
-
-	//	dayOverview = null;
-
 		competition = null;
-
-	//	firstTimeslotInstant = null;
-
+		oldTimeslotUpdate = null;
 		timeslotUpdate = null;
 		simulationStatus = null;
 		currentTimeslotSerialNumber = -1;
-	//	relativeTimeslotIndex = -1;
-	//	week = -1;
-	//	day = -1;
-	//	hour = -1;
 		finished = false;
 		running = false;
-	//	firstTimeslotIndex = -1;
+	
 		currentMillis = 0;
 
 	}
@@ -138,14 +120,6 @@ public class VisualizerBean implements Serializable {
 	public void setTimeslotUpdate(TimeslotUpdate timeslotUpdate) {
 		this.timeslotUpdate = timeslotUpdate;
 	}
-//
-//	public int getCurrentFirstEnabledTimeslotSerialNumber() {
-//		if (timeslotUpdate != null)
-//			return timeslotUpdate.getFirstEnabled();
-//		else {
-//			return -1;
-//		}
-//	}
 
 	public String getSimulationStatus() {
 		return simulationStatus;
@@ -162,60 +136,6 @@ public class VisualizerBean implements Serializable {
 	public void setCurrentTimeslotSerialNumber(int currentTimeslotSerialNumber) {
 		this.currentTimeslotSerialNumber = currentTimeslotSerialNumber;
 	}
-
-//	/**
-//	 * 
-//	 * 
-//	 * @param relativeTimeslotIndex
-//	 */
-//	public void setRelativeTimeslotIndex(int relativeTimeslotIndex) {
-//		this.relativeTimeslotIndex = relativeTimeslotIndex;
-//
-//	}
-//
-//	public int getRelativeTimeslotIndex() {
-//		return relativeTimeslotIndex;
-//	}
-//
-//	public void setFirstTimeslotInstant(Instant firstTimeslot) {
-//		this.firstTimeslotInstant = firstTimeslot;
-//	}
-//
-//	public Instant getFirstTimeslotInstant() {
-//		return firstTimeslotInstant;
-//	}
-//
-//	public DayOverview getDayOverview() {
-//		return dayOverview;
-//	}
-//
-//	public void setDayOverview(DayOverview dayOverview) {
-//		this.dayOverview = dayOverview;
-//	}
-//
-//	public int getWeek() {
-//		return week;
-//	}
-//
-//	public void setWeek(int week) {
-//		this.week = week;
-//	}
-//
-//	public int getDay() {
-//		return day;
-//	}
-//
-//	public void setDay(int day) {
-//		this.day = day;
-//	}
-//
-//	public int getHour() {
-//		return hour;
-//	}
-//
-//	public void setHour(int hour) {
-//		this.hour = hour;
-//	}
 
 	public boolean isFinished() {
 		return finished;
@@ -246,6 +166,14 @@ public class VisualizerBean implements Serializable {
 	}
 	public void setCurrentMillis(long currentMillis) {
 		this.currentMillis = currentMillis;
+	}
+	
+	public TimeslotUpdate getOldTimeslotUpdate() {
+		return oldTimeslotUpdate;
+	}
+	
+	public void setOldTimeslotUpdate(TimeslotUpdate oldTimeslotUpdate) {
+		this.oldTimeslotUpdate = oldTimeslotUpdate;
 	}
 
 }
