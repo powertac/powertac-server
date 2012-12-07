@@ -53,7 +53,6 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-// Import common
 
 //TODO: Create issue Asynchronous and Blocking modes that expose the flags
 //xTODO: Create log messages in weatherService
@@ -64,7 +63,7 @@ import java.util.List;
 //xTODO: Pull request Tests, WeatherService, Repos
 //xTODO: Basic JSF MVC application
 //XTODO: Switch implements to extends in timeslotphaseprocessor
-//XTODO: Plugin Config object for weatherServers indicating location and date range, place in PluginConfigRepo
+
 
 @Service
 public class WeatherService extends TimeslotPhaseProcessor implements
@@ -94,9 +93,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
 	@Autowired
 	private TimeslotRepo timeslotRepo;
-
-	// @Autowired
-	// private PluginConfigRepo pluginConfigRepo;
 
 	@Autowired
 	private WeatherReportRepo weatherReportRepo;

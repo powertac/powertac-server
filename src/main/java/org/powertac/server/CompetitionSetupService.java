@@ -43,7 +43,6 @@ import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
@@ -430,8 +429,7 @@ public class CompetitionSetupService
     log.info("pre-game initialization");
     configureCompetition(competition);  
         
-    // Handle pre-game initializations by clearing out the repos,
-    // then creating the PluginConfig instances
+    // Handle pre-game initializations by clearing out the repos
     List<DomainRepo> repos =
       SpringApplicationContext.listBeansOfType(DomainRepo.class);
     log.debug("found " + repos.size() + " repos");
@@ -459,10 +457,7 @@ public class CompetitionSetupService
   }
 
   /**
-   * Sets up the simulator, with config overrides provided in a file
-   * containing a sequence of PluginConfig instances. Errors are logged
-   * if one or more PluginConfig instances cannot be used in the current
-   * server setup.
+   * Sets up the simulator, with config overrides provided in a file.
    */
   public boolean preGame (URL bootFile)
   {
@@ -470,8 +465,7 @@ public class CompetitionSetupService
     // run the basic pre-game setup
     preGame();
     
-    // read the config info from the bootReader - 
-    // We need to find a Competition and a set of PluginConfig instances
+    // read the config info from the bootReader - We need to find a Competition
     Competition bootstrapCompetition = null;
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();

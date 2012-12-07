@@ -388,11 +388,9 @@ public class CompetitionControlService
     // is a tournament scheduler to notify.
     tournamentSchedulerService.inProgress(timeslotCount);
     
-    // send the Competition instance, then the public PluginConfig instances,
-    // and finally broadcast deferred messages
+    // send the Competition instance, then the broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
-    //brokerProxyService.broadcastMessages(pluginConfigRepo.findAllPublic());
     brokerProxyService.broadcastMessage(configService.getPublishedConfiguration());
     if (!bootstrapMode) {
       brokerProxyService.broadcastMessages(bootstrapDataset);

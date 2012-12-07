@@ -28,7 +28,6 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.msg.CustomerBootstrapData;
-//import org.powertac.common.repo.PluginConfigRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -83,7 +82,6 @@ public class CompetitionControlServiceTests
   @Test
   public void testRunOnceWriter ()
   {
-    // create the PluginConfig instances
     css.preGame();
     
     ArrayList<Object> data = new ArrayList<Object>();

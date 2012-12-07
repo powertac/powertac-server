@@ -90,10 +90,6 @@
         class="org.powertac.common.repo.RandomSeedRepo">
   </bean>
 
-  <bean id="pluginConfigRepo"
-        class="org.powertac.common.repo.PluginConfigRepo">
-  </bean>
-
   <bean id="tariffRepo"
         class="org.powertac.common.repo.TariffRepo">
   </bean>
