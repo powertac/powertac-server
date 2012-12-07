@@ -46,9 +46,6 @@ import org.powertac.common.Competition;
  */
 public interface InitializationService
 {
-  /**
-   * Creates and saves default PluginConfig instances.
-   */
   public void setDefaults();
   
   /**
