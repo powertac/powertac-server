@@ -26,11 +26,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.interfaces.Accounting;
-import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.interfaces.*;
 import org.powertac.common.msg.DistributionReport;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -120,13 +116,6 @@ public class AccountingService
     serverProps.publishConfiguration(this);
     return "AccountingService";
   }
-  
-  /**
-   * Sets parameters, registers for timeslot phase activation.
-   */
-  public void init(PluginConfig config) 
-  {
-  }
 
   @Override
   public synchronized MarketTransaction 
@@ -198,7 +187,7 @@ public class AccountingService
     for (BrokerTransaction btx : pendingTransactions) {
       if (btx instanceof TariffTransaction) {
         TariffTransaction ttx = (TariffTransaction)btx;
-        if (ttx.getBroker().getUsername() == broker.getUsername()) {
+        if (ttx.getBroker().getUsername().equals(broker.getUsername())) {
           if (ttx.getTxType() == TariffTransaction.Type.CONSUME ||
               ttx.getTxType() == TariffTransaction.Type.PRODUCE) {
             netLoad += ttx.getKWh();

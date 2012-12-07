@@ -37,28 +37,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powertac.common.BankTransaction;
-import org.powertac.common.Broker;
-import org.powertac.common.BrokerTransaction;
-import org.powertac.common.CashPosition;
-import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.MarketPosition;
-import org.powertac.common.MarketTransaction;
-import org.powertac.common.PluginConfig;
-import org.powertac.common.Rate;
-import org.powertac.common.Tariff;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction;
-import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
+import org.powertac.common.*;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.ServerProperties;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.PluginConfigRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.util.Predicate;
@@ -80,12 +64,9 @@ public class AccountingServiceTests
   
   @Autowired
   private TariffRepo tariffRepo;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
-  @Autowired
-  private PluginConfigRepo pluginConfigRepo;
   
   @Autowired
   private BrokerRepo brokerRepo;
@@ -117,7 +98,6 @@ public class AccountingServiceTests
     tariffRepo.recycle();
     timeslotRepo.recycle();
     brokerRepo.recycle();
-    pluginConfigRepo.recycle();
     reset(mockProxy);
     reset(mockServerProperties);
 
