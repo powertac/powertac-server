@@ -30,7 +30,7 @@ public class OfficeComplexConstants
   public static final int KWH = 1000;
   public static final int MWH = 1000000;
   public static final int MILLION = 1000000;
-  public static final int MEAN_TARIFF_DURATION = 5;
+  public static final int MEAN_TARIFF_DURATION = 7;
   public static final double SAME = 0.60;
   public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.02;
@@ -206,7 +206,7 @@ public class OfficeComplexConstants
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
 
     int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
-    
+
     MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
     WEDNESDAY = (WEDNESDAY + bias) % DAYS_OF_WEEK;
