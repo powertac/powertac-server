@@ -2225,7 +2225,8 @@ public class Village extends AbstractCustomer
     if (tariff.getMinDuration() == 0)
       minDuration = VillageConstants.MEAN_TARIFF_DURATION;
     else
-      minDuration = tariff.getMinDuration() / TimeService.DAY;
+      minDuration =
+        (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
 
     log.debug("Minimum Duration: " + minDuration);
     return (lifecyclePayment / minDuration);
