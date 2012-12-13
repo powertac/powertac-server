@@ -325,8 +325,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
         double lifecyclePayment = tariff.getEarlyWithdrawPayment() + tariff.getSignupPayment();
         double minDuration;
-        if (tariff.getMinDuration() == 0) minDuration = MEAN_TARIFF_DURATION;
-        else minDuration = tariff.getMinDuration() / TimeService.DAY;
+        if (tariff.getMinDuration() == 0l) minDuration = (double)MEAN_TARIFF_DURATION;
+        else minDuration = (double)tariff.getMinDuration() / (double)TimeService.DAY;
         double dailyLifecyclePayment = lifecyclePayment / minDuration;  
         //double dailyPeriodicPayment = tariff.getPeriodicPayment() * NUM_HOURS_IN_DAY;
         //return bundle.getPopulation() * (dailyLifecyclePayment + dailyPeriodicPayment);
@@ -658,10 +658,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         double fract, whole;
         if (x > 0) {
             whole = Math.floor(x);
-            fract = Math.floor((x - whole) * 100) / 100;
+            fract = Math.floor((x - whole) * 100.0) / 100.0;
         } else {
             whole = Math.ceil(x);
-            fract = Math.ceil((x - whole) * 100) / 100;
+            fract = Math.ceil((x - whole) * 100.0) / 100.0;
         }
         return whole + fract;
     }
