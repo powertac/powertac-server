@@ -2128,7 +2128,8 @@ public class Village extends AbstractCustomer
       if (evaluationTariffs.size() > 1) {
         for (Tariff tariff: evaluationTariffs) {
           log.debug("Tariff : " + tariff.toString() + " Tariff Type : "
-                    + tariff.getTariffSpecification().getPowerType());
+                    + tariff.getTariffSpecification().getPowerType()
+                    + " Broker: " + tariff.getBroker().toString());
           if (tariff.isExpired() == false
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
