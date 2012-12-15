@@ -808,6 +808,64 @@ public class OfficeComplexCustomerServiceTests
 
   // @Repeat(20)
   @Test
+  public void testPublishAndEvaluatingRidiculousTariffs ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+    }
+
+    Rate r2 = new Rate().withValue(-(0.5 * 500));
+
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withSignupPayment(-500).addRate(r2);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
+
+    assertEquals("Four consumption tariffs", 2, tariffRepo.findAllTariffs()
+            .size());
+
+    assertNotNull("first tariff found", tariff1);
+
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
+
+    when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
+            .thenReturn(tclist1).thenReturn(tclist2);
+
+    // Test the function with different inputs, in order to get the same result.
+    officeComplexCustomerService.publishNewTariffs(tclist1);
+
+  }
+
+  // @Repeat(20)
+  @Test
   public void testPublishAndEvaluatingVariableTariffs ()
   {
     initializeService();

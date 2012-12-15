@@ -1151,9 +1151,9 @@ public class Office
         appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day,
                                 gen);
 
-    log.info("Dominant Appliance " + appliance.toString() + " Overall Power: "
-             + appliance.getOverallPower());
-    log.info("New Dominant Load: " + Arrays.toString(dominantLoad));
+    log.debug("Dominant Appliance " + appliance.toString() + " Overall Power: "
+              + appliance.getOverallPower());
+    log.debug("New Dominant Load: " + Arrays.toString(dominantLoad));
 
     return dominantLoad;
   }
