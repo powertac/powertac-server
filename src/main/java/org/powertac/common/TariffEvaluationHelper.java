@@ -105,6 +105,7 @@ public class TariffEvaluationHelper
   {
     alpha = 0.0;
     tariff = null;
+    normalizeWeights();
     if (null == timeService) {
       timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     }
@@ -229,7 +230,7 @@ public class TariffEvaluationHelper
   public void setWtExpected (double wt)
   {
     wtExpected = wt;
-    normalizeWeights();
+    //normalizeWeights();
   }
   
   // max
@@ -246,7 +247,7 @@ public class TariffEvaluationHelper
   public void setWtMax (double wt)
   {
     wtMax = wt;
-    normalizeWeights();
+    //normalizeWeights();
   }
   
   // wr
