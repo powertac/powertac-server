@@ -230,7 +230,7 @@ public class TariffEvaluationHelper
   public void setWtExpected (double wt)
   {
     wtExpected = wt;
-    //normalizeWeights();
+    normalizeWeights();
   }
   
   // max
@@ -247,7 +247,7 @@ public class TariffEvaluationHelper
   public void setWtMax (double wt)
   {
     wtMax = wt;
-    //normalizeWeights();
+    normalizeWeights();
   }
   
   // wr

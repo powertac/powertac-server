@@ -91,6 +91,17 @@ public class TariffEvaluationHelperTest
     assertEquals("correct wtExpected", 0.3, teh.getNormWtExpected(), 1e-6);
     assertEquals("correct wtMax", 0.7, teh.getNormWtMax(), 1e-6);
   }
+  
+  /**
+   * Test bare init case
+   */
+  @Test
+  public void testGetNormWtBareInit ()
+  {
+    teh.init();
+    assertEquals("correct wtExpected", 0.6, teh.getNormWtExpected(), 1e-6);
+    assertEquals("correct wtMax", 0.4, teh.getNormWtMax(), 1e-6);
+  }
 
   /**
    * Test method for {@link org.powertac.common.TariffEvaluationHelper#getWeightedValue(org.powertac.common.Rate)}.
