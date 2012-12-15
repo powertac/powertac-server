@@ -210,6 +210,13 @@
         <artifactId>maven-war-plugin</artifactId>
         <version>2.2</version>
         <configuration>
+          <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+            </manifest>
+          </archive>
           <webResources>
             <resource>
               <directory>src/main/webapp/WEB-INF/spring</directory>
