@@ -27,19 +27,24 @@
       <id>sonatype</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
+    <repository>
+      <id>mvnrepo</id>
+      <url>http://mvnrepository.com/artifact/</url>
+    </repository>
   </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-main</artifactId>
+      <version>0.6.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 
   <profiles>
     <!-- Command-line setup -->
     <profile>
       <id>cli</id>
-      <dependencies>
-	<dependency>
-	  <groupId>org.powertac</groupId>
-	  <artifactId>server-main</artifactId>
-	  <version>0.6.3-SNAPSHOT</version>
-	</dependency>
-      </dependencies>
 
       <build>
 	<finalName>run-cli</finalName>
@@ -80,37 +85,72 @@
 	  <version>0.6.3-SNAPSHOT</version>
 	  <type>war</type>
 	</dependency>
+	<dependency>
+	  <groupId>org.powertac</groupId>
+	  <artifactId>webapp-dependencies</artifactId>
+	  <version>0.6.3-SNAPSHOT</version>
+	  <type>pom</type>
+	</dependency>
       </dependencies>
 
       <build>
 	<finalName>run-web</finalName>
-	<defaultGoal>jetty:run-war</defaultGoal>
+	<defaultGoal>package jetty:run</defaultGoal>
 	<plugins>
+	  <!-- <plugin>
+            <groupId>org.appfuse</groupId>
+            <artifactId>maven-warpath-plugin</artifactId>
+            <version>2.0.2</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>add-classes</goal>
+                </goals>
+              </execution>
+            </executions>
+	  </plugin> -->
 	  <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
             <version>2.4</version>
             <executions>
               <execution>
-		<id>copy</id>
+		<id>unpack-war</id>
 		<phase>package</phase>
 		<goals>
-		  <goal>copy</goal>
+		  <goal>unpack</goal>
 		</goals>
 		<configuration>
-		  <outputDirectory>${project.build.directory}</outputDirectory>
-		  <strip-version>true</strip-version>
+		  <outputDirectory>
+		    ${project.build.directory}/visualizer
+		  </outputDirectory>
+                  <overWriteSnapshots>true</overWriteSnapshots>
 		  <artifactItems>
                     <artifactItem>
                       <groupId>org.powertac</groupId>
                       <artifactId>visualizer</artifactId>
                       <version>0.6.3-SNAPSHOT</version>
                       <type>war</type>
-		      <dest-file-name>visualizer.war</dest-file-name>
+                      <overWrite>true</overWrite>
                     </artifactItem>
 		  </artifactItems>
 		</configuration>
               </execution>
+              <!-- <execution>
+                <id>copy-lib</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>copy-dependencies</goal>
+                </goals>
+                <configuration>
+                  <outputDirectory>
+		    ${project.build.directory}/visualizer/WEB-INF/lib
+		  </outputDirectory>
+		  <excludeArtifactIds>visualizer</excludeArtifactIds>
+		  <overWriteSnapshots>true</overWriteSnapshots>
+                </configuration>
+              </execution> -->
             </executions>
 	  </plugin>
 
@@ -120,7 +160,12 @@
 	    <artifactId>maven-jetty-plugin</artifactId>
 	    <version>6.1.26</version>
 	    <configuration>
-	      <webApp>${project.build.directory}/visualizer.war</webApp>
+	      <classesDirectory>
+	        ${project.build.directory}/visualizer/WEB-INF/classes
+	      </classesDirectory>
+	      <webAppSourceDirectory>
+	        ${project.build.directory}/visualizer
+	      </webAppSourceDirectory>
 	      <contextPath>/visualizer</contextPath>
 	    </configuration>
 	  </plugin>
