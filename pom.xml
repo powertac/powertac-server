@@ -25,184 +25,13 @@
       <artifactId>server-main</artifactId>
       <version>0.6.3-SNAPSHOT</version>
     </dependency>
-
-    <!-- Spring -->
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jms</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>    
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
-      <version>5.5.1</version>
-    </dependency>
-    <dependency>    
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-pool</artifactId>
-      <version>5.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>${spring.version}</version>
-      <exclusions>
-	<exclusion>
-	  <groupId>commons-logging</groupId>
-	  <artifactId>commons-logging</artifactId>
-	</exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.webflow</groupId>
-      <artifactId>spring-faces</artifactId>
-      <version>${springwebflow-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-core</artifactId>
-      <version>${springsecurity-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-config</artifactId>
-      <version>${springsecurity-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-web</artifactId>
-      <version>${springsecurity-version}</version>
-    </dependency>
-    <!-- JSF-303 Dependency Injection -->
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
-      <version>1</version>
-    </dependency>
-    <!-- Servlet -->
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>servlet-api</artifactId>
-      <version>2.5</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>2.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>jstl</artifactId>
-      <version>1.2</version>
-    </dependency>
-    <!-- Sun Mojarra JSF 2 runtime -->
-    <dependency>
-      <groupId>com.sun.faces</groupId>
-      <artifactId>jsf-api</artifactId>
-      <version>2.0.3</version>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.faces</groupId>
-      <artifactId>jsf-impl</artifactId>
-      <version>2.0.3</version>
-    </dependency>
-    <!-- PrimeFaces component library -->
-    <dependency>
-      <groupId>org.primefaces</groupId>
-      <artifactId>primefaces</artifactId>
-      <version>3.4-SNAPSHOT</version>
-    </dependency>
-    <!-- Primefaces theme -->
-    <dependency>
-      <groupId>org.primefaces.themes</groupId>
-      <artifactId>south-street</artifactId>
-      <version>1.0.2</version>
-    </dependency>
-    <!-- JSR 303 validation -->
-    <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-      <version>1.0.0.GA</version>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-validator</artifactId>
-      <version>4.0.2.GA</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
-      <version>2.2</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-fileupload</groupId>
-      <artifactId>commons-fileupload</artifactId>
-      <version>1.2.2</version>
-    </dependency>
-    <!-- JMS dependencies -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.6.4</version>
+      <groupId>org.powertac</groupId>
+      <artifactId>webapp-dependencies</artifactId>
+      <version>0.6.3-SNAPSHOT</version>
+      <type>pom</type>
     </dependency>
   </dependencies>
-
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-    <repository>
-      <id>com.springsource.repository.bundles.release</id>
-      <name>SpringSource Enterprise Bundle Repository - SpringSource
-	Bundle Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
-    </repository>
-    <repository>
-      <id>com.springsource.repository.bundles.external</id>
-      <name>SpringSource Enterprise Bundle Repository - External Bundle
-	Releases</name>
-      <url>http://repository.springsource.com/maven/bundles/external</url>
-    </repository>
-    <repository>
-      <id>spring.maven.milestone</id>
-      <name>Spring Milestone Maven Repo</name>
-      <url>http://repository.springsource.com/maven/bundles/milestone</url>
-    </repository>
-
-    <!-- For Hibernate Validator -->
-    <repository>
-      <id>org.jboss.repository.releases</id>
-      <name>JBoss Maven Release Repository</name>
-      <url>https://repository.jboss.org/nexus/content/repositories/releases</url>
-      <snapshots>
-	      <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <!-- For Sun Mojarra JSF 2 implementation -->
-    <repository>
-      <id>maven2-repository.dev.java.net</id>
-      <name>Java.net Repository for Maven</name>
-      <url>http://download.java.net/maven/2/</url>
-      <snapshots>
-	      <enabled>false</enabled>
-      </snapshots>
-    </repository>
-    <!-- For PrimeFaces JSF component library -->
-    <repository>
-      <id>prime-repo</id>
-      <name>PrimeFaces Maven Repository</name>
-      <url>http://repository.primefaces.org</url>
-      <layout>default</layout>
-    </repository>
-  </repositories>
 
   <build>
     <plugins>
@@ -211,12 +40,6 @@
         <version>2.2</version>
         <configuration>
           <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
-          <archive>
-            <manifest>
-              <addClasspath>true</addClasspath>
-              <classpathPrefix>lib/</classpathPrefix>
-            </manifest>
-          </archive>
           <webResources>
             <resource>
               <directory>src/main/webapp/WEB-INF/spring</directory>
