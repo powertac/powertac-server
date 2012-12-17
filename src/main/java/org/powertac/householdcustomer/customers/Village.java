@@ -2278,6 +2278,7 @@ public class Village extends AbstractCustomer
     log.debug("Dominant Cost Summary: " + dominantCostSummary);
     log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
     finalCostSummary = dominantCostSummary + nonDominantCostSummary;
+
     return -finalCostSummary;
 
   }

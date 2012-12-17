@@ -831,7 +831,7 @@ public class HouseholdCustomerServiceTests
       // SubscriptionMapping //
       customer.subscribeDefault();
     }
-    double rateValue = 500;
+    double rateValue = -500;
 
     Rate r2 = new Rate().withValue(-(0.5 * 500));
     Rate rate =
@@ -848,7 +848,6 @@ public class HouseholdCustomerServiceTests
       // .withPeriodicPayment(defaultPeriodicPayment)
               .withSignupPayment(-500.0).addRate(rate);
 
-    System.out.println("Rate Value: " + rateValue);
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
     tariff1.setState(Tariff.State.OFFERED);
