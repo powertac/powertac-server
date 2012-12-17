@@ -833,27 +833,41 @@ public class OfficeComplexCustomerServiceTests
       customer.subscribeDefault();
     }
 
+    double rateValue = -500;
+
     Rate r2 = new Rate().withValue(-(0.5 * 500));
+    Rate rate =
+      new Rate().withValue(rateValue / 2.0).withFixed(false)
+              .withMaxValue(rateValue * 2.0).withExpectedMean(rateValue);
 
     TariffSpecification tsc1 =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
               .withExpiration(now.plus(TimeService.DAY))
               .withSignupPayment(-500).addRate(r2);
 
+    TariffSpecification tsc2 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+      // .withPeriodicPayment(defaultPeriodicPayment)
+              .withSignupPayment(-500.0).addRate(rate);
+
     Tariff tariff1 = new Tariff(tsc1);
     tariff1.init();
     tariff1.setState(Tariff.State.OFFERED);
+    Tariff tariff2 = new Tariff(tsc2);
+    tariff2.init();
+    tariff2.setState(Tariff.State.OFFERED);
 
-    assertEquals("Four consumption tariffs", 2, tariffRepo.findAllTariffs()
+    assertEquals("Three consumption tariffs", 3, tariffRepo.findAllTariffs()
             .size());
 
     assertNotNull("first tariff found", tariff1);
+    assertNotNull("second tariff found", tariff2);
 
     List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
     List<Tariff> tclist2 =
       tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("3 consumption tariffs", 3, tclist1.size());
     assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
 
     when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
