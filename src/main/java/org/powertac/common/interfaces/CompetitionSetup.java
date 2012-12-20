@@ -74,6 +74,5 @@ public interface CompetitionSetup
                             String config,
                             String jmsUrl,
                             String logfileSuffix,
-                            List<String> brokerUsernames,
-                            String inputQueueName);
+                            List<String> brokerUsernames);
 }

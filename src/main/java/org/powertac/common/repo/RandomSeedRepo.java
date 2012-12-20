@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import org.apache.log4j.Logger;
@@ -66,37 +67,57 @@ public class RandomSeedRepo implements DomainRepo
       result = new RandomSeed(classname, id, purpose);
       seedMap.put(composeName(classname, id, purpose), result);
     }
+    else {
+      log.info("Seed from map for " + name);
+    }
     return result;
   }
   
   /**
    * Pre-loads seeds from an existing server logfile, or from a stripped-down
    * logfile containing only the RandomSeed lines.
-   * @param input
    */
   public void loadSeeds (File inputFile)
   throws FileNotFoundException
   {
-    log.info("Loading seeds from " + inputFile.getPath());
-    BufferedReader input = new BufferedReader(new FileReader(inputFile));
+    log.info("Loading seeds from file" + inputFile.getPath());
+    loadSeeds(new FileReader(inputFile));
+  }
+  
+  
+  /**
+   * Pre-loads seeds from a stream.
+   */
+  public void loadSeeds (InputStreamReader reader)
+  {
+    BufferedReader input = new BufferedReader(reader);
     String seedClass = RandomSeed.class.getName();
     try {
       String line;
       while ((line = input.readLine()) != null) {
-        log.debug("line: " + line);
+        log.debug("original line: " + line);
+        // first, strip off the process time nnnn:
+        int colon = line.indexOf(':');
+        if (colon <= 0 || line.length() <= colon + 2) {
+          log.warn("Malformed line " + line);
+          break;
+        }
+        line = line.substring(colon + 1);
         String[] fields = line.split("::");
-        if (seedClass.equals(fields[1])) {
-          if (fields.length != 8) {
+        if (seedClass.equals(fields[0])) {
+          if (fields.length != 7) {
             log.error("Bad seed spec: " + line);
           }
           else {
-            RandomSeed seed = new RandomSeed(fields[4],
-                                             Long.parseLong(fields[5]), 
-                                             fields[6],
-                                             Long.parseLong(fields[7]));
-            seedMap.put(composeName(fields[4], 
-                                    Long.parseLong(fields[5]),
-                                    fields[6]),
+            System.out.println("fields[3, 4, 5, 6]: " + fields[3]
+                    + "," + fields[4] + "," + fields[5] + "," + fields[6]);
+            RandomSeed seed = new RandomSeed(fields[3],
+                                             Long.parseLong(fields[4]), 
+                                             fields[5],
+                                             Long.parseLong(fields[6]));
+            seedMap.put(composeName(fields[3], 
+                                    Long.parseLong(fields[4]),
+                                    fields[5]),
                         seed);
           }
         }

@@ -120,7 +120,9 @@ public class RandomSeedRepoTests
     }
     assertEquals("two entries", 2, randomSeedRepo.size());
     RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
+    assertEquals("correct seed value 1", -7938709514410200953l, rs1.getValue());
     RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
+    assertEquals("correct seed value 2", 2904941806851623619l, rs2.getValue());
     assertEquals("still two entries", 2, randomSeedRepo.size());
   }
 }
