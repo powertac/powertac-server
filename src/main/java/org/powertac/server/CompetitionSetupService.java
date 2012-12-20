@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.MalformedURLException;
@@ -52,6 +53,7 @@ import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.DomainRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,6 +88,8 @@ public class CompetitionSetupService
 
   @Autowired
   private ServerPropertiesService serverProps;
+  
+  @Autowired RandomSeedRepo randomSeedRepo;
 
   @Autowired
   private XMLMessageConverter messageConverter;
@@ -99,6 +103,7 @@ public class CompetitionSetupService
   private Competition competition;
   private int gameId = 0;
   private URL controllerURL;
+  private String seedSource = null;
   private Thread session = null;
   
   /**
@@ -173,6 +178,8 @@ public class CompetitionSetupService
         parser.accepts("log-suffix").withRequiredArg();
     OptionSpec<String> bootData =
         parser.accepts("boot-data").withRequiredArg().ofType(String.class);
+    OptionSpec<String> seedData =
+        parser.accepts("random-seeds").withRequiredArg().ofType(String.class);
     OptionSpec<String> jmsUrl =
         parser.accepts("jms-url").withRequiredArg().ofType(String.class);
     OptionSpec<String> inputQueue =
@@ -185,6 +192,7 @@ public class CompetitionSetupService
     
     try {
       // process common options
+      seedSource = null;
       String logSuffix = options.valueOf(logSuffixOption);
       controllerURL = options.valueOf(controllerOption);
       Integer game = options.valueOf(gameOpt);
@@ -217,7 +225,8 @@ public class CompetitionSetupService
                    options.valueOf(jmsUrl),
                    logSuffix,
                    options.valuesOf(brokerList),
-                   options.valueOf(inputQueue));
+                   options.valueOf(inputQueue),
+                   options.valueOf(seedData));
       }
       else {
         // Must be either boot or sim
@@ -302,19 +311,33 @@ public class CompetitionSetupService
 
   @Override
   public String simSession (String bootData, String config, String jmsUrl,
-                            String logfileSuffix, List<String> brokerUsernames,
-                            String inputQueueName)
+                            String logfileSuffix,
+                            List<String> brokerUsernames)
+  {
+    return simSession (bootData, config, jmsUrl,
+                       logfileSuffix, brokerUsernames, null, null);
+  }
+  
+  String simSession (String bootData, String config, String jmsUrl,
+                            String logfileSuffix, 
+                            List<String> brokerUsernames,
+                            String inputQueueName,
+                            String seedData)
   {
     String error = null;
     try {
       log.info("simSession: bootData=" + bootData
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
-               + ", inputQueue=" + inputQueueName);
+               + ", inputQueue=" + inputQueueName
+               + ", seedData=" + seedData);
       // process serverConfig now, because other options may override
       // parts of it
       serverProps.recycle();
       setConfigMaybe(config);
+      
+      // load random seeds if requested
+      seedSource = seedData;
 
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim-" + gameId);
@@ -361,15 +384,36 @@ public class CompetitionSetupService
   private void setConfigMaybe (String config)
           throws ConfigurationException, IOException
   {
-    if (config != null) {
-      // needs to be a URL
-      if (!config.contains(":")) {
-        config = "file:" + config;
-      }
-      serverProps.setUserConfig(new URL(config));
+    if (config == null)
+      return;
+    log.info("Reading configuration from " + config);
+    serverProps.setUserConfig(makeUrl(config));
+  }
+  
+  private void loadSeedsMaybe ()
+  {
+    if (seedSource == null)
+      return;
+    log.info("Reading random seeds from " + seedSource);
+    InputStreamReader stream;
+    try {
+      stream = new InputStreamReader(makeUrl(seedSource).openStream());
+      randomSeedRepo.loadSeeds(stream);
+    }
+    catch (Exception e) {
+      log.error("Cannot load seeds from " + seedSource);
     }
   }
 
+  private URL makeUrl (String name) throws MalformedURLException
+  {
+    String urlName = name;
+    if (!urlName.contains(":")) {
+      urlName = "file:" + urlName;
+    }
+    return new URL(urlName);
+  }
+  
   // Runs a bootstrap session
   private void startBootSession (File bootstrapFile) throws IOException
   {
@@ -428,7 +472,7 @@ public class CompetitionSetupService
     // Set up all the plugin configurations
     log.info("pre-game initialization");
     configureCompetition(competition);  
-        
+
     // Handle pre-game initializations by clearing out the repos
     List<DomainRepo> repos =
       SpringApplicationContext.listBeansOfType(DomainRepo.class);
@@ -436,6 +480,10 @@ public class CompetitionSetupService
     for (DomainRepo repo : repos) {
       repo.recycle();
     }
+    // Init random seeds after clearing repos and before initializing
+    // services
+    loadSeedsMaybe();
+    // Now init services
     List<InitializationService> initializers =
       SpringApplicationContext.listBeansOfType(InitializationService.class);
     log.debug("found " + initializers.size() + " initializers");
