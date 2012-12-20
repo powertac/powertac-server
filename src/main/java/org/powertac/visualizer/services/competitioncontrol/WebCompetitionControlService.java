@@ -73,7 +73,7 @@ public class WebCompetitionControlService
         .equals("") ? null : gameParameters.getLogSuffix();
 
     String result =
-        css.simSession(boot, serverConfig, jmsUrl, logSuffix, names, null);
+        css.simSession(boot, serverConfig, jmsUrl, logSuffix, names);
     if (result == null) {
       message = "Simulation started.";
     }
