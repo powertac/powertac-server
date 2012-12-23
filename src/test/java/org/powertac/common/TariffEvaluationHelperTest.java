@@ -91,6 +91,17 @@ public class TariffEvaluationHelperTest
     assertEquals("correct wtExpected", 0.3, teh.getNormWtExpected(), 1e-6);
     assertEquals("correct wtMax", 0.7, teh.getNormWtMax(), 1e-6);
   }
+  
+  /**
+   * Test bare init case
+   */
+  @Test
+  public void testGetNormWtBareInit ()
+  {
+    teh.init();
+    assertEquals("correct wtExpected", 0.6, teh.getNormWtExpected(), 1e-6);
+    assertEquals("correct wtMax", 0.4, teh.getNormWtMax(), 1e-6);
+  }
 
   /**
    * Test method for {@link org.powertac.common.TariffEvaluationHelper#getWeightedValue(org.powertac.common.Rate)}.
@@ -99,7 +110,7 @@ public class TariffEvaluationHelperTest
   public void testGetWeightedValue0Usage ()
   {
     Rate r = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15);
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15);
     tariffSpec.addRate(r);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
@@ -111,21 +122,21 @@ public class TariffEvaluationHelperTest
     usage[0] = 0.0;
     teh.estimateCost(tariff, usage);
     double result = teh.getWeightedValue(r);
-    assertEquals("correct result", (.6 * .15 + .4 * .2), result, 1e-6);
+    assertEquals("correct result", (.6 * -.15 + .4 * -.2), result, 1e-6);
   }
 
   @Test
   public void testGetWeightedValueMidUsage ()
   {
     Rate r = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15);
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15);
     tariffSpec.addRate(r);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    HourlyCharge hc = new HourlyCharge(start, 0.18);
+    HourlyCharge hc = new HourlyCharge(start, -0.18);
     tariff.addHourlyCharge(hc, r.getId());
     tariff.getUsageCharge(10000.0, 0.0, true);
 
@@ -134,14 +145,14 @@ public class TariffEvaluationHelperTest
     usage[0] = 0.0;
     teh.estimateCost(tariff, usage);
     double result = teh.getWeightedValue(r);
-    double expected = 0.75 * (.6 * .15 + .4 * .2) + 0.25 * .18;
+    double expected = 0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18;
     assertEquals("correct result", expected, result, 1e-6);
   }
 
   @Test
   public void testEstimateCostSimpleRateZeroUsage ()
   {
-    Rate r = new Rate().withFixed(true).withValue(.1);
+    Rate r = new Rate().withFixed(true).withValue(-.1);
     tariffSpec.addRate(r);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
@@ -152,13 +163,13 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage);
-    assertEquals("correct result", 30.0, result, 1e-6);
+    assertEquals("correct result", -30.0, result, 1e-6);
   }
 
   @Test
   public void testEstimateCostSimpleRateMidUsage ()
   {
-    Rate r = new Rate().withFixed(true).withValue(.1);
+    Rate r = new Rate().withFixed(true).withValue(-.1);
     tariffSpec.addRate(r);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
@@ -170,28 +181,28 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage);
-    assertEquals("correct result", 30.0, result, 1e-6);
+    assertEquals("correct result", -30.0, result, 1e-6);
   }
 
   @Test
   public void testEstimateCostVarRateMidUsage ()
   {
     Rate r = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15);
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15);
     tariffSpec.addRate(r);
     tariff = new Tariff(tariffSpec);
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
     ReflectionTestUtils.setField(r, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    HourlyCharge hc = new HourlyCharge(start, 0.18);
+    HourlyCharge hc = new HourlyCharge(start, -0.18);
     tariff.addHourlyCharge(hc, r.getId());
     tariff.getUsageCharge(10000.0, 0.0, true);
 
     // estimate with no hourly charges
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double expected = 300.0 * (0.75 * (.6 * .15 + .4 * .2) + 0.25 * .18);
+    double expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", expected, result, 1e-6);
     
@@ -200,7 +211,7 @@ public class TariffEvaluationHelperTest
     tariff.addHourlyCharge(hc, r.getId());
     teh.init(.6, .4, .5, 10000.0);
     double[] usage1 = {100.0, 200.0};
-    expected = 300.0 * (0.75 * (.6 * .15 + .4 * .2) + 0.25 * .18);
+    expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
     result = teh.estimateCost(tariff, usage1);
     assertEquals("correct result", expected, result, 1e-6);
   }
@@ -209,10 +220,10 @@ public class TariffEvaluationHelperTest
   public void testEstimateCostTwoVarZeroUsage ()
   {
     Rate r1 = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15)
             .withDailyBegin(0).withDailyEnd(13);
     Rate r2 = new Rate().withFixed(false)
-            .withValue(.15).withMaxValue(.9).withExpectedMean(.2)
+            .withValue(-.15).withMaxValue(-.9).withExpectedMean(-.2)
             .withDailyBegin(14).withDailyEnd(23);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
@@ -224,8 +235,8 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double expected = 100.0 * (.6 * .15 + .4 * .2)
-                      + 200.0 * (.6 * .2 + .4 * .9);
+    double expected = 100.0 * (.6 * -.15 + .4 * -.2)
+                      + 200.0 * (.6 * -.2 + .4 * -.9);
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", expected, result, 1e-6);
   }
@@ -234,12 +245,12 @@ public class TariffEvaluationHelperTest
   public void testEstimateCostTwoVarZeroUsagePeriodic ()
   {
     Rate r1 = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15)
             .withDailyBegin(0).withDailyEnd(13);
     Rate r2 = new Rate().withFixed(false)
-            .withValue(.15).withMaxValue(.9).withExpectedMean(.2)
+            .withValue(-.15).withMaxValue(-.9).withExpectedMean(-.2)
             .withDailyBegin(14).withDailyEnd(23);
-    tariffSpec.withPeriodicPayment(0.24);
+    tariffSpec.withPeriodicPayment(-0.24);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariff = new Tariff(tariffSpec);
@@ -250,11 +261,11 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double expected = 100.0 * (.6 * .15 + .4 * .2)
-                      + 200.0 * (.6 * .2 + .4 * .9);
+    double expected = 100.0 * (.6 * -.15 + .4 * -.2)
+                      + 200.0 * (.6 * -.2 + .4 * -.9);
     assertEquals("correct result", expected,
                  teh.estimateCost(tariff, usage, false), 1e-6);
-    assertEquals("correct result", expected + 0.02,
+    assertEquals("correct result", expected - 0.02,
                  teh.estimateCost(tariff, usage), 1e-6);
   }
 
@@ -262,12 +273,12 @@ public class TariffEvaluationHelperTest
   public void testEstimateCostTwoVarZeroUsageArray ()
   {
     Rate r1 = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15)
             .withDailyBegin(0).withDailyEnd(13);
     Rate r2 = new Rate().withFixed(false)
-            .withValue(.15).withMaxValue(.9).withExpectedMean(.2)
+            .withValue(-.15).withMaxValue(-.9).withExpectedMean(-.2)
             .withDailyBegin(14).withDailyEnd(23);
-    tariffSpec.withPeriodicPayment(0.24);
+    tariffSpec.withPeriodicPayment(-0.24);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
     tariff = new Tariff(tariffSpec);
@@ -278,23 +289,23 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double[] expected = {100.0 * (.6 * .15 + .4 * .2),
-                         200.0 * (.6 * .2 + .4 * .9)};
+    double[] expected = {100.0 * (.6 * -.15 + .4 * -.2),
+                         200.0 * (.6 * -.2 + .4 * -.9)};
     double[] result = teh.estimateCostArray(tariff, usage, false);
     assertEquals("correct first", expected[0], result[0], 1e-6);
     assertEquals("correct result", expected[1], result[1], 1e-6);
     result = teh.estimateCostArray(tariff, usage);
-    assertEquals("correct first", expected[0] + 0.01, result[0], 1e-6);
-    assertEquals("correct result", expected[1] + 0.01, result[1], 1e-6);
+    assertEquals("correct first", expected[0] - 0.01, result[0], 1e-6);
+    assertEquals("correct result", expected[1] - 0.01, result[1], 1e-6);
   }
   
   @Test
   public void testEstimateCostMixedZeroUsage ()
   {
     Rate r1 = new Rate().withFixed(false)
-            .withValue(.1).withMaxValue(.2).withExpectedMean(.15)
+            .withValue(-.1).withMaxValue(-.2).withExpectedMean(-.15)
             .withDailyBegin(0).withDailyEnd(13);
-    Rate r2 = new Rate().withFixed(true).withValue(.18)
+    Rate r2 = new Rate().withFixed(true).withValue(-.18)
             .withDailyBegin(14).withDailyEnd(23);
     tariffSpec.addRate(r1);
     tariffSpec.addRate(r2);
@@ -306,8 +317,8 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double expected = 100.0 * (.6 * .15 + .4 * .2)
-                      + 200.0 * .18;
+    double expected = 100.0 * (.6 * -.15 + .4 * -.2)
+                      + 200.0 * -.18;
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", expected, result, 1e-6);
   }

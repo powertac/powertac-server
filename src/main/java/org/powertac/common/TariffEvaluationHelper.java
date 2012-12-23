@@ -105,6 +105,7 @@ public class TariffEvaluationHelper
   {
     alpha = 0.0;
     tariff = null;
+    normalizeWeights();
     if (null == timeService) {
       timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     }

@@ -23,7 +23,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * A {@code DistributionTransaction} instance represents the fee assessed
+ * Represents the fee assessed
  * by the Distribution Utility for transport of energy over its facilities
  * during the current timeslot. The kWh is the total energy delivered,
  * which is the sum of the positive net load of the broker's customers, and 

@@ -40,9 +40,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * A competition instance represents a single PowerTAC competition and
  * at the same time serves as the place for all competition properties that can be
  * adjusted during competition setup (i.e. during server runtime but before competition start).
- * This is an immutable value type, and most parameters are included in the
- * PluginConfig instances, rather than in individual fields. The single instance is
- * communicated to brokers at the beginning of a game scenario.
+ * This is an immutable value type.
  * @author Carsten Block, KIT; John Collins, U of Minnesota
  */
 @Domain
@@ -118,9 +116,6 @@ public class Competition //implements Serializable
   @XStreamImplicit(itemFieldName = "broker")
   private ArrayList<String> brokers;
   
-  //@XStreamImplicit(itemFieldName = "plugin-config")
-  //private ArrayList<PluginConfig> pluginConfigs;
-  
   @XStreamImplicit(itemFieldName = "customer")
   @XStreamConverter(FullCustomerConverter.class)
   private ArrayList<CustomerInfo> customers;
@@ -163,7 +158,6 @@ public class Competition //implements Serializable
     super();
     this.name = name;
     brokers = new ArrayList<String>();
-    //pluginConfigs = new ArrayList<PluginConfig>();
     customers = new ArrayList<CustomerInfo>();
     theCompetition = this;
   }

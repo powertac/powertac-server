@@ -186,18 +186,6 @@ public class CompetitionTests
     assertEquals("correct broker", "Jill", c1.getBrokers().get(0));
   }
 
-//  @Test
-//  public void testAddPlugin ()
-//  {
-//    Competition c1 = Competition.newInstance("c1");
-//    assertEquals("no configs", 0, c1.getPluginConfigs().size());
-//    PluginConfig pc1 = new PluginConfig("A", "B");
-//    Competition cx = c1.addPluginConfig(pc1);
-//    assertEquals("correct return", c1, cx);
-//    assertEquals("one config", 1, c1.getPluginConfigs().size());
-//    assertEquals("correct config", pc1, c1.getPluginConfigs().get(0));
-//  }
-
   @Test
   public void testAddCustomer ()
   {
