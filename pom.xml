@@ -4,7 +4,7 @@
   <artifactId>visualizer</artifactId>
   <name>PowerTAC Visualizer</name>
   <packaging>war</packaging>
-  <version>0.6.3-SNAPSHOT</version>
+  <version>0.6.3</version>
 
   <parent>
     <groupId>org.powertac</groupId>
