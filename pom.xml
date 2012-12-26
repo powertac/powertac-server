@@ -10,7 +10,7 @@
 
   <artifactId>household-customer</artifactId>
   <name>Power TAC household customer</name>
-  <version>0.6.3-SNAPSHOT</version>
+  <version>0.6.3</version>
   <description>Bottom-up model of a household energy customer</description>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
