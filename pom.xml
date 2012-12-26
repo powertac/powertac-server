@@ -206,6 +206,7 @@
 	<role>project lead</role>
 	<role>game design</role>
       </roles>
+      <timezone>+1</timezone>
     </developer>
   </developers>
 </project>
