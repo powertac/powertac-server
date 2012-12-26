@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>0.6.3-SNAPSHOT</version>
+    <version>0.6.3</version>
     <relativePath />
   </parent>
 
@@ -23,12 +23,12 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-main</artifactId>
-      <version>0.6.3-SNAPSHOT</version>
+      <version>0.6.3</version>
     </dependency>
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>webapp-dependencies</artifactId>
-      <version>0.6.3-SNAPSHOT</version>
+      <version>0.6.3</version>
       <type>pom</type>
     </dependency>
   </dependencies>
