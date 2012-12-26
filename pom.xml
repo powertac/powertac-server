@@ -10,7 +10,7 @@
 
   <artifactId>server-main</artifactId>
   <name>Power TAC server main</name>
-  <version>0.6.3-SNAPSHOT</version>
+  <version>0.6.3</version>
   <description>Top-level module of the Power TAC simulation server</description>
 
   <dependencies>
