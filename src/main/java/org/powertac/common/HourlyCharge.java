@@ -103,4 +103,9 @@ implements Comparable<HourlyCharge>
   public int compareTo (HourlyCharge obj) {
     return atTime.compareTo(obj.atTime);
   }
+  
+  // protected default constructor for reconstruction
+  protected HourlyCharge () {
+    super();
+  }
 }

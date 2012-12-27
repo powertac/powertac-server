@@ -58,4 +58,10 @@ implements ValidatableMessage
   {
     return true;
   }
+  
+  // protected constructor for simplified deserialization
+  protected TariffMessage()
+  {
+    super();
+  }
 }

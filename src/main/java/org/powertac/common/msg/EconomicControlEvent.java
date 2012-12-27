@@ -69,4 +69,10 @@ public class EconomicControlEvent extends ControlEvent
   {
     return curtailmentRatio;
   }
+  
+  // protected default constructor to simplify deserialization
+  protected EconomicControlEvent ()
+  {
+    super();
+  }
 }

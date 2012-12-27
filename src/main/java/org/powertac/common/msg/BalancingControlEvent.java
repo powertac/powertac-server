@@ -67,4 +67,10 @@ public class BalancingControlEvent extends ControlEvent
   {
     return payment;
   }
+  
+  // private constructor for simplified deserialization
+  protected BalancingControlEvent ()
+  {
+    super();
+  }
 }

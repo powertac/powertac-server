@@ -87,8 +87,11 @@ public class StateLogging
     Long id = findId(thing);
     if ("readResolve".equals(sig.getName())) {
       args = collectProperties(thing);
+      writeLog(thing.getClass().getName(), id, "-rr", args);
     }
-    writeLog(thing.getClass().getName(), id, "new", args);
+    else {
+      writeLog(thing.getClass().getName(), id, "new", args);
+    }
   }
   
   private Object[] collectProperties(Object thing) {

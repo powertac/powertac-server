@@ -86,4 +86,10 @@ public class BalancingOrder extends TariffUpdate
     }
     return true;
   }
+  
+  // protected default constructor to simplify deserialization
+  protected BalancingOrder ()
+  {
+    super();
+  }
 }

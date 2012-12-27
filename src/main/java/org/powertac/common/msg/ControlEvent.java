@@ -52,6 +52,12 @@ public abstract class ControlEvent extends TariffUpdate
     this.timeslotIndex = timeslotIndex;
   }
   
+  // protected constructor for simplified deserialization
+  protected ControlEvent ()
+  {
+    super();
+  }
+  
   public int getTimeslotIndex ()
   {
     return timeslotIndex;

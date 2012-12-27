@@ -67,7 +67,7 @@ public class Rate extends XStreamStateLoggable
   @XStreamAsAttribute
   private double tierThreshold = 0.0; // tier applicability
   @XStreamAsAttribute
-  private boolean isFixed = true; // if true, minValue is fixed rate
+  private boolean fixed = true; // if true, minValue is fixed rate
   @XStreamAsAttribute
   private double minValue = 0.0; // min and max rate values
   @XStreamAsAttribute
@@ -329,7 +329,7 @@ public class Rate extends XStreamStateLoggable
   public boolean addHourlyCharge (HourlyCharge newCharge, boolean publish)
   {
     boolean result = false;
-    if (isFixed) {
+    if (fixed) {
       // cannot change this rate
       log.error("Cannot change Rate " + this.toString());
     }
@@ -448,7 +448,7 @@ public class Rate extends XStreamStateLoggable
   
   public boolean isFixed ()
   {
-    return isFixed;
+    return fixed;
   }
 
   /**
@@ -457,7 +457,7 @@ public class Rate extends XStreamStateLoggable
   @StateChange
   public Rate withFixed (boolean fixed)
   {
-    isFixed = fixed;
+    this.fixed = fixed;
     return this;
   }
   
@@ -600,7 +600,7 @@ public class Rate extends XStreamStateLoggable
   public double getValue (AbstractInstant when,
                           TariffEvaluationHelper helper)
   {
-    if (isFixed)
+    if (fixed)
       return minValue;
     else if (null != helper) {
       return helper.getWeightedValue(this);
@@ -692,7 +692,7 @@ public class Rate extends XStreamStateLoggable
   public String toString ()
   {
     String result = "Rate." + IdGenerator.getString(id) + ":";
-    if (isFixed)
+    if (fixed)
       result += (" Fixed " + getMinValue());
     else
       result += " Variable";

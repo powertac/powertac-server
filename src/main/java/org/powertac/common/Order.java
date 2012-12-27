@@ -124,4 +124,10 @@ public class Order extends XStreamStateLoggable
             + " for " + mWh + " mwh at " + limitPrice
             + " in ts " + timeslot.getSerialNumber());
   }
+  
+  // protected default constructor to simplify deserialization
+  protected Order ()
+  {
+    super();
+  }
 }
