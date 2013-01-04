@@ -121,7 +121,7 @@ public class DefaultBrokerService
   
   // local state
   private TariffSpecification defaultConsumption;
-  private TariffSpecification defaultInterruptibleConsumption;
+  //private TariffSpecification defaultInterruptibleConsumption;
   private TariffSpecification defaultProduction;
   private HashMap<TariffSpecification, 
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
@@ -189,12 +189,12 @@ public class DefaultBrokerService
     customerSubscriptions.put(defaultConsumption,
                               new HashMap<CustomerInfo, CustomerRecord>());
 
-    defaultInterruptibleConsumption =
-            new TariffSpecification(face, PowerType.INTERRUPTIBLE_CONSUMPTION)
-                .addRate(new Rate().withValue(defaultConsumptionRate));
-    tariffMarketService.setDefaultTariff(defaultInterruptibleConsumption);
-    customerSubscriptions.put(defaultInterruptibleConsumption,
-                          new HashMap<CustomerInfo, CustomerRecord>());
+    //defaultInterruptibleConsumption =
+    //        new TariffSpecification(face, PowerType.INTERRUPTIBLE_CONSUMPTION)
+    //            .addRate(new Rate().withValue(defaultConsumptionRate));
+    //tariffMarketService.setDefaultTariff(defaultInterruptibleConsumption);
+    //customerSubscriptions.put(defaultInterruptibleConsumption,
+    //                      new HashMap<CustomerInfo, CustomerRecord>());
 
     defaultProduction = new TariffSpecification(face, PowerType.PRODUCTION)
         .addRate(new Rate().withValue(defaultProductionRate));

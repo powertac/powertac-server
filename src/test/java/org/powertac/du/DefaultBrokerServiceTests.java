@@ -234,7 +234,7 @@ public class DefaultBrokerServiceTests
     boolean foundProduction = false;
     boolean foundConsumption = false;
     
-    assertEquals("two default tariffs", 3, specs.size());
+    assertEquals("two default tariffs", 2, specs.size());
     for (TariffSpecification spec : specs) {
       if (spec.getPowerType() == PowerType.CONSUMPTION) {
         foundConsumption = true;
