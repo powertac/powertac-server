@@ -92,5 +92,7 @@
               autowire="byType" scope="request"/>
 	<bean id="userSessionBean" class="org.powertac.visualizer.user.UserSessionBean" scope="session"/>
 	<bean id="globalCounterBean" class="org.powertac.visualizer.push.GlobalCounterBean" scope="request"/>	
+	<bean id="tariffMarketBean" class="org.powertac.visualizer.user.TariffMarketBean" scope="request"/>
+	<bean id="weatherBean" class="org.powertac.visualizer.user.WeatherBean" scope="request"/>
 	</beans>
 	

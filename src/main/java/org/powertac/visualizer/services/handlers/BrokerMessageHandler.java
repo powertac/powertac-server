@@ -55,8 +55,7 @@ public class BrokerMessageHandler implements Initializable {
 		for (Class<?> clazz : Arrays.asList(Competition.class,
 				TariffSpecification.class, CashPosition.class,
 				TariffTransaction.class, DistributionTransaction.class,
-				BalancingTransaction.class, TariffExpire.class,
-				TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
+				BalancingTransaction.class)) {
 			router.registerMessageHandler(this, clazz);
 		}
 	}
@@ -84,7 +83,7 @@ public class BrokerMessageHandler implements Initializable {
 		BrokerModel brokerModel = brokerService
 				.findBrokerByName(tariffSpecification.getBroker().getUsername());
 		if (brokerModel != null) {
-			brokerModel.addTariffSpecification(tariffSpecification);
+			brokerModel.getTariffCategory().processTariffSpecification(tariffSpecification);
 		}
 
 	}
@@ -107,7 +106,7 @@ public class BrokerMessageHandler implements Initializable {
 		BrokerModel brokerModel = brokerService
 				.findBrokerByName(tariffTransaction.getBroker().getUsername());
 		if (brokerModel != null) {
-			brokerModel.addTariffTransaction(tariffTransaction);
+			brokerModel.getTariffCategory().processTariffTransaction(tariffTransaction);
 
 		}
 
@@ -131,44 +130,6 @@ public class BrokerMessageHandler implements Initializable {
 					balancingTransaction.getCharge(), balancingTransaction
 							.getPostedTime().getMillis());
 			broker.getBalancingCategory().addBalancingData(data);
-		}
-	}
-
-	public void handleMessage(TariffExpire msg) {
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			broker.getTariffInfoMaps()
-					.get(msg.getTariffId())
-					.addTariffMessage(
-							msg.getClass().getSimpleName() + ":"
-									+ msg.getNewExpiration());
-		}
-	}
-
-	public void handleMessage(TariffRevoke msg) {
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			broker.getTariffInfoMaps().get(msg.getTariffId())
-					.addTariffMessage(msg.getClass().getSimpleName());
-		}
-	}
-
-	public void handleMessage(TariffStatus msg) {
-		// BrokerModel broker =
-		// brokerService.findBrokerByName(msg.getBroker().getUsername());
-		// if (broker != null) {
-		// broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getMessage());
-		// }
-	}
-
-	public void handleMessage(TariffUpdate msg) {
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			broker.getTariffInfoMaps().get(msg.getTariffId())
-					.addTariffMessage(msg.getClass().getSimpleName());
 		}
 	}
 }

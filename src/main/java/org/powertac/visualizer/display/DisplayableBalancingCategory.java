@@ -34,6 +34,7 @@ public class DisplayableBalancingCategory extends AbstractDisplayablePerformance
 		
 		Gson gson = new Gson();
 		
+		
 		this.totalKwh = balancingCategory.getAggregateBalancingData().getTotalKwh();
 		this.totalMoney = balancingCategory.getAggregateBalancingData().getTotalMoney();
 		lastKwh = balancingCategory.getLastBalancingData().getkWhImbalance();

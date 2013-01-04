@@ -24,7 +24,7 @@ public class WeatherMessageHandler implements Initializable {
 
 	
 	public void handleMessage(WeatherReport weatherReport) {
-		service.setCurrentReport(weatherReport);
+		service.addReport(weatherReport); 
 	}
 
 	public void handleMessage(WeatherForecast weatherForecast) {

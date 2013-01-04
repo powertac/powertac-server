@@ -11,27 +11,12 @@
 	<ui:define name="headInclude">
 	
 	
-		<ui:repeat var="customer" value="#{customersBean.customers}">
-			<script type="text/javascript">
-	var bootstrapLineChartData#{customer.customerInfo.id}=null;
-	
-	var totalkWhLineChartData#{customer.customerInfo.id}=null;
-	var productionKWhLineChartData#{customer.customerInfo.id}=null;
-	var consumptionKWhLineChartData#{customer.customerInfo.id}=null;
-	
-	
-
-	
-	
-	</script>
-		</ui:repeat>
-	
-		<h:outputScript library="js" name="customers.js" />
+		
 	</ui:define>
 
 	<ui:define name="content">
-
-		<ui:include src="/WEB-INF/tags/customers.xhtml" />
+EVO GA:
+		#{tariffMarketBean.customerCountSeries}
 		
 			
 

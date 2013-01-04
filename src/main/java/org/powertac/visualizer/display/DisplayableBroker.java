@@ -22,7 +22,7 @@ public class DisplayableBroker implements Serializable {
 		this.name = model.getName();
 		this.appearance = model.getAppearance();
 		this.wholesale = new DisplayableWholesaleCategory(model.getWholesaleCategory());
-		distributionData = new DisplayableAggregateDistributionData(model.getAggregateDistributionData().getkWh(), model.getAggregateDistributionData().getMoney());
+		distributionData = new DisplayableAggregateDistributionData(model.getAggregateDistributionData().getNetKWh(), model.getAggregateDistributionData().getProfit());
 	}
 	
 	public String getName() {

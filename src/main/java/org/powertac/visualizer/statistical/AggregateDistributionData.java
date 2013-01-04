@@ -1,6 +1,5 @@
 package org.powertac.visualizer.statistical;
 
-import org.powertac.visualizer.domain.broker.BrokerModel;
 
 /**
  * Holds the aggregate data for transport of energy for one broker.
@@ -9,20 +8,19 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
  * 
  */
 public class AggregateDistributionData {
-	private double kWh;
-	private double money;
+	private double netKWh;
+	private double profit;
 
 	public void addValues(double energy, double charge) {
-		kWh += energy;
-		money += charge; 
+		netKWh += energy;
+		profit += charge; 
 	}
 
-	public double getkWh() {
-		return kWh;
+	public double getNetKWh() {
+		return netKWh;
 	}
-
-	public double getMoney() {
-		return money;
+	public double getProfit() {
+		return profit;
 	}
 
 }

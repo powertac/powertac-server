@@ -19,6 +19,8 @@ public class WholesaleCategory extends AbstractPerformanceCategory implements Cl
 
 	private int noOrders;
 	private int noMarketTransactions;
+	private double profit;
+	private double netMWh;
 
 	private ConcurrentHashMap<Long, SingleTimeslotWholesaleData> singleTimeslotWholesaleMap = new ConcurrentHashMap<Long, SingleTimeslotWholesaleData>(
 			2000, 0.75f, 1);
@@ -61,6 +63,8 @@ public class WholesaleCategory extends AbstractPerformanceCategory implements Cl
 	public void processMarketTransaction(MarketTransaction tx, long millisFrom){
 		noMarketTransactions++;
 		singleTimeslotWholesaleMap.get(tx.getTimeslot().getStartInstant().getMillis()).processMarketTransaction(tx, millisFrom);
+		profit+=tx.getPrice();
+		netMWh+=tx.getMWh();
 	}
 
 	public int getNoOrders() {
@@ -71,6 +75,12 @@ public class WholesaleCategory extends AbstractPerformanceCategory implements Cl
 		return noMarketTransactions;
 	}
 	
+	public double getNetMWh() {
+		return netMWh;
+	}
+	public double getProfit() {
+		return profit;
+	}
 	
 
 }

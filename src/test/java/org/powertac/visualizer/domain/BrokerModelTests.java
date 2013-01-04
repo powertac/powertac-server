@@ -36,42 +36,42 @@ public class BrokerModelTests {
 
 	}
 
-	@Test
-	public void testJSON() throws JSONException {
-		double balance = 10.5;
-		int currentTimeslotIndex = 2;
-
-		assertEquals("Empty JSON array", "[]", brokerModel.getJson().getCashBalanceJson().toString());
-
-		JSONArray entry = new JSONArray();
-		entry.put(currentTimeslotIndex).put(balance);
-		assertEquals("[2,10.5]", entry.toString());
-
-		brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex, entry);
-		brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex, entry);
-
-		assertEquals("One array", "[null,null,[2,10.5]]", brokerModel.getJson().getCashBalanceJson().toString());
-
-		JSONArray arrayOfArrays = new JSONArray();
-
-		JSONArray firstArray = new JSONArray();
-		firstArray.put(0, 1);
-		firstArray.put(1, 2);
-
-		JSONArray secondArray = new JSONArray();
-		secondArray.put(0, 3);
-		secondArray.put(1, 4);
-
-		arrayOfArrays.put(0, firstArray);
-		arrayOfArrays.put(1, secondArray);
-
-		assertEquals("Arrays wtihin an array", "[[1,2],[3,4]]", arrayOfArrays.toString());
-
-		ArrayList<Double> cashBalances = new ArrayList<Double>(24);
-		cashBalances.add((double) 46);
-
-		assertEquals("Size of an Array<Double> with one element:", 1, cashBalances.size());
-	}
+//	@Test
+//	public void testJSON() throws JSONException {
+//		double balance = 10.5;
+//		int currentTimeslotIndex = 2;
+//
+//		assertEquals("Empty JSON array", "[]", brokerModel.getJson().getCashBalanceJson().toString());
+//
+//		JSONArray entry = new JSONArray();
+//		entry.put(currentTimeslotIndex).put(balance);
+//		assertEquals("[2,10.5]", entry.toString());
+//
+//		brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex, entry);
+//		brokerModel.getJson().getCashBalanceJson().put(currentTimeslotIndex, entry);
+//
+//		assertEquals("One array", "[null,null,[2,10.5]]", brokerModel.getJson().getCashBalanceJson().toString());
+//
+//		JSONArray arrayOfArrays = new JSONArray();
+//
+//		JSONArray firstArray = new JSONArray();
+//		firstArray.put(0, 1);
+//		firstArray.put(1, 2);
+//
+//		JSONArray secondArray = new JSONArray();
+//		secondArray.put(0, 3);
+//		secondArray.put(1, 4);
+//
+//		arrayOfArrays.put(0, firstArray);
+//		arrayOfArrays.put(1, secondArray);
+//
+//		assertEquals("Arrays wtihin an array", "[[1,2],[3,4]]", arrayOfArrays.toString());
+//
+//		ArrayList<Double> cashBalances = new ArrayList<Double>(24);
+//		cashBalances.add((double) 46);
+//
+//		assertEquals("Size of an Array<Double> with one element:", 1, cashBalances.size());
+//	}
 
 
 }
