@@ -6,7 +6,7 @@
 	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/standard.xhtml">
 
-	<ui:define name="title"></ui:define>
+	<ui:define name="title"/>
 
 	<ui:define name="notes">
 		<p>
@@ -18,6 +18,9 @@
 	</ui:define>
 
 	<ui:define name="content">
+    <h:panelGroup rendered="#{visualizerBean.tournamentMode}">
+      <meta http-equiv="Refresh" content="0; URL=gameoverview"/>
+    </h:panelGroup>
 
 		<p:tabView activeIndex="${param.tab}">
 

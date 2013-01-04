@@ -38,5 +38,10 @@
     <property name="tournamentMode" value="true"/>
   </bean>
 
+  <bean id="visualizerBean"
+        class="org.powertac.visualizer.beans.VisualizerBean">
+    <property name="tournamentMode" value="true"/>
+  </bean>
+
   <import resource="base.xml"/>
 </beans>

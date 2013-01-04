@@ -10,6 +10,7 @@ import org.powertac.visualizer.interfaces.Recyclable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.faces.bean.ManagedBean;
 import java.io.Serializable;
 import java.util.List;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * 
  * @author Jurica Babic
  */
+@ManagedBean
 @Service
 public class VisualizerBean implements Serializable {
 
@@ -46,6 +48,8 @@ public class VisualizerBean implements Serializable {
 
 	@Autowired
 	private AppearanceListBean appearanceList;
+
+  private Boolean tournamentMode = false;
 
 	public VisualizerBean() {
 		init();
@@ -229,4 +233,10 @@ public class VisualizerBean implements Serializable {
 		this.currentMillis = currentMillis;
 	}
 
+  public Boolean getTournamentMode() {
+    return tournamentMode;
+  }
+  public void setTournamentMode(Boolean tournamentMode) {
+    this.tournamentMode = tournamentMode;
+  }
 }

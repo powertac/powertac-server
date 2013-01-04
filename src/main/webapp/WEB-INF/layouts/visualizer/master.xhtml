@@ -147,9 +147,9 @@
 						<th>Timeslot:</th>
 						<th>Name:</th>
 						<th>Description:</th>
-											
-						
-						
+
+
+
 					</tr>
 					<tr>
 					<th><h:outputText value="#{visualizerBean.timeslotUpdate.postedTime.millis}" >
@@ -158,20 +158,24 @@
 						<td>#{visualizerBean.currentTimeslotSerialNumber}</td>
 						<td>#{visualizerBean.competition.name}</td>
 						<td>#{visualizerBean.competition.description}</td>
-						<td><p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol"/>	</td>
+						<td>
+              <h:panelGroup rendered="#{!visualizerBean.tournamentMode}">
+                <p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol" />
+              </h:panelGroup>
+            </td>
 
 					</tr>
 				</table>
 			
-						
-						
+
+
 
 			</h:form>
 			<div id="cloudCoverGauge" style="float:right"/>
 			<div id="windSpeedGauge" style="float:right"/>
 			<div id="temperatureGauge" style="float:right"/>
-			
-			
+
+
 		</p:layoutUnit>
 
 		<p:layoutUnit position="center" resizable="true">
