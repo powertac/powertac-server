@@ -28,3 +28,6 @@
 [submodule "officecomplex-customer"]
 	path = officecomplex-customer
 	url = git://github.com/powertac/officecomplex-customer.git
+[submodule "visualizer"]
+	path = visualizer
+	url = git://github.com/powertac/visualizer.git
