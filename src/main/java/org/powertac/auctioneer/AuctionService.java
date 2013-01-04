@@ -197,6 +197,10 @@ public class AuctionService
           // ignore invalid orders
           orders.add(new OrderWrapper(order));
         }
+        else {
+          log.info("Ignoring invalid order " + order.getId() +
+                   " from " + order.getBroker().getUsername());
+        }
       }
       incoming.clear();
     }
@@ -429,7 +433,6 @@ public class AuctionService
     // valid if qty is non-zero
     boolean isValid ()
     {
-      //return true;
       return (order.getMWh() != 0.0);
     }
     
