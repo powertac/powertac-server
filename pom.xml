@@ -9,20 +9,22 @@
    -->
 
   <!--
-     Update - this does not seem to work, because maven does not do
-     the right thing with the git submodules.
+     Note that this does not seem to work for release processing,
+     because maven does not do the right thing with the git submodules.
+     However, it does work for local installation and snapshot
+     deployment.
    -->
 
   <!-- pull in the project master pom -->
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>0.6.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
   <artifactId>powertac-server</artifactId>
-  <version>0.6.0-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
 
@@ -38,6 +40,7 @@
     <module>household-customer</module>
     <module>officecomplex-customer</module>
     <module>server-main</module>
+    <module>visualizer</module>
   </modules>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
