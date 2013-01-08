@@ -49,12 +49,14 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 		int deltaCustomers = Helper.getCustomerCount(tx);
 
 		tariffDynamicData.putIfAbsent(tx.getPostedTime().getMillis(),
-				new TariffDynamicData(profit, netKWh, customerCount))
-				.addAmounts(tx.getCharge(), tx.getKWh(), deltaCustomers);
+				new TariffDynamicData(profit, netKWh, customerCount));
+		tariffDynamicData.get(tx.getPostedTime().getMillis()).addAmounts(tx.getCharge(),
+				tx.getKWh(), deltaCustomers);
 
 		customerTariffData.putIfAbsent(tx.getCustomerInfo(),
-				new CustomerTariffData(broker, tx.getCustomerInfo()))
-				.addAmounts(tx.getCharge(), tx.getKWh());
+				new CustomerTariffData(broker, tx.getCustomerInfo()));
+		customerTariffData.get(tx.getCustomerInfo()).addAmounts(tx.getCharge(),
+				tx.getKWh());
 
 		TariffData tData = tariffData.get(tx.getTariffSpec());
 		tData.processTariffTx(tx);

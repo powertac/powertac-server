@@ -9,18 +9,208 @@
 	<!-- <ui:define name="title">Customers</ui:define> -->
 
 	<ui:define name="headInclude">
-	
-	
-		
+
+		<script type="text/javascript">
+			$(document).ready(
+					function() {
+						var tariffDynData;
+						var tariffDynDataOneTimeslot;
+
+						Highcharts.setOptions({
+							global : {
+								useUTC : true
+							}
+						});
+						tariffDynData = new Highcharts.StockChart({
+							chart : {
+								renderTo : "tariffDynData",
+								alignTicks : false
+
+							},
+							plotLines : [ {
+								value : 0,
+								width : 1,
+								color : '#808080'
+							} ],
+							yAxis : [ {
+								title : {
+									text : 'Profit (euros)'
+								},
+								height : 140,
+								lineWidth : 2
+							}, {
+								title : {
+									text : 'Net energy (kWh)'
+								},
+								top : 230,
+								height : 150,
+								offset : 0,
+								lineWidth : 2,
+							// opposite: true
+							}, {
+								title : {
+									text : 'Customer count'
+								},
+								top : 390,
+								height : 150,
+								offset : 0,
+								lineWidth : 2,
+							//   opposite: true
+							} ],
+
+							rangeSelector : {
+								buttons : [ {
+									count : 1,
+									type : 'hour',
+									text : '1H'
+								}, {
+									count : 1,
+									type : 'day',
+									text : '1D'
+								}, {
+									count : 1,
+									type : 'week',
+									text : '1W'
+								}, {
+									count : 2,
+									type : 'week',
+									text : '2W'
+								}, {
+									count : 1,
+									type : 'month',
+									text : '1M'
+								}, {
+									type : 'all',
+									text : 'All'
+								} ],
+								inputEnabled : true,
+								selected : 5
+							},
+
+							title : {
+								text : 'Tariff Market'
+							},
+
+							exporting : {
+								enabled : true
+							},
+							tooltip : {
+								yDecimals : 2
+							},
+							legend: {
+				                align: "right",
+				                layout: "vertical",
+				                enabled: true,
+				                verticalAlign: "middle"
+				                /*labelFormatter: function() {
+				                    return this.name + ' (T)';
+				                }*/
+
+				            },
+
+							series : #{tariffMarketBean.tariffDynData}
+
+						});
+						
+						tariffDynDataOneTimeslot = new Highcharts.StockChart({
+							chart : {
+								renderTo : "tariffDynDataOneTimeslot",
+								alignTicks : false
+
+							},
+							plotLines : [ {
+								value : 0,
+								width : 1,
+								color : '#808080'
+							} ],
+							yAxis : [ {
+								title : {
+									text : 'Profit (euros)'
+								},
+								height : 140,
+								lineWidth : 2
+							}, {
+								title : {
+									text : 'Net energy (kWh)'
+								},
+								top : 230,
+								height : 150,
+								offset : 0,
+								lineWidth : 2,
+							// opposite: true
+							}, {
+								title : {
+									text : 'Customer count'
+								},
+								top : 390,
+								height : 150,
+								offset : 0,
+								lineWidth : 2,
+							//   opposite: true
+							} ],
+
+							rangeSelector : {
+								buttons : [ {
+									count : 1,
+									type : 'hour',
+									text : '1H'
+								}, {
+									count : 1,
+									type : 'day',
+									text : '1D'
+								}, {
+									count : 1,
+									type : 'week',
+									text : '1W'
+								}, {
+									count : 2,
+									type : 'week',
+									text : '2W'
+								}, {
+									count : 1,
+									type : 'month',
+									text : '1M'
+								}, {
+									type : 'all',
+									text : 'All'
+								} ],
+								inputEnabled : true,
+								selected : 5
+							},
+
+							title : {
+								text : 'Tariff Market - one timeslot data',
+							},
+
+							exporting : {
+								enabled : true
+							},
+							tooltip : {
+								yDecimals : 2
+							},
+							legend: {
+				                align: "right",
+				                layout: "vertical",
+				                enabled: true,
+				                verticalAlign: "middle"
+				                /*labelFormatter: function() {
+				                    return this.name + ' (T)';
+				                }*/
+
+				            },
+
+							series : #{tariffMarketBean.tariffDynDataOneTimeslot}
+
+						});
+
+					});
+		</script>
+
 	</ui:define>
 
 	<ui:define name="content">
-EVO GA:
-		#{tariffMarketBean.customerCountSeries}
-		
-			
-
-
+		<div id="tariffDynData" style="height: 550px; width: 50%;float:left;" />
+		<div id="tariffDynDataOneTimeslot" style="height: 550px;width:50%;float:left;"/>
 	</ui:define>
 
 </ui:composition>

@@ -92,9 +92,6 @@ public class WholesaleService implements Serializable, Recyclable,
 
 			if (singleTimeslot != null) {
 				singleTimeslot.setClosed(true);
-				System.out.println("super, zatvorio sam:"
-						+ singleTimeslot.getTimeslotMillis() + " sadrzaj:"
-						+ singleTimeslot.getOrders().toString());
 			}
 		}
 
