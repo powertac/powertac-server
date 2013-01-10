@@ -40,11 +40,15 @@ public interface CompetitionSetup
    * if the name contains a ":" it will be treated as a URL.</li>
    * <li>logfileSuffix is an (optional) filename suffix for the log output
    * files; default value is "boot".</li>
+   * <li>weatherData is the (optional) name of a file containing weather data
+   * for the simulation; Either XMl or a state file
+   * A state file will be treated as a URL if it contains a ":" character.</li>
    * </ul> 
    */
   public String bootSession (String bootFilename,
                              String configFilename,
-                             String logfileSuffix);
+                             String logfileSuffix,
+                             String weatherData);
   
   /**
    * Starts a simulation session with parameters, in a new thread.
@@ -66,6 +70,12 @@ public interface CompetitionSetup
    * is of the form string1/string2, then string1 is the broker's username,
    * and string2 is the name of that broker's JMS input queue. If this argument
    * is null or empty, the simulation will start without brokers.</li>
+   * <li>seedData is the (optional) name of a file containing seed data
+   * for the simulation;
+   * it will be treated as a URL if it contains a ":" character.</li>
+   * <li>weatherData is the (optional) name of a file containing weather data
+   * for the simulation; Either XMl or a state file
+   * A state file will be treated as a URL if it contains a ":" character.</li>
    * <li>inputQueueName is the name of the server's JMS input queue. If not
    * given, then the default value of 'serverInput' will be used.
    * </ul> 
@@ -74,5 +84,8 @@ public interface CompetitionSetup
                             String config,
                             String jmsUrl,
                             String logfileSuffix,
-                            List<String> brokerUsernames);
+                            List<String> brokerUsernames,
+                            String seedData,
+                            String weatherData,
+                            String inputQueueName);
 }
