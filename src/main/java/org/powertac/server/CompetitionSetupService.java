@@ -226,15 +226,8 @@ public class CompetitionSetupService
   }
   
   // ---------- top-level boot and sim session control ----------
-
   @Override
   public String bootSession (String bootFilename, String config,
-                             String logSuffix)
-  {
-    return bootSession(bootFilename, config, logSuffix, null);
-  }
-
-  private String bootSession (String bootFilename, String config,
                              String logSuffix, String weatherData)
   {
     String error = null;
@@ -248,7 +241,7 @@ public class CompetitionSetupService
       setConfigMaybe(config);
 
       // Use weather file instead of webservice, this sets baseTime also
-      useWeatherFileMaybe(weatherData, true);
+      useWeatherDataMaybe(weatherData, true);
 
       // set the logfile suffix
       setLogSuffix(logSuffix, "boot");
@@ -284,14 +277,6 @@ public class CompetitionSetupService
 
   @Override
   public String simSession (String bootData, String config, String jmsUrl,
-                            String logfileSuffix,
-                            List<String> brokerUsernames)
-  {
-    return simSession (bootData, config, jmsUrl,
-                       logfileSuffix, brokerUsernames, null, null, null);
-  }
-  
-  private String simSession (String bootData, String config, String jmsUrl,
                      String logfileSuffix,
                      List<String> brokerUsernames,
                      String seedData,
@@ -312,7 +297,7 @@ public class CompetitionSetupService
       setConfigMaybe(config);
 
       // Use weather file instead of webservice
-      useWeatherFileMaybe(weatherData, false);
+      useWeatherDataMaybe(weatherData, false);
       
       // load random seeds if requested
       seedSource = seedData;
@@ -387,7 +372,7 @@ public class CompetitionSetupService
    * If weather data-file is used (instead of the URL-based weather server)
    * extract the first data, and set that as simulationBaseTime.
    */
-  private void useWeatherFileMaybe (String weatherData, boolean bootstrapMode)
+  private void useWeatherDataMaybe(String weatherData, boolean bootstrapMode)
   {
     if (weatherData == null || weatherData.isEmpty()) {
       return;

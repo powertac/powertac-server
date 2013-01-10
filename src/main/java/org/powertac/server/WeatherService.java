@@ -195,7 +195,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       processData(data);
     }
     catch (Throwable e) {
-      log.error("Unable to get weather from weather " + currentMethod);
+      log.error("Unable to get weather from weather : " + currentMethod);
       log.error(e.getMessage());
     }
   }
@@ -259,6 +259,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       if (data == null) {
         return data;
       }
+
       if (data.weatherReports.size() != weatherReqInterval ||
           data.weatherForecasts.size() != weatherReqInterval * forecastHorizon){
         return null;
