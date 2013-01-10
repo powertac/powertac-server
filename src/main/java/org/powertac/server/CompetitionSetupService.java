@@ -15,31 +15,6 @@
  */
 package org.powertac.server;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -57,9 +32,27 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.*;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Manages command-line and file processing for pre-game simulation setup. 
@@ -126,26 +119,6 @@ public class CompetitionSetupService
       processCli(args);
       waitForSession();
     }
-//    else if (args.length == 1) {
-//      // old-style script file
-//      processScript(args);
-//      waitForSession();
-//    }
-    else { // args.length == 0
-      // running from web interface
-      System.out.println("Server BootStrap");
-      //participantManagementService.initialize();
-      preGame();
-
-      // idle while the web interface controls the simulator
-      while(true) {
-        try {
-          Thread.sleep(5000);
-        } catch (InterruptedException e) {
-          // ignore this - it's how we exit
-        }
-      }
-    }
   }
   
   private void waitForSession ()
@@ -180,6 +153,8 @@ public class CompetitionSetupService
         parser.accepts("boot-data").withRequiredArg().ofType(String.class);
     OptionSpec<String> seedData =
         parser.accepts("random-seeds").withRequiredArg().ofType(String.class);
+    OptionSpec<String> weatherData =
+        parser.accepts("weather-data").withRequiredArg().ofType(String.class);
     OptionSpec<String> jmsUrl =
         parser.accepts("jms-url").withRequiredArg().ofType(String.class);
     OptionSpec<String> inputQueue =
@@ -216,7 +191,8 @@ public class CompetitionSetupService
         // bootstrap session
         bootSession(options.valueOf(bootOutput),
                     serverConfig,
-                    logSuffix);
+                    logSuffix,
+                    options.valueOf(weatherData));
       }
       else if (options.has("sim")) {
         // sim session
@@ -225,8 +201,9 @@ public class CompetitionSetupService
                    options.valueOf(jmsUrl),
                    logSuffix,
                    options.valuesOf(brokerList),
-                   options.valueOf(inputQueue),
-                   options.valueOf(seedData));
+                   options.valueOf(seedData),
+                   options.valueOf(weatherData),
+                   options.valueOf(inputQueue));
       }
       else {
         // Must be either boot or sim
@@ -240,25 +217,12 @@ public class CompetitionSetupService
   }
 
   // sets up the logfile name suffix
-  private void setLogSuffix (String logSuffix,
-                             String defaultSuffix)
+  private void setLogSuffix (String logSuffix, String defaultSuffix)
                                  throws IOException
   {
-//    if (logSuffix == null && controllerURL != null) {
-//      URL suffixUrl = new URL(controllerURL, "log-suffix");
-//      log.info("retrieving logSuffix from " + suffixUrl.toExternalForm());
-//      InputStream stream = suffixUrl.openStream();
-//      byte[] buffer = new byte[64];
-//      int len = stream.read(buffer);
-//      if (len > 0) {
-//        logSuffix = new String(buffer, 0, len);
-//        log.info("log suffix " + logSuffix + " retrieved");
-//      }
-//    }
     if (logSuffix == null)
       logSuffix = defaultSuffix;
     serverProps.setProperty("server.logfileSuffix", logSuffix);
-    //String realSuffix = serverProps.getProperty("server.logfileSuffix");
   }
   
   // ---------- top-level boot and sim session control ----------
@@ -267,8 +231,13 @@ public class CompetitionSetupService
   public String bootSession (String bootFilename, String config,
                              String logSuffix)
   {
-    String error = null;
+    return bootSession(bootFilename, config, logSuffix, null);
+  }
 
+  private String bootSession (String bootFilename, String config,
+                             String logSuffix, String weatherData)
+  {
+    String error = null;
     try {
       log.info("bootSession: bootFilename=" + bootFilename
           + ", config=" + config
@@ -278,6 +247,10 @@ public class CompetitionSetupService
       serverProps.recycle();
       setConfigMaybe(config);
 
+      // Use weather file instead of webservice, this sets baseTime also
+      useWeatherFileMaybe(weatherData, true);
+
+      // set the logfile suffix
       setLogSuffix(logSuffix, "boot");
 
       File bootFile = new File(bootFilename);
@@ -315,26 +288,31 @@ public class CompetitionSetupService
                             List<String> brokerUsernames)
   {
     return simSession (bootData, config, jmsUrl,
-                       logfileSuffix, brokerUsernames, null, null);
+                       logfileSuffix, brokerUsernames, null, null, null);
   }
   
-  String simSession (String bootData, String config, String jmsUrl,
-                            String logfileSuffix, 
-                            List<String> brokerUsernames,
-                            String inputQueueName,
-                            String seedData)
+  private String simSession (String bootData, String config, String jmsUrl,
+                     String logfileSuffix,
+                     List<String> brokerUsernames,
+                     String seedData,
+                     String weatherData,
+                     String inputQueueName)
   {
     String error = null;
     try {
       log.info("simSession: bootData=" + bootData
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
-               + ", inputQueue=" + inputQueueName
-               + ", seedData=" + seedData);
+               + ", seedData=" + seedData
+               + ", weatherData=" + weatherData
+               + ", inputQueue=" + inputQueueName);
       // process serverConfig now, because other options may override
       // parts of it
       serverProps.recycle();
       setConfigMaybe(config);
+
+      // Use weather file instead of webservice
+      useWeatherFileMaybe(weatherData, false);
       
       // load random seeds if requested
       seedSource = seedData;
@@ -405,6 +383,94 @@ public class CompetitionSetupService
     }
   }
 
+  /*
+   * If weather data-file is used (instead of the URL-based weather server)
+   * extract the first data, and set that as simulationBaseTime.
+   */
+  private void useWeatherFileMaybe (String weatherData, boolean bootstrapMode)
+  {
+    if (weatherData == null || weatherData.isEmpty()) {
+      return;
+    }
+
+    log.info("Getting BaseTime from " + weatherData);
+    String baseTime = null;
+    if (weatherData.endsWith(".xml")) {
+      baseTime = getBaseTimeXML(weatherData);
+    } else if (weatherData.endsWith(".state")) {
+      baseTime = getBaseTimeState(weatherData);
+    } else {
+      log.warn("Only XML and state files are allowed for weather data");
+    }
+
+    if (baseTime != null) {
+      if (bootstrapMode) {
+        serverProps.setProperty("common.competition.simulationBaseTime",
+            baseTime);
+      }
+      serverProps.setProperty("server.weatherService.weatherData",
+          weatherData);
+    }
+  }
+
+  private String getBaseTimeXML(String weatherData)
+  {
+    try {
+      DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder builder = domFactory.newDocumentBuilder();
+      Document doc = builder.parse(weatherData);
+      XPathFactory factory = XPathFactory.newInstance();
+      XPath xPath = factory.newXPath();
+      XPathExpression expr =
+          xPath.compile("/data/weatherReports/weatherReport/@date");
+
+      String earliest = "ZZZZ-ZZ-ZZ";
+      NodeList nodes = (NodeList) expr.evaluate(doc, XPathConstants.NODESET);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        String date = nodes.item(i).toString().split(" ")[0].split("\"")[1];
+        earliest = date.compareTo(earliest) < 0 ? date : earliest;
+      }
+      return earliest;
+    } catch (Exception e) {
+      log.error("Error extracting BaseTime from : " + weatherData);
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  private String getBaseTimeState(String weatherData)
+  {
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(
+          new InputStreamReader(
+              makeUrl(weatherData).openStream()));
+      String line;
+      while ((line = br.readLine()) != null) {
+        if (line.contains("withSimulationBaseTime")) {
+          String millis = line.substring(line.lastIndexOf("::") + 2);
+          Date date = new Date(Long.parseLong(millis));
+          return new SimpleDateFormat("yyyy-MM-dd").format(date.getTime());
+        }
+      }
+    } catch (Exception e) {
+      log.error("Error extracting BaseTime from : " + weatherData);
+      e.printStackTrace();
+    } finally {
+      try {
+        if (br != null) {
+          br.close();
+        }
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
+    }
+
+    log.error("Error extracting BaseTime from : " + weatherData);
+    log.error("No 'withSimulationBaseTime' found!");
+    return null;
+  }
+
   private URL makeUrl (String name) throws MalformedURLException
   {
     String urlName = name;
@@ -413,7 +479,7 @@ public class CompetitionSetupService
     }
     return new URL(urlName);
   }
-  
+
   // Runs a bootstrap session
   private void startBootSession (File bootstrapFile) throws IOException
   {
@@ -460,8 +526,6 @@ public class CompetitionSetupService
   @Override
   public void preGame ()
   {    
-    
-    //competitionId = competition.getId();
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
     logService.startLog(suffix);
     log.info("preGame() - start");
@@ -480,8 +544,7 @@ public class CompetitionSetupService
     for (DomainRepo repo : repos) {
       repo.recycle();
     }
-    // Init random seeds after clearing repos and before initializing
-    // services
+    // Init random seeds after clearing repos and before initializing services
     loadSeedsMaybe();
     // Now init services
     List<InitializationService> initializers =
@@ -496,12 +559,6 @@ public class CompetitionSetupService
   private void configureCompetition (Competition competition)
   {
     serverProps.configureMe(competition);
-    // bootstrap timeslot timing is a local parameter
-//    int bootstrapTimeslotSeconds =
-//        serverProps.getIntegerProperty("server.bootstrapTimeslotSeconds",
-//                                       (int)(cc.getBootstrapTimeslotMillis()
-//                                             / TimeService.SECOND));
-//    cc.setBootstrapTimeslotMillis(bootstrapTimeslotSeconds * TimeService.SECOND);
   }
 
   /**
@@ -620,8 +677,6 @@ public class CompetitionSetupService
     catch (TransformerException te) {
       log.error("nodeToString Transformer Exception " + te.toString());
     }
-    String result = sw.toString();
-    //log.info("xml node: " + result);
-    return result;
+    return sw.toString();
   }
 }
