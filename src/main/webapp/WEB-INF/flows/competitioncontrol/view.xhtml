@@ -59,6 +59,14 @@
 						title="Optional. Gives the root name for the log files, and defaults to 'boot' (for bootstrap mode) or 'sim' (for sim mode) ; two log files are produced: powertac-suffix.trace and
   powertac-suffix.state." />
 
+          <h:outputText value="Seed file:" />
+          <p:inputText value="#{gameParametersBean.seedName}"
+                       title="Optional. If specified, it will load the random-seeds. The file must be inside the Visualizer's main directory. Other option is to use the URL." />
+
+          <h:outputText value="Weather file:" />
+          <p:inputText value="#{gameParametersBean.weatherName}"
+                       title="Optional. If specified, it will load the weather from file. The file must be inside the Visualizer's main directory. Either XML or a state-file. State file can also be an URL." />
+
 				</h:panelGrid>
 			</p:panel>
 

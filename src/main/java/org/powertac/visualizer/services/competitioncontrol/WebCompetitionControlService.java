@@ -62,18 +62,15 @@ public class WebCompetitionControlService
     for (FakeBroker type : gameParameters.getBrokers()) {
       names.add(type.getName());
     }
-    // web components treat empty forms as "", not null.
-    String boot = gameParameters.getBootstrapData().trim()
-        .equals("") ? null : gameParameters.getBootstrapData();
-    String serverConfig = gameParameters.getServerConfig().trim()
-        .equals("") ? null : gameParameters.getServerConfig();
-    String jmsUrl = gameParameters.getJmsUrl().trim()
-        .equals("") ? null : gameParameters.getJmsUrl();
-    String logSuffix = gameParameters.getLogSuffix().trim()
-        .equals("") ? null : gameParameters.getLogSuffix();
 
-    String result =
-        css.simSession(boot, serverConfig, jmsUrl, logSuffix, names);
+    String result =  css.simSession(gameParameters.getBootstrapData(),
+                                    gameParameters.getServerConfig(),
+                                    gameParameters.getJmsUrl(),
+                                    gameParameters.getLogSuffix(),
+                                    names,
+                                    gameParameters.getSeedName(),
+                                    gameParameters.getWeatherName(),
+                                    null);
     if (result == null) {
       message = "Simulation started.";
     }
@@ -98,15 +95,10 @@ public class WebCompetitionControlService
 
     visualizerService.init(visualizerProxy);
 
-    // web components treat empty forms as "", not null.
-    String bootFilename = gameParameters.getBootstrapFilename().trim()
-        .equals("") ? null : gameParameters.getBootstrapFilename();
-    String serverConfig = gameParameters.getServerConfig().trim()
-        .equals("") ? null : gameParameters.getServerConfig();
-    String logSuffix = gameParameters.getLogSuffix().trim()
-        .equals("") ? null : gameParameters.getLogSuffix();
-
-    String result = css.bootSession(bootFilename, serverConfig, logSuffix);
+    String result = css.bootSession(gameParameters.getBootstrapFilename(),
+                                    gameParameters.getServerConfig(),
+                                    gameParameters.getLogSuffix(),
+                                    gameParameters.getWeatherName());
     if (result == null) {
       message = "Bootstrap mode started.";
     }

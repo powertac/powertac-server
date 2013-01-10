@@ -13,6 +13,8 @@ public class GameParametersBean {
 	private String logSuffix;
 	private String newBrokerName;
 	private String bootstrapFilename;
+  private String seedName;
+  private String weatherName;
 
 	public GameParametersBean() {
 		brokers = new ArrayList<FakeBroker>();
@@ -23,7 +25,11 @@ public class GameParametersBean {
 	}
 
 	public void setBootstrapData(String bootstrapData) {
-		this.bootstrapData = bootstrapData;
+    if (bootstrapData.trim().equals("")) {
+      this.bootstrapData = null;
+    } else {
+      this.bootstrapData = bootstrapData.trim();
+    }
 	}
 
 	public String getJmsUrl() {
@@ -31,7 +37,11 @@ public class GameParametersBean {
 	}
 
 	public void setJmsUrl(String jmsUrl) {
-		this.jmsUrl = jmsUrl;
+    if (jmsUrl.trim().equals("")) {
+      this.jmsUrl = null;
+    } else {
+      this.jmsUrl = jmsUrl.trim();
+    }
 	}
 
 	public String getLogSuffix() {
@@ -39,7 +49,11 @@ public class GameParametersBean {
 	}
 
 	public void setLogSuffix(String logSuffix) {
-		this.logSuffix = logSuffix;
+    if (logSuffix.trim().equals("")) {
+      this.logSuffix = null;
+    } else {
+      this.logSuffix = logSuffix.trim();
+    }
 	}
 
 	public String getServerConfig() {
@@ -47,7 +61,11 @@ public class GameParametersBean {
 	}
 
 	public void setServerConfig(String serverConfig) {
-		this.serverConfig = serverConfig;
+    if (serverConfig.trim().equals("")) {
+      this.serverConfig = null;
+    } else {
+      this.serverConfig = serverConfig.trim();
+    }
 	}
 
 	public ArrayList<FakeBroker> getBrokers() {
@@ -78,7 +96,34 @@ public class GameParametersBean {
 		return bootstrapFilename;
 	}
 	public void setBootstrapFilename(String bootstrapFilename) {
-		this.bootstrapFilename = bootstrapFilename;
+    if (bootstrapFilename.trim().equals("")) {
+      this.bootstrapFilename = null;
+    } else {
+      this.bootstrapFilename = bootstrapFilename.trim();
+    }
 	}
 
+  public String getSeedName() {
+    return seedName;
+  }
+
+  public void setSeedName(String seedName) {
+    if (seedName.trim().equals("")) {
+      this.seedName = null;
+    } else {
+      this.seedName = seedName.trim();
+    }
+  }
+
+  public String getWeatherName() {
+    return weatherName;
+  }
+
+  public void setWeatherName(String weatherName) {
+    if (weatherName.trim().equals("")) {
+      this.weatherName = null;
+    } else {
+      this.weatherName = weatherName.trim();
+    }
+  }
 }
