@@ -15,37 +15,15 @@
  */
 package org.powertac.server;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.Broker;
-import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.RandomSeed;
-import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
+import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.BrokerAccept;
-import org.powertac.common.msg.BrokerAuthentication;
-import org.powertac.common.msg.PauseRelease;
-import org.powertac.common.msg.PauseRequest;
-import org.powertac.common.msg.SimEnd;
-import org.powertac.common.msg.SimPause;
-import org.powertac.common.msg.SimResume;
-import org.powertac.common.msg.SimStart;
-import org.powertac.common.msg.TimeslotComplete;
-import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.msg.*;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -53,6 +31,9 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * This is the competition controller. It has two major roles in the
@@ -278,13 +259,12 @@ public class CompetitionControlService
   {
     this.bootstrapMode = bootstrapMode;
     competition = Competition.currentCompetition();
-    
 
     // start JMS provider
     jmsManagementService.start();   
    
     init();
-    
+
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
     if (simRunning) {
@@ -298,13 +278,15 @@ public class CompetitionControlService
     }
     
     // enable remote broker login here
-    tournamentSchedulerService.ready();
+    if (!bootstrapMode) {
+      tournamentSchedulerService.ready();
+    }
 
     if (!setup()) {
       simRunning = false;
       return;
     }
-    
+
     // run the simulation, wait for completion
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
 		  competition.getSimulationRate()));
@@ -338,7 +320,6 @@ public class CompetitionControlService
                              (bootstrapOffset + 1),
                              0);
       log.info("created " + timeslotRepo.count() + " bootstrap timeslots");
-
     }
 
     // set up the simulation clock
@@ -374,8 +355,10 @@ public class CompetitionControlService
       log.info("timeslotCount = " + timeslotCount);
     }
 
-    waitForBrokerLogin();
-    visualizerProxyService.waitForRemoteViz(loginTimeout);
+    if (!bootstrapMode) {
+      waitForBrokerLogin();
+      visualizerProxyService.waitForRemoteViz(loginTimeout);
+    }
 
     // Publish Competition object at right place - after plugins
     // are initialized. This is necessary because some may need to
@@ -386,8 +369,10 @@ public class CompetitionControlService
     
     // notify tournament scheduler that game is starting, assuming there
     // is a tournament scheduler to notify.
-    tournamentSchedulerService.inProgress(timeslotCount);
-    
+    if (!bootstrapMode) {
+      tournamentSchedulerService.inProgress(timeslotCount);
+    }
+
     // send the Competition instance, then the broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
     brokerProxyService.broadcastMessage(competition);
@@ -725,7 +710,9 @@ public class CompetitionControlService
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
-    tournamentSchedulerService.heartbeat(ts, composeBrokerStats());
+    if (!bootstrapMode) {
+      tournamentSchedulerService.heartbeat(ts, composeBrokerStats());
+    }
        
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
