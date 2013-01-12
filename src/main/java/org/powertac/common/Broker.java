@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import java.util.HashMap;
 
+import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -123,7 +124,7 @@ public class Broker
   public CashPosition getCash() 
   {
     if (cashPosn == null) {
-      cashPosn = new CashPosition(this, 0.0);
+      cashPosn = new CashPosition(new Instant(0l), this, 0.0);
     }
     return cashPosn;
   }

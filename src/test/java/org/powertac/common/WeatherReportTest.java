@@ -20,7 +20,7 @@ public class WeatherReportTest {
 	public void setUp() throws Exception {
 	    Competition.newInstance("test");
 		Instant baseTime = new DateTime().toInstant();
-		ts1 = new Timeslot(1, baseTime, null);
+		ts1 = new Timeslot(1, baseTime);
 	}
 	
 	@Test

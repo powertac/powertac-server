@@ -16,13 +16,11 @@
 
 package org.powertac.common;
 
+import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.BrokerConverter;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A CashPosition domain instance represents the current state of
@@ -34,37 +32,16 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  */
 @Domain
 @XStreamAlias("cash")
-public class CashPosition //implements Serializable 
+public class CashPosition extends BrokerTransaction 
 {
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  
-  /** The broker who owns this cash account  */
-  @XStreamConverter(BrokerConverter.class)
-  private Broker broker;
-
   /** The new running total for the broker's cash account  */
   @XStreamAsAttribute
   private double balance = 0.0;
 
-  public CashPosition (Broker broker, double initialBalance)
+  public CashPosition (Instant when, Broker broker, double balance)
   {
-    super();
-    this.broker = broker;
-    this.balance = initialBalance;
-  }
-  
-  public long getId ()
-  {
-    return id;
-  }
-  
-  /**
-   * Returns the broker whose cash is represented.
-   */
-  public Broker getBroker ()
-  {
-    return broker;
+    super(when, broker);
+    this.balance = balance;
   }
 
   /**
@@ -76,6 +53,7 @@ public class CashPosition //implements Serializable
     return balance;
   }
 
+  @Override
   public String toString() {
     return "cash " + balance;
   }

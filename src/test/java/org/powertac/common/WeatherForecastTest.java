@@ -31,7 +31,7 @@ public class WeatherForecastTest
 	    Competition.newInstance("test");
 		Instant baseTime = new DateTime().toInstant();
 		tlist = new ArrayList<WeatherForecastPrediction>();
-		ts1 = new Timeslot(1, baseTime, null);
+		ts1 = new Timeslot(1, baseTime);
 		tlist.add(new WeatherForecastPrediction(0, 0, 0, 0, 0));
 	}
 	

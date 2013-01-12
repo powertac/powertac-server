@@ -16,80 +16,64 @@
 
 package org.powertac.common;
 
-//import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.*;
 
  /**
  * A timeslot instance describes an interval of time (slot) for which power may be
- * traded in the wholesale market. Time slots are used (i) to
+ * traded in the wholesale market. The duration of a timeslot is given by
+ * <code>currentCompetition.getTimeslotLength()</code>. 
+ * Timeslots are uniquely identified
+ * by their serial numbers, which is the number of timeslots since
+ * <code>currentCompetition.getSimulationBaseTime()</code>.
+ * <p>
+ * Timeslots are used (i) to
  * correlate tradeable products (energy futures) and trades in the market with a future time
  * interval where settlement (i.e. delivery / consumption) has to take place, (ii) to
  * correlate meter readings with a duration in time, (iii) to  allow tariffs to define
  * different consumption / production prices for different times of a day. Timeslots are
- * represented in server-broker communications by serial number and start time.
+ * represented in server-broker communications by serial number.
  * <p>
  * This is an immutable type, so no state logging is needed. Creation events are logged
  * by the repository.</p>
  *
- * @author Carsten Block
- * @version 1.0 - Feb,6,2011
+ * @author Carsten Block, John Collins
  */
-@Domain
+//@Domain
 @XStreamAlias("slot")
 public class Timeslot
 {
-  //static private Logger log = Logger.getLogger(Timeslot.class.getName());
-
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
+  /** Timeslot does not have ID; it is logged by serial number **/
+  //@XStreamAsAttribute
+  //private long id = IdGenerator.createId();
 
   /**
-   * used to find succeeding / preceding timeslot instances
-   * @see {@code Timeslot.next()} {@code Timeslot.previous()}
+   * Index of this timeslot from beginning of sim.
    */
   @XStreamAsAttribute
   private int serialNumber;
 
-  /** flag that determines enabled state of the slot. 
-   * E.g. in the market only orders for enabled timeslots 
-   * are accepted. */
-  @XStreamOmitField
-  private boolean enabled = false;
-
   /** start date and time of the timeslot */
+  @XStreamOmitField
   private Instant startInstant;
-
-  /** end date and time of the timeslot */
-  //@XStreamOmitField
-  //private Instant endInstant;
   
-  /** previous and next timeslots */
+  /** DateTime equivalent - lazy eval **/
   @XStreamOmitField
-  private Timeslot previous;
-
-  @XStreamOmitField
-  private Timeslot next;
+  private DateTime startTime = null;
 
   /** 
    * Constructor is intended to be called by repository.
-   * Note that Timeslots are created in sequence, and are initially enabled. If you
+   * Note that Timeslots are initially enabled. If you
    * want to create a disabled timeslot, you have to call disable() after creating it.
    */
-  public Timeslot (int serial, Instant start, Timeslot previous)
+  public Timeslot (int serial, Instant start)
   {
     super();
     serialNumber = serial;
     startInstant = start;
-    //endInstant = end;
-    enabled = true;
-    if (previous != null) {
-      this.previous = previous;
-      previous.next =  this;
-    }
   }
 
   public int getSerialNumber ()
@@ -99,24 +83,7 @@ public class Timeslot
   
   public long getId()
   {
-    return id;
-  }
-
-  public boolean isEnabled ()
-  {
-    return enabled;
-  }
-  
-  @StateChange
-  public void enable ()
-  {
-    enabled = true;
-  }
-  
-  @StateChange
-  public void disable ()
-  {
-    enabled = false;
+    return (long)serialNumber;
   }
 
   public Instant getStartInstant ()
@@ -128,17 +95,38 @@ public class Timeslot
   {
     return startInstant.plus(Competition.currentCompetition().getTimeslotDuration());
   }
+  
+  /**
+   * Returns the DateTime representation of the start time for this timeslot
+   */
+  public DateTime getStartTime ()
+  {
+    if (null == startTime)
+      startTime = new DateTime(startInstant, DateTimeZone.UTC);
+    return startTime;
+  }
+  
+  /**
+   * Returns the timeslot index since the most recent midnight, starting at
+   * zero. Note that this is hourOfDay if timeslots are one hour. Assumes tz = 0.
+   */
+  public int slotInDay ()
+  {
+    long millis = getStartTime().getMillisOfDay();
+    return (int) (millis/Competition.currentCompetition().getTimeslotDuration());
+  }
+  
+  /**
+   * Returns the day of week for the start of this timeslot, starting at 
+   * Monday = 1.
+   */
+  public int dayOfWeek ()
+  {
+    return getStartTime().getDayOfWeek();
+  }
 
+  @Override
   public String toString() {
-    return ("timeslot " + serialNumber + ":" + startInstant.toString() + "(" + 
-            (enabled ? "enabled" : "disabled") + ")");
-  }
-
-  public Timeslot getNext() {
-    return next;
-  }
-
-  public Timeslot getPrevious() {
-    return previous;
+    return ("timeslot " + serialNumber + ":" + startInstant.toString());
   }
 }
