@@ -27,8 +27,6 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -111,7 +109,8 @@ public class DefaultBrokerServiceTests
     timeslotRepo.recycle();
     reset(mockProxy);
     reset(mockCompetitionControl);
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Competition.setCurrent(Competition.newInstance("db-test"));
+    start = Competition.currentCompetition().getSimulationBaseTime();
     timeService.setCurrentTime(start);
     customer1 = new CustomerInfo("town", 1000);
     customer2 = new CustomerInfo("village", 200);
@@ -437,7 +436,7 @@ public class DefaultBrokerServiceTests
     }).when(mockProxy).routeMessage(isA(Order.class));
     
     // activate the trading function by sending a cash position msg
-    CashPosition cp = new CashPosition(face, 0.0);
+    CashPosition cp = new CashPosition(current.getStartInstant(), face, 0.0);
     face.receiveMessage(cp); // timeslot -1
 
     // without any subscriptions or consumption, we don't expect any orders
@@ -480,10 +479,10 @@ public class DefaultBrokerServiceTests
     TariffSpecification pspec = specs.get(PowerType.PRODUCTION);
 
     //TimeslotComplete tsu = new TimeslotComplete(0); // 0-22 enabled
-    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
-    assertTrue("ts1 enabled", timeslotRepo.findBySerialNumber(1).isEnabled());
-    assertTrue("ts23 enabled", timeslotRepo.findBySerialNumber(23).isEnabled());
-    assertNull("ts24 null", timeslotRepo.findBySerialNumber(24));
+    assertFalse("ts0 disabled", timeslotRepo.isTimeslotEnabled(0));
+    assertTrue("ts1 enabled", timeslotRepo.isTimeslotEnabled(1));
+    assertTrue("ts24 enabled", timeslotRepo.isTimeslotEnabled(24));
+    assertFalse("ts25 not enabled", timeslotRepo.isTimeslotEnabled(25));
 
     // ---- timeslot 0 ----
     //face.receiveMessage(tsu);
@@ -514,8 +513,7 @@ public class DefaultBrokerServiceTests
                                               -500.0, 4.2));
     //TimeslotComplete tc = new TimeslotComplete(0);
     face.receiveMessage(endTimeslot()); // last message in ts0
-    assertEquals("23 orders", 23, orderList.size());
-    assertEquals("23 orders ts1", 23, orderList.size());
+    assertEquals("24 orders", 24, orderList.size());
     Order order = orderList.get(0);
     assertNotNull("first order not null", order);
     assertEquals("ts1 is first", 
@@ -558,13 +556,13 @@ public class DefaultBrokerServiceTests
     // accounting runs ts1
     face.receiveMessage(endTimeslot()); // end of ts0: 1 disabled, 24 enabled
 
-    assertFalse("ts0 disabled", timeslotRepo.findBySerialNumber(0).isEnabled());
-    assertFalse("ts1 disabled", timeslotRepo.findBySerialNumber(1).isEnabled());
-    assertTrue("ts2 enabled", timeslotRepo.findBySerialNumber(2).isEnabled());
-    assertTrue("ts24 enabled", timeslotRepo.findBySerialNumber(24).isEnabled());
-    assertNull("ts25 null", timeslotRepo.findBySerialNumber(25));
+    assertFalse("ts0 disabled", timeslotRepo.isTimeslotEnabled(0));
+    assertFalse("ts1 disabled", timeslotRepo.isTimeslotEnabled(1));
+    assertTrue("ts2 enabled", timeslotRepo.isTimeslotEnabled(2));
+    assertTrue("ts25 enabled", timeslotRepo.isTimeslotEnabled(25));
+    assertFalse("ts26 not enabled", timeslotRepo.isTimeslotEnabled(26));
     // broker sends bids for ts2...ts24
-    assertEquals("23 orders ts1", 23, orderList.size());
+    assertEquals("24 orders ts1", 24, orderList.size());
     order = orderList.get(0);
     assertNotNull("first order not null", order);
     assertEquals("ts2 is first", 
@@ -577,15 +575,15 @@ public class DefaultBrokerServiceTests
                  timeslotRepo.findBySerialNumber(22),
                  order.getTimeslot());
     assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    order = orderList.get(21);
-    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
     order = orderList.get(22);
-    assertNotNull("last order not null", order);
-    assertEquals("ts24 is last", 
-                 timeslotRepo.findBySerialNumber(24),
-                 order.getTimeslot());
     assertEquals("correct mwh", 0.5, order.getMWh(), 1e-6);
-    assertEquals("correct price", (-1.0 - 99.0/22.0), order.getLimitPrice(), 1e-6);
+    order = orderList.get(23);
+    assertNotNull("last order not null", order);
+    assertEquals("ts25 is last", 
+                 timeslotRepo.findBySerialNumber(25),
+                 order.getTimeslot());
+    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
+    assertEquals("correct price", (-1.0 - 99.0/23.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
 
     nextTimeslot();
@@ -608,9 +606,9 @@ public class DefaultBrokerServiceTests
                                               customer2.getPopulation(),
                                               40.0, -0.15));
     // accounting runs ts2
-    face.receiveMessage(endTimeslot()); // ts2 disabled, ts25 enabled
-    // broker sends bids for ts3...ts25
-    assertEquals("23 orders ts2", 23, orderList.size());
+    face.receiveMessage(endTimeslot()); // ts2 disabled, ts26 enabled
+    // broker sends bids for ts3...ts26
+    assertEquals("24 orders ts2", 24, orderList.size());
     order = orderList.get(0);
     assertNotNull("first order not null", order);
     assertEquals("ts3 is first", 
@@ -625,13 +623,13 @@ public class DefaultBrokerServiceTests
     assertEquals("correct mwh", 0.51, order.getMWh(), 1e-6);
     order = orderList.get(21);
     assertEquals("correct mwh", 0.50, order.getMWh(), 1e-6);
-    order = orderList.get(22);
+    order = orderList.get(23);
     assertNotNull("last order not null", order);
-    assertEquals("ts25 is last", 
-                 timeslotRepo.findBySerialNumber(25),
+    assertEquals("ts26 is last", 
+                 timeslotRepo.findBySerialNumber(26),
                  order.getTimeslot());
-    assertEquals("correct mwh", 0.42, order.getMWh(), 1e-6);
-    assertEquals("correct price", (-1.0 - 99.0/22.0), order.getLimitPrice(), 1e-6);
+    assertEquals("correct mwh", 0.51, order.getMWh(), 1e-6);
+    assertEquals("correct price", (-1.0 - 99.0/23.0), order.getLimitPrice(), 1e-6);
     orderList.clear();
   }
   
@@ -691,7 +689,7 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
-    CashPosition cp = new CashPosition(face, 0.0);
+    CashPosition cp = new CashPosition(timeService.getCurrentTime(), face, 0.0);
     face.receiveMessage(cp); // last message in ts0
 
     nextTimeslot();
@@ -752,24 +750,13 @@ public class DefaultBrokerServiceTests
   private void createTimeslots()
   {
     Instant now = timeService.getCurrentTime();
-    Timeslot ts = timeslotRepo.makeTimeslot(now);
-    ts.disable();
-    for (int i = 1; i < 24; i++) {
-      ts = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * i));
-      ts.enable();
-    }
+    timeslotRepo.makeTimeslot(now);
   }
 
   // called to make the clock tick
   private void nextTimeslot ()
   {
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    Timeslot current = timeslotRepo.currentTimeslot();
-    Timeslot oldTs = timeslotRepo.findBySerialNumber(current.getSerialNumber());
-    oldTs.disable();
-    Instant start = oldTs.getStartInstant().plus(TimeService.HOUR * 23);
-    Timeslot newTs = timeslotRepo.makeTimeslot(start);
-    newTs.enable();
   }
   
   // called to end a timeslot
