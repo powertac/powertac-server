@@ -83,11 +83,14 @@ public class DistributionUtilityServiceTests
   {
     // create a Competition, needed for initialization
     comp = Competition.newInstance("du-test");
-
-    start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC);
-    timeService.setCurrentTime(start.toInstant());
-    timeslotRepo.makeTimeslot(start.toInstant());
-    timeslotRepo.currentTimeslot().disable();// enabled: false);
+    Competition.setCurrent(comp);
+    
+    Instant base =
+            Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
+    start = new DateTime(start, DateTimeZone.UTC);
+    timeService.setCurrentTime(base);
+    timeslotRepo.makeTimeslot(base);
+    //timeslotRepo.currentTimeslot().disable();// enabled: false);
     reset(accountingService);
 
     // Create 3 test brokers
@@ -302,12 +305,9 @@ public class DistributionUtilityServiceTests
     // add some new timeslots
     Timeslot ts0 = timeslotRepo.currentTimeslot();
     long start = timeService.getCurrentTime().getMillis();
-    Timeslot ts1 = new Timeslot(1, new Instant(start - TimeService.HOUR * 3), null);
-    ts1.disable(); // enabled: false
-    Timeslot ts2 = new Timeslot(2, new Instant(start - TimeService.HOUR * 2), null);
-    ts2.disable(); // enabled: false
-    Timeslot ts3 = new Timeslot(3, new Instant(start - TimeService.HOUR), null);
-    ts3.disable(); // enabled: false
+    Timeslot ts1 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 3));
+    Timeslot ts2 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 2));
+    Timeslot ts3 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR));
 
     // add some orderbooks
     orderbookRepo.makeOrderbook(ts3, 33.0);
