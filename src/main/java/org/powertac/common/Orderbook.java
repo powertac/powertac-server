@@ -49,6 +49,7 @@ public class Orderbook
   private Instant dateExecuted;
 
   /** the timeslot this orderbook is generated for  */
+  @XStreamAsAttribute
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
 

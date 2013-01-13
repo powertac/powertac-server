@@ -39,6 +39,7 @@ public class ClearedTrade
   private long id = IdGenerator.createId();
 
   /** underlying timeslot for the trade (e.g. for a future the timeslot when real-world exchanges happen)*/
+  @XStreamAsAttribute
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
 
@@ -96,6 +97,7 @@ public class ClearedTrade
     return dateExecuted;
   }
   
+  @Override
   public String toString()
   {
     return "ClearedTrade " + executionMWh + "@" + executionPrice;

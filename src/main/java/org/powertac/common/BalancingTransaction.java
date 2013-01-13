@@ -71,8 +71,9 @@ public class BalancingTransaction extends BrokerTransaction
     return charge;
   }
 
+  @Override
   public String toString() {
-    return ("Balance tx " + postedTime.getMillis()/TimeService.HOUR +
+    return ("Balance tx " + postedTimeslot +
             "-" + broker.getUsername() + "-" + kWh + "-" + charge);
   }
 }

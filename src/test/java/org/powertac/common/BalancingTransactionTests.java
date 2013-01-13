@@ -51,7 +51,8 @@ public class BalancingTransactionTests
   @Before
   public void setUp () throws Exception
   {
-    baseTime = new DateTime().toInstant();
+    Competition.setCurrent(Competition.newInstance("market order test"));
+    baseTime = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     brokerRepo = new BrokerRepo();
     broker = new Broker("Sally");
     brokerRepo.add(broker);

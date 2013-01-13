@@ -162,6 +162,25 @@ public class TimeslotRepo implements DomainRepo
   }
   
   /**
+   * True just in case the specified timeslot is enabled.
+   */
+  public boolean isTimeslotEnabled (Timeslot ts)
+  {
+    return isTimeslotEnabled(ts.getSerialNumber());
+  }
+  
+  /**
+   * True just in case the timeslot with the given index is enabled.
+   */
+  public boolean isTimeslotEnabled (int index)
+  {
+    int firstIndex = currentTimeslot().getSerialNumber()
+            + Competition.currentCompetition().getDeactivateTimeslotsAhead();
+    int lastIndex = firstIndex + Competition.currentCompetition().getTimeslotsOpen();
+    return (index >= firstIndex && index < lastIndex);
+  }
+  
+  /**
    * Returns the number of timeslots that have been successfully created.
    */
   public int count ()

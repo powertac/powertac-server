@@ -16,10 +16,13 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * Superclass with common attributes for a number of transaction types.
@@ -35,7 +38,14 @@ public abstract class BrokerTransaction
   protected Broker broker;
 
   /** The timeslot for which this meter reading is generated */
-  protected Instant postedTime;
+  @XStreamAsAttribute
+  protected int postedTimeslot;
+  
+  @XStreamOmitField
+  protected Instant postedTime = null;
+  
+  // singleton holder
+  private static TimeslotRepo timeslotRepo = null;
 
   /**
    * A BrokerTransaction contains a Broker and an Instant that represents the
@@ -45,7 +55,14 @@ public abstract class BrokerTransaction
   {
     super();
     this.postedTime = when;
+    this.postedTimeslot = getTimeslotRepo().getTimeslotIndex(when);
     this.broker = broker;
+  }
+  
+  public BrokerTransaction (int timeslotIndex, Broker broker)
+  {
+    super();
+    this.postedTimeslot = timeslotIndex;
   }
 
   public long getId ()
@@ -66,6 +83,31 @@ public abstract class BrokerTransaction
    */
   public Instant getPostedTime ()
   {
+    if (null == postedTime)
+      postedTime = getTimeslotRepo().getTimeForIndex(postedTimeslot);
     return postedTime;
+  }
+  
+  /**
+   * Timeslot index when transaction was posted.
+   */
+  public int getPostedTimeslotIndex ()
+  {
+    return postedTimeslot;
+  }
+  
+  /**
+   * Timeslot when transaction was posted
+   */
+  public Timeslot getPostedTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(postedTimeslot);
+  }
+  
+  private TimeslotRepo getTimeslotRepo ()
+  {
+    if (null == timeslotRepo)
+      timeslotRepo = (TimeslotRepo)SpringApplicationContext.getBean("timeslotRepo");
+    return timeslotRepo;
   }
 }

@@ -50,10 +50,10 @@ public class OrderTests
   {
     timeslotRepo.recycle();
     brokerRepo.recycle();
-    Competition.newInstance("market order test");
+    Competition.setCurrent(Competition.newInstance("market order test"));
     broker = new Broker("Sam");
     brokerRepo.add(broker);
-    now = new DateTime(2011, 10, 10, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     timeslot = timeslotRepo.makeTimeslot(now);
   }
 
