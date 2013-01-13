@@ -104,7 +104,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
             else {
                 values.add(getForecastCapacity(timeslot));
             }
-            timeslot = timeslot.getNext();
+            timeslot = timeslotRepo.getNext(timeslot);
         }
         return new CapacityProfile(values);
     }

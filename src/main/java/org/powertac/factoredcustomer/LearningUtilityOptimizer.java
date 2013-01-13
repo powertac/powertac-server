@@ -190,7 +190,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
                 //System.out.println("timeslot charge = " + timeslotCharge);
             }
             totalCharge += timeslotCharge;
-            timeslot = timeslot.getNext();
+            timeslot = timeslotRepo.getNext(timeslot);
         }
         return totalCharge;    
     }

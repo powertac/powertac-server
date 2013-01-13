@@ -127,7 +127,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         Timeslot slider = timeslot;
         for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
             forecastCapacities.put(slider.getSerialNumber(), profile.getCapacity(i));
-            slider = slider.getNext();
+            slider = timeslotRepo.getNext(slider);
         }
     }
     
