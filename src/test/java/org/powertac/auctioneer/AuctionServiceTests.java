@@ -97,7 +97,8 @@ public class AuctionServiceTests
     brokerMsgs = new ArrayList<Object>();
     
     // create a Competition, needed for initialization
-    competition = Competition.newInstance("auctioneer-test");
+    competition = Competition.newInstance("auctioneer-test").withTimeslotsOpen(4);
+    Competition.setCurrent(competition);
 
     // mock the ServerProperties
 
@@ -119,14 +120,13 @@ public class AuctionServiceTests
     s2 = new Broker("Seller #2");
     
     // set the clock, create some useful timeslots
-    Instant now = new DateTime(2011, 1, 26, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Instant now = Competition.currentCompetition().getSimulationBaseTime();
     timeService.setCurrentTime(now);
     ts0 = timeslotRepo.makeTimeslot(now);
-    ts0.disable();
     ts1 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
     ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
-    timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
+    //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
+    //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
     svc.clearEnabledTimeslots();
     
     // mock the AccountingService, capture args
@@ -189,10 +189,10 @@ public class AuctionServiceTests
   public void testValidateOrder ()
   {
     Order bogus= new Order(b1, ts0, 1.0, -22.0);
-    assertFalse("ts0 not enabled", ts0.isEnabled());
+    assertFalse("ts0 not enabled", timeslotRepo.isTimeslotEnabled(ts0));
     assertFalse("current timeslot not valid", svc.validateOrder(bogus));
     Order good = new Order(b1, ts1, 1.0, -22.0);
-    assertTrue("ts1 enabled", ts1.isEnabled());
+    assertTrue("ts1 enabled", timeslotRepo.isTimeslotEnabled(ts1));
     assertTrue("next timeslot valid", svc.validateOrder(good));
   }
 

@@ -171,7 +171,7 @@ public class AuctionService
   public boolean validateOrder (Order order)
   {
     // TODO - give feedback to broker if possible.
-    if (!order.getTimeslot().isEnabled()) {
+    if (!timeslotRepo.isTimeslotEnabled(order.getTimeslot())) {
       log.error("Order submitted for disabled timeslot");
       return false;
     }
