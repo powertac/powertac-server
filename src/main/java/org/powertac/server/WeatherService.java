@@ -253,7 +253,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
         if (currentTime == null) {
           log.error("Null timeslot when adding forecasts to weatherForecastRepo");
         } else {
-          currentTime = currentTime.getNext();
+          currentTime = timeslotRepo.getNext(currentTime);
         }
       }
     }
@@ -342,7 +342,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
           Double.parseDouble(dir), Double.parseDouble(cloudCvr));
 
       try {
-        currentTime = currentTime.getNext();
+        currentTime = timeslotRepo.getNext(currentTime);
         return wr;
       } catch (Exception e) {
         return null;

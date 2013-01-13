@@ -318,8 +318,9 @@ public class CompetitionControlService
   }
 
   // ------------------ simulation setup -------------------
-  // Sets up simulation state in preparation for a sim run. At this point,
-  // all brokers should already be logged in
+  // Sets up simulation state in preparation for a sim run. When finished,
+  // all brokers are logged in, they have the bootstrap data, and 
+  // we are ready to start the clock.
   private boolean setup ()
   {
     // set up random sequence for new simulation run
@@ -373,6 +374,9 @@ public class CompetitionControlService
                                          competition.getExpectedTimeslotCount());
       log.info("timeslotCount = " + timeslotCount);
     }
+    
+    // #660 read bootstrap dataset here, before blocking for
+    // broker login
 
     waitForBrokerLogin();
     visualizerProxyService.waitForRemoteViz(loginTimeout);
@@ -540,7 +544,7 @@ public class CompetitionControlService
     if (!bootstrapMode) {
       int slotCount = bootstrapOffset;
       log.info("first slot: " + slotCount);
-      base = base.plus(slotCount * competition.getTimeslotDuration());
+      //base = base.plus(slotCount * competition.getTimeslotDuration());
     }
     else {
       // compute rate from bootstrapTimeslotMillis
@@ -630,19 +634,19 @@ public class CompetitionControlService
   }
 
   // Creates the initial complement of timeslots
+  // but the timeslotRepo creates them as needed now
   private void createInitialTimeslots (Instant base,
                                        int initialSlots,
                                        int openSlots)
   {
-    long timeslotMillis = competition.getTimeslotDuration();
+    //long timeslotMillis = competition.getTimeslotDuration();
     // set timeslot index according to bootstrap mode
-    for (int i = 0; i < initialSlots - 1; i++) {
-      Timeslot ts = timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
-      ts.disable();
-    }
-    for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
-      timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
-    }
+    //for (int i = 0; i < initialSlots - 1; i++) {
+    //  timeslotRepo.makeTimeslot(base);
+    //}
+    //for (int i = initialSlots - 1; i < (initialSlots + openSlots - 1); i++) {
+    //  timeslotRepo.makeTimeslot(base.plus(i * timeslotMillis));
+    //}
   }
   
   // Dumps final broker statistics to the trace log
@@ -777,7 +781,6 @@ public class CompetitionControlService
     int oldSerial = (current.getSerialNumber() +
             competition.getDeactivateTimeslotsAhead() - 1);
     Timeslot oldTs = timeslotRepo.findBySerialNumber(oldSerial);
-    oldTs.disable();
     log.info("Deactivated timeslot " + oldSerial + ", start " + oldTs.getStartInstant().toString());
 
     // then create if necessary and activate the newest timeslot
@@ -789,9 +792,6 @@ public class CompetitionControlService
       long start = (current.getStartInstant().getMillis() +
               (newSerial - current.getSerialNumber()) * timeslotMillis);
       newTs = timeslotRepo.makeTimeslot(new Instant(start));
-    }
-    else {
-      newTs.enable();
     }
     log.info("Activated timeslot " + newSerial + ", start " + newTs.getStartInstant());
     // Communicate timeslot updates to brokers
@@ -963,7 +963,6 @@ public class CompetitionControlService
   
   /**
    * Authenticate Broker.
-   * TODO: add auth-token processing
    */
   public void handleMessage(BrokerAuthentication msg) {
     log.info("receiveMessage(BrokerAuthentication) " + 
@@ -1006,8 +1005,16 @@ public class CompetitionControlService
       clock = SimulationClockControl.getInstance();
       // wait for start time
       long now = new Date().getTime();
-      //long start = now + scheduleMillis * 2 - now % scheduleMillis
-      long start = now + TimeService.SECOND; // start in one second
+      // start is beginning of boot
+      long startOffset = 0;
+      if (bootstrapMode) {
+        // back up start to beginning of boot record
+        startOffset = 
+                bootstrapOffset
+                * competition.getTimeslotDuration()
+                / competition.getSimulationRate();
+      }
+      long start = now - startOffset + TimeService.SECOND; // start in one second
       // communicate start time to brokers
       SimStart startMsg = new SimStart(new Instant(start));
       brokerProxyService.broadcastMessage(startMsg);
