@@ -55,7 +55,7 @@ public class WholesaleMessageHandler implements Initializable {
 		}
 
 	}
-
+	
 	public void handleMessage(MarketTransaction tx) {
 
 		BrokerModel broker = brokerService.getBrokersMap().get(

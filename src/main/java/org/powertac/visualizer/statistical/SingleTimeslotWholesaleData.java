@@ -19,10 +19,8 @@ public class SingleTimeslotWholesaleData {
 
 	private BrokerModel broker;
 	private long timeslotMillis;
-	private double cashPositive;
-	private double cashNegative;
-	private double energyPositive;
-	private double energyNegative;
+	private double profit;
+	private double netMWh;
 
 	private boolean closed;
 
@@ -53,22 +51,13 @@ public class SingleTimeslotWholesaleData {
 		}
 	}
 
-	public void processMarketTransaction(MarketTransaction tx, long millisFrom) {
+	public synchronized void processMarketTransaction(MarketTransaction tx, long millisFrom) {
 		if (!closed) {
 			double energy = tx.getMWh();
 			double cash = tx.getPrice();
 
-			if (cash < 0) {
-				cashNegative += cash;
-			} else {
-				cashPositive += cash;
-			}
-
-			if (energy < 0) {
-				energyNegative += energy;
-			} else {
-				energyPositive += energy;
-			}
+			profit+=cash;
+			netMWh+=energy;
 
 			marketTransactions.put(millisFrom, tx);
 		}
@@ -81,21 +70,17 @@ public class SingleTimeslotWholesaleData {
 	public long getTimeslotMillis() {
 		return timeslotMillis;
 	}
-
-	public double getCashPositive() {
-		return cashPositive;
+	
+	public HashMap<Long, MarketTransaction> getMarketTransactions() {
+		return marketTransactions;
 	}
-
-	public double getCashNegative() {
-		return cashNegative;
+	
+	public double getNetMWh() {
+		return netMWh;
 	}
-
-	public double getEnergyPositive() {
-		return energyPositive;
-	}
-
-	public double getEnergyNegative() {
-		return energyNegative;
+	
+	public double getProfit() {
+		return profit;
 	}
 	
 	public boolean isClosed() {

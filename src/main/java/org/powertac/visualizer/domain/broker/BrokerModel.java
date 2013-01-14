@@ -6,22 +6,20 @@ import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.Appearance;
 import org.powertac.visualizer.statistical.AggregateDistributionData;
 import org.powertac.visualizer.statistical.BalancingCategory;
+import org.powertac.visualizer.statistical.FinanceCategory;
 import org.powertac.visualizer.statistical.GradingSystem;
 import org.powertac.visualizer.statistical.TariffCategory;
 import org.powertac.visualizer.statistical.WholesaleCategory;
 
-public class BrokerModel {// implements TimeslotModelUpdate {
+public class BrokerModel {
 
 	Logger log = Logger.getLogger(BrokerModel.class);
 	// basic
 	private String name;
 	private Appearance appearance;
 	private String id;
-	// customers
-	private int customerCount;
-	// balance
-	private double cashBalance;
-
+	
+	private FinanceCategory financeCategory;
 	private BalancingCategory balancingCategory;
 	private WholesaleCategory wholesaleCategory;
 	private TariffCategory tariffCategory;
@@ -36,15 +34,12 @@ public class BrokerModel {// implements TimeslotModelUpdate {
 		balancingCategory = new BalancingCategory(this);
 		wholesaleCategory = new WholesaleCategory(this);
 		tariffCategory = new TariffCategory(this);
+		financeCategory = new FinanceCategory(this);
 
 	}
 
 	public BalancingCategory getBalancingCategory() {
 		return balancingCategory;
-	}
-
-	public void updateCashBalance(double balance) {
-		this.cashBalance = Helper.roundNumberTwoDecimal(balance);
 	}
 
 	public String getName() {
@@ -63,20 +58,8 @@ public class BrokerModel {// implements TimeslotModelUpdate {
 		this.appearance = appearance;
 	}
 
-	public double getCashBalance() {
-		return cashBalance;
-	}
-
-	public void setCashBalance(double cashBalance) {
-		this.cashBalance = cashBalance;
-	}
-
 	public String getId() {
 		return id;
-	}
-
-	public int getCustomerCount() {
-		return customerCount;
 	}
 
 	public WholesaleCategory getWholesaleCategory() {
@@ -99,6 +82,10 @@ public class BrokerModel {// implements TimeslotModelUpdate {
 	
 	public TariffCategory getTariffCategory() {
 		return tariffCategory;
+	}
+	
+	public FinanceCategory getFinanceCategory() {
+		return financeCategory;
 	}
 
 }

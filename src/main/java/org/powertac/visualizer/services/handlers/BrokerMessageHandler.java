@@ -95,7 +95,7 @@ public class BrokerMessageHandler implements Initializable {
 				.getBroker().getUsername());
 
 		if (broker != null) {
-			broker.updateCashBalance(cashPosition.getBalance());
+			//process cashPosition
 
 		}
 
