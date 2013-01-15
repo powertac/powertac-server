@@ -501,6 +501,8 @@ public class DefaultBrokerService
     }
     int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
                   - cbd.getNetUsage().length);
+    //log.info("sn=" + timeslotRepo.currentTimeslot().getSerialNumber()
+    //         + ", offset=" + offset);
     for (int i = 0; i < cbd.getNetUsage().length; i++) {
       record.produceConsume(cbd.getNetUsage()[i], i + offset);
     }
@@ -753,6 +755,7 @@ public class DefaultBrokerService
     CustomerInfo customer;
     int subscribedPopulation = 0;
     double[] usage = new double[usageRecordLength];
+    int usageIndexOffset = -1; // timeslot offset for usage indexing
     ArrayList<Double> bootstrapUsage = new ArrayList<Double>();
     Instant base = null;
     double alpha = 0.3;
@@ -833,17 +836,35 @@ public class DefaultBrokerService
     }
     
     // we assume here that timeslot index always matches the number of
-    // timeslots that have passed since the beginning of the simulation.
+    // timeslots that have passed since the beginning of the simulation,
+    // offset by the number of bootstrap timeslots.
     int getIndex (Instant when)
     {
+      int offset = getUsageIndexOffset();
       int result = (int)((when.getMillis() - base.getMillis()) /
-                         (Competition.currentCompetition().getTimeslotDuration()));
+                         (Competition.currentCompetition().getTimeslotDuration()))
+                   - offset;
+      log.info("offset=" + offset + ", index=" + result);
       return result;
     }
     
     private int getIndex (int rawIndex)
     {
       return rawIndex % usage.length;
+    }
+    
+    private int getUsageIndexOffset ()
+    {
+      if (usageIndexOffset < 0) {
+        // not yet initialized
+        usageIndexOffset = 0; // offset for bootstrap mode
+        if (!bootstrapMode) {
+          usageIndexOffset =
+                  Competition.currentCompetition().getBootstrapTimeslotCount()
+                  + Competition.currentCompetition().getBootstrapDiscardedTimeslots();
+        }
+      }
+      return usageIndexOffset;
     }
   }
   
