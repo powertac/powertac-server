@@ -345,7 +345,7 @@ public class CompetitionSetupService
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim-" + gameId);
     
-      // jms setup
+      // jms setup overrides config
       if (jmsUrl != null) {
         serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
                                 jmsUrl);
@@ -476,6 +476,7 @@ public class CompetitionSetupService
     // Set up all the plugin configurations
     log.info("pre-game initialization");
     configureCompetition(competition);
+    timeService.setClockParameters(competition);
     timeService.setCurrentTime(competition.getSimulationBaseTime());
 
     // Handle pre-game initializations by clearing out the repos
@@ -543,6 +544,7 @@ public class CompetitionSetupService
     }
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
+    timeService.setClockParameters(competition);
     timeService.setCurrentTime(competition.getSimulationBaseTime());
     return true;
   }

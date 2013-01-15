@@ -279,12 +279,6 @@ public class CompetitionControlService
     this.bootstrapMode = bootstrapMode;
     competition = Competition.currentCompetition();
     
-
-    // start JMS provider
-    jmsManagementService.start();   
-   
-    init();
-    
     // to enhance testability, initialization is split into a static setup()
     // phase, followed by calling runSimulation() to start the sim thread.
     if (simRunning) {
@@ -296,6 +290,11 @@ public class CompetitionControlService
     if (competition == null) {
       log.error("null competition instance");
     }
+
+    // start JMS provider
+    jmsManagementService.start();   
+   
+    init();
     
     // enable remote broker login here
     tournamentSchedulerService.ready();
@@ -539,10 +538,12 @@ public class CompetitionControlService
     long rate = competition.getSimulationRate();
     
     // reset the slot counting mechanism
+    // we want the first tick to get us to the start of the sim
     currentSlot = 0;
+    int slotCount = 0;
     
     if (!bootstrapMode) {
-      int slotCount = bootstrapOffset;
+      slotCount = bootstrapOffset;
       log.info("first slot: " + slotCount);
       //base = base.plus(slotCount * competition.getTimeslotDuration());
     }
@@ -562,7 +563,7 @@ public class CompetitionControlService
     }
     timeService.setClockParameters(base.getMillis(), rate,
                                    competition.getTimeslotDuration());
-    timeService.setCurrentTime(base);
+    timeService.setCurrentTime(base.plus(slotCount * competition.getTimeslotDuration()));
   }
 
   // Computes a random game length as outlined in the game specification
@@ -639,6 +640,8 @@ public class CompetitionControlService
                                        int initialSlots,
                                        int openSlots)
   {
+    log.info("createInitialTimeslots(" + base + ", " + initialSlots
+             + ", " + openSlots + "), at " + timeService.getCurrentTime());
     //long timeslotMillis = competition.getTimeslotDuration();
     // set timeslot index according to bootstrap mode
     //for (int i = 0; i < initialSlots - 1; i++) {
@@ -1007,7 +1010,7 @@ public class CompetitionControlService
       long now = new Date().getTime();
       // start is beginning of boot
       long startOffset = 0;
-      if (bootstrapMode) {
+      if (!bootstrapMode) {
         // back up start to beginning of boot record
         startOffset = 
                 bootstrapOffset
@@ -1019,9 +1022,11 @@ public class CompetitionControlService
       SimStart startMsg = new SimStart(new Instant(start));
       brokerProxyService.broadcastMessage(startMsg);
 
-      // Start up the clock at the correct time
+      // Start up the clock at the correct time, so first tick gets us to
+      // the start time. In this case, the clock is currently set to the start
+      // time, so this will back it up by one notch.
       clock.setStart(start);
-      timeService.init();
+      timeService.init(timeService.getCurrentTime());
       // run the simulation
       running = true;
       clock.scheduleTick();
