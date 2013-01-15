@@ -54,9 +54,12 @@ public abstract class BrokerTransaction
   public BrokerTransaction (Instant when, Broker broker)
   {
     super();
-    this.postedTime = when;
-    this.postedTimeslot = getTimeslotRepo().getTimeslotIndex(when);
     this.broker = broker;
+    // allow null time for test cases
+    if (null != when) {
+      this.postedTime = when;
+      this.postedTimeslot = getTimeslotRepo().getTimeslotIndex(when);
+    }
   }
   
   public BrokerTransaction (int timeslotIndex, Broker broker)

@@ -64,8 +64,10 @@ public class TimeslotRepo implements DomainRepo
   {
     long duration = Competition.currentCompetition().getTimeslotDuration();
     Instant base = Competition.currentCompetition().getSimulationBaseTime();
-    log.debug("makeTimeslot" + startTime.toString());
     int index = (int)((startTime.getMillis() - base.getMillis()) / duration);
+    if (index < 0)
+      log.error("makeTimeslot(" + startTime.toString()
+                + "): index=" + index + ", base=" + base);
     Instant realStart = getTimeForIndex(index);
     Timeslot result;
     if (index >= indexedTimeslots.size()) {
@@ -141,6 +143,14 @@ public class TimeslotRepo implements DomainRepo
     long duration = Competition.currentCompetition().getTimeslotDuration();
     // truncate to timeslot boundary
     return (int)(offset / duration);
+  }
+  
+  /**
+   * Returns the following timeslot.
+   */
+  public Timeslot getNext (Timeslot slot)
+  {
+    return findBySerialNumber(slot.getSerialNumber() + 1);
   }
 
   /**

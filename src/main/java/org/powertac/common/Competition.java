@@ -512,12 +512,12 @@ public class Competition //implements Serializable
   public Map<String, Long> getClockParameters ()
   {
     Map<String, Long> result = new TreeMap<String, Long>();
-    long bootstrapOffset = getTimeslotDuration() *
-                           (getBootstrapDiscardedTimeslots() +
-                            getBootstrapTimeslotCount());
-    Instant simBase = 
-        getSimulationBaseTime().plus(bootstrapOffset);
-    result.put("base", simBase.getMillis());
+    //long bootstrapOffset = getTimeslotDuration() *
+    //                       (getBootstrapDiscardedTimeslots() +
+    //                        getBootstrapTimeslotCount());
+    //Instant simBase = 
+    //    getSimulationBaseTime().plus(bootstrapOffset);
+    result.put("base", getSimulationBaseTime().getMillis());
     result.put("rate", getSimulationRate());
     result.put("modulo", getSimulationModulo());
     return result;

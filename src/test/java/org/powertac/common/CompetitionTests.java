@@ -159,7 +159,8 @@ public class CompetitionTests
         .withTimeslotLength(30);
     Map<String, Long> params = c1.getClockParameters();
     assertEquals("correct base",
-                 base + 72 * 30 * TimeService.MINUTE,
+                 //base + 72 * 30 * TimeService.MINUTE,
+                 base,
                  params.get("base").longValue());
     assertEquals("correct rate", rate, params.get("rate").longValue());
     assertEquals("correct modulo", modulo, params.get("modulo").longValue());

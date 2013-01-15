@@ -118,13 +118,14 @@ public class TimeService
   }
 
   /**
-   * Sets current time to modulo before base time. This allows scheduling
+   * Sets current time to modulo before the desired start time. 
+   * This allows scheduling
    * of actions to take place on the first tick, which should be at the
-   * base time. Call this after setting clock parameters.
+   * desired start time. Call this after setting clock parameters.
    */
-  public void init ()
+  public void init (Instant start)
   {
-    currentTime = new Instant(base - modulo);
+    currentTime = new Instant(start.getMillis() - modulo);
     currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
   }
   
@@ -187,7 +188,14 @@ public class TimeService
     this.base = config.getLong("base", base);
     this.rate = config.getLong("rate", rate);
     this.modulo = config.getLong("modulo", modulo);
-    init();
+  }
+  
+  /**
+   * Sets base, rate, and modulo from a Competition instance
+   */
+  public void setClockParameters (Competition comp)
+  {
+    setClockParameters(comp.getClockParameters());
   }
   
   public long getBase ()
