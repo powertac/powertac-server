@@ -1,0 +1,419 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title">Wholesale market</ui:define>
+
+	<ui:define name="headIncludes">
+		<h:outputScript library="js" name="wholesale.js" />
+		<script type="text/javascript">
+		var beforeClearingWholesaleGraph;
+		var afterClearingWholesaleGraph;
+		
+		var globalWholesaleLastChart;
+		var globalWholesaleLastChartString = 'globalWholesaleLastChart'
+		var globalLastClearingPrices=#{wholesaleService.json.globalLastClearingPrices};
+		var globalLastClearingVolumes =#{wholesaleService.json.globalLastClearingVolumes};
+		makeGlobalWholesaleLastChart();
+		
+		var specificWholesaleChart;
+		var specificWholesaleChartString = 'specificWholesaleChart'
+		var	specificWholesaleChartPrices = [];
+		var	specificWholesaleChartVolumes = [];
+		makeSpecificWholesaleChart();
+			
+		</script>
+
+ 
+
+
+	</ui:define>
+
+	<ui:define name="content">
+		<h:form>
+			<p:poll interval="5" update="@(.updateInvisiblePanel)" />
+		</h:form>
+		<p:layout fullPage="false" style="width:800px;height:800px"
+			stateful="true">
+
+			<p:layoutUnit position="west" size="270" collapsible="true"
+				header="LOL" styleClass="custom">
+
+				<h:form id="wholesaleTableForm">
+
+
+
+					<p:dataTable var="market" value="#{wholesaleBean.markets}"
+						paginator="true" rows="24" pageLinks="3" tableStyle="width:auto" styleClass="updateInvisiblePanel"> 
+
+						<!-- <f:facet name="header">  
+          				   Expand rows to see detailed information  
+     				   </f:facet>  -->
+
+						<!-- 	<p:column style="width:20px">
+							<p:rowToggler />
+						</p:column>  -->
+
+						<p:column style="width:40px" headerText="Timeslot">
+							<h:outputText value="#{market.timeslotSerialNumber}" />
+						</p:column>
+
+						<p:column style="width:40px" headerText="TTQ (MWh)">
+							<h:outputText value="#{market.totalTradedQuantityMWh}" />
+						</p:column>
+
+						<p:column style="width:20px">
+
+							<p:commandButton update=":selectClearingForm"
+								icon="ui-icon-search" title="View">
+								<f:setPropertyActionListener value="#{market}"
+									target="#{wholesaleBean.selectedMarket}" />
+							</p:commandButton>
+
+						</p:column>
+
+						<f:facet name="footer">
+						
+						
+						Total traded quantity: #{wholesaleBean.totalTradedQuantityMWh} MWh
+						</f:facet>
+					</p:dataTable>
+					<p:panel styleClass="updateInvisiblePanel">
+<script type="text/javascript">
+						$(document).ready(function() {	
+							window.globalWholesaleLastChart.series[0].setData(#{wholesaleService.json.globalLastClearingPrices},false);
+							window.globalWholesaleLastChart.series[1].setData(#{wholesaleService.json.globalLastClearingVolumes},false);
+							window.globalWholesaleLastChart.redraw();
+							
+						});
+						</script>
+</p:panel>
+
+				</h:form>
+
+			</p:layoutUnit>
+
+			<p:layoutUnit position="center" id="wholesaleCenterUnit">
+					
+					
+					<div id="globalWholesaleLastChart"
+					style="width: 800px; height: 500px;" />	
+				
+				<div id="specificWholesaleChart"
+					style="width: 800px; height: 500px;" />	
+			
+	
+				<h:form id="selectClearingForm">
+				
+				<p:panel styleClass="updateInvisiblePanel" rendered="#{not empty wholesaleBean.selectedMarket}">
+		<script type="text/javascript">
+
+$(document).ready(function() {	
+	window.specificWholesaleChart.series[0].setData(#{wholesaleBean.selectedMarket.json.clearingPrices},false);
+	window.specificWholesaleChart.series[1].setData(#{wholesaleBean.selectedMarket.json.clearingVolumes},false);
+	window.specificWholesaleChart.redraw();
+	
+});
+</script> 
+</p:panel>
+				
+					
+					<p:carousel id="carousel" var="snapshot"
+						value="#{wholesaleBean.selectedMarket.snapshots}" rendered="#{not empty wholesaleBean.selectedMarket}"
+						headerText="Clearings for timeslot #{wholesaleBean.selectedMarket.timeslotSerialNumber}" rows="6">
+						
+						<p:column>
+							<h:panelGrid columns="2"  cellpadding="5">
+								<h:outputText styleClass="label" value="TS created: " />
+								<h:outputText value="#{snapshot.timeslotSerialNumberCreated}" />
+								
+								<h:outputLabel styleClass="label" value="Price (EUR): "/>
+								<h:outputText value="#{snapshot.clearedTrade.executionPrice}">
+								<f:convertNumber maxFractionDigits="2"/>
+								</h:outputText>
+								
+								<h:outputLabel styleClass="label" value="TTQ (MWh): " />
+								<h:outputText value="#{snapshot.totalTradedQuantity}" />
+								
+								
+								
+								<h:outputText styleClass="label" value="Cleared:"/>
+								
+								<h:outputText value="N" rendered="#{not snapshot.cleared}"/>
+								<h:outputText value="Y" rendered="#{snapshot.cleared}"/>
+								
+												
+								</h:panelGrid>
+
+						<p:commandButton update=":wholesaleGraphsForm" icon="ui-icon-search">
+
+								<f:setPropertyActionListener value="#{snapshot}"
+									target="#{wholesaleBean.selectedSnapshot}" />
+						</p:commandButton>
+						</p:column>
+					</p:carousel>
+					
+				
+				</h:form>
+				
+				
+				
+				<h:form id="wholesaleGraphsForm">
+				
+				
+
+				<!-- 	<p:remoteCommand name="onToggleBeforeClearingGraph"
+						action="onToggleBeforeClearingGraphAction" />
+					<p:remoteCommand name="onToggleAfterClearingGraph"
+						action="onToggleAfterClearingGraphAction" />
+					<p:remoteCommand name="onToggleClearingDetails"
+						action="onToggleClearingDetailsAction" />  -->
+
+		<!-- 			<p:fieldset id="beforeFieldset" styleClass="specificClearing"
+						legend="Before clearing of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}"
+						toggleable="true"
+						collapsed="#{userSessionBean.beforeClearingGraphCollapsed}"
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+						<p:ajax event="toggle" onstart="onToggleBeforeClearingGraph()" />  -->
+	<p:fieldset id="beforeFieldset" styleClass="specificClearing" rendered="#{not empty wholesaleBean.selectedSnapshot}" legend="Before clearing of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}">
+
+						<!-- Before clearing graph -->
+						<div id="beforeClearingWholesaleGraph"
+							style="width: 600px; height: 250px;" />
+						<script type="text/javascript">
+							if (window.beforeClearingWholesaleGraph != null) {
+								window.beforeClearingWholesaleGraph.destroy();
+							}
+							window.beforeClearingWholesaleGraph=$.jqplot('beforeClearingWholesaleGraph',  #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.graphDataBeforeClearing}, 
+									{
+									title: 'Before clearing graph', 
+									seriesColors: #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.seriesColorsBeforeClearing},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+									            label: "Quantity/MWh",
+									            pad: 0,
+									            max: 150,
+									            min: 0
+									            },
+									    yaxis: {
+									            label: "Price[&euro;]/MWh"},
+									            max: 120,
+									            min: 0
+									            },
+									   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
+									}
+								}); 	
+						
+								</script>
+
+
+					</p:fieldset>
+
+			<!-- 			<p:fieldset id="afterFieldset" styleClass="specificClearing"
+						legend="After clearing of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}"
+						toggleable="true"
+						collapsed="#{userSessionBean.afterClearingGraphCollapsed}"
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+
+						<p:ajax event="toggle" onstart="onToggleAfterClearingGraph()" /> -->
+						
+						<p:fieldset id="afterFieldset" styleClass="specificClearing"
+						legend="After clearing of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}"
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+						
+						<!-- After clearing graph -->
+						<div id="afterClearingWholesaleGraph"
+							style="width: 600px; height: 250px;" />
+
+						<script type="text/javascript">
+							if (window.afterClearingWholesaleGraph != null) {
+								window.afterClearingWholesaleGraph.destroy();
+							}
+							window.afterClearingWholesaleGraph=$.jqplot('afterClearingWholesaleGraph',  #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.graphDataAfterClearing}, 
+									{
+									title: 'After clearing graph', 
+									seriesColors: #{wholesaleBean.selectedSnapshot.wholesaleSnapshotJSON.seriesColorsAfterClearing},
+									axesDefaults: {
+									        labelRenderer: $.jqplot.CanvasAxisLabelRenderer},
+									axes: {
+										xaxis: {
+								            label: "Quantity/MWh",
+								            pad: 0,
+								            max: 150,
+								            min: 0
+								            },
+								    yaxis: {
+								            label: "Price[&euro;]/MWh"},
+								            max: 120,
+								            min: 0
+								            },
+								   
+																	
+											
+									seriesDefaults: {
+										showMarker: false
+									}
+								}); 	
+						
+								</script>
+
+					</p:fieldset>
+
+				<!-- 	<p:fieldset id="clearingDetailsFieldset"
+						styleClass="specificClearing"
+						legend="Clearing details of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}"
+						toggleable="true" collapsed="#{userSessionBean.clearingDetails}"
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+						<p:ajax event="toggle" onstart="onToggleClearingDetails()" />  -->
+						
+						<p:fieldset id="clearingDetailsFieldset"
+						styleClass="specificClearing"
+						legend="Clearing details of #{wholesaleBean.selectedSnapshot.timeslotSerialNumber}@#{wholesaleBean.selectedSnapshot.timeslotSerialNumberCreated}"
+						rendered="#{not empty wholesaleBean.selectedSnapshot}">
+
+						<h:panelGrid columns="2">
+
+							<h:panelGrid columns="2">
+								<p:dataTable var="ask"
+									value="#{wholesaleBean.selectedSnapshot.beforeAsks}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							Before Asks
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{ask.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{ask.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+
+								<p:dataTable var="bid"
+									value="#{wholesaleBean.selectedSnapshot.beforeBids}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							Before Bids
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{bid.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{bid.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+
+							<h:panelGrid columns="2">
+								<p:dataTable var="ask"
+									value="#{wholesaleBean.selectedSnapshot.afterAsks}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							After Asks
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{ask.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{ask.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+
+								<p:dataTable var="bid"
+									value="#{wholesaleBean.selectedSnapshot.afterBids}"
+									scrollable="true" scrollHeight="120" style="float:left">
+									<f:facet name="header">
+							After Bids
+							</f:facet>
+									<p:column headerText="Limit price" style="width:50px">
+										<h:outputText value="#{bid.limitPrice}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="MWh" style="width:50px">
+										<h:outputText value="#{bid.MWh}">
+											<f:convertNumber maxFractionDigits="2" />
+										</h:outputText>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+
+							<h:panelGrid>
+
+								<h:panelGrid columns="4"
+									rendered="#{not empty wholesaleBean.selectedSnapshot.marketBidOrder}">
+									<h:outputLabel value="Market bid order: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketBidOrder.MWh}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+									<h:outputText value=" @ " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketBidOrder.limitPrice}"
+										rendered="#{not empty wholesaleBean.selectedSnapshot.marketBidOrder}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+
+								</h:panelGrid>
+
+								<h:panelGrid columns="4"
+									rendered="#{not empty wholesaleBean.selectedSnapshot.marketAskOrder}">
+									<h:outputLabel value="Market ask order: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketAskOrder.MWh}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+									<h:outputText value=" @ " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.marketAskOrder.limitPrice}"
+										rendered="#{not empty wholesaleBean.selectedSnapshot.marketAskOrder}">
+										<f:convertNumber maxFractionDigits="2" />
+									</h:outputText>
+
+								</h:panelGrid>
+								<h:panelGrid columns="2">
+									<h:outputLabel value="Total Traded Quantity: " />
+									<h:outputText
+										value="#{wholesaleBean.selectedSnapshot.clearedTrade.executionMWh} MWh @ #{wholesaleBean.selectedSnapshot.clearedTrade.executionPrice}" />
+								</h:panelGrid>
+
+
+							</h:panelGrid>
+						</h:panelGrid>
+
+					</p:fieldset>
+
+
+
+				</h:form>
+			</p:layoutUnit>
+
+
+		</p:layout>
+
+
+
+	</ui:define>
+
+</ui:composition>

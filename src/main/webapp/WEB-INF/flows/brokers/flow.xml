@@ -6,14 +6,10 @@
 
 	<!-- Also see ../parent-flow.xml. -->
 
-	<!-- moved to parent flow <on-start> <evaluate expression="visualizerBean.getBrokersClone()" 
-		result="conversationScope.brokersClone"></evaluate> </on-start> -->
 
 	<view-state id="view">
 
-		<on-render>
-			<evaluate expression="trainingService.increment()"></evaluate>
-		</on-render>
+		
 
 
 	</view-state>

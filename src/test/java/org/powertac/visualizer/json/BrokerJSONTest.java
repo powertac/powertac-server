@@ -9,20 +9,20 @@ import org.primefaces.json.JSONObject;
 
 public class BrokerJSONTest {
 
-	private BrokerJSON json;
-
-	@Before
-	public void setUp() throws Exception {
-		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("label", "testlabel");
-		jsonObject.put("color", "red");
-		jsonObject.putOpt("label3","lol");
-		json = new BrokerJSON(jsonObject);
-	}
-
-	@Test
-	public void test() throws JSONException {
-		System.out.println(json.getSeriesOptions());
-	}
+//	private BrokerJSON json;
+//
+//	@Before
+//	public void setUp() throws Exception {
+//		JSONObject jsonObject = new JSONObject();
+//		jsonObject.put("label", "testlabel");
+//		jsonObject.put("color", "red");
+//		jsonObject.putOpt("label3","lol");
+//		json = new BrokerJSON(jsonObject);
+//	}
+//
+//	@Test
+//	public void test() throws JSONException {
+//		System.out.println(json.getSeriesOptions());
+//	}
 
 }

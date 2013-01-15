@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd"
+	parent="parent-flow">
+
+	<!-- Also see ../parent-flow.xml. -->
+	
+	<view-state id="view">
+		
+		<on-entry>
+			<evaluate expression="wholesaleBean.clearSelections()"></evaluate>
+			</on-entry>
+		
+		<on-render>
+			<evaluate  expression="trainingService.increment()"></evaluate>
+			
+
+		</on-render>
+		
+			<transition on="onGlobalWholesaleGraphCollapsedAction">
+			<evaluate expression="userSessionBean.onGlobalWholesaleGraphCollapsed()"></evaluate>
+			</transition>
+		
+			
+
+			<transition on="onToggleBeforeClearingGraphAction">
+			<evaluate expression="userSessionBean.onToggleBeforeClearingGraph()"></evaluate>
+			</transition>
+			
+			<transition on="onToggleAfterClearingGraphAction">
+			<evaluate expression="userSessionBean.onToggleAfterClearingGraph()"></evaluate>
+			</transition>
+			
+			<transition on="onToggleClearingDetailsAction">
+			<evaluate expression="userSessionBean.onToggleClearingDetails()"></evaluate>
+			</transition>
+
+	</view-state>
+	
+	
+
+    <end-state id="completeTabViewFlow"/>
+</flow>
+
