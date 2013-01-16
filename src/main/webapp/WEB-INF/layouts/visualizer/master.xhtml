@@ -12,9 +12,15 @@
 	<ui:insert name="headInclude" />
 	<h:outputScript library="js" name="scripts.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
-	<h:outputScript library="js" name="highcharts.js"/>
-	<h:outputScript library="js" name="highstock.js"/>
-	<h:outputScript library="js/modules" name="exporting.js"/>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+ <script src="http://code.highcharts.com/highcharts-more.js"></script>
+	<script src="http://code.highcharts.com/modules/exporting.js"></script>
+	
+	
+	<script src="http://code.highcharts.com/stock/highstock.js"></script>
+	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
+	
+
 	<script type='text/javascript' src='https://www.google.com/jsapi'/>
 	
 	<script type="text/javascript">
@@ -192,11 +198,11 @@
 		<p:layoutUnit position="east" size="400" collapsible="true"
 			header="LOL" styleClass="custom" resizable="true">
 
-			<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
+		<!-- 	<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
 			<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml" />
 			<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml" />
 			<p:lineChart style="height: 1px; width: 1px;"
-				value="#{imageControl.fakeChart}" rendered="false" />
+				value="#{imageControl.fakeChart}" rendered="false" />  -->
 		
 		</p:layoutUnit>
 
@@ -219,15 +225,18 @@
 				<p:menuitem value="Weather"
 					icon="/app/resources/resources/images/dock/weather.png"
 					url="weather" />
+				<p:menuitem value="Push"
+					icon="/app/resources/resources/images/dock/eye.png"
+					url="push" />
 			</p:dock>
 		</p:layoutUnit>
 
 	</p:layout>
 
 	<h:form>
-		<p:poll autoStart="true" interval="5"
+		<!-- <p:poll autoStart="true" interval="5"
 			update=":tableBrokersForm,:northForm, :cashChartGlobalForm, :subscriptionsPieChartForm" />
-	</h:form>
+	 --></h:form>
 
 </h:body>
 

@@ -14,7 +14,7 @@ import org.powertac.common.Timeslot;
  * @author Jurica Babic
  * 
  */
-public class WholesaleData {
+public class WholesaleDataGenco {
 	private Timeslot timeslot;
 	private ArrayList<MarketPosition> marketPositions;
 	private ArrayList<MarketTransaction> marketTransactions;
@@ -22,7 +22,7 @@ public class WholesaleData {
 	private double totalPrice;
 	private double totalMWh;
 
-	public WholesaleData(Timeslot timeslot) {
+	public WholesaleDataGenco(Timeslot timeslot) {
 		this.timeslot = timeslot;
 		marketPositions = new ArrayList<MarketPosition>();
 		marketTransactions = new ArrayList<MarketTransaction>();

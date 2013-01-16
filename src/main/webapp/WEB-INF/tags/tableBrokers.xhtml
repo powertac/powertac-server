@@ -45,7 +45,7 @@
 						<f:facet name="header">  
             			Energy bal. <br /> [kWh]
         	</f:facet>
-						<h:outputText value="#{broker.energyBalance}"
+						<h:outputText value="#{broker.balancingCategory.lastBalancingData.kWhImbalance}"
 							style="font-weight: bold">
 							<f:convertNumber maxFractionDigits="2" />
 						</h:outputText>
