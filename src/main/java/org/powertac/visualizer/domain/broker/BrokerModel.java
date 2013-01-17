@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.powertac.visualizer.domain.Appearance;
 import org.powertac.visualizer.statistical.AggregateDistributionData;
 import org.powertac.visualizer.statistical.BalancingCategory;
+import org.powertac.visualizer.statistical.DistributionCategory;
 import org.powertac.visualizer.statistical.FinanceCategory;
 import org.powertac.visualizer.statistical.GradingSystem;
 import org.powertac.visualizer.statistical.TariffCategory;
@@ -20,10 +21,10 @@ public class BrokerModel {
 	
 	private FinanceCategory financeCategory;
 	private BalancingCategory balancingCategory;
-	private WholesaleCategory wholesaleCategory;
+	private WholesaleCategory wholesaleCategory; 
 	private TariffCategory tariffCategory;
-	private AggregateDistributionData aggregateDistributionData = new AggregateDistributionData();
-
+	private DistributionCategory distributionCategory;
+	
 	public BrokerModel(String name, Appearance appearance) {
 		this.name = name;
 		this.appearance = appearance;
@@ -34,6 +35,7 @@ public class BrokerModel {
 		wholesaleCategory = new WholesaleCategory(this);
 		tariffCategory = new TariffCategory(this);
 		financeCategory = new FinanceCategory(this);
+		distributionCategory = new DistributionCategory(this);
 
 	}
 
@@ -65,18 +67,19 @@ public class BrokerModel {
 		return wholesaleCategory;
 	}
 
-	public AggregateDistributionData getAggregateDistributionData() {
-		return aggregateDistributionData;
-	}
 
 	public void grade() {
-		balancingCategory.setGrade(GradingSystem.getBalancingGrade(
-				balancingCategory.getAggregateBalancingData().getTotalKwh(),
-				aggregateDistributionData.getNetKWh()));
+//		balancingCategory.setGrade(GradingSystem.getBalancingGrade(
+//				balancingCategory.getKwh(),
+//				aggregateDistributionData.getNetKWh()));
 		wholesaleCategory.setGrade(GradingSystem.getWholesaleMarketGrade(
 				wholesaleCategory.getNoOrders(),
 				wholesaleCategory.getNoMarketTransactions()));
 
+	}
+	
+	public DistributionCategory getDistributionCategory() {
+		return distributionCategory;
 	}
 	
 	public TariffCategory getTariffCategory() {

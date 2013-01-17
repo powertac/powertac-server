@@ -60,9 +60,9 @@ public class Customer implements TimeslotModelUpdate {
 
 	}
 
-	public void addTariffTransaction(TariffTransaction transaction) {
-		double kWh = transaction.getKWh();
-		double charge = (-1.0) * transaction.getCharge();
+	public void addTariffTransaction(TariffTransaction tx) {
+		double kWh = tx.getKWh();
+		double charge = (-1.0) * tx.getCharge();
 		if (kWh < 0) {
 			currentKWhConsumed += kWh;
 		} else {
@@ -74,7 +74,7 @@ public class Customer implements TimeslotModelUpdate {
 			currentOutflowCharge += charge;
 		}
 
-		customerModel.addTariffTransaction(transaction);
+		customerModel.addTariffTransaction(tx);
 	}
 
 	private void buildBootstrapDataJSON(Competition competition) {

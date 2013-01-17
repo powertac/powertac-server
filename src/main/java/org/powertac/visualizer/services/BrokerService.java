@@ -19,7 +19,7 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.json.BrokersJSON;
-import org.powertac.visualizer.statistical.BalancingData;
+import org.powertac.visualizer.statistical.DynamicData;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
@@ -90,20 +90,20 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			b.grade(); 
  
 			JSONObject balancingObject = new JSONObject();
-			BalancingData balancingData = b.getBalancingCategory()
-					.getLastBalancingData();
-			double[] kWhImbalanceArray = { balancingData.getTimestamp(),
-					balancingData.getkWhImbalance() };
-			double[] priceImbalanceArray = { balancingData.getTimestamp(),
-					balancingData.getPriceImbalance() };
-			double[] unitPriceImbalanceArray = { balancingData.getTimestamp(),
-					balancingData.getUnitPrice() };
+//			DynamicData balancingData = b.getBalancingCategory()
+//					.getLastBalancingData();
+//			double[] kWhImbalanceArray = { balancingData.getTimestamp(),
+//					balancingData.getkWhImbalance() };
+//			double[] priceImbalanceArray = { balancingData.getTimestamp(),
+//					balancingData.getPriceImbalance() };
+//			double[] unitPriceImbalanceArray = { balancingData.getTimestamp(),
+//					balancingData.getUnitPrice() };
 
 			
 			try {
-				balancingObject.put("lastKwhImbalance", kWhImbalanceArray);
-				balancingObject.put("lastMoneyImbalance", priceImbalanceArray);
-				balancingObject.put("lastUnitPriceImbalance",unitPriceImbalanceArray);
+//				balancingObject.put("lastKwhImbalance", kWhImbalanceArray);
+//				balancingObject.put("lastMoneyImbalance", priceImbalanceArray);
+//				balancingObject.put("lastUnitPriceImbalance",unitPriceImbalanceArray);
 
 				JSONObject jsonData = new JSONObject();
 				jsonData.put("balancing", balancingObject);

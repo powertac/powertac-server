@@ -20,18 +20,16 @@ import org.powertac.visualizer.domain.broker.TariffDynamicData;
 public class TariffCategory extends AbstractPerformanceCategory implements
 		PerformanceCategory {
 
-	private double profit;
-	private double netKWh;
 	private int customerCount;
 
 	// key: postedTime
-	private ConcurrentHashMap<Long, TariffDynamicData> tariffDynamicData;
+	private ConcurrentHashMap<Integer, TariffDynamicData> tariffDynamicDataMap;
 	private ConcurrentHashMap<CustomerInfo, CustomerTariffData> customerTariffData;
 	private ConcurrentHashMap<TariffSpecification, TariffData> tariffData;
 
 	public TariffCategory(BrokerModel broker) {
 		super(broker);
-		tariffDynamicData = new ConcurrentHashMap<Long, TariffDynamicData>(100,
+		tariffDynamicDataMap = new ConcurrentHashMap<Integer, TariffDynamicData>(100,
 				0.75f, 1);
 		customerTariffData = new ConcurrentHashMap<CustomerInfo, CustomerTariffData>(
 				20, 0.75f, 1);
@@ -43,44 +41,12 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 		tariffData.putIfAbsent(ts, new TariffData(ts, broker));
 	}
 
-	public void processTariffTransaction(TariffTransaction tx) {
-
-		// handle SIGNUP&WITHDRAW transactions:
-		int deltaCustomers = Helper.getCustomerCount(tx);
-
-		tariffDynamicData.putIfAbsent(tx.getPostedTime().getMillis(),
-				new TariffDynamicData(profit, netKWh, customerCount));
-		tariffDynamicData.get(tx.getPostedTime().getMillis()).addAmounts(tx.getCharge(),
-				tx.getKWh(), deltaCustomers);
-
-		customerTariffData.putIfAbsent(tx.getCustomerInfo(),
-				new CustomerTariffData(broker, tx.getCustomerInfo()));
-		customerTariffData.get(tx.getCustomerInfo()).addAmounts(tx.getCharge(),
-				tx.getKWh());
-
-		TariffData tData = tariffData.get(tx.getTariffSpec());
-		tData.processTariffTx(tx);
-
-		profit += tx.getCharge();
-		netKWh += tx.getKWh();
-		customerCount += deltaCustomers;
-
-	}
-
-	public double getNetKWh() {
-		return netKWh;
-	}
-
-	public double getProfit() {
-		return profit;
-	}
-
-	public ConcurrentHashMap<Long, TariffDynamicData> getTariffDynamicData() {
-		return tariffDynamicData;
-	}
-
 	public int getCustomerCount() {
 		return customerCount;
+	}
+	
+	public ConcurrentHashMap<Integer, TariffDynamicData> getTariffDynamicDataMap() {
+		return tariffDynamicDataMap;
 	}
 
 	/**

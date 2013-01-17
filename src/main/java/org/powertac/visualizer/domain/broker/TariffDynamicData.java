@@ -2,6 +2,8 @@ package org.powertac.visualizer.domain.broker;
 
 import javax.swing.text.DefaultEditorKit.CutAction;
 
+import org.powertac.visualizer.statistical.DynamicData;
+
 /**
  * Tariff data for broker's tariffs.
  * 
@@ -10,60 +12,32 @@ import javax.swing.text.DefaultEditorKit.CutAction;
  */
 public class TariffDynamicData {
 
+	private DynamicData dynamicData;
 	private int customerCount;
-	private double profit;
-	private double netKwh;
+	private int customerCountDelta;
 
-	private double kwhOneTimeslot;
-	private double profitOneTimeslot;
-	private int customerCountOneTimeslot;
-
-	public TariffDynamicData(double profit, double netKWh, int customerCount) {
-		this.profit = profit;
-		this.netKwh = netKWh;
+	public TariffDynamicData(int tsIndex, double profit, double energy,
+			int customerCount) {
+		dynamicData = new DynamicData(tsIndex, energy, profit);
 		this.customerCount = customerCount;
 	}
 
-	public synchronized void addAmounts(double money, double energy,
+	public synchronized void update(double money, double energy,
 			int deltaCustomers) {
-		kwhOneTimeslot += energy;
-		profitOneTimeslot += money;
-		customerCountOneTimeslot += deltaCustomers;
-
-		profit += profitOneTimeslot;
-		netKwh += kwhOneTimeslot;
-		this.customerCount += customerCountOneTimeslot;
+		dynamicData.update(energy, money);
+		customerCount += deltaCustomers;
 	}
 
-	public double getNetKWh() {
-		return netKwh;
+	public DynamicData getDynamicData() {
+		return dynamicData;
 	}
 
-	public double getProfit() {
-		return profit;
-	}
-
-	/**
-	 * @return total number of broker's subscribed customers
-	 */
 	public int getCustomerCount() {
 		return customerCount;
 	}
 
-	public int getCustomerCountOneTimeslot() {
-		return customerCountOneTimeslot;
-	}
-
-	public double getKwhOneTimeslot() {
-		return kwhOneTimeslot;
-	}
-
-	public double getNetKwh() {
-		return netKwh;
-	}
-
-	public double getProfitOneTimeslot() {
-		return profitOneTimeslot;
+	public int getCustomerCountDelta() {
+		return customerCountDelta;
 	}
 
 }

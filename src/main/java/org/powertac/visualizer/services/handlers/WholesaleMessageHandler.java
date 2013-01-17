@@ -96,19 +96,21 @@ public class WholesaleMessageHandler implements Initializable {
 	public void handleMessage(Orderbook orderbook) {
 	}
 
-	public void handleMessage(ClearedTrade clearedTrade) {
+	public void handleMessage(ClearedTrade ct) {
 		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService
 				.getClearedTrades();
 		// if there is a new key:
-		map.putIfAbsent(clearedTrade.getTimeslot().getStartInstant()
+		map.putIfAbsent(ct.getTimeslot().getStartInstant()
 				.getMillis(), new ConcurrentHashMap<Long, ClearedTrade>(24,
 				0.75f, 1));
 
+		
+		
 		TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
 
 		if (old != null) {
-			map.get(clearedTrade.getTimeslot().getStartInstant().getMillis())
-					.put(old.getPostedTime().getMillis(), clearedTrade);
+			map.get(ct.getTimeslot().getStartInstant().getMillis())
+					.put(old.getPostedTime().getMillis(), ct);
 		} else{
 			log.warn("The old timeslot update does not exist.");
 		}

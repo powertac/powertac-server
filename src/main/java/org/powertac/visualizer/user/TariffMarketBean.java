@@ -28,9 +28,8 @@ public class TariffMarketBean implements Serializable {
 
 		// Data Array
 		ArrayList<Object> tariffData = new ArrayList<Object>();
-		
+
 		ArrayList<Object> tariffDataOneTimeslot = new ArrayList<Object>();
-		
 
 		Collection<BrokerModel> brokers = brokerService.getBrokersMap()
 				.values();
@@ -41,73 +40,74 @@ public class TariffMarketBean implements Serializable {
 			ArrayList<Object> customerNumberData = new ArrayList<Object>();
 			ArrayList<Object> profitData = new ArrayList<Object>();
 			ArrayList<Object> netKWhData = new ArrayList<Object>();
-			
-			//one timeslot
+
+			// one timeslot
 			ArrayList<Object> customerNumberDataOneTimeslot = new ArrayList<Object>();
 			ArrayList<Object> profitDataOneTimeslot = new ArrayList<Object>();
 			ArrayList<Object> kwhDataOneTimeslot = new ArrayList<Object>();
-			
 
-			ConcurrentHashMap<Long, TariffDynamicData> tariffDynData = brokerModel
-					.getTariffCategory().getTariffDynamicData();
+			ConcurrentHashMap<Integer, TariffDynamicData> tariffDynData = brokerModel
+					.getTariffCategory().getTariffDynamicDataMap();
 
-			Set<Long> keysTariffDynData = new TreeSet<Long>(brokerModel
-					.getTariffCategory().getTariffDynamicData().keySet());
+			Set<Integer> keysTariffDynData = new TreeSet<Integer>(brokerModel
+					.getTariffCategory().getTariffDynamicDataMap().keySet());
 
 			// dynamic tariff data:
 			for (Iterator iterator2 = keysTariffDynData.iterator(); iterator2
 					.hasNext();) {
-				long key = (Long) iterator2.next();
+				int key = (Integer) iterator2.next();
 				TariffDynamicData dynData = tariffDynData.get(key);
 				Object[] timeCustomerCount = { key, dynData.getCustomerCount() };
-				Object[] profit = { key, dynData.getProfit() };
-				Object[] netKWh = { key, dynData.getNetKWh() };
-				
+				Object[] profit = { key, dynData.getDynamicData().getProfit() };
+				Object[] netKWh = { key, dynData.getDynamicData().getEnergy() };
+
 				customerNumberData.add(timeCustomerCount);
 				profitData.add(profit);
 				netKWhData.add(netKWh);
-				
-				//one timeslot:
-				Object[] customerCountOneTimeslot = { key, dynData.getCustomerCountOneTimeslot() };
-				Object[] profitOneTimeslot = { key, dynData.getProfitOneTimeslot() };
-				Object[] kWhOneTimeslot = { key, dynData.getKwhOneTimeslot() };
-				
+
+				// one timeslot:
+				Object[] customerCountOneTimeslot = { key,
+						dynData.getCustomerCountDelta() };
+				Object[] profitOneTimeslot = { key,
+						dynData.getDynamicData().getProfitDelta() };
+				Object[] kWhOneTimeslot = { key,
+						dynData.getDynamicData().getEnergyDelta() };
+
 				customerNumberDataOneTimeslot.add(customerCountOneTimeslot);
 				profitDataOneTimeslot.add(profitOneTimeslot);
 				kwhDataOneTimeslot.add(kWhOneTimeslot);
-				
+
 			}
-			tariffData.add(new BrokerSeriesTemplate(
-					brokerModel.getName()+"_PROFIT", brokerModel.getAppearance()
-							.getColorCode(),0, profitData));
-			tariffData.add(new BrokerSeriesTemplate(
-					brokerModel.getName()+"_KWH", brokerModel.getAppearance()
-							.getColorCode(), 1, netKWhData));
-			tariffData.add(new BrokerSeriesTemplate(brokerModel
-					.getName()+"_CUST", brokerModel.getAppearance().getColorCode(), 2,
+			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
+					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,
+					profitData));
+			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
+					+ "_KWH", brokerModel.getAppearance().getColorCode(), 1,
+					netKWhData));
+			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
+					+ "_CUST", brokerModel.getAppearance().getColorCode(), 2,
 					true, customerNumberData));
-			
-			//one timeslot:
-			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(
-					brokerModel.getName()+"_PROFIT", brokerModel.getAppearance()
-							.getColorCode(),0, profitDataOneTimeslot));
-			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(
-					brokerModel.getName()+"_KWH", brokerModel.getAppearance()
-							.getColorCode(), 1, kwhDataOneTimeslot));
+
+			// one timeslot:
 			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName()+"_CUST", brokerModel.getAppearance().getColorCode(), 2,
-					true, customerNumberDataOneTimeslot));
+					.getName() + "_PROFIT", brokerModel.getAppearance()
+					.getColorCode(), 0, profitDataOneTimeslot));
+			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
+					.getName() + "_KWH", brokerModel.getAppearance()
+					.getColorCode(), 1, kwhDataOneTimeslot));
+			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
+					.getName() + "_CUST", brokerModel.getAppearance()
+					.getColorCode(), 2, true, customerNumberDataOneTimeslot));
 		}
 		this.tariffDynData = gson.toJson(tariffData);
 		this.tariffDynDataOneTimeslot = gson.toJson(tariffDataOneTimeslot);
 
 	}
 
-
-	
 	public String getTariffDynData() {
 		return tariffDynData;
 	}
+
 	public String getTariffDynDataOneTimeslot() {
 		return tariffDynDataOneTimeslot;
 	}
