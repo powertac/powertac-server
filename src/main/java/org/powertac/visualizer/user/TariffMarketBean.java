@@ -8,10 +8,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.services.BrokerService;
+import org.powertac.visualizer.services.handlers.VisualizerHelperService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
@@ -22,7 +24,7 @@ public class TariffMarketBean implements Serializable {
 	private String tariffDynDataOneTimeslot;
 
 	@Autowired
-	public TariffMarketBean(BrokerService brokerService) {
+	public TariffMarketBean(BrokerService brokerService, VisualizerHelperService helper) {
 
 		Gson gson = new Gson();
 
@@ -31,8 +33,7 @@ public class TariffMarketBean implements Serializable {
 
 		ArrayList<Object> tariffDataOneTimeslot = new ArrayList<Object>();
 
-		Collection<BrokerModel> brokers = brokerService.getBrokersMap()
-				.values();
+		Collection<BrokerModel> brokers = brokerService.getBrokers();
 		// brokers:
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
@@ -57,20 +58,20 @@ public class TariffMarketBean implements Serializable {
 					.hasNext();) {
 				int key = (Integer) iterator2.next();
 				TariffDynamicData dynData = tariffDynData.get(key);
-				Object[] timeCustomerCount = { key, dynData.getCustomerCount() };
-				Object[] profit = { key, dynData.getDynamicData().getProfit() };
-				Object[] netKWh = { key, dynData.getDynamicData().getEnergy() };
+				Object[] timeCustomerCount = { helper.getMillisForIndex(key), dynData.getCustomerCount() };
+				Object[] profit = { helper.getMillisForIndex(key), dynData.getDynamicData().getProfit() };
+				Object[] netKWh = { helper.getMillisForIndex(key), dynData.getDynamicData().getEnergy() };
 
 				customerNumberData.add(timeCustomerCount);
 				profitData.add(profit);
-				netKWhData.add(netKWh);
-
+				netKWhData.add(netKWh); 
+ 
 				// one timeslot:
-				Object[] customerCountOneTimeslot = { key,
+				Object[] customerCountOneTimeslot = { helper.getMillisForIndex(key),
 						dynData.getCustomerCountDelta() };
-				Object[] profitOneTimeslot = { key,
+				Object[] profitOneTimeslot = { helper.getMillisForIndex(key),
 						dynData.getDynamicData().getProfitDelta() };
-				Object[] kWhOneTimeslot = { key,
+				Object[] kWhOneTimeslot = { helper.getMillisForIndex(key),
 						dynData.getDynamicData().getEnergyDelta() };
 
 				customerNumberDataOneTimeslot.add(customerCountOneTimeslot);

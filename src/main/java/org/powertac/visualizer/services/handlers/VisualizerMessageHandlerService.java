@@ -37,7 +37,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 	@Autowired
 	private VisualizerBean visualizerBean;
 	@Autowired
-	private VisualizerMessageHandlerHelperService helper;
+	private VisualizerHelperService helper;
 	@Autowired
 	private AppearanceListBean appearanceListBean;
 	@Autowired

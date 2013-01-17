@@ -9,6 +9,7 @@ import org.powertac.common.msg.TariffUpdate;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.AppearanceListBean;
+import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
@@ -28,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class BrokerMessageHandler implements Initializable {
@@ -40,6 +42,8 @@ public class BrokerMessageHandler implements Initializable {
 	private BrokerService brokerService;
 	@Autowired
 	private AppearanceListBean appearanceListBean;
+	@Autowired
+	private VisualizerBean vizBean;
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Competition.class,
@@ -53,13 +57,21 @@ public class BrokerMessageHandler implements Initializable {
 	public void handleMessage(Competition competition) {
 		List<String> brokersName = competition.getBrokers();
 
+		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
+		ConcurrentHashMap<String, BrokerModel> map = new ConcurrentHashMap<String, BrokerModel>(
+				10, 0.75f, 1);
+
 		for (Iterator<String> iterator = brokersName.iterator(); iterator
 				.hasNext();) {
 			String name = (String) iterator.next();
 			BrokerModel brokerModel = new BrokerModel(name,
 					appearanceListBean.getAppereance());
-			brokerService.addBroker(brokerModel);
+			list.add(brokerModel);
+			map.put(brokerModel.getName(), brokerModel);
 		}
+		brokerService.setBrokersMap(map);
+		brokerService.setBrokers(list);
+		vizBean.setCompetition(competition);
 
 	}
 
@@ -103,19 +115,19 @@ public class BrokerMessageHandler implements Initializable {
 		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
 				.getUsername());
 		if (broker != null) {
-			TariffCategory dc = broker.getTariffCategory();
+			TariffCategory tc = broker.getTariffCategory();
 
-			dc.getTariffDynamicDataMap()
-					.putIfAbsent(
-							msg.getPostedTimeslotIndex(),
-							new TariffDynamicData(msg.getPostedTimeslotIndex(),
-									dc.getProfit(), dc.getEnergy(), dc
-											.getCustomerCount()));
-			dc.getTariffDynamicDataMap()
-					.get(msg.getPostedTimeslotIndex())
-					.update(msg.getKWh(), msg.getCharge(),
-							Helper.getCustomerCount(msg));
-			dc.update(msg.getKWh(), msg.getCharge());
+			int tsIndex = msg.getPostedTimeslotIndex();
+			ConcurrentHashMap<Integer, TariffDynamicData> tddmap = tc
+					.getTariffDynamicDataMap();
+
+			if (!tddmap.containsKey(tsIndex)) {
+				TariffDynamicData tdd = new TariffDynamicData(tsIndex,
+						tc.getProfit(), tc.getEnergy(), tc.getCustomerCount());
+				tc.addTariffDynamicData(tdd);
+			}
+			tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
+					Helper.getCustomerCount(msg));
 
 		}
 

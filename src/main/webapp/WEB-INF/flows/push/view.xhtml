@@ -80,9 +80,8 @@ $(".flip-list").liveTile();
 				<p:commandButton value="Click"
 					actionListener="#{globalCounterBean.increment}" />
 			</h:form>
-			<p:socket onMessage="handleMessage" channel="/counter" />
-			
-			<p:socket onMessage="handleBrokersMessage" channel="/brokers" />
+						
+			<p:socket onMessage="handleBrokersMessage" channel="/tariffpush" />
 					
 			 <div id="container" style="width: 700px; height: 400px; margin: 0 auto"></div>
 			 
@@ -97,8 +96,6 @@ $(".flip-list").liveTile();
 						global : {
 							useUTC : true
 						}
-					//,
-						//colors: ['#356AA0','#D01F3C','#008C00']
 					});
 					
 					// Create the chart
@@ -246,33 +243,7 @@ $(function () {
 });
 //})(jQuery);
 </script>
-WHOLESALE RECENT CLEARINGS:
-#{wholesaleBean.energyMostRecentClearingsJson}
-#{wholesaleBean.cashMostRecentClearingsJson}
 
-	 <p:tabView value="#{brokersBean.brokerList}" var="broker">
-	<p:tab  title="#{broker.name}">
-	<p:panel>
-KOLOR:	#{broker.appearance.colorCode}
-L:	#{broker.balancing.lastKwh}
-TOTALBALANCING:	#{broker.balancing.totalKwh}
-TOTALDISTRI:	#{broker.distributionData.kWh}
-
-GRADE: #{broker.balancing.grade}
-<!-- 	#{broker.balancing.kWhImbalanceJson}
-	#{broker.balancing.priceImbalanceJson}
-	#{broker.balancing.unitPriceImbalanceJson} -->
-	
-NORDERS:	#{broker.wholesale.noOrders}
-NOMARKETTX:	#{broker.wholesale.noMarketTx}
-GRADE:	#{broker.wholesale.grade}
-	
-	
-	
-	</p:panel>
-	</p:tab>
-	
-	</p:tabView>
 
 		</h:body>
 

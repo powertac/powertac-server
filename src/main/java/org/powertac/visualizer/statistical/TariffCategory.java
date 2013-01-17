@@ -21,6 +21,7 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 		PerformanceCategory {
 
 	private int customerCount;
+	private TariffDynamicData lastTariffDynamicData;
 
 	// key: postedTime
 	private ConcurrentHashMap<Integer, TariffDynamicData> tariffDynamicDataMap;
@@ -29,8 +30,9 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 
 	public TariffCategory(BrokerModel broker) {
 		super(broker);
-		tariffDynamicDataMap = new ConcurrentHashMap<Integer, TariffDynamicData>(100,
-				0.75f, 1);
+		lastTariffDynamicData = new TariffDynamicData(0, 0, 0, 0);
+		tariffDynamicDataMap = new ConcurrentHashMap<Integer, TariffDynamicData>(
+				1000, 0.75f, 1);
 		customerTariffData = new ConcurrentHashMap<CustomerInfo, CustomerTariffData>(
 				20, 0.75f, 1);
 		tariffData = new ConcurrentHashMap<TariffSpecification, TariffData>(20,
@@ -44,7 +46,7 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 	public int getCustomerCount() {
 		return customerCount;
 	}
-	
+
 	public ConcurrentHashMap<Integer, TariffDynamicData> getTariffDynamicDataMap() {
 		return tariffDynamicDataMap;
 	}
@@ -61,6 +63,24 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 	 */
 	public ConcurrentHashMap<TariffSpecification, TariffData> getTariffData() {
 		return tariffData;
+	}
+
+	public void update(int tsIndex, double energy, double cash,
+			int customerDelta) {
+		customerCount += customerDelta;
+		tariffDynamicDataMap.get(tsIndex).update(
+				energy, cash, customerDelta);
+		update(energy, cash);
+	}
+
+	public void addTariffDynamicData(TariffDynamicData tdd) {
+		lastTariffDynamicData = tdd;
+		tariffDynamicDataMap.put(tdd.getDynamicData().getTsIndex(), tdd);
+
+	}
+
+	public TariffDynamicData getLastTariffDynamicData() {
+		return lastTariffDynamicData;
 	}
 
 }

@@ -26,6 +26,7 @@ public class TariffDynamicData {
 			int deltaCustomers) {
 		dynamicData.update(energy, money);
 		customerCount += deltaCustomers;
+		customerCountDelta += deltaCustomers;
 	}
 
 	public DynamicData getDynamicData() {

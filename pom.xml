@@ -1,103 +1,120 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>visualizer</artifactId>
-  <name>Power TAC visualizer</name>
-  <packaging>war</packaging>
-  <version>1.0.0-SNAPSHOT</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>visualizer</artifactId>
+	<name>Power TAC visualizer</name>
+	<packaging>war</packaging>
+	<version>1.0.0-SNAPSHOT</version>
 
-  <parent>
-    <groupId>org.powertac</groupId>
-    <artifactId>server-master</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath />
-  </parent>
+	<parent>
+		<groupId>org.powertac</groupId>
+		<artifactId>server-master</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath />
+	</parent>
 
-  <properties>
-    <springwebflow-version>2.3.0.RELEASE</springwebflow-version>
-    <springsecurity-version>3.0.3.RELEASE</springsecurity-version>
-  </properties>
+	<properties>
+		<springwebflow-version>2.3.0.RELEASE</springwebflow-version>
+		<springsecurity-version>3.0.3.RELEASE</springsecurity-version>
+	</properties>
 
-  <dependencies>
-    <!-- Power TAC -->
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-main</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>webapp-dependencies</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-      <type>pom</type>
-    </dependency>
-    <dependency>
-	  <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-	  <version>1.7.1</version>
-    </dependency>
-    
-    <dependency>
-		<groupId>org.atmosphere</groupId>
-		<artifactId>atmosphere-runtime</artifactId>
-		<version>1.0.0.RC1</version>
-	</dependency>
-            
-  </dependencies>
+	<dependencies>
+		<!-- Power TAC -->
+		<dependency>
+			<groupId>org.powertac</groupId>
+			<artifactId>server-main</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.powertac</groupId>
+			<artifactId>webapp-dependencies</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>1.7.1</version>
+		</dependency>
 
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
+		<dependency>
+			<groupId>org.atmosphere</groupId>
+			<artifactId>atmosphere-runtime</artifactId>
+			<version>1.0.0.RC1</version>
+		</dependency>
 
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>2.2</version>
-        <configuration>
-          <webResources>
-            <resource>
-              <directory>src/main/webapp/WEB-INF/spring</directory>
-              <targetPath>WEB-INF/spring</targetPath>
-              <filtering>true</filtering>
-            </resource>
-          </webResources>
-        </configuration>
-      </plugin>
+		<dependency>
+			<groupId>org.primefaces</groupId>
+			<artifactId>primefaces</artifactId>
+			<version>3.4.2</version>
+		</dependency>
 
-      <!-- jetty-maven-plugin -->
-      <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.26</version>
-        <configuration>
-          <contextPath>/visualizer</contextPath>
-        </configuration>
-      </plugin>
 
-      <!--  tomcat plugin -->
-      <plugin>
-        <groupId>org.apache.tomcat.maven</groupId>
-        <artifactId>tomcat7-maven-plugin</artifactId>
-        <version>2.0-beta-1</version>
-        <configuration>
-          <url>http://localhost:8080/manager/text</url>
-          <username>admin</username>
-          <password>admin</password>
-          <path>/visualizer/${simNode}</path>
-          <update>true</update>
-        </configuration>
-      </plugin>
+	</dependencies>
 
-    </plugins>
-  </build>
-  
-  <scm>
-    <connection>scm:git:git//github.com/powertac/visualizer.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/visualizer.git</developerConnection>
-    <url>https://github.com/powertac/visualizer</url>
-  </scm>
+	<repositories>
+		<repository>
+			<id>sonatype</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>prime-repo</id>
+			<name>PrimeFaces Maven Repository</name>
+			<url>http://repository.primefaces.org</url>
+			<layout>default</layout>
+		</repository>
+	</repositories>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<webResources>
+						<resource>
+							<directory>src/main/webapp/WEB-INF/spring</directory>
+							<targetPath>WEB-INF/spring</targetPath>
+							<filtering>true</filtering>
+						</resource>
+					</webResources>
+				</configuration>
+			</plugin>
+
+			<!-- jetty-maven-plugin -->
+			<plugin>
+				<groupId>org.mortbay.jetty</groupId>
+				<artifactId>jetty-maven-plugin</artifactId>
+				<version>8.1.8.v20121106</version>
+				<configuration>
+					<webApp>
+						<contextPath>/visualizer</contextPath>
+					</webApp>
+				</configuration>
+			</plugin>
+
+			<!-- tomcat plugin -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.0-beta-1</version>
+				<configuration>
+					<url>http://localhost:8080/manager/text</url>
+					<username>admin</username>
+					<password>admin</password>
+					<path>/visualizer/${simNode}</path>
+					<update>true</update>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
+
+	<scm>
+		<connection>scm:git:git//github.com/powertac/visualizer.git</connection>
+		<developerConnection>scm:git:git@github.com:powertac/visualizer.git</developerConnection>
+		<url>https://github.com/powertac/visualizer</url>
+	</scm>
+
 </project>
