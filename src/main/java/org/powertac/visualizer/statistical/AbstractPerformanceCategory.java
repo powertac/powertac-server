@@ -37,9 +37,23 @@ public abstract class AbstractPerformanceCategory {
 		return profit;
 	}
 
-	public void update(double energy, double cash) {
+	public void update(int tsIndex, double energy, double cash) {
+		dynamicDataMap.putIfAbsent(tsIndex, new DynamicData(tsIndex,
+				this.energy, this.profit));
+		dynamicDataMap.get(tsIndex).update(energy, cash);
 		this.energy += energy;
-		profit += cash;
+		this.profit += cash;
+
+		if (tsIndex == 3) {
+			System.out.println("Tx: " + energy + "MWh " + cash + "euros");
+			System.out.println("TotalTS3: "
+					+ dynamicDataMap.get(tsIndex).getEnergyDelta() + "MWh "
+					+ dynamicDataMap.get(tsIndex).getProfitDelta() + "euros");
+			System.out.println("TotalALL: "
+					+ dynamicDataMap.get(tsIndex).getEnergy() + "MWh "
+					+ dynamicDataMap.get(tsIndex).getProfit() + "euros\n");
+		}
+
 	}
 
 	public AbstractPerformanceCategory(BrokerModel broker) {

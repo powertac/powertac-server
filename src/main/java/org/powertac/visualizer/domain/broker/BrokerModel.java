@@ -72,9 +72,9 @@ public class BrokerModel {
 //		balancingCategory.setGrade(GradingSystem.getBalancingGrade(
 //				balancingCategory.getKwh(),
 //				aggregateDistributionData.getNetKWh()));
-		wholesaleCategory.setGrade(GradingSystem.getWholesaleMarketGrade(
-				wholesaleCategory.getNoOrders(),
-				wholesaleCategory.getNoMarketTransactions()));
+//		wholesaleCategory.setGrade(GradingSystem.getWholesaleMarketGrade(
+//				wholesaleCategory.getNoOrders(),
+//				wholesaleCategory.getNoMarketTransactions()));
 
 	}
 	

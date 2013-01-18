@@ -6,103 +6,34 @@
 	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
-	<ui:define name="title">Wholesale market</ui:define>
+<ui:define name="headInclude">
+		<h:outputScript library="js" name="charts.js" />
 
-	<ui:define name="headIncludes">
-		<!-- <h:outputScript library="js" name="wholesale.js" /> -->
+	
+
 		<script type="text/javascript">
-		
-		$(function () {
-		    var allCtScatter;
-		    $(document).ready(function() {
-		    	allCtScatter = new Highcharts.Chart({
-		            chart: {
-		                renderTo: 'allCtScatterContainer',
-		                type: 'scatter',
-		                zoomType: 'xy'
-		            },
-		            title: {
-		                text: 'Market Transactions'
-		            },
-		            subtitle:{
-		            	text: 'hint: select the area to zoom-in'
-		            },
-		          
-		            xAxis: {
-		                title: {
-		                    enabled: true,
-		                    text: 'Price (&euro;)'
-		                },
-		                startOnTick: true,
-		                endOnTick: true,
-		                showLastLabel: true
-		            },
-		            yAxis: {
-		                title: {
-		                    text: 'Quantity (MWh)'
-		                }
-		            },
-		            tooltip: {
-		                formatter: function() {
-		                	var xRound=Math.round(this.x*100)/100;
-		                	var yRound=Math.round(this.y*100)/100;
-		                        return ''+
-		                         yRound +' MWh ' + xRound+' &euro;, ';
-		                }
-		            },
-		            legend: {
-		                layout: 'vertical',
-		                align: 'left',
-		                verticalAlign: 'top',
-		                x: 100,
-		                y: 70,
-		                floating: true,
-		                backgroundColor: '#FFFFFF',
-		                borderWidth: 1
-		            },
-		            plotOptions: {
-		                scatter: {
-		                    marker: {
-		                        radius: 5,
-		                        states: {
-		                            hover: {
-		                                enabled: true,
-		                                lineColor: 'rgb(100,100,100)'
-		                            }
-		                        }
-		                    },
-		                    states: {
-		                        hover: {
-		                            marker: {
-		                                enabled: false
-		                            }
-		                        }
-		                    }
-		                }
-		            },
-		            series: #{wholesaleBean.marketTransactionsJson}
-		        });
-		    });
-		    
-		});
-		
+		var wholesaleDynData;
+		var wholesaleDynDataOneTimeslot;
+			$(document).ready(
+					function() {
+						Highcharts.setOptions({
+							global : {
+								useUTC : true
+							}
+						});
+						
+						wholesaleDynData = dynDataGraph('wholesaleDynData',#{wholesaleMarketBean.wholesaleDynData},'Wholesale Market',getBaseDynYAxisData());
+						wholesaleDynDataOneTimeslot = dynDataGraph('wholesaleDynDataOneTimeslot',#{wholesaleMarketBean.wholesaleDynDataOneTimeslot},'Wholesale Market - one timeslot data',getBaseDynYAxisData())
 
-					
+					});
 		</script>
-
-
-
 
 	</ui:define>
 
 	<ui:define name="content">
-		<h:form>
-			<p:poll interval="5" update="@(.updateInvisiblePanel)" />
-		</h:form>
-	<div id="allCtScatterContainer" style="width: 700px;height: 550px;"/>
-<div id="container" style="width: 500px;height: 450px;"/>
-
-
+		<div id="wholesaleDynData" style="height: 600px; width: 650px" />
+		<div id="wholesaleDynDataOneTimeslot" style="height: 600px; width: 650px" />
+		<!-- <p:socket onMessage="handleTariffPush" channel="/tariffpush" /> -->
 	</ui:define>
-
+	
 </ui:composition>

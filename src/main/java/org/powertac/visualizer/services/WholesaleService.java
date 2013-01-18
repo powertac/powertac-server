@@ -68,15 +68,15 @@ public class WholesaleService implements Serializable, Recyclable,
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 			BrokerModel brokerModel = (BrokerModel) iterator.next();
 
-			SingleTimeslotWholesaleData singleTimeslot = brokerModel
-					.getWholesaleCategory()
-					.getSingleTimeslotWholesaleMap()
-					.get(visualizerBean.getOldTimeslotUpdate().getPostedTime()
-							.getMillis());
-
-			if (singleTimeslot != null) {
-				singleTimeslot.setClosed(true);
-			}
+//			SingleTimeslotWholesaleData singleTimeslot = brokerModel
+//					.getWholesaleCategory()
+//					.getSingleTimeslotWholesaleMap()
+//					.get(visualizerBean.getOldTimeslotUpdate().getPostedTime()
+//							.getMillis());
+//
+//			if (singleTimeslot != null) {
+//				singleTimeslot.setClosed(true);
+//			}
 		}
 
 	}

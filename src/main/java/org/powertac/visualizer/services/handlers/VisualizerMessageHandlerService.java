@@ -99,7 +99,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 	}
 
 	public void handleMessage(TimeslotComplete complete) {
-
+		visualizerBean.setTimeslotComplete(complete);
 		List<TimeslotCompleteActivation> activators = VisualizerApplicationContext
 				.listBeansOfType(TimeslotCompleteActivation.class);
 		for (TimeslotCompleteActivation active : activators) {

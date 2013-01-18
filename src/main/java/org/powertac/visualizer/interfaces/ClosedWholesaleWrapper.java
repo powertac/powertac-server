@@ -12,9 +12,6 @@ import org.powertac.visualizer.statistical.SingleTimeslotWholesaleData;
  */
 public interface ClosedWholesaleWrapper {
 
-	public HashMap<Long, SingleTimeslotWholesaleData> getClosedSingleTimeslotWholesaleMap();
+	public HashMap<Integer, SingleTimeslotWholesaleData> getClosedSingleTimeslotWholesaleMap();
 	
-	public int getNoOrders();
-	
-	public int getNoMarketTransactions();
 }

@@ -138,14 +138,7 @@ public class BrokerMessageHandler implements Initializable {
 				.getUsername());
 		if (broker != null) {
 			DistributionCategory dc = broker.getDistributionCategory();
-
-			dc.getDynamicDataMap().putIfAbsent(
-					msg.getPostedTimeslotIndex(),
-					new DynamicData(msg.getPostedTimeslotIndex(), dc
-							.getEnergy(), dc.getProfit()));
-			dc.getDynamicDataMap().get(msg.getPostedTimeslotIndex())
-					.update(msg.getKWh(), msg.getCharge());
-			dc.update(msg.getKWh(), msg.getCharge());
+			dc.update(msg.getPostedTimeslotIndex(),msg.getKWh(),msg.getCharge());
 		}
 
 	}
@@ -155,14 +148,7 @@ public class BrokerMessageHandler implements Initializable {
 				.getUsername());
 		if (broker != null) {
 			BalancingCategory bc = broker.getBalancingCategory();
-
-			bc.getDynamicDataMap().putIfAbsent(
-					bt.getPostedTimeslotIndex(),
-					new DynamicData(bt.getPostedTimeslotIndex(),
-							bc.getEnergy(), bc.getProfit()));
-			bc.getDynamicDataMap().get(bt.getPostedTimeslotIndex())
-					.update(bt.getKWh(), bt.getCharge());
-			bc.update(bt.getKWh(), bt.getCharge());
+			bc.update(bt.getPostedTimeslotIndex(),bt.getKWh(), bt.getCharge());
 		}
 	}
 }

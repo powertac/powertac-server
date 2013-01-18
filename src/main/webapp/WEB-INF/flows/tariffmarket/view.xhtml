@@ -9,7 +9,7 @@
 	<!-- <ui:define name="title">Customers</ui:define> -->
 
 	<ui:define name="headInclude">
-		<h:outputScript library="js" name="tariff.js" />
+		<h:outputScript library="js" name="charts.js" />
 
 		<script type="text/javascript">
 	function handleTariffPush(data) {
@@ -22,15 +22,17 @@
 			  //known ordering: profit, energy, cust
 			  // 0 is the first broker, known ordering.
 			  
-			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["profit"]]);
-			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["energy"]]);
-			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["customerCount"]]);
+			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["profit"]],false);
+			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["energy"]],false);
+			  tariffDynData.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["customerCount"],false]);
+			  tariffDynData.redraw();
 			  
 			  cntTariffDynData=cntTariffDynData-3;
 			  
-			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["profitDelta"]]);
-			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["energyDelta"]]);
-			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["customerCountDelta"]]);
+			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["profitDelta"]], false);
+			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["energyDelta"]], false);
+			  tariffDynDataOneTimeslot.series[cntTariffDynData++].addPoint([pushObject["millis"],pushObject["customerCountDelta"]], false);
+			  tariffDynDataOneTimeslot.redraw();
 			});
 }
 </script>
@@ -46,187 +48,8 @@
 							}
 						});
 						
-						tariffDynData = new Highcharts.StockChart({
-							chart : {
-								renderTo : "tariffDynData",
-								alignTicks : false
-
-							},
-							plotLines : [ {
-								value : 0,
-								width : 1,
-								color : '#808080'
-							} ],
-							yAxis : [ {
-								title : {
-									text : 'Profit (euros)'
-								},
-								height : 140,
-								lineWidth : 2
-							}, {
-								title : {
-									text : 'Net energy (kWh)'
-								},
-								top : 230,
-								height : 150,
-								offset : 0,
-								lineWidth : 2,
-							// opposite: true
-							}, {
-								title : {
-									text : 'Customer count'
-								},
-								top : 390,
-								height : 150,
-								offset : 0,
-								lineWidth : 2,
-							//   opposite: true
-							} ],
-
-							rangeSelector : {
-								buttons : [ {
-									count : 1,
-									type : 'hour',
-									text : '1H'
-								}, {
-									count : 1,
-									type : 'day',
-									text : '1D'
-								}, {
-									count : 1,
-									type : 'week',
-									text : '1W'
-								}, {
-									count : 2,
-									type : 'week',
-									text : '2W'
-								}, {
-									count : 1,
-									type : 'month',
-									text : '1M'
-								}, {
-									type : 'all',
-									text : 'All'
-								} ],
-								inputEnabled : true,
-								selected : 5
-							},
-
-							title : {
-								text : 'Tariff Market'
-							},
-
-							exporting : {
-								enabled : true
-							},
-							tooltip : {
-								yDecimals : 2
-							},
-							legend: {
-				                align: "right",
-				                layout: "vertical",
-				                enabled: true,
-				                verticalAlign: "middle"
-				                /*labelFormatter: function() {
-				                    return this.name + ' (T)';
-				                }*/
-
-				            },
-
-							series : #{tariffMarketBean.tariffDynData}
-
-						});
-						
-						tariffDynDataOneTimeslot = new Highcharts.StockChart({
-							chart : {
-								renderTo : "tariffDynDataOneTimeslot",
-								alignTicks : false
-
-							},
-							plotLines : [ {
-								value : 0,
-								width : 1,
-								color : '#808080'
-							} ],
-							yAxis : [ {
-								title : {
-									text : 'Profit (euros)'
-								},
-								height : 140,
-								lineWidth : 2
-							}, {
-								title : {
-									text : 'Net energy (kWh)'
-								},
-								top : 230,
-								height : 150,
-								offset : 0,
-								lineWidth : 2,
-							// opposite: true
-							}, {
-								title : {
-									text : 'Customer count (&Delta;)'
-								},
-								top : 390,
-								height : 150,
-								offset : 0,
-								lineWidth : 2,
-							//   opposite: true
-							} ],
-
-							rangeSelector : {
-								buttons : [ {
-									count : 1,
-									type : 'hour',
-									text : '1H'
-								}, {
-									count : 1,
-									type : 'day',
-									text : '1D'
-								}, {
-									count : 1,
-									type : 'week',
-									text : '1W'
-								}, {
-									count : 2,
-									type : 'week',
-									text : '2W'
-								}, {
-									count : 1,
-									type : 'month',
-									text : '1M'
-								}, {
-									type : 'all',
-									text : 'All'
-								} ],
-								inputEnabled : true,
-								selected : 5
-							},
-
-							title : {
-								text : 'Tariff Market - one timeslot data',
-							},
-
-							exporting : {
-								enabled : true
-							},
-							tooltip : {
-								yDecimals : 2
-							},
-							legend: {
-				                align: "right",
-				                layout: "vertical",
-				                enabled: true,
-				                verticalAlign: "middle"
-				                /*labelFormatter: function() {
-				                    return this.name + ' (T)';
-				                }*/
-
-				            },
-
-							series : #{tariffMarketBean.tariffDynDataOneTimeslot}
-
-						});
+						tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'Tariff Market',getTariffDynYAxisData());
+						tariffDynDataOneTimeslot = dynDataGraph('tariffDynDataOneTimeslot',#{tariffMarketBean.tariffDynDataOneTimeslot},'Tariff Market - one timeslot data', getTariffDynYAxisData())
 
 					});
 		</script>
@@ -236,7 +59,6 @@
 	<ui:define name="content">
 		<div id="tariffDynData" style="height: 600px; width: 650px" />
 		<div id="tariffDynDataOneTimeslot" style="height: 600px; width: 650px" />
-		<h:outputText value=" " styleClass="display1" />
 		<p:socket onMessage="handleTariffPush" channel="/tariffpush" />
 	</ui:define>
 

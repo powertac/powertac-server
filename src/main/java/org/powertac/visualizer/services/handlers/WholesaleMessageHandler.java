@@ -14,9 +14,12 @@ import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
 import org.powertac.common.msg.TimeslotUpdate;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
+import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.domain.wholesale.VisualizerOrderbook;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
@@ -24,6 +27,8 @@ import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.json.WholesaleServiceJSON;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.WholesaleService;
+import org.powertac.visualizer.statistical.DynamicData;
+import org.powertac.visualizer.statistical.TariffCategory;
 import org.powertac.visualizer.statistical.WholesaleCategory;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
@@ -42,7 +47,9 @@ public class WholesaleMessageHandler implements Initializable {
 	@Autowired
 	private WholesaleService wholesaleService;
 	@Autowired
-	BrokerService brokerService;
+	private BrokerService brokerService;
+	@Autowired
+	private VisualizerHelperService helper;
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Order.class, Orderbook.class,
@@ -52,26 +59,20 @@ public class WholesaleMessageHandler implements Initializable {
 		}
 
 	}
-	
-	public void handleMessage(MarketTransaction tx) {
+
+	public void handleMessage(MarketTransaction msg) {
 
 		BrokerModel broker = brokerService.getBrokersMap().get(
-				tx.getBroker().getUsername());
-		tx.getTimeslot().getStartInstant().getMillis();
+				msg.getBroker().getUsername());
 
 		if (broker != null) {
-			WholesaleCategory cat = broker.getWholesaleCategory();
+			WholesaleCategory wc = broker.getWholesaleCategory();
+
+			int tsIndex = msg.getTimeslot().getSerialNumber();
+			wc.update(tsIndex, msg.getMWh(), msg.getPrice()*msg.getMWh());
 			
-			TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
-			
-			if(old!=null){
-			cat.processMarketTransaction(tx, old.getPostedTime().getMillis());
-			// NOTE: a market transaction will refer to a order that has been
-			// posted the timeslot before.
-			}
-			else{
-				log.warn("The old timeslot update does not exist.");
-			}
+			wc.getMarketTxs().putIfAbsent(msg.getTimeslot().getSerialNumber(), new ArrayList<MarketTransaction>(24));
+			wc.getMarketTxs().get(msg.getTimeslot().getSerialNumber()).add(msg);
 		}
 	}
 
@@ -81,15 +82,14 @@ public class WholesaleMessageHandler implements Initializable {
 
 	public void handleMessage(Order order) {
 
-		BrokerModel broker = brokerService.getBrokersMap().get(
-				order.getBroker().getUsername());
-		order.getTimeslot().getStartInstant().getMillis();
-
-		if (broker != null) {
-			WholesaleCategory cat = broker.getWholesaleCategory();
-			cat.processOrder(order, visualizerBean.getTimeslotUpdate()
-					.getPostedTime().getMillis());
-		}
+		// BrokerModel broker = brokerService.getBrokersMap().get(
+		// order.getBroker().getUsername());
+		// order.getTimeslot().getStartInstant().getMillis();
+		//
+		// if (broker != null) {
+		// WholesaleCategory cat = broker.getWholesaleCategory();
+		//
+		// }
 
 	}
 
@@ -100,22 +100,18 @@ public class WholesaleMessageHandler implements Initializable {
 		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService
 				.getClearedTrades();
 		// if there is a new key:
-		map.putIfAbsent(ct.getTimeslot().getStartInstant()
-				.getMillis(), new ConcurrentHashMap<Long, ClearedTrade>(24,
-				0.75f, 1));
+		map.putIfAbsent(ct.getTimeslot().getStartInstant().getMillis(),
+				new ConcurrentHashMap<Long, ClearedTrade>(24, 0.75f, 1));
 
-		
-		
 		TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
 
 		if (old != null) {
-			map.get(ct.getTimeslot().getStartInstant().getMillis())
-					.put(old.getPostedTime().getMillis(), ct);
-		} else{
+			map.get(ct.getTimeslot().getStartInstant().getMillis()).put(
+					old.getPostedTime().getMillis(), ct);
+		} else {
 			log.warn("The old timeslot update does not exist.");
 		}
 
 	}
-
 
 }

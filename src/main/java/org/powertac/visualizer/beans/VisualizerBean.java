@@ -6,7 +6,9 @@ import java.util.List;
 import javax.faces.bean.ManagedBean;
 
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.types.selectors.DateSelector.TimeComparisons;
 import org.powertac.common.Competition;
+import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.interfaces.Recyclable;
@@ -37,6 +39,7 @@ public class VisualizerBean implements Serializable {
 	private boolean finished;
 	private boolean running;
 	private long currentMillis;
+	private TimeslotComplete timeslotComplete;
 
 	@Autowired
 	private AppearanceListBean appearanceList;
@@ -162,5 +165,12 @@ public class VisualizerBean implements Serializable {
 
 	public void setTournamentMode(Boolean tournamentMode) {
 		this.tournamentMode = tournamentMode;
+	}
+	
+	public TimeslotComplete getTimeslotComplete() {
+		return timeslotComplete;
+	}
+	public void setTimeslotComplete(TimeslotComplete timeslotComplete) {
+		this.timeslotComplete = timeslotComplete;
 	}
 }
