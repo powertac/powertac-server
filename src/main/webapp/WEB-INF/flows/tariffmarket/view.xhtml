@@ -18,7 +18,7 @@
 		var cntTariffDynData = 0;
 		jQuery.each(array, function() {
 			  var pushObject = this;
-			  console.log(pushObject);
+			//  console.log(pushObject);
 			  //known ordering: profit, energy, cust
 			  // 0 is the first broker, known ordering.
 			  
@@ -48,8 +48,8 @@
 							}
 						});
 						
-						tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'Tariff Market',getTariffDynYAxisData());
-						tariffDynDataOneTimeslot = dynDataGraph('tariffDynDataOneTimeslot',#{tariffMarketBean.tariffDynDataOneTimeslot},'Tariff Market - one timeslot data', getTariffDynYAxisData())
+						tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'Tariff Market',getTariffDynYAxisData('Customer count', "Profit(&euro;)","Energy (kWh)"));
+						tariffDynDataOneTimeslot = dynDataGraph('tariffDynDataOneTimeslot',#{tariffMarketBean.tariffDynDataOneTimeslot},'Tariff Market - one timeslot data', getTariffDynYAxisData("Customer count (&Delta;)", "Profit(&euro;)","Energy (kWh)"))
 
 					});
 		</script>
@@ -57,8 +57,11 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<div id="tariffDynData" style="height: 600px; width: 650px" />
-		<div id="tariffDynDataOneTimeslot" style="height: 600px; width: 650px" />
+		
+			
+				<div id="tariffDynData" class="vizCharts" />
+				<div id="tariffDynDataOneTimeslot" class="vizCharts" />
+	
 		<p:socket onMessage="handleTariffPush" channel="/tariffpush" />
 	</ui:define>
 

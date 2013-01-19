@@ -5,6 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.domain.broker.BrokerModel;
+import org.springframework.context.annotation.Profile;
 
 public class WholesaleCategory extends AbstractPerformanceCategory {
 
@@ -19,5 +20,25 @@ public class WholesaleCategory extends AbstractPerformanceCategory {
 	public ConcurrentHashMap<Integer, List<MarketTransaction>> getMarketTxs() {
 		return marketTxs;
 	}
+	
+	@Override
+	public void update(int tsIndex, double energy, double cash) {
+		if(!this.getDynamicDataMap().containsKey(tsIndex)){
+			this.setLastDynamicData(new DynamicData(tsIndex,
+					0, 0));
+			this.getDynamicDataMap().put(tsIndex, this.getLastDynamicData());
+			
+		}		
+		this.getDynamicDataMap().get(tsIndex).update(energy, cash);
+	}
+	
+	public void updateAccounts(int tsIndex){
+		getDynamicDataMap().get(tsIndex).setProfit(profit);
+		getDynamicDataMap().get(tsIndex).setEnergy(energy);
+		profit +=getDynamicDataMap().get(tsIndex).getProfitDelta();
+		energy +=getDynamicDataMap().get(tsIndex).getEnergyDelta();
+		
+	}
+	
 
 }

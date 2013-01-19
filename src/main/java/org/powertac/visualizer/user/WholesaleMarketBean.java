@@ -88,16 +88,21 @@ public class WholesaleMarketBean implements Serializable {
 					.getWholesaleCategory().getDynamicDataMap().keySet())
 					.headSet(safetyTsIndex, true);
 
+			double totalProfit = 0;
+			double totalEnergy = 0;
 			// dynamic wholesale data:
 			for (Iterator iterator2 = dynDataSet.iterator(); iterator2
 					.hasNext();) {
 				int key = (Integer) iterator2.next();
-
 				DynamicData dynData = dynDataMap.get(key);
+				
+				totalEnergy+=dynData.getEnergyDelta();
+				totalProfit+=dynData.getProfitDelta();
+				
 				Object[] profit = { helper.getMillisForIndex(key),
-						dynData.getProfit() };
+						totalProfit};
 				Object[] netMwh = { helper.getMillisForIndex(key),
-						dynData.getEnergy() };
+						totalEnergy };
 
 				profitData.add(profit);
 				netMwhData.add(netMwh);

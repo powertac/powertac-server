@@ -1,6 +1,6 @@
-package org.powertac.visualizer.display;
+package org.powertac.visualizer.push;
 
-public class TariffPusher {
+public class TariffMarketPusher {
 
 	private String name;
 	private long millis;
@@ -11,7 +11,7 @@ public class TariffPusher {
 	private double energyDelta;
 	private int customerCountDelta;
 
-	public TariffPusher(String name, long millis, double profit, double energy,
+	public TariffMarketPusher(String name, long millis, double profit, double energy,
 			int customerCount, double profitDelta, double energyDelta,
 			int customerCountDelta) {
 		this.name = name;

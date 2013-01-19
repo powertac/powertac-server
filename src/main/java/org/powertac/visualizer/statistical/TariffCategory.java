@@ -40,7 +40,7 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 	}
 
 	public void processTariffSpecification(TariffSpecification ts) {
-		tariffData.putIfAbsent(ts, new TariffData(ts, broker));
+		tariffData.putIfAbsent(ts, new TariffData(ts, this.getBroker()));
 	}
 
 	public int getCustomerCount() {

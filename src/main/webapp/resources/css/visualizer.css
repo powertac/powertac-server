@@ -19,6 +19,11 @@ body, html { height:100%; padding:0; margin:0;}
 	border: 0;
 }
 
+.ui-dock-bottom {
+z-index: 100;
+
+}
+
 .noBorderPanel.ui-panel{
 	border:0;
 }
@@ -53,4 +58,10 @@ visibility: hidden;
 	background-image: none;
 	border:0;
 	
+}
+
+.vizCharts{
+	height: 600px;
+	width: 900px";
+	margin: 0 auto;
 }

@@ -44,5 +44,13 @@ public class DynamicData {
 	public int getTsIndex() {
 		return tsIndex;
 	}
+	
+	public void setEnergy(double energy) {
+		this.energy = energy;
+	}
+	
+	public void setProfit(double profit) {
+		this.profit = profit;
+	}
 
 }

@@ -14,10 +14,11 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
  * 
  */
 public abstract class AbstractPerformanceCategory {
-	BrokerModel broker;
+	private BrokerModel broker;
 	double grade = 0;
-	private double energy;
-	private double profit;
+	double energy;
+    double profit;
+	DynamicData lastDynamicData;
 
 	private ConcurrentHashMap<Integer, DynamicData> dynamicDataMap = new ConcurrentHashMap<Integer, DynamicData>(
 			1500, 0.75f, 1);
@@ -38,21 +39,15 @@ public abstract class AbstractPerformanceCategory {
 	}
 
 	public void update(int tsIndex, double energy, double cash) {
-		dynamicDataMap.putIfAbsent(tsIndex, new DynamicData(tsIndex,
-				this.energy, this.profit));
+		if(!dynamicDataMap.containsKey(tsIndex)){
+			lastDynamicData = new DynamicData(tsIndex,
+					this.energy, this.profit);
+			dynamicDataMap.put(tsIndex, lastDynamicData);
+			
+		}		
 		dynamicDataMap.get(tsIndex).update(energy, cash);
 		this.energy += energy;
 		this.profit += cash;
-
-		if (tsIndex == 3) {
-			System.out.println("Tx: " + energy + "MWh " + cash + "euros");
-			System.out.println("TotalTS3: "
-					+ dynamicDataMap.get(tsIndex).getEnergyDelta() + "MWh "
-					+ dynamicDataMap.get(tsIndex).getProfitDelta() + "euros");
-			System.out.println("TotalALL: "
-					+ dynamicDataMap.get(tsIndex).getEnergy() + "MWh "
-					+ dynamicDataMap.get(tsIndex).getProfit() + "euros\n");
-		}
 
 	}
 
@@ -66,6 +61,17 @@ public abstract class AbstractPerformanceCategory {
 
 	public void setGrade(double d) {
 		this.grade = d;
+	}
+	public BrokerModel getBroker() {
+		return broker;
+	}
+	
+	public DynamicData getLastDynamicData() {
+		return lastDynamicData;
+	}
+	
+	public void setLastDynamicData(DynamicData lastDynamicData) {
+		this.lastDynamicData = lastDynamicData;
 	}
 
 }

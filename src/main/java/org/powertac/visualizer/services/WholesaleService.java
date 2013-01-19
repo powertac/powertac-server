@@ -63,22 +63,6 @@ public class WholesaleService implements Serializable, Recyclable,
 
 	@Override
 	public void activate(int timeslotIndex, Instant postedTime) {
-		Collection<BrokerModel> brokers = brokerService.getBrokersMap()
-				.values();
-		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
-			BrokerModel brokerModel = (BrokerModel) iterator.next();
-
-//			SingleTimeslotWholesaleData singleTimeslot = brokerModel
-//					.getWholesaleCategory()
-//					.getSingleTimeslotWholesaleMap()
-//					.get(visualizerBean.getOldTimeslotUpdate().getPostedTime()
-//							.getMillis());
-//
-//			if (singleTimeslot != null) {
-//				singleTimeslot.setClosed(true);
-//			}
-		}
-
 	}
 
 }

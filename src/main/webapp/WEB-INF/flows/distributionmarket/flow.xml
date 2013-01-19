@@ -5,15 +5,21 @@
 	parent="parent-flow">
 
 	<!-- Also see ../parent-flow.xml. -->
-
-
+	
 	<view-state id="view">
+		
+		
+		<on-render>
+			<evaluate  expression="trainingService.increment()"></evaluate>
+			
 
-	<!--<on-render>
-	 <evaluate expression="trainingService.increment()"></evaluate> 
-	</on-render>-->
-
-
+		</on-render>
+		
+			
 	</view-state>
+	
+	
+
+    <end-state id="completeTabViewFlow"/>
 </flow>
 

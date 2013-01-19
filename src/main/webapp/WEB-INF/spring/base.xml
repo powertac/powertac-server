@@ -150,4 +150,6 @@
 		scope="request" />
 	<bean id="weatherBean" class="org.powertac.visualizer.user.WeatherBean"
 		scope="request" />
+		<bean id="balancingMarketBean" class="org.powertac.visualizer.user.BalancingMarketBean" scope="request"/>
+		<bean id="distributionBean" class="org.powertac.visualizer.user.DistributionBean" scope="request"/>
 </beans>
