@@ -813,15 +813,20 @@ public class CompetitionControlService
       return null;
     }
 
-    Instant now = timeService.getCurrentTime();
-    int nextIndex = timeslotRepo.getTimeslotIndex(now);
-    if (nextIndex > expectedIndex) {
+    Timeslot next = timeslotRepo.currentTimeslot();
+    while (next.getSerialNumber() > expectedIndex) {
       // time has disappeared somewhere - may need to re-sync clocks
-      long sysTime = new Date().getTime();
-      long simTime = currentTimeslot.getStartInstant().getMillis();
-      long tickTime = timeService.getStart()
-              + (simTime - timeService.getBase()) / timeService.getRate();
-      log.warn("sysTime=" + sysTime + ", tickTime=" + tickTime);
+      int missingTicks = next.getSerialNumber() - expectedIndex;
+      log.warn("Missed " + missingTicks + " ticks - adjusting");
+      long newStart =
+              new Date().getTime()
+              - (currentTimeslot.getStartInstant().getMillis()
+                 - timeService.getBase()) / timeService.getRate();
+      timeService.setStart(newStart);
+      resume(newStart);
+      
+      // go again, just in case...
+      next = timeslotRepo.currentTimeslot();
     }
     
     return currentTimeslot;
