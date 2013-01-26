@@ -109,8 +109,8 @@ public class DefaultBrokerServiceTests
     timeslotRepo.recycle();
     reset(mockProxy);
     reset(mockCompetitionControl);
-    Competition.setCurrent(Competition.newInstance("db-test"));
-    start = Competition.currentCompetition().getSimulationBaseTime();
+    competition = Competition.newInstance("db-test");
+    start = competition.getSimulationBaseTime();
     timeService.setCurrentTime(start);
     customer1 = new CustomerInfo("town", 1000);
     customer2 = new CustomerInfo("village", 200);
@@ -142,8 +142,11 @@ public class DefaultBrokerServiceTests
       }
     }).when(serverPropertiesService).configureMe(anyObject());
     
-    competition = Competition.newInstance("broker-test");
     createTimeslots();
+    
+    // set bootstrap mode - otherwise we need a bootstrap record
+    when(mockCompetitionControl.isBootstrapMode())
+      .thenReturn(true);
   }
 
   private Broker init ()
@@ -174,7 +177,7 @@ public class DefaultBrokerServiceTests
     assertNotNull("found face", face);
     assertEquals("correct face", face, service.getFace());
     assertTrue("face is enabled", face.isEnabled());
-    assertFalse("not bootstrap mode", service.isBootstrapMode());
+    assertTrue("bootstrap mode", service.isBootstrapMode());
   }
   
   @Test
@@ -435,6 +438,10 @@ public class DefaultBrokerServiceTests
       }
     }).when(mockProxy).routeMessage(isA(Order.class));
     
+    // set bootstrap mode
+    when(mockCompetitionControl.isBootstrapMode())
+      .thenReturn(true);
+    
     // activate the trading function by sending a cash position msg
     CashPosition cp = new CashPosition(current.getStartInstant(), face, 0.0);
     face.receiveMessage(cp); // timeslot -1
@@ -650,10 +657,6 @@ public class DefaultBrokerServiceTests
         return null;
       }
     }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
-    
-    // set bootstrap mode
-    when(mockCompetitionControl.isBootstrapMode())
-      .thenReturn(true);
 
     // initialize the default broker
     Broker face = init();
