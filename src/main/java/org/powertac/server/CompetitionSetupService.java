@@ -15,6 +15,30 @@
  */
 package org.powertac.server;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -23,6 +47,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.log4j.Logger;
 import org.powertac.common.Competition;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.CompetitionSetup;
@@ -39,20 +64,9 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.*;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Manages command-line and file processing for pre-game simulation setup. 
@@ -92,6 +106,9 @@ public class CompetitionSetupService
   
   @Autowired
   private TournamentSchedulerService tss;
+  
+  @Autowired
+  private TimeService timeService;
 
   private Competition competition;
   private int gameId = 0;
@@ -305,7 +322,7 @@ public class CompetitionSetupService
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim-" + gameId);
     
-      // jms setup
+      // jms setup overrides config
       if (jmsUrl != null) {
         serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
                                 jmsUrl);
@@ -517,10 +534,13 @@ public class CompetitionSetupService
     IdGenerator.recycle();
     // Create competition instance
     competition = Competition.newInstance("game-" + gameId);
+    Competition.setCurrent(competition);
     
     // Set up all the plugin configurations
     log.info("pre-game initialization");
-    configureCompetition(competition);  
+    configureCompetition(competition);
+    timeService.setClockParameters(competition);
+    timeService.setCurrentTime(competition.getSimulationBaseTime());
 
     // Handle pre-game initializations by clearing out the repos
     List<DomainRepo> repos =
@@ -580,6 +600,8 @@ public class CompetitionSetupService
     }
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
+    timeService.setClockParameters(competition);
+    timeService.setCurrentTime(competition.getSimulationBaseTime());
     return true;
   }
 
