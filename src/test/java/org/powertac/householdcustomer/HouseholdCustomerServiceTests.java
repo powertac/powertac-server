@@ -129,7 +129,8 @@ public class HouseholdCustomerServiceTests
 
     broker1 = new Broker("Joe");
 
-    now = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //now = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    now = comp.getSimulationBaseTime();
     timeService.setCurrentTime(now);
     timeService.setBase(now.getMillis());
     exp = now.plus(TimeService.WEEK * 10);
