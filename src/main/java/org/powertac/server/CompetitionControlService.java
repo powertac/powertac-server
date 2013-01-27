@@ -811,6 +811,7 @@ public class CompetitionControlService
               - (currentTimeslot.getStartInstant().getMillis()
                  - timeService.getBase()) / timeService.getRate();
       timeService.setStart(newStart);
+      timeService.setCurrentTime();
       resume(newStart);
       
       // go again, just in case...
@@ -1010,7 +1011,7 @@ public class CompetitionControlService
                 * competition.getTimeslotDuration()
                 / competition.getSimulationRate();
       }
-      long start = now - startOffset + TimeService.SECOND; // start in one second
+      long start = now - startOffset + TimeService.SECOND * 3; // start in three seconds
       // communicate start time to brokers
       SimStart startMsg = new SimStart(new Instant(start));
       brokerProxyService.broadcastMessage(startMsg);
@@ -1019,6 +1020,7 @@ public class CompetitionControlService
       // the start time. In this case, the clock is currently set to the start
       // time, so this will back it up by one notch.
       clock.setStart(start);
+      log.info("sim start at " + timeService.getCurrentTime());
       timeService.init(timeService.getCurrentTime());
       // run the simulation
       running = true;

@@ -358,7 +358,7 @@ public class SimulationClockControl
   private long computeNextTickTime ()
   {
     long current = new Date().getTime();
-    // not a valid test?
+    // not a valid test in sim mode...
     if (current < start) {
       // first tick is special
       //System.out.println("first tick at " + start + "; current is " + current);
