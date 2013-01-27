@@ -142,16 +142,8 @@ public class TimeService
       return;
     }
     busy = true;
-    long systemTime = new Instant().getMillis();
-    if (systemTime >= start) { 
-      long raw = base + (systemTime - start) * rate;
-      //currentTime = new Instant(raw - raw % modulo);
-      //currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
-      log.debug("ts" + id + " updateTime: sys=" + systemTime +
-                ", simTime=" + currentTime);
-      setCurrentTime(new Instant(raw - raw % modulo));
-      runActions();
-    }
+    setCurrentTime();
+    runActions();
     busy = false;
   }
   
@@ -225,6 +217,7 @@ public class TimeService
   public void setStart (long start)
   {
     this.start = start;
+    //setCurrentTime();
   }
 
   public long getRate ()
@@ -296,6 +289,19 @@ public class TimeService
     log.debug("ts" + id + " setCurrentTime to " + time.toString());
     currentTime = new Instant(time);
     currentDateTime = new DateTime(time, DateTimeZone.UTC);
+  }
+
+  public void setCurrentTime ()
+  {
+    long systemTime = new Instant().getMillis();
+    if (systemTime >= start) { 
+      long raw = base + (systemTime - start) * rate;
+      //currentTime = new Instant(raw - raw % modulo);
+      //currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
+      log.debug("ts" + id + " updateTime: sys=" + systemTime +
+                ", simTime=" + currentTime);
+      setCurrentTime(new Instant(raw - raw % modulo));
+    }
   }
 
   /**

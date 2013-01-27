@@ -120,13 +120,20 @@ public class TimeServiceTests
       Thread.sleep(5000); // 5 seconds
       ts.updateTime();
       long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("${offset} is 30 min", 30*60*1000, offset);
-      //assertTrue("${offset} less than 31 min", offset < 31*60*1000)
+      assertEquals("${offset} is 30 min", 30 * TimeService.MINUTE, offset);
     }
     catch (InterruptedException ie) {
       fail("unexpected exception " + ie.toString());
     }
   }
+  
+  //@Test
+  //public void testSetStart()
+  //{
+  //  assertEquals("base time", theBase, ts.getCurrentTime());
+  //  ts.setStart(ts.getStart() - (TimeService.HOUR / theRate));
+  //  assertEquals("one hour", theBase.plus(TimeService.HOUR), ts.getCurrentTime());
+  //}
   
   // single action, already due
   @Test
