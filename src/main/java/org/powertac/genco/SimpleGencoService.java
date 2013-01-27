@@ -90,12 +90,13 @@ public class SimpleGencoService
   public String initialize (Competition competition, List<String> completedInits)
   {
     super.init();
+    int seedId = 0;
     // create the genco list
     gencos = new ArrayList<Genco>();
     for (Object gencoObj : serverConfig.configureInstances(Genco.class)) {
       Genco genco = (Genco)gencoObj;
       brokerRepo.add(genco);
-      genco.init(brokerProxyService, randomSeedRepo);
+      genco.init(brokerProxyService, seedId++, randomSeedRepo);
       gencos.add(genco);
     }
     // configure the buyer
@@ -103,7 +104,7 @@ public class SimpleGencoService
     serverConfig.configureMe(buyer);
     brokerRepo.add(buyer);
     gencos.add(buyer);
-    buyer.init(brokerProxyService, randomSeedRepo);
+    buyer.init(brokerProxyService, seedId++, randomSeedRepo);
     return "Genco";
   }
 

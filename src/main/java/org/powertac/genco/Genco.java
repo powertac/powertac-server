@@ -43,6 +43,10 @@ public class Genco
   // id values are standardized
   private long id = IdGenerator.createId();
   
+  // manage seed ID separately from instance ID
+  private static int seedIdCounter = 0;
+  private int seedId = 0;
+  
   /** Current capacity of this producer in mW */
   private double currentCapacity;
   
@@ -77,11 +81,11 @@ public class Genco
     super(username, true, true);
   }
   
-  public void init (BrokerProxy proxy, RandomSeedRepo randomSeedRepo)
+  public void init (BrokerProxy proxy, int seedId, RandomSeedRepo randomSeedRepo)
   {
-    log.info("init " + getUsername());
+    log.info("init(" + seedId + ") " + getUsername());
     this.brokerProxyService = proxy;
-    this.seed = randomSeedRepo.getRandomSeed(Genco.class.getName(), id, "update");
+    this.seed = randomSeedRepo.getRandomSeed(Genco.class.getName(), seedId, "update");
     currentCapacity = nominalCapacity;
   }
 

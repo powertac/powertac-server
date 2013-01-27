@@ -78,7 +78,7 @@ public class GencoTests
                                     anyString())).thenReturn(seed);
     timeslotRepo = new TimeslotRepo();
     genco = new Genco("Test");
-    genco.init(mockProxy, mockSeedRepo);
+    genco.init(mockProxy, 0, mockSeedRepo);
     start = comp.getSimulationBaseTime().plus(TimeService.DAY);
     timeService = new TimeService();
     timeService.setCurrentTime(start);
