@@ -105,7 +105,9 @@ public class AccountingServiceTests
     comp = Competition.newInstance("accounting-test");
     
     // set the clock
-    Instant now = new DateTime(2011, 1, 26, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    //Instant now = new DateTime(2011, 1, 26, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    Instant now = Competition.currentCompetition().getSimulationBaseTime(); 
+    now = now.plus(TimeService.HOUR);
     timeService.setCurrentTime(now);
     
     // set up brokers and customers
