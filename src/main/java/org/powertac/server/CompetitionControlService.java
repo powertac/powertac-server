@@ -272,8 +272,10 @@ public class CompetitionControlService
       log.error("null competition instance");
     }
 
-    // start JMS provider
-    jmsManagementService.start();   
+    // start JMS provider for sims
+    if (!bootstrapMode) {
+      jmsManagementService.start();
+    }
    
     init();
     
