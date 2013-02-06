@@ -17,7 +17,6 @@
 package org.powertac.distributionutility;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,6 +34,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.Orderbook;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.TariffTransaction;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalancingOrder;
@@ -184,13 +184,35 @@ implements SettlementContext, InitializationService
     // Run the balancing market
     // Transactions are posted to the Accounting Service and Brokers are
     // notified of balancing transactions
-    balanceTimeslot(timeslotRepo.currentTimeslot(), brokerList);
+    Map<Broker, ChargeInfo> balancingResults =
+            balanceTimeslot(timeslotRepo.currentTimeslot(), brokerList);
 
     // Add distribution transactions
+    // should be total production + total consumption
+    //    + final imbalance - balancing transactions
+    Map<Broker, Map<TariffTransaction.Type, Double>> totals =
+            accountingService.getCurrentSupplyDemandByBroker();
     for (Broker broker : brokerList) {
-      double netLoad = -accountingService.getCurrentNetLoad(broker);
-      accountingService.addDistributionTransaction(broker, netLoad,
-                                                   netLoad * distributionFee);
+      Map<TariffTransaction.Type, Double> brokerTotals = totals.get(broker);
+      if (null == brokerTotals)
+        continue;
+      double consumption = brokerTotals.get(TariffTransaction.Type.CONSUME);
+      double production = brokerTotals.get(TariffTransaction.Type.PRODUCE);
+      double imports = accountingService.getCurrentMarketPosition(broker) * 1000.0;
+      double imbalance = getMarketBalance(broker); // >0 if oversupply
+      // balancing adjusts imports
+      double balanceAdj = balancingResults.get(broker).getCurtailment();
+      log.info("Distribution tx for "
+               + broker.getUsername() + "(c,p,m,i,b) = ("
+               + consumption + ","
+               + production + ","
+               + imports + ","
+               + imbalance + ","
+               + balanceAdj + ")");
+      double transport = (production - consumption - balanceAdj
+                          + Math.abs(imports - imbalance)) / 2.0;
+      accountingService.addDistributionTransaction(broker, transport,
+                                                   transport * distributionFee);
     }
   }
 
@@ -199,10 +221,10 @@ implements SettlementContext, InitializationService
    * Transactions are generated on a per-broker basis depending on the broker's
    * balance within its own market.
    * 
-   * @return List of MarketTransactions
+   * @return List of ChargeInfo instances
    */
-  public List<ChargeInfo> balanceTimeslot (Timeslot currentTimeslot,
-                                                 List<Broker> brokerList)
+  public HashMap<Broker, ChargeInfo>
+  balanceTimeslot (Timeslot currentTimeslot, List<Broker> brokerList)
   {
     HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
 
@@ -236,7 +258,7 @@ implements SettlementContext, InitializationService
                                                   balanceCharge);
       }
     }
-    return brokerData;
+    return chargeInfoMap;
   }
 
   /**

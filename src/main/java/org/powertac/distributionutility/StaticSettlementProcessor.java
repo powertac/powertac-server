@@ -527,21 +527,10 @@ public class StaticSettlementProcessor extends SettlementProcessor
         capacityControlService.exerciseBalancingControl(candidate.balancingOrder,
                                                         candidate.exercisedCapacity,
                                                         settlementPrice);
+        broker.addCurtailment(candidate.exercisedCapacity);
       }
     }
   }
-  
-//  private double getExercisedCapacity (ChargeInfo broker,
-//                                       SortedSet<BOWrapper> candidates)
-//  {
-//    double result = 0.0;
-//    for (BOWrapper candidate: candidates) {
-//      if (candidate.info == broker) {
-//        result += candidate.exercisedCapacity;
-//      }
-//    }
-//    return result;
-//  }
 
   // wrapper class for tracking order status
   class BOWrapper implements Cloneable

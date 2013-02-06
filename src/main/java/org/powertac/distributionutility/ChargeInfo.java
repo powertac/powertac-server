@@ -29,6 +29,7 @@ class ChargeInfo
 {
   private Broker broker = null;
   private double netLoadKWh = 0.0;
+  private double curtailment = 0.0;
   private double balanceChargeP1 = 0.0;
   private double balanceChargeP2 = 0.0;
   private List<BalancingOrder> balancingOrders = null;
@@ -70,7 +71,6 @@ class ChargeInfo
     balanceChargeP1 = charge;
   }
 
-  
   double getBalanceChargeP2()
   {
     return balanceChargeP2;
@@ -91,6 +91,14 @@ class ChargeInfo
     if (null == balancingOrders)
       balancingOrders = new ArrayList<BalancingOrder>();
     balancingOrders.add(order);
+  }
+  
+  void addCurtailment (double kWh) {
+    curtailment += kWh;
+  }
+  
+  double getCurtailment () {
+    return curtailment;
   }
   
   public String toString ()
