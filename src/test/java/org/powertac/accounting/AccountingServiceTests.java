@@ -284,18 +284,49 @@ public class AccountingServiceTests
     initializeService();
     // some usage for Bob
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
-      tariffB1, customerInfo1, 7, 77.0, 7.7);
+      tariffB1, customerInfo1, 7, -77.0, 7.7);
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
-      tariffB1, customerInfo2, 6, 83.0, 8.0);
+      tariffB1, customerInfo2, 6, -83.0, 8.0);
     accountingService.addTariffTransaction(TariffTransaction.Type.PRODUCE,
-      tariffB2, customerInfo3, 3, -55.0, -4.5);
+      tariffB2, customerInfo3, 3, 55.0, -4.5);
     // some usage for Jim
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
-      tariffJ1, customerInfo2, 12, 120.0, 8.4);
-    assertEquals("correct net load for Bob", (77.0 + 83.0 - 55.0),
+      tariffJ1, customerInfo2, 12, -120.0, 8.4);
+    assertEquals("correct net load for Bob", (-77.0 - 83.0 + 55.0),
                   accountingService.getCurrentNetLoad(bob), 1e-6);
-    assertEquals("correct net load for Jim", 120.0,
+    assertEquals("correct net load for Jim", -120.0,
                   accountingService.getCurrentNetLoad(jim), 1e-6);
+  }
+  
+  @Test
+  public void testCurrentSupplyDemand ()
+  {
+    initializeService();
+    // some usage for Bob
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
+      tariffB1, customerInfo1, 7, -77.0, 7.7);
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
+      tariffB1, customerInfo2, 6, -83.0, 8.0);
+    accountingService.addTariffTransaction(TariffTransaction.Type.PRODUCE,
+      tariffB2, customerInfo3, 3, 55.0, -4.5);
+    // some usage for Jim
+    accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
+      tariffJ1, customerInfo2, 12, -120.0, 8.4);
+    // retrieve the map
+    Map<Broker, Map<TariffTransaction.Type, Double>> sd =
+            accountingService.getCurrentSupplyDemandByBroker();
+    // check data for Bob
+    Map<TariffTransaction.Type, Double> bsd = sd.get(bob);
+    assertEquals("correct consumption for Bob", (-77.0 - 83.0),
+                  bsd.get(TariffTransaction.Type.CONSUME), 1e-6);
+    assertEquals("correct production for Bob", 55.0,
+                 bsd.get(TariffTransaction.Type.PRODUCE), 1e-6);
+    // check data for Jim
+    bsd = sd.get(jim);
+    assertEquals("correct consumption for Jim", -120.0,
+                 bsd.get(TariffTransaction.Type.CONSUME), 1e-6);
+    assertEquals("correct production for Jim", 0.0,
+                 bsd.get(TariffTransaction.Type.PRODUCE), 1e-6);
   }
   
   // create and test market transactions

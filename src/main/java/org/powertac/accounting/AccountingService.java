@@ -21,10 +21,12 @@ import static org.powertac.util.MessageDispatcher.dispatch;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.*;
+import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.*;
 import org.powertac.common.msg.DistributionReport;
@@ -197,6 +199,35 @@ public class AccountingService
     }
     log.info("net load for " + broker.getUsername() + ": " + netLoad);
     return netLoad;
+  }
+  
+  /**
+   * Returns a mapping of brokers to total supply and demand among subscribed
+   * customers.
+   */
+  @Override
+  public Map<Broker, Map<Type, Double>> getCurrentSupplyDemandByBroker ()
+  {
+    HashMap<Broker, Map<Type, Double>> result =
+            new HashMap<Broker, Map<Type, Double>>();
+    for (BrokerTransaction btx : pendingTransactions) {
+      if (btx instanceof TariffTransaction) {
+        TariffTransaction ttx = (TariffTransaction)btx;
+        Broker broker = ttx.getBroker();
+        Map<Type, Double> record = result.get(broker);
+        if (null == record) {
+          record = new HashMap<Type, Double>();
+          result.put(broker, record);
+          record.put(Type.CONSUME, 0.0);
+          record.put(Type.PRODUCE, 0.0);
+        }
+        if (ttx.getTxType() == Type.CONSUME)
+          record.put(Type.CONSUME, record.get(Type.CONSUME) + ttx.getKWh());
+        else if (ttx.getTxType() == Type.PRODUCE)
+          record.put(Type.PRODUCE, record.get(Type.PRODUCE) + ttx.getKWh());
+      }
+    }
+    return result;
   }
 
   /**
