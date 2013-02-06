@@ -12,6 +12,7 @@
 package org.powertac.common.interfaces;
 
 import java.util.List;
+import java.util.Map;
 
 import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
@@ -73,6 +74,13 @@ public interface Accounting
    * for a specific Broker. This is needed to run the balancing process.
    */
   public double getCurrentNetLoad (Broker broker);
+  
+  /**
+   * Returns a mapping of brokers to total supply and demand among subscribed
+   * customers.
+   */
+  public Map<Broker, Map<TariffTransaction.Type, Double>>
+  getCurrentSupplyDemandByBroker ();
 
   /**
    * Returns the market position for the current timeslot for a given broker.
