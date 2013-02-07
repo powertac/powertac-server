@@ -65,7 +65,7 @@ public class WholesaleMarketBean implements Serializable {
 			BrokerService brokerService, VisualizerHelperService helper) {
 		Collection<BrokerModel> brokers = brokerService.getBrokers();
 
-		int safetyTsIndex = helper.getSafetyTimeslotIndex();
+		int safetyTsIndex = helper.getSafetyWholesaleTimeslotIndex();
 		ArrayList<Object> allWholesaleData = new ArrayList<Object>();
 		ArrayList<Object> wholesaleTxData = new ArrayList<Object>();
 		ArrayList<Object> wholesaleTxDataOneTimeslot = new ArrayList<Object>();

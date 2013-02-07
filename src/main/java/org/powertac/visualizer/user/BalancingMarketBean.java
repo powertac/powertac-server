@@ -55,7 +55,7 @@ public class BalancingMarketBean implements Serializable {
 			BrokerService brokerService, VisualizerHelperService helper) {
 		Collection<BrokerModel> brokers = brokerService.getBrokers();
 
-		int safetyTsIndex = helper.getSafetyTimeslotIndex();
+		int safetyTsIndex = helper.getSafetyWholesaleTimeslotIndex();
 		ArrayList<Object> balancingTxData = new ArrayList<Object>();
 		ArrayList<Object> balancingTxDataOneTimeslot = new ArrayList<Object>();
 

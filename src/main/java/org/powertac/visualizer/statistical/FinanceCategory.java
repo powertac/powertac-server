@@ -10,6 +10,7 @@ public class FinanceCategory {
 	private double profit;
 	private ConcurrentHashMap<Integer, FinanceDynamicData> financeDynamicDataMap = new ConcurrentHashMap<Integer, FinanceDynamicData>(
 			1500, 0.75f, 1);
+	private FinanceDynamicData lastFinanceDynamicData;
 
 	public FinanceCategory(BrokerModel broker) {
 		this.broker = broker;
@@ -31,4 +32,12 @@ public class FinanceCategory {
 		this.profit = profit;
 	}
 
+	public FinanceDynamicData getLastFinanceDynamicData() {
+		return lastFinanceDynamicData;
+	}
+
+	public void setLastFinanceDynamicData(
+			FinanceDynamicData lastFinanceDynamicData) {
+		this.lastFinanceDynamicData = lastFinanceDynamicData;
+	}
 }

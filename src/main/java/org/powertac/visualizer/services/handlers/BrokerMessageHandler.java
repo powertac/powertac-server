@@ -1,6 +1,7 @@
 package org.powertac.visualizer.services.handlers;
 
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.taskdefs.Tstamp;
 import org.powertac.common.*;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
@@ -14,8 +15,10 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Initializable;
+import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.CustomerService;
+import org.powertac.visualizer.services.PushService;
 import org.powertac.visualizer.statistical.BalancingCategory;
 import org.powertac.visualizer.statistical.DistributionCategory;
 import org.powertac.visualizer.statistical.DynamicData;
@@ -44,6 +47,8 @@ public class BrokerMessageHandler implements Initializable {
 	private AppearanceListBean appearanceListBean;
 	@Autowired
 	private VisualizerBean vizBean;
+	@Autowired
+	private PushService pushService;
 
 	public void initialize() {
 		for (Class<?> clazz : Arrays.asList(Competition.class,
@@ -72,7 +77,9 @@ public class BrokerMessageHandler implements Initializable {
 		brokerService.setBrokersMap(map);
 		brokerService.setBrokers(list);
 		vizBean.setCompetition(competition);
-
+		vizBean.setRunning(true);
+		//notification:
+		pushService.pushInfoMessage(new InfoPush("start"));				
 	}
 
 	public void handleMessage(TariffSpecification tariffSpecification) {
@@ -98,15 +105,17 @@ public class BrokerMessageHandler implements Initializable {
 				.getUsername());
 		if (broker != null) {
 			FinanceCategory fc = broker.getFinanceCategory();
-
-			fc.getFinanceDynamicDataMap().putIfAbsent(
-					msg.getPostedTimeslotIndex(),
-					new FinanceDynamicData(fc.getProfit(), msg
-							.getPostedTimeslotIndex()));
-			fc.getFinanceDynamicDataMap().get(msg.getPostedTimeslotIndex())
-					.updateBalance(msg.getBalance());
+			int tsIndex = msg.getPostedTimeslotIndex();
+			ConcurrentHashMap<Integer, FinanceDynamicData> fddMap = fc.getFinanceDynamicDataMap();
+			if(!fddMap.containsKey(tsIndex)){
+				FinanceDynamicData fdd = new FinanceDynamicData(fc.getProfit(), tsIndex);
+				fc.setLastFinanceDynamicData(fdd);
+				fddMap.put(tsIndex, fdd);
+			}
+			fddMap.get(tsIndex).updateProfit(msg.getBalance());
 			fc.setProfit(msg.getBalance());
 		}
+		System.out.println("Broker "+msg.getBroker().getUsername()+" TS:"+msg.getPostedTimeslotIndex()+" BALANCE:"+msg.getBalance());
 
 	}
 

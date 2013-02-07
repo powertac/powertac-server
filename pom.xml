@@ -90,7 +90,9 @@
 				<configuration>
 					<webApp>
 						<contextPath>/visualizer</contextPath>
+						
 					</webApp>
+					
 				</configuration>
 			</plugin>
 

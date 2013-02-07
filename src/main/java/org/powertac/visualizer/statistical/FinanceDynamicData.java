@@ -6,29 +6,29 @@ package org.powertac.visualizer.statistical;
  *
  */
 public class FinanceDynamicData {
-	private double startingBalance;
-	private double balanceDelta;
-	private double balance;
+	private double startingProfit;
+	private double profitDelta;
+	private double profit;
 	private int tsIndex;
 	
 	public FinanceDynamicData(double startingBalance, int tsIndex) {
-		this.startingBalance = startingBalance;
+		this.startingProfit = startingBalance;
 		this.tsIndex = tsIndex;		
 	}
 	
-	public void updateBalance(double balance){
-		balanceDelta = balance - startingBalance;
-		this.balance = balance;
+	public void updateProfit(double balance){
+		profitDelta = balance - startingProfit;
+		this.profit = balance;
 	}
 	
-	public double getBalance() {
-		return balance;
+	public double getProfit() {
+		return profit;
 	}
 	/**
-	 * @return balance for one timeslot
+	 * @return profit for one timeslot
 	 */
-	public double getBalanceDelta() {
-		return balanceDelta;
+	public double getProfitDelta() {
+		return profitDelta;
 	}
 	public int getTsIndex() {
 		return tsIndex;

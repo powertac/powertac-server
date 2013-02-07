@@ -32,6 +32,7 @@ public class TariffMarketBean implements Serializable {
 		ArrayList<Object> tariffData = new ArrayList<Object>();
 
 		ArrayList<Object> tariffDataOneTimeslot = new ArrayList<Object>();
+		int safetyTsIndex = helper.getSafetyWholesaleTimeslotIndex();
 
 		Collection<BrokerModel> brokers = brokerService.getBrokers();
 		// brokers:
@@ -51,7 +52,7 @@ public class TariffMarketBean implements Serializable {
 					.getTariffCategory().getTariffDynamicDataMap();
 
 			Set<Integer> keysTariffDynData = new TreeSet<Integer>(brokerModel
-					.getTariffCategory().getTariffDynamicDataMap().keySet());
+					.getTariffCategory().getTariffDynamicDataMap().keySet()).headSet(safetyTsIndex, true);
 
 			// dynamic tariff data:
 			for (Iterator iterator2 = keysTariffDynData.iterator(); iterator2

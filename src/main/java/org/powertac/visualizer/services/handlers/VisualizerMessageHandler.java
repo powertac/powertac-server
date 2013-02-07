@@ -25,15 +25,17 @@ import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
+import org.powertac.visualizer.push.InfoPush;
+import org.powertac.visualizer.services.PushService;
 import org.primefaces.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VisualizerMessageHandlerService implements Initializable {
+public class VisualizerMessageHandler implements Initializable {
 
 	private Logger log = Logger
-			.getLogger(VisualizerMessageHandlerService.class);
+			.getLogger(VisualizerMessageHandler.class);
 	@Autowired
 	private VisualizerBean visualizerBean;
 	@Autowired
@@ -42,12 +44,10 @@ public class VisualizerMessageHandlerService implements Initializable {
 	private AppearanceListBean appearanceListBean;
 	@Autowired
 	private MessageDispatcher router;
+	@Autowired
+	private PushService pushService;
 
-	public void handleMessage(Competition competition) {
-		visualizerBean.setRunning(true);
-		visualizerBean.setCompetition(competition);
-	}
-
+	
 	public void handleMessage(TimeslotUpdate timeslotUpdate) {
 
 		// if there was the timeslot update before:
@@ -124,6 +124,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 	public void handleMessage(SimEnd simEnd) {
 		visualizerBean.setRunning(false);
 		visualizerBean.setFinished(true);
+		pushService.pushInfoMessage(new InfoPush("finish"));
 	}
 
 	public void handleMessage(SimPause simPause) {
@@ -164,7 +165,7 @@ public class VisualizerMessageHandlerService implements Initializable {
 		for (Class<?> clazz : Arrays.asList(DistributionReport.class,
 				SimResume.class, SimEnd.class, BankTransaction.class,
 				SimPause.class, SimStart.class, TimeslotComplete.class,
-				TimeslotUpdate.class, Competition.class, TariffExpire.class,
+				TimeslotUpdate.class, TariffExpire.class,
 				TariffRevoke.class, TariffStatus.class, TariffUpdate.class)) {
 			router.registerMessageHandler(this, clazz);
 		}

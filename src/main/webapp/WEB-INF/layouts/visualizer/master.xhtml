@@ -15,87 +15,288 @@
 	<script src="http://code.highcharts.com/highcharts.js"></script>
 	<script src="http://code.highcharts.com/highcharts-more.js"></script>
 	<script src="http://code.highcharts.com/modules/exporting.js"></script>
-
-
 	<script src="http://code.highcharts.com/stock/highstock.js"></script>
 	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
 
+	<h:outputStylesheet library="css" name="modern.css" />
+	<h:outputStylesheet library="css" name="site.css" />
+	<h:outputScript library="js" name="charts.js" />
+	<h:outputStylesheet library="css" name="visualizer.css" />
+	<h:outputScript library="javascript" name="pagecontrol.js" />
+	<h:outputScript library="javascript" name="dropdown.js" />
+	<h:outputScript library="javascript" name="accordion.js" />
+	<h:outputScript library="javascript" name="buttonset.js" />
+	<h:outputScript library="javascript" name="carousel.js" />
+	<h:outputScript library="javascript" name="dialog.js" />
+	<h:outputScript library="javascript" name="input-control.js" />
+	<h:outputScript library="javascript" name="pagecontrol.js" />
+	<h:outputScript library="javascript" name="rating.js" />
+	<h:outputScript library="javascript" name="slider.js" />
+	<h:outputScript library="javascript" name="tile-slider.js" />
+	<h:outputScript library="javascript" name="tile-drag.js" />
+	<script type="text/javascript">
+		$(document).ready(function() {
+			Highcharts.setOptions({
+				global : {
+					useUTC : true
+				}
+			});
+
+		});
+	</script>
+
+	<ui:insert name="headIncludes" />
+</h:head>
+<h:body class="modern-ui">
+
+	<p:button rendered="false"></p:button>
+
+
+
+
+	<div class="page" id="page-index">
+		<div class="nav-bar">
+			<div class="nav-bar-inner padding10">
+				<span class="pull-menu"></span> <a href="gameoverview"><span
+					class="element brand"> <small>Power TAC Visualizer</small>
+				</span></a>
+
+				<div class="divider"></div>
+
+				<ul class="menu">
+					<li data-role="dropdown"><a href="#">Finance</a>
+						<ul class="dropdown-menu">
+							<li><a href="financeaggregate">Aggregate scores</a></li>
+							<li><a href="financepertimeslot">Per timeslot scores</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Tariff market</a>
+						<ul class="dropdown-menu">
+							<li><a href="tariffaggregate">Aggregate scores</a></li>
+							<li><a href="tariffpertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="tariffcustomers">Customers - TODO</a></li>
+							<li class="divider"></li>
+							<li><a href="tairffstatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Wholesale market</a>
+						<ul class="dropdown-menu">
+							<li><a href="wholesaleaggregate">Aggregate scores</a></li>
+							<li><a href="wholesalepertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalemarkettxs">Market transactions</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalegencos">GenCos - TODO</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalestatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Balancing</a>
+						<ul class="dropdown-menu">
+							<li><a href="balancingaggregate">Aggregate scores</a></li>
+							<li><a href="balancingpertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="balancingstatistics">Statistics - TODO</a></li>
+						</ul></li>
+
+					<li data-role="dropdown"><a href="#">Distribution</a>
+						<ul class="dropdown-menu">
+							<li><a href="distributionaggregate">Aggregate scores</a></li>
+							<li><a href="distributionpertimeslot">Per timeslot
+									scores</a></li>
+							<li class="divider"></li>
+							<li><a href="distributionstatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li><a href="weatherreport">Weather report</a></li>
+				</ul>
+				<div class="divider"></div>
+				<div class="nav-bar-inner">
+					<a href="competitioncontrol"><span class="element brand">
+							<small>Settings</small><i class="icon-cog"></i>
+					</span></a>
+				</div>
+			</div>
+		</div>
+		<div class="page-region">
+			<div class="page-region-content">
+
+
+
+
+				<div class="grid">
+					<div class="row">
+						<div class="span12 padding10 fg-color-darken text-center">
+							<ui:insert name="title" />
+							<ui:insert name="maincontent" />
+						</div>
+					</div>
+
+
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<ui:insert name="rowcontent" />
+					</div>
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="span2 bg-color-blue" style="height: 1000px">
+
+							<div class=" icon-cloudy fg-color-white statusIcon" />
+							<div class=" icon-sun fg-color-white statusIcon" />
+							<div class=" icon-windy-2 fg-color-white statusIcon" />
+							<div class=" icon-thermometer fg-color-white statusIcon" />
+							<div class=" icon-Celsius fg-color-white statusIcon" />
+							<div class=" icon-clock fg-color-white statusIcon" />
+							<div class=" icon-calendar fg-color-white statusIcon" />
+
+							<div class=" icon-arrow-up fg-color-white statusIcon" />
+							<div class=" icon-arrow-up-right fg-color-white statusIcon" />
+							<div class=" icon-arrow-right fg-color-white statusIcon" />
+							<div class=" icon-arrow-down-right fg-color-white statusIcon" />
+							<div class=" icon-arrow-down fg-color-white statusIcon" />
+							<div class=" icon-arrow-down-left fg-color-white statusIcon" />
+							<div class=" icon-arrow-left fg-color-white statusIcon" />
+							<div class=" icon-arrow-up-left fg-color-white statusIcon" />
+
+						</div>
+
+						<div class="span4 bg-color-green">
+							<img src="#{resource['images/preloader-w8-cycle-white.gif']}"
+								class="place-right" style="margin: 10px;" />
+
+							<h2 class="fg-color-white">&nbsp;Energy info msg</h2>
+						</div>
+						<div class="span4 bg-color-green">
+							<img src="#{resource['images/preloader-w8-cycle-white.gif']}"
+								class="place-right" style="margin: 10px;" />
+
+							<h2 class="fg-color-white">&nbsp;Energy info msg</h2>
+						</div>
+					</div>
+				</div>
+
+				<div class="page">
+
+					<div class="grid">
+						<div class="row">
+							<br />
+							<div class="span3 bg-color-blue padding10 text-center"
+								style="height: 170px">
+								<h1 class="fg-color-white">Chat</h1>
+								<br /> <img
+									src="#{resource['images/preloader-w8-line-white.gif']}"
+									class="place-right" style="margin: 10px;" />
+							</div>
+
+							<div class="span4 border-color-blue padding10"
+								style="height: 170px">
+								<h:form>
+									<h:panelGrid columns="2">
+										<h:outputText value="Name*:" />
+										<p:inputText value="#{chatBean.name}" required="true" />
+
+										<h:outputText value="Message*:" />
+										<p:inputText value="#{chatBean.msg}" required="true" />
+									</h:panelGrid>
+									<h:outputText value="*required" />
+									<p:commandButton value="Send"
+										actionListener="#{chatBean.sendMsg}"
+										styleClass="standart default place-right" />
+								</h:form>
+							</div>
+
+							<div class="span5 bg-color-blue padding10">
+
+								<div id="chatwindow" style="height: 150px; overflow-y: scroll;"
+									class="fg-color-white">
+									<ui:repeat var="msg" value="#{chatGlobal.msgs}">
+				#{msg} <br />
+									</ui:repeat>
+								</div>
+
+							</div>
+
+
+						</div>
+					</div>
+
+
+
+
+				</div>
+
+
+				<div class="page">
+					<div class="nav-bar">
+						<div class="nav-bar-inner padding10">
+							<span class="element"> 2013, Power TAC </span>
+							<div class="divider"></div>
+							<span class="element"><a class="fg-color-white"
+								href="http://www.powertac.org/">Official website</a> </span>
+							<div class="divider"></div>
+							<span class="element"><a class="fg-color-white"
+								href="http://power-tac-developers.975333.n3.nabble.com/">Developers
+									forum</a> </span>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<p:socket onMessage="handleInfoMsg" channel="/infopush" />
+
+	<p:socket onMessage="handleChat" channel="/chat" />
+	<script type="text/javascript">
+		function handleChat(data) {
+
+			var chatContent = $(PrimeFaces.escapeClientId('chatwindow'));
+
+			chatContent.append(data + '<br />');
+
+			//keep scroll  
+			chatContent.scrollTop(chatContent.scrollTop() + 50);
+		}
+	</script>
 
 	<script type="text/javascript">
-		
+		function popupDialog(title, content) {
+			$.Dialog({
+				'title' : title,
+				'content' : content,
+				'draggable' : true,
+				'overlay' : true,
+				'closeButton' : true,
+				'buttonsAlign' : 'right',
+				'position' : {
+					'zone' : 'center'
+				},
+				'buttons' : {
+					'OK' : {
+						'action' : function() {
+						}
+					}
+				}
+			})
+		}
+		function handleInfoMsg(data) {
+
+			var pushObject = jQuery.parseJSON(data);
+			var status = pushObject["status"];
+			if (status == 'start') {
+				popupDialog('Game start', 'A new game is about to start!');
+				setTimeout("location.reload(true);", 5000);
+			} else if (status == 'finish'){
+				popupDialog('Game complete', 'The game has ended!');
+				setTimeout("location.reload(true);", 5000);
+			}
+
+		}
 	</script>
-	<ui:insert name="headIncludes" />
-
-</h:head>
-<h:body style="background-color:#339900;">
-
-	<p:layout id="mainLayout" stateful="true"
-		style="height:100%;width:1000px;margin-left: auto;margin-right: auto;">
-		<p:layoutUnit id="north" position="north" size="90" collapsible="true"
-			header="LOL" styleClass="custom" resizable="true">
-			<ui:include src="/WEB-INF/tags/logo.xhtml" />
-
-
-			<h:form id="northForm">
-
-			</h:form>
-			<div id="cloudCoverGauge" style="float: right" />
-			<div id="windSpeedGauge" style="float: right" />
-			<div id="temperatureGauge" style="float: right" />
-
-
-		</p:layoutUnit>
-
-		<p:layoutUnit position="center">
-			<h2 class="alt" style="text-align: center;">
-
-				<ui:insert name="title"></ui:insert>
-
-
-			</h2>
-
-			<ui:insert name="content" />
-
-				
-
-		</p:layoutUnit>
-
-			
-			
 
 
 
-
-	</p:layout>
-
-
-<p:dock position="bottom" halign="center">
-					<p:menuitem value="Brokers"
-						icon="/app/resources/resources/images/dock/brokers.png"
-						url="brokers" />
-					<p:menuitem value="Tariff Market"
-						icon="/app/resources/resources/images/dock/customers.png"
-						url="tariffmarket" />
-					<p:menuitem value="Wholesale Market"
-						icon="/app/resources/resources/images/dock/wholesale.png"
-						url="wholesalemarket" />
-					<p:menuitem value="Balancing"
-						icon="/app/resources/resources/images/dock/wholesale.png"
-						url="balancingmarket" />
-					<p:menuitem value="Distribution"
-						icon="/app/resources/resources/images/dock/wholesale.png"
-						url="distributionmarket" />
-					<p:menuitem value="GenCos"
-						icon="/app/resources/resources/images/dock/gencos.png"
-						url="gencos" />
-					<p:menuitem value="Head to head"
-						icon="/app/resources/resources/images/dock/gencos.png"
-						url="headtohead" />
-					<p:menuitem value="Weather"
-						icon="/app/resources/resources/images/dock/weather.png"
-						url="weather" />
-
-				</p:dock>
 </h:body>
 
 </html>

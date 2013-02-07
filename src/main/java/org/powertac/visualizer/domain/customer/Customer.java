@@ -30,7 +30,6 @@ public class Customer implements TimeslotModelUpdate {
 
 	private CustomerInfo customerInfo;
 
-	private CustomerJSON customerJson;
 	private CustomerBootstrapData bootstrapData;
 
 	private double currentKWhProduced;
@@ -40,7 +39,6 @@ public class Customer implements TimeslotModelUpdate {
 
 
 	public Customer(CustomerInfo customerInfo) {
-		customerJson = new CustomerJSON();
 		customerModel = new CustomerModel(customerInfo);
 		this.customerInfo = customerInfo;
 		// charts = new CustomerCharts();
@@ -50,13 +48,9 @@ public class Customer implements TimeslotModelUpdate {
 		return customerModel;
 	}
 
-	public CustomerJSON getCustomerJson() {
-		return customerJson;
-	}
-
 	public void addCustomerBootstrapData(CustomerBootstrapData data, Competition competition) {
 		bootstrapData = data;
-		buildBootstrapDataJSON(competition);
+		
 
 	}
 
@@ -77,57 +71,7 @@ public class Customer implements TimeslotModelUpdate {
 		customerModel.addTariffTransaction(tx);
 	}
 
-	private void buildBootstrapDataJSON(Competition competition) {
-		try {
-			JSONArray array = new JSONArray();
-			double[] energyUsage = bootstrapData.getNetUsage();
-			
-			long baseTime = competition.getSimulationBaseTime().getMillis();
-			
-			for (int i = 0; i < energyUsage.length; i++) {
-				JSONArray point = new JSONArray();
-				point.put(baseTime).put(energyUsage[i]);
-				array.put(point);
-				baseTime+=competition.getSimulationModulo();
-			}
-			
-			customerJson.setBootstrapLineChartData(array);
-		} catch (JSONException e) {
-			log.warn("Unable to create JSON Array from bootstrap data");
-		}
-
-	}
-
 	public void update(int timeslotIndex, Instant postedTime) {
-		try {
-
-			
-			customerJson.getTotalChargeLineChartData().put(new JSONArray().put(postedTime.getMillis()).put(
-					currentInflowCharge + currentOutflowCharge));
-
-			JSONArray kWhTotal = new JSONArray().put(postedTime.getMillis()).put(
-					currentKWhConsumed + currentKWhProduced);
-			customerJson.getTotalkWhLineChartData().put(kWhTotal);
-
-			JSONArray chargeInflow = new JSONArray().put(postedTime.getMillis()).put(
-					currentInflowCharge);
-			customerJson.getInflowChargeLineChartData().put(chargeInflow);
-			JSONArray chargeOutflow = new JSONArray().put(postedTime.getMillis()).put(
-					currentOutflowCharge);
-			customerJson.getOutflowChargeLineChartData().put(chargeOutflow);
-
-			JSONArray kWhProd = new JSONArray().put(timeslotIndex).put(
-					currentKWhProduced);
-			customerJson.getProductionKWhLineChartData().put(kWhProd);
-
-			JSONArray kWhCons = new JSONArray().put(timeslotIndex).put(
-					currentKWhConsumed);
-			customerJson.getConsumptionKWhLineChartData().put(kWhCons);
-
-		} catch (JSONException e) {
-			log.warn("Problem with customers JSON object update!");
-		}
-
 		// reset variables for the next timeslot;
 		currentInflowCharge = 0;
 		currentOutflowCharge = 0;

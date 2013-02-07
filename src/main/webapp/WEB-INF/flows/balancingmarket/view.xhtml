@@ -8,9 +8,6 @@
 
 <ui:define name="headInclude">
 		<h:outputScript library="js" name="charts.js" />
-
-	
-
 		<script type="text/javascript">
 		
 		function handleBalancingMarketPush(data) {
@@ -20,7 +17,7 @@
 			var cntBalancingDynDataOneTimeslot=0;
 			jQuery.each(array, function() {
 				  var pushObject = this;
-				  console.log(pushObject);
+				  
 				  //known ordering: profit, energy
 				  // 0 is the first broker, known ordering.
 				  

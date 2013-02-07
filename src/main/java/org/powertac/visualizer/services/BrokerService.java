@@ -21,12 +21,16 @@ import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.json.BrokersJSON;
 import org.powertac.visualizer.push.DynDataPusher;
+import org.powertac.visualizer.push.FinancePusher;
+import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.push.TariffMarketPusher;
 import org.powertac.visualizer.push.WholesaleMarketPusher;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
 import org.powertac.visualizer.statistical.BalancingCategory;
 import org.powertac.visualizer.statistical.DistributionCategory;
 import org.powertac.visualizer.statistical.DynamicData;
+import org.powertac.visualizer.statistical.FinanceCategory;
+import org.powertac.visualizer.statistical.FinanceDynamicData;
 import org.powertac.visualizer.statistical.TariffCategory;
 import org.powertac.visualizer.statistical.WholesaleCategory;
 import org.primefaces.json.JSONArray;
@@ -52,7 +56,6 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	private static final long serialVersionUID = 15L;
 	private ConcurrentHashMap<String, BrokerModel> brokersMap;
 	private ArrayList<BrokerModel> brokers;
-	private double energy;
 	@Autowired
 	private VisualizerHelperService helper;
 
@@ -98,6 +101,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		ArrayList<WholesaleMarketPusher> wholesaleMarketPushers = new ArrayList<WholesaleMarketPusher>();
 		ArrayList<DynDataPusher> balancingMarketPushers = new ArrayList<DynDataPusher>();
 		ArrayList<DynDataPusher> distributionPushers = new ArrayList<DynDataPusher>();
+		ArrayList<FinancePusher> financePushers = new ArrayList<FinancePusher>();
 
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 
@@ -146,22 +150,28 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			// balancing market pushers:
 			BalancingCategory bc = b.getBalancingCategory();
 			DynamicData bdd = bc.getLastDynamicData();
-			DynDataPusher bddp = new DynDataPusher(
-					b.getName(),
+			DynDataPusher bddp = new DynDataPusher(b.getName(),
 					helper.getMillisForIndex(bdd.getTsIndex()),
-					bdd.getProfit(), bdd.getEnergy(), bdd.getProfitDelta(), bdd
-							.getEnergyDelta());
+					bdd.getProfit(), bdd.getEnergy(), bdd.getProfitDelta(),
+					bdd.getEnergyDelta());
 			balancingMarketPushers.add(bddp);
 
 			// balancing market pushers:
 			DistributionCategory dc = b.getDistributionCategory();
 			DynamicData ddd = dc.getLastDynamicData();
-			DynDataPusher dddp = new DynDataPusher(
-					b.getName(),
+			DynDataPusher dddp = new DynDataPusher(b.getName(),
 					helper.getMillisForIndex(ddd.getTsIndex()),
-					ddd.getProfit(), ddd.getEnergy(), ddd.getProfitDelta(), ddd
-							.getEnergyDelta());
+					ddd.getProfit(), ddd.getEnergy(), ddd.getProfitDelta(),
+					ddd.getEnergyDelta());
 			distributionPushers.add(dddp);
+
+			// finance push
+			FinanceCategory fc = b.getFinanceCategory();
+			FinanceDynamicData fdd = fc.getLastFinanceDynamicData();
+			FinancePusher fp = new FinancePusher(b.getName(),
+					helper.getMillisForIndex(fdd.getTsIndex()),
+					fdd.getProfit(), fdd.getProfitDelta());
+			financePushers.add(fp);
 
 		}
 
@@ -170,16 +180,13 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 				gson.toJson(wholesaleMarketPushers));
 		pushContext.push("/balancingmarketpush",
 				gson.toJson(balancingMarketPushers));
-		pushContext.push("/distributionpush",
-				gson.toJson(distributionPushers));
+		pushContext.push("/distributionpush", gson.toJson(distributionPushers));
+		pushContext.push("/financepush", financePushers);
 	}
 
-	public List<BrokerModel> getBrokerList() {
-		return brokers;
-	}
 
 	public ArrayList<BrokerModel> getBrokers() {
-		return new ArrayList<BrokerModel>(brokers);
+		return brokers;
 	}
 
 }

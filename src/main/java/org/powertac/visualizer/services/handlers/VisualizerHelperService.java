@@ -43,7 +43,7 @@ public class VisualizerHelperService {
 	 *         purposes. It will return a timeslot index for which all wholesale
 	 *         trades have been made and thus will not be mutable.
 	 */
-	public int getSafetyTimeslotIndex() {
+	public int getSafetyWholesaleTimeslotIndex() {
 		if (visualizerBean.getTimeslotComplete() != null) {
 			int lastCompletedTimeslot = visualizerBean.getTimeslotComplete()
 					.getTimeslotIndex();
@@ -55,4 +55,15 @@ public class VisualizerHelperService {
 			return -1;
 
 	}
+	public int getSafetyTimeslotIndex() {
+		if (visualizerBean.getTimeslotComplete() != null) {
+			int lastCompletedTimeslot = visualizerBean.getTimeslotComplete()
+					.getTimeslotIndex();
+			return lastCompletedTimeslot;
+		} else
+			return -1;
+
+	}
+
+	
 }

@@ -1,3 +1,12 @@
+function getOneDynYAxisData(firstTitle) {
+	return [ {
+		title : {
+			text : firstTitle
+		},
+		lineWidth : 2
+	}];
+}
+
 function getBaseDynYAxisData(firstTitle, secondTitle) {
 	return [ {
 		title : {
@@ -37,7 +46,9 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 		chart : {
 			renderTo : renderDiv,
 			alignTicks : false,
-			backgroundColor: null
+			backgroundColor: null,
+			marginRight: 130,
+			marginBottom: 70 
 
 		},
 		plotLines : [ {
@@ -173,3 +184,123 @@ function scatterMarketTxs(targetDiv, title, subtitle, xAxisTitle,yAxisTitle,xMea
 							
 	});
 }
+
+function weatherReportGraph(targetDiv,title, temperatureData, windSpeedData, windDirectionData, cloudCoverData){
+	
+	return new Highcharts.StockChart({
+			chart : {
+				renderTo : targetDiv,
+				alignTicks: false
+							
+			},
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#808080'
+			}],
+			yAxis: [{
+		        title: {
+		            text: 'Temperature(°C)'
+		        },
+		        height: 140,
+		        lineWidth: 2
+		    }, {
+		        title: {
+		            text: 'Wind speed (m/s)'
+		        },
+		        top: 230,
+		        height: 150,
+		        offset: 0,
+		        lineWidth: 2,
+		       // opposite: true
+		    },{
+		        title: {
+		            text: 'Wind direction (°)'
+		        },
+		        top: 390,
+		        height: 150,
+		        offset: 0,
+		        lineWidth: 2,
+		       // opposite: true
+		    },
+		    {
+		        title: {
+		            text: 'Cloud cover'
+		        },
+		        top: 550,
+		        height: 150,
+		        offset: 0,
+		        lineWidth: 2,
+		     //   opposite: true
+		    }],
+			
+			rangeSelector: {
+				buttons: [{
+					count: 1,
+					type: 'hour',
+					text: '1H'
+				}, {
+					count: 1,
+					type: 'day',
+					text: '1D'
+				},{
+					count: 1,
+					type: 'week',
+					text: '1W'
+				},
+				{
+					count: 2,
+					type: 'week',
+					text: '2W'
+				},
+				{
+					count: 1,
+					type: 'month',
+					text: '1M'
+				},
+				{
+					type: 'all',
+					text: 'All'
+				}],
+				inputEnabled: true,
+				selected: 5
+			},
+			
+			title : {
+				text : title
+			},
+			
+			exporting: {
+				enabled: true
+			},
+			tooltip: {
+				yDecimals : 2
+			},
+			
+			series : [{
+		        name: 'Temperature(C°)',
+		        data: temperatureData
+		    }, {
+		        name: 'Wind speed (m/s)',
+		        data: windSpeedData,
+		        yAxis: 1
+		       
+		    },{
+		        name: 'Wind direction (°)',
+		        data: windDirectionData,
+		        yAxis: 2,
+		        step: true
+		       
+		    },
+		    {
+		        name: 'Cloud cover',
+		        data: cloudCoverData,
+		        yAxis: 3,
+		        step: true
+		       
+		    }
+		    ]
+			
+		});   
+	
+};

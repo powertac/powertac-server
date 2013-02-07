@@ -55,7 +55,6 @@ public class DistributionBean implements Serializable {
 			BrokerService brokerService, VisualizerHelperService helper) {
 		Collection<BrokerModel> brokers = brokerService.getBrokers();
 
-		int safetyTsIndex = helper.getSafetyTimeslotIndex();
 		ArrayList<Object> distributionTxData = new ArrayList<Object>();
 		ArrayList<Object> distributionTxDataOneTimeslot = new ArrayList<Object>();
 
@@ -71,8 +70,7 @@ public class DistributionBean implements Serializable {
 
 			ConcurrentHashMap<Integer, DynamicData> dynDataMap = brokerModel
 					.getDistributionCategory().getDynamicDataMap();
-			SortedSet<Integer> dynDataSet = new TreeSet<Integer>(dynDataMap.keySet())
-					.headSet(safetyTsIndex, true);
+			SortedSet<Integer> dynDataSet = new TreeSet<Integer>(dynDataMap.keySet());
 
 		
 			// dynamic wholesale data:

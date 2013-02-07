@@ -152,4 +152,8 @@
 		scope="request" />
 		<bean id="balancingMarketBean" class="org.powertac.visualizer.user.BalancingMarketBean" scope="request"/>
 		<bean id="distributionBean" class="org.powertac.visualizer.user.DistributionBean" scope="request"/>
+		<bean id="chatBean" class="org.powertac.visualizer.user.ChatBean"
+		scope="session" />
+		<bean id="financeBean" class="org.powertac.visualizer.user.FinanceBean" scope="request"/>
+		<bean id="globalBean" class="org.powertac.visualizer.user.GlobalBean" scope="request"/>
 </beans>

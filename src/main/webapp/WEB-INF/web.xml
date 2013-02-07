@@ -82,10 +82,11 @@
 		<servlet-name>Push Servlet</servlet-name>
 		<url-pattern>/primepush/*</url-pattern>
 	</servlet-mapping>
-	
 
-
-
+	<context-param>
+    <param-name>primefaces.THEME</param-name>
+    <param-value>none</param-value>
+</context-param>  
 
 	<!-- DEFAULT PAGE -->
 	<welcome-file-list>

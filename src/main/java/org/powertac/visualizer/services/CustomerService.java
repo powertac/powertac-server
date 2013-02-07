@@ -21,15 +21,12 @@ import java.util.Map.Entry;
  * 
  */
 @Service
-public class CustomerService implements TimeslotCompleteActivation,Recyclable{
+public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 
 	private static Logger log = Logger.getLogger(CustomerService.class);
-	
+
 	private HashMap<CustomerInfo, Customer> customerMap;
 	private ArrayList<Customer> customerList;
-	private ArrayList<Customer> producers;
-	private ArrayList<Customer> consumers;
-	private ArrayList<Customer> storages;
 
 	public CustomerService() {
 		recycle();
@@ -40,36 +37,33 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	 * customerInfo.
 	 */
 	public void addCustomers(List<CustomerInfo> customerInfos) {
-    for (CustomerInfo customerInfo: customerInfos) {
-      Customer customer = new Customer(customerInfo);
-      customerMap.put(customerInfo, customer);
+		HashMap<CustomerInfo, Customer> customers = new HashMap<CustomerInfo, Customer>();
+		for (CustomerInfo customerInfo : customerInfos) {
+			Customer customer = new Customer(customerInfo);
+			customers.put(customerInfo, customer);
+		}
+		
+		customerMap=customers;
 
-      PowerType genericType = customerInfo.getPowerType().getGenericType();
-
-      if (genericType == PowerType.CONSUMPTION) {
-        consumers.add(customer);
-      } else if (genericType == PowerType.PRODUCTION) {
-        producers.add(customer);
-      } else if (genericType == PowerType.STORAGE) {
-        storages.add(customer);
-      }
-
-    }
-		//build list:
-		customerList=new ArrayList<Customer>(customerMap.values());
-		log.info("Customers added: List size:"+customerList.size()+" Map size:"+customerMap.size());
+		// build list:
+		customerList = new ArrayList<Customer>(customerMap.values());
+		log.info("Customers added: List size:" + customerList.size()
+				+ " Map size:" + customerMap.size());
 	}
 
 	/**
 	 * 
 	 * @param customerName
-	 * @return Customer associated by the given name, or null if the customer cannot be found.
+	 * @return Customer associated by the given name, or null if the customer
+	 *         cannot be found.
 	 */
-	public Customer findCustomerByNameAndType(String customerName,PowerType type) {
+	public Customer findCustomerByNameAndType(String customerName,
+			PowerType type) {
 		for (Entry<CustomerInfo, Customer> entry : customerMap.entrySet()) {
 			CustomerInfo key = entry.getKey();
 			Customer value = entry.getValue();
-			if(key.getName().equals(customerName)&&(key.getPowerType()==type)){
+			if (key.getName().equals(customerName)
+					&& (key.getPowerType() == type)) {
 				return value;
 			}
 		}
@@ -79,43 +73,27 @@ public class CustomerService implements TimeslotCompleteActivation,Recyclable{
 	public void recycle() {
 		customerMap = new HashMap<CustomerInfo, Customer>();
 		customerList = new ArrayList<Customer>();
-		producers = new ArrayList<Customer>();
-		consumers = new ArrayList<Customer>();
-		storages = new ArrayList<Customer>();
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<Customer> getCustomerList() {
 		return (List<Customer>) customerList.clone();
 	}
 
 	public void activate(int timeslotIndex, Instant postedTime) {
-		//update jsons for all customers:
+		// update jsons for all customers:
 
-    for (Customer type: customerList) {
-      type.update(timeslotIndex, postedTime);
+		for (Customer type : customerList) {
+			type.update(timeslotIndex, postedTime);
 
-    }
-	log.debug("Customer service activation complete. Timeslotindex:"+timeslotIndex);
-		
+		}
+		log.debug("Customer service activation complete. Timeslotindex:"
+				+ timeslotIndex);
+
 	}
 
 	public Customer findCustomerByCustomerInfo(CustomerInfo customerInfo) {
 		return customerMap.get(customerInfo);
 	}
-	
-	public ArrayList<Customer> getConsumers() {
-		return (ArrayList<Customer>) consumers.clone();
-	}
-	
-	public ArrayList<Customer> getProducers() {
-		return (ArrayList<Customer>) producers.clone();
-	}
-	
-	public ArrayList<Customer> getStorages() {
-		return (ArrayList<Customer>) storages.clone();
-	}
-
-	
 
 }
