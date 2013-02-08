@@ -193,17 +193,17 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			if (np == null) {
 				np = new NominationPusher(new NominationCategoryPusher(
 						b.getName(), (long) fc.getProfit()),
-						new NominationCategoryPusher(b.getName(), (long) bc
-								.getEnergy()), new NominationCategoryPusher(
+						new NominationCategoryPusher(b.getName(), (long) Math.abs(bc
+								.getEnergy())), new NominationCategoryPusher(
 								b.getName(), tc.getCustomerCount()));
 			} else {
 				long profitAmount = (long) fc.getProfit();
-				long balanceAmount = (long) bc.getEnergy();
+				long balanceAmount = (long) Math.abs(bc.getEnergy());
 				long customerAmount = (long) tc.getCustomerCount();
 				if(profitAmount>np.getProfit().getAmount()){
 					np.setProfit(new NominationCategoryPusher(b.getName(), profitAmount));
 				}
-				if(balanceAmount<np.getBalance().getAmount()){
+				if(balanceAmount<Math.abs(np.getBalance().getAmount())){
 					np.setBalance(new NominationCategoryPusher(b.getName(), balanceAmount));
 				}
 				if(customerAmount>np.getCustomerNumber().getAmount()){
