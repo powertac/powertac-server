@@ -7,14 +7,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.taskdefs.Tstamp;
 import org.joda.time.Instant;
 import org.powertac.common.MarketTransaction;
+import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Recyclable;
@@ -23,6 +27,8 @@ import org.powertac.visualizer.json.BrokersJSON;
 import org.powertac.visualizer.push.DynDataPusher;
 import org.powertac.visualizer.push.FinancePusher;
 import org.powertac.visualizer.push.InfoPush;
+import org.powertac.visualizer.push.NominationCategoryPusher;
+import org.powertac.visualizer.push.NominationPusher;
 import org.powertac.visualizer.push.TariffMarketPusher;
 import org.powertac.visualizer.push.WholesaleMarketPusher;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
@@ -56,6 +62,8 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	private static final long serialVersionUID = 15L;
 	private ConcurrentHashMap<String, BrokerModel> brokersMap;
 	private ArrayList<BrokerModel> brokers;
+	@Autowired
+	private VisualizerBean visualizerBean; 
 	@Autowired
 	private VisualizerHelperService helper;
 
@@ -103,6 +111,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		ArrayList<DynDataPusher> distributionPushers = new ArrayList<DynDataPusher>();
 		ArrayList<FinancePusher> financePushers = new ArrayList<FinancePusher>();
 
+		NominationPusher np = null;
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 
 			BrokerModel b = (BrokerModel) iterator.next();
@@ -125,9 +134,8 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			WholesaleCategory wc = b.getWholesaleCategory();
 			wc.updateAccounts(safetyTxIndex);
 			ArrayList<Object> newMarketTxs = new ArrayList<Object>();
-			DynamicData lastWholesaledd = wc.getDynamicDataMap().get(
-					safetyTxIndex);
-			if (lastWholesaledd != null) {
+
+			if (wc.getMarketTxs().containsKey(safetyTxIndex)) {
 				List<MarketTransaction> mtxs = wc.getMarketTxs().get(
 						safetyTxIndex);
 				for (Iterator iterator2 = mtxs.iterator(); iterator2.hasNext();) {
@@ -136,16 +144,25 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 					Object[] mtxEntry = { mtx.getPrice(), mtx.getMWh() };
 					newMarketTxs.add(mtxEntry);
 				}
-
-				WholesaleMarketPusher wmp = new WholesaleMarketPusher(
-						b.getName(), helper.getMillisForIndex(lastWholesaledd
-								.getTsIndex()),
-						lastWholesaledd.getProfitDelta(),
-						lastWholesaledd.getEnergyDelta(), newMarketTxs,
-						lastWholesaledd.getProfit(),
-						lastWholesaledd.getEnergy());
-				wholesaleMarketPushers.add(wmp);
 			}
+			double profitDelta = 0, profit = 0, energy = 0, energyDelta = 0;
+
+			NavigableSet<Integer> safeKeys = new TreeSet<Integer>(wc
+					.getDynamicDataMap().keySet()).headSet(safetyTxIndex, true);
+			if (!safeKeys.isEmpty()) {
+				DynamicData lastWholesaledd = wc.getDynamicDataMap().get(
+						safeKeys.last());
+
+				profitDelta = lastWholesaledd.getProfitDelta();
+				energyDelta = lastWholesaledd.getEnergyDelta();
+				profit = lastWholesaledd.getProfit();
+				energy = lastWholesaledd.getEnergy();
+			}
+
+			WholesaleMarketPusher wmp = new WholesaleMarketPusher(b.getName(),
+					helper.getMillisForIndex(safetyTxIndex), profitDelta,
+					energyDelta, newMarketTxs, profit, energy);
+			wholesaleMarketPushers.add(wmp);
 
 			// balancing market pushers:
 			BalancingCategory bc = b.getBalancingCategory();
@@ -173,6 +190,29 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 					fdd.getProfit(), fdd.getProfitDelta());
 			financePushers.add(fp);
 
+			if (np == null) {
+				np = new NominationPusher(new NominationCategoryPusher(
+						b.getName(), (long) fc.getProfit()),
+						new NominationCategoryPusher(b.getName(), (long) bc
+								.getEnergy()), new NominationCategoryPusher(
+								b.getName(), tc.getCustomerCount()));
+			} else {
+				long profitAmount = (long) fc.getProfit();
+				long balanceAmount = (long) bc.getEnergy();
+				long customerAmount = (long) tc.getCustomerCount();
+				if(profitAmount>np.getProfit().getAmount()){
+					np.setProfit(new NominationCategoryPusher(b.getName(), profitAmount));
+				}
+				if(balanceAmount<np.getBalance().getAmount()){
+					np.setBalance(new NominationCategoryPusher(b.getName(), balanceAmount));
+				}
+				if(customerAmount>np.getCustomerNumber().getAmount()){
+					np.setCustomerNumber(new NominationCategoryPusher(b.getName(), customerAmount));
+				}
+			}
+		}
+		if(np!=null){
+			visualizerBean.setNominationPusher(np);
 		}
 
 		pushContext.push("/tariffpush", gson.toJson(tariffMarketPushers));
@@ -181,9 +221,8 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		pushContext.push("/balancingmarketpush",
 				gson.toJson(balancingMarketPushers));
 		pushContext.push("/distributionpush", gson.toJson(distributionPushers));
-		pushContext.push("/financepush", financePushers);
+		pushContext.push("/financepush", gson.toJson(financePushers));
 	}
-
 
 	public ArrayList<BrokerModel> getBrokers() {
 		return brokers;

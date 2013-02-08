@@ -31,14 +31,20 @@ public class WholesaleCategory extends AbstractPerformanceCategory {
 		}		
 		this.getDynamicDataMap().get(tsIndex).update(energy, cash);
 	}
+	 
+	
 	
 	public void updateAccounts(int tsIndex){
+		
+		if(getDynamicDataMap().containsKey(tsIndex)){
+			
 		getDynamicDataMap().get(tsIndex).setProfit(profit);
 		getDynamicDataMap().get(tsIndex).setEnergy(energy);
 		profit +=getDynamicDataMap().get(tsIndex).getProfitDelta();
 		energy +=getDynamicDataMap().get(tsIndex).getEnergyDelta();
+		}
 		
 	}
 	
-
+ 
 }

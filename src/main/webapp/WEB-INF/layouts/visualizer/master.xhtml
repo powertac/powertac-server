@@ -41,8 +41,10 @@
 					useUTC : true
 				}
 			});
+			handleGlobalMsg(#{globalBean.globalPusher});
 
 		});
+		
 	</script>
 
 	<ui:insert name="headIncludes" />
@@ -140,41 +142,124 @@
 
 				<div class="grid">
 					<div class="row">
-						<div class="span2 bg-color-blue" style="height: 1000px">
+						<div class="tile double bg-color-green" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Profit Leader</h2>
+								<br />
+								<h4 id="profitBroker"></h4>
+								<p>Congrats!</p>
 
-							<div class=" icon-cloudy fg-color-white statusIcon" />
-							<div class=" icon-sun fg-color-white statusIcon" />
-							<div class=" icon-windy-2 fg-color-white statusIcon" />
-							<div class=" icon-thermometer fg-color-white statusIcon" />
-							<div class=" icon-Celsius fg-color-white statusIcon" />
-							<div class=" icon-clock fg-color-white statusIcon" />
-							<div class=" icon-calendar fg-color-white statusIcon" />
-
-							<div class=" icon-arrow-up fg-color-white statusIcon" />
-							<div class=" icon-arrow-up-right fg-color-white statusIcon" />
-							<div class=" icon-arrow-right fg-color-white statusIcon" />
-							<div class=" icon-arrow-down-right fg-color-white statusIcon" />
-							<div class=" icon-arrow-down fg-color-white statusIcon" />
-							<div class=" icon-arrow-down-left fg-color-white statusIcon" />
-							<div class=" icon-arrow-left fg-color-white statusIcon" />
-							<div class=" icon-arrow-up-left fg-color-white statusIcon" />
-
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="profitAmount" style="float: right"></div>
+								<div class=" icon-diamond statusIcon" />
+							</div>
 						</div>
 
-						<div class="span4 bg-color-green">
-							<img src="#{resource['images/preloader-w8-cycle-white.gif']}"
-								class="place-right" style="margin: 10px;" />
+						<div class="tile double bg-color-orangeDark"
+							data-role="tile-slider" data-param-period="5000"
+							data-param-direction="left">
+							<div class="tile-content">
+								<h2>Balance Leader</h2>
+								<br />
+								<h4 id="balanceBroker"></h4>
+								<p>Congrats!</p>
 
-							<h2 class="fg-color-white">&nbsp;Energy info msg</h2>
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
+								<div class=" icon-meter-slow statusIcon" />
+							</div>
 						</div>
-						<div class="span4 bg-color-green">
-							<img src="#{resource['images/preloader-w8-cycle-white.gif']}"
-								class="place-right" style="margin: 10px;" />
 
-							<h2 class="fg-color-white">&nbsp;Energy info msg</h2>
+						<div class="tile single bg-color-purple" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Customers Leader</h2>
+								<br />
+								<h4 id="customersBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-user statusIcon" />
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="span4 bg-color-red"
+							style="height: 80px; text-align: center">
+							<br />
+							<div class=" icon-clock bigStatusIcon" />
+							<div class=" bigStatusText" id="clock"></div>
+							<br />
+
+
+						</div>
+						<div class="span8 bg-color-greenDark"
+							style="height: 80px; text-align: center">
+							<br />
+							<div class=" icon-calendar bigStatusIcon" />
+							<div class=" bigStatusText" id="date"></div>
+							<br />
+
 						</div>
 					</div>
 				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="span4 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" weatherText">Weather info</div>
+							<br />
+
+
+						</div>
+						<div class="span2 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" icon-thermometer weatherIcon" />
+							<div class=" weatherText" id="temperature"></div>
+							<br />
+
+
+						</div>
+
+						<div class="span4 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" weatherText" id="windspeed"></div>
+							<div class=" icon-arrow-up-left arrow" id="windArrow" />
+
+							<br />
+
+
+						</div>
+
+						<div class="span2 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br /> 
+							<div class=" icon-sun weatherIcon" id="cloudCover" />
+
+							<br />
+
+
+						</div>
+
+					</div>
+				</div>
+
+
+
 
 				<div class="page">
 
@@ -246,6 +331,7 @@
 		</div>
 	</div>
 	<p:socket onMessage="handleInfoMsg" channel="/infopush" />
+	<p:socket onMessage="handleGlobalMsg" channel="/globalpush" />
 
 	<p:socket onMessage="handleChat" channel="/chat" />
 	<script type="text/javascript">
@@ -280,16 +366,125 @@
 				}
 			})
 		}
+		function handleGlobalMsg(data) {
+			
+			
+			var pushObject = jQuery.parseJSON(data);
+			//bad hacking:
+			if(pushObject ==null){
+				pushObject = data;
+			}
+			
+			var nominations = pushObject["nominations"];
+
+			var balance = nominations["balance"];
+			var balBroker = balance["name"];
+			var balAmount = balance["amount"]/1000;
+
+			var customerNumber = nominations["customerNumber"];
+			var cusNumBroker = customerNumber["name"];
+			var cusNumAmount = customerNumber["amount"];
+
+			var profit = nominations["profit"];
+			var profitBroker = profit["name"];
+			var profitAmount = profit["amount"];
+
+			var weather = pushObject["weather"];
+			var cloudCover = weather["cloudCover"];
+			var millis = weather["millis"];
+			var temperature = weather["temperature"];
+			var windDirection = weather["windDirection"];
+			var windSpeed = weather["windSpeed"];
+
+			console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
+					+ " " + cusNumAmount + " " + profitBroker + " "
+					+ profitAmount + " " + cloudCover + " " + millis + " "
+					+ temperature + " " + windDirection + " " + windSpeed);
+			document.getElementById("profitBroker").innerHTML = profitBroker;
+			document.getElementById("profitAmount").innerHTML = "&euro; "+profitAmount;
+			document.getElementById("balanceBroker").innerHTML = balBroker;
+			document.getElementById("balanceAmount").innerHTML = +balAmount+" MWh";
+			document.getElementById("customersBroker").innerHTML = cusNumBroker;
+			document.getElementById("customersAmount").innerHTML = cusNumAmount;
+			var d = new Date(millis);
+			var date = $.datepicker.formatDate('yy-mm-dd', d);
+			var minutes = d.getMinutes();
+			if(minutes &lt; 10){
+				minutes = "0"+minutes;
+			}
+			var hour = d.getHours();
+			if(hour &lt; 10){
+				hour="0"+hour;
+			}
+			var clock = ""+hour+":"+minutes;
+			document.getElementById("date").innerHTML = date;
+			document.getElementById("clock").innerHTML = clock;
+			document.getElementById("temperature").innerHTML = temperature+"&deg;C";
+			document.getElementById("windspeed").innerHTML = windSpeed+" m/s";
+			
+			
+			var arrow = "icon-arrow-up-left";
+			
+			if (checkRange(windDirection, 337.5, 360)==true){
+				 arrow = "icon-arrow-up";
+			}
+			       
+			else if (checkRange(windDirection, 0, 22.5)==true){
+			        arrow = "icon-arrow-up";}
+		
+		else if (checkRange(windDirection, 22.5, 67.5)==true){
+			        arrow = "icon-arrow-up-right";}
+			        
+			        else if (checkRange(windDirection, 67.5, 112.5)==true){
+			        arrow = "icon-arrow-right";}
+			        
+			        else if (checkRange(windDirection, 112.5, 157.5)==true){
+			        arrow = "icon-arrow-down-right";}
+			
+			        else if (checkRange(windDirection, 157.5, 202.5)==true){
+			        arrow = " icon-arrow-down";}
+			
+			        else if (checkRange(windDirection, 202.5, 247.5)==true){
+			        arrow = "icon-arrow-down-left";}
+			
+			        else if (checkRange(windDirection, 247.5, 292.5)==true){
+			        arrow = "icon-arrow-left";}
+			
+			        else if (checkRange(windDirection, 292.5, 337.5)==true){
+			        arrow = "icon-arrow-up-left";}
+			
+			        
+			
+			document.getElementById("windArrow").className = arrow+" weatherIcon";
+			
+			var cloudCoverIcon = "icon-sun";
+			if (checkRange(cloudCover, 0, 0.2)==true){
+				cloudCoverIcon = "icon-sun";
+			}
+			else if (checkRange(cloudCover, 0.2, 0.5)==true){
+				cloudCoverIcon = "icon-cloudy";
+			}
+			else if (checkRange(cloudCover, 0.5, 0.75)==true){
+				cloudCoverIcon = "icon-cloud-4";
+			}
+			else if (checkRange(cloudCover, 0.75, 1)==true){
+				cloudCoverIcon = "icon-cloudy-2";
+			}
+			
+			
+			document.getElementById("cloudCover").className = cloudCoverIcon+" weatherIcon";
+
+		}
 		function handleInfoMsg(data) {
 
 			var pushObject = jQuery.parseJSON(data);
 			var status = pushObject["status"];
 			if (status == 'start') {
 				popupDialog('Game start', 'A new game is about to start!');
-				setTimeout("location.reload(true);", 5000);
-			} else if (status == 'finish'){
+				setTimeout("window.location.href=window.location.href;", 5000);
+			} else if (status == 'finish') {
 				popupDialog('Game complete', 'The game has ended!');
-				setTimeout("location.reload(true);", 5000);
+				setTimeout("window.location.href=window.location.href;", 5000);
 			}
 
 		}

@@ -48,6 +48,14 @@ public class WeatherBean implements Serializable {
 			windDirections.add(windDirection);
 			temps.add(temp);
 		}
+		if(keys.size()==0){
+			//dummy:
+			double[] dummy = { helper.getMillisForIndex(0), 0};
+			clouds.add(dummy);
+			windSpeeds.add(dummy);
+			windDirections.add(dummy);
+			temps.add(dummy);
+		}
 		cloudCoverData = gson.toJson(clouds);
 		windSpeedData = gson.toJson(windSpeeds);
 		temperatureData = gson.toJson(temps);

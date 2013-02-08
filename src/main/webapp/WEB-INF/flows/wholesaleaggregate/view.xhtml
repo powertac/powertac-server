@@ -14,6 +14,7 @@
 		function handleWholesaleMarketPush(data) {
 			
 			var array = jQuery.parseJSON(data);
+			console.log(array);
 			var cnt = 0;
 			jQuery.each(array, function() {
 				  var pushObject = this;

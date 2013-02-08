@@ -12,6 +12,9 @@ import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.VisualizerApplicationContext;
 import org.powertac.visualizer.interfaces.Recyclable;
+import org.powertac.visualizer.push.NominationCategoryPusher;
+import org.powertac.visualizer.push.NominationPusher;
+import org.powertac.visualizer.push.WeatherPusher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +33,8 @@ public class VisualizerBean implements Serializable {
 
 	private int messageCounter;
 	private int visualizerRunCount;
-
+	private NominationPusher nominationPusher;
+	private WeatherPusher weatherPusher;
 	private Competition competition;
 	private TimeslotUpdate oldTimeslotUpdate;
 	private TimeslotUpdate timeslotUpdate;
@@ -87,7 +91,18 @@ public class VisualizerBean implements Serializable {
 		running = false;
 
 		currentMillis = 0;
+		NominationCategoryPusher dummyNc = new NominationCategoryPusher("", 0);
+		nominationPusher = new NominationPusher(dummyNc, dummyNc, dummyNc);
+		weatherPusher = new WeatherPusher(0, 0, 0, 0, 0);
 
+	}
+
+	public NominationPusher getNominationPusher() {
+		return nominationPusher;
+	}
+
+	public void setNominationPusher(NominationPusher nominationPusher) {
+		this.nominationPusher = nominationPusher;
 	}
 
 	public int getVisualizerRunCount() {
@@ -146,6 +161,12 @@ public class VisualizerBean implements Serializable {
 	public long getCurrentMillis() {
 		return currentMillis;
 	}
+	public WeatherPusher getWeatherPusher() {
+		return weatherPusher;
+	}
+	public void setWeatherPusher(WeatherPusher weatherPusher) {
+		this.weatherPusher = weatherPusher;
+	}
 
 	public void setCurrentMillis(long currentMillis) {
 		this.currentMillis = currentMillis;
@@ -166,10 +187,11 @@ public class VisualizerBean implements Serializable {
 	public void setTournamentMode(Boolean tournamentMode) {
 		this.tournamentMode = tournamentMode;
 	}
-	
+
 	public TimeslotComplete getTimeslotComplete() {
 		return timeslotComplete;
 	}
+
 	public void setTimeslotComplete(TimeslotComplete timeslotComplete) {
 		this.timeslotComplete = timeslotComplete;
 	}

@@ -1,4 +1,41 @@
 .statusIcon{
-	font-size: 3em; 
-	margin: 40px;
+	font-size: 1.2em; 
+	margin: 0.2em;
+	color: white;
 }
+
+.bigStatusIcon{
+	font-size: 3.4em; 
+	margin: 0 em;
+	color: white;
+	display: inline;
+}
+
+.bigStatusText{
+	font-size: 3.7em; 
+	padding: 0.5em;
+	color: white;
+	display: inline;
+}
+
+.weatherText{
+	font-size: 1.8em; 
+	padding: 0.1em;
+	color: white;
+	display: inline;
+}
+
+.weatherIcon{
+	font-size: 3.1em; 
+	padding: 0.0em;
+	color: white;
+	display: inline;
+}
+
+.arrow{
+	font-size: 2.5em; 
+	padding: 0.0em;
+	color: white;
+	display: inline;
+}
+

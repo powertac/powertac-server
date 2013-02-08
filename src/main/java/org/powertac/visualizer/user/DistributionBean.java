@@ -94,6 +94,14 @@ public class DistributionBean implements Serializable {
 				profitDataOneTimeslot.add(profitOneTimeslot);
 				kwhDataOneTimeslot.add(kWhOneTimeslot);
 			}
+			if(dynDataSet.size()==0){
+				//dummy:
+				double[] dummy = { helper.getMillisForIndex(0), 0};
+				profitData.add(dummy);
+				profitDataOneTimeslot.add(dummy);
+				kwhDataOneTimeslot.add(dummy);
+				netKwhData.add(dummy);
+			}
 
 			distributionTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
 					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,

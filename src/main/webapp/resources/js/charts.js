@@ -6,7 +6,10 @@ function getOneDynYAxisData(firstTitle) {
 		lineWidth : 2
 	}];
 }
-
+function checkRange(x, n, m) {
+    if (x >= n && x <= m) { return true; }
+    else { return false; }
+};
 function getBaseDynYAxisData(firstTitle, secondTitle) {
 	return [ {
 		title : {

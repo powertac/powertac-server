@@ -55,7 +55,7 @@ public class BalancingMarketBean implements Serializable {
 			BrokerService brokerService, VisualizerHelperService helper) {
 		Collection<BrokerModel> brokers = brokerService.getBrokers();
 
-		int safetyTsIndex = helper.getSafetyWholesaleTimeslotIndex();
+		
 		ArrayList<Object> balancingTxData = new ArrayList<Object>();
 		ArrayList<Object> balancingTxDataOneTimeslot = new ArrayList<Object>();
 
@@ -68,16 +68,13 @@ public class BalancingMarketBean implements Serializable {
 			// one timeslot
 			ArrayList<Object> profitDataOneTimeslot = new ArrayList<Object>();
 			ArrayList<Object> kwhDataOneTimeslot = new ArrayList<Object>();
-			// market tx data
-			ArrayList<Object> balancingTxBrokerData = new ArrayList<Object>();
-
+			
 			ConcurrentHashMap<Integer, DynamicData> dynDataMap = brokerModel
 					.getBalancingCategory().getDynamicDataMap();
-			SortedSet<Integer> dynDataSet = new TreeSet<Integer>(dynDataMap.keySet())
-					.headSet(safetyTsIndex, true);
+			SortedSet<Integer> dynDataSet = new TreeSet<Integer>(dynDataMap.keySet());
 
 		
-			// dynamic wholesale data:
+			// dynamic balancing data:
 			for (Iterator iterator2 = dynDataSet.iterator(); iterator2
 					.hasNext();) {
 				int key = (Integer) iterator2.next();
@@ -97,6 +94,14 @@ public class BalancingMarketBean implements Serializable {
 						dynData.getEnergyDelta() };
 				profitDataOneTimeslot.add(profitOneTimeslot);
 				kwhDataOneTimeslot.add(kWhOneTimeslot);
+			}
+			if(dynDataSet.size()==0){
+				//dummy:
+				double[] dummy = { helper.getMillisForIndex(0), 0};
+				profitData.add(dummy);
+				profitDataOneTimeslot.add(dummy);
+				kwhDataOneTimeslot.add(dummy);
+				netKwhData.add(dummy);
 			}
 
 			balancingTxData.add(new BrokerSeriesTemplate(brokerModel.getName()

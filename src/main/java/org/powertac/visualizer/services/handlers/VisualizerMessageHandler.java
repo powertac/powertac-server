@@ -25,6 +25,7 @@ import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
+import org.powertac.visualizer.push.GlobalPusher;
 import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.services.PushService;
 import org.primefaces.json.JSONException;
@@ -114,6 +115,9 @@ public class VisualizerMessageHandler implements Initializable {
 
 		// int relativeTimeslotIndex = complete.getTimeslotIndex() -
 		// visualizerBean.getFirstTimeslotIndex();
+		
+		//GLOBAL PUSH:
+		pushService.pushGlobal(new GlobalPusher(visualizerBean.getWeatherPusher(), visualizerBean.getNominationPusher()));
 
 	}
 

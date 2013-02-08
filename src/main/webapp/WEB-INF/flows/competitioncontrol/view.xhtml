@@ -139,15 +139,18 @@
 					update="content" />
 			</h:panelGroup>
 
-			<p:dialog widgetVar="dialog" modal="true">
+			<p:dialog widgetVar="dialog" modal="true" style="background-color:blue;">
 				<h:panelGrid id="display" columns="2" cellpadding="5">
 
-					<h:outputText value="Name:" />
+					<h:outputText style="color:white;" value="Name:" />
 					<p:inputText value="#{gameParametersBean.newBrokerName}"
 						label="text" />
 
 					<p:commandButton value="Add"
 						actionListener="#{gameParametersBean.addBroker}"
+						update="comp_form" oncomplete="dialog.hide()" />
+						<p:commandButton value="Cancel"
+						
 						update="comp_form" oncomplete="dialog.hide()" />
 				</h:panelGrid>
 			</p:dialog>

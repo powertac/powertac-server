@@ -84,9 +84,11 @@ public class WholesaleMarketBean implements Serializable {
 
 			ConcurrentHashMap<Integer, DynamicData> dynDataMap = brokerModel
 					.getWholesaleCategory().getDynamicDataMap();
+			
 			SortedSet<Integer> dynDataSet = new TreeSet<Integer>(brokerModel
 					.getWholesaleCategory().getDynamicDataMap().keySet())
 					.headSet(safetyTsIndex, true);
+			
 
 			double totalProfit = 0;
 			double totalEnergy = 0;
@@ -116,6 +118,17 @@ public class WholesaleMarketBean implements Serializable {
 				mwhDataOneTimeslot.add(kWhOneTimeslot);
 			}
 
+			
+			if(dynDataSet.size()==0){
+				//dummy
+				Object[] dummy = {helper.getMillisForIndex(0),0};
+				profitData.add(dummy);
+				netMwhData.add(dummy);
+				profitDataOneTimeslot.add(dummy);
+				mwhDataOneTimeslot.add(dummy);
+				
+			}
+			
 			ConcurrentHashMap<Integer, List<MarketTransaction>> mtxMap = brokerModel
 					.getWholesaleCategory().getMarketTxs();
 			SortedSet<Integer> mtxSortedSet = new TreeSet<Integer>(brokerModel

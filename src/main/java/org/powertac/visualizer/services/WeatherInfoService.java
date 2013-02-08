@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
+import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.powertac.visualizer.push.TariffMarketPusher;
@@ -39,6 +40,8 @@ public class WeatherInfoService implements Recyclable,
 	private WeatherForecast currentForecast;
 	@Autowired
 	private VisualizerHelperService helper;
+	@Autowired
+	private VisualizerBean visualizerBean;
 
 	public WeatherInfoService() {
 		recycle();
@@ -79,15 +82,22 @@ public class WeatherInfoService implements Recyclable,
 
 	@Override
 	public void activate(int timeslotIndex, Instant postedTime) {
-		if(currentReport!=null){
-		// // do the push:
-		PushContext pushContext = PushContextFactory.getDefault()
-				.getPushContext();
-		Gson gson = new Gson();
-		String weatherReportPush = gson.toJson(new WeatherPusher(helper.getMillisForIndex(currentReport.getCurrentTimeslot().getSerialNumber()), currentReport.getTemperature(), currentReport.getWindSpeed(), currentReport.getWindDirection(), currentReport.getCloudCover()));
-		pushContext.push("/weather", weatherReportPush);
+		if (currentReport != null) {
+			// // do the push:
+			PushContext pushContext = PushContextFactory.getDefault()
+					.getPushContext();
+			Gson gson = new Gson();
+			WeatherPusher weather = new WeatherPusher(
+					helper.getMillisForIndex(currentReport.getCurrentTimeslot()
+							.getSerialNumber()),
+					currentReport.getTemperature(),
+					currentReport.getWindSpeed(),
+					currentReport.getWindDirection(),
+					currentReport.getCloudCover());
+			visualizerBean.setWeatherPusher(weather);
+			String weatherReportPush = gson.toJson(weather);
+			pushContext.push("/weather", weatherReportPush);
 		}
-		
 
 	}
 }

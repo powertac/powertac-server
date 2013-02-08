@@ -79,6 +79,13 @@ public class FinanceBean implements Serializable {
 				profitDataOneTimeslot.add(profitOneTimeslot);
 		
 			}
+			if(dynDataSet.size()==0){
+				//dummy:
+				double[] dummy = { helper.getMillisForIndex(0), 0};
+				profitData.add(dummy);
+				profitDataOneTimeslot.add(dummy);
+				
+			}
 
 			financeTxData.add(new BrokerSeriesTemplate(brokerModel
 					.getName(), brokerModel.getAppearance()

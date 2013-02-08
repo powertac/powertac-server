@@ -80,6 +80,16 @@ public class TariffMarketBean implements Serializable {
 				kwhDataOneTimeslot.add(kWhOneTimeslot);
 
 			}
+			if(keysTariffDynData.size()==0){
+				//dummy:
+				double[] dummy = { helper.getMillisForIndex(0), 0};
+				customerNumberData.add(dummy);
+				profitData.add(dummy);
+				netKWhData.add(dummy);
+				customerNumberDataOneTimeslot.add(dummy);
+				profitDataOneTimeslot.add(dummy);
+				kwhDataOneTimeslot.add(dummy);
+			}
 			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
 					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,
 					profitData));

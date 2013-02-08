@@ -24,7 +24,7 @@
 		jQuery.each(array, function() {
 			  var pushObject = this;
 			  //known ordering: profit
-			  financeDynDataOneTimeslot.series[cnt++].addPoint([pushObject["millis"],pushObject["profit"]],false);
+			  financeDynDataOneTimeslot.series[cnt++].addPoint([pushObject["millis"],pushObject["profitDelta"]],false);
 		 
 			});
 		financeDynDataOneTimeslot.redraw();

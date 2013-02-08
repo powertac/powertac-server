@@ -18,10 +18,15 @@ public abstract class AbstractPerformanceCategory {
 	double grade = 0;
 	double energy;
     double profit;
-	DynamicData lastDynamicData;
-
+	DynamicData lastDynamicData=new DynamicData(0, 0, 0);
 	private ConcurrentHashMap<Integer, DynamicData> dynamicDataMap = new ConcurrentHashMap<Integer, DynamicData>(
 			1500, 0.75f, 1);
+	
+	public AbstractPerformanceCategory() {
+		dynamicDataMap.put(0, lastDynamicData);
+	}
+	
+	
 
 	public ConcurrentHashMap<Integer, DynamicData> getDynamicDataMap() {
 		return dynamicDataMap;

@@ -105,7 +105,7 @@ public class BrokerMessageHandler implements Initializable {
 				.getUsername());
 		if (broker != null) {
 			FinanceCategory fc = broker.getFinanceCategory();
-			int tsIndex = msg.getPostedTimeslotIndex();
+			int tsIndex = vizBean.getCurrentTimeslotSerialNumber();
 			ConcurrentHashMap<Integer, FinanceDynamicData> fddMap = fc.getFinanceDynamicDataMap();
 			if(!fddMap.containsKey(tsIndex)){
 				FinanceDynamicData fdd = new FinanceDynamicData(fc.getProfit(), tsIndex);
@@ -115,8 +115,7 @@ public class BrokerMessageHandler implements Initializable {
 			fddMap.get(tsIndex).updateProfit(msg.getBalance());
 			fc.setProfit(msg.getBalance());
 		}
-		System.out.println("Broker "+msg.getBroker().getUsername()+" TS:"+msg.getPostedTimeslotIndex()+" BALANCE:"+msg.getBalance());
-
+		
 	}
 
 	public void handleMessage(TariffTransaction msg) {

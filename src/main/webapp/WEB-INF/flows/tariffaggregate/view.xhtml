@@ -15,11 +15,11 @@
 	  $(document).ready(
 				function() {
 					tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'',getTariffDynYAxisData('Customer count', "Profit(&euro;)","Energy (kWh)"));
-					
 				});
 	  	
 	function handleTariffPush(data) {
-		
+		  $(document).ready(
+			function() {
 		var array = jQuery.parseJSON(data);
 		var cntTariffDynData = 0;
 		jQuery.each(array, function() {
@@ -33,21 +33,22 @@
 			  
 			});
 		tariffDynData.redraw();
+					});
 }
 </script>
-	</ui:define>
+	</ui:define> 
 
 	<ui:define name="maincontent">
 		<div id="tariffDynData"
 			style="min-width: 400px; height: 620px; margin: 0 auto" />
-		<p:socket onMessage="handleTariffPush" channel="/tariffpush" />
+		<p:socket onMessage="handleTariffPush" channel="/tariffpush"/>
 	</ui:define>
 
 	<ui:define name="rowcontent">
 
-	
 
-		
+
+
 	</ui:define>
 
 
