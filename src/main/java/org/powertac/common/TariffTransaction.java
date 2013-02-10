@@ -140,6 +140,6 @@ public class TariffTransaction extends BrokerTransaction
       // not all tariff transactions have a customer
       customer = customerInfo.getName();
     return("TariffTx: customer" + customer + " at " +
-           postedTime.toString() + ", " + txType + ": " + kWh + "@" + charge);
+           postedTimeslot + ", " + txType + ": " + kWh + "@" + charge);
   }
 }

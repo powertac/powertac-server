@@ -24,7 +24,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * A CashPosition domain instance represents the current state of
- * a broker's cash account. An updated CashPosition is sent to brokers
+ * a broker's cash account. An new CashPosition is sent to brokers
  * during each timeslot. This is not public information.
  *
  * @author Carsten Block, David Dauer
@@ -38,9 +38,9 @@ public class CashPosition extends BrokerTransaction
   @XStreamAsAttribute
   private double balance = 0.0;
 
-  public CashPosition (Instant when, Broker broker, double balance)
+  public CashPosition (Broker broker, double balance)
   {
-    super(when, broker);
+    super(broker);
     this.balance = balance;
   }
 
@@ -58,15 +58,15 @@ public class CashPosition extends BrokerTransaction
     return "cash " + balance;
   }
   
-  /**
-   * Updates the balance in this account by the specified amount,
-   * returns the resulting balance. A withdrawal is negative,
-   * deposit is positive.
-   */
-  @StateChange
-  public double deposit (double amount)
-  {
-    balance += amount;
-    return balance;
-  }
+//  /**
+//   * Updates the balance in this account by the specified amount,
+//   * returns the resulting balance. A withdrawal is negative,
+//   * deposit is positive.
+//   */
+//  @StateChange
+//  public double deposit (double amount)
+//  {
+//    balance += amount;
+//    return balance;
+//  }
 }

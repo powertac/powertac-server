@@ -63,7 +63,7 @@ public class BalancingTransactionTests
   {
     BalancingTransaction bt = new BalancingTransaction(broker, baseTime, 42.1, 3.22);
     assertNotNull("not null", bt);
-    assertEquals("correct time", baseTime, bt.getPostedTime());
+    assertEquals("correct time", 24, bt.getPostedTimeslotIndex());
     assertEquals("correct broker", broker, bt.getBroker());
     assertEquals("correct qty", 42.1, bt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, bt.getCharge(), 1e-6);
@@ -89,7 +89,7 @@ public class BalancingTransactionTests
     //System.out.println(serialized.toString());
     BalancingTransaction xbt = (BalancingTransaction)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xbt);
-    assertEquals("correct time", baseTime.getMillis(), xbt.getPostedTime().getMillis());
+    assertEquals("correct time", 24, xbt.getPostedTimeslotIndex());
     assertEquals("correct qty", 42.1, xbt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, xbt.getCharge(), 1e-6);
   }

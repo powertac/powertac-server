@@ -22,7 +22,6 @@ import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 /**
  * Superclass with common attributes for a number of transaction types.
@@ -41,8 +40,8 @@ public abstract class BrokerTransaction
   @XStreamAsAttribute
   protected int postedTimeslot;
   
-  @XStreamOmitField
-  protected Instant postedTime = null;
+  //@XStreamOmitField
+  //protected Instant postedTime = null;
   
   // singleton holder
   private static TimeslotRepo timeslotRepo = null;
@@ -57,7 +56,7 @@ public abstract class BrokerTransaction
     this.broker = broker;
     // allow null time for test cases
     if (null != when) {
-      this.postedTime = when;
+      //this.postedTime = when;
       this.postedTimeslot = getTimeslotRepo().getTimeslotIndex(when);
     }
   }
@@ -65,7 +64,16 @@ public abstract class BrokerTransaction
   public BrokerTransaction (int timeslotIndex, Broker broker)
   {
     super();
+    this.broker = broker;
     this.postedTimeslot = timeslotIndex;
+  }
+  
+  /**
+   * Constructor fills in time with current timeslot
+   */
+  public BrokerTransaction (Broker broker)
+  {
+    this(getTimeslotRepo().currentSerialNumber(), broker);
   }
 
   public long getId ()
@@ -86,9 +94,7 @@ public abstract class BrokerTransaction
    */
   public Instant getPostedTime ()
   {
-    if (null == postedTime)
-      postedTime = getTimeslotRepo().getTimeForIndex(postedTimeslot);
-    return postedTime;
+    return getTimeslotRepo().getTimeForIndex(postedTimeslot);
   }
   
   /**
@@ -107,7 +113,7 @@ public abstract class BrokerTransaction
     return getTimeslotRepo().findBySerialNumber(postedTimeslot);
   }
   
-  private TimeslotRepo getTimeslotRepo ()
+  private static TimeslotRepo getTimeslotRepo ()
   {
     if (null == timeslotRepo)
       timeslotRepo = (TimeslotRepo)SpringApplicationContext.getBean("timeslotRepo");

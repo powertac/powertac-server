@@ -71,7 +71,7 @@ public class DistributionTransaction extends BrokerTransaction
   }
 
   public String toString() {
-    return ("Distribution tx " + postedTime.getMillis()/TimeService.HOUR + 
+    return ("Distribution tx " + postedTimeslot + 
         "-" + kWh + "-" + charge);
   }
 }

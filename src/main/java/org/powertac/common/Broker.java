@@ -18,7 +18,6 @@ package org.powertac.common;
 
 import java.util.HashMap;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -63,6 +62,9 @@ public class Broker
   /** If true, broker is a wholesale market participant, but not a "real" broker */
   private boolean wholesale = false;
   
+  /** Broker's current cash position */
+  private double cash = 0.0;
+  
   private HashMap<Integer, MarketPosition> mktPositions;
 
   //def testProxy = null // redirect incoming messages for testing
@@ -88,9 +90,6 @@ public class Broker
     this.local = local;
     this.wholesale = wholesale;
   }
-  
-  /** Broker's current cash position  */
-  private CashPosition cashPosn;
 
   /**
    * Returns the unique ID for this broker
@@ -117,25 +116,36 @@ public class Broker
   }
 
   /**
-   * Returns the CashPosition for this broker, which is either the CashPosition
-   * supplied with the most recent call to setCash(), or a dummy CashPosition
-   * with a balance of 0.0. The returned value is guaranteed to be non-null.
+   * Returns a CashPosition representing the current cash balance for this
+   * broker.
    */
+  public CashPosition getCashPosition() 
+  {
+    return new CashPosition(this, cash);
+  }
+  
+  @Deprecated
   public CashPosition getCash() 
   {
-    if (cashPosn == null) {
-      cashPosn = new CashPosition(new Instant(0l), this, 0.0);
-    }
-    return cashPosn;
+    return getCashPosition();
   }
-
+  
   /**
-   * Updates the current CashPosition for this Broker.
+   * Updates broker's cash position. Note that this operation does not generate
+   * a state log entry. To see the broker's cash balance in the state log,
+   * you have to create a new CashPosition.
    */
-  @StateChange
-  public void setCash(CashPosition thing) 
+  public void updateCash (double depositAmount)
   {
-    cashPosn = thing;
+    cash += depositAmount;
+  }
+  
+  /**
+   * Returns broker's cash balance.
+   */
+  public double getCashBalance ()
+  {
+    return cash;
   }
 
   /**
