@@ -420,6 +420,7 @@ public class AccountingServiceTests
       }
     });
     CashPosition cp1 = (CashPosition)obj;
+    assertNotNull("non-null CashPosition", cp1);
     assertEquals("correct cash position", -45.0 * 0.5 + -43.0 * 0.7, cp1.getBalance(), 1e-6);
   }
 
@@ -464,9 +465,9 @@ public class AccountingServiceTests
     verify(mockProxy, times(2)).sendMessages(isA(Broker.class), anyList());
 
     assertEquals("correct cash balance, Bob",
-        (-45.0 * 0.5 - 31.0 * 0.3 - 43.0 * 0.7 + 7.7 + 8.0 -4.5), bob.getCash().getBalance(), 1e-6);
+        (-45.0 * 0.5 - 31.0 * 0.3 - 43.0 * 0.7 + 7.7 + 8.0 -4.5), bob.getCashBalance(), 1e-6);
     assertEquals("correct cash balance, Jim",
-        (-35.0 * 0.4 + 20.0 * 0.2 + 8.4), jim.getCash().getBalance(), 1e-6);
+        (-35.0 * 0.4 + 20.0 * 0.2 + 8.4), jim.getCashBalance(), 1e-6);
     
     List<Object> bobMkts = filter(msgMap.get(bob), new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -554,7 +555,7 @@ public class AccountingServiceTests
     accountingService.setBankInterest(0.12);
 
     // bob is in the hole
-    bob.getCash().deposit(-1000.0);
+    bob.updateCash(-1000.0);
 
     // move to midnight, activate and check messages
     timeService.setCurrentTime(new DateTime(2011, 1, 27, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());

@@ -291,18 +291,18 @@ public class AccountingService
       // run interest payments at midnight
       if (timeService.getHourOfDay() == 0) {
         double brokerRate = rate;
-        CashPosition cash = broker.getCash();
-        if (cash.getBalance() >= 0.0) {
+        double cash = broker.getCashBalance();
+        if (cash >= 0.0) {
           // rate on positive balance is 1/2 of negative
           brokerRate /= 2.0;
         }
-        double interest = cash.getBalance() * brokerRate;
+        double interest = cash * brokerRate;
         brokerMsg.get(broker).add(new BankTransaction(broker, interest,
                                                       timeService.getCurrentTime()));
-        cash.deposit(interest);
+        broker.updateCash(interest);
       }
       // add the cash position to the list and send messages
-      brokerMsg.get(broker).add(broker.getCash());
+      brokerMsg.get(broker).add(broker.getCashPosition());
       log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
@@ -369,8 +369,7 @@ public class AccountingService
 
   private void updateCash(Broker broker, double amount) 
   {
-    CashPosition cash = broker.getCash();
-    cash.deposit(amount);
+    broker.updateCash(amount);
   }
 
   public void processTransaction (BankTransaction tx,
