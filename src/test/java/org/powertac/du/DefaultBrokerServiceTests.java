@@ -443,7 +443,7 @@ public class DefaultBrokerServiceTests
       .thenReturn(true);
     
     // activate the trading function by sending a cash position msg
-    CashPosition cp = new CashPosition(current.getStartInstant(), face, 0.0);
+    CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // timeslot -1
 
     // without any subscriptions or consumption, we don't expect any orders
@@ -692,7 +692,7 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
-    CashPosition cp = new CashPosition(timeService.getCurrentTime(), face, 0.0);
+    CashPosition cp = new CashPosition(face, 0.0);
     face.receiveMessage(cp); // last message in ts0
 
     nextTimeslot();
