@@ -54,7 +54,6 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
-  @SuppressWarnings("unused")
   static private Logger log = Logger.getLogger(TariffSpecification.class);
 
   /** Last date new subscriptions will be accepted. Null means never expire. */

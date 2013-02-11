@@ -115,20 +115,20 @@ public class Broker
     return key;
   }
 
-  /**
-   * Returns a CashPosition representing the current cash balance for this
-   * broker.
-   */
-  public CashPosition getCashPosition() 
-  {
-    return new CashPosition(this, cash);
-  }
-  
-  @Deprecated
-  public CashPosition getCash() 
-  {
-    return getCashPosition();
-  }
+//  /**
+//   * Returns a CashPosition representing the current cash balance for this
+//   * broker.
+//   */
+//  public CashPosition getCashPosition() 
+//  {
+//    return new CashPosition(this, cash);
+//  }
+//  
+//  @Deprecated
+//  public CashPosition getCash() 
+//  {
+//    return getCashPosition();
+//  }
   
   /**
    * Updates broker's cash position. Note that this operation does not generate

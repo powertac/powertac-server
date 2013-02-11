@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -46,7 +45,7 @@ public class DistributionTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private double charge = 0.0;
 
-  public DistributionTransaction (Broker broker, Instant when, 
+  public DistributionTransaction (Broker broker, int when, 
                                   double kwh, double charge)
   {
     super(when, broker);
@@ -70,6 +69,7 @@ public class DistributionTransaction extends BrokerTransaction
     return charge;
   }
 
+  @Override
   public String toString() {
     return ("Distribution tx " + postedTimeslot + 
         "-" + kWh + "-" + charge);

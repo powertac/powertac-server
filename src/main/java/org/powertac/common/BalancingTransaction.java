@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -39,7 +38,7 @@ public class BalancingTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private double charge = 0.0;
   
-  public BalancingTransaction (Broker broker, Instant when, 
+  public BalancingTransaction (Broker broker, int when, 
                                double kWh, double charge)
   {
     super(when, broker);

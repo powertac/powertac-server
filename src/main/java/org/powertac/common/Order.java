@@ -118,6 +118,7 @@ public class Order extends XStreamStateLoggable
     return limitPrice;
   }
   
+  @Override
   public String toString()
   {
     return ("Order " + id + " from " + broker.getUsername()

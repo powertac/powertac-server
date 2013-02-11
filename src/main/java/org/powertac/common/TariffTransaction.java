@@ -17,8 +17,6 @@
 package org.powertac.common;
 
 
-import org.apache.log4j.Logger;
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
@@ -39,7 +37,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {
-  static private Logger log = Logger.getLogger(TariffTransaction.class);
+  //static private Logger log = Logger.getLogger(TariffTransaction.class);
 
   public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE }
   
@@ -75,7 +73,7 @@ public class TariffTransaction extends BrokerTransaction
    * is specified from the Broker's viewpoint, so a consumption transaction
    * would have kwh < 0 and charge > 0.
    */
-  public TariffTransaction (Broker broker, Instant when, 
+  public TariffTransaction (Broker broker, int when, 
                             Type txType,
                             TariffSpecification spec, 
                             CustomerInfo customer,
@@ -134,6 +132,7 @@ public class TariffTransaction extends BrokerTransaction
     return tariffSpec;
   }
 
+  @Override
   public String toString() {
     String customer = "?";
     if (customerInfo != null)

@@ -52,6 +52,7 @@ public class OrderbookOrder implements Comparable<Object>
     return id;
   }
 
+  @Override
   public int compareTo(Object o) {
     if (!(o instanceof OrderbookOrder)) 
       return 1;
@@ -85,6 +86,7 @@ public class OrderbookOrder implements Comparable<Object>
     return mWh;
   }
   
+  @Override
   public String toString()
   {
     return ("OrderbookOrder: " + mWh + "@" + limitPrice);

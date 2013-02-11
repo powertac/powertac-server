@@ -15,7 +15,6 @@
  */
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -37,7 +36,7 @@ public class BankTransaction extends BrokerTransaction
   /**
    * Constructs a new BankTransaction instance, giving it a new id.
    */
-  public BankTransaction (Broker broker, double amount, Instant time)
+  public BankTransaction (Broker broker, double amount, int time)
   {
     super(time, broker);
     this.amount = amount;

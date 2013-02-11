@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
@@ -49,7 +48,7 @@ public class MarketTransaction extends BrokerTransaction
   @XStreamConverter(TimeslotConverter.class)
   private Timeslot timeslot;
   
-  public MarketTransaction (Broker broker, Instant when, 
+  public MarketTransaction (Broker broker, int when, 
                             Timeslot timeslot, double mWh, double price)
   {
     super(when, broker);
@@ -73,6 +72,7 @@ public class MarketTransaction extends BrokerTransaction
     return timeslot;
   }
 
+  @Override
   public String toString() {
     return ("MktTx: time " + timeslot.getSerialNumber() + ", " +
             mWh + "@" + price);

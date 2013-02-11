@@ -85,6 +85,7 @@ public class MarketPosition //implements Serializable
     return overallBalance;
   }
 
+  @Override
   public String toString() {
     return ("MktPosn-" + broker.getId() + "-" +
             timeslot.getSerialNumber() + "-" + overallBalance);

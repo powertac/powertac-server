@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
 
 package org.powertac.common;
 
-import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
@@ -38,9 +36,9 @@ public class CashPosition extends BrokerTransaction
   @XStreamAsAttribute
   private double balance = 0.0;
 
-  public CashPosition (Broker broker, double balance)
+  public CashPosition (Broker broker, double balance, int timeslot)
   {
-    super(broker);
+    super(timeslot, broker);
     this.balance = balance;
   }
 

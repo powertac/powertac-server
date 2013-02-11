@@ -16,14 +16,10 @@
 
 package org.powertac.common;
 
-import java.util.ArrayList;
-
 //import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.PowerTypeConverter;
-
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -177,6 +173,7 @@ public class CustomerInfo //implements Serializable
     return this;
   }
 
+  @Override
   public String toString() {
     return "CustomerInfo(" + name + ")";
   }

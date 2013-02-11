@@ -40,40 +40,14 @@ public abstract class BrokerTransaction
   @XStreamAsAttribute
   protected int postedTimeslot;
   
-  //@XStreamOmitField
-  //protected Instant postedTime = null;
-  
   // singleton holder
   private static TimeslotRepo timeslotRepo = null;
-
-  /**
-   * A BrokerTransaction contains a Broker and an Instant that represents the
-   * time when the transaction was posted.
-   */
-  public BrokerTransaction (Instant when, Broker broker)
-  {
-    super();
-    this.broker = broker;
-    // allow null time for test cases
-    if (null != when) {
-      //this.postedTime = when;
-      this.postedTimeslot = getTimeslotRepo().getTimeslotIndex(when);
-    }
-  }
   
   public BrokerTransaction (int timeslotIndex, Broker broker)
   {
     super();
     this.broker = broker;
     this.postedTimeslot = timeslotIndex;
-  }
-  
-  /**
-   * Constructor fills in time with current timeslot
-   */
-  public BrokerTransaction (Broker broker)
-  {
-    this(getTimeslotRepo().currentSerialNumber(), broker);
   }
 
   public long getId ()

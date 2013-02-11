@@ -43,7 +43,6 @@ import org.springframework.util.SystemPropertyUtils;
 
 import com.thoughtworks.xstream.XStream;
 
-@SuppressWarnings("restriction")
 @Service
 public class XMLMessageConverter 
 {
