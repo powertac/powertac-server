@@ -93,7 +93,7 @@ public class FinanceBean implements Serializable {
 
 			// one timeslot:
 			financeTxDataOneTimeslot.add(new BrokerSeriesTemplate(
-					brokerModel.getName() + "_PROFIT", brokerModel
+					brokerModel.getName() + " PROFIT", brokerModel
 							.getAppearance().getColorCode(), 0,
 					profitDataOneTimeslot));
 			

@@ -105,18 +105,18 @@ public class BalancingMarketBean implements Serializable {
 			}
 
 			balancingTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,
+					+ " PRICE", brokerModel.getAppearance().getColorCode(), 0,
 					profitData));
 			balancingTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_KWH", brokerModel.getAppearance().getColorCode(), 1,
+					+ " KWH", brokerModel.getAppearance().getColorCode(), 1,
 					netKwhData));
 
 			// one timeslot:
 			balancingTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_PROFIT", brokerModel.getAppearance()
+					.getName() + " PRICE", brokerModel.getAppearance()
 					.getColorCode(), 0, profitDataOneTimeslot));
 			balancingTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_KWH", brokerModel.getAppearance()
+					.getName() + " KWH", brokerModel.getAppearance()
 					.getColorCode(), 1, kwhDataOneTimeslot));
 
 

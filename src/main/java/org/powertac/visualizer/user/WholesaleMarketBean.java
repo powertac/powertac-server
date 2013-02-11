@@ -152,18 +152,18 @@ public class WholesaleMarketBean implements Serializable {
 			}
 
 			wholesaleTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,
+					+ " PRICE", brokerModel.getAppearance().getColorCode(), 0,
 					profitData));
 			wholesaleTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_MWH", brokerModel.getAppearance().getColorCode(), 1,
+					+ " MWH", brokerModel.getAppearance().getColorCode(), 1,
 					netMwhData));
 
 			// one timeslot:
 			wholesaleTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_PROFIT", brokerModel.getAppearance()
+					.getName() + " PRICE", brokerModel.getAppearance()
 					.getColorCode(), 0, profitDataOneTimeslot));
 			wholesaleTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_MWH", brokerModel.getAppearance()
+					.getName() + " MWH", brokerModel.getAppearance()
 					.getColorCode(), 1, mwhDataOneTimeslot));
 			allWholesaleData.add(new BrokerSeriesTemplate(
 					brokerModel.getName(), brokerModel.getAppearance()

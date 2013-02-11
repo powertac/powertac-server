@@ -91,24 +91,24 @@ public class TariffMarketBean implements Serializable {
 				kwhDataOneTimeslot.add(dummy);
 			}
 			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_PROFIT", brokerModel.getAppearance().getColorCode(), 0,
+					+ " PRICE", brokerModel.getAppearance().getColorCode(), 0,
 					profitData));
 			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_KWH", brokerModel.getAppearance().getColorCode(), 1,
+					+ " KWH", brokerModel.getAppearance().getColorCode(), 1,
 					netKWhData));
 			tariffData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ "_CUST", brokerModel.getAppearance().getColorCode(), 2,
+					+ " CUST", brokerModel.getAppearance().getColorCode(), 2,
 					true, customerNumberData));
 
 			// one timeslot:
 			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_PROFIT", brokerModel.getAppearance()
+					.getName() + " PRICE", brokerModel.getAppearance()
 					.getColorCode(), 0, profitDataOneTimeslot));
 			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_KWH", brokerModel.getAppearance()
+					.getName() + " KWH", brokerModel.getAppearance()
 					.getColorCode(), 1, kwhDataOneTimeslot));
 			tariffDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + "_CUST", brokerModel.getAppearance()
+					.getName() + " CUST", brokerModel.getAppearance()
 					.getColorCode(), 2, true, customerNumberDataOneTimeslot));
 		}
 		this.tariffDynData = gson.toJson(tariffData);

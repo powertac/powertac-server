@@ -69,7 +69,7 @@ public class WholesaleMessageHandler implements Initializable {
 			WholesaleCategory wc = broker.getWholesaleCategory();
 
 			int tsIndex = msg.getTimeslot().getSerialNumber();
-			wc.update(tsIndex, msg.getMWh(), msg.getPrice());
+			wc.update(tsIndex, msg.getMWh(), msg.getPrice()*msg.getMWh());
 			
 			wc.getMarketTxs().putIfAbsent(msg.getTimeslot().getSerialNumber(), new ArrayList<MarketTransaction>(24));
 			wc.getMarketTxs().get(msg.getTimeslot().getSerialNumber()).add(msg);
