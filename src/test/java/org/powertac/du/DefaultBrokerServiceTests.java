@@ -282,7 +282,7 @@ public class DefaultBrokerServiceTests
     assertEquals("no customers yet", 0, customerCounts.size());
     
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
@@ -316,7 +316,7 @@ public class DefaultBrokerServiceTests
     assertEquals("no customers yet", 0, customerCounts.size());
     
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
@@ -330,7 +330,7 @@ public class DefaultBrokerServiceTests
     
     // add another customer, then withdraw some from the first
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               specs.get(PowerType.PRODUCTION),
                                               customer2, 
@@ -345,7 +345,7 @@ public class DefaultBrokerServiceTests
     
     // now withdraw some from customer1
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.WITHDRAW, 
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
@@ -381,7 +381,7 @@ public class DefaultBrokerServiceTests
     TariffSpecification spec = specs.get(PowerType.CONSUMPTION);
     
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               spec,
                                               customer1, 
@@ -389,7 +389,7 @@ public class DefaultBrokerServiceTests
                                               0.0, 4.2));
     // now one customer, population=1000. Consume some power.
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               spec,
                                               customer1, 
@@ -405,7 +405,7 @@ public class DefaultBrokerServiceTests
     // move the clock ahead and use some more power
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               spec,
                                               customer1, 
@@ -443,7 +443,8 @@ public class DefaultBrokerServiceTests
       .thenReturn(true);
     
     // activate the trading function by sending a cash position msg
-    CashPosition cp = new CashPosition(face, 0.0);
+    CashPosition cp = new CashPosition(face, 0.0,
+                                       timeslotRepo.currentSerialNumber());
     face.receiveMessage(cp); // timeslot -1
 
     // without any subscriptions or consumption, we don't expect any orders
@@ -497,14 +498,14 @@ public class DefaultBrokerServiceTests
     // customer model runs, generating subscriptions and production/consumption
     // accounting runs, generating transactions
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               0.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               pspec,
                                               customer2, 
@@ -512,7 +513,7 @@ public class DefaultBrokerServiceTests
                                               0.0, 4.2));
     // usage = 500 in ts0
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
@@ -547,14 +548,14 @@ public class DefaultBrokerServiceTests
     // market clears ts1
     // customer model runs, usage = 420 in ts1
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               -450.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
@@ -599,14 +600,14 @@ public class DefaultBrokerServiceTests
     // customer model runs, usage 510 in ts2
     //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               -550.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
@@ -671,14 +672,14 @@ public class DefaultBrokerServiceTests
     // customer model runs, generating subscriptions and production/consumption
     // accounting runs, generating transactions
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               0.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               pspec,
                                               customer2, 
@@ -686,13 +687,13 @@ public class DefaultBrokerServiceTests
                                               0.0, 4.2));
     // usage = 500 in ts0
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               -500.0, 4.2));
-    CashPosition cp = new CashPosition(face, 0.0);
+    CashPosition cp = new CashPosition(face, 0.0, timeslotRepo.currentSerialNumber());
     face.receiveMessage(cp); // last message in ts0
 
     nextTimeslot();
@@ -701,14 +702,14 @@ public class DefaultBrokerServiceTests
     // market clears ts1
     // customer model runs, usage = 420 in ts1
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               -450.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
@@ -725,14 +726,14 @@ public class DefaultBrokerServiceTests
     // customer model runs, usage 510 in ts2
     //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.CONSUME, 
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
                                               -550.0, 4.2));
     face.receiveMessage(new TariffTransaction(face,
-                                              timeService.getCurrentTime(),
+                                              timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
