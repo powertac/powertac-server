@@ -67,6 +67,9 @@ public class AccountingService
   private RandomSeedRepo randomSeedService;
   
   @Autowired
+  private TransactionFactory txFactory;
+  
+  @Autowired
   private ServerConfiguration serverProps;
 
   private ArrayList<BrokerTransaction> pendingTransactions;
@@ -126,8 +129,8 @@ public class AccountingService
                        double mWh,
                        double price) 
   {
-    MarketTransaction mtx = new MarketTransaction(broker, timeService.getCurrentTime(),
-                                                  timeslot, mWh, price);
+    MarketTransaction mtx = 
+            txFactory.makeMarketTransaction(broker, timeslot, mWh, price);
     pendingTransactions.add(mtx);
     return mtx;
   }
@@ -141,11 +144,11 @@ public class AccountingService
                        double kWh,
                        double charge) 
   {
-    TariffTransaction ttx = new TariffTransaction(tariff.getBroker(),
-                                                  timeService.getCurrentTime(), txType, 
-                                                  tariffRepo.findSpecificationById(tariff.getSpecId()),
-                                                  customer, customerCount,
-                                                  kWh, charge);
+    TariffTransaction ttx =
+            txFactory.makeTariffTransaction(tariff.getBroker(), txType, 
+                                            tariffRepo.findSpecificationById(tariff.getSpecId()),
+                                            customer, customerCount,
+                                            kWh, charge);
     pendingTransactions.add(ttx);
     return ttx;
   }
@@ -156,9 +159,8 @@ public class AccountingService
                              double kWh,
                              double charge) 
   {
-    DistributionTransaction dtx = new DistributionTransaction(broker, 
-                                                              timeService.getCurrentTime(), 
-                                                              kWh, charge);
+    DistributionTransaction dtx =
+            txFactory.makeDistributionTransaction(broker, kWh, charge);
     pendingTransactions.add(dtx);
     return dtx;
   }
@@ -168,9 +170,7 @@ public class AccountingService
   addBalancingTransaction(Broker broker, double kWh, double charge)
   {
     BalancingTransaction btx =
-        new BalancingTransaction(broker,
-                                 timeService.getCurrentTime(),
-                                 kWh, charge);
+            txFactory.makeBalancingTransaction(broker, kWh, charge);
     pendingTransactions.add(btx);
     return btx;
   }
@@ -297,12 +297,11 @@ public class AccountingService
           brokerRate /= 2.0;
         }
         double interest = cash * brokerRate;
-        brokerMsg.get(broker).add(new BankTransaction(broker, interest,
-                                                      timeService.getCurrentTime()));
+        brokerMsg.get(broker).add(txFactory.makeBankTransaction(broker, interest));
         broker.updateCash(interest);
       }
       // add the cash position to the list and send messages
-      brokerMsg.get(broker).add(broker.getCashPosition());
+      brokerMsg.get(broker).add(txFactory.makeCashPosition(broker, broker.getCashBalance()));
       log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
