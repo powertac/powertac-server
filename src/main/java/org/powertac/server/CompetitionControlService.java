@@ -648,7 +648,7 @@ public class CompetitionControlService
     for (String brokerName : competition.getBrokers()) {
       Broker broker = brokerRepo.findByUsername(brokerName);
       buf.append(" \"").append(brokerName).append("\":");
-      buf.append(broker.getCash().getBalance());
+      buf.append(broker.getCashBalance());
     }
     buf.append(" ]");
     log.info(buf.toString());
@@ -670,7 +670,7 @@ public class CompetitionControlService
     for (String brokerName : competition.getBrokers()) {
       Broker broker = brokerRepo.findByUsername(brokerName);
       buf.append(delimiter).append(brokerName).append(":");
-      buf.append(broker.getCash().getBalance());
+      buf.append(broker.getCashBalance());
       delimiter = ",";
     }
     return buf.toString();
