@@ -272,11 +272,9 @@ public class CompetitionControlService
       log.error("null competition instance");
     }
 
-    // start JMS provider for sims
-    if (!bootstrapMode) {
-      jmsManagementService.start();
-    }
-   
+    // start JMS provider
+    jmsManagementService.start();
+
     init();
     
     // enable remote broker login here
