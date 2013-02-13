@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 by the original author or authors.
+ * Copyright (c) 2011, 2013 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,48 @@ import com.thoughtworks.xstream.annotations.*;
  * of day, or above some usage threshold. Rates may be fixed or variable. 
  * Tariffs and their rates are public information. New tariffs and their Rates
  * are communicated to Customers and to Brokers when tariffs are published.
- * 
+ * Energy and money quantities in Rates are given from the customer's viewpoint.
+ * In other words, a Rate for a consumption tariff will typically specify that
+ * the customer pays (negative money value) to recieve energy
+ * (positive energy quantity).
+ * <p>
+ * Each TariffSpecification must include at least one Rate.
+ * Rates can be fixed (the default) or variable. A fixed rate has a single
+ * value attribute that represents the customer payment for a kWh of energy.
+ * This value is typically negative for a consumption tariff (customer pays
+ * to receive energy) and positive for a production tariff. A variable rate
+ * must specify a minValue, a maxValue, and an expectedMean. To be valid, a
+ * Rate for a consumption tariff must have minValue >= expectedMean >= maxValue.
+ * For a production tariff, these relationships are reversed. These ranges
+ * constrain the HourlyCharge values that may be applied to the Rate.</p>
+ * <p>
+ * If a non-zero tierThreshold is given, then the rate applies only after
+ * daily consumption/production exceeds the threshold; to achieve a tiered
+ * structure, there needs to be one Rate with a tierThreshold of zero, and one
+ * for each threshold beyond zero. Tier thresholds must be positive for
+ * consumption tariffs, negative for production tariffs. For the purpose of
+ * determining tier applicability, production and consumption tracking is
+ * reset at midnight every day, in the TariffSubscription.</p>
+ * <p>
+ * Time-of-use and day-of-week Rates can be specified with dailyBegin/dailyEnd
+ * and weeklyBegin/weeklyEnd specifications. For dailyBegin/dailyEnd, the values
+ * are integer hours in the range 0:23. A Rate that applies from 22:00 in the
+ * evening until 6:00 the next morning would have dailyBegin=22 and dailyEnd=6.
+ * Weekly begin/end specifications are integers in the range 1:7, with 1=Monday.</p>
+ * <p>
+ * It is possible for multiple rates to be applicable at any given combination
+ * of time/usage. If this is the case, the most specific rate applies. So if
+ * there is a fixed rate that applies all the time, it will be overridden by
+ * a time-of-use rate during its period of applibility. Also, if the times for
+ * time-of-use rates overlap, they
+ * are sorted by start-time, and the applicable rate with the latest start time
+ * will apply. This logic is implemented in Tariff.
+ * <p>
  * State log fields for readResolve():<br>
- * new(long tariffId, int weeklyBegin, int weeklyEnd,<br>
+ * <code>new(long tariffId, int weeklyBegin, int weeklyEnd,<br>
  * &nbsp;&nbsp;int dailyBegin, int dailyEnd, double tierThreshold,<br>
  * &nbsp;&nbsp;boolean fixed, double minValue, double maxValue,<br>
- * &nbsp;&nbsp;long noticeInterval, double expectedMean, double maxCurtailment)
+ * &nbsp;&nbsp;long noticeInterval, double expectedMean, double maxCurtailment)</code>
  * 
  * @author John Collins
  */

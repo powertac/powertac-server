@@ -528,6 +528,7 @@ public class Tariff
         value += rate.getWeeklyBegin() * 24;
       }
       if (rate.getTierThreshold() > 0.0) {
+        // is this correct? Should the 7 apply only for a weekly rate?
         value += tierIndexMap.get(rate.getTierThreshold()) * 7 * 24;
       }
       log.debug("inserting " + value + ", " + rate.getId());

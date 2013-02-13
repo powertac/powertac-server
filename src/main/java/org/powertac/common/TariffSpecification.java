@@ -42,11 +42,13 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * <p>
  * <strong>Note:</strong> Must be serialized "deep" to gather up the Rates and
  * associated HourlyCharge instances.</p>
- * 
+ * <p>
+ * State log entry format:<br/>
+ * <code>brokerId::powerType</code><br/><br/>
  * State log fields for readResolve():<br>
- * new(long brokerId, PowerType powerType, long minDuration,<br>
+ * <code>new(long brokerId, PowerType powerType, long minDuration,<br>
  * &nbsp;&nbsp;double signupPayment, double earlyWithdrawPayment,<br>
- * &nbsp;&nbsp;double periodicPayment)
+ * &nbsp;&nbsp;double periodicPayment)</code>
  * 
  * @author John Collins
  */

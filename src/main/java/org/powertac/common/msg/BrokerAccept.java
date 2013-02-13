@@ -27,7 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * to initialize its IdGenerator. 
  */
 
-@Domain
+//@Domain
 @XStreamAlias("broker-accept")
 public class BrokerAccept
 {
