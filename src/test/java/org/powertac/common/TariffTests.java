@@ -286,7 +286,7 @@ public class TariffTests
     timeService.setCurrentTime(new DateTime(2011, 1, 5, 12, 0, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("noon Wed", -2.25, te.getUsageCharge(15.0, 235.0, true), 1e-6);
   }
-  
+
   // tiers
   @Test
   public void testTimeOfUseTier ()
@@ -307,7 +307,45 @@ public class TariffTests
     assertEquals("midnight price, above", -1.0, te.getUsageCharge(5.0, 22.0, true), 1e-6);
     assertEquals("midnight price, split", -0.76, te.getUsageCharge(5.0, 18.0, true), 1e-6);
   }
-  
+
+  // tiers
+  @Test
+  public void testTimeOfUseTier2 ()
+  {
+    Rate r1 = new Rate().withValue(-0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(-0.08).withDailyBegin(18).withDailyEnd(6);
+    Rate r3 = new Rate().withValue(-0.25).withTierThreshold(20)
+            .withDailyBegin(16).withDailyEnd(21);
+    Rate r4 = new Rate().withValue(-0.21).withTierThreshold(20)
+            .withDailyBegin(22).withDailyEnd(15);
+    tariffSpec.addRate(r1);
+    tariffSpec.addRate(r2);
+    tariffSpec.addRate(r4);
+    tariffSpec.addRate(r3);
+    Tariff te = new Tariff(tariffSpec);
+    te.init();
+    assertEquals("noon price, below",
+                 -1.5, te.getUsageCharge(10.0, 5.0, true), 1e-6);
+    assertEquals("noon price, above",
+                 -2.1, te.getUsageCharge(10.0, 25.0, true), 1e-6);
+    assertEquals("noon price, split",
+                 -1.8, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("midnight price, below",
+                 -0.4, te.getUsageCharge(5.0, 12.0, true), 1e-6);
+    assertEquals("midnight price, above",
+                 -1.05, te.getUsageCharge(5.0, 22.0, true), 1e-6);
+    assertEquals("midnight price, split",
+                 -0.79, te.getUsageCharge(5.0, 18.0, true), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("evening price, below",
+                 -0.8, te.getUsageCharge(10.0, 5.0, true), 1e-6);
+    assertEquals("evening price, above",
+                 -2.5, te.getUsageCharge(10.0, 25.0, true), 1e-6);
+    assertEquals("evening price, split",
+                 -1.65, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+  }
+
   // multiple tiers
   @Test
   public void testMultiTiers ()

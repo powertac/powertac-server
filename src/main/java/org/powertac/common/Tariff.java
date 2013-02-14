@@ -16,11 +16,12 @@
 package org.powertac.common;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -105,7 +106,7 @@ public class Tariff
   private HashMap<Long, Rate> rateIdMap;
 
   // map is an array, indexed by tier-threshold and hour-in-day/week
-  private List< Double > tiers;
+  private SortedSet< Double > tiers;
   private Rate[][] rateMap;
 
   /**
@@ -122,7 +123,7 @@ public class Tariff
     for (Rate r : spec.getRates()) {
       rateIdMap.put(r.getId(), r);
     }
-    tiers = new ArrayList<Double>();
+    tiers = new TreeSet<Double>();
   }
 
   /**
@@ -497,15 +498,17 @@ public class Tariff
     // Start by computing tier indices, and array width
     HashMap<Double, Integer> tierIndexMap = new HashMap<Double, Integer>();
     tiers.add(0.0);
+    int weekMultiplier = 1;
     for (Rate rate : tariffSpec.getRates()) {
       if (rate.getWeeklyBegin() >= 0) {
         isWeekly = true;
+        weekMultiplier = 7;
       }
       if (rate.getTierThreshold() > 0.0) {
         tiers.add(rate.getTierThreshold());
       }
     }
-    Collections.sort(tiers);
+    //Collections.sort(tiers);
     log.info("tariff " + specId + ", tiers: " + tiers);
 
     // Next, fill in the tierIndexMap, which maps tier thresholds to
@@ -529,14 +532,14 @@ public class Tariff
       }
       if (rate.getTierThreshold() > 0.0) {
         // is this correct? Should the 7 apply only for a weekly rate?
-        value += tierIndexMap.get(rate.getTierThreshold()) * 7 * 24;
+        value += tierIndexMap.get(rate.getTierThreshold()) * 24 * weekMultiplier;
       }
       log.debug("inserting " + value + ", " + rate.getId());
       annotatedRates.put(value, rate);
     }
 
     // Next, we create the rateMap
-    rateMap = new Rate[tierIndexMap.size()][isWeekly ? 7*24 : 24];
+    rateMap = new Rate[tierIndexMap.size()][weekMultiplier * 24];
 
     // Finally, we step through the sorted Rates and fill in the
     // array. For each Rate, we add it to the array everywhere it
@@ -604,17 +607,19 @@ public class Tariff
     List<RateKwh> result = new ArrayList<RateKwh>();
     double remainingAmount = kwh;
     double accumulatedAmount = cumulativeUsage;
+    ArrayList<Double> tierList = new ArrayList<Double>(tiers);
     int ti = 0; // tier index
     while (remainingAmount > 0.0) {
-      if (tiers.size() > ti + 1) {
+      if (tierList.size() > ti + 1) {
         // still tiers remaining
-        if (accumulatedAmount >= tiers.get(ti+1)) {
-          log.debug("accumulatedAmount " + accumulatedAmount + " above threshold " + (ti+1) + ":" + (tiers.get(ti+1)));
+        if (accumulatedAmount >= tierList.get(ti+1)) {
+          log.debug("accumulatedAmount " + accumulatedAmount
+                    + " above threshold " + (ti+1) + ":" + (tierList.get(ti+1)));
           ti += 1;
         }
-        else if (remainingAmount + accumulatedAmount > tiers.get(ti+1)) {
-          double amt = tiers.get(ti+1) - accumulatedAmount;
-          log.debug("split off " + amt + " below " + tiers.get(ti+1));
+        else if (remainingAmount + accumulatedAmount > tierList.get(ti+1)) {
+          double amt = tierList.get(ti+1) - accumulatedAmount;
+          log.debug("split off " + amt + " below " + tierList.get(ti+1));
           //result += amt * rateValue(ti++, timeIndex, when);
           result.add(new RateKwh(rateMap[ti++][timeIndex], amt));
           remainingAmount -= amt;
