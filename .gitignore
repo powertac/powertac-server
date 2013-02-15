@@ -1,8 +1,9 @@
-# IntelliJ IDEA project files
+# IntelliJ IDEA/STS project files
 *.iml
 *.ipr
 *.iws
 .idea/
+.project
 
 # Deployment directories
 target/
