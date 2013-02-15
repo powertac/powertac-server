@@ -33,7 +33,6 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
-
 /**
  * Entity wrapper for TariffSpecification that supports Tariff evaluation 
  * and billing. Instances of this class are not intended to be serialized.
@@ -96,7 +95,7 @@ public class Tariff
   private Instant expiration;
 
   /** Maximum future interval over which price can be known */
-  //private Duration maxHorizon; // TODO lazy instantiation?
+  //private Duration maxHorizon; 
 
   /** True if the maps are keyed by hour-in-week rather than hour-in-day */
   private boolean isWeekly = false;
@@ -106,7 +105,8 @@ public class Tariff
   private HashMap<Long, Rate> rateIdMap;
 
   // map is an array, indexed by tier-threshold and hour-in-day/week
-  private SortedSet< Double > tiers;
+  private TreeSet< Double > tiers;
+  private int tierSign = 1; // -1 for negative tiers
   private Rate[][] rateMap;
 
   /**
@@ -497,18 +497,19 @@ public class Tariff
   {
     // Start by computing tier indices, and array width
     HashMap<Double, Integer> tierIndexMap = new HashMap<Double, Integer>();
-    tiers.add(0.0);
+    if (tariffSpec.getPowerType().isProduction())
+      tierSign = -1; // tiers for production tariffs are negative
+    tiers.add(0.0 * tierSign);
     int weekMultiplier = 1;
     for (Rate rate : tariffSpec.getRates()) {
       if (rate.getWeeklyBegin() >= 0) {
         isWeekly = true;
         weekMultiplier = 7;
       }
-      if (rate.getTierThreshold() > 0.0) {
-        tiers.add(rate.getTierThreshold());
+      if (rate.getTierThreshold() * tierSign > 0.0) {
+        tiers.add(rate.getTierThreshold() * tierSign);
       }
     }
-    //Collections.sort(tiers);
     log.info("tariff " + specId + ", tiers: " + tiers);
 
     // Next, fill in the tierIndexMap, which maps tier thresholds to
@@ -530,9 +531,9 @@ public class Tariff
         // The first day is 1, otherwise we would have to add 1 here
         value += rate.getWeeklyBegin() * 24;
       }
-      if (rate.getTierThreshold() > 0.0) {
+      if (rate.getTierThreshold() * tierSign > 0.0) {
         // is this correct? Should the 7 apply only for a weekly rate?
-        value += tierIndexMap.get(rate.getTierThreshold()) * 24 * weekMultiplier;
+        value += tierIndexMap.get(rate.getTierThreshold() * tierSign) * 24 * weekMultiplier;
       }
       log.debug("inserting " + value + ", " + rate.getId());
       annotatedRates.put(value, rate);
@@ -547,7 +548,8 @@ public class Tariff
     // already been entered.
     for (Map.Entry<Integer, Rate> entry : annotatedRates.entrySet()) {
       Rate rate = entry.getValue();
-      int ti = tierIndexMap.get(rate.getTierThreshold());
+      System.out.println("tt=" + rate.getTierThreshold() * tierSign);
+      int ti = tierIndexMap.get(rate.getTierThreshold() * tierSign);
       int day1 = 0;
       int dayn = 0;
       if (isWeekly) {
@@ -605,8 +607,8 @@ public class Tariff
                                         double cumulativeUsage)
   {
     List<RateKwh> result = new ArrayList<RateKwh>();
-    double remainingAmount = kwh;
-    double accumulatedAmount = cumulativeUsage;
+    double remainingAmount = kwh * tierSign;
+    double accumulatedAmount = cumulativeUsage * tierSign;
     ArrayList<Double> tierList = new ArrayList<Double>(tiers);
     int ti = 0; // tier index
     while (remainingAmount > 0.0) {
@@ -621,7 +623,7 @@ public class Tariff
           double amt = tierList.get(ti+1) - accumulatedAmount;
           log.debug("split off " + amt + " below " + tierList.get(ti+1));
           //result += amt * rateValue(ti++, timeIndex, when);
-          result.add(new RateKwh(rateMap[ti++][timeIndex], amt));
+          result.add(new RateKwh(rateMap[ti++][timeIndex], amt * tierSign));
           remainingAmount -= amt;
           accumulatedAmount += amt;
         }
@@ -629,7 +631,7 @@ public class Tariff
           // it all fits in the current tier
           log.debug("amount " + remainingAmount + " fits in tier " + ti);
           //result += remainingAmount * rateValue(ti, timeIndex, when);
-          result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount));
+          result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
           remainingAmount = 0.0;
         }
       }
@@ -637,7 +639,7 @@ public class Tariff
         // last tier
         log.debug("remainder " + remainingAmount + " fits in top tier");
         //result += remainingAmount * rateValue(ti, timeIndex, when);
-        result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount));
+        result.add(new RateKwh(rateMap[ti][timeIndex], remainingAmount * tierSign));
         remainingAmount = 0.0;
       }
     }

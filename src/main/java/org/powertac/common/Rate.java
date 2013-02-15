@@ -40,28 +40,34 @@ import com.thoughtworks.xstream.annotations.*;
  * the customer pays (negative money value) to recieve energy
  * (positive energy quantity).
  * <p>
- * Each TariffSpecification must include at least one Rate.
+ * Each <code>TariffSpecification</code> must include at least one <code>Rate</code>.
  * Rates can be fixed (the default) or variable. A fixed rate has a single
- * value attribute that represents the customer payment for a kWh of energy.
+ * <code>value</code> attribute that represents the customer payment for a kWh of energy.
  * This value is typically negative for a consumption tariff (customer pays
  * to receive energy) and positive for a production tariff. A variable rate
- * must specify a minValue, a maxValue, and an expectedMean. To be valid, a
- * Rate for a consumption tariff must have minValue >= expectedMean >= maxValue.
+ * must specify a <code>minValue</code>, a <code>maxValue</code>, and an 
+ * <code>expectedMean</code>. To be valid, a
+ * Rate for a consumption tariff must have
+ * <code>minValue >= expectedMean >= maxValue</code>.
  * For a production tariff, these relationships are reversed. These ranges
  * constrain the HourlyCharge values that may be applied to the Rate.</p>
  * <p>
- * If a non-zero tierThreshold is given, then the rate applies only after
+ * If a non-zero <code>tierThreshold</code> is given, then the rate applies only after
  * daily consumption/production exceeds the threshold; to achieve a tiered
- * structure, there needs to be one Rate with a tierThreshold of zero, and one
+ * structure, there needs to be at least one <code>Rate</code> with a 
+ * <code>tierThreshold</code> of zero, and one
  * for each threshold beyond zero. Tier thresholds must be positive for
  * consumption tariffs, negative for production tariffs. For the purpose of
  * determining tier applicability, production and consumption tracking is
  * reset at midnight every day, in the TariffSubscription.</p>
  * <p>
- * Time-of-use and day-of-week Rates can be specified with dailyBegin/dailyEnd
- * and weeklyBegin/weeklyEnd specifications. For dailyBegin/dailyEnd, the values
- * are integer hours in the range 0:23. A Rate that applies from 22:00 in the
- * evening until 6:00 the next morning would have dailyBegin=22 and dailyEnd=6.
+ * Time-of-use and day-of-week Rates can be specified with
+ * <code>dailyBegin</code> / <code>dailyEnd</code> and 
+ * <code>weeklyBegin</code> / <code>weeklyEnd</code> specifications. 
+ * For <code>dailyBegin</code> / <code>dailyEnd</code>, the values
+ * are integer hours in the range 0:23. A <code>Rate</code> that applies from 
+ * 22:00 in the evening until 6:00 the next morning would have 
+ * <code>dailyBegin=22</code> and <code>dailyEnd=6</code>.
  * Weekly begin/end specifications are integers in the range 1:7, with 1=Monday.</p>
  * <p>
  * It is possible for multiple rates to be applicable at any given combination

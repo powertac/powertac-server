@@ -75,9 +75,9 @@ public class TariffTests
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(exp)
         .withMinDuration(TimeService.WEEK * 8);
-    productionSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
-    .withExpiration(exp)
-    .withMinDuration(TimeService.WEEK * 8);
+    productionSpec = new TariffSpecification(broker, PowerType.PRODUCTION)
+        .withExpiration(exp)
+        .withMinDuration(TimeService.WEEK * 8);
   }
 
   // create a Tariff and inspect it
@@ -139,12 +139,18 @@ public class TariffTests
     Instant now = timeService.getCurrentTime();
     Tariff te = new Tariff(productionSpec);
     te.init();
-    assertEquals("correct charge, default case", 0.121, te.getUsageCharge(1.0, 0.0, false), 1e-6);
-    assertEquals("correct charge, today", 1.21, te.getUsageCharge(10.0, 0.0, false), 1e-6);
-    assertEquals("correct charge yesterday", 2.42, te.getUsageCharge(now.minus(TimeService.DAY), 20.0, 0.0), 1e-6);
-    assertEquals("correct charge tomorrow", 12.1, te.getUsageCharge(now.plus(TimeService.DAY), 100.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour ago", 3.63, te.getUsageCharge(now.minus(TimeService.HOUR), 30.0, 0.0), 1e-6);
-    assertEquals("correct charge an hour from now", 1.21, te.getUsageCharge(now.plus(TimeService.HOUR), 10.0, 0.0), 1e-6);
+    assertEquals("correct charge, default case",
+                 0.121, te.getUsageCharge(-1.0, 0.0, false), 1e-6);
+    assertEquals("correct charge, today",
+                 1.21, te.getUsageCharge(-10.0, 0.0, false), 1e-6);
+    assertEquals("correct charge yesterday",
+                 2.42, te.getUsageCharge(now.minus(TimeService.DAY), -20.0, 0.0), 1e-6);
+    assertEquals("correct charge tomorrow",
+                 12.1, te.getUsageCharge(now.plus(TimeService.DAY), -100.0, 0.0), 1e-6);
+    assertEquals("correct charge an hour ago",
+                 3.63, te.getUsageCharge(now.minus(TimeService.HOUR), -30.0, 0.0), 1e-6);
+    assertEquals("correct charge an hour from now",
+                 1.21, te.getUsageCharge(now.plus(TimeService.HOUR), -10.0, 0.0), 1e-6);
   }
   
   // single fixed rate, check realized price after multiple rounds
@@ -308,7 +314,7 @@ public class TariffTests
     assertEquals("midnight price, split", -0.76, te.getUsageCharge(5.0, 18.0, true), 1e-6);
   }
 
-  // tiers
+  // multiple TOU tiers
   @Test
   public void testTimeOfUseTier2 ()
   {
@@ -344,6 +350,44 @@ public class TariffTests
                  -2.5, te.getUsageCharge(10.0, 25.0, true), 1e-6);
     assertEquals("evening price, split",
                  -1.65, te.getUsageCharge(10.0, 15.0, true), 1e-6);
+  }
+
+  // multiple TOU tiers - production
+  @Test
+  public void testTimeOfUseTierProd ()
+  {
+    Rate r1 = new Rate().withValue(0.15).withDailyBegin(7).withDailyEnd(17);
+    Rate r2 = new Rate().withValue(0.08).withDailyBegin(18).withDailyEnd(6);
+    Rate r3 = new Rate().withValue(0.25).withTierThreshold(-20.0)
+            .withDailyBegin(16).withDailyEnd(21);
+    Rate r4 = new Rate().withValue(0.21).withTierThreshold(-20.0)
+            .withDailyBegin(22).withDailyEnd(15);
+    productionSpec.addRate(r1);
+    productionSpec.addRate(r2);
+    productionSpec.addRate(r4);
+    productionSpec.addRate(r3);
+    Tariff te = new Tariff(productionSpec);
+    te.init();
+    assertEquals("noon price, below",
+                 1.5, te.getUsageCharge(-10.0, -5.0, true), 1e-6);
+    assertEquals("noon price, above",
+                 2.1, te.getUsageCharge(-10.0, -25.0, true), 1e-6);
+    assertEquals("noon price, split",
+                 1.8, te.getUsageCharge(-10.0, -15.0, true), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("midnight price, below",
+                 0.4, te.getUsageCharge(-5.0, -12.0, true), 1e-6);
+    assertEquals("midnight price, above",
+                 1.05, te.getUsageCharge(-5.0, -22.0, true), 1e-6);
+    assertEquals("midnight price, split",
+                 0.79, te.getUsageCharge(-5.0, -18.0, true), 1e-6);
+    timeService.setCurrentTime(new DateTime(2011, 1, 2, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
+    assertEquals("evening price, below",
+                 0.8, te.getUsageCharge(-10.0, -5.0, true), 1e-6);
+    assertEquals("evening price, above",
+                 2.5, te.getUsageCharge(-10.0, -25.0, true), 1e-6);
+    assertEquals("evening price, split",
+                 1.65, te.getUsageCharge(-10.0, -15.0, true), 1e-6);
   }
 
   // multiple tiers
