@@ -4,6 +4,9 @@
 *.iws
 .idea/
 
+.project
+.classpath
+
 # Deployment directories
 target/
 activemq-data/
