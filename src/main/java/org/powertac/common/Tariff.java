@@ -548,7 +548,6 @@ public class Tariff
     // already been entered.
     for (Map.Entry<Integer, Rate> entry : annotatedRates.entrySet()) {
       Rate rate = entry.getValue();
-      System.out.println("tt=" + rate.getTierThreshold() * tierSign);
       int ti = tierIndexMap.get(rate.getTierThreshold() * tierSign);
       int day1 = 0;
       int dayn = 0;
