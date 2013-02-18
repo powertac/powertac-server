@@ -161,8 +161,11 @@ public class CompetitionControlService
     idPrefix = 0;
 
     // register with JMS Server
-    jmsManagementService.initializeServerQueue(serverQueueName);
-    jmsManagementService.registerMessageListener(serverQueueName, serverMessageReceiver);
+    if (!bootstrapMode) {
+      jmsManagementService.initializeServerQueue(serverQueueName);
+      jmsManagementService.registerMessageListener(serverQueueName,
+          serverMessageReceiver);
+    }
     
     // create broker queues
     //String[] brokerArray = new String[authorizedBrokerMap.size()];
@@ -272,8 +275,10 @@ public class CompetitionControlService
       log.error("null competition instance");
     }
 
-    // start JMS provider
-    jmsManagementService.start();
+    // start JMS provider for sims
+    if (!bootstrapMode) {
+      jmsManagementService.start();
+    }
 
     init();
     
@@ -575,6 +580,14 @@ public class CompetitionControlService
     ArrayList<String> completedPlugins = new ArrayList<String>();
     ArrayList<InitializationService> deferredInitializers = new ArrayList<InitializationService>();
     for (InitializationService initializer : initializers) {
+      if (bootstrapMode) {
+        if (initializer.equals(visualizerProxyService) ||
+            initializer.equals(jmsManagementService)) {
+          log.info("Skipping initialization of " + initializer.toString());
+          continue;
+        }
+      }
+
       log.info("attempt to initialize " + initializer.toString());
       String success = initializer.initialize(competition, completedPlugins);
       if (success == null) {
@@ -582,7 +595,7 @@ public class CompetitionControlService
         log.info("deferring " + initializer.toString());
         deferredInitializers.add(initializer);
       }
-      else if (success == "fail") {
+      else if (success.equals("fail")) {
         log.error("Failed to initialize plugin " + initializer.toString());
         return false;
       }
@@ -591,22 +604,22 @@ public class CompetitionControlService
         completedPlugins.add(success);
       }
     }
+
     int tryCounter = deferredInitializers.size();
-    List<InitializationService> remaining = deferredInitializers;
-    while (remaining.size() > 0 && tryCounter > 0) {
-      InitializationService initializer = remaining.get(0);
+    while (deferredInitializers.size() > 0 && tryCounter > 0) {
+      InitializationService initializer = deferredInitializers.get(0);
       log.info("additional attempt to initialize " + initializer.toString());
-      if (remaining.size() > 1) {
-        remaining.remove(0);
+      if (deferredInitializers.size() > 1) {
+        deferredInitializers.remove(0);
       }
       else {
-        remaining.clear();
+        deferredInitializers.clear();
       }
       String success = initializer.initialize(competition, completedPlugins);
       if (success == null) {
         // defer this one
         log.info("deferring " + initializer.toString());
-        remaining.add(initializer);
+        deferredInitializers.add(initializer);
         tryCounter -= 1;
       }
       else {
@@ -614,7 +627,7 @@ public class CompetitionControlService
         completedPlugins.add(success);
       }
     }
-    for (InitializationService initializer : remaining) {
+    for (InitializationService initializer : deferredInitializers) {
       log.error("Failed to initialize " + initializer.toString());
     }
     return true;
