@@ -52,6 +52,15 @@ import com.thoughtworks.xstream.annotations.*;
  * For a production tariff, these relationships are reversed. These ranges
  * constrain the HourlyCharge values that may be applied to the Rate.</p>
  * <p>
+ * The <code>maxCurtailment</code> parameter can be between 0.0 and 1.0 when 
+ * applied to an interruptible PowerType. If greater than zero, then the
+ * production or consumption associated with the tariff can be shut off remotely
+ * for economic or balancing purposes, using an <code>EconomicControlEvent</code>
+ * or by issuing a <code>BalancingOrder</code> to the DU. The curtailment
+ * cannot exceed the product of <code>maxCurtailment</code> and the amount \
+ * that would have been produced or consumed in the absence of the external
+ * control.</p>
+ * <p>
  * If a non-zero <code>tierThreshold</code> is given, then the rate applies only after
  * daily consumption/production exceeds the threshold; to achieve a tiered
  * structure, there needs to be at least one <code>Rate</code> with a 
