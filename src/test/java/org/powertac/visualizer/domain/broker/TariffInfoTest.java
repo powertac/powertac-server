@@ -41,19 +41,19 @@ public class TariffInfoTest {
   public void testGraphs() {
     tariffInfo = new TariffInfo(tariffSpecification);
 
-    TariffTransaction transaction = new TariffTransaction(broker, null, Type.SIGNUP, tariffSpecification,
+    TariffTransaction transaction = new TariffTransaction(broker, 0, Type.SIGNUP, tariffSpecification,
                                                           new CustomerInfo("Purgeri", 200), 35, 0, 100);
     tariffInfo.addTariffTransaction(transaction);
     tariffInfo.update(0,null);
     System.out.println(tariffInfo.getJson());
 
-    transaction = new TariffTransaction(broker, null, Type.CONSUME, tariffSpecification, new CustomerInfo(
+    transaction = new TariffTransaction(broker, 0, Type.CONSUME, tariffSpecification, new CustomerInfo(
                                                                                                           "Srakari", 200), 10, -100, 15);
     tariffInfo.addTariffTransaction(transaction);
     tariffInfo.update(1,null);
     System.out.println(tariffInfo.getJson());
 
-    transaction = new TariffTransaction(broker, null, Type.WITHDRAW, tariffSpecification, new CustomerInfo(
+    transaction = new TariffTransaction(broker, 0, Type.WITHDRAW, tariffSpecification, new CustomerInfo(
                                                                                                            "Purgeri", 200), 35, 0, 100);
     tariffInfo.addTariffTransaction(transaction);
     tariffInfo.update(2,null);
@@ -66,7 +66,7 @@ public class TariffInfoTest {
   public void testTariffLifeCycle() {
     tariffInfo = new TariffInfo(tariffSpecification);
 
-    TariffTransaction transaction = new TariffTransaction(broker, null, Type.SIGNUP, tariffSpecification,
+    TariffTransaction transaction = new TariffTransaction(broker, 0, Type.SIGNUP, tariffSpecification,
                                                           new CustomerInfo("Purgeri", 200), 35, 0, 100);
     tariffInfo.addTariffTransaction(transaction);
     tariffInfo.addTariffMessage("Tariff updated");
