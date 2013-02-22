@@ -1,56 +1,41 @@
-body, html { height:100%; padding:0; margin:0;}
-
-.ui-widget,.ui-widget .ui-widget {
-	font-size: 90% !important;
+.statusIcon{
+	font-size: 1.2em; 
+	margin: 0.2em;
+	color: white;
 }
 
-/*custom layout unit for Visualizer logo. Header should not be visible.*/
-.custom .ui-layout-unit-header {
-	font-size: 0%;
-	border: 0px solid #d4ccb0
+.bigStatusIcon{
+	font-size: 3.4em; 
+	margin: 0 em;
+	color: white;
+	display: inline;
 }
 
-
-/*centered no border*/
-.tableBrokersPanel.ui-panel{
-	margin-left: auto;
-	margin-right: auto;
-	width:500px;
-	border: 0;
+.bigStatusText{
+	font-size: 3.7em; 
+	padding: 0.5em;
+	color: white;
+	display: inline;
 }
 
-.noBorderPanel.ui-panel{
-	border:0;
+.weatherText{
+	font-size: 1.8em; 
+	padding: 0.1em;
+	color: white;
+	display: inline;
 }
 
-.noBackground.ui-panel{
-	background-image: none;
+.weatherIcon{
+	font-size: 3.1em; 
+	padding: 0.0em;
+	color: white;
+	display: inline;
 }
 
-.ui-sortable-column-icon{
-visibility: hidden;
+.arrow{
+	font-size: 2.5em; 
+	padding: 0.0em;
+	color: white;
+	display: inline;
 }
 
-.update{
-	
-}
-
-.specificClearing{
-	
-}
-
-.customerChart{
-	height:250px;
-	width:700px;
-	margin-top:20px"
-}
-
-.label{
-	font-weight:bold;
-}
-
-.updateInvisiblePanel{
-	background-image: none;
-	border:0;
-	
-}

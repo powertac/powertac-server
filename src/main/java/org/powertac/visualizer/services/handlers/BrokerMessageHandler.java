@@ -1,229 +1,162 @@
 package org.powertac.visualizer.services.handlers;
 
 import org.apache.log4j.Logger;
+import org.apache.tools.ant.taskdefs.Tstamp;
 import org.powertac.common.*;
 import org.powertac.common.msg.TariffExpire;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.TariffUpdate;
+import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.AppearanceListBean;
+import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.CustomerModel;
+import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Initializable;
+import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.services.BrokerService;
+import org.powertac.visualizer.services.CustomerService;
+import org.powertac.visualizer.services.PushService;
+import org.powertac.visualizer.statistical.BalancingCategory;
+import org.powertac.visualizer.statistical.DistributionCategory;
+import org.powertac.visualizer.statistical.DynamicData;
+import org.powertac.visualizer.statistical.FinanceCategory;
+import org.powertac.visualizer.statistical.FinanceDynamicData;
+import org.powertac.visualizer.statistical.Grade;
+import org.powertac.visualizer.statistical.GradingSystem;
+import org.powertac.visualizer.statistical.TariffCategory;
 import org.primefaces.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class BrokerMessageHandler implements Initializable
-{
+public class BrokerMessageHandler implements Initializable {
 
-  private Logger log = Logger.getLogger(BrokerMessageHandler.class);
+	private Logger log = Logger.getLogger(BrokerMessageHandler.class);
 
-  @Autowired
-  private MessageDispatcher router;
-  @Autowired
-  private BrokerService brokerService;
-  @Autowired
-  private AppearanceListBean appearanceListBean;
+	@Autowired
+	private MessageDispatcher router;
+	@Autowired
+	private BrokerService brokerService;
+	@Autowired
+	private AppearanceListBean appearanceListBean;
+	@Autowired
+	private VisualizerBean vizBean;
+	@Autowired
+	private PushService pushService;
 
-  public void initialize ()
-  {
-    for (Class<?> clazz: Arrays.asList(Competition.class,
-                                       TariffSpecification.class,
-                                       CashPosition.class,
-                                       TariffTransaction.class,
-                                       DistributionTransaction.class,
-                                       BalancingTransaction.class,
-                                       TariffExpire.class, TariffRevoke.class,
-                                       TariffStatus.class, TariffUpdate.class)) {
-      router.registerMessageHandler(this, clazz);
-    }
-  }
+	public void initialize() {
+		for (Class<?> clazz : Arrays.asList(Competition.class,
+				TariffSpecification.class, CashPosition.class,
+				TariffTransaction.class, DistributionTransaction.class,
+				BalancingTransaction.class)) {
+			router.registerMessageHandler(this, clazz);
+		}
+	}
 
-  public void handleMessage (Competition competition)
-  {
-    List<String> brokersName = competition.getBrokers();
-    HashMap<String, BrokerModel> map = new HashMap<String, BrokerModel>();
+	public void handleMessage(Competition competition) {
+		List<String> brokersName = competition.getBrokers();
 
-    ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
+		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
+		ConcurrentHashMap<String, BrokerModel> map = new ConcurrentHashMap<String, BrokerModel>(
+				10, 0.75f, 1);
 
-    JSONArray brokerSeriesColors = new JSONArray();
-    // StringBuilder seriesOptions = new StringBuilder();
-    // String prefix = "";
+		for (Iterator<String> iterator = brokersName.iterator(); iterator
+				.hasNext();) {
+			String name = (String) iterator.next();
+			BrokerModel brokerModel = new BrokerModel(name,
+					appearanceListBean.getAppereance());
+			list.add(brokerModel);
+			map.put(brokerModel.getName(), brokerModel);
+		}
+		brokerService.setBrokersMap(map);
+		brokerService.setBrokers(list);
+		vizBean.setCompetition(competition);
+		vizBean.setRunning(true);
+		//notification:
+		pushService.pushInfoMessage(new InfoPush("start"));				
+	}
 
-    JSONArray seriesOptions = new JSONArray();
+	public void handleMessage(TariffSpecification tariffSpecification) {
+		if (tariffSpecification.getSupersedes() != null) {
+			log.debug("NO of tariffspec:"
+					+ tariffSpecification.getSupersedes().size());
+		}
 
-    for (String name: brokersName) {
-      BrokerModel brokerModel =
-          new BrokerModel(name, appearanceListBean.getAppereance());
+		// find matching broker and add received tariff spec. to its history.
+		BrokerModel brokerModel = brokerService
+				.findBrokerByName(tariffSpecification.getBroker().getUsername());
+		if (brokerModel != null) {
+			brokerModel.getTariffCategory().processTariffSpecification(
+					tariffSpecification);
+		}
 
-      // build broker series options:
-      seriesOptions.put(brokerModel.getJson().getSeriesOptions());
-      // build colors:
-      brokerSeriesColors.put(brokerModel.getAppearance().getColorCode());
+	}
 
-      // for each broker, build its customer list.
-      Set<CustomerModel> customerModels = new HashSet<CustomerModel>();
-      for (CustomerInfo customerInfo: competition.getCustomers()) {
-        customerModels.add(new CustomerModel(customerInfo));
+	public void handleMessage(CashPosition msg) {
 
-      }
-      brokerModel.setCustomerModels(customerModels);
+		// update balance, if such broker exists
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
+				.getUsername());
+		if (broker != null) {
+			FinanceCategory fc = broker.getFinanceCategory();
+			int tsIndex = vizBean.getCurrentTimeslotSerialNumber();
+			ConcurrentHashMap<Integer, FinanceDynamicData> fddMap = fc.getFinanceDynamicDataMap();
+			if(!fddMap.containsKey(tsIndex)){
+				FinanceDynamicData fdd = new FinanceDynamicData(fc.getProfit(), tsIndex);
+				fc.setLastFinanceDynamicData(fdd);
+				fddMap.put(tsIndex, fdd);
+			}
+			fddMap.get(tsIndex).updateProfit(msg.getBalance());
+			fc.setProfit(msg.getBalance());
+		}
+		
+	}
 
-      map.put(brokerModel.getName(), brokerModel);
-      list.add(brokerModel);
-    }
-    brokerService.setMap(map);
-    brokerService.setBrokers(list);
-    brokerService.getJson().setBrokerSeriesColors(brokerSeriesColors);
-    brokerService.getJson().setSeriesOptions(seriesOptions);
-  }
+	public void handleMessage(TariffTransaction msg) {
+		// broker, not genco:
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
+				.getUsername());
+		if (broker != null) {
+			TariffCategory tc = broker.getTariffCategory();
 
-  public void handleMessage (TariffSpecification tariffSpecification)
-  {
-    log.debug("\nBroker: " + tariffSpecification.getBroker().getUsername()
-              + " Min duration: " + tariffSpecification.getMinDuration()
-              + " EarlyWithdrPaymnt "
-              + tariffSpecification.getEarlyWithdrawPayment()
-              + " PeriodicPayment: " + tariffSpecification.getPeriodicPayment()
-              + " SignupPayment" + tariffSpecification.getSignupPayment()
-              + " Expiration: " + tariffSpecification.getExpiration()
-              + " PowerType: " + tariffSpecification.getPowerType() + " ID: "
-              + tariffSpecification.getId());
+			int tsIndex = msg.getPostedTimeslotIndex();
+			ConcurrentHashMap<Integer, TariffDynamicData> tddmap = tc
+					.getTariffDynamicDataMap();
 
-    if (tariffSpecification.getSupersedes() != null) {
-      log.debug("NO of tariffspec:"
-                + tariffSpecification.getSupersedes().size());
-    }
+			if (!tddmap.containsKey(tsIndex)) {
+				TariffDynamicData tdd = new TariffDynamicData(tsIndex,
+						tc.getProfit(), tc.getEnergy(), tc.getCustomerCount());
+				tc.addTariffDynamicData(tdd);
+			}
+			tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
+					Helper.getCustomerCount(msg));
 
-    List<Rate> rates = tariffSpecification.getRates();
-    String ispis = "";
-    for (Rate rate: rates) {
-      ispis += "" + rate.toString();
-    }
-    log.debug("RATE:\n" + ispis);
+		}
 
-    // find matching broker and add received tariff spec. to its history.
-    BrokerModel brokerModel =
-      brokerService.findBrokerByName(tariffSpecification.getBroker()
-              .getUsername());
-    if (brokerModel != null) {
-      brokerModel.addTariffSpecification(tariffSpecification);
-    }
-  }
+	}
 
-  public void handleMessage (CashPosition cashPosition)
-  {
+	public void handleMessage(DistributionTransaction msg) {
+		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
+				.getUsername());
+		if (broker != null) {
+			DistributionCategory dc = broker.getDistributionCategory();
+			dc.update(msg.getPostedTimeslotIndex(),msg.getKWh(),msg.getCharge());
+		}
 
-    log.debug("\nBalance: " + cashPosition.getBalance() + " for broker "
-              + cashPosition.getBroker().getUsername());
-    // update balance, if such broker exists
-    BrokerModel broker =
-      brokerService.findBrokerByName(cashPosition.getBroker().getUsername());
+	}
 
-    if (broker != null) {
-      broker.updateCashBalance(cashPosition.getBalance());
-
-    }
-  }
-
-  public void handleMessage (TariffTransaction tariffTransaction)
-  {
-    log.debug("Broker: " + tariffTransaction.getBroker() + " Charge: "
-              + tariffTransaction.getCharge() + " CustomerCount: "
-              + tariffTransaction.getCustomerCount() + "\n KWh: "
-              + tariffTransaction.getKWh() + " CustomerInfo: "
-              + tariffTransaction.getCustomerInfo() + "Posted time: "
-              + tariffTransaction.getPostedTime() + "\n TxType: "
-              + tariffTransaction.getTxType());
-    // broker, not genco:
-    BrokerModel brokerModel =
-      brokerService.findBrokerByName(tariffTransaction.getBroker()
-              .getUsername());
-    if (brokerModel != null) {
-      brokerModel.addTariffTransaction(tariffTransaction);
-
-    }
-
-  }
-
-  public void handleMessage (DistributionTransaction distributionTransaction)
-  {
-    log.debug("Broker: " + distributionTransaction.getBroker() + "\nCharge: "
-              + distributionTransaction.getCharge() + "\nkWh: "
-              + distributionTransaction.getKWh());
-
-    // fix for brokers that do not receive balancing transaction (because
-    // their distributionTransaction is 0 KWh!)
-    if (distributionTransaction.getKWh() == 0) {
-
-      BrokerModel brokerModel =
-        brokerService.findBrokerByName(distributionTransaction.getBroker()
-                .getUsername());
-      if (brokerModel != null) {
-        brokerModel.updateEnergyBalance(0);
-      }
-    }
-
-  }
-
-  public void handleMessage (BalancingTransaction balancingTransaction)
-  {
-    log.debug("Broker: " + balancingTransaction.getBroker() + "\nCharge: "
-              + balancingTransaction.getCharge() + "\nkWh: "
-              + balancingTransaction.getKWh() + "\n");
-
-    BrokerModel broker =
-      brokerService.findBrokerByName(balancingTransaction.getBroker()
-              .getUsername());
-    if (broker != null) {
-      broker.addBalancingTransaction(balancingTransaction);
-    }
-  }
-
-  public void handleMessage (TariffExpire msg)
-  {
-    BrokerModel broker =
-      brokerService.findBrokerByName(msg.getBroker().getUsername());
-    if (broker != null) {
-      broker.getTariffInfoMaps()
-              .get(msg.getTariffId())
-              .addTariffMessage(msg.getClass().getSimpleName() + ":"
-                                        + msg.getNewExpiration());
-    }
-  }
-
-  public void handleMessage (TariffRevoke msg)
-  {
-    BrokerModel broker =
-      brokerService.findBrokerByName(msg.getBroker().getUsername());
-    if (broker != null) {
-      broker.getTariffInfoMaps().get(msg.getTariffId())
-              .addTariffMessage(msg.getClass().getSimpleName());
-    }
-  }
-
-  public void handleMessage (TariffStatus msg)
-  {
-    // BrokerModel broker =
-    // brokerService.findBrokerByName(msg.getBroker().getUsername());
-    // if (broker != null) {
-    // broker.getTariffInfoMaps().get(msg.getTariffId()).addTariffMessage(msg.getClass().getSimpleName()+":"+msg.getMessage());
-    // }
-  }
-
-  public void handleMessage (TariffUpdate msg)
-  {
-    BrokerModel broker =
-      brokerService.findBrokerByName(msg.getBroker().getUsername());
-    if (broker != null) {
-      broker.getTariffInfoMaps().get(msg.getTariffId())
-              .addTariffMessage(msg.getClass().getSimpleName());
-    }
-  }
+	public void handleMessage(BalancingTransaction bt) {
+		BrokerModel broker = brokerService.findBrokerByName(bt.getBroker()
+				.getUsername());
+		if (broker != null) {
+			BalancingCategory bc = broker.getBalancingCategory();
+			bc.update(bt.getPostedTimeslotIndex(),bt.getKWh(), bt.getCharge());
+		}
+	}
 }

@@ -32,83 +32,128 @@
   <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
 
   <bean id="appearanceListBean" class="org.powertac.visualizer.beans.AppearanceListBean">
-    <constructor-arg name="appereanceList">
-      <list>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#163eef" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/163eef.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#060606" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/060606.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#ff0000" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ff0000.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#ff00ff" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ff00ff.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#ffff00" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ffff00.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#ff9933" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/ff9933.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#87b5bd" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/87b5bd.png" />
-        </bean>
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#23811c" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/23811c.png" />
-        </bean>
+		<constructor-arg name="appereanceList">
+			<list>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#163eef" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/163eef.png" />
+					<constructor-arg name="R" value="22" />
+					<constructor-arg name="G" value="62" />
+					<constructor-arg name="B" value="239" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#060606" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/060606.png" />
+					<constructor-arg name="R" value="6" />
+					<constructor-arg name="G" value="6" />
+					<constructor-arg name="B" value="6" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#ff0000" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/ff0000.png" />
+					<constructor-arg name="R" value="255" />
+					<constructor-arg name="G" value="0" />
+					<constructor-arg name="B" value="0" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#ff00ff" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/ff00ff.png" />
+					<constructor-arg name="R" value="255" />
+					<constructor-arg name="G" value="0" />
+					<constructor-arg name="B" value="255" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#ffff00" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/ffff00.png" />
+					<constructor-arg name="R" value="255" />
+					<constructor-arg name="G" value="255" />
+					<constructor-arg name="B" value="0" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#ff9933" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/ff9933.png" />
+					<constructor-arg name="R" value="100" />
+					<constructor-arg name="G" value="60" />
+					<constructor-arg name="B" value="20" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#87b5bd" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/87b5bd.png" />
+					<constructor-arg name="R" value="135" />
+					<constructor-arg name="G" value="181" />
+					<constructor-arg name="B" value="189" />
+				</bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#23811c" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/23811c.png" />
+					<constructor-arg name="R" value="35" />
+					<constructor-arg name="G" value="129" />
+					<constructor-arg name="B" value="28" />
+				</bean>
 
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#671731" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/671731.png" />
-        </bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#671731" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/671731.png" />
+					<constructor-arg name="R" value="103" />
+					<constructor-arg name="G" value="23" />
+					<constructor-arg name="B" value="49" />
+				</bean>
 
-        <bean class="org.powertac.visualizer.domain.Appearance">
-          <constructor-arg name="colorCode" value="#b2b2b2" />
-          <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/b2b2b2.png" />
-        </bean>
-      </list>
-    </constructor-arg>
-    <constructor-arg name="defaultAppearance">
-      <bean class="org.powertac.visualizer.domain.Appearance">
-        <constructor-arg name="colorCode" value="#30ea17" />
-        <constructor-arg name="iconLocation" value="/app/resources/resources/images/brokers/default_30ea17.png" />
-      </bean>
-    </constructor-arg>
-  </bean>
+				<bean class="org.powertac.visualizer.domain.Appearance">
+					<constructor-arg name="colorCode" value="#b2b2b2" />
+					<constructor-arg name="iconLocation"
+						value="/app/resources/resources/images/brokers/b2b2b2.png" />
+					<constructor-arg name="R" value="178" />
+					<constructor-arg name="G" value="178" />
+					<constructor-arg name="B" value="178" />
+				</bean>
 
-  <!-- ......USER SESSION BEANS:..................... -->
-  <bean id="customerService"
-        class="org.powertac.visualizer.services.CustomerService"/>
-  <bean id="wholesaleService"
-        class="org.powertac.visualizer.services.WholesaleService"/>
-  <bean id="gencoService"
-        class="org.powertac.visualizer.services.GencoService"/>
-  <bean id="selectedBrokerChartsBean" class="org.powertac.visualizer.user.SelectedBrokerChartsBean" scope="session"/>
-  <bean id="wholesaleBean"
-        class="org.powertac.visualizer.user.WholesaleBean"
-        scope="session">
-    <constructor-arg ref="wholesaleService"/>
-  </bean>
-  <bean id="gencosBean"
-        class="org.powertac.visualizer.user.GencosBean"
-        scope="request">
-    <constructor-arg ref="gencoService"/>
-  </bean>
-  <bean id="brokersBean" class="org.powertac.visualizer.user.BrokersBean" scope="session"/>
-  <bean id="customersBean" class="org.powertac.visualizer.user.CustomersBean"
-        scope="request">
-    <constructor-arg ref="customerService"/>
-    <constructor-arg ref="userSessionBean"/>
-  </bean>
-  <bean id="userSessionBean" class="org.powertac.visualizer.user.UserSessionBean" scope="session"/>
+
+
+			</list>
+		</constructor-arg>
+		<constructor-arg name="defaultAppearance">
+			<bean class="org.powertac.visualizer.domain.Appearance">
+				<constructor-arg name="colorCode" value="#30ea17" />
+				<constructor-arg name="iconLocation"
+					value="/app/resources/resources/images/brokers/default_30ea17.png" />
+				<constructor-arg name="R" value="48" />
+				<constructor-arg name="G" value="234" />
+				<constructor-arg name="B" value="23" />
+			</bean>
+		</constructor-arg>
+	</bean>
+
+	<!-- ......USER SESSION BEANS:..................... -->
+	<bean id="wholesaleMarketBean" class="org.powertac.visualizer.user.WholesaleMarketBean"
+		scope="request" />
+	<bean id="gencosBean" class="org.powertac.visualizer.user.GencosBean"
+		scope="request" />
+	<bean id="brokersBean" class="org.powertac.visualizer.user.BrokersBean"
+		scope="request" />
+	<bean id="customersBean" class="org.powertac.visualizer.user.CustomersBean"
+		autowire="byType" scope="request" />
+	<bean id="userSessionBean" class="org.powertac.visualizer.user.UserSessionBean"
+		scope="session" />
+	<bean id="globalCounterBean" class="org.powertac.visualizer.push.GlobalCounterBean"
+		scope="request" />
+	<bean id="tariffMarketBean" class="org.powertac.visualizer.user.TariffMarketBean"
+		scope="request" />
+	<bean id="weatherBean" class="org.powertac.visualizer.user.WeatherBean"
+		scope="request" />
+		<bean id="balancingMarketBean" class="org.powertac.visualizer.user.BalancingMarketBean" scope="request"/>
+		<bean id="distributionBean" class="org.powertac.visualizer.user.DistributionBean" scope="request"/>
+		<bean id="chatBean" class="org.powertac.visualizer.user.ChatBean"
+		scope="session" />
+		<bean id="financeBean" class="org.powertac.visualizer.user.FinanceBean" scope="request"/>
+		<bean id="globalBean" class="org.powertac.visualizer.user.GlobalBean" scope="request"/>
 </beans>

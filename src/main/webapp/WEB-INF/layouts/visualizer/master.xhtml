@@ -12,222 +12,485 @@
 	<ui:insert name="headInclude" />
 	<h:outputScript library="js" name="scripts.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
-	<h:outputScript library="js" name="highcharts.js"/>
-	<h:outputScript library="js" name="highstock.js"/>
-	<h:outputScript library="js/modules" name="exporting.js"/>
-	<script type='text/javascript' src='https://www.google.com/jsapi'/>
-	
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="http://code.highcharts.com/highcharts-more.js"></script>
+	<script src="http://code.highcharts.com/modules/exporting.js"></script>
+	<script src="http://code.highcharts.com/stock/highstock.js"></script>
+	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
+
+	<h:outputStylesheet library="css" name="modern.css" />
+	<h:outputStylesheet library="css" name="site.css" />
+	<h:outputScript library="js" name="charts.js" />
+	<h:outputStylesheet library="css" name="visualizer.css" />
+	<h:outputScript library="javascript" name="pagecontrol.js" />
+	<h:outputScript library="javascript" name="dropdown.js" />
+	<h:outputScript library="javascript" name="accordion.js" />
+	<h:outputScript library="javascript" name="buttonset.js" />
+	<h:outputScript library="javascript" name="carousel.js" />
+	<h:outputScript library="javascript" name="dialog.js" />
+	<h:outputScript library="javascript" name="input-control.js" />
+	<h:outputScript library="javascript" name="pagecontrol.js" />
+	<h:outputScript library="javascript" name="rating.js" />
+	<h:outputScript library="javascript" name="slider.js" />
+	<h:outputScript library="javascript" name="tile-slider.js" />
+	<h:outputScript library="javascript" name="tile-drag.js" />
 	<script type="text/javascript">
-	
-		
-	
-		var windSpeed = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.windSpeed:0 }*100)/100;
-		var temperature = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.temperature:0}*100)/100;
-		var cover = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.cloudCover: 0}*100)/100;
-		
-	
-	var cashChartGlobal;
-		var subscriptionsPieChart;
-		
-		var windSpeedData;
-		var cloudCoverData;
-		var temperatureData;
-		var windSpeedOptions;
-		var cloudCoverOptions;
-		var temperatureOptions;
-		var windSpeedGauge;
-		var cloudCoverGauge;
-		var temperatureGauge;
-		var weatherGaugesDefined=false;
-		
-	      google.load('visualization', '1', {packages:['gauge']});
-	      
-	      
-	         
-	      google.setOnLoadCallback(drawCharts);
+		$(document).ready(function() {
+			Highcharts.setOptions({
+				global : {
+					useUTC : true
+				}
+			});
+			handleGlobalMsg(#{globalBean.globalPusher});
 
-	      function drawCharts() {
-	    	 windSpeedData = google.visualization.arrayToDataTable([
-	          ['Label', 'Value'],
-	          ['Wind(m/s)', windSpeed]
-	        ]);
-	        
-	         cloudCoverData = google.visualization.arrayToDataTable([
-	            ['Label', 'Value'],
-	            ['Clouds', cover]
-	        ]);
-	        
-	         temperatureData = google.visualization.arrayToDataTable([
-	                                                    	            ['Label', 'Value'],
-	                                                    	            ['Temp.(°C)', temperature]
-	                                                    	        ]);
-
-	         windSpeedOptions = {
-	          min: 0, max: 20,
-	          width: 85, height: 85,
-	          //redFrom: 90, redTo: 100,
-	          //yellowFrom:75, yellowTo: 90,
-	          minorTicks: 5
-	        };
-	         cloudCoverOptions = {
-	  	          min: 0, max: 1,
-	  	          width: 85, height: 85,
-	  	          //redFrom: 90, redTo: 100,
-	  	          //yellowFrom:75, yellowTo: 90,
-	  	          minorTicks: 5
-	  	        };
-	        
-	         temperatureOptions = {
-		  	          min: 0, max: 30,
-		  	          width: 85, height: 85,
-		  	          //redFrom: 90, redTo: 100,
-		  	          //yellowFrom:75, yellowTo: 90,
-		  	          minorTicks: 5
-		  	        };
-
-	         windSpeedGauge = new google.visualization.Gauge(document.getElementById('windSpeedGauge'));
-	        windSpeedGauge.draw(windSpeedData, windSpeedOptions);
-	        
-	         cloudCoverGauge = new google.visualization.Gauge(document.getElementById('cloudCoverGauge'));
-	        cloudCoverGauge.draw(cloudCoverData, cloudCoverOptions);
-	        
-	         temperatureGauge = new google.visualization.Gauge(document.getElementById('temperatureGauge'));
-	        temperatureGauge.draw(temperatureData, temperatureOptions);
-	        
-	        weatherGaugesDefined = true;
-	      };
-	   
-	  
-				
-		
-
-		
+		});
 		
 	</script>
+
 	<ui:insert name="headIncludes" />
-
 </h:head>
-<h:body>
+<h:body class="modern-ui">
 
-	<p:layout id="mainLayout" fullPage="true" stateful="true" >
-		<p:layoutUnit id="north" position="north" size="90" collapsible="true"
-			header="LOL" styleClass="custom" resizable="true">
-			<ui:include src="/WEB-INF/tags/logo.xhtml" />
+	<p:button rendered="false"></p:button>
+
+
+
+
+	<div class="page" id="page-index">
+		<div class="nav-bar">
+			<div class="nav-bar-inner padding10">
+				<span class="pull-menu"></span> <a href="financecumulative"><span
+					class="element brand"> <small>Power TAC Visualizer</small>
+				</span></a>
+
+				<div class="divider"></div>
+
+				<ul class="menu">
+					<li data-role="dropdown"><a href="#">Finance</a>
+						<ul class="dropdown-menu">
+							<li><a href="financecumulative">Cumulative scores</a></li>
+							<li><a href="financepertimeslot">Per timeslot scores</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Tariff market</a>
+						<ul class="dropdown-menu">
+							<li><a href="tariffcumulative">Cumulative scores</a></li>
+							<li><a href="tariffpertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="tariffcustomers">Customers - TODO</a></li>
+							<li class="divider"></li>
+							<li><a href="tairffstatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Wholesale market</a>
+						<ul class="dropdown-menu">
+							<li><a href="wholesalecumulative">Cumulative scores</a></li>
+							<li><a href="wholesalepertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalemarkettxs">Market transactions</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalegencos">GenCos - TODO</a></li>
+							<li class="divider"></li>
+							<li><a href="wholesalestatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li data-role="dropdown"><a href="#">Balancing</a>
+						<ul class="dropdown-menu">
+							<li><a href="balancingcumulative">Cumulative scores</a></li>
+							<li><a href="balancingpertimeslot">Per timeslot scores</a></li>
+							<li class="divider"></li>
+							<li><a href="balancingstatistics">Statistics - TODO</a></li>
+						</ul></li>
+
+					<li data-role="dropdown"><a href="#">Distribution</a>
+						<ul class="dropdown-menu">
+							<li><a href="distributioncumulative">Cumulative scores</a></li>
+							<li><a href="distributionpertimeslot">Per timeslot
+									scores</a></li>
+							<li class="divider"></li>
+							<li><a href="distributionstatistics">Statistics - TODO</a></li>
+						</ul></li>
+					<li><a href="weatherreport">Weather report</a></li>
+				</ul>
+				<div class="divider"></div>
+				<div class="nav-bar-inner">
+					<a href="competitioncontrol"><span class="element brand">
+							<small>Settings</small><i class="icon-cog"></i>
+					</span></a>
+				</div>
+			</div>
+		</div>
+		<div class="page-region">
+			<div class="page-region-content">
+
+
+
+
+				<div class="grid">
+					<div class="row">
+						<div class="span12 padding10 fg-color-darken text-center">
+							<ui:insert name="title" />
+							<ui:insert name="maincontent" />
+						</div>
+					</div>
+
+
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<ui:insert name="rowcontent" />
+					</div>
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="tile double bg-color-green" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Profit Leader</h2>
+								<br />
+								<h4 id="profitBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="profitAmount" style="float: right"></div>
+								<div class=" icon-diamond statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile double bg-color-orangeDark"
+							data-role="tile-slider" data-param-period="5000"
+							data-param-direction="left">
+							<div class="tile-content">
+								<h2>Balance Leader</h2>
+								<br />
+								<h4 id="balanceBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
+								<div class=" icon-meter-slow statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile single bg-color-purple" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Customers Leader</h2>
+								<br />
+								<h4 id="customersBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-user statusIcon" />
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="span4 bg-color-red"
+							style="height: 80px; text-align: center">
+							<br />
+							<div class=" icon-clock bigStatusIcon" />
+							<div class=" bigStatusText" id="clock"></div>
+							<br />
+
+
+						</div>
+						<div class="span8 bg-color-greenDark"
+							style="height: 80px; text-align: center">
+							<br />
+							<div class=" icon-calendar bigStatusIcon" />
+							<div class=" bigStatusText" id="date"></div>
+							<br />
+
+						</div>
+					</div>
+				</div>
+
+				<div class="grid">
+					<div class="row">
+						<div class="span4 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" weatherText">Weather info</div>
+							<br />
+
+
+						</div>
+						<div class="span2 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" icon-thermometer weatherIcon" />
+							<div class=" weatherText" id="temperature"></div>
+							<br />
+
+
+						</div>
+
+						<div class="span4 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br />
+							<div class=" weatherText" id="windspeed"></div>
+							<div class=" icon-arrow-up-left arrow" id="windArrow" />
+
+							<br />
+
+
+						</div>
+
+						<div class="span2 bg-color-pinkDark"
+							style="height: 80px; text-align: center;">
+							<br /> 
+							<div class=" icon-sun weatherIcon" id="cloudCover" />
+
+							<br />
+
+
+						</div>
+
+					</div>
+				</div>
+
+
+
+
+				<div class="page">
+
+					<div class="grid">
+						<div class="row">
+							<br />
+							<div class="span3 bg-color-blue padding10 text-center"
+								style="height: 170px">
+								<h1 class="fg-color-white">Chat</h1>
+								<br /> <img
+									src="#{resource['images/preloader-w8-line-white.gif']}"
+									class="place-right" style="margin: 10px;" />
+							</div>
+
+							<div class="span4 border-color-blue padding10"
+								style="height: 170px">
+								<h:form>
+									<h:panelGrid columns="2">
+										<h:outputText value="Name*:" />
+										<p:inputText value="#{chatBean.name}" required="true" style="width:120px"/>
+
+										<h:outputText value="Message*:" />
+										<p:inputText value="#{chatBean.msg}" required="true" style="width:120px" />
+									</h:panelGrid>
+									<h:outputText value="*required" />
+									<p:commandButton value="Send"
+										actionListener="#{chatBean.sendMsg}"
+										styleClass="standart default place-right" />
+								</h:form>
+							</div>
+
+							<div class="span5 bg-color-blue padding10">
+
+								<div id="chatwindow" style="height: 150px; overflow-y: scroll;"
+									class="fg-color-white">
+									<ui:repeat var="msg" value="#{chatGlobal.msgs}">
+				#{msg} <br />
+									</ui:repeat>
+								</div>
+
+							</div>
+
+
+						</div>
+					</div>
+
+
+
+
+				</div>
+
+
+				<div class="page">
+					<div class="nav-bar">
+						<div class="nav-bar-inner padding10">
+							<span class="element"> 2013, Power TAC </span>
+							<div class="divider"></div>
+							<span class="element"><a class="fg-color-white"
+								href="http://www.powertac.org/">Official website</a> </span>
+							<div class="divider"></div>
+							<span class="element"><a class="fg-color-white"
+								href="http://power-tac-developers.975333.n3.nabble.com/">Developers
+									forum</a> </span>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<p:socket onMessage="handleInfoMsg" channel="/infopush" />
+	<p:socket onMessage="handleGlobalMsg" channel="/globalpush" />
+
+	<p:socket onMessage="handleChat" channel="/chat" />
+	<script type="text/javascript">
+		function handleChat(data) {
+
+			var chatContent = $(PrimeFaces.escapeClientId('chatwindow'));
+
+			chatContent.append(data + '<br />');
+
+			//keep scroll  
+			chatContent.scrollTop(chatContent.scrollTop() + 50);
+		}
+	</script>
+
+	<script type="text/javascript">
+		function popupDialog(title, content) {
+			$.Dialog({
+				'title' : title,
+				'content' : content,
+				'draggable' : true,
+				'overlay' : true,
+				'closeButton' : true,
+				'buttonsAlign' : 'right',
+				'position' : {
+					'zone' : 'center'
+				},
+				'buttons' : {
+					'OK' : {
+						'action' : function() {
+						}
+					}
+				}
+			})
+		}
+		function handleGlobalMsg(data) {
 			
 			
-			<h:form id="northForm">
-			
-			<script type="text/javascript">
-			
-			if(weatherGaugesDefined){
-				
-				var windSpeed = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.windSpeed:0 }*100)/100;
-				var temperature = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.temperature:0}*100)/100;
-				var cover = Math.round(#{not empty weatherInfoService.currentReport ? weatherInfoService.currentReport.cloudCover: 0}*100)/100;
-				
-				//alert('speed '+windSpeed+' temp:'+temperature+' cover: '+cover);
-				
-     
-				
-				windSpeedData.setValue(0, 1, windSpeed);
-				windSpeedGauge.draw(windSpeedData, windSpeedOptions);
-				
-				cloudCoverData.setValue(0, 1, cover);
-				cloudCoverGauge.draw(cloudCoverData, cloudCoverOptions);
-				
-				temperatureData.setValue(0, 1,temperature);
-				temperatureGauge.draw(temperatureData, temperatureOptions);
+			var pushObject = jQuery.parseJSON(data);
+			//bad hacking:
+			if(pushObject ==null){
+				pushObject = data;
 			}
 			
-</script>
+			var nominations = pushObject["nominations"];
+
+			var balance = nominations["balance"];
+			var balBroker = balance["name"];
+			var balAmount = balance["amount"]/1000;
+
+			var customerNumber = nominations["customerNumber"];
+			var cusNumBroker = customerNumber["name"];
+			var cusNumAmount = customerNumber["amount"];
+
+			var profit = nominations["profit"];
+			var profitBroker = profit["name"];
+			var profitAmount = profit["amount"];
+
+			var weather = pushObject["weather"];
+			var cloudCover = weather["cloudCover"];
+			var millis = weather["millis"];
+			var temperature = weather["temperature"];
+			var windDirection = weather["windDirection"];
+			var windSpeed = weather["windSpeed"];
+
+			console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
+					+ " " + cusNumAmount + " " + profitBroker + " "
+					+ profitAmount + " " + cloudCover + " " + millis + " "
+					+ temperature + " " + windDirection + " " + windSpeed);
+			document.getElementById("profitBroker").innerHTML = profitBroker;
+			document.getElementById("profitAmount").innerHTML = "&euro; "+profitAmount;
+			document.getElementById("balanceBroker").innerHTML = balBroker;
+			document.getElementById("balanceAmount").innerHTML = +balAmount+" MWh";
+			document.getElementById("customersBroker").innerHTML = cusNumBroker;
+			document.getElementById("customersAmount").innerHTML = cusNumAmount;
+			var d = new Date(millis);
+			var date = $.datepicker.formatDate('yy-mm-dd', d);
+			var minutes = d.getMinutes();
+			if(minutes &lt; 10){
+				minutes = "0"+minutes;
+			}
+			var hour = d.getHours();
+			if(hour &lt; 10){
+				hour="0"+hour;
+			}
+			var clock = ""+hour+":"+minutes;
+			document.getElementById("date").innerHTML = date;
+			document.getElementById("clock").innerHTML = clock;
+			document.getElementById("temperature").innerHTML = temperature+"&deg;C";
+			document.getElementById("windspeed").innerHTML = windSpeed+" m/s";
 			
-				<table cellspacing="5" style="float:right">
-					<tr>
-						<th>Time:</th>
-						<th>Timeslot:</th>
-						<th>Name:</th>
-						<th>Description:</th>
-
-
-
-					</tr>
-					<tr>
-					<th><h:outputText value="#{visualizerBean.timeslotUpdate.postedTime.millis}" >
-						<f:convertDateTime type="both" pattern="HH:mm, E, MMM d, y"/>
-						</h:outputText>  </th>
-						<td>#{visualizerBean.currentTimeslotSerialNumber}</td>
-						<td>#{visualizerBean.competition.name}</td>
-						<td>#{visualizerBean.competition.description}</td>
-						<td>
-              <h:panelGroup rendered="#{!visualizerBean.tournamentMode}">
-                <p:button icon="ui-icon-wrench" title="Go to the Admin page." href="competitioncontrol" />
-              </h:panelGroup>
-            </td>
-
-					</tr>
-				</table>
 			
-
-
-
-			</h:form>
-			<div id="cloudCoverGauge" style="float:right"/>
-			<div id="windSpeedGauge" style="float:right"/>
-			<div id="temperatureGauge" style="float:right"/>
-
-
-		</p:layoutUnit>
-
-		<p:layoutUnit position="center" resizable="true">
-			<h2 class="alt" style="text-align: center;">
-
-				<ui:insert name="title"></ui:insert>
-
-			</h2>
-
-			<ui:insert name="content" />
-
-		</p:layoutUnit>
-
-		<p:layoutUnit position="east" size="400" collapsible="true"
-			header="LOL" styleClass="custom" resizable="true">
-
-			<ui:include src="/WEB-INF/tags/tableBrokers.xhtml" />
-			<ui:include src="/WEB-INF/tags/cashChartGlobal.xhtml" />
-			<ui:include src="/WEB-INF/tags/subscriptionsPieChart.xhtml" />
-			<p:lineChart style="height: 1px; width: 1px;"
-				value="#{imageControl.fakeChart}" rendered="false" />
+			var arrow = "icon-arrow-up-left";
+			
+			if (checkRange(windDirection, 337.5, 360)==true){
+				 arrow = "icon-arrow-up";
+			}
+			       
+			else if (checkRange(windDirection, 0, 22.5)==true){
+			        arrow = "icon-arrow-up";}
 		
-		</p:layoutUnit>
+		else if (checkRange(windDirection, 22.5, 67.5)==true){
+			        arrow = "icon-arrow-up-right";}
+			        
+			        else if (checkRange(windDirection, 67.5, 112.5)==true){
+			        arrow = "icon-arrow-right";}
+			        
+			        else if (checkRange(windDirection, 112.5, 157.5)==true){
+			        arrow = "icon-arrow-down-right";}
+			
+			        else if (checkRange(windDirection, 157.5, 202.5)==true){
+			        arrow = " icon-arrow-down";}
+			
+			        else if (checkRange(windDirection, 202.5, 247.5)==true){
+			        arrow = "icon-arrow-down-left";}
+			
+			        else if (checkRange(windDirection, 247.5, 292.5)==true){
+			        arrow = "icon-arrow-left";}
+			
+			        else if (checkRange(windDirection, 292.5, 337.5)==true){
+			        arrow = "icon-arrow-up-left";}
+			
+			        
+			
+			document.getElementById("windArrow").className = arrow+" weatherIcon";
+			
+			var cloudCoverIcon = "icon-sun";
+			if (checkRange(cloudCover, 0, 0.2)==true){
+				cloudCoverIcon = "icon-sun";
+			}
+			else if (checkRange(cloudCover, 0.2, 0.5)==true){
+				cloudCoverIcon = "icon-cloudy";
+			}
+			else if (checkRange(cloudCover, 0.5, 0.75)==true){
+				cloudCoverIcon = "icon-cloud-4";
+			}
+			else if (checkRange(cloudCover, 0.75, 1)==true){
+				cloudCoverIcon = "icon-cloudy-2";
+			}
+			
+			
+			document.getElementById("cloudCover").className = cloudCoverIcon+" weatherIcon";
 
-		<p:layoutUnit position="south" size="20" >
-			<p:dock>
-				<p:menuitem value="Game Overview"
-					icon="/app/resources/resources/images/dock/eye.png"
-					url="gameoverview" />
-				<p:menuitem value="Brokers"
-					icon="/app/resources/resources/images/dock/brokers.png"
-					url="brokers" />
-				<p:menuitem value="Customers"
-					icon="/app/resources/resources/images/dock/customers.png"
-					url="customers" />
-				<p:menuitem value="GenCos"
-					icon="/app/resources/resources/images/dock/gencos.png" url="gencos" />
-				<p:menuitem value="Wholesale"
-					icon="/app/resources/resources/images/dock/wholesale.png"
-					url="wholesale" />
-				<p:menuitem value="Weather"
-					icon="/app/resources/resources/images/dock/weather.png"
-					url="weather" />
-			</p:dock>
-		</p:layoutUnit>
+		}
+		function handleInfoMsg(data) {
 
-	</p:layout>
+			var pushObject = jQuery.parseJSON(data);
+			var status = pushObject["status"];
+			if (status == 'start') {
+				popupDialog('Game start', 'A new game is about to start!');
+				setTimeout("window.location.href=window.location.href;", 5000);
+			} else if (status == 'finish') {
+				popupDialog('Game complete', 'The game has ended!');
+				setTimeout("window.location.href=window.location.href;", 5000);
+			}
 
-	<h:form>
-		<p:poll autoStart="true" interval="5"
-			update=":tableBrokersForm,:northForm, :cashChartGlobalForm, :subscriptionsPieChartForm" />
-	</h:form>
+		}
+	</script>
+
+
 
 </h:body>
 
