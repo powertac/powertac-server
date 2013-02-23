@@ -40,6 +40,7 @@
     <module>household-customer</module>
     <module>officecomplex-customer</module>
     <module>server-main</module>
+    <module>webapp-dependencies</module>
     <module>visualizer</module>
   </modules>
 

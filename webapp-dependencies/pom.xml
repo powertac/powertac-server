@@ -106,7 +106,7 @@
     <dependency>
       <groupId>org.primefaces</groupId>
       <artifactId>primefaces</artifactId>
-      <version>3.4-SNAPSHOT</version>
+      <version>3.4.2</version>
     </dependency>
     <!-- Primefaces theme -->
     <dependency>
@@ -114,6 +114,18 @@
       <artifactId>south-street</artifactId>
       <version>1.0.2</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>1.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.atmosphere</groupId>
+      <artifactId>atmosphere-runtime</artifactId>
+      <version>1.0.0.RC1</version>
+    </dependency>
+
     <!-- JSR 303 validation -->
     <dependency>
       <groupId>javax.validation</groupId>
@@ -151,6 +163,7 @@
   <repositories>
     <repository>
       <id>sonatype</id>
+      <name>Sonatype snapshot repo</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
     <repository>
