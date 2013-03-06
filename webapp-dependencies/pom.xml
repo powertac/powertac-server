@@ -148,6 +148,7 @@
       <version>1.2.2</version>
     </dependency>
     <!-- JMS dependencies -->
+    <!-- possibly not needed
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
@@ -157,7 +158,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.6.4</version>
-    </dependency>
+    </dependency> -->
   </dependencies>
 
   <repositories>
