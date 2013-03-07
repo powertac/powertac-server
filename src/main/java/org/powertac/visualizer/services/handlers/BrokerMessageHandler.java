@@ -1,33 +1,23 @@
 package org.powertac.visualizer.services.handlers;
 
 import org.apache.log4j.Logger;
-import org.apache.tools.ant.taskdefs.Tstamp;
+//import org.apache.tools.ant.taskdefs.Tstamp;
 import org.powertac.common.*;
-import org.powertac.common.msg.TariffExpire;
-import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffStatus;
-import org.powertac.common.msg.TariffUpdate;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.AppearanceListBean;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
-import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.services.BrokerService;
-import org.powertac.visualizer.services.CustomerService;
 import org.powertac.visualizer.services.PushService;
 import org.powertac.visualizer.statistical.BalancingCategory;
 import org.powertac.visualizer.statistical.DistributionCategory;
-import org.powertac.visualizer.statistical.DynamicData;
 import org.powertac.visualizer.statistical.FinanceCategory;
 import org.powertac.visualizer.statistical.FinanceDynamicData;
-import org.powertac.visualizer.statistical.Grade;
-import org.powertac.visualizer.statistical.GradingSystem;
 import org.powertac.visualizer.statistical.TariffCategory;
-import org.primefaces.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
