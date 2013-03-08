@@ -16,12 +16,6 @@
     <listener-class>com.sun.faces.config.ConfigureListener</listener-class>
   </listener>
 
-	<!-- PRIMEFACES THEME -->
-	<context-param>
-		<param-name>primefaces.THEME</param-name>
-		<param-value>south-street</param-value>
-	</context-param>
-
 	<!-- JSF 2 IMPLEMENTATION -->
 	<!-- Use JSF view templates saved as *.xhtml, for use with Facelets -->
 	<context-param>
@@ -71,7 +65,6 @@
 	</servlet-mapping>
 
 <!-- Prime Push Servlet -->
-
 	<servlet>
 		<servlet-name>Push Servlet</servlet-name>
 		<servlet-class>org.primefaces.push.PushServlet</servlet-class>
@@ -95,7 +88,7 @@
 
 	<!-- TAG LIBS -->
 	<context-param>
-		<param-name>facelets.LIBRARIES</param-name>
+    <param-name>javax.faces.FACELETS_LIBRARIES</param-name>
 		<param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
 	</context-param>
 
