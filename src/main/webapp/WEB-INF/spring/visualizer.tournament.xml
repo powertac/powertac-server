@@ -22,13 +22,8 @@
     <property name="machineName" value="${simNode}"/>
     <property name="tournamentUrl" value="${tournamentUrl}"/>
     <property name="visualizerLoginContext" value="/faces/visualizerLogin.jsp"/>
-    <property name="tournamentMode" value="true"/>
   </bean>
 
-  <bean id="webCompetitionControlService"
-        class="org.powertac.visualizer.services.competitioncontrol.WebCompetitionControlService">
-    <property name="tournamentMode" value="true"/>
-  </bean>
   <bean id="gencoMessageHandler"
         class="org.powertac.visualizer.services.handlers.GencoMessageHandler">
     <property name="tournamentMode" value="true"/>

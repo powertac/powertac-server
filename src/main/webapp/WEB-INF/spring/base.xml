@@ -116,9 +116,6 @@
 					<constructor-arg name="G" value="178" />
 					<constructor-arg name="B" value="178" />
 				</bean>
-
-
-
 			</list>
 		</constructor-arg>
 		<constructor-arg name="defaultAppearance">

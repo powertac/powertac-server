@@ -109,12 +109,14 @@
 						</ul></li>
 					<li><a href="weatherreport">Weather report</a></li>
 				</ul>
-				<div class="divider"></div>
-				<div class="nav-bar-inner">
-					<a href="competitioncontrol"><span class="element brand">
-							<small>Settings</small><i class="icon-cog"></i>
-					</span></a>
-				</div>
+        <h:panelGroup rendered="#{!visualizerBean.tournamentMode}">
+          <div class="divider"></div>
+          <div class="nav-bar-inner">
+            <a href="competitioncontrol"><span class="element brand">
+                <small>Settings</small><i class="icon-cog"></i>
+            </span></a>
+          </div>
+        </h:panelGroup>
 			</div>
 		</div>
 		<div class="page-region">

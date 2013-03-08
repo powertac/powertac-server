@@ -98,8 +98,6 @@ public class VisualizerServiceTournament
   private String serverQueue = "serverInput";
   private String queueName = "remote-visualizer";
 
-  private Boolean tournamentMode = false;
-
   // visualizer interaction
   private LocalVisualizerProxy proxy;
   private boolean initialized = false;
@@ -463,8 +461,6 @@ public class VisualizerServiceTournament
   // once-per-game initialization
   public void initOnce ()
   {
-    //if (initialized)
-    //  return;
     initialized = true;
     
     log.info("initOnce()");
@@ -603,7 +599,8 @@ public class VisualizerServiceTournament
   }
 
   // runs in JMS thread
-  private void onMessage (String xml) {
+  private void onMessage (String xml)
+  {
     log.debug("onMessage(String) - received message:\n" + xml);
     Object message = converter.fromXML(xml);
     log.debug("onMessage(String) - received message of type " + message.getClass().getSimpleName());
@@ -623,10 +620,6 @@ public class VisualizerServiceTournament
   @Override
   public void afterPropertiesSet () throws Exception
   {
-    if (!tournamentMode) {
-      return;
-    }
-
     Timer initTimer = new Timer(true);
     // delay to let deployment complete
     initTimer.schedule(new TimerTask () {
@@ -686,13 +679,6 @@ public class VisualizerServiceTournament
   public void setMachineName (String name)
   {
     machineName = name;
-  }
-
-  public Boolean getTournamentMode() {
-    return tournamentMode;
-  }
-  public void setTournamentMode(Boolean tournamentMode) {
-    this.tournamentMode = tournamentMode;
   }
 
   // ------------ Local proxy implementation -------------
