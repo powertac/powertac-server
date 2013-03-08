@@ -64,27 +64,27 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Main Visualizer service. Its main purpose is to register with Visualizer
  * proxy and to receive messages from simulator.
- * 
+ *
  * @author Jurica Babic, John Collins
  * 
  */
 
 @Service
 public class VisualizerServiceTournament
-  implements MessageListener, InitializingBean, ServletContextListener
+    implements MessageListener, InitializingBean, ServletContextListener
 {
   static private Logger log =
       Logger.getLogger(VisualizerServiceTournament.class.getName());
 
-  @Resource(name="jmsFactory")
+  @Resource(name = "jmsFactory")
   private ConnectionFactory connectionFactory;
-  
+
   @Autowired
   private Executor taskExecutor;
-  
+
   @Autowired
   XMLMessageConverter converter;
-  
+
   @Autowired
   JmsTemplate template;
 
@@ -102,7 +102,7 @@ public class VisualizerServiceTournament
   private LocalVisualizerProxy proxy;
   private boolean initialized = false;
   private boolean running = false;
-  
+
   // state parameters
   private long tickPeriod = 30000l; // 30 sec
   private long maxMsgInterval = 120000l; // 2 min
@@ -110,14 +110,14 @@ public class VisualizerServiceTournament
   private long gameReadyAt = 0l;
   private long lastMsgTime = 0l;
   private boolean runningStates = true;
-  
+
   // States
   private VisualizerState initial, loginWait, gameWait, gameReady, loggedIn;
   private VisualizerState currentState;
-  
+
   // event queue
   private BlockingQueue<Event> eventQueue = new LinkedBlockingQueue<Event>();
-  
+
   // message queue
   private BlockingQueue<Object> messageQueue = new LinkedBlockingQueue<Object>();
 
@@ -125,6 +125,7 @@ public class VisualizerServiceTournament
   private Timer tickTimer = null;
   private TimerTask stateTask = null;
   private Thread messageFeeder = null;
+  private Thread stateRunner = null;
 
   @Autowired
   private MessageDispatcher dispatcher;
@@ -157,7 +158,7 @@ public class VisualizerServiceTournament
       log.info("Can't open log file");
       System.exit(0);
     }
-    
+
     // Start the message feeder
     messageFeeder = new Thread(messagePump);
     messageFeeder.setDaemon(true);
@@ -165,17 +166,21 @@ public class VisualizerServiceTournament
 
     // Start the state machine
     tickTimer = new Timer(true);
-    stateTask = new TimerTask() {
+    stateTask = new TimerTask()
+    {
       @Override
       public void run ()
       {
         log.debug("message count = " + visualizerBean.getMessageCount() +
-                  ", queue size = " + messageQueue.size());
+            ", queue size = " + messageQueue.size());
         putEvent(Event.tick);
       }
     };
     tickTimer.schedule(stateTask, 10, tickPeriod);
-    runStates();
+
+    stateRunner = new Thread(runStates);
+    stateRunner.setDaemon(true);
+    stateRunner.start();
   }
 
   // ServletContextListener callbacks
@@ -203,18 +208,37 @@ public class VisualizerServiceTournament
     // Kill the tick timer
     if (null != tickTimer) {
       tickTimer.cancel();
+      tickTimer.purge();
       tickTimer = null;
     }
-    stateTask.cancel();
-
-    // Kill the state machine
-    runningStates = false;
-    putEvent(Event.quit);
+    if (stateTask != null) {
+      stateTask.cancel();
+    }
 
     // Kill the message pump
     messageFeeder.interrupt();
     try {
       messageFeeder.join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+
+    // Kill the state machine from within
+    putEvent(Event.quit);
+    while (runningStates) {
+      try {
+        Thread.sleep(1000);
+      } catch (Exception ignored) {
+      }
+
+      if (currentState == loginWait && stateRunner != null &&
+          stateRunner.getState() == Thread.State.TIMED_WAITING) {
+        stateRunner.interrupt();
+      }
+    }
+
+    try {
+      stateRunner.join();
     }
     catch (InterruptedException e) {
       e.printStackTrace();
@@ -231,7 +255,7 @@ public class VisualizerServiceTournament
       e.printStackTrace();
     }
   }
-  
+
   private Event getEvent ()
   {
     try {
@@ -242,129 +266,144 @@ public class VisualizerServiceTournament
       return Event.tick; // default event, harmless enough
     }
   }
-  
+
   private void setCurrentState (VisualizerState newState)
   {
     currentState = newState;
     newState.entry();
   }
-  
+
   // Run the viz state machine -- called from timer thread.
-  private void runStates ()
+  private Runnable runStates = new Runnable()
   {
-    runningStates = true;
-    
-    initial = new VisualizerState () {
-      @Override
-      public void entry ()
+    @Override
+    public void run ()
+    {
+      runningStates = true;
+
+      initial = new VisualizerState()
       {
-        log.info("state initial");
-        if (null != proxy) {
-          shutDown();
+        @Override
+        public void entry ()
+        {
+          log.info("state initial");
+          if (null != proxy) {
+            shutDown();
+          }
+          setCurrentState(loginWait);
         }
-        setCurrentState(loginWait);
-      }
-      @Override
-      public void handleEvent (Event event)
+
+        @Override
+        public void handleEvent (Event event)
+        {
+          if (event == Event.tick) {
+            // safety valve
+            setCurrentState(loginWait);
+          }
+        }
+      };
+
+      loginWait = new VisualizerState()
       {
-        if (event == Event.tick) {
-          // safety valve
-          setCurrentState(loginWait);          
-        }
-      }
-    };
-    
-    loginWait = new VisualizerState () {
-      @Override
-      public void entry ()
-      {
-        log.info("state loginWait");
-        tournamentLogin();
-      }
-      @Override
-      public void handleEvent (Event event)
-      {
-        if (event == Event.noTm) {
-          setCurrentState(gameWait);
-        }
-        else if (event == Event.accept) {
-          setCurrentState(gameReady);
-        }
-        else if (event == Event.tick) {
+        @Override
+        public void entry ()
+        {
+          log.info("state loginWait");
           tournamentLogin();
         }
-      }
-    };
-    
-    gameWait = new VisualizerState () {
-      @Override
-      public void entry ()
-      {
-        log.info("state gameWait");
-        gameLogin();
-      }
-      @Override
-      public void handleEvent (Event event)
-      {
-        if (event == Event.vsr) {
-          setCurrentState(loggedIn);
-        }
-        else if (event == Event.tick) {
-          pingServer(); // try again
-        }
-      }
-    };
-    
-    gameReady = new VisualizerState () {
-      @Override
-      public void entry ()
-      {
-        log.info("state gameReady");
-        gameReadyAt = new Date().getTime();
-        gameLogin();
-      }
-      @Override
-      public void handleEvent (Event event)
-      {
-        if (event == Event.vsr) {
-          setCurrentState(loggedIn);
-        }
-        else if (event == Event.tick) {
-          long now = new Date().getTime();
-          // limit harrassment of running game
-          if (now > (gameReadyAt + maxGameReadyInterval)) {
-            setCurrentState(initial);
+
+        @Override
+        public void handleEvent (Event event)
+        {
+          if (event == Event.noTm) {
+            setCurrentState(gameWait);
+          } else if (event == Event.accept) {
+            setCurrentState(gameReady);
+          } else if (event == Event.tick) {
+            tournamentLogin();
           }
-          else {
+        }
+      };
+
+      gameWait = new VisualizerState()
+      {
+        @Override
+        public void entry ()
+        {
+          log.info("state gameWait");
+          gameLogin();
+        }
+
+        @Override
+        public void handleEvent (Event event)
+        {
+          if (event == Event.vsr) {
+            setCurrentState(loggedIn);
+          } else if (event == Event.tick) {
             pingServer(); // try again
           }
         }
-      }
-    };
+      };
 
-    loggedIn = new VisualizerState () {
-      @Override
-      public void entry ()
+      gameReady = new VisualizerState()
       {
-        log.info("state loggedIn");
-      }
-      @Override
-      public void handleEvent (Event event)
+        @Override
+        public void entry ()
+        {
+          log.info("state gameReady");
+          gameReadyAt = new Date().getTime();
+          gameLogin();
+        }
+
+        @Override
+        public void handleEvent (Event event)
+        {
+          if (event == Event.vsr) {
+            setCurrentState(loggedIn);
+          } else if (event == Event.tick) {
+            long now = new Date().getTime();
+            // limit harrassment of running game
+            if (now > (gameReadyAt + maxGameReadyInterval)) {
+              setCurrentState(initial);
+            } else {
+              pingServer(); // try again
+            }
+          }
+        }
+      };
+
+      loggedIn = new VisualizerState()
       {
-        if (event == Event.simEnd) {
-          setCurrentState(initial);
+        @Override
+        public void entry ()
+        {
+          log.info("state loggedIn");
         }
-        else if (event == Event.tick && isInactive()) {
-          setCurrentState(initial);
+
+        @Override
+        public void handleEvent (Event event)
+        {
+          if (event == Event.simEnd) {
+            setCurrentState(initial);
+          } else if (event == Event.tick && isInactive()) {
+            setCurrentState(initial);
+          }
         }
+      };
+
+      setCurrentState(initial);
+      while (runningStates) {
+        Event event = getEvent();
+
+        if (event == Event.quit) {
+          runningStates = false;
+          break;
+        }
+
+        currentState.handleEvent(event);
       }
-    };
-    
-    setCurrentState(initial);
-    while (runningStates) {
-      currentState.handleEvent(getEvent());
     }
-  }
+  };
 
   // Logs into the tournament manager to get the queue name for the
   // upcoming session
@@ -377,7 +416,7 @@ public class VisualizerServiceTournament
       return;
     }
     String urlString = tournamentUrl + visualizerLoginContext +
-            "?machineName=" + machineName;
+        "?machineName=" + machineName;
     log.info("tourney url=" + urlString);
     URL url;
     try {
@@ -386,7 +425,7 @@ public class VisualizerServiceTournament
       InputStream input = conn.getInputStream();
       log.info("Parsing message..");
       DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
-              .newInstance();
+          .newInstance();
       DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
       Document doc = docBuilder.parse(input);
 
@@ -398,17 +437,15 @@ public class VisualizerServiceTournament
 
       if (retryNode != null) {
         String checkRetry = retryNode.getFirstChild()
-                .getNodeValue();
+            .getNodeValue();
         log.info("Retry in " + checkRetry + " seconds");
         // Received retry message; spin and try again
         try {
           Thread.sleep(Integer.parseInt(checkRetry) * 1000);
+        } catch (InterruptedException e) {
+          //e.printStackTrace();
         }
-        catch (InterruptedException e) {
-          e.printStackTrace();
-        }
-      }
-      else if (loginNode != null) {
+      } else if (loginNode != null) {
         log.info("Login response received! ");
         queueName = doc.getElementsByTagName("queueName")
             .item(0).getFirstChild().getNodeValue();
@@ -418,18 +455,16 @@ public class VisualizerServiceTournament
             "Login message receieved: queueName=%s, serverQueue=%s",
             queueName, serverQueue));
         putEvent(Event.accept);
-      }
-      else {
+      } else {
         // this is not working
         log.info("Invalid response from TS");
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       // should we have an event here?
       e.printStackTrace();
     }
   }
-  
+
   // Attempt to log into a game.
   private void gameLogin ()
   {
@@ -440,14 +475,15 @@ public class VisualizerServiceTournament
     }
     pingServer();
   }
-  
+
   private void pingServer ()
   {
     log.info("Ping sim server");
     proxy.sendMessage(new VisualizerStatusRequest());
   }
 
-  private boolean isInactive () {
+  private boolean isInactive ()
+  {
     long now = new Date().getTime();
     long silence = now - lastMsgTime;
     if (silence > maxMsgInterval) {
@@ -462,33 +498,33 @@ public class VisualizerServiceTournament
   public void initOnce ()
   {
     initialized = true;
-    
+
     log.info("initOnce()");
     visualizerBean.newRun();
 
     dispatcher.initialize();
     // registrations for message listeners:
     List<Initializable> initializers =
-      VisualizerApplicationContext.listBeansOfType(Initializable.class);
-    for (Initializable init: initializers) {
+        VisualizerApplicationContext.listBeansOfType(Initializable.class);
+    for (Initializable init : initializers) {
       log.debug("initializing..." + init.getClass().getName());
       init.initialize();
     }
-    
+
     List<DomainRepo> repos =
-  	      VisualizerApplicationContext.listBeansOfType(DomainRepo.class);
-    for (DomainRepo repo: repos) {
+        VisualizerApplicationContext.listBeansOfType(DomainRepo.class);
+    for (DomainRepo repo : repos) {
       log.debug("recycling..." + repos.getClass().getName());
       repo.recycle();
     }
   }
-  
+
   // shut down the queue at end-of-game, wait a few seconds, go again.
   public void shutDown ()
   {
     // no longer initialized
     initialized = false;
-    
+
     log.info("shut down proxy");
 
     proxy.shutDown();
@@ -505,7 +541,8 @@ public class VisualizerServiceTournament
   // Pumps messages from incoming JMS messages into the visualizer in
   // a single thread. The queue avoids potential race conditions on 
   // input.
-  private Runnable messagePump = new Runnable() {
+  private Runnable messagePump = new Runnable()
+  {
     @Override
     public void run ()
     {
@@ -518,8 +555,8 @@ public class VisualizerServiceTournament
             ((InterruptedException) msg).printStackTrace();
           }
         } else {
-	        receiveMessage(msg);
-				}
+          receiveMessage(msg);
+        }
       }
     }
   };
@@ -534,7 +571,7 @@ public class VisualizerServiceTournament
       e.printStackTrace();
     }
   }
-  
+
   private Object getMessage ()
   {
     try {
@@ -555,10 +592,10 @@ public class VisualizerServiceTournament
     }
     else if (!initialized) {
       log.info("ERROR: msg of type " + msg.getClass().getName() +
-                         ", but not initialized. Ignoring.");
+          ", but not initialized. Ignoring.");
       return;
     }
-    
+
     visualizerBean.incrementMessageCounter();
 
     if (msg != null) {
@@ -570,7 +607,7 @@ public class VisualizerServiceTournament
     }
     else {
       log.info("Counter:" + visualizerBean.getMessageCount()
-               + " Received message is NULL!");
+          + " Received message is NULL!");
     }
     // end-of-game check
     if (!running && visualizerBean.isRunning()) {
@@ -579,7 +616,7 @@ public class VisualizerServiceTournament
     if (running && visualizerBean.isFinished()) {
       log.info("Game finished");
       putEvent(Event.simEnd);
-    }      
+    }
   }
 
   // JMS message input processing
@@ -609,7 +646,7 @@ public class VisualizerServiceTournament
       putEvent(Event.vsr);
     }
     else if (message instanceof BrokerAccept ||
-             message instanceof BrokerAuthentication) {
+        message instanceof BrokerAuthentication) {
       // hack to ignore these
     }
     else {
@@ -629,43 +666,43 @@ public class VisualizerServiceTournament
       }
     }, 20000l);
   }
-  
+
   // URL and queue name methods
   public String getQueueName ()
   {
     return queueName;
   }
-  
+
   public void setQueueName (String newName)
   {
     queueName = newName;
   }
-  
+
   public String getServerUrl ()
   {
     return serverUrl;
   }
-  
+
   public void setServerUrl (String newUrl)
   {
     serverUrl = newUrl;
   }
-  
+
   public String getTournamentUrl ()
   {
     return tournamentUrl;
   }
-  
+
   public void setTournamentUrl (String newUrl)
   {
     tournamentUrl = newUrl;
   }
-  
+
   public String getVisualizerLoginContext ()
   {
     return visualizerLoginContext;
   }
-  
+
   public void setVisualizerLoginContext (String newContext)
   {
     visualizerLoginContext = newContext;
@@ -682,7 +719,7 @@ public class VisualizerServiceTournament
   }
 
   // ------------ Local proxy implementation -------------
-  
+
   class LocalVisualizerProxy
   {
     VisualizerServiceTournament host;
@@ -694,7 +731,7 @@ public class VisualizerServiceTournament
     {
       log.info("Server URL: " + getServerUrl() + ", queue: " + getQueueName());
       this.host = host;
-      
+
       ActiveMQConnectionFactory amqConnectionFactory = null;
       if (connectionFactory instanceof PooledConnectionFactory) {
         PooledConnectionFactory pooledConnectionFactory = (PooledConnectionFactory) connectionFactory;
@@ -723,33 +760,35 @@ public class VisualizerServiceTournament
       container.setTaskExecutor(taskExecutor);
       container.afterPropertiesSet();
       container.start();
-      
+
       connectionOpen = true;
     }
 
     public void sendMessage (Object msg)
     {
       try {
-      final String text = converter.toXML(msg);
-      template.send(serverQueue,
-                    new MessageCreator() {
-        @Override
-        public Message createMessage (Session session) throws JMSException {
-          TextMessage message = session.createTextMessage(text);
-          return message;
-        }
-      });
-      }
-      catch (Exception e) {
+        final String text = converter.toXML(msg);
+        template.send(serverQueue,
+            new MessageCreator()
+            {
+              @Override
+              public Message createMessage (Session session) throws JMSException
+              {
+                TextMessage message = session.createTextMessage(text);
+                return message;
+              }
+            });
+      } catch (Exception e) {
         log.warn("Exception " + e.toString() +
-                           " sending message - ignoring");
+            " sending message - ignoring");
       }
     }
 
     public synchronized void shutDown ()
     {
       final LocalVisualizerProxy proxy = this;
-      Runnable callback = new Runnable() {
+      Runnable callback = new Runnable()
+      {
         @Override
         public void run ()
         {
@@ -757,7 +796,7 @@ public class VisualizerServiceTournament
         }
       };
       container.stop(callback);
-      
+
       while (connectionOpen) {
         try {
           wait();
