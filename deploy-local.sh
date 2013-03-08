@@ -20,6 +20,6 @@ else
   echo "Incorrect number of arguments (need 3), using default values."
 fi
 
-CMD="mvn tomcat7:deploy -DsimNode=$NODE -DsimHost=$HOST -DtournamentUrl=$URL"
+CMD="mvn tomcat7:deploy -Ptournament -DsimNode=$NODE -DsimHost=$HOST -DtournamentUrl=$URL"
 echo -e "\nRunning '$CMD'\n"
 eval "$CMD"
