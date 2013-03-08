@@ -6,14 +6,7 @@
 
 	<context:component-scan base-package="org.powertac.visualizer" />
 	
-
-	 <bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext"/>
-
-	<bean id="visualizerLogService" class="org.powertac.visualizer.services.VisualizerLogService">
-		<constructor-arg name="outputFolderResource" value="WEB-INF/output/logs" />
-		<constructor-arg name="filenamePrefix" value="visualizer" />
-	</bean>
-
+  <bean id="springApplicationContext" class="org.powertac.common.spring.SpringApplicationContext"/>
 
 	<!-- .................BEANS......................... -->
 	<!-- Each property represents context-relative path to a particular image. -->

@@ -470,8 +470,6 @@ public class VisualizerServiceTournament
     log.info("initOnce()");
     visualizerBean.newRun();
 
-    // visualizerLogService.startLog(visualizerBean.getVisualizerRunCount());
-
     dispatcher.initialize();
     // registrations for message listeners:
     List<Initializable> initializers =
