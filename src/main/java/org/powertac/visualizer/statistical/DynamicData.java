@@ -21,8 +21,8 @@ public class DynamicData {
 	}
 
 	public void update(double energy, double cash) {
-		energyDelta = energy;
-		profitDelta = cash;
+		energyDelta += energy;
+		profitDelta += cash;
 	}
 
 	public double getEnergy() {
