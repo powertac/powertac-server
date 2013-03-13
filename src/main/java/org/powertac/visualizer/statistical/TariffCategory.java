@@ -69,7 +69,7 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 			int customerDelta) {
 		customerCount += customerDelta;
 		tariffDynamicDataMap.get(tsIndex).update(
-				energy, cash, customerDelta);
+				cash, energy, customerDelta);
 		update(tsIndex,energy, cash);
 	}
 
