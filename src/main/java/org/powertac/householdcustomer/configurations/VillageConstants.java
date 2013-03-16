@@ -38,6 +38,7 @@ public class VillageConstants
   public static final double DISTRUST_FACTOR = 2;
   public static final double WEIGHT_COST = 0.9;
   public static final double WEIGHT_RISK = 0.1;
+  public static final double RISK_FACTOR = 0;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;

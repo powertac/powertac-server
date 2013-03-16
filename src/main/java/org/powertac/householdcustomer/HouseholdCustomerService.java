@@ -371,6 +371,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     configFile2 = null;
     configFile3 = null;
     configFile4 = null;
+    publishingPeriods = 0;
   }
 
   /**
