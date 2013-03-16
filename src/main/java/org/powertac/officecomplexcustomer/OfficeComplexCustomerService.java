@@ -245,7 +245,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
-    publishingPeriods++;
+
     publishedTariffs =
       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
@@ -265,6 +265,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
         // the evaluation of each type. //
         if (publishingPeriods % officeComplex.getPeriodMap().get(type) == 0) {
 
+          double inertia = estimateInertia(officeComplex, type);
+
           // System.out.println("Evaluation for " + type + " of village " +
           // village.toString());
           log.debug("Evaluation for " + type + " of village "
@@ -273,7 +275,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
           // System.out.println(rand);
           // If the percentage is smaller that inertia then evaluate the new
           // tariffs then evaluate //
-          if (rand < officeComplex.getInertiaMap().get(type)) {
+          if (rand > inertia) {
             // System.out.println("Inertia Passed for " + type + " of village "
             // + village.toString());
             log.debug("Inertia Passed for " + type + " of village "
@@ -285,7 +287,28 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
       }
 
     }
+    publishingPeriods++;
 
+  }
+
+  double estimateInertia (OfficeComplex officeComplex, String type)
+  {
+    double inertia = 0;
+
+    // New Inertia Formula
+    if (officeComplex.getSuperseded().get(type)) {
+      inertia =
+        officeComplex.getInertiaMap().get(type)
+                / OfficeComplexConstants.DISTRUST_FACTOR;
+    }
+    else {
+
+      double m = 1 / Math.pow(2, publishingPeriods);
+      inertia = officeComplex.getInertiaMap().get(type) * (1 - m);
+    }
+    log.debug("New Inertia = " + inertia + " with Trust Issues: "
+              + officeComplex.getSuperseded().get(type));
+    return inertia;
   }
 
   // ----------------- Data access -------------------------

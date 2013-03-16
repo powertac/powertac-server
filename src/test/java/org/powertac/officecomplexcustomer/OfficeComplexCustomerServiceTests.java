@@ -943,6 +943,126 @@ public class OfficeComplexCustomerServiceTests
 
   // @Repeat(20)
   @Test
+  public void testNewInertiaSchema ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertEquals("Initial Inertia is zero",
+                     officeComplexCustomerService.estimateInertia(customer,
+                                                                  type), 0.0,
+                     1e-6);
+      }
+    }
+
+    officeComplexCustomerService.publishingPeriods++;
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertFalse("Second Inertia is larger than zero",
+                    officeComplexCustomerService
+                            .estimateInertia(customer, type) == 0.0);
+      }
+    }
+
+  }
+
+  // @Repeat(20)
+  @Test
+  public void testNewInertiaKillingTariffs ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+
+    }
+
+    officeComplexCustomerService.publishingPeriods++;
+
+    Rate r2 = new Rate().withValue(-0.001);
+
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
+
+    assertEquals("Two consumption tariffs", 2, tariffRepo.findAllTariffs()
+            .size());
+
+    assertNotNull("first tariff found", tariff1);
+
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
+
+    for (OfficeComplex customer: officeComplexCustomerService
+            .getOfficeComplexList()) {
+
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+        customer.updateSubscriptions(defaultTariff, tariff1, customerInfo, true);
+      }
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertFalse("Second Inertia is larger than zero",
+                    officeComplexCustomerService
+                            .estimateInertia(customer, type) == 0.0);
+      }
+    }
+  }
+
+  // @Repeat(20)
+  @Test
   public void testSupersedingTariffs ()
   {
     initializeService();

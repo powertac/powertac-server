@@ -197,6 +197,7 @@ public class OfficeComplex extends AbstractCustomer
   HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
   HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
+  HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
 
   /**
    * These vectors contain the offices of type in the office complex. There are
@@ -228,6 +229,7 @@ public class OfficeComplex extends AbstractCustomer
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
+      superseded.put(type, null);
     }
   }
 
@@ -252,6 +254,7 @@ public class OfficeComplex extends AbstractCustomer
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
+      superseded.put(type, null);
     }
   }
 
@@ -302,6 +305,7 @@ public class OfficeComplex extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
+      superseded.put(type, false);
 
       /*
       System.out.println(toString() + " " + type);
@@ -404,7 +408,7 @@ public class OfficeComplex extends AbstractCustomer
 
     subscribe(newTariff, populationCount, customer);
 
-    updateSubscriptions(tariff, newTariff, customer);
+    updateSubscriptions(tariff, newTariff, customer, false);
 
   }
 
@@ -455,7 +459,7 @@ public class OfficeComplex extends AbstractCustomer
 
     subscribe(newTariff, populationCount, customer);
 
-    updateSubscriptions(tariff, newTariff, customer);
+    updateSubscriptions(tariff, newTariff, customer, false);
   }
 
   /**
@@ -481,8 +485,8 @@ public class OfficeComplex extends AbstractCustomer
    * changes made.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff,
-                                    CustomerInfo customer)
+  public void updateSubscriptions (Tariff tariff, Tariff newTariff,
+                                   CustomerInfo customer, boolean superseded)
   {
 
     TariffSubscription ts =
@@ -497,21 +501,33 @@ public class OfficeComplex extends AbstractCustomer
     if (controllable) {
 
       if (controllableSubscriptionMap.get("NS") == ts
-          || controllableSubscriptionMap.get("NS") == null)
+          || controllableSubscriptionMap.get("NS") == null) {
         controllableSubscriptionMap.put("NS", newTs);
+        if (superseded)
+          this.superseded.put("NS", true);
+      }
       if (controllableSubscriptionMap.get("SS") == ts
-          || controllableSubscriptionMap.get("SS") == null)
+          || controllableSubscriptionMap.get("SS") == null) {
         controllableSubscriptionMap.put("SS", newTs);
+        if (superseded)
+          this.superseded.put("SS", true);
+      }
 
       log.debug("Controllable Subscription Map: "
                 + controllableSubscriptionMap.toString());
     }
     else {
 
-      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
+      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null) {
         subscriptionMap.put("NS", newTs);
-      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
+        if (superseded)
+          this.superseded.put("NS", true);
+      }
+      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null) {
         subscriptionMap.put("SS", newTs);
+        if (superseded)
+          this.superseded.put("SS", true);
+      }
 
       log.debug("Subscription Map: " + subscriptionMap.toString());
     }
@@ -592,9 +608,9 @@ public class OfficeComplex extends AbstractCustomer
         }
 
         if (newTariff == null)
-          updateSubscriptions(tariff, defaultTariff, customer);
+          updateSubscriptions(tariff, defaultTariff, customer, true);
         else
-          updateSubscriptions(tariff, newTariff, customer);
+          updateSubscriptions(tariff, newTariff, customer, true);
       }
     }
   }
@@ -1326,6 +1342,12 @@ public class OfficeComplex extends AbstractCustomer
   public HashMap<String, Integer> getPeriodMap ()
   {
     return periodMap;
+  }
+
+  /** This function returns the inertia Map variable of the village. */
+  public HashMap<String, Boolean> getSuperseded ()
+  {
+    return superseded;
   }
 
   /**

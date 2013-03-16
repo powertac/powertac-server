@@ -34,6 +34,9 @@ public class OfficeComplexConstants
   public static final double SAME = 0.60;
   public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.02;
+  public static final double DISTRUST_FACTOR = 2;
+  public static final double WEIGHT_COST = 0.9;
+  public static final double WEIGHT_RISK = 0.1;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;
