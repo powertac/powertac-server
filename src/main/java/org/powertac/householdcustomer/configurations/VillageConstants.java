@@ -35,6 +35,9 @@ public class VillageConstants
   public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.05;
   public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
+  public static final double DISTRUST_FACTOR = 2;
+  public static final double WEIGHT_COST = 0.9;
+  public static final double WEIGHT_RISK = 0.1;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;
@@ -268,4 +271,5 @@ public class VillageConstants
         System.out.println(SUNDAY);
     */
   }
+
 }

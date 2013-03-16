@@ -15,10 +15,25 @@
  */
 package org.powertac.householdcustomer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.After;
 import org.junit.Before;
@@ -27,14 +42,30 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powertac.common.*;
+import org.powertac.common.Broker;
+import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.repo.*;
+import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,17 +73,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Antonios Chrysopoulos
@@ -129,7 +149,8 @@ public class HouseholdCustomerServiceTests
 
     broker1 = new Broker("Joe");
 
-    //now = new DateTime(2009, 10, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    // now = new DateTime(2009, 10, 10, 0, 0, 0, 0,
+    // DateTimeZone.UTC).toInstant();
     now = comp.getSimulationBaseTime();
     timeService.setCurrentTime(now);
     timeService.setBase(now.getMillis());
@@ -228,15 +249,16 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.initialize(comp, inits);
     assertEquals("correct first configuration file", "VillageType1.properties",
                  householdCustomerService.getConfigFile1());
-    assertEquals("correct second configuration file", "VillageType2.properties",
+    assertEquals("correct second configuration file",
+                 "VillageType2.properties",
                  householdCustomerService.getConfigFile2());
     assertEquals("correct third configuration file", "VillageType3.properties",
                  householdCustomerService.getConfigFile3());
     assertEquals("correct forth configuration file", "VillageType4.properties",
                  householdCustomerService.getConfigFile4());
     assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-        .currentCompetition().getExpectedTimeslotCount()
-        / VillageConstants.HOURS_OF_DAY);
+            .currentCompetition().getExpectedTimeslotCount()
+                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -644,7 +666,7 @@ public class HouseholdCustomerServiceTests
     tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Four consumption tariffs", 4, tariffRepo.findAllTariffs()
-        .size());
+            .size());
 
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
@@ -792,6 +814,120 @@ public class HouseholdCustomerServiceTests
 
     // Test the function with different inputs, in order to get the same result.
     householdCustomerService.publishNewTariffs(tclist1);
+
+  }
+
+  // @Repeat(20)
+  @Test
+  public void testNewInertiaSchema ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertEquals("Initial Inertia is zero",
+                     householdCustomerService.estimateInertia(customer, type),
+                     0.0, 1e-6);
+      }
+    }
+
+    householdCustomerService.publishingPeriods++;
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertFalse("Second Inertia is larger than zero",
+                    householdCustomerService.estimateInertia(customer, type) == 0.0);
+      }
+    }
+
+  }
+
+  // @Repeat(20)
+  @Test
+  public void testNewInertiaKillingTariffs ()
+  {
+    initializeService();
+
+    ArgumentCaptor<PowerType> powerArg =
+      ArgumentCaptor.forClass(PowerType.class);
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      TariffSubscription defaultSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(0), defaultTariff);
+      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
+      TariffSubscription defaultControllableSub =
+        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
+                .get(1), defaultTariff);
+      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
+              .getPopulation());
+
+      // Doing it again in order to check the correct configuration of the
+      // SubscriptionMapping //
+      customer.subscribeDefault();
+
+    }
+
+    householdCustomerService.publishingPeriods++;
+
+    Rate r2 = new Rate().withValue(-0.001);
+
+    TariffSpecification tsc1 =
+      new TariffSpecification(broker1, PowerType.CONSUMPTION)
+              .withExpiration(now.plus(TimeService.DAY))
+              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
+
+    Tariff tariff1 = new Tariff(tsc1);
+    tariff1.init();
+    tariff1.setState(Tariff.State.OFFERED);
+
+    assertEquals("Two consumption tariffs", 2, tariffRepo.findAllTariffs()
+            .size());
+
+    assertNotNull("first tariff found", tariff1);
+
+    List<Tariff> tclist1 = tariffRepo.findActiveTariffs(PowerType.CONSUMPTION);
+    List<Tariff> tclist2 =
+      tariffRepo.findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    assertEquals("2 consumption tariffs", 2, tclist1.size());
+    assertEquals("0 interruptible consumption tariffs", 0, tclist2.size());
+
+    for (Village customer: householdCustomerService.getVillageList()) {
+
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+        customer.updateSubscriptions(defaultTariff, tariff1, customerInfo, true);
+      }
+      // For each type of houses of the villages //
+      for (String type: customer.getSubscriptionMap().keySet()) {
+
+        assertFalse("Second Inertia is larger than zero",
+                    householdCustomerService.estimateInertia(customer, type) == 0.0);
+      }
+    }
 
   }
 

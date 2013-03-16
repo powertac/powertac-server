@@ -228,6 +228,7 @@ public class Village extends AbstractCustomer
   HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
   HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
+  HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
 
   /**
    * These vectors contain the houses of type in the village. There are 4 types
@@ -266,6 +267,7 @@ public class Village extends AbstractCustomer
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
+      superseded.put(type, null);
     }
   }
 
@@ -292,6 +294,7 @@ public class Village extends AbstractCustomer
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
+      superseded.put(type, null);
     }
   }
 
@@ -363,7 +366,7 @@ public class Village extends AbstractCustomer
                      Double.parseDouble(conf.getProperty(type + "Inertia")));
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
-
+      superseded.put(type, false);
       /*
             
             System.out.println(toString() + " " + type);
@@ -470,7 +473,7 @@ public class Village extends AbstractCustomer
 
     subscribe(newTariff, populationCount, customer);
 
-    updateSubscriptions(tariff, newTariff, customer);
+    updateSubscriptions(tariff, newTariff, customer, false);
 
   }
 
@@ -521,7 +524,7 @@ public class Village extends AbstractCustomer
 
     subscribe(newTariff, populationCount, customer);
 
-    updateSubscriptions(tariff, newTariff, customer);
+    updateSubscriptions(tariff, newTariff, customer, false);
   }
 
   /**
@@ -547,8 +550,8 @@ public class Village extends AbstractCustomer
    * changes made.
    * 
    */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff,
-                                    CustomerInfo customer)
+  public void updateSubscriptions (Tariff tariff, Tariff newTariff,
+                                   CustomerInfo customer, boolean superseded)
   {
 
     TariffSubscription ts =
@@ -563,33 +566,56 @@ public class Village extends AbstractCustomer
     if (controllable) {
 
       if (controllableSubscriptionMap.get("NS") == ts
-          || controllableSubscriptionMap.get("NS") == null)
+          || controllableSubscriptionMap.get("NS") == null) {
         controllableSubscriptionMap.put("NS", newTs);
+        if (superseded)
+          this.superseded.put("NS", true);
+      }
       if (controllableSubscriptionMap.get("RaS") == ts
-          || controllableSubscriptionMap.get("RaS") == null)
+          || controllableSubscriptionMap.get("RaS") == null) {
         controllableSubscriptionMap.put("RaS", newTs);
+        if (superseded)
+          this.superseded.put("RaS", true);
+      }
       if (controllableSubscriptionMap.get("ReS") == ts
-          || controllableSubscriptionMap.get("ReS") == null)
+          || controllableSubscriptionMap.get("ReS") == null) {
         controllableSubscriptionMap.put("ReS", newTs);
+        if (superseded)
+          this.superseded.put("ReS", true);
+      }
       if (controllableSubscriptionMap.get("SS") == ts
-          || controllableSubscriptionMap.get("SS") == null)
+          || controllableSubscriptionMap.get("SS") == null) {
         controllableSubscriptionMap.put("SS", newTs);
-
+        if (superseded)
+          this.superseded.put("SS", true);
+      }
       log.debug("Controllable Subscription Map: "
                 + controllableSubscriptionMap.toString());
     }
     else {
 
-      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null)
+      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null) {
         subscriptionMap.put("NS", newTs);
+        if (superseded)
+          this.superseded.put("NS", true);
+      }
       if (subscriptionMap.get("RaS") == ts
-          || subscriptionMap.get("RaS") == null)
+          || subscriptionMap.get("RaS") == null) {
         subscriptionMap.put("RaS", newTs);
+        if (superseded)
+          this.superseded.put("RaS", true);
+      }
       if (subscriptionMap.get("ReS") == ts
-          || subscriptionMap.get("ReS") == null)
+          || subscriptionMap.get("ReS") == null) {
         subscriptionMap.put("ReS", newTs);
-      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null)
+        if (superseded)
+          this.superseded.put("ReS", true);
+      }
+      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null) {
         subscriptionMap.put("SS", newTs);
+        if (superseded)
+          this.superseded.put("SS", true);
+      }
 
       log.debug("Subscription Map: " + subscriptionMap.toString());
     }
@@ -658,11 +684,13 @@ public class Village extends AbstractCustomer
   @Override
   public void checkRevokedSubscriptions ()
   {
+    
     for (CustomerInfo customer: customerInfos) {
       List<TariffSubscription> revoked =
         tariffSubscriptionRepo.getRevokedSubscriptionList(customer);
 
       log.debug(revoked.toString());
+    
       for (TariffSubscription revokedSubscription: revoked) {
         Tariff tariff = revokedSubscription.getTariff();
         Tariff newTariff = revokedSubscription.handleRevokedTariff();
@@ -682,9 +710,9 @@ public class Village extends AbstractCustomer
         }
 
         if (newTariff == null)
-          updateSubscriptions(tariff, defaultTariff, customer);
+          updateSubscriptions(tariff, defaultTariff, customer, true);
         else
-          updateSubscriptions(tariff, newTariff, customer);
+          updateSubscriptions(tariff, newTariff, customer, true);
       }
     }
   }
@@ -1764,6 +1792,12 @@ public class Village extends AbstractCustomer
     return periodMap;
   }
 
+  /** This function returns the inertia Map variable of the village. */
+  public HashMap<String, Boolean> getSuperseded ()
+  {
+    return superseded;
+  }
+
   /**
    * This function returns the quantity of base load for a specific day and hour
    * of that day for a specific type of households.
@@ -2521,6 +2555,8 @@ public class Village extends AbstractCustomer
   @Override
   public void step ()
   {
+  
+
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
