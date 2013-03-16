@@ -369,6 +369,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   {
     configFile1 = null;
     configFile2 = null;
+    publishingPeriods = 0;
   }
 
   /**
