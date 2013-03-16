@@ -684,13 +684,13 @@ public class Village extends AbstractCustomer
   @Override
   public void checkRevokedSubscriptions ()
   {
-    
+
     for (CustomerInfo customer: customerInfos) {
       List<TariffSubscription> revoked =
         tariffSubscriptionRepo.getRevokedSubscriptionList(customer);
 
       log.debug(revoked.toString());
-    
+
       for (TariffSubscription revokedSubscription: revoked) {
         Tariff tariff = revokedSubscription.getTariff();
         Tariff newTariff = revokedSubscription.handleRevokedTariff();
@@ -2168,7 +2168,10 @@ public class Village extends AbstractCustomer
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation.add(-(costEstimation(tariff, type, rand)));
+            estimation
+                    .add(-(costEstimation(tariff, type, rand)
+                           * VillageConstants.WEIGHT_COST + VillageConstants.WEIGHT_RISK
+                                                            * VillageConstants.RISK_FACTOR));
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
@@ -2555,7 +2558,6 @@ public class Village extends AbstractCustomer
   @Override
   public void step ()
   {
-  
 
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
