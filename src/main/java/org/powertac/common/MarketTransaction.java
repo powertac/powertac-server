@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package org.powertac.common;
 
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
@@ -45,16 +47,22 @@ public class MarketTransaction extends BrokerTransaction
   
   /** the timeslot for which this trade or quote information is created */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot timeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int timeslot;
   
   public MarketTransaction (Broker broker, int when, 
-                            Timeslot timeslot, double mWh, double price)
+                            int timeslot, double mWh, double price)
   {
     super(when, broker);
     this.timeslot = timeslot;
     this.price = price;
     this.mWh = mWh;
+  }
+  
+  public MarketTransaction (Broker broker, int when, 
+                            Timeslot timeslot, double mWh, double price)
+  {
+    this(broker, when, timeslot.getSerialNumber(), mWh, price);
   }
 
   public double getPrice ()
@@ -67,14 +75,30 @@ public class MarketTransaction extends BrokerTransaction
     return mWh;
   }
 
-  public Timeslot getTimeslot ()
+  public int getTimeslotIndex ()
   {
     return timeslot;
+  }
+  
+  public Timeslot getTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
   @Override
   public String toString() {
-    return ("MktTx: time " + timeslot.getSerialNumber() + ", " +
+    return ("MktTx: time " + timeslot + ", " +
             mWh + "@" + price);
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
   }
 }

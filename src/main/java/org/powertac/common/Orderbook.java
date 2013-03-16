@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +19,15 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.joda.time.Instant;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
+//import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
@@ -36,7 +38,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * Each time the market clears, one orderbook is created and sent to brokers for each
  * timeslot being traded during that clearing event.
  *
- * @author Daniel Schnurr
+ * @author Daniel Schnurr, John Collins
  * @version 1.2 , 05/02/2011
  */
 @Domain
@@ -50,8 +52,8 @@ public class Orderbook
 
   /** the timeslot this orderbook is generated for  */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot timeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int timeslot;
 
   /** last clearing price, expressed as a positive number - the price/mwh paid
    * to sellers. Null if the market did not clear.*/
@@ -71,12 +73,17 @@ public class Orderbook
   /**
    * Constructor with default product type.
    */
-  public Orderbook (Timeslot timeslot, Double clearingPrice, Instant dateExecuted)
+  public Orderbook (int timeslot, Double clearingPrice, Instant dateExecuted)
   {
     super();
     this.timeslot = timeslot;
     this.clearingPrice = clearingPrice;
     this.dateExecuted = dateExecuted;
+  }
+  
+  public Orderbook (Timeslot timeslot, Double clearingPrice, Instant dateExecuted)
+  {
+    this (timeslot.getSerialNumber(), clearingPrice, dateExecuted);
   }
   
   public long getId ()
@@ -106,9 +113,14 @@ public class Orderbook
    * The timeslot in which energy commitments represented by cleared trades
    * are due.
    */
-  public Timeslot getTimeslot ()
+  public int getTimeslotIndex ()
   {
     return timeslot;
+  }
+
+  public Timeslot getTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
   /**
@@ -145,5 +157,16 @@ public class Orderbook
   {
     asks.add(ask);
     return this;
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
   }
 }

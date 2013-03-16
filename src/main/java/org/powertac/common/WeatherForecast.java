@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011-2013 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -18,8 +18,10 @@ package org.powertac.common;
 
 import java.util.List;
 
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -36,17 +38,22 @@ public class WeatherForecast
   
   /** the current or reference timeslot from which the weather (forecast) is generated */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot currentTimeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int currentTimeslot;
 
   @XStreamImplicit(itemFieldName = "prediction")
   private List<WeatherForecastPrediction> predictions;
   
-  public WeatherForecast (Timeslot timeslot, List<WeatherForecastPrediction> predictions)
+  public WeatherForecast (int timeslot, List<WeatherForecastPrediction> predictions)
   {
     super();
     this.predictions = predictions;
     this.currentTimeslot = timeslot;
+  }
+  
+  public WeatherForecast (Timeslot timeslot, List<WeatherForecastPrediction> predictions)
+  {
+    this(timeslot.getSerialNumber(), predictions);
   }
 
   public List<WeatherForecastPrediction> getPredictions ()
@@ -59,10 +66,29 @@ public class WeatherForecast
     return id;
   }
 
-  public Timeslot getCurrentTimeslot ()
+  public int getTimeslotIndex()
   {
     return currentTimeslot;
   }
   
+  public Timeslot getCurrentTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(currentTimeslot);
+  }
   
+  public Timeslot getTimeslot ()
+  {
+    return getCurrentTimeslot();
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
+  }
 }

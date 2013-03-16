@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@ package org.powertac.common;
 //import org.codehaus.groovy.grails.commons.ApplicationHolder
 //import org.joda.time.Instant
 import org.powertac.common.xml.BrokerConverter;
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -47,8 +49,8 @@ public class MarketPosition //implements Serializable
   
   /** the timeslot this position belongs to */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot timeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int timeslot;
   
   /** The running total position in mWh the broker owns (> 0) / owes (< 0)
    * of the specified product in the specified timeslot */
@@ -56,13 +58,19 @@ public class MarketPosition //implements Serializable
   @XStreamAsAttribute
   double overallBalance = 0.0;
 
-  public MarketPosition (Broker broker, Timeslot timeslot,
+  public MarketPosition (Broker broker, int timeslot,
                          double balance)
   {
     super();
     this.broker = broker;
     this.timeslot = timeslot;
     this.overallBalance = balance;
+  }
+
+  public MarketPosition (Broker broker, Timeslot timeslot,
+                         double balance)
+  {
+    this(broker, timeslot.getSerialNumber(), balance);
   }
   
   public long getId()
@@ -75,9 +83,14 @@ public class MarketPosition //implements Serializable
     return broker;
   }
 
-  public Timeslot getTimeslot ()
+  public int getTimeslotIndex ()
   {
     return timeslot;
+  }
+  
+  public Timeslot getTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
   public double getOverallBalance ()
@@ -88,7 +101,7 @@ public class MarketPosition //implements Serializable
   @Override
   public String toString() {
     return ("MktPosn-" + broker.getId() + "-" +
-            timeslot.getSerialNumber() + "-" + overallBalance);
+            timeslot + "-" + overallBalance);
   }
   
   /**
@@ -101,5 +114,16 @@ public class MarketPosition //implements Serializable
   {
     overallBalance += mWh;
     return overallBalance;
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011, 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
+//import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A ClearedTrade instance reports public information about a specific
@@ -40,8 +42,8 @@ public class ClearedTrade
 
   /** underlying timeslot for the trade (e.g. for a future the timeslot when real-world exchanges happen)*/
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot timeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int timeslot;
 
   /** the transactionId is generated during the execution of a trade in market and
    * relates corresponding domain instances that were created or changed during
@@ -62,7 +64,7 @@ public class ClearedTrade
   @XStreamAsAttribute
   private Instant dateExecuted;
   
-  public ClearedTrade (Timeslot timeslot, double executionMWh,
+  public ClearedTrade (int timeslot, double executionMWh,
                        double executionPrice, Instant dateExecuted)
   {
     super();
@@ -71,15 +73,27 @@ public class ClearedTrade
     this.executionMWh = executionMWh;
     this.dateExecuted = dateExecuted;
   }
+  
+  public ClearedTrade (Timeslot timeslot, double executionMWh,
+                       double executionPrice, Instant dateExecuted)
+  {
+    this(timeslot.getSerialNumber(), executionMWh,
+         executionPrice, dateExecuted);
+  }
 
   public long getId ()
   {
     return id;
   }
 
-  public Timeslot getTimeslot ()
+  public int getTimeslotIndex ()
   {
     return timeslot;
+  }
+  
+  public Timeslot getTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
   public double getExecutionPrice ()
@@ -95,6 +109,17 @@ public class ClearedTrade
   public Instant getDateExecuted ()
   {
     return dateExecuted;
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
   }
   
   @Override

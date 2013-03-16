@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011-2013 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.powertac.common;
 
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
@@ -37,8 +39,8 @@ public class WeatherReport
   
   /** the current or reference timeslot from which the weather (forecast) is generated */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot currentTimeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int currentTimeslot;
   
   /** the current timeslot's temperature*/
   @XStreamAsAttribute
@@ -56,10 +58,11 @@ public class WeatherReport
   @XStreamAsAttribute
   private double cloudCover;
 
-  public WeatherReport (Timeslot timeslot, double temperature,
+  public WeatherReport (int timeslot, double temperature,
                         double windSpeed, double windDirection,
                         double cloudCover)
   {
+    super();
     this.currentTimeslot = timeslot;
     this.temperature = temperature;
     this.windSpeed = windSpeed;
@@ -67,14 +70,27 @@ public class WeatherReport
     this.cloudCover = cloudCover;
   }
 
+  public WeatherReport (Timeslot timeslot, double temperature,
+                        double windSpeed, double windDirection,
+                        double cloudCover)
+  {
+    this(timeslot.getSerialNumber(), temperature, windSpeed,
+         windDirection, cloudCover);
+  }
+
   public long getId ()
   {
     return id;
   }
+  
+  public int getTimeslotIndex ()
+  {
+    return currentTimeslot;
+  }
 
   public Timeslot getCurrentTimeslot ()
   {
-    return currentTimeslot;
+    return getTimeslotRepo().findBySerialNumber(currentTimeslot);
   }
 
   public double getTemperature ()
@@ -95,6 +111,16 @@ public class WeatherReport
   public double getCloudCover ()
   {
     return cloudCover;
-  }
+  }  
   
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
+  }
 }

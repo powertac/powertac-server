@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011-13 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.springframework.test.util.ReflectionTestUtils;
 
-
+/**
+ * @author John Collins
+ */
 public class OrderbookRepoTests
 {
   TimeService timeService;
@@ -62,7 +64,8 @@ public class OrderbookRepoTests
     Timeslot timeslot = timeslotRepo.makeTimeslot(start);
     Orderbook ob = repo.makeOrderbook(timeslot, 22.0);
     assertNotNull("created orderbook", ob);
-    assertEquals("correct timeslot", timeslot, ob.getTimeslot());
+    assertEquals("correct timeslot",
+                 timeslot.getSerialNumber(), ob.getTimeslotIndex());
     assertEquals("correct clearing price", 22.0, ob.getClearingPrice(), 1e-6);
     assertEquals("correct date", start, ob.getDateExecuted());
   }

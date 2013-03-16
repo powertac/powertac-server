@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package org.powertac.common;
 
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
-import org.powertac.common.xml.TimeslotConverter;
+//import org.powertac.common.xml.TimeslotConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -56,8 +58,8 @@ public class Order extends XStreamStateLoggable
 
   /** the timeslot for which the product should be bought or sold */
   @XStreamAsAttribute
-  @XStreamConverter(TimeslotConverter.class)
-  private Timeslot timeslot;
+  //@XStreamConverter(TimeslotConverter.class)
+  private int timeslot;
 
   /** product quantity in mWh - positive to buy, negative to sell */
   @XStreamAsAttribute
@@ -83,7 +85,7 @@ public class Order extends XStreamStateLoggable
    * the price-setting algorithm may not be advantageous for the broker in this
    * case.
    */
-  public Order (Broker broker, Timeslot timeslot, 
+  public Order (Broker broker, int timeslot, 
                 double mWh, Double limitPrice)
   {
     super();
@@ -91,6 +93,12 @@ public class Order extends XStreamStateLoggable
     this.timeslot = timeslot;
     this.mWh = mWh;
     this.limitPrice = limitPrice;
+  }
+
+  public Order (Broker broker, Timeslot timeslot, 
+                double mWh, Double limitPrice)
+  {
+    this(broker, timeslot.getSerialNumber(), mWh, limitPrice);
   }
   
   public long getId ()
@@ -103,9 +111,14 @@ public class Order extends XStreamStateLoggable
     return broker;
   }
 
-  public Timeslot getTimeslot ()
+  public int getTimeslotIndex ()
   {
     return timeslot;
+  }
+  
+  public Timeslot getTimeslot ()
+  {
+    return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
   public double getMWh ()
@@ -123,12 +136,23 @@ public class Order extends XStreamStateLoggable
   {
     return ("Order " + id + " from " + broker.getUsername()
             + " for " + mWh + " mwh at " + limitPrice
-            + " in ts " + timeslot.getSerialNumber());
+            + " in ts " + timeslot);
   }
   
   // protected default constructor to simplify deserialization
   protected Order ()
   {
     super();
+  }
+  
+  // access to TimeslotRepo
+  private static TimeslotRepo timeslotRepo;
+  
+  private static TimeslotRepo getTimeslotRepo()
+  {
+    if (null == timeslotRepo) {
+      timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+    }
+    return timeslotRepo;
   }
 }

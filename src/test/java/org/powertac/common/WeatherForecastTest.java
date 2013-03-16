@@ -38,7 +38,7 @@ public class WeatherForecastTest
 	@Test
 	public void timeslotTest(){
 		WeatherForecast wr = new WeatherForecast(ts1, tlist);
-		assertEquals(ts1,wr.getCurrentTimeslot());
+		assertEquals(ts1.getSerialNumber(),wr.getTimeslotIndex());
 	}
 	
 	@Test
@@ -51,16 +51,15 @@ public class WeatherForecastTest
 	@Test
 	public void xmlSerializationTest() {
 		
-		WeatherForecast w1 = new WeatherForecast(null, tlist);
+		WeatherForecast w1 = new WeatherForecast(42, tlist);
 		
 		XStream xstream = new XStream();
-		xstream.processAnnotations(Timeslot.class);
 		StringWriter serialized = new StringWriter();
 		serialized.write(xstream.toXML(w1));
 		// System.out.println(serialized.toString());
 		WeatherForecast xw1 = (WeatherForecast) xstream.fromXML(serialized.toString());
 		assertNotNull("deserialized something", xw1);
-		assertEquals("correct timeslot", null, xw1.getCurrentTimeslot());
+		assertEquals("correct timeslot", 42, xw1.getTimeslotIndex());
 		assertEquals("correct list", tlist.get(0).getForecastTime(), xw1.getPredictions().get(0).getForecastTime());
 	}
 
