@@ -1673,7 +1673,10 @@ public class OfficeComplex extends AbstractCustomer
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation.add(-(costEstimation(tariff, type, rand)));
+            estimation
+                    .add(-(costEstimation(tariff, type, rand)
+                           * OfficeComplexConstants.WEIGHT_COST + OfficeComplexConstants.WEIGHT_RISK
+                                                                  * OfficeComplexConstants.RISK_FACTOR));
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
