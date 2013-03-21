@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ import org.powertac.common.state.StateChange;
  * RandomSeed directly. Instead, please request seeds through 
  * RandomSeedRepo.getRandomSeed(). This way, your code will work the same
  * whether using new seeds or replaying a previous simulation.</p>
+ * <p>State log entry format:<br/>
+ * <code>requesterClass::requesterId::purpose::value</code></p>
  *
  * @author Carsten Block, John Collins
  * @version 1.0 - January 01, 2011
