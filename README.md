@@ -25,4 +25,4 @@ To update your development environment, you can always do
 
 ` git submodule foreach git pull origin master`
 
-Note that some modules, such as common, the Visualizer, and the Sample Broker, are not submodules of powertac-server. If you need sources for those, you will need to pull them down separately.
+Note that some modules, such as common and the Sample Broker, are not submodules of powertac-server. If you need sources for those, you will need to pull them down separately.
