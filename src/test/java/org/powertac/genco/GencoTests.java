@@ -150,11 +150,13 @@ public class GencoTests
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
     assertEquals("four orders", 4, orderList.size());
     Order first = orderList.get(0);
-    assertEquals("first order for ts2", ts2, first.getTimeslot());
+    assertEquals("first order for ts2",
+                 ts2.getSerialNumber(), first.getTimeslotIndex());
     assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
     assertEquals("first order for 50 mwh", -50.0, first.getMWh(), 1e-6);
     Order second = orderList.get(1);
-    assertEquals("second order for ts3", ts3, second.getTimeslot());
+    assertEquals("second order for ts3",
+                 ts3.getSerialNumber(), second.getTimeslotIndex());
     assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
     assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
@@ -192,11 +194,11 @@ public class GencoTests
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
     assertEquals("two orders", 2, orderList.size());
     Order first = orderList.get(0);
-    assertEquals("first order for ts3", 27, first.getTimeslot().getSerialNumber());
+    assertEquals("first order for ts3", 27, first.getTimeslotIndex());
     assertEquals("first order price", 1.0, first.getLimitPrice(), 1e-6);
     assertEquals("first order for 100 mwh", -100.0, first.getMWh(), 1e-6);
     Order second = orderList.get(1);
-    assertEquals("second order for ts4", 28, second.getTimeslot().getSerialNumber());
+    assertEquals("second order for ts4", 28, second.getTimeslotIndex());
     assertEquals("second order price", 1.0, second.getLimitPrice(), 1e-6);
     assertEquals("second order for 100 mwh", -100.0, second.getMWh(), 1e-6);
   }
@@ -239,15 +241,15 @@ public class GencoTests
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
     assertEquals("three orders", 3, orderList.size());
     Order order = orderList.get(0);
-    assertEquals("first order for ts2", 26, order.getTimeslot().getSerialNumber());
+    assertEquals("first order for ts2", 26, order.getTimeslotIndex());
     assertEquals("first order price", 1.0, order.getLimitPrice(), 1e-6);
     assertEquals("first order for 50 mwh", -50.0, order.getMWh(), 1e-6);
     order = orderList.get(1);
-    assertEquals("second order for ts3", 27, order.getTimeslot().getSerialNumber());
+    assertEquals("second order for ts3", 27, order.getTimeslotIndex());
     assertEquals("second order price", 1.0, order.getLimitPrice(), 1e-6);
     assertEquals("second order for 100 mwh", -100.0, order.getMWh(), 1e-6);
     order = orderList.get(2);
-    assertEquals("third order for ts4", 28, order.getTimeslot().getSerialNumber());
+    assertEquals("third order for ts4", 28, order.getTimeslotIndex());
     assertEquals("third order price", 1.0, order.getLimitPrice(), 1e-6);
     assertEquals("third order for 100 mwh", -100.0, order.getMWh(), 1e-6);
   }
