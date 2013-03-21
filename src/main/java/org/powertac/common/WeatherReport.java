@@ -19,7 +19,6 @@ package org.powertac.common;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
-import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
 
 /**
