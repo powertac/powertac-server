@@ -27,6 +27,7 @@ import org.joda.time.DateTime;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -123,10 +124,12 @@ final class TimeseriesGenerator
         gamma = Double.parseDouble((String) modelParams.get("gamma"));
         sigma = Double.parseDouble((String) modelParams.get("sigma"));
         
-        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+        randomSeedRepo =
+                (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
-        arimaNoise = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.TimeseriesGenerator", 
-                                                             tsStructure.hashCode(), "ArimaNoise").getValue());
+        arimaNoise =
+                new Random(randomSeedRepo.getRandomSeed("factoredcustomer.TimeseriesGenerator", 
+                                                        SeedIdGenerator.getId(), "ArimaNoise").getValue());
     }
     
     private void initArima101x101RefSeries()

@@ -28,6 +28,7 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure.ProfileSelectionMethod;
 import org.powertac.factoredcustomer.ProfileRecommendation.ScoringFactor;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
 /**
  * Extends @code{DefaultCapacityOriginator} to adapt to the learning behavior 
@@ -57,7 +58,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         optimizerStructure = getParentBundle().getOptimizerStructure();
 
         recommendationHandler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.AdaptiveCapacityOriginator", 
-                                           this.hashCode(), "RecommendationHandler").getValue());
+                                           SeedIdGenerator.getId(), "RecommendationHandler").getValue());
     }
     
     @Override /** @code{ProfileRecommendation.Listener} **/

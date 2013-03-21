@@ -35,6 +35,7 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -95,6 +96,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
 
         customerStructures.clear();
         customers.clear();
+        SeedIdGenerator.reset();
 
         super.init();
         serverConfig.configureMe(this);
