@@ -244,7 +244,7 @@ public class AccountingService
     Timeslot current = timeslotRepo.currentTimeslot();
     log.debug("current timeslot: " + current.getSerialNumber());
     MarketPosition position =
-        broker.findMarketPositionByTimeslot(current);
+        broker.findMarketPositionByTimeslot(current.getSerialNumber());
     if (position == null) {
       log.debug("null position for ts " + current.getSerialNumber());
       return 0.0;
@@ -352,13 +352,13 @@ public class AccountingService
     Broker broker = tx.getBroker();
     updateCash(broker, tx.getPrice() * Math.abs(tx.getMWh()));
     MarketPosition mkt =
-        broker.findMarketPositionByTimeslot(tx.getTimeslot());
+        broker.findMarketPositionByTimeslot(tx.getTimeslotIndex());
     if (mkt == null) {
       mkt = new MarketPosition(broker, tx.getTimeslot(), tx.getMWh());
       log.debug("New MarketPosition(" + broker.getUsername() + 
                 ", " + tx.getTimeslot().getSerialNumber() + "): " + 
                 mkt.getId());
-      broker.addMarketPosition(mkt, tx.getTimeslot());
+      broker.addMarketPosition(mkt, tx.getTimeslotIndex());
       messages.add(mkt);
     }
     else {
