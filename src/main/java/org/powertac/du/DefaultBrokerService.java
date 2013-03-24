@@ -304,7 +304,7 @@ public class DefaultBrokerService
     double neededMWh = neededKWh / 1000.0;
     
     Double limitPrice;
-    MarketPosition posn = face.findMarketPositionByTimeslot(timeslot);
+    MarketPosition posn = face.findMarketPositionByTimeslot(timeslot.getSerialNumber());
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
     log.debug("needed mWh=" + neededMWh);
