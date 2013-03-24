@@ -37,4 +37,10 @@ public class TariffRevoke extends TariffUpdate
   {
     super(broker, tariff);
   }
+  
+  // protected default constructor for reflection
+  protected TariffRevoke ()
+  {
+    super();
+  }
 }

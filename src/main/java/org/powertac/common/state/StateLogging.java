@@ -110,13 +110,13 @@ public class StateLogging
       }
     }
     catch (IllegalAccessException e) {
-      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+      log.error("Failed to introspect " + thing.getClass().getSimpleName(), e);
     }
     catch (InvocationTargetException e) {
-      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+      log.error("Failed to introspect " + thing.getClass().getSimpleName(), e);
     }
     catch (NoSuchMethodException e) {
-      log.error("Failed to introspec " + thing.getClass().getSimpleName(), e);
+      log.error("Failed to introspect " + thing.getClass().getSimpleName(), e);
     }
     return properties.toArray();
   }

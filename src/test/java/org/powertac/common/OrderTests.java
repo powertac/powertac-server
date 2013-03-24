@@ -2,7 +2,11 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.StringWriter;
 
 import org.joda.time.DateTime;
@@ -149,8 +153,9 @@ public class OrderTests
     brokerRepo.add(db);
     String xml = "<order id=\"200000394\" timeslot=\""
         + timeslot.getSerialNumber()
-        + "\" mWh=\"22.7\" limitPrice=\"-70.0\">"
+        + "\" mWh=\"22.7\" limitPrice=\"-70.0\"> "
         + "<broker>Dummy</broker> </order>";
+    //System.out.println(xml);
     XStream xstream = new XStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
@@ -163,8 +168,11 @@ public class OrderTests
     assertEquals("correct quantity", 22.7, xmo1.getMWh(), 1e-6);
     assertEquals("correct price", -70.0, xmo1.getLimitPrice(), 1e-6);
     
-    // open the state file and check the last entry
-    String item = null;
+    // Opens the state file and checks the last entry.
+    // This works when running the individual test, but not as a suite.
+    // Also, it might not work unless there's a way to flush the
+    // state log.
+//    String item = null;
 //    try {
 //      BufferedReader input =
 //          new BufferedReader(new FileReader("log/OrderTests.state"));
@@ -181,8 +189,8 @@ public class OrderTests
 //    catch (IOException e) {
 //      fail(e.toString());
 //    }
-//    // the rest works when running the individual test, but not as a suite
 //    if (item != null) {
+//      System.out.println("item=" + item);
 //      // should not get here if item == null
 //      String[] items = item.split("::");
 //      assertEquals("class", "org.powertac.common.Order", items[1]);

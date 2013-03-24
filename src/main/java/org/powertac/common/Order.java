@@ -45,7 +45,10 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  *
  * @author Carsten Block, John Collins
  */
-@Domain(fields = {"broker", "timeslot", "mWh", "limitPrice"})
+@Domain(fields = {"broker", "timeslot", "MWh", "limitPrice"})
+// Note that the name MWh is required due to the second char being a cap.
+// Probably the field should be renamed "mwh", but that would change
+// the xml representation.
 @XStreamAlias("order")
 public class Order extends XStreamStateLoggable
 {  
@@ -121,10 +124,18 @@ public class Order extends XStreamStateLoggable
     return getTimeslotRepo().findBySerialNumber(timeslot);
   }
 
-  public double getMWh ()
+  public Double getMWh ()
   {
     return mWh;
   }
+  
+  /**
+   * Setter for logtool access; do not use otherwise
+   */
+  //public void setMWh (double statelogValue)
+  //{
+  //  mWh = statelogValue;
+  //}
 
   public Double getLimitPrice ()
   {
