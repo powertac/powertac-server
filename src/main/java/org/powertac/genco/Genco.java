@@ -41,11 +41,7 @@ public class Genco
   static private Logger log = Logger.getLogger(Genco.class.getName());
 
   // id values are standardized
-  private long id = IdGenerator.createId();
-  
-  // manage seed ID separately from instance ID
-  private static int seedIdCounter = 0;
-  private int seedId = 0;
+  //private long id = IdGenerator.createId();
   
   /** Current capacity of this producer in mW */
   private double currentCapacity;
@@ -259,7 +255,7 @@ public class Genco
     for (Timeslot slot : openSlots) {
       double availableCapacity = currentCapacity;
       // do we receive these?
-      MarketPosition posn = findMarketPositionByTimeslot(slot);
+      MarketPosition posn = findMarketPositionByTimeslot(slot.getSerialNumber());
       if (skip-- > 0 && (posn == null || posn.getOverallBalance() == 0.0))
         continue;
       if (posn != null) {
@@ -290,7 +286,7 @@ public class Genco
   }
   
   @StateChange
-  private void setCurrentCapacity (double val)
+  public void setCurrentCapacity (double val)
   {
     currentCapacity = val;
   }
@@ -301,7 +297,7 @@ public class Genco
   }
   
   @StateChange
-  private void setInOperation (boolean op)
+  public void setInOperation (boolean op)
   {
     inOperation = op;
   }

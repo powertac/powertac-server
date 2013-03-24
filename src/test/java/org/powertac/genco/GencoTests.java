@@ -145,7 +145,7 @@ public class GencoTests
     assertEquals("4 enabled timeslots", 4, timeslotRepo.enabledTimeslots().size());
     // 50 mwh already sold in ts2
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
-    genco.addMarketPosition(posn2, ts2);
+    genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
     assertEquals("four orders", 4, orderList.size());
@@ -235,7 +235,7 @@ public class GencoTests
     // 50 mwh already sold in ts2
     Timeslot ts2 = timeslotRepo.findBySerialNumber(26);
     MarketPosition posn2 = new MarketPosition(genco, ts2, -50.0);
-    genco.addMarketPosition(posn2, ts2);
+    genco.addMarketPosition(posn2, ts2.getSerialNumber());
 
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
