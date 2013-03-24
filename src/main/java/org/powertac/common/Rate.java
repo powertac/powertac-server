@@ -168,11 +168,12 @@ public class Rate extends XStreamStateLoggable
   }
   
   /**
-   * Sets the backpointer to the tariff. This is a non-fluent (and non-public)
-   * setter, intended to be called by Tariff.
+   * Sets the backpointer to the tariff. This is a non-fluent
+   * setter, intended to be called by Tariff. It is public to better support
+   * state logging
    */
   @StateChange
-  void setTariffId (long id)
+  public void setTariffId (long id)
   {
     tariffId = id;
   }

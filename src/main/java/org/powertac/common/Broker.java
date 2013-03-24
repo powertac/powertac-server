@@ -152,19 +152,31 @@ public class Broker
    * Associates a MarketPosition with a given Timeslot. 
    */
   @StateChange
+  public Broker addMarketPosition (MarketPosition posn, int slot)
+  {
+    mktPositions.put(slot, posn);
+    return this;
+  }
+  
+  // backward compatibility
   public Broker addMarketPosition (MarketPosition posn, Timeslot slot)
   {
-    mktPositions.put(slot.getSerialNumber(), posn);
-    return this;
+    return addMarketPosition(posn, slot.getSerialNumber());
   }
   
   /**
    * Returns the MarketPosition associated with the given Timeslot. Result will
    * be null if addMarketPosition has never been called for this Timeslot.
    */
+  public MarketPosition findMarketPositionByTimeslot (int slot)
+  {
+    return mktPositions.get(slot);
+  }
+  
+  // backward compatibility
   public MarketPosition findMarketPositionByTimeslot (Timeslot slot)
   {
-    return mktPositions.get(slot.getSerialNumber());
+    return findMarketPositionByTimeslot(slot.getSerialNumber());
   }
 
   /**
@@ -219,7 +231,7 @@ public class Broker
    * BrokerProxy.routeMessage(). 
    */
   @StateChange
-  protected void setLocal (boolean value)
+  public void setLocal (boolean value)
   {
     local = value;
   }
@@ -234,7 +246,7 @@ public class Broker
   
   /** Allows subclasses to make themselves wholesale brokers */
   @StateChange
-  protected void setWholesale (boolean value)
+  public void setWholesale (boolean value)
   {
     wholesale = value;
   }

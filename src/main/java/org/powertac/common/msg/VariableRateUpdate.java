@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.*;
  * 
  * @author John Collins
  */
-@Domain (fields = {"broker", "tariffId", "hourlyChargeId", "rateId"})
+@Domain (fields = {"broker", "tariffId", "payload", "rateId"})
 @XStreamAlias("tariff-vru")
 public class VariableRateUpdate extends TariffUpdate
 {

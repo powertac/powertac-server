@@ -79,7 +79,7 @@ implements Comparable<HourlyCharge>
    * to be called from Rate when the instance is added to the rate.
    */
   @StateChange
-  void setRateId (long rateId)
+  public void setRateId (long rateId)
   {
     this.rateId = rateId;
   }
