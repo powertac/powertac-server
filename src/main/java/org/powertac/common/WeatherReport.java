@@ -69,6 +69,10 @@ public class WeatherReport
     this.cloudCover = cloudCover;
   }
 
+  /**
+   * Constructor that uses timeslot is deprecated
+   */
+  @Deprecated
   public WeatherReport (Timeslot timeslot, double temperature,
                         double windSpeed, double windDirection,
                         double cloudCover)

@@ -98,6 +98,11 @@ public class Order extends XStreamStateLoggable
     this.limitPrice = limitPrice;
   }
 
+  /**
+   * Creates a new order using a Timeslot rather than a timeslot index value.
+   * New code should not use this method.
+   */
+  @Deprecated
   public Order (Broker broker, Timeslot timeslot, 
                 double mWh, Double limitPrice)
   {

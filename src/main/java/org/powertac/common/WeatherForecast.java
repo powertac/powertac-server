@@ -51,6 +51,7 @@ public class WeatherForecast
     this.currentTimeslot = timeslot;
   }
   
+  @Deprecated
   public WeatherForecast (Timeslot timeslot, List<WeatherForecastPrediction> predictions)
   {
     this(timeslot.getSerialNumber(), predictions);
