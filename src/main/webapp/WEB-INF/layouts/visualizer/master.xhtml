@@ -18,7 +18,7 @@
 	<script src="http://code.highcharts.com/stock/highstock.js"></script>
 	<script src="http://code.highcharts.com/stock/highcharts-more.js"></script>
 	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
-	
+
 	<h:outputStylesheet library="css" name="modern.css" />
 	<h:outputStylesheet library="css" name="site.css" />
 	<h:outputScript library="js" name="charts.js" />
@@ -110,14 +110,14 @@
 						</ul></li>
 					<li><a href="weatherreport">Weather report</a></li>
 				</ul>
-        <h:panelGroup rendered="#{!visualizerBean.tournamentMode}">
-          <div class="divider"></div>
-          <div class="nav-bar-inner">
-            <a href="competitioncontrol"><span class="element brand">
-                <small>Settings</small><i class="icon-cog"></i>
-            </span></a>
-          </div>
-        </h:panelGroup>
+				<h:panelGroup rendered="#{!visualizerBean.tournamentMode}">
+					<div class="divider"></div>
+					<div class="nav-bar-inner">
+						<a href="competitioncontrol"><span class="element brand">
+								<small>Settings</small><i class="icon-cog"></i>
+						</span></a>
+					</div>
+				</h:panelGroup>
 			</div>
 		</div>
 		<div class="page-region">
@@ -142,6 +142,41 @@
 						<ui:insert name="rowcontent" />
 					</div>
 				</div>
+
+
+				<div class="grid">
+					<div class="row">
+						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
+							<br />
+							<div id="gameName" class="fg-color-white bigStatusText"
+								>
+								<h:outputText value="#{visualizerBean.competition.name}"
+									 />
+
+							</div>
+
+						</div>
+
+						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
+							<br />
+							<div id="gameStatus" class="fg-color-white normalStatusText" >
+								<h:outputText
+									rendered="${!visualizerBean.running and !visualizerBean.finished}"
+									value="no game" />
+								<h:outputText
+									rendered="${!visualizerBean.running and visualizerBean.finished}"
+									value="game finished" />
+								<h:outputText
+									rendered="${visualizerBean.running and !visualizerBean.finished}"
+									value="game in progress" />
+							</div>
+
+						</div>
+
+
+					</div>
+				</div>
+
 
 				<div class="grid">
 					<div class="row">
@@ -191,6 +226,22 @@
 								<div class=" icon-user statusIcon" />
 							</div>
 						</div>
+
+						<!-- div class="tile single bg-color-purple" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Customers Leader2</h2>
+								<br />
+								<h4 id="customersBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-user statusIcon" />
+							</div>
+						</div-->
 
 					</div>
 				</div>
@@ -250,7 +301,7 @@
 
 						<div class="span2 bg-color-pinkDark"
 							style="height: 80px; text-align: center;">
-							<br /> 
+							<br />
 							<div class=" icon-sun weatherIcon" id="cloudCover" />
 
 							<br />
@@ -282,10 +333,12 @@
 								<h:form>
 									<h:panelGrid columns="2">
 										<h:outputText value="Name*:" />
-										<p:inputText value="#{chatBean.name}" required="true" style="width:120px"/>
+										<p:inputText value="#{chatBean.name}" required="true"
+											style="width:120px" />
 
 										<h:outputText value="Message*:" />
-										<p:inputText value="#{chatBean.msg}" required="true" style="width:120px" />
+										<p:inputText value="#{chatBean.msg}" required="true"
+											style="width:120px" />
 									</h:panelGrid>
 									<h:outputText value="*required" />
 									<p:commandButton value="Send"
@@ -482,12 +535,19 @@
 
 			var pushObject = jQuery.parseJSON(data);
 			var status = pushObject["status"];
+			var GAME_STATUS = 'Game status';
 			if (status == 'start') {
-				popupDialog('Game start', 'A new game is about to start!');
+				var A_NEW_GAME_IS_ABOUT_TO_START = 'A new game is about to start!';
+				popupDialog(GAME_STATUS, A_NEW_GAME_IS_ABOUT_TO_START);
+				document.getElementById("gameStatus").innerHTML = A_NEW_GAME_IS_ABOUT_TO_START;
 				setTimeout("window.location.href=window.location.href;", 5000);
 			} else if (status == 'finish') {
-				popupDialog('Game complete', 'The game has ended!');
+				var THE_GAME_HAS_ENDED = 'The game has ended!';
+				popupDialog(GAME_STATUS, THE_GAME_HAS_ENDED);
+				document.getElementById("gameStatus").innerHTML = THE_GAME_HAS_ENDED;
 				setTimeout("window.location.href=window.location.href;", 5000);
+			} else {
+				document.getElementById("gameName").innerHTML = status;
 			}
 
 		}

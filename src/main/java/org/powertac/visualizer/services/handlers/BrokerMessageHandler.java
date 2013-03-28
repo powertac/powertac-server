@@ -68,8 +68,10 @@ public class BrokerMessageHandler implements Initializable {
 		brokerService.setBrokers(list);
 		vizBean.setCompetition(competition);
 		vizBean.setRunning(true);
+		vizBean.setFinished(false);
 		//notification:
-		pushService.pushInfoMessage(new InfoPush("start"));				
+		pushService.pushInfoMessage(new InfoPush("start"));		
+		pushService.pushInfoMessage(new InfoPush(competition.getName()));	
 	}
 
 	public void handleMessage(TariffSpecification tariffSpecification) {

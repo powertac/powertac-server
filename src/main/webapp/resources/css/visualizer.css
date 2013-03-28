@@ -18,6 +18,13 @@
 	display: inline;
 }
 
+.normalStatusText{
+	font-size: 2em; 
+	padding: 0.5em;
+	color: white;
+	display: inline;
+}
+
 .weatherText{
 	font-size: 1.8em; 
 	padding: 0.1em;
