@@ -17,9 +17,9 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -36,16 +36,17 @@ import org.powertac.householdcustomer.configurations.VillageConstants;
 public class Freezer extends FullyShiftingAppliance
 {
 
-  public void fillWeeklyFunction (Random gen)
+  public void fillWeeklyFunction ()
   {
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      fillDailyOperation(i, gen);
+      fillDailyOperation(i);
   }
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
-
+    gen = generator;
     // Filling the base variables
     name = household + " Freezer";
     saturation = Double.parseDouble(conf.getProperty("FreezerSaturation"));
@@ -70,7 +71,7 @@ public class Freezer extends FullyShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing Variables
     loadVector = new Vector<Integer>();
@@ -94,7 +95,7 @@ public class Freezer extends FullyShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -123,9 +124,9 @@ public class Freezer extends FullyShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

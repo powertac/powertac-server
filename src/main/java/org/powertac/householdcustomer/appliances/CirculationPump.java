@@ -16,9 +16,9 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -39,20 +39,26 @@ public class CirculationPump extends NotShiftingAppliance
   double operationPercentage;
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
 
     // Filling the base variables
+    gen = generator;
     name = household + " CirculationPump";
-    saturation = Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
-    operationPercentage = Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
-    power = (int) (VillageConstants.CIRCULATION_PUMP_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.CIRCULATION_PUMP_POWER_MEAN);
+    saturation =
+      Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
+    operationPercentage =
+      Double.parseDouble(conf.getProperty("CirculationPumpPercentage"));
+    power =
+      (int) (VillageConstants.CIRCULATION_PUMP_POWER_VARIANCE
+             * gen.nextGaussian() + VillageConstants.CIRCULATION_PUMP_POWER_MEAN);
     cycleDuration = VillageConstants.CIRCULATION_PUMP_DURATION_CYCLE;
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
 
     // Initializing and Creating auxiliary variables
@@ -67,7 +73,10 @@ public class CirculationPump extends NotShiftingAppliance
 
       if (applianceOf.isEmpty(weekday, i) == false) {
 
-        double tempPercentage = operationPercentage + (VillageConstants.OPERATION_PARTITION * (applianceOf.tenantsNumber(weekday, i)));
+        double tempPercentage =
+          operationPercentage
+                  + (VillageConstants.OPERATION_PARTITION * (applianceOf
+                          .tenantsNumber(weekday, i)));
         if (tempPercentage > gen.nextDouble()) {
           dailyOperation.set(i, true);
           loadVector.set(i, power);
@@ -81,9 +90,9 @@ public class CirculationPump extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

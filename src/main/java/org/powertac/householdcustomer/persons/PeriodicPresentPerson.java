@@ -18,9 +18,9 @@ package org.powertac.householdcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.Status;
 
@@ -36,42 +36,54 @@ public class PeriodicPresentPerson extends WorkingPerson
 {
 
   @Override
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
     // Variables Taken from the configuration file
     double sicknessMean = Double.parseDouble(conf.getProperty("SicknessMean"));
     double sicknessDev = Double.parseDouble(conf.getProperty("SicknessDev"));
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double PPLeisure = Double.parseDouble(conf.getProperty("PPLeisure"));
-    double workingDurationMean = Double.parseDouble(conf.getProperty("WorkingDurationMean"));
-    double workingDurationDev = Double.parseDouble(conf.getProperty("WorkingDurationDev"));
-    double vacationDurationMean = Double.parseDouble(conf.getProperty("VacationDurationMean"));
-    double vacationDurationDev = Double.parseDouble(conf.getProperty("VacationDurationDev"));
+    double workingDurationMean =
+      Double.parseDouble(conf.getProperty("WorkingDurationMean"));
+    double workingDurationDev =
+      Double.parseDouble(conf.getProperty("WorkingDurationDev"));
+    double vacationDurationMean =
+      Double.parseDouble(conf.getProperty("VacationDurationMean"));
+    double vacationDurationDev =
+      Double.parseDouble(conf.getProperty("VacationDurationDev"));
 
     // Filling the main variables
+    gen = generator;
     name = AgentName;
     status = Status.Normal;
 
     // Filling the sickness and public Vacation Vectors
-    sicknessVector = createSicknessVector(sicknessMean, sicknessDev, gen);
+    sicknessVector = createSicknessVector(sicknessMean, sicknessDev);
     this.publicVacationVector = publicVacationVector;
     // Filling the leisure variables
     int x = (int) (gen.nextGaussian() + PPLeisure);
-    leisureVector = createLeisureVector(x, gen);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     // Filling Working variables
     workingStartHour = VillageConstants.START_OF_WORK;
-    int work = workingDaysRandomizer(conf, gen);
-    workingDays = createWorkingDaysVector(work, gen);
-    workingDuration = (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
+    int work = workingDaysRandomizer(conf);
+    workingDays = createWorkingDaysVector(work);
+    workingDuration =
+      (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
     // Filling Vacation Variables
-    vacationDuration = (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
-    vacationVector = createVacationVector(Math.max(0, vacationDuration), gen);
+    vacationDuration =
+      (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
+    vacationVector = createVacationVector(Math.max(0, vacationDuration));
   }
 
   @Override
-  void addLeisureWorking (int weekday, Random gen)
+  void addLeisureWorking (int weekday)
   {
     // Create auxiliary variables
     ListIterator<Integer> iter = leisureVector.listIterator();
@@ -81,7 +93,9 @@ public class PeriodicPresentPerson extends WorkingPerson
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
         int start = workingStartHour + workingDuration;
-        int startq = gen.nextInt(Math.max(1, VillageConstants.LEISURE_END_WINDOW - start)) + start;
+        int startq =
+          gen.nextInt(Math.max(1, VillageConstants.LEISURE_END_WINDOW - start))
+                  + start;
         for (int i = startq; i < startq + leisureDuration; i++) {
           st = Status.Leisure;
           dailyRoutine.set(i, st);
@@ -104,19 +118,23 @@ public class PeriodicPresentPerson extends WorkingPerson
   }
 
   @Override
-  public void refresh (Properties conf, Random gen)
+  public void refresh (Properties conf)
   {
     // Renew Variables
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double PPLeisure = Double.parseDouble(conf.getProperty("PPLeisure"));
-    double vacationAbsence = Double.parseDouble(conf.getProperty("VacationAbsence"));
+    double vacationAbsence =
+      Double.parseDouble(conf.getProperty("VacationAbsence"));
 
     int x = (int) (gen.nextGaussian() + PPLeisure);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
-    leisureVector = createLeisureVector(x, gen);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-      fillDailyRoutine(i, vacationAbsence, gen);
+      fillDailyRoutine(i, vacationAbsence);
       weeklyRoutine.add(dailyRoutine);
     }
   }

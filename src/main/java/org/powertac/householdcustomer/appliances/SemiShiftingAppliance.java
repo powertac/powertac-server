@@ -16,7 +16,6 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.Random;
 import java.util.Vector;
 
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -61,7 +60,7 @@ class SemiShiftingAppliance extends Appliance
    * @param times
    * @return
    */
-  void fillDays (Random gen)
+  void fillDays ()
   {
     lastWeek = new int[VillageConstants.DAYS_OF_WEEK];
 
@@ -80,11 +79,11 @@ class SemiShiftingAppliance extends Appliance
   }
 
   @Override
-  public void fillWeeklyOperation (Random gen)
+  public void fillWeeklyOperation ()
   {
     if ((this instanceof Stove) == false)
-      fillDays(gen);
-    super.fillWeeklyOperation(gen);
+      fillDays();
+    super.fillWeeklyOperation();
   }
 
 }

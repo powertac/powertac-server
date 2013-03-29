@@ -18,7 +18,6 @@ package org.powertac.householdcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -53,7 +52,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  Vector<Integer> createWorkingDaysVector (int days, Random gen)
+  Vector<Integer> createWorkingDaysVector (int days)
   {
     // Creating an auxiliary variables
     Vector<Integer> v = new Vector<Integer>(days);
@@ -111,7 +110,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  Vector<Integer> createVacationVector (int duration, Random gen)
+  Vector<Integer> createVacationVector (int duration)
   {
 
     // Create auxiliary variables
@@ -143,7 +142,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  int workingDaysRandomizer (Properties conf, Random gen)
+  int workingDaysRandomizer (Properties conf)
   {
     int returnValue;
     int twoDays = Integer.parseInt(conf.getProperty("TwoDays"));

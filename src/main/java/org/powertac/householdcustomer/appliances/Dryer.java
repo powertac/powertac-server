@@ -18,9 +18,9 @@ package org.powertac.householdcustomer.appliances;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -39,8 +39,10 @@ public class Dryer extends SemiShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
+    gen = generator;
     // Filling the base variables
     name = household + " Dryer";
     saturation = Double.parseDouble(conf.getProperty("DryerSaturation"));
@@ -51,7 +53,7 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
 
     // Inform the washing machine for the existence of the dryer
@@ -188,7 +190,7 @@ public class Dryer extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -212,7 +214,7 @@ public class Dryer extends SemiShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
     for (Appliance appliance: applianceOf.getAppliances()) {
       if (appliance instanceof WashingMachine) {
@@ -221,7 +223,7 @@ public class Dryer extends SemiShiftingAppliance
         break;
       }
     }
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

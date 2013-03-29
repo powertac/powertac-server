@@ -18,9 +18,9 @@ package org.powertac.householdcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.Status;
 
@@ -36,23 +36,29 @@ public class MostlyPresentPerson extends Person
 {
 
   @Override
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
     // Variables Taken from the configuration file
     double sicknessMean = Double.parseDouble(conf.getProperty("SicknessMean"));
     double sicknessDev = Double.parseDouble(conf.getProperty("SicknessDev"));
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double MPLeisure = Double.parseDouble(conf.getProperty("MPLeisure"));
 
     // Filling the main variables
+    gen = generator;
     name = AgentName;
     status = Status.Normal;
-    sicknessVector = createSicknessVector(sicknessMean, sicknessDev, gen);
+    sicknessVector = createSicknessVector(sicknessMean, sicknessDev);
     this.publicVacationVector = publicVacationVector;
     int x = (int) (gen.nextGaussian() + MPLeisure);
-    leisureVector = createLeisureVector(x, gen);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
   }
 
   @Override
@@ -85,7 +91,8 @@ public class MostlyPresentPerson extends Person
     log.debug("Weekly Routine Length : " + weeklyRoutine.size());
     log.debug("Weekly Routine : ");
 
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + (i));
       ListIterator<Status> iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
@@ -94,20 +101,24 @@ public class MostlyPresentPerson extends Person
   }
 
   @Override
-  public void refresh (Properties conf, Random gen)
+  public void refresh (Properties conf)
   {
 
     // Renew Variables
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double MPLeisure = Double.parseDouble(conf.getProperty("MPLeisure"));
-    double vacationAbsence = Double.parseDouble(conf.getProperty("VacationAbsence"));
+    double vacationAbsence =
+      Double.parseDouble(conf.getProperty("VacationAbsence"));
 
     int x = (int) (gen.nextGaussian() + MPLeisure);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
-    leisureVector = createLeisureVector(x, gen);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-      fillDailyRoutine(i, vacationAbsence, gen);
+      fillDailyRoutine(i, vacationAbsence);
       weeklyRoutine.add(dailyRoutine);
     }
   }

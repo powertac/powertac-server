@@ -19,11 +19,11 @@ package org.powertac.householdcustomer.customers;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.appliances.AirCondition;
@@ -163,6 +163,12 @@ public class Household
   public Village householdOf;
 
   /**
+   * This variable is utilized for the creation of the RandomSeed numbers and is
+   * taken from the service.
+   */
+  RandomSeed gen;
+
+  /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the household and then fill it with persons
    * and appliances as it seems fit.
@@ -174,8 +180,10 @@ public class Household
    * @return
    */
   public void initialize (String HouseName, Properties conf,
-                          Vector<Integer> publicVacationVector, Random gen)
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
+    gen = generator;
     double va = Double.parseDouble(conf.getProperty("VacationAbsence"));
     name = HouseName;
     int persons = memberRandomizer(conf, gen);
@@ -184,7 +192,7 @@ public class Household
 
     for (Person member: members) {
       for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-        member.fillDailyRoutine(i, va, gen);
+        member.fillDailyRoutine(i, va);
         member.getWeeklyRoutine().add(member.getDailyRoutine());
         member.setMemberOf(this);
       }
@@ -285,7 +293,7 @@ public class Household
   }
 
   /**
-   * This function is creating a random number of person (given by the next
+   * This function is creating a RandomSeed number of person (given by the next
    * function) and add them to the current household, filling it up with life.
    * 
    * @param counter
@@ -295,7 +303,7 @@ public class Household
    * @return
    */
   void addPerson (int counter, Properties conf,
-                  Vector<Integer> publicVacationVector, Random gen)
+                  Vector<Integer> publicVacationVector, RandomSeed gen)
   {
     // Taking parameters from configuration file
     int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
@@ -433,7 +441,7 @@ public class Household
    * @param gen
    * @return
    */
-  int memberRandomizer (Properties conf, Random gen)
+  int memberRandomizer (Properties conf, RandomSeed gen)
   {
     int one = Integer.parseInt(conf.getProperty("OnePerson"));
     int two = Integer.parseInt(conf.getProperty("TwoPersons"));
@@ -475,14 +483,14 @@ public class Household
    * @param gen
    * @return
    */
-  void checkProbability (Appliance app, Random gen)
+  void checkProbability (Appliance app, RandomSeed gen)
   {
     // Creating auxiliary variables
 
     int x = gen.nextInt(VillageConstants.PERCENTAGE);
     int threshold = (int) (app.getSaturation() * VillageConstants.PERCENTAGE);
     if (x < threshold) {
-      app.fillWeeklyOperation(gen);
+      app.fillWeeklyOperation();
       app.createWeeklyPossibilityOperationVector();
     }
     else
@@ -498,7 +506,7 @@ public class Household
    * @param gen
    * @return
    */
-  void fillAppliances (Properties conf, Random gen)
+  void fillAppliances (Properties conf, RandomSeed gen)
   {
 
     // NOT SHIFTING ================================
@@ -515,7 +523,7 @@ public class Household
     appliances.add(ce);
     ce.setApplianceOf(this);
     ce.initialize(this.name, conf, gen);
-    ce.fillWeeklyOperation(gen);
+    ce.fillWeeklyOperation();
     ce.createWeeklyPossibilityOperationVector();
 
     // ICT
@@ -523,7 +531,7 @@ public class Household
     appliances.add(ict);
     ict.setApplianceOf(this);
     ict.initialize(this.name, conf, gen);
-    ict.fillWeeklyOperation(gen);
+    ict.fillWeeklyOperation();
     ict.createWeeklyPossibilityOperationVector();
 
     // Lights
@@ -531,7 +539,7 @@ public class Household
     appliances.add(lights);
     lights.setApplianceOf(this);
     lights.initialize(this.name, conf, gen);
-    lights.fillWeeklyOperation(gen);
+    lights.fillWeeklyOperation();
     lights.createWeeklyPossibilityOperationVector();
 
     // Others
@@ -539,7 +547,7 @@ public class Household
     appliances.add(others);
     others.setApplianceOf(this);
     others.initialize(this.name, conf, gen);
-    others.fillWeeklyOperation(gen);
+    others.fillWeeklyOperation();
     others.createWeeklyPossibilityOperationVector();
 
     // Circulation Pump
@@ -556,7 +564,7 @@ public class Household
     appliances.add(ref);
     ref.setApplianceOf(this);
     ref.initialize(this.name, conf, gen);
-    ref.fillWeeklyOperation(gen);
+    ref.fillWeeklyOperation();
     ref.createWeeklyPossibilityOperationVector();
 
     // Freezer
@@ -601,7 +609,7 @@ public class Household
     appliances.add(wm);
     wm.setApplianceOf(this);
     wm.initialize(this.name, conf, gen);
-    wm.fillWeeklyOperation(gen);
+    wm.fillWeeklyOperation();
     wm.createWeeklyPossibilityOperationVector();
 
     // Dryer
@@ -999,18 +1007,18 @@ public class Household
    * @param gen
    * @return
    */
-  void refresh (Properties conf, Random gen)
+  void refresh (Properties conf, RandomSeed gen)
   {
 
     // For each member of the household
     for (Person member: members) {
-      member.refresh(conf, gen);
+      member.refresh(conf);
     }
 
     // For each appliance of the household
     for (Appliance appliance: appliances) {
       if (!(appliance instanceof Dryer))
-        appliance.refresh(gen);
+        appliance.refresh();
 
     }
 
@@ -1102,7 +1110,7 @@ public class Household
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                           TariffEvaluationHelper tariffEvalHelper, int day,
-                          Random gen)
+                          RandomSeed gen)
   {
 
     double[] dominantLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -1111,8 +1119,7 @@ public class Household
 
     if (appliance.getOverallPower() != -1)
       dominantLoad =
-        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day,
-                                gen);
+        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day);
 
     log.debug("Dominant Appliance " + appliance.toString() + " Overall Power: "
               + appliance.getOverallPower());

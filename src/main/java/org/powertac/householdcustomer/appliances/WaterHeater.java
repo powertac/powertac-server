@@ -19,9 +19,9 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -45,9 +45,11 @@ public class WaterHeater extends FullyShiftingAppliance
   HeaterType type;
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Creating Auxiliary Variables
+    gen = generator;
     int x = 1 + gen.nextInt(VillageConstants.PERCENTAGE);
     int limit = Integer.parseInt(conf.getProperty("InstantHeater"));
     // Filling the base variables
@@ -80,7 +82,7 @@ public class WaterHeater extends FullyShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing And Creating Auxiliary Variables
     loadVector = new Vector<Integer>();
@@ -211,7 +213,7 @@ public class WaterHeater extends FullyShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -364,9 +366,9 @@ public class WaterHeater extends FullyShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

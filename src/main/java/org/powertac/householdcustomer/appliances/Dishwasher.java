@@ -19,9 +19,9 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -45,8 +45,10 @@ public class Dishwasher extends SemiShiftingAppliance
   // Mode mode = Mode.One
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
+    gen = generator;
     // Filling the base variables
     name = household + " Dishwasher";
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
@@ -106,7 +108,7 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
 
     // Initializing Variables
@@ -171,7 +173,7 @@ public class Dishwasher extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -230,7 +232,7 @@ public class Dishwasher extends SemiShiftingAppliance
         }
 
         if (counter == possibleHours.size()) {
-          minIndex = (int) (Math.random() * possibleHours.size());
+          minIndex = (int) (gen.nextDouble() * possibleHours.size());
           // log.debug("All the same, I choose: " + minIndex);
         }
 
@@ -271,9 +273,9 @@ public class Dishwasher extends SemiShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

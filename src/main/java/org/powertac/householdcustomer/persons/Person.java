@@ -18,10 +18,10 @@ package org.powertac.householdcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Household;
 import org.powertac.householdcustomer.enumerations.Status;
@@ -97,6 +97,12 @@ public class Person
   Vector<Vector<Status>> weeklyRoutine = new Vector<Vector<Status>>();
 
   /**
+   * This variable is utilized for the creation of the RandomSeed numbers and is
+   * taken from the service.
+   */
+  RandomSeed gen;
+
+  /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the person as it should for this type.
    * 
@@ -106,7 +112,9 @@ public class Person
    * @param gen
    * @return
    */
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
   }
 
@@ -196,7 +204,7 @@ public class Person
    * @param gen
    * @return
    */
-  Vector<Integer> createLeisureVector (int counter, Random gen)
+  Vector<Integer> createLeisureVector (int counter)
   {
     // Create auxiliary variable
     Vector<Integer> v = new Vector<Integer>();
@@ -219,7 +227,7 @@ public class Person
    * @param gen
    * @return
    */
-  Vector<Integer> createSicknessVector (double mean, double dev, Random gen)
+  Vector<Integer> createSicknessVector (double mean, double dev)
   {
     // Create auxiliary variables
 
@@ -227,7 +235,9 @@ public class Person
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(VillageConstants.DAYS_OF_COMPETITION + VillageConstants.DAYS_OF_BOOTSTRAP) + 1;
+      int x =
+        gen.nextInt(VillageConstants.DAYS_OF_COMPETITION
+                    + VillageConstants.DAYS_OF_BOOTSTRAP) + 1;
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -258,7 +268,7 @@ public class Person
    * @param gen
    * @return
    */
-  public void fillDailyRoutine (int day, double vacationAbsence, Random gen)
+  public void fillDailyRoutine (int day, double vacationAbsence)
   {
     // Create auxiliary variable
     Status st;
@@ -267,29 +277,35 @@ public class Person
     dailyRoutine = new Vector<Status>();
     if (sicknessVector.contains(day)) {
       fillSick();
-    } else {
-      if (publicVacationVector.contains(day) || (this instanceof WorkingPerson && vacationVector.contains(day))) {
+    }
+    else {
+      if (publicVacationVector.contains(day)
+          || (this instanceof WorkingPerson && vacationVector.contains(day))) {
         if (gen.nextDouble() < vacationAbsence) {
           for (int i = 0; i < VillageConstants.QUARTERS_OF_DAY; i++) {
             st = Status.Vacation;
             dailyRoutine.add(st);
           }
-        } else {
-          normalFill();
-          addLeisure(weekday, gen);
         }
-      } else {
+        else {
+          normalFill();
+          addLeisure(weekday);
+        }
+      }
+      else {
         normalFill();
         if (this instanceof WorkingPerson) {
           int index = workingDays.indexOf(weekday);
           if (index > -1) {
             fillWork();
-            addLeisureWorking(weekday, gen);
-          } else {
-            addLeisure(weekday, gen);
+            addLeisureWorking(weekday);
           }
-        } else {
-          addLeisure(weekday, gen);
+          else {
+            addLeisure(weekday);
+          }
+        }
+        else {
+          addLeisure(weekday);
         }
       }
     }
@@ -303,7 +319,7 @@ public class Person
    * @param gen
    * @return
    */
-  void addLeisure (int weekday, Random gen)
+  void addLeisure (int weekday)
   {
     // Create auxiliary variables
     ListIterator<Integer> iter = leisureVector.listIterator();
@@ -311,7 +327,9 @@ public class Person
 
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
-        int start = VillageConstants.START_OF_LEISURE + gen.nextInt(VillageConstants.LEISURE_WINDOW);
+        int start =
+          VillageConstants.START_OF_LEISURE
+                  + gen.nextInt(VillageConstants.LEISURE_WINDOW);
         for (int i = start; i < start + leisureDuration; i++) {
           st = Status.Leisure;
           dailyRoutine.set(i, st);
@@ -330,7 +348,7 @@ public class Person
    * @param gen
    * @return
    */
-  void addLeisureWorking (int weekday, Random gen)
+  void addLeisureWorking (int weekday)
   {
 
   }
@@ -413,7 +431,7 @@ public class Person
    * @param gen
    * @return
    */
-  public void refresh (Properties config, Random gen)
+  public void refresh (Properties config)
   {
 
   }

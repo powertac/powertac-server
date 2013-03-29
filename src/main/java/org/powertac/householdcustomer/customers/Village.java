@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffSubscription;
@@ -208,10 +208,10 @@ public class Village extends AbstractCustomer
     new TariffEvaluationHelper();
 
   /**
-   * This variable is utilized for the creation of the random numbers and is
+   * This variable is utilized for the creation of the RandomSeed numbers and is
    * taken from the service.
    */
-  Random gen;
+  RandomSeed gen;
 
   /**
    * These variables are mapping of the characteristics of the types of houses.
@@ -234,7 +234,8 @@ public class Village extends AbstractCustomer
    * These vectors contain the houses of type in the village. There are 4 types
    * available: 1) Not Shifting Houses: They do not change the tariff
    * subscriptions during the game. 2) Randomly Shifting Houses: They change
-   * their tariff subscriptions in a random way. 3) Regularly Shifting Houses:
+   * their tariff subscriptions in a RandomSeed way. 3) Regularly Shifting
+   * Houses:
    * They change their tariff subscriptions during the game in regular time
    * periods. 4) Smart Shifting Houses: They change their tariff subscriptions
    * in a smart way in order to minimize their costs.
@@ -306,7 +307,7 @@ public class Village extends AbstractCustomer
    * @param conf
    * @param gen
    */
-  public void initialize (Properties conf, Random generator)
+  public void initialize (Properties conf, RandomSeed generator)
   {
     // Initializing variables
 
@@ -448,7 +449,7 @@ public class Village extends AbstractCustomer
   /**
    * The first implementation of the changing subscription function. Here we
    * just put the tariff we want to change and the whole population is moved to
-   * another random tariff.
+   * another RandomSeed tariff.
    * 
    * @param tariff
    */
@@ -510,7 +511,7 @@ public class Village extends AbstractCustomer
   /**
    * In this overloaded implementation of the changing subscription function,
    * Here we just put the tariff we want to change and the whole population is
-   * moved to another random tariff.
+   * moved to another RandomSeed tariff.
    * 
    * @param tariff
    */
@@ -2494,7 +2495,7 @@ public class Village extends AbstractCustomer
   // =====VECTOR CREATION===== //
 
   /**
-   * This function is creating a certain number of random days that will be
+   * This function is creating a certain number of RandomSeed days that will be
    * public vacation for the people living in the environment.
    * 
    * @param days

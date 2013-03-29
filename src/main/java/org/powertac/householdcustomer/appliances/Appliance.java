@@ -18,10 +18,10 @@ package org.powertac.householdcustomer.appliances;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -54,6 +54,12 @@ public class Appliance
 
   /** The household that the appliance is installed at. **/
   protected Household applianceOf;
+
+  /**
+   * This variable is utilized for the creation of the RandomSeed numbers and is
+   * taken from the service.
+   */
+  RandomSeed gen;
 
   /**
    * This variable shows the possibility (%) that this appliance is contained in
@@ -211,7 +217,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf, RandomSeed gen)
   {
 
   }
@@ -228,7 +234,7 @@ public class Appliance
    */
   public double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
     return new double[VillageConstants.HOURS_OF_DAY];
   }
@@ -268,7 +274,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void fillDailyOperation (int times, Random gen)
+  public void fillDailyOperation (int times)
   {
 
   }
@@ -280,10 +286,10 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void fillWeeklyOperation (Random gen)
+  public void fillWeeklyOperation ()
   {
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++)
-      fillDailyOperation(i, gen);
+      fillDailyOperation(i);
   }
 
   /**
@@ -328,7 +334,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void refresh (Random gen)
+  public void refresh ()
   {
   }
 

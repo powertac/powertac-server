@@ -19,9 +19,9 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -64,9 +64,11 @@ public class WashingMachine extends SemiShiftingAppliance
   // Reaction reaction = Reaction.Strong
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = household + " Washing Machine";
     saturation =
       Double.parseDouble(conf.getProperty("WashingMachineSaturation"));
@@ -79,7 +81,7 @@ public class WashingMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing Variables
     loadVector = new Vector<Integer>();
@@ -161,7 +163,7 @@ public class WashingMachine extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -357,10 +359,10 @@ public class WashingMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
 
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
 
     // if we have dryer in the household we refresh it too
@@ -369,7 +371,7 @@ public class WashingMachine extends SemiShiftingAppliance
       for (int i = 0; i < applianceList.size(); i++) {
         if (applianceList.get(i) instanceof Dryer) {
           dryerIndex = i;
-          applianceList.get(i).refresh(gen);
+          applianceList.get(i).refresh();
           break;
         }
       }

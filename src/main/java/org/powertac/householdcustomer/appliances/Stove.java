@@ -18,9 +18,9 @@ package org.powertac.householdcustomer.appliances;
 
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.householdcustomer.configurations.VillageConstants;
@@ -37,9 +37,11 @@ public class Stove extends SemiShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = household + " Stove";
     saturation = Double.parseDouble(conf.getProperty("StoveSaturation"));
     power =
@@ -50,7 +52,7 @@ public class Stove extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
 
     // Initializing Variables
@@ -115,7 +117,7 @@ public class Stove extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -204,9 +206,9 @@ public class Stove extends SemiShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

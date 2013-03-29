@@ -16,9 +16,9 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.Gaussian;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
@@ -40,18 +40,21 @@ public class Lights extends NotShiftingAppliance
                    // VillageConstants.LUMINANCE_VARIANCE)
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = household + " Lights";
     saturation = 1;
-    power = (int) (VillageConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.LIGHTS_POWER_MEAN);
+    power =
+      (int) (VillageConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.LIGHTS_POWER_MEAN);
     cycleDuration = VillageConstants.LIGHTS_DURATION_CYCLE;
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -64,7 +67,10 @@ public class Lights extends NotShiftingAppliance
 
       if (applianceOf.isEmpty(weekday, i) == false) {
 
-        luminance = VillageConstants.LUMINANCE_FACTOR * Gaussian.phi(i, VillageConstants.MID_DAY_QUARTER, VillageConstants.LUMINANCE_VARIANCE);
+        luminance =
+          VillageConstants.LUMINANCE_FACTOR
+                  * Gaussian.phi(i, VillageConstants.MID_DAY_QUARTER,
+                                 VillageConstants.LUMINANCE_VARIANCE);
 
         // System.out.println("Quarter:" + i + " Luminance: " + luminance);
         if (luminance < gen.nextDouble()) {
@@ -80,10 +86,10 @@ public class Lights extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
 
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

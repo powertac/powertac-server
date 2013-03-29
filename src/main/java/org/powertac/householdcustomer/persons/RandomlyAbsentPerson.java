@@ -18,9 +18,9 @@ package org.powertac.householdcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.Status;
 
@@ -36,38 +36,50 @@ public class RandomlyAbsentPerson extends WorkingPerson
 {
 
   @Override
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
     // Variables Taken from the configuration file
     double sicknessMean = Double.parseDouble(conf.getProperty("SicknessMean"));
     double sicknessDev = Double.parseDouble(conf.getProperty("SicknessDev"));
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double RALeisure = Double.parseDouble(conf.getProperty("RALeisure"));
-    double workingDurationMean = Double.parseDouble(conf.getProperty("WorkingDurationMean"));
-    double workingDurationDev = Double.parseDouble(conf.getProperty("WorkingDurationDev"));
-    double vacationDurationMean = Double.parseDouble(conf.getProperty("VacationDurationMean"));
-    double vacationDurationDev = Double.parseDouble(conf.getProperty("VacationDurationDev"));
+    double workingDurationMean =
+      Double.parseDouble(conf.getProperty("WorkingDurationMean"));
+    double workingDurationDev =
+      Double.parseDouble(conf.getProperty("WorkingDurationDev"));
+    double vacationDurationMean =
+      Double.parseDouble(conf.getProperty("VacationDurationMean"));
+    double vacationDurationDev =
+      Double.parseDouble(conf.getProperty("VacationDurationDev"));
 
     // Filling the main variables
+    gen = generator;
     name = AgentName;
     status = Status.Normal;
 
     // Filling the sickness and public Vacation Vectors
-    sicknessVector = createSicknessVector(sicknessMean, sicknessDev, gen);
+    sicknessVector = createSicknessVector(sicknessMean, sicknessDev);
     this.publicVacationVector = publicVacationVector;
     // Filling the leisure variables
     int x = (int) (gen.nextGaussian() + RALeisure);
-    leisureVector = createLeisureVector(x, gen);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
     // Filling Working variables
-    int work = workingDaysRandomizer(conf, gen);
-    workingDays = createWorkingDaysVector(work, gen);
-    workingStartHour = createWorkingStartHour(gen);
-    workingDuration = (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
+    int work = workingDaysRandomizer(conf);
+    workingDays = createWorkingDaysVector(work);
+    workingStartHour = createWorkingStartHour();
+    workingDuration =
+      (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
     // Filling Vacation Variables
-    vacationDuration = (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
-    vacationVector = createVacationVector(vacationDuration, gen);
+    vacationDuration =
+      (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
+    vacationVector = createVacationVector(vacationDuration);
   }
 
   /**
@@ -77,7 +89,7 @@ public class RandomlyAbsentPerson extends WorkingPerson
    * @param gen
    * @return
    */
-  int createWorkingStartHour (Random gen)
+  int createWorkingStartHour ()
   {
     int x = gen.nextInt(VillageConstants.NUMBER_OF_SHIFTS);
     return (x * VillageConstants.HOURS_OF_SHIFT_WORK * VillageConstants.QUARTERS_OF_HOUR);
@@ -91,7 +103,7 @@ public class RandomlyAbsentPerson extends WorkingPerson
    * @param gen
    * @return
    */
-  void addLeisureWorking (int weekday, Random gen)
+  void addLeisureWorking (int weekday)
   {
     // Create auxiliary variables
     ListIterator<Integer> iter = leisureVector.listIterator();
@@ -99,25 +111,36 @@ public class RandomlyAbsentPerson extends WorkingPerson
     while (iter.hasNext()) {
       if (iter.next() == weekday) {
         int start = workingStartHour + workingDuration;
-        if (workingStartHour == VillageConstants.SHIFT_START_1 && ((VillageConstants.LEISURE_WINDOW + 1) - start > 0)) {
-          int startq = gen.nextInt((VillageConstants.LEISURE_WINDOW + 1) - start) + (start + VillageConstants.SHIFT_START_2);
+        if (workingStartHour == VillageConstants.SHIFT_START_1
+            && ((VillageConstants.LEISURE_WINDOW + 1) - start > 0)) {
+          int startq =
+            gen.nextInt((VillageConstants.LEISURE_WINDOW + 1) - start)
+                    + (start + VillageConstants.SHIFT_START_2);
           for (int i = startq; i < startq + leisureDuration; i++) {
             st = Status.Leisure;
             dailyRoutine.set(i, st);
             if (i == VillageConstants.QUARTERS_OF_DAY - 1)
               break;
           }
-        } else {
+        }
+        else {
           if (workingStartHour == VillageConstants.SHIFT_START_2) {
-            int startq = start + gen.nextInt(VillageConstants.LEISURE_WINDOW_SHIFT - start);
+            int startq =
+              start
+                      + gen.nextInt(VillageConstants.LEISURE_WINDOW_SHIFT
+                                    - start);
             for (int i = startq; i < startq + leisureDuration; i++) {
               st = Status.Leisure;
               dailyRoutine.set(i, st);
               if (i == VillageConstants.QUARTERS_OF_DAY - 1)
                 break;
             }
-          } else {
-            int startq = VillageConstants.SHIFT_START_2 + gen.nextInt(VillageConstants.SHIFT_START_3 - (VillageConstants.LEISURE_WINDOW - 1));
+          }
+          else {
+            int startq =
+              VillageConstants.SHIFT_START_2
+                      + gen.nextInt(VillageConstants.SHIFT_START_3
+                                    - (VillageConstants.LEISURE_WINDOW - 1));
             for (int i = startq; i < startq + leisureDuration; i++) {
               st = Status.Leisure;
               dailyRoutine.set(i, st);
@@ -140,7 +163,8 @@ public class RandomlyAbsentPerson extends WorkingPerson
         st = Status.Working;
         dailyRoutine.set(i, st);
       }
-      for (int i = workingDuration; i < workingDuration + VillageConstants.SHIFT_START_2; i++) {
+      for (int i = workingDuration; i < workingDuration
+                                        + VillageConstants.SHIFT_START_2; i++) {
         st = Status.Sleeping;
         dailyRoutine.set(i, st);
       }
@@ -148,7 +172,8 @@ public class RandomlyAbsentPerson extends WorkingPerson
         st = Status.Normal;
         dailyRoutine.set(i, st);
       }
-    } else {
+    }
+    else {
       if (workingStartHour == VillageConstants.SHIFT_START_2) {
         for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
           st = Status.Sleeping;
@@ -158,7 +183,8 @@ public class RandomlyAbsentPerson extends WorkingPerson
           st = Status.Normal;
           dailyRoutine.set(i, st);
         }
-        for (int i = VillageConstants.SHIFT_START_2; i < workingDuration + VillageConstants.SHIFT_START_2; i++) {
+        for (int i = VillageConstants.SHIFT_START_2; i < workingDuration
+                                                         + VillageConstants.SHIFT_START_2; i++) {
           st = Status.Working;
           dailyRoutine.set(i, st);
         }
@@ -170,7 +196,8 @@ public class RandomlyAbsentPerson extends WorkingPerson
           st = Status.Sleeping;
           dailyRoutine.set(i, st);
         }
-      } else {
+      }
+      else {
         for (int i = VillageConstants.START_OF_SLEEPING_1; i < VillageConstants.END_OF_SLEEPING_1; i++) {
           st = Status.Sleeping;
           dailyRoutine.set(i, st);
@@ -179,13 +206,16 @@ public class RandomlyAbsentPerson extends WorkingPerson
           st = Status.Normal;
           dailyRoutine.set(i, st);
         }
-        if (workingDuration > VillageConstants.HOURS_OF_SHIFT_WORK * VillageConstants.QUARTERS_OF_HOUR) {
+        if (workingDuration > VillageConstants.HOURS_OF_SHIFT_WORK
+                              * VillageConstants.QUARTERS_OF_HOUR) {
           for (int i = VillageConstants.SHIFT_START_3; i < VillageConstants.QUARTERS_OF_DAY; i++) {
             st = Status.Working;
             dailyRoutine.set(i, st);
           }
-        } else {
-          for (int i = VillageConstants.SHIFT_START_3; i < VillageConstants.SHIFT_START_3 + workingDuration; i++) {
+        }
+        else {
+          for (int i = VillageConstants.SHIFT_START_3; i < VillageConstants.SHIFT_START_3
+                                                           + workingDuration; i++) {
             if (i >= VillageConstants.QUARTERS_OF_DAY)
               break;
             st = Status.Working;
@@ -201,24 +231,28 @@ public class RandomlyAbsentPerson extends WorkingPerson
   }
 
   @Override
-  public void refresh (Properties conf, Random gen)
+  public void refresh (Properties conf)
   {
     // Renew Variables
-    double leisureDurationMean = Double.parseDouble(conf.getProperty("LeisureDurationMean"));
-    double leisureDurationDev = Double.parseDouble(conf.getProperty("LeisureDurationDev"));
+    double leisureDurationMean =
+      Double.parseDouble(conf.getProperty("LeisureDurationMean"));
+    double leisureDurationDev =
+      Double.parseDouble(conf.getProperty("LeisureDurationDev"));
     double RALeisure = Double.parseDouble(conf.getProperty("RALeisure"));
-    double vacationAbsence = Double.parseDouble(conf.getProperty("VacationAbsence"));
+    double vacationAbsence =
+      Double.parseDouble(conf.getProperty("VacationAbsence"));
 
-    int work = workingDaysRandomizer(conf, gen);
-    workingDays = createWorkingDaysVector(work, gen);
-    workingStartHour = createWorkingStartHour(gen);
+    int work = workingDaysRandomizer(conf);
+    workingDays = createWorkingDaysVector(work);
+    workingStartHour = createWorkingStartHour();
 
     int x = (int) (gen.nextGaussian() + RALeisure);
-    leisureDuration = (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
-    leisureVector = createLeisureVector(x, gen);
+    leisureDuration =
+      (int) (leisureDurationDev * gen.nextGaussian() + leisureDurationMean);
+    leisureVector = createLeisureVector(x);
 
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
-      fillDailyRoutine(i, vacationAbsence, gen);
+      fillDailyRoutine(i, vacationAbsence);
       weeklyRoutine.add(dailyRoutine);
     }
   }
