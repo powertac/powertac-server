@@ -37,6 +37,7 @@ import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.interfaces.*;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.powertac.factoredcustomer.TariffSubscriberStructure.AllocationMethod;
 
 /**
@@ -89,11 +90,13 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     @Override
     public void initialize()
     {
-        inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
-                customerStructure.structureId, "InertiaSampler").getValue());
-        tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
-                customerStructure.structureId, "TariffSelector").getValue());
-        
+        inertiaSampler =
+                new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
+                                                        SeedIdGenerator.getId(), "InertiaSampler").getValue());
+        tariffSelector =
+                new Random(randomSeedRepo.getRandomSeed("factoredcustomer.DefaultUtilityOptimizer", 
+                                                        SeedIdGenerator.getId(), "TariffSelector").getValue());
+
         subscribeDefault();
     }
   

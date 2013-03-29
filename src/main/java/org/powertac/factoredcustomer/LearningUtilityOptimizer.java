@@ -30,6 +30,7 @@ import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.ProfileRecommendation.Opinion;
 import org.powertac.factoredcustomer.interfaces.*;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
 /**
  * Key class responsible for managing the tariff(s) for one customer across 
@@ -55,12 +56,12 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     public void initialize()
     {
         inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                customerStructure.structureId, "InertiaSampler").getValue());
+                                                                 SeedIdGenerator.getId(), "InertiaSampler").getValue());
         tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                customerStructure.structureId, "TariffSelector").getValue());
+                                                                 SeedIdGenerator.getId(), "TariffSelector").getValue());
         recommendationMaker = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                customerStructure.structureId, "RecommendationMaker").getValue());
-        
+                                                                      SeedIdGenerator.getId(), "RecommendationMaker").getValue());
+
         subscribeDefault();
     }
     

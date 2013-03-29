@@ -21,6 +21,7 @@ import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.*; 
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
 /**
  * Container class for one a large set of probability distribution samplers.
@@ -130,7 +131,7 @@ final class ProbabilityDistribution
         default: throw new Error("Invalid probability distribution type!");
         } 
         sampler.reseedRandomGenerator(randomSeedRepo.getRandomSeed("factoredcustomer.ProbabilityDistribution", 
-                                                                   distId, "Sampler").getValue());
+                                                                   SeedIdGenerator.getId(), "Sampler").getValue());
     }
         
     double drawSample()
