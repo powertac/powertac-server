@@ -273,7 +273,7 @@ public class WaterHeater extends FullyShiftingAppliance
           }
 
           if (counter == possibleHours.size()) {
-            minIndex = (int) (Math.random() * possibleHours.size());
+            minIndex = (int) (gen.nextDouble() * possibleHours.size());
             // log.debug("All the same, I choose: " + minIndex);
           }
 

@@ -234,7 +234,7 @@ public class WashingMachine extends SemiShiftingAppliance
         }
 
         if (counter == possibleHours.size()) {
-          minIndex = (int) (Math.random() * possibleHours.size());
+          minIndex = (int) (gen.nextDouble() * possibleHours.size());
           // log.debug("All the same, I choose: " +
           // possibleHours.get(minIndex));
         }
