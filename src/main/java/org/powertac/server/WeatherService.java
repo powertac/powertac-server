@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011-2013 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.powertac.server;
  *  weather server for weather data and serves it to the brokers logged into 
  *  the game.
  *
- * @author Erik Onarheim, Govert Buijs
+ * @author Erik Onarheim, Govert Buijs, John Collins
  */
 
 import com.thoughtworks.xstream.XStream;
@@ -69,9 +69,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   static private Logger log = Logger.getLogger(WeatherService.class.getName());
 
-  private Timeslot currentTime;
-  private int lastStatefileTimestamp = 0;
-
   @ConfigurableValue(valueType = "String", description = "Location of weather data to be reported")
   private String weatherLocation = "rotterdam";
 
@@ -91,6 +88,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   @ConfigurableValue(valueType = "Integer", description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
+
+  @ConfigurableValue(valueType = "Integer",
+          description = "Forecast offset (see issue #682)")
+  private int forecastOffset = 0; // Until #682 gets fixed, this should be 1
 
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -141,10 +142,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     int h = time.getStartInstant().get(DateTimeFieldType.clockhourOfDay()) % 24;
 
     return String.format("%04d-%02d-%02d %02d:00", y, m, d, h);
-  }
-
-  private void resetCurrentTime() {
-    currentTime = timeslotRepo.currentTimeslot();
   }
 
   // Make actual web request to the weather-server or get from file
@@ -201,8 +198,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   }
 
   private Data webRequest() {
-    resetCurrentTime();
-    String queryDate = dateString(currentTime);
+    String queryDate = dateString(timeslotRepo.currentTimeslot());
     log.info("Query datetime value for REST call: " + queryDate);
 
     try {
@@ -225,9 +221,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
-  private Data parseXML(Object input) {
-    resetCurrentTime();
-
+  private Data parseXML(Object input)
+  {
     if (input == null) {
       log.warn("Input to parseXML was null");
       return null;
@@ -275,14 +270,14 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
   }
 
-  private void processData(Data data) {
-    resetCurrentTime();
-
+  private void processData(Data data)
+  {
     processWeatherData(data);
     processForecastData(data);
   }
 
-  private void processWeatherData(Data data) {
+  private void processWeatherData(Data data)
+  {
     for (WeatherReport report : data.getWeatherReports()) {
       weatherReportRepo.add(report);
     }
@@ -292,25 +287,21 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     weatherReportRepo.runOnce();
   }
 
-  private void processForecastData(Data data) {
+  private void processForecastData(Data data)
+  {
     List<WeatherForecastPrediction> currentPredictions =
         new ArrayList<WeatherForecastPrediction>();
     int j = 0;
+    int time = timeslotRepo.currentSerialNumber();
     for (WeatherForecastPrediction prediction: data.getWeatherForecasts()) {
       currentPredictions.add(prediction);
 
       if ((++j % forecastHorizon) == 0) {
         // Add a forecast to the repo, increment to the next timeslot
-        WeatherForecast newForecast = new WeatherForecast(currentTime,
-            currentPredictions);
+        WeatherForecast newForecast =
+                new WeatherForecast(time++, currentPredictions);
         weatherForecastRepo.add(newForecast);
         currentPredictions = new ArrayList<WeatherForecastPrediction>();
-
-        if (currentTime == null) {
-          log.error("Null timeslot when adding forecasts to weatherForecastRepo");
-        } else {
-          currentTime = timeslotRepo.getNext(currentTime);
-        }
       }
     }
 
@@ -319,7 +310,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     weatherForecastRepo.runOnce();
   }
 
-  private void broadcastWeatherReports() {
+  private void broadcastWeatherReports()
+  {
     WeatherReport report = null;
     try {
       report = weatherReportRepo.currentWeatherReport();
@@ -330,14 +322,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     if (report == null) {
       // In the event of an error return a default
       log.error("null weather-report!");
-      brokerProxyService.broadcastMessage(new WeatherReport(timeslotRepo
-          .currentTimeslot(), 0.0, 0.0, 0.0, 0.0));
+      brokerProxyService.broadcastMessage(new WeatherReport(timeslotRepo.currentSerialNumber(),
+          0.0, 0.0, 0.0, 0.0));
     } else {
       brokerProxyService.broadcastMessage(report);
     }
   }
 
-  private void broadcastWeatherForecasts() {
+  private void broadcastWeatherForecasts()
+  {
     WeatherForecast forecast = null;
     try {
       forecast = weatherForecastRepo.currentWeatherForecast();
@@ -354,14 +347,15 @@ public class WeatherService extends TimeslotPhaseProcessor implements
             0.0, 0.0, 0.0));
       }
       brokerProxyService.broadcastMessage(new WeatherForecast(
-          timeslotRepo.currentTimeslot(), currentPredictions));
+          timeslotRepo.currentSerialNumber(), currentPredictions));
     } else {
       brokerProxyService.broadcastMessage(forecast);
     }
   }
 
   @Override
-  public void setDefaults() {
+  public void setDefaults()
+  {
   }
 
   @Override
@@ -372,9 +366,20 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   }
 
   // Helper classes
-  private class WeatherReportConverter implements Converter {
+  // This works only if you create a new one, or init the timeIndex,
+  // prior to processing a batch
+  private class WeatherReportConverter implements Converter
+  {
+    private int timeIndex = 0;
+    
     public WeatherReportConverter() {
       super();
+      timeIndex = timeslotRepo.currentSerialNumber();
+    }
+    
+    void resetTimeIndex ()
+    {
+      timeIndex = timeslotRepo.currentSerialNumber();
     }
 
     @Override
@@ -387,7 +392,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
                         MarshallingContext context) {
     }
 
-    @SuppressWarnings("static-access")
     @Override
     public Object unmarshal(HierarchicalStreamReader reader,
                             UnmarshallingContext context) {
@@ -398,17 +402,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       //String location = reader.getAttribute("location");
       //String date = reader.getAttribute("date");
 
-      WeatherReport wr = new WeatherReport(currentTime,
+      WeatherReport wr = new WeatherReport(timeIndex++,
           Double.parseDouble(temp), Double.parseDouble(wind),
           Double.parseDouble(dir), Double.parseDouble(cloudCvr));
-
-      try {
-        currentTime = timeslotRepo.getNext(currentTime);
-        return wr;
-      }
-      catch (Exception e) {
-        return null;
-      }
+      return wr;
     }
   }
 
@@ -439,7 +436,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       //String origin = reader.getAttribute("origin");
       //String date = reader.getAttribute("date");
 
-      return new WeatherForecastPrediction(Integer.parseInt(id),
+      return new WeatherForecastPrediction(Integer.parseInt(id) + forecastOffset,
           Double.parseDouble(temp), Double.parseDouble(wind),
           Double.parseDouble(dir), Double.parseDouble(cloudCvr));
     }
@@ -458,29 +455,30 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       return weatherReports;
     }
 
-    public void setWeatherReports(List<WeatherReport> weatherReports) {
-      this.weatherReports = weatherReports;
-    }
+    //public void setWeatherReports(List<WeatherReport> weatherReports) {
+    //  this.weatherReports = weatherReports;
+    //}
 
     public List<WeatherForecastPrediction> getWeatherForecasts() {
       return weatherForecasts;
     }
 
-    public void setWeatherForecasts(
-        List<WeatherForecastPrediction> weatherForecasts) {
-      this.weatherForecasts = weatherForecasts;
-    }
+    //public void setWeatherForecasts(
+    //    List<WeatherForecastPrediction> weatherForecasts) {
+    //  this.weatherForecasts = weatherForecasts;
+    //}
 
     public List<EnergyReport> getEnergyReports() {
       return energyReports;
     }
 
-    public void setEnergyReports(List<EnergyReport> energyReports) {
-      this.energyReports = energyReports;
-    }
+    //public void setEnergyReports(List<EnergyReport> energyReports) {
+    //  this.energyReports = energyReports;
+    //}
   }
 
-  private class WeatherXmlExtractor {
+  private class WeatherXmlExtractor
+  {
     /**
      * This class extracts a part of a weather-xml, which contacins the weather
      * for the complete duration of the simulation.
@@ -492,7 +490,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     private Element weatherReports;
     private Element weatherForecasts;
 
-    public WeatherXmlExtractor(String fileName) {
+    public WeatherXmlExtractor(String fileName)
+    {
       try {
         DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory
             .newInstance();
@@ -518,9 +517,11 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       catch (Exception ignored) {}
     }
 
-    private String extractPartialXml() {
-      resetCurrentTime();
-      String startDate = dateStringLong(currentTime);
+    private String extractPartialXml()
+    {
+      Timeslot currentTimeslot =timeslotRepo.currentTimeslot(); 
+      String startDate =
+              dateStringLong(currentTimeslot);
 
       if (nodeListRead == null) {
         return null;
@@ -541,6 +542,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
         // Find all weatherForecasts belonging to the 24 reports
         for (int i = 0; i < weatherReqInterval; i++) {
+          int ts = currentTimeslot.getSerialNumber() + i;
           for (int j = 0; j < nodeListRead.getLength(); j++) {
             Node currentNode = nodeListRead.item(j);
 
@@ -548,12 +550,10 @@ public class WeatherService extends TimeslotPhaseProcessor implements
               continue;
             }
 
-            String origin = dateStringLong(currentTime);
+            String origin = dateStringLong(timeslotRepo.findOrCreateBySerialNumber(ts));
             NodeList nodes = currentNode.getChildNodes();
             findForecasts(nodes, origin);
           }
-
-          currentTime = timeslotRepo.getNext(currentTime);
         }
 
         if (weatherReports.getChildNodes().getLength() != weatherReqInterval ||
@@ -576,7 +576,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       return null;
     }
 
-    private void findReports(NodeList nodes, String startDate) {
+    private void findReports(NodeList nodes, String startDate)
+    {
       // Find reports starting at startDate, copy 24 reports to output document
       for (int j = 0; j < nodes.getLength(); j++) {
         Node report = nodes.item(j);
@@ -598,7 +599,8 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       }
     }
 
-    private void findForecasts(NodeList nodes, String target) {
+    private void findForecasts(NodeList nodes, String target)
+    {
       // Find all forecasts belonging to a report-date, copy to output document
       for (int i = 0; i < nodes.getLength(); i++) {
         Node forecast = nodes.item(i);
@@ -621,17 +623,17 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   /**
    * This class extracts a part of a state file (or URL).
    * It returns $weatherReqInterval reports
-   * and $weatherReqInterval * $forecastHorizon forecasts
+   * and $weatherReqInterval forecasts, each with $forecastHorizon predictions
    */
-  private class StateFileExtractor {
+  private class StateFileExtractor
+  {
 
     private URL weatherSource = null;
     private String report = "org.powertac.common.WeatherReport";
     private String forecast = "org.powertac.common.WeatherForecastPrediction";
 
-    public StateFileExtractor (String weatherData) {
-      resetCurrentTime();
-
+    public StateFileExtractor (String weatherData)
+    {
       try {
         String urlName = weatherData;
         if (!urlName.contains(":")) {
@@ -641,7 +643,9 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       } catch (Exception ignored) {}
     }
 
-    public Data extractData () {
+    public Data extractData ()
+    {
+      int startIndex = timeslotRepo.currentSerialNumber();
       if (weatherSource == null) {
         return null;
       }
@@ -653,27 +657,37 @@ public class WeatherService extends TimeslotPhaseProcessor implements
             new InputStreamReader(weatherSource.openStream()));
 
         String line;
+        boolean inRange = false;
+        int timeIndex = startIndex;
         while ((line = br.readLine()) != null) {
           if (!line.contains(report) && !line.contains(forecast)){
             continue;
           }
 
           String[] temp = line.split("::");
-          int stamp = Integer.parseInt(temp[1]);
-          if (stamp <= lastStatefileTimestamp) {
-            continue;
-          }
 
           if (line.contains(report)) {
+            int stamp = Integer.parseInt(temp[3]);
+            if (stamp < startIndex) {
+              continue;
+            }
+            else if (stamp >= startIndex + weatherReqInterval) {
+              // should not get here...
+              log.error("Forecast underflow: "
+              + data.getWeatherForecasts().size());
+              break;
+            }
+            inRange = true;
+
             data.getWeatherReports().add(
                 new WeatherReport(
-                    currentTime,
+                    timeIndex,
                     Double.parseDouble(temp[4]), Double.parseDouble(temp[5]),
                     Double.parseDouble(temp[6]), Double.parseDouble(temp[7])));
 
-            currentTime = timeslotRepo.getNext(currentTime);
+            timeIndex += 1;
           }
-          else if (line.contains(forecast)) {
+          else if (inRange && line.contains(forecast)) {
             data.getWeatherForecasts().add(
                 new WeatherForecastPrediction(
                     Integer.parseInt(temp[3]),
@@ -681,9 +695,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
                     Double.parseDouble(temp[6]), Double.parseDouble(temp[7])));
           }
 
-          if (data.getWeatherReports().size() == forecastHorizon) {
-            lastStatefileTimestamp = stamp;
-          }
           if (data.getWeatherForecasts().size() ==
               weatherReqInterval * forecastHorizon) {
             break;
