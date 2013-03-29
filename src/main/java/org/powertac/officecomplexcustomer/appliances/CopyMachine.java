@@ -162,7 +162,7 @@ public class CopyMachine extends SemiShiftingAppliance
       if (counter == OfficeComplexConstants.END_OF_FUNCTION_HOUR
                      - OfficeComplexConstants.START_OF_FUNCTION_HOURS) {
         minIndex =
-          (int) (Math.random() * counter)
+          (int) (gen.nextDouble() * counter)
                   + OfficeComplexConstants.START_OF_FUNCTION_HOURS;
         // log.debug("All the same, I choose: " + minIndex);
       }
