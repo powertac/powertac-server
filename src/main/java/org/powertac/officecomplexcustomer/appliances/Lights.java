@@ -16,9 +16,9 @@
 package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -32,18 +32,21 @@ public class Lights extends NotShiftingAppliance
 {
 
   @Override
-  public void initialize (String office, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = office + " Lights";
     saturation = 1;
-    power = (int) (OfficeComplexConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.LIGHTS_POWER_MEAN) * applianceOf.getMembers().size();
+    power =
+      (int) (OfficeComplexConstants.LIGHTS_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.LIGHTS_POWER_MEAN)
+              * applianceOf.getMembers().size();
     cycleDuration = OfficeComplexConstants.LIGHTS_DURATION_CYCLE;
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -54,7 +57,8 @@ public class Lights extends NotShiftingAppliance
       loadVector.add(0);
       dailyOperation.add(false);
 
-      if (applianceOf.isWorking(weekday, i) || applianceOf.isOnBreak(weekday, i)) {
+      if (applianceOf.isWorking(weekday, i)
+          || applianceOf.isOnBreak(weekday, i)) {
         loadVector.set(i, power);
         dailyOperation.set(i, true);
       }
@@ -64,9 +68,9 @@ public class Lights extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

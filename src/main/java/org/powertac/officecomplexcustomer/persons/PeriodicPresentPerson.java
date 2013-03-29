@@ -17,9 +17,9 @@
 package org.powertac.officecomplexcustomer.persons;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.enumerations.Status;
 
@@ -35,17 +35,25 @@ public class PeriodicPresentPerson extends WorkingPerson
 {
 
   @Override
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random generator)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
     // Variables Taken from the configuration file
     double sicknessMean = Double.parseDouble(conf.getProperty("SicknessMean"));
     double sicknessDev = Double.parseDouble(conf.getProperty("SicknessDev"));
-    double workingDurationMean = Double.parseDouble(conf.getProperty("WorkingDurationMean"));
-    double workingDurationDev = Double.parseDouble(conf.getProperty("WorkingDurationDev"));
-    double breakDurationMean = Double.parseDouble(conf.getProperty("BreakDurationMean"));
-    double breakDurationDev = Double.parseDouble(conf.getProperty("BreakDurationDev"));
-    double vacationDurationMean = Double.parseDouble(conf.getProperty("VacationDurationMean"));
-    double vacationDurationDev = Double.parseDouble(conf.getProperty("VacationDurationDev"));
+    double workingDurationMean =
+      Double.parseDouble(conf.getProperty("WorkingDurationMean"));
+    double workingDurationDev =
+      Double.parseDouble(conf.getProperty("WorkingDurationDev"));
+    double breakDurationMean =
+      Double.parseDouble(conf.getProperty("BreakDurationMean"));
+    double breakDurationDev =
+      Double.parseDouble(conf.getProperty("BreakDurationDev"));
+    double vacationDurationMean =
+      Double.parseDouble(conf.getProperty("VacationDurationMean"));
+    double vacationDurationDev =
+      Double.parseDouble(conf.getProperty("VacationDurationDev"));
 
     // Filling the main variables
     name = AgentName;
@@ -53,19 +61,23 @@ public class PeriodicPresentPerson extends WorkingPerson
     gen = generator;
 
     // Filling the sickness and public Vacation Vectors
-    sicknessVector = createSicknessVector(sicknessMean, sicknessDev, gen);
+    sicknessVector = createSicknessVector(sicknessMean, sicknessDev);
     this.publicVacationVector = publicVacationVector;
 
     // Filling Working variables
-    workingStartHour = (int) (OfficeComplexConstants.START_OF_WORK_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.START_OF_WORK_MEAN);
-    int work = workingDaysRandomizer(conf, gen);
-    workingDays = createWorkingDaysVector(work, gen);
-    workingDuration = (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
-    breakDuration = (int) (breakDurationDev * gen.nextGaussian() + breakDurationMean);
+    workingStartHour =
+      (int) (OfficeComplexConstants.START_OF_WORK_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.START_OF_WORK_MEAN);
+    int work = workingDaysRandomizer(conf);
+    workingDays = createWorkingDaysVector(work);
+    workingDuration =
+      (int) (workingDurationDev * gen.nextGaussian() + workingDurationMean);
+    breakDuration =
+      (int) (breakDurationDev * gen.nextGaussian() + breakDurationMean);
 
     // Filling Vacation Variables
-    vacationDuration = (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
-    vacationVector = createVacationVector(Math.max(0, vacationDuration), gen);
+    vacationDuration =
+      (int) (vacationDurationDev * gen.nextGaussian() + vacationDurationMean);
+    vacationVector = createVacationVector(Math.max(0, vacationDuration));
   }
 
   @Override
@@ -78,9 +90,12 @@ public class PeriodicPresentPerson extends WorkingPerson
       dailyRoutine.set(i, st);
     }
 
-    int breakStartHour = (int) (OfficeComplexConstants.START_OF_BREAK_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.START_OF_BREAK_MEAN);
+    int breakStartHour =
+      (int) (OfficeComplexConstants.START_OF_BREAK_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.START_OF_BREAK_MEAN);
     breakStartHour = Math.max(breakStartHour, workingStartHour);
-    breakStartHour = Math.min(breakStartHour, workingStartHour + workingDuration);
+    breakStartHour =
+      Math.min(breakStartHour, workingStartHour + workingDuration);
 
     for (int i = breakStartHour; i < breakStartHour + breakDuration; i++) {
       st = Status.Break;
@@ -90,10 +105,10 @@ public class PeriodicPresentPerson extends WorkingPerson
   }
 
   @Override
-  public void refresh (Properties conf, Random gen)
+  public void refresh (Properties conf)
   {
     for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
-      fillDailyRoutine(i, gen);
+      fillDailyRoutine(i);
       weeklyRoutine.add(dailyRoutine);
     }
   }

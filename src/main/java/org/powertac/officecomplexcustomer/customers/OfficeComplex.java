@@ -22,13 +22,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffSubscription;
@@ -180,7 +180,7 @@ public class OfficeComplex extends AbstractCustomer
    * This variable is utilized for the creation of the random numbers and is
    * taken from the service.
    */
-  Random gen;
+  RandomSeed gen;
 
   /**
    * These variables are mapping of the characteristics of the types of offices.
@@ -266,7 +266,7 @@ public class OfficeComplex extends AbstractCustomer
    * @param conf
    * @param gen
    */
-  public void initialize (Properties conf, Random generator)
+  public void initialize (Properties conf, RandomSeed generator)
   {
     // Initializing variables
 
@@ -1921,7 +1921,7 @@ public class OfficeComplex extends AbstractCustomer
     for (Office office: offices) {
       double[] temp =
         office.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
-                             dayTemp, gen);
+                             dayTemp);
 
       log.debug("New Dominant Load for house " + office.toString()
                 + " for Tariff " + tariff.toString() + ": "

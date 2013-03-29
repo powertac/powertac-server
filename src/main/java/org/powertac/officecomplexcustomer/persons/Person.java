@@ -18,10 +18,10 @@ package org.powertac.officecomplexcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.Office;
 import org.powertac.officecomplexcustomer.enumerations.Status;
@@ -91,7 +91,7 @@ public class Person
    * This variable is utilized for the creation of the random numbers and is
    * taken from the service.
    */
-  Random gen;
+  RandomSeed gen;
 
   /**
    * This is the initialization function. It uses the variable values for the
@@ -103,7 +103,8 @@ public class Person
    * @param gen
    * @return
    */
-  public void initialize (String AgentName, Properties conf, Vector<Integer> publicVacationVector, Random gen)
+  public void initialize (String AgentName, Properties conf,
+                          Vector<Integer> publicVacationVector, RandomSeed gen)
   {
   }
 
@@ -193,7 +194,7 @@ public class Person
    * @param gen
    * @return
    */
-  Vector<Integer> createSicknessVector (double mean, double dev, Random gen)
+  Vector<Integer> createSicknessVector (double mean, double dev)
   {
     // Create auxiliary variables
 
@@ -201,7 +202,9 @@ public class Person
     Vector<Integer> v = new Vector<Integer>(days);
 
     for (int i = 0; i < days; i++) {
-      int x = gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP) + 1;
+      int x =
+        gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION
+                    + OfficeComplexConstants.DAYS_OF_BOOTSTRAP) + 1;
       ListIterator<Integer> iter = v.listIterator();
       while (iter.hasNext()) {
         int temp = (int) iter.next();
@@ -232,7 +235,7 @@ public class Person
    * @param gen
    * @return
    */
-  public void fillDailyRoutine (int day, Random gen)
+  public void fillDailyRoutine (int day)
   {
     // Create auxiliary variable
     Status st;
@@ -241,13 +244,15 @@ public class Person
     dailyRoutine = new Vector<Status>();
     if (sicknessVector.contains(day)) {
       fillSick();
-    } else {
+    }
+    else {
       if (publicVacationVector.contains(day) || (vacationVector.contains(day))) {
         for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_DAY; i++) {
           st = Status.Vacation;
           dailyRoutine.add(st);
         }
-      } else {
+      }
+      else {
         normalFill();
         int index = workingDays.indexOf(weekday);
         if (index > -1) {
@@ -319,7 +324,7 @@ public class Person
    * @param gen
    * @return
    */
-  public void refresh (Properties config, Random gen)
+  public void refresh (Properties config)
   {
 
   }

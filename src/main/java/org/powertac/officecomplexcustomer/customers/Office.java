@@ -24,6 +24,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.appliances.AirCondition;
@@ -154,6 +155,12 @@ public class Office
   public OfficeComplex officeOf;
 
   /**
+   * This variable is utilized for the creation of the random numbers and is
+   * taken from the service.
+   */
+  RandomSeed gen;
+
+  /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the office and then fill it with persons and
    * appliances as it seems fit.
@@ -165,23 +172,25 @@ public class Office
    * @return
    */
   public void initialize (String OfficeName, Properties conf,
-                          Vector<Integer> publicVacationVector, Random gen)
+                          Vector<Integer> publicVacationVector,
+                          RandomSeed generator)
   {
+    gen = generator;
     name = OfficeName;
     int persons = memberRandomizer(conf, gen);
     for (int i = 0; i < persons; i++)
-      addPerson(i + 1, conf, publicVacationVector, gen);
+      addPerson(i + 1, conf, publicVacationVector);
 
     for (Person member: members) {
       for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
-        member.fillDailyRoutine(i, gen);
+        member.fillDailyRoutine(i);
         member.getWeeklyRoutine().add(member.getDailyRoutine());
         member.setMemberOf(this);
       }
       // member.showInfo();
     }
 
-    fillAppliances(conf, gen);
+    fillAppliances(conf);
 
     for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
       dailyBaseLoad =
@@ -206,7 +215,7 @@ public class Office
 
     for (week = 1; week < OfficeComplexConstants.WEEKS_OF_COMPETITION
                           + OfficeComplexConstants.WEEKS_OF_BOOTSTRAP; week++) {
-      refresh(conf, gen);
+      refresh(conf);
     }
 
     for (Appliance appliance: appliances) {
@@ -268,7 +277,7 @@ public class Office
    * @return
    */
   void addPerson (int counter, Properties conf,
-                  Vector<Integer> publicVacationVector, Random gen)
+                  Vector<Integer> publicVacationVector)
   {
     // Taking parameters from configuration file
     // int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
@@ -431,7 +440,7 @@ public class Office
     int threshold =
       (int) (app.getSaturation() * OfficeComplexConstants.PERCENTAGE);
     if (x < threshold) {
-      app.fillWeeklyOperation(gen);
+      app.fillWeeklyOperation();
       app.createWeeklyPossibilityOperationVector();
     }
     else
@@ -447,7 +456,7 @@ public class Office
    * @param gen
    * @return
    */
-  void fillAppliances (Properties conf, Random gen)
+  void fillAppliances (Properties conf)
   {
 
     // NOT SHIFTING ================================
@@ -464,7 +473,7 @@ public class Office
     appliances.add(ce);
     ce.setApplianceOf(this);
     ce.initialize(this.name, conf, gen);
-    ce.fillWeeklyOperation(gen);
+    ce.fillWeeklyOperation();
     ce.createWeeklyPossibilityOperationVector();
 
     // ICT
@@ -472,7 +481,7 @@ public class Office
     appliances.add(ict);
     ict.setApplianceOf(this);
     ict.initialize(this.name, conf, gen);
-    ict.fillWeeklyOperation(gen);
+    ict.fillWeeklyOperation();
     ict.createWeeklyPossibilityOperationVector();
 
     // Lights
@@ -480,7 +489,7 @@ public class Office
     appliances.add(lights);
     lights.setApplianceOf(this);
     lights.initialize(this.name, conf, gen);
-    lights.fillWeeklyOperation(gen);
+    lights.fillWeeklyOperation();
     lights.createWeeklyPossibilityOperationVector();
 
     // Computers
@@ -488,7 +497,7 @@ public class Office
     appliances.add(com);
     com.setApplianceOf(this);
     com.initialize(this.name, conf, gen);
-    com.fillWeeklyOperation(gen);
+    com.fillWeeklyOperation();
     com.createWeeklyPossibilityOperationVector();
 
     // Servers
@@ -505,7 +514,7 @@ public class Office
     appliances.add(ref);
     ref.setApplianceOf(this);
     ref.initialize(this.name, conf, gen);
-    ref.fillWeeklyOperation(gen);
+    ref.fillWeeklyOperation();
     ref.createWeeklyPossibilityOperationVector();
 
     // CoffeeMachine
@@ -1053,17 +1062,17 @@ public class Office
    * @param gen
    * @return
    */
-  void refresh (Properties conf, Random gen)
+  void refresh (Properties conf)
   {
 
     // For each member of the office
     for (Person member: members) {
-      member.refresh(conf, gen);
+      member.refresh(conf);
     }
 
     // For each appliance of the office
     for (Appliance appliance: appliances) {
-      appliance.refresh(gen);
+      appliance.refresh();
     }
 
     for (int i = 0; i < OfficeComplexConstants.DAYS_OF_WEEK; i++) {
@@ -1138,8 +1147,7 @@ public class Office
    * @return
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
-                          TariffEvaluationHelper tariffEvalHelper, int day,
-                          Random gen)
+                          TariffEvaluationHelper tariffEvalHelper, int day)
   {
 
     double[] dominantLoad = new double[OfficeComplexConstants.HOURS_OF_DAY];
@@ -1148,8 +1156,7 @@ public class Office
 
     if (appliance.getOverallPower() != -1)
       dominantLoad =
-        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day,
-                                gen);
+        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day);
 
     log.debug("Dominant Appliance " + appliance.toString() + " Overall Power: "
               + appliance.getOverallPower());

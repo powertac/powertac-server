@@ -18,9 +18,9 @@ package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.enumerations.AirConditionClass;
 import org.powertac.officecomplexcustomer.enumerations.AirConditionOperation;
@@ -106,11 +106,15 @@ public class AirCondition extends WeatherSensitiveAppliance
   int cycleCounter;
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Creating Auxiliary Variables
+    gen = generator;
     int x = gen.nextInt(OfficeComplexConstants.PERCENTAGE + 1);
-    double limit = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionTypeNormal"));
+    double limit =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionTypeNormal"));
     // Filling the base variables
     name = household + " AirCondition";
     saturation = Double.parseDouble(conf.getProperty("AirConditionSaturation"));
@@ -125,7 +129,8 @@ public class AirCondition extends WeatherSensitiveAppliance
       cycleOff = OfficeComplexConstants.AIR_CONDITION_DURATION_CYCLE_OFF_NORMAL;
       cycleDuration = cycleOn + cycleOff;
 
-    } else {
+    }
+    else {
       type = AirConditionType.Inverter;
       cycleOn = OfficeComplexConstants.AIR_CONDITION_DURATION_CYCLE_INVERTER;
       cycleOff = OfficeComplexConstants.AIR_CONDITION_DURATION_CYCLE_INVERTER;
@@ -133,43 +138,64 @@ public class AirCondition extends WeatherSensitiveAppliance
     }
 
     x = gen.nextInt(OfficeComplexConstants.PERCENTAGE + 1);
-    double classA = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassA"));
-    double classB = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassB"));
-    double classC = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassC"));
-    double classD = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassD"));
-    double classE = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassE"));
-    double classF = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionClassF"));
+    double classA =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassA"));
+    double classB =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassB"));
+    double classC =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassC"));
+    double classD =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassD"));
+    double classE =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassE"));
+    double classF =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf.getProperty("AirConditionClassF"));
 
     if (x < classA) {
       acClass = AirConditionClass.A;
       acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_A_EER;
       acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_A_COP;
-    } else {
+    }
+    else {
       if (x >= classA & x < (classA + classB)) {
         acClass = AirConditionClass.B;
         acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_B_EER;
         acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_B_COP;
-      } else {
+      }
+      else {
         if (x >= (classA + classB) & x < (classA + classB + classC)) {
           acClass = AirConditionClass.C;
           acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_C_EER;
           acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_C_COP;
-        } else {
-          if (x >= (classA + classB + classC) & x < (classA + classB + classC + classD)) {
+        }
+        else {
+          if (x >= (classA + classB + classC)
+              & x < (classA + classB + classC + classD)) {
             acClass = AirConditionClass.D;
             acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_D_EER;
             acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_D_COP;
-          } else {
-            if (x >= (classA + classB + classC + classD) & x < (classA + classB + classC + classD + classE)) {
+          }
+          else {
+            if (x >= (classA + classB + classC + classD)
+                & x < (classA + classB + classC + classD + classE)) {
               acClass = AirConditionClass.E;
               acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_E_EER;
               acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_E_COP;
-            } else {
-              if (x >= (classA + classB + classC + classD + classE) & x < (classA + classB + classC + classD + classE + classF)) {
+            }
+            else {
+              if (x >= (classA + classB + classC + classD + classE)
+                  & x < (classA + classB + classC + classD + classE + classF)) {
                 acClass = AirConditionClass.F;
                 acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_F_EER;
                 acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_F_COP;
-              } else {
+              }
+              else {
                 acClass = AirConditionClass.G;
                 acClassEER = OfficeComplexConstants.AIR_CONDITION_CLASS_G_EER;
                 acClassCOP = OfficeComplexConstants.AIR_CONDITION_CLASS_G_COP;
@@ -181,8 +207,14 @@ public class AirCondition extends WeatherSensitiveAppliance
     }
 
     x = gen.nextInt(OfficeComplexConstants.PERCENTAGE + 1);
-    double powerA = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeSmall"));
-    double powerB = OfficeComplexConstants.PERCENTAGE * Double.parseDouble(conf.getProperty("AirConditionPowerTypeMedium"));
+    double powerA =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf
+                      .getProperty("AirConditionPowerTypeSmall"));
+    double powerB =
+      OfficeComplexConstants.PERCENTAGE
+              * Double.parseDouble(conf
+                      .getProperty("AirConditionPowerTypeMedium"));
 
     powerOffHeating = 0;
     powerOffCooling = 0;
@@ -192,17 +224,21 @@ public class AirCondition extends WeatherSensitiveAppliance
     if (x < powerA) {
       acPowerClass = AirConditionPowerClass.Small;
       BTU = OfficeComplexConstants.AIR_CONDITION_BTU_SMALL;
-      powerCooling = (int) (BTU / (acClassEER * OfficeComplexConstants.QUARTERS_OF_HOUR));
-      powerHeating = (int) (BTU / (acClassCOP * OfficeComplexConstants.QUARTERS_OF_HOUR));
+      powerCooling =
+        (int) (BTU / (acClassEER * OfficeComplexConstants.QUARTERS_OF_HOUR));
+      powerHeating =
+        (int) (BTU / (acClassCOP * OfficeComplexConstants.QUARTERS_OF_HOUR));
 
-    } else if ((x >= powerA) & (x < powerA + powerB)) {
+    }
+    else if ((x >= powerA) & (x < powerA + powerB)) {
 
       acPowerClass = AirConditionPowerClass.Medium;
       BTU = OfficeComplexConstants.AIR_CONDITION_BTU_MEDIUM;
       powerCooling = (int) (BTU / acClassEER);
       powerHeating = (int) (BTU / acClassCOP);
 
-    } else {
+    }
+    else {
 
       BTU = OfficeComplexConstants.AIR_CONDITION_BTU_LARGE;
       acPowerClass = AirConditionPowerClass.Large;
@@ -213,22 +249,32 @@ public class AirCondition extends WeatherSensitiveAppliance
 
     if (type == AirConditionType.Inverter) {
 
-      powerStartHeating = (int) (powerHeating * (1 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerStartCooling = (int) (powerCooling * (1 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerOffHeating = (int) (powerHeating * (0.5 - OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerOffCooling = (int) (powerCooling * (0.5 - OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerHeating = (int) (powerHeating * (0.5 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
-      powerCooling = (int) (powerCooling * (0.5 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerStartHeating =
+        (int) (powerHeating * (1 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerStartCooling =
+        (int) (powerCooling * (1 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerOffHeating =
+        (int) (powerHeating * (0.5 - OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerOffCooling =
+        (int) (powerCooling * (0.5 - OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerHeating =
+        (int) (powerHeating * (0.5 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
+      powerCooling =
+        (int) (powerCooling * (0.5 + OfficeComplexConstants.AIR_CONDITION_POWER_OVER_START_INVERTER));
 
     }
 
-    lowerLimit = (int) (OfficeComplexConstants.AIR_CONDITION_LOW_LIMIT_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.AIR_CONDITION_LOW_LIMIT_MEAN);
-    upperLimit = (int) (OfficeComplexConstants.AIR_CONDITION_UPPER_LIMIT_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.AIR_CONDITION_UPPER_LIMIT_MEAN);
+    lowerLimit =
+      (int) (OfficeComplexConstants.AIR_CONDITION_LOW_LIMIT_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.AIR_CONDITION_LOW_LIMIT_MEAN);
+    upperLimit =
+      (int) (OfficeComplexConstants.AIR_CONDITION_UPPER_LIMIT_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.AIR_CONDITION_UPPER_LIMIT_MEAN);
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing And Creating Auxiliary Variables
     loadVector = new Vector<Integer>();
@@ -256,18 +302,23 @@ public class AirCondition extends WeatherSensitiveAppliance
     // See what mode will the Air Condition will be on
     if (temperature > upperLimit) {
       acOperation = AirConditionOperation.Cooling;
-    } else if (temperature < lowerLimit) {
+    }
+    else if (temperature < lowerLimit) {
       acOperation = AirConditionOperation.Heating;
-    } else
+    }
+    else
       acOperation = AirConditionOperation.Off;
 
     // If it is going to work because the temperature is out of limits
     if (acOperation != AirConditionOperation.Off) {
 
-      boolean[] hourPresence = new boolean[OfficeComplexConstants.QUARTERS_OF_HOUR];
+      boolean[] hourPresence =
+        new boolean[OfficeComplexConstants.QUARTERS_OF_HOUR];
 
       for (int i = 0; i < OfficeComplexConstants.QUARTERS_OF_HOUR; i++) {
-        hourPresence[i] = possibilityOperationVector.get(day).get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i);
+        hourPresence[i] =
+          possibilityOperationVector.get(day)
+                  .get(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i);
         if (hourPresence[i] == true)
           trueCounter++;
         // log.debug("Day:" + day + " Hour: " + hour + " Quarter: " + (hour *
@@ -277,24 +328,31 @@ public class AirCondition extends WeatherSensitiveAppliance
 
       if (trueCounter == OfficeComplexConstants.QUARTERS_OF_HOUR) {
         start = 0;
-      } else if (trueCounter == OfficeComplexConstants.QUARTERS_OF_HOUR - 1) {
+      }
+      else if (trueCounter == OfficeComplexConstants.QUARTERS_OF_HOUR - 1) {
         if (hourPresence[0] == false) {
           start = 1;
-        } else if (hourPresence[3] == false) {
+        }
+        else if (hourPresence[3] == false) {
           end = 3;
           starting = false;
-        } else {
+        }
+        else {
           start = 0;
         }
-      } else if (trueCounter == OfficeComplexConstants.QUARTERS_OF_HOUR - 2) {
+      }
+      else if (trueCounter == OfficeComplexConstants.QUARTERS_OF_HOUR - 2) {
         if ((hourPresence[0] == false) && (hourPresence[1] == false)) {
           start = 2;
-        } else if ((hourPresence[2] == false) && (hourPresence[3] == false)) {
+        }
+        else if ((hourPresence[2] == false) && (hourPresence[3] == false)) {
           end = 2;
           starting = false;
-        } else
+        }
+        else
           open = false;
-      } else
+      }
+      else
         open = false;
 
       /*
@@ -322,17 +380,22 @@ public class AirCondition extends WeatherSensitiveAppliance
 
               if (time < cycleOn) {
                 if (acOperation == AirConditionOperation.Cooling)
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerCooling);
                 else
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerHeating);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerHeating);
 
-                dailyOperation.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, true);
+                dailyOperation.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, true);
               }
               cycleCounter++;
             }
 
             // log.debug("Changed");
-          } else {
+          }
+          else {
             for (int i = 0; i < end; i++) {
               int time = cycleCounter % cycleDuration;
               // log.debug("CycleCounter: " + cycleCounter);
@@ -341,11 +404,15 @@ public class AirCondition extends WeatherSensitiveAppliance
 
               if (time < cycleOn) {
                 if (acOperation == AirConditionOperation.Cooling)
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerCooling);
                 else
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerHeating);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerHeating);
 
-                dailyOperation.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, true);
+                dailyOperation.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, true);
               }
               cycleCounter++;
             }
@@ -353,7 +420,8 @@ public class AirCondition extends WeatherSensitiveAppliance
 
             // log.debug("Changed");
           }
-        } else { // Inverter Case of Air Conditioning
+        }
+        else { // Inverter Case of Air Conditioning
 
           // If this is the start of the operation of air condition
           if (starting) {
@@ -367,31 +435,47 @@ public class AirCondition extends WeatherSensitiveAppliance
               if (time < cycleOn) {
                 if (acOperation == AirConditionOperation.Cooling) {
                   if (cycleCounter == 0) {
-                    loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerStartCooling);
-                  } else {
-                    loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                    loadVector.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, powerStartCooling);
                   }
-                } else {
+                  else {
+                    loadVector.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, powerCooling);
+                  }
+                }
+                else {
                   if (cycleCounter == 0) {
-                    loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerStartHeating);
-                  } else {
-                    loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerHeating);
+                    loadVector.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, powerStartHeating);
+                  }
+                  else {
+                    loadVector.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, powerHeating);
                   }
                 }
 
-              } else {
+              }
+              else {
                 if (acOperation == AirConditionOperation.Cooling)
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerOffCooling);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerOffCooling);
                 else
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerOffHeating);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerOffHeating);
               }
 
-              dailyOperation.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, true);
+              dailyOperation.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, true);
               cycleCounter++;
             }
 
             // log.debug("Changed");
-          } else {
+          }
+          else {
             for (int i = 0; i < end; i++) {
               int time = cycleCounter % cycleDuration;
               // log.debug("CycleCounter: " + cycleCounter);
@@ -400,11 +484,15 @@ public class AirCondition extends WeatherSensitiveAppliance
 
               if (time < cycleOn) {
                 if (acOperation == AirConditionOperation.Cooling)
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerCooling);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerCooling);
                 else
-                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, powerHeating);
+                  loadVector.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                 + i, powerHeating);
 
-                dailyOperation.set(hour * OfficeComplexConstants.QUARTERS_OF_HOUR + i, true);
+                dailyOperation.set(hour
+                                   * OfficeComplexConstants.QUARTERS_OF_HOUR
+                                   + i, true);
               }
               cycleCounter++;
             }
@@ -419,10 +507,12 @@ public class AirCondition extends WeatherSensitiveAppliance
         weeklyOperation.set(day, dailyOperation);
         // log.debug("Changed");
 
-      } else
+      }
+      else
         cycleCounter = 0;
 
-    } else {
+    }
+    else {
       cycleCounter = 0;
     }
 
@@ -476,20 +566,22 @@ public class AirCondition extends WeatherSensitiveAppliance
     // Printing Weekly Operation Vector and Load Vector
     log.debug("Weekly Operation Vector and Load = ");
 
-    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                        + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
       ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
       for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = " + iter4.next());
+        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+                  + iter4.next());
     }
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
     // case the Water Heater is Instant
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

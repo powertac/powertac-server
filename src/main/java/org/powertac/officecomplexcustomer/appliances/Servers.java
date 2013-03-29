@@ -16,9 +16,9 @@
 package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -38,15 +38,21 @@ public class Servers extends NotShiftingAppliance
   private int sleepPower;
 
   @Override
-  public void initialize (String office, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = office + " Servers";
     saturation = Double.parseDouble(conf.getProperty("ServersSaturation"));
-    power = (int) (OfficeComplexConstants.SERVERS_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.SERVERS_POWER_MEAN);
-    sleepPower = (int) (OfficeComplexConstants.SERVERS_SLEEP_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.SERVERS_SLEEP_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.SERVERS_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.SERVERS_POWER_MEAN);
+    sleepPower =
+      (int) (OfficeComplexConstants.SERVERS_SLEEP_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.SERVERS_SLEEP_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.SERVERS_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("ServersDailyTimes")) + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
+    times =
+      Integer.parseInt(conf.getProperty("ServersDailyTimes"))
+              + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
 
   }
 
@@ -67,7 +73,7 @@ public class Servers extends NotShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -100,9 +106,9 @@ public class Servers extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

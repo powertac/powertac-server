@@ -17,9 +17,9 @@
 package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -35,19 +35,24 @@ public class ICT extends NotShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf, Random gen)
+  public void initialize (String household, Properties conf,
+                          RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = household + " ICT";
     saturation = 1;
-    power = (int) (OfficeComplexConstants.ICT_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.ICT_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.ICT_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.ICT_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.ICT_DURATION_CYCLE;
-    times = Integer.parseInt(conf.getProperty("ICTDailyTimes")) + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
+    times =
+      Integer.parseInt(conf.getProperty("ICTDailyTimes"))
+              + (int) (applianceOf.getMembers().size() / OfficeComplexConstants.PERSONS);
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -87,10 +92,10 @@ public class ICT extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
 
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

@@ -17,9 +17,9 @@
 package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -40,19 +40,23 @@ public class ConsumerElectronics extends NotShiftingAppliance
   private double operationPercentage;
 
   @Override
-  public void initialize (String office, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = office + " ConsumerElectronics";
     saturation = 1;
-    power = (int) (OfficeComplexConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
+    power =
+      (int) (OfficeComplexConstants.CONSUMER_ELECTRONICS_POWER_VARIANCE
+             * gen.nextGaussian() + OfficeComplexConstants.CONSUMER_ELECTRONICS_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.CONSUMER_ELECTRONICS_DURATION_CYCLE;
-    operationPercentage = Double.parseDouble(conf.getProperty("ConsumerElectronicsWorking"));
+    operationPercentage =
+      Double.parseDouble(conf.getProperty("ConsumerElectronicsWorking"));
 
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -65,7 +69,10 @@ public class ConsumerElectronics extends NotShiftingAppliance
 
       if (applianceOf.isOnBreak(weekday, i)) {
 
-        double tempPercentage = operationPercentage + (OfficeComplexConstants.OPERATION_PARTITION * (applianceOf.employeeOnBreakNumber(weekday, i)));
+        double tempPercentage =
+          operationPercentage
+                  + (OfficeComplexConstants.OPERATION_PARTITION * (applianceOf
+                          .employeeOnBreakNumber(weekday, i)));
         if (tempPercentage > gen.nextDouble()) {
           dailyOperation.set(i, true);
           loadVector.set(i, power);
@@ -79,9 +86,9 @@ public class ConsumerElectronics extends NotShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

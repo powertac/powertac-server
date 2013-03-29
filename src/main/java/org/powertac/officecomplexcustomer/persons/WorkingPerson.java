@@ -18,7 +18,6 @@ package org.powertac.officecomplexcustomer.persons;
 
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
@@ -55,7 +54,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  Vector<Integer> createWorkingDaysVector (int days, Random gen)
+  Vector<Integer> createWorkingDaysVector (int days)
   {
     // Creating an auxiliary variables
     Vector<Integer> v = new Vector<Integer>(days);
@@ -75,21 +74,25 @@ public class WorkingPerson extends Person
       }
       java.util.Collections.sort(v);
       return v;
-    } else {
+    }
+    else {
       v.add(OfficeComplexConstants.MONDAY);
       v.add(OfficeComplexConstants.TUESDAY);
       v.add(OfficeComplexConstants.WEDNESDAY);
       v.add(OfficeComplexConstants.THURSDAY);
       v.add(OfficeComplexConstants.FRIDAY);
       if (days == OfficeComplexConstants.WEEKDAYS) {
-      } else {
+      }
+      else {
         if (days == OfficeComplexConstants.DAYS_OF_WEEK) {
           v.add(OfficeComplexConstants.SATURDAY);
           v.add(OfficeComplexConstants.SUNDAY);
-        } else {
+        }
+        else {
           if (gen.nextFloat() > 0.5) {
             v.add(OfficeComplexConstants.SATURDAY);
-          } else {
+          }
+          else {
             v.add(OfficeComplexConstants.SUNDAY);
           }
         }
@@ -109,7 +112,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  Vector<Integer> createVacationVector (int duration, Random gen)
+  Vector<Integer> createVacationVector (int duration)
   {
 
     // Create auxiliary variables
@@ -117,7 +120,9 @@ public class WorkingPerson extends Person
     int counter = duration;
     int counter2 = 0;
     while (counter > 0) {
-      int x = (int) gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP - 1) + 1;
+      int x =
+        (int) gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION
+                          + OfficeComplexConstants.DAYS_OF_BOOTSTRAP - 1) + 1;
       counter2 = 1 + (int) (gen.nextInt(counter));
       while (counter2 > 0) {
         v.add(x);
@@ -139,7 +144,7 @@ public class WorkingPerson extends Person
    * @param gen
    * @return
    */
-  int workingDaysRandomizer (Properties conf, Random gen)
+  int workingDaysRandomizer (Properties conf)
   {
     int returnValue;
     int twoDays = Integer.parseInt(conf.getProperty("TwoDays"));
@@ -152,22 +157,31 @@ public class WorkingPerson extends Person
     int x = (int) gen.nextInt(OfficeComplexConstants.PERCENTAGE);
     if (x < fiveDays) {
       returnValue = OfficeComplexConstants.FIVE_WORKING_DAYS;
-    } else {
+    }
+    else {
       if (x >= fiveDays & x < (fiveDays + sixDays)) {
         returnValue = OfficeComplexConstants.SIX_WORKING_DAYS;
-      } else {
+      }
+      else {
         if (x >= (fiveDays + sixDays) & x < (fiveDays + sixDays + fourDays)) {
           returnValue = OfficeComplexConstants.FOUR_WORKING_DAYS;
-        } else {
-          if (x >= (fiveDays + sixDays + fourDays) & x < (fiveDays + sixDays + fourDays + threeDays)) {
+        }
+        else {
+          if (x >= (fiveDays + sixDays + fourDays)
+              & x < (fiveDays + sixDays + fourDays + threeDays)) {
             returnValue = OfficeComplexConstants.THREE_WORKING_DAYS;
-          } else {
-            if (x >= (fiveDays + sixDays + fourDays + threeDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays)) {
+          }
+          else {
+            if (x >= (fiveDays + sixDays + fourDays + threeDays)
+                & x < (fiveDays + sixDays + fourDays + threeDays + twoDays)) {
               returnValue = OfficeComplexConstants.TWO_WORKING_DAYS;
-            } else {
-              if (x >= (fiveDays + sixDays + fourDays + threeDays + twoDays) & x < (fiveDays + sixDays + fourDays + threeDays + twoDays + sevenDays)) {
+            }
+            else {
+              if (x >= (fiveDays + sixDays + fourDays + threeDays + twoDays)
+                  & x < (fiveDays + sixDays + fourDays + threeDays + twoDays + sevenDays)) {
                 returnValue = OfficeComplexConstants.SEVEN_WORKING_DAYS;
-              } else {
+              }
+              else {
                 returnValue = OfficeComplexConstants.ONE_WORKING_DAY;
               }
             }
@@ -218,7 +232,8 @@ public class WorkingPerson extends Person
     log.debug("Weekly Routine : ");
     ListIterator<Status> iter2 = weeklyRoutine.get(0).listIterator();
 
-    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
+    for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
+                        + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
       log.debug("Day " + i);
       iter2 = weeklyRoutine.get(i).listIterator();
       for (int j = 0; j < OfficeComplexConstants.QUARTERS_OF_DAY; j++)

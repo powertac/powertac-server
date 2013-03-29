@@ -17,9 +17,9 @@
 package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -38,10 +38,11 @@ public class CoffeeMachine extends FullyShiftingAppliance
   int standByPower;
 
   @Override
-  public void initialize (String office, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, RandomSeed generator)
   {
 
     // Filling the base variables
+    gen = generator;
     name = office + " CoffeeMachine";
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
     power =
@@ -69,7 +70,7 @@ public class CoffeeMachine extends FullyShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing Variables
     loadVector = new Vector<Integer>();
@@ -99,9 +100,9 @@ public class CoffeeMachine extends FullyShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 

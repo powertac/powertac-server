@@ -17,9 +17,9 @@ package org.powertac.officecomplexcustomer.appliances;
 
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
@@ -41,9 +41,10 @@ public class CopyMachine extends SemiShiftingAppliance
   private int standbyPower;
 
   @Override
-  public void initialize (String office, Properties conf, Random gen)
+  public void initialize (String office, Properties conf, RandomSeed generator)
   {
     // Filling the base variables
+    gen = generator;
     name = office + " CopyMachine";
     saturation = Double.parseDouble(conf.getProperty("CopyMachineSaturation"));
     power =
@@ -75,7 +76,7 @@ public class CopyMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public void fillDailyOperation (int weekday, Random gen)
+  public void fillDailyOperation (int weekday)
   {
     // Initializing and Creating auxiliary variables
     loadVector = new Vector<Integer>();
@@ -119,7 +120,7 @@ public class CopyMachine extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day, Random gen)
+                                 int day)
   {
 
     double[] newControllableLoad =
@@ -244,9 +245,9 @@ public class CopyMachine extends SemiShiftingAppliance
   }
 
   @Override
-  public void refresh (Random gen)
+  public void refresh ()
   {
-    fillWeeklyOperation(gen);
+    fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
 
