@@ -132,6 +132,7 @@ public class AccountingService
     MarketTransaction mtx = 
             txFactory.makeMarketTransaction(broker, timeslot, mWh, price);
     pendingTransactions.add(mtx);
+    updateBrokerMarketPosition(mtx);
     return mtx;
   }
 
@@ -353,13 +354,22 @@ public class AccountingService
     updateCash(broker, tx.getPrice() * Math.abs(tx.getMWh()));
     MarketPosition mkt =
         broker.findMarketPositionByTimeslot(tx.getTimeslotIndex());
+    if (!messages.contains(mkt))
+      messages.add(mkt);
+  }
+
+  // process a market transaction
+  public void updateBrokerMarketPosition(MarketTransaction tx) 
+  {
+    Broker broker = tx.getBroker();
+    MarketPosition mkt =
+        broker.findMarketPositionByTimeslot(tx.getTimeslotIndex());
     if (mkt == null) {
       mkt = new MarketPosition(broker, tx.getTimeslot(), tx.getMWh());
       log.debug("New MarketPosition(" + broker.getUsername() + 
                 ", " + tx.getTimeslot().getSerialNumber() + "): " + 
                 mkt.getId());
       broker.addMarketPosition(mkt, tx.getTimeslotIndex());
-      messages.add(mkt);
     }
     else {
       mkt.updateBalance(tx.getMWh());

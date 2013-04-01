@@ -351,6 +351,13 @@ public class AccountingServiceTests
     mtx = (MarketTransaction)pending.get(1);
     assertNotNull("second mtx not null", mtx);
     assertEquals("correct quantity id 1", 0.7, mtx.getMWh(), 1e-6);
+    // broker market positions should have been updated already
+    MarketPosition mp2 = bob.findMarketPositionByTimeslot(2);
+    assertNotNull("should be a market position in slot 2", mp2);
+    assertEquals(".5 mwh in ts2", 0.5, mp2.getOverallBalance(), 1e-6);
+    MarketPosition mp3 = bob.findMarketPositionByTimeslot(3);
+    assertNotNull("should be a market position in slot 3", mp3);
+    assertEquals(".7 mwh in ts3", 0.7, mp3.getOverallBalance(), 1e-6);
   }
   
   // simple activation
