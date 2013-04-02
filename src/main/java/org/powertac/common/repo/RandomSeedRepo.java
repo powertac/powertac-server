@@ -44,11 +44,13 @@ public class RandomSeedRepo implements DomainRepo
   static private Logger log = Logger.getLogger(RandomSeedRepo.class.getName());
   
   private HashMap<String, RandomSeed> seedMap;
-  
+  private HashMap<String, Long> pendingSeedMap;
+
   public RandomSeedRepo ()
   {
     super();
     seedMap = new HashMap<String, RandomSeed>();
+    pendingSeedMap = new HashMap<String, Long>();
   }
 
   /**
@@ -61,11 +63,20 @@ public class RandomSeedRepo implements DomainRepo
              id + ";" + purpose);
     String name = composeName(classname, id, purpose);
     RandomSeed result = seedMap.get(name);
-    if (result == null) {
-      log.debug("New seed created: " + classname + ";" +
-               id + ";" + purpose);
-      result = new RandomSeed(classname, id, purpose);
-      seedMap.put(composeName(classname, id, purpose), result);
+    if (null == result) {
+      // try getting the seed from the pending map
+      Long seedValue = pendingSeedMap.get(name);
+      if (null == seedValue) {
+        // create a new one
+        log.debug("New seed created: " + classname + ";" +
+                id + ";" + purpose);
+        result = new RandomSeed(classname, id, purpose);
+      }
+      else {
+        log.info("Stored seed " + seedValue + " retrieved for " + name);
+        result = new RandomSeed(classname, id, purpose, seedValue);
+      }
+      seedMap.put(name, result);
     }
     else {
       log.info("Seed from map for " + name);
@@ -111,14 +122,14 @@ public class RandomSeedRepo implements DomainRepo
           else {
             System.out.println("fields[3, 4, 5, 6]: " + fields[3]
                     + "," + fields[4] + "," + fields[5] + "," + fields[6]);
-            RandomSeed seed = new RandomSeed(fields[3],
-                                             Long.parseLong(fields[4]), 
-                                             fields[5],
-                                             Long.parseLong(fields[6]));
-            seedMap.put(composeName(fields[3], 
-                                    Long.parseLong(fields[4]),
-                                    fields[5]),
-                        seed);
+            //RandomSeed seed = new RandomSeed(fields[3],
+            //                                 Long.parseLong(fields[4]), 
+            //                                 fields[5],
+            //                                 Long.parseLong(fields[6]));
+            pendingSeedMap.put(composeName(fields[3], 
+                                           Long.parseLong(fields[4]),
+                                           fields[5]),
+                               Long.parseLong(fields[6]));
           }
         }
       }
@@ -138,6 +149,7 @@ public class RandomSeedRepo implements DomainRepo
   public void recycle ()
   {
     seedMap.clear();
+    pendingSeedMap.clear();
   }
   
   // test-support
