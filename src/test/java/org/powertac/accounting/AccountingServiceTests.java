@@ -371,6 +371,8 @@ public class AccountingServiceTests
         
     // add a couple of transactions
     accountingService.addMarketTransaction(bob,
+      timeslotRepo.findBySerialNumber(1), 0.6, -55.0);
+    accountingService.addMarketTransaction(bob,
       timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
       timeslotRepo.findBySerialNumber(3), 0.7, -43.0);
@@ -393,13 +395,13 @@ public class AccountingServiceTests
     assertTrue("it's a CashPosition", msg instanceof CashPosition);
     assertEquals("no balance", 0.0, ((CashPosition)msg).getBalance(), 1e-6);
 
-    // should be market transactions, and cash and mkt positions for bob
+    // should be 3 market transactions, and cash and 3 mkt positions for bob
     List bobMsgs = msgMap.get(bob);
-    assertEquals("five messages", 5, bobMsgs.size());
+    assertEquals("seven messages", 7, bobMsgs.size());
 
     Object obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
-        Timeslot ts5 = timeslotRepo.findBySerialNumber(2);
+        Timeslot ts5 = timeslotRepo.findBySerialNumber(1);
         return (item instanceof MarketTransaction &&
                 ((MarketTransaction)item).getBroker() == bob &&
                 ((MarketTransaction)item).getTimeslot() == ts5);
@@ -407,7 +409,7 @@ public class AccountingServiceTests
     });
     MarketTransaction mtx1 = (MarketTransaction)obj;
     assertNotNull("found 1st tx", mtx1);
-    assertEquals("correct quantity", 0.5, mtx1.getMWh(), 1e-6);
+    assertEquals("correct quantity", 0.6, mtx1.getMWh(), 1e-6);
 
     obj = findFirst(bobMsgs, new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -428,7 +430,7 @@ public class AccountingServiceTests
     });
     CashPosition cp1 = (CashPosition)obj;
     assertNotNull("non-null CashPosition", cp1);
-    assertEquals("correct cash position", -45.0 * 0.5 + -43.0 * 0.7, cp1.getBalance(), 1e-6);
+    assertEquals("correct cash position", -55.0 * 0.6, cp1.getBalance(), 1e-6);
   }
 
   // test activation
@@ -438,6 +440,8 @@ public class AccountingServiceTests
   {
     initializeService();
     // market transactions
+    accountingService.addMarketTransaction(bob,
+        timeslotRepo.findBySerialNumber(1), 0.6, -55.0);
     accountingService.addMarketTransaction(bob,
         timeslotRepo.findBySerialNumber(2), 0.5, -45.0);
     accountingService.addMarketTransaction(bob,
@@ -457,7 +461,7 @@ public class AccountingServiceTests
         tariffB2, customerInfo3, 3, -55.0, -4.5);
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
         tariffJ1, customerInfo2, 12, 120.0, 8.4);
-    assertEquals("correct number in list", 9, accountingService.getPendingTransactions().size());
+    assertEquals("correct number in list", 10, accountingService.getPendingTransactions().size());
     
     // activate, gather messages, check cash and market positions
     final Map<Broker, List> msgMap = new HashMap<Broker, List>();
@@ -472,33 +476,33 @@ public class AccountingServiceTests
     verify(mockProxy, times(2)).sendMessages(isA(Broker.class), anyList());
 
     assertEquals("correct cash balance, Bob",
-        (-45.0 * 0.5 - 31.0 * 0.3 - 43.0 * 0.7 + 7.7 + 8.0 -4.5), bob.getCashBalance(), 1e-6);
+        (-55.0 * 0.6 + 7.7 + 8.0 -4.5), bob.getCashBalance(), 1e-6);
     assertEquals("correct cash balance, Jim",
-        (-35.0 * 0.4 + 20.0 * 0.2 + 8.4), jim.getCashBalance(), 1e-6);
+        8.4, jim.getCashBalance(), 1e-6);
     
     List<Object> bobMkts = filter(msgMap.get(bob), new Predicate<Object>() {
       public boolean apply (Object item) {
         return (item instanceof MarketPosition);
       }
     });
-    assertEquals("Bob has 2 mkt positions", 2, bobMkts.size());
+    assertEquals("Bob has 3 mkt positions", 3, bobMkts.size());
     
     Object mkt = findFirst(bobMkts, new Predicate<Object>() {
       public boolean apply (Object thing) {
-        Timeslot ts5 = timeslotRepo.findBySerialNumber(2);
+        Timeslot ts5 = timeslotRepo.findBySerialNumber(1);
         return (((MarketPosition)thing).getTimeslot() == ts5);
       }
     });
     assertNotNull("found market position b5", mkt);
-    assertEquals("correct mkt position, Bob, ts5",  0.8, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    assertEquals("correct mkt position, Bob, ts5",  0.6, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
     mkt = findFirst(bobMkts, new Predicate<Object>() {
       public boolean apply (Object thing) {
-        Timeslot ts6 = timeslotRepo.findBySerialNumber(3);
+        Timeslot ts6 = timeslotRepo.findBySerialNumber(2);
         return (((MarketPosition)thing).getTimeslot() == ts6);
       }
     });
     assertNotNull("found market position b6", mkt);
-    assertEquals("correct mkt position, Bob, ts6",  0.7, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    assertEquals("correct mkt position, Bob, ts6",  0.8, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
     
     List<Object> jimMkts = filter(msgMap.get(jim), new Predicate<Object>() {
       public boolean apply (Object item) {
@@ -512,6 +516,17 @@ public class AccountingServiceTests
     assertEquals("correct timeslot", timeslotRepo.findBySerialNumber(2),
                  ((MarketPosition)mkt).getTimeslot());
     assertEquals("correct mkt position, Jim, ts5",  0.2, ((MarketPosition)mkt).getOverallBalance(), 1e-6);
+    
+    // activate in the next timeslot, see that market transactions for ts 2
+    // are posted
+    double bobCash1 = bob.getCashBalance();
+    msgMap.clear();
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    accountingService.activate(timeService.getCurrentTime(), 3);
+
+    double bobCash2 = bob.getCashBalance();
+    assertEquals("bob's ts2 power deliveries posted",
+                 bobCash1 - 0.5 * 45.0 - 0.3 * 31.0, bobCash2, 1e-6);
   }
   
   // net market position only works after activation

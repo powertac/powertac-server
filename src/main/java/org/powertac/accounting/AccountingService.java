@@ -74,6 +74,8 @@ public class AccountingService
 
   private ArrayList<BrokerTransaction> pendingTransactions;
   private DistributionReport distributionReport;
+  private HashMap<Timeslot, ArrayList<MarketTransaction>>
+      pendingMarketTransactions;
 
   // read this from configuration
   
@@ -94,6 +96,8 @@ public class AccountingService
   {
     super();
     pendingTransactions = new ArrayList<BrokerTransaction>();
+    pendingMarketTransactions =
+            new HashMap<Timeslot, ArrayList<MarketTransaction>>();
   }
 
   @Override
@@ -131,8 +135,19 @@ public class AccountingService
   {
     MarketTransaction mtx = 
             txFactory.makeMarketTransaction(broker, timeslot, mWh, price);
+
+    // post pending tx so it gets sent to broker
     pendingTransactions.add(mtx);
     updateBrokerMarketPosition(mtx);
+
+    // defer posting to delivery timeslot
+    ArrayList<MarketTransaction> theList =
+            pendingMarketTransactions.get(timeslot);
+    if (null == theList) {
+      theList = new ArrayList<MarketTransaction>();
+      pendingMarketTransactions.put(timeslot, theList);
+    }
+    theList.add(mtx);
     return mtx;
   }
 
@@ -286,6 +301,8 @@ public class AccountingService
       dispatch(this, "processTransaction", 
                tx, brokerMsg.get(tx.getBroker()));
     }
+    // handle the backed-up mkt transactions for this timeslot
+    handleMarketTransactionsForTimeslot(timeslotRepo.currentTimeslot());
     // for each broker, compute interest and send messages
     double rate = bankInterest / 365.0;
     for (Broker broker : brokerRepo.list()) {
@@ -345,20 +362,30 @@ public class AccountingService
                                  ArrayList<Object> messages) {
     updateCash(tx.getBroker(), tx.getCharge());
   }
-
-  // process a market transaction
+  
+  // process market transaction by sending update market position.
+  // actual transaction posting is deferred to delivery time
   public void processTransaction(MarketTransaction tx,
-                                 ArrayList<Object> messages) 
-  {
-    Broker broker = tx.getBroker();
-    updateCash(broker, tx.getPrice() * Math.abs(tx.getMWh()));
+                                 ArrayList<Object> messages) {
     MarketPosition mkt =
-        broker.findMarketPositionByTimeslot(tx.getTimeslotIndex());
+        tx.getBroker().findMarketPositionByTimeslot(tx.getTimeslotIndex());
     if (!messages.contains(mkt))
       messages.add(mkt);
   }
+  
+  // process deferred market transactions for the current timeslot
+  public void handleMarketTransactionsForTimeslot(Timeslot ts) 
+  {
+    ArrayList<MarketTransaction> pending = pendingMarketTransactions.get(ts);
+    if (null == pending)
+      return;
+    for (MarketTransaction tx : pending) {
+      Broker broker = tx.getBroker();
+      updateCash(broker, tx.getPrice() * Math.abs(tx.getMWh()));
+    }
+  }
 
-  // process a market transaction
+  // pre-process a market transaction
   public void updateBrokerMarketPosition(MarketTransaction tx) 
   {
     Broker broker = tx.getBroker();
