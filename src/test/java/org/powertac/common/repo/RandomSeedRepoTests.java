@@ -118,7 +118,7 @@ public class RandomSeedRepoTests
     catch (Exception fnf) {
       fail(fnf.toString());
     }
-    assertEquals("two entries", 2, randomSeedRepo.size());
+    assertEquals("two entries", 0, randomSeedRepo.size());
     RandomSeed rs1 = randomSeedRepo.getRandomSeed("Foo", 3, "test");
     assertEquals("correct seed value 1", -7938709514410200953l, rs1.getValue());
     RandomSeed rs2 = randomSeedRepo.getRandomSeed("Bar", 42, "more test");
