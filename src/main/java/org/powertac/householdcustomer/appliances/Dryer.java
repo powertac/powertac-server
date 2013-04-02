@@ -20,9 +20,10 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -39,12 +40,15 @@ public class Dryer extends SemiShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
-    gen = generator;
+
     // Filling the base variables
     name = household + " Dryer";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation = Double.parseDouble(conf.getProperty("DryerSaturation"));
     power =
       (int) (VillageConstants.DRYER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DRYER_POWER_MEAN);

@@ -22,9 +22,11 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Household;
 import org.powertac.householdcustomer.enumerations.Status;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A person domain instance represents a single person in its real life
@@ -46,6 +48,9 @@ public class Person
    * debugging.
    */
   static protected Logger log = Logger.getLogger(Person.class.getName());
+
+  @Autowired
+  protected RandomSeedRepo randomSeedRepo;
 
   /**
    * The person's name in the community. It includes the household he is living
@@ -113,9 +118,9 @@ public class Person
    * @return
    */
   public void initialize (String AgentName, Properties conf,
-                          Vector<Integer> publicVacationVector,
-                          RandomSeed generator)
+                          Vector<Integer> publicVacationVector, int seed)
   {
+
   }
 
   /**
@@ -433,6 +438,13 @@ public class Person
    */
   public void refresh (Properties config)
   {
+
+  }
+
+  public void test ()
+  {
+
+    System.out.println(toString() + " " + gen.nextDouble());
 
   }
 

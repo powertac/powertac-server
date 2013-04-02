@@ -20,7 +20,8 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.AirConditionClass;
 import org.powertac.householdcustomer.enumerations.AirConditionOperation;
@@ -106,18 +107,20 @@ public class AirCondition extends WeatherSensitiveAppliance
   int cycleCounter;
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
-    gen = generator;
+    // Filling the base variables
+    name = household + " AirCondition";
+    saturation = Double.parseDouble(conf.getProperty("AirConditionSaturation"));
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     // Creating Auxiliary Variables
     int x = gen.nextInt(VillageConstants.PERCENTAGE + 1);
     double limit =
       VillageConstants.PERCENTAGE
               * Double.parseDouble(conf.getProperty("AirConditionTypeNormal"));
-    // Filling the base variables
-    name = household + " AirCondition";
-    saturation = Double.parseDouble(conf.getProperty("AirConditionSaturation"));
 
     // Air Condition Specific Variables
     acOperation = AirConditionOperation.Off;

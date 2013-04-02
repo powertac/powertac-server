@@ -21,9 +21,10 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -45,12 +46,14 @@ public class Dishwasher extends SemiShiftingAppliance
   // Mode mode = Mode.One
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
-    gen = generator;
     // Filling the base variables
     name = household + " Dishwasher";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation = Double.parseDouble(conf.getProperty("DishwasherSaturation"));
     power =
       (int) (VillageConstants.DISHWASHER_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.DISHWASHER_POWER_MEAN);
@@ -233,6 +236,7 @@ public class Dishwasher extends SemiShiftingAppliance
 
         if (counter == possibleHours.size()) {
           minIndex = (int) (gen.nextDouble() * possibleHours.size());
+          // System.out.println("MinIndex: " + minIndex);
           // log.debug("All the same, I choose: " + minIndex);
         }
 

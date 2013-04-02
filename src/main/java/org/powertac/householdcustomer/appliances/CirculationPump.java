@@ -18,7 +18,8 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -39,13 +40,15 @@ public class CirculationPump extends NotShiftingAppliance
   double operationPercentage;
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
 
     // Filling the base variables
-    gen = generator;
     name = household + " CirculationPump";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation =
       Double.parseDouble(conf.getProperty("CirculationPumpSaturation"));
     operationPercentage =

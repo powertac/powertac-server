@@ -17,10 +17,10 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -48,18 +48,15 @@ public class SpaceHeater extends WeatherSensitiveAppliance
    */
   int temperatureThreshold;
 
-  /**
-   * Variable utilized as a random number generator
-   */
-  Random gen;
-
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = household + " SpaceHeater";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation = Double.parseDouble(conf.getProperty("SpaceHeaterSaturation"));
     operationPercentage =
       Double.parseDouble(conf.getProperty("SpaceHeaterPercentage"));

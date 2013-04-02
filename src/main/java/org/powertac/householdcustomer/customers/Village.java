@@ -69,6 +69,8 @@ public class Village extends AbstractCustomer
   @Autowired
   WeatherReportRepo weatherReportRepo;
 
+  int seedId = 1;
+
   /**
    * These are the vectors containing aggregated each day's base load from the
    * appliances installed inside the households of each type.
@@ -307,7 +309,7 @@ public class Village extends AbstractCustomer
    * @param conf
    * @param gen
    */
-  public void initialize (Properties conf, RandomSeed generator)
+  public void initialize (Properties conf, int seed)
   {
     // Initializing variables
 
@@ -319,7 +321,8 @@ public class Village extends AbstractCustomer
     int sshouses = Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
-    gen = generator;
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Village Model" + seed);
 
     createCostEstimationDaysList(VillageConstants.RANDOM_DAYS_NUMBER);
 
@@ -329,7 +332,7 @@ public class Village extends AbstractCustomer
       log.info("Initializing " + toString() + " NSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " NSHouse" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       notShiftingHouses.add(hh);
       hh.householdOf = this;
     }
@@ -338,7 +341,7 @@ public class Village extends AbstractCustomer
       log.info("Initializing " + toString() + " RaSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " RaSHouse" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       randomlyShiftingHouses.add(hh);
       hh.householdOf = this;
     }
@@ -347,7 +350,7 @@ public class Village extends AbstractCustomer
       log.info("Initializing " + toString() + " ReSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " ReSHouse" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       regularlyShiftingHouses.add(hh);
       hh.householdOf = this;
     }
@@ -356,7 +359,7 @@ public class Village extends AbstractCustomer
       log.info("Initializing " + toString() + " SSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " SSHouse" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       smartShiftingHouses.add(hh);
       hh.householdOf = this;
     }
@@ -2574,6 +2577,11 @@ public class Village extends AbstractCustomer
 
     consumePower();
 
+    System.out.println("Timeslot:" + timeslotRepo.currentSerialNumber());
+
+    // for (Household house: getHouses())
+    // house.test();
+
     if (hour == 23) {
 
       for (String type: subscriptionMap.keySet()) {
@@ -2691,6 +2699,7 @@ public class Village extends AbstractCustomer
    */
   void rescheduleNextDay (String type)
   {
+
     int serial =
       (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;

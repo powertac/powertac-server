@@ -35,6 +35,7 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
+  @Autowired
+  private TimeslotRepo timeslotRepo;
+
   /** Random Number Generator */
   private RandomSeed rs1;
 
@@ -98,6 +102,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
    * for tariffs each time they are published.
    */
   int publishingPeriods;
+
+  int seedId = 1;
 
   /** This is the constructor of the Household Consumer Service. */
   public HouseholdCustomerService ()
@@ -129,7 +135,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     villageList.clear();
     tariffMarketService.registerNewTariffListener(this);
     rs1 =
-      randomSeedRepo.getRandomSeed("HouseholdCustomerService", 1,
+      randomSeedRepo.getRandomSeed("HouseholdCustomerService", seedId++,
                                    "Household Customer Models");
 
     if (configFile1 == null) {
@@ -209,7 +215,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       Village village = new Village("VillageType" + type + " Village " + i);
       village.addCustomerInfo(villageInfo);
       village.addCustomerInfo(villageInfo2);
-      village.initialize(configuration, rs1);
+      village.initialize(configuration, seedId++);
       villageList.add(village);
       village.subscribeDefault();
     }
@@ -230,6 +236,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
     publishedTariffs.addAll(temp);
 
+    // System.out.println("Timeslot: " + timeslotRepo.currentSerialNumber());
+
     // For each village of the server //
     for (Village village: villageList) {
 
@@ -240,8 +248,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
         // the evaluation of each type. //
         if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
 
-          // System.out.println("Evaluation for " + type + " of village " +
-          // village.toString());
+          // System.out.println("Evaluation for " + type + " of village "
+          // + village.toString());
           log.debug("Evaluation for " + type + " of village "
                     + village.toString());
 

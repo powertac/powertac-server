@@ -19,9 +19,10 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -37,12 +38,15 @@ public class Refrigerator extends FullyShiftingAppliance
 {
 
   @Override
-  public void initialize (String office, Properties conf, RandomSeed generator)
+  public void initialize (String office, Properties conf, int seed)
   {
 
     // Filling the base variables
-    gen = generator;
     name = office + " Refrigerator";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation = Double.parseDouble(conf.getProperty("RefrigeratorSaturation"));
     power =
       (int) (VillageConstants.REFRIGERATOR_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.REFRIGERATOR_POWER_MEAN);

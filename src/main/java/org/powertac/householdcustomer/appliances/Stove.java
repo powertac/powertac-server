@@ -20,9 +20,10 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -37,12 +38,14 @@ public class Stove extends SemiShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = household + " Stove";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation = Double.parseDouble(conf.getProperty("StoveSaturation"));
     power =
       (int) (VillageConstants.STOVE_POWER_VARIANCE * gen.nextGaussian() + VillageConstants.STOVE_POWER_MEAN);
@@ -172,6 +175,7 @@ public class Stove extends SemiShiftingAppliance
 
       if (counter == possibleHours.size()) {
         minIndex = (int) (gen.nextDouble() * possibleHours.size());
+        // System.out.println("MinIndex: " + minIndex);
         // log.debug("All the same, I choose: " + minIndex);
       }
 

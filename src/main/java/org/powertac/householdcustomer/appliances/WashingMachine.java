@@ -21,9 +21,10 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 
 /**
@@ -64,12 +65,14 @@ public class WashingMachine extends SemiShiftingAppliance
   // Reaction reaction = Reaction.Strong
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = household + " Washing Machine";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     saturation =
       Double.parseDouble(conf.getProperty("WashingMachineSaturation"));
     power =
@@ -235,6 +238,7 @@ public class WashingMachine extends SemiShiftingAppliance
 
         if (counter == possibleHours.size()) {
           minIndex = (int) (gen.nextDouble() * possibleHours.size());
+          // System.out.println("MinIndex: " + minIndex);
           // log.debug("All the same, I choose: " +
           // possibleHours.get(minIndex));
         }

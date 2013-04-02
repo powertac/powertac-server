@@ -21,9 +21,10 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.HeaterType;
 
@@ -45,16 +46,18 @@ public class WaterHeater extends FullyShiftingAppliance
   HeaterType type;
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
     // Creating Auxiliary Variables
-    gen = generator;
+    name = household + " WaterHeater";
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
+    saturation = Double.parseDouble(conf.getProperty("WaterHeaterSaturation"));
     int x = 1 + gen.nextInt(VillageConstants.PERCENTAGE);
     int limit = Integer.parseInt(conf.getProperty("InstantHeater"));
     // Filling the base variables
-    name = household + " WaterHeater";
-    saturation = Double.parseDouble(conf.getProperty("WaterHeaterSaturation"));
 
     // If the heater is instant Heater
     if (x < limit) {
@@ -274,6 +277,7 @@ public class WaterHeater extends FullyShiftingAppliance
 
           if (counter == possibleHours.size()) {
             minIndex = (int) (gen.nextDouble() * possibleHours.size());
+            // System.out.println("MinIndex: " + minIndex);
             // log.debug("All the same, I choose: " + minIndex);
           }
 
@@ -321,7 +325,8 @@ public class WaterHeater extends FullyShiftingAppliance
 
         if (counter == VillageConstants.STORAGE_HEATER_SHIFTING_END) {
           minIndex =
-            (int) (Math.random() * VillageConstants.STORAGE_HEATER_SHIFTING_END);
+            (int) (gen.nextDouble() * VillageConstants.STORAGE_HEATER_SHIFTING_END);
+          // System.out.println("MinIndex: " + minIndex);
           log.debug("All the same, I choose: " + minIndex);
         }
 

@@ -24,8 +24,10 @@ import org.apache.log4j.Logger;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Household;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A appliance domain instance represents a single appliance inside a household.
@@ -54,6 +56,9 @@ public class Appliance
 
   /** The household that the appliance is installed at. **/
   protected Household applianceOf;
+
+  @Autowired
+  protected RandomSeedRepo randomSeedRepo;
 
   /**
    * This variable is utilized for the creation of the RandomSeed numbers and is
@@ -217,7 +222,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void initialize (String household, Properties conf, RandomSeed gen)
+  public void initialize (String household, Properties conf, int seed)
   {
 
   }
@@ -356,6 +361,11 @@ public class Appliance
       }
       operationDaysVector.add(function);
     }
+  }
+
+  public void test ()
+  {
+    System.out.println(toString() + " " + gen.nextDouble());
   }
 
   /**

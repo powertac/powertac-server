@@ -26,6 +26,8 @@ import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.appliances.AirCondition;
 import org.powertac.householdcustomer.appliances.Appliance;
 import org.powertac.householdcustomer.appliances.CirculationPump;
@@ -49,6 +51,7 @@ import org.powertac.householdcustomer.persons.MostlyPresentPerson;
 import org.powertac.householdcustomer.persons.PeriodicPresentPerson;
 import org.powertac.householdcustomer.persons.Person;
 import org.powertac.householdcustomer.persons.RandomlyAbsentPerson;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The household is the domain instance represents a single house with the
@@ -68,6 +71,11 @@ public class Household
    * debugging.
    */
   static protected Logger log = Logger.getLogger(Household.class.getName());
+
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
+
+  int seedId = 1;
 
   /**
    * The household name. It is different for each one to be able to tell them
@@ -180,15 +188,19 @@ public class Household
    * @return
    */
   public void initialize (String HouseName, Properties conf,
-                          Vector<Integer> publicVacationVector,
-                          RandomSeed generator)
+                          Vector<Integer> publicVacationVector, int seed)
   {
-    gen = generator;
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
     double va = Double.parseDouble(conf.getProperty("VacationAbsence"));
     name = HouseName;
-    int persons = memberRandomizer(conf, gen);
+
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Household Model" + seed);
+
+    int persons = memberRandomizer(conf);
     for (int i = 0; i < persons; i++)
-      addPerson(i + 1, conf, publicVacationVector, gen);
+      addPerson(i + 1, conf, publicVacationVector);
 
     for (Person member: members) {
       for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
@@ -199,7 +211,7 @@ public class Household
       // member.showInfo();
     }
 
-    fillAppliances(conf, gen);
+    fillAppliances(conf);
 
     for (int i = 0; i < VillageConstants.DAYS_OF_WEEK; i++) {
       dailyBaseLoad =
@@ -223,7 +235,7 @@ public class Household
 
     for (week = 1; week < VillageConstants.WEEKS_OF_COMPETITION
                           + VillageConstants.WEEKS_OF_BOOTSTRAP; week++) {
-      refresh(conf, gen);
+      refresh(conf);
     }
 
     for (Appliance appliance: appliances) {
@@ -303,7 +315,7 @@ public class Household
    * @return
    */
   void addPerson (int counter, Properties conf,
-                  Vector<Integer> publicVacationVector, RandomSeed gen)
+                  Vector<Integer> publicVacationVector)
   {
     // Taking parameters from configuration file
     int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
@@ -312,19 +324,22 @@ public class Household
     int x = gen.nextInt(VillageConstants.PERCENTAGE);
     if (x < pp) {
       PeriodicPresentPerson ppp = new PeriodicPresentPerson();
-      ppp.initialize("PPP" + counter, conf, publicVacationVector, gen);
+      ppp.initialize(toString() + "PPP" + counter, conf, publicVacationVector,
+                     seedId++);
       members.add(ppp);
 
     }
     else {
       if (x >= pp & x < (pp + mp)) {
         MostlyPresentPerson mpp = new MostlyPresentPerson();
-        mpp.initialize("MPP" + counter, conf, publicVacationVector, gen);
+        mpp.initialize(toString() + "MPP" + counter, conf,
+                       publicVacationVector, seedId++);
         members.add(mpp);
       }
       else {
         RandomlyAbsentPerson rap = new RandomlyAbsentPerson();
-        rap.initialize("RAP" + counter, conf, publicVacationVector, gen);
+        rap.initialize(toString() + "RAP" + counter, conf,
+                       publicVacationVector, seedId++);
         members.add(rap);
       }
     }
@@ -441,7 +456,7 @@ public class Household
    * @param gen
    * @return
    */
-  int memberRandomizer (Properties conf, RandomSeed gen)
+  int memberRandomizer (Properties conf)
   {
     int one = Integer.parseInt(conf.getProperty("OnePerson"));
     int two = Integer.parseInt(conf.getProperty("TwoPersons"));
@@ -483,11 +498,12 @@ public class Household
    * @param gen
    * @return
    */
-  void checkProbability (Appliance app, RandomSeed gen)
+  void checkProbability (Appliance app)
   {
     // Creating auxiliary variables
 
     int x = gen.nextInt(VillageConstants.PERCENTAGE);
+
     int threshold = (int) (app.getSaturation() * VillageConstants.PERCENTAGE);
     if (x < threshold) {
       app.fillWeeklyOperation();
@@ -506,7 +522,7 @@ public class Household
    * @param gen
    * @return
    */
-  void fillAppliances (Properties conf, RandomSeed gen)
+  void fillAppliances (Properties conf)
   {
 
     // NOT SHIFTING ================================
@@ -515,14 +531,14 @@ public class Household
     AirCondition ac = new AirCondition();
     appliances.add(ac);
     ac.setApplianceOf(this);
-    ac.initialize(this.name, conf, gen);
-    checkProbability(ac, gen);
+    ac.initialize(this.name, conf, seedId++);
+    checkProbability(ac);
 
     // Consumer Electronics
     ConsumerElectronics ce = new ConsumerElectronics();
     appliances.add(ce);
     ce.setApplianceOf(this);
-    ce.initialize(this.name, conf, gen);
+    ce.initialize(this.name, conf, seedId++);
     ce.fillWeeklyOperation();
     ce.createWeeklyPossibilityOperationVector();
 
@@ -530,7 +546,7 @@ public class Household
     ICT ict = new ICT();
     appliances.add(ict);
     ict.setApplianceOf(this);
-    ict.initialize(this.name, conf, gen);
+    ict.initialize(this.name, conf, seedId++);
     ict.fillWeeklyOperation();
     ict.createWeeklyPossibilityOperationVector();
 
@@ -538,7 +554,7 @@ public class Household
     Lights lights = new Lights();
     appliances.add(lights);
     lights.setApplianceOf(this);
-    lights.initialize(this.name, conf, gen);
+    lights.initialize(this.name, conf, seedId++);
     lights.fillWeeklyOperation();
     lights.createWeeklyPossibilityOperationVector();
 
@@ -546,7 +562,7 @@ public class Household
     Others others = new Others();
     appliances.add(others);
     others.setApplianceOf(this);
-    others.initialize(this.name, conf, gen);
+    others.initialize(this.name, conf, seedId++);
     others.fillWeeklyOperation();
     others.createWeeklyPossibilityOperationVector();
 
@@ -554,8 +570,8 @@ public class Household
     CirculationPump cp = new CirculationPump();
     cp.setApplianceOf(this);
     appliances.add(cp);
-    cp.initialize(this.name, conf, gen);
-    checkProbability(cp, gen);
+    cp.initialize(this.name, conf, seedId++);
+    checkProbability(cp);
 
     // FULLY SHIFTING ================================
 
@@ -563,7 +579,7 @@ public class Household
     Refrigerator ref = new Refrigerator();
     appliances.add(ref);
     ref.setApplianceOf(this);
-    ref.initialize(this.name, conf, gen);
+    ref.initialize(this.name, conf, seedId++);
     ref.fillWeeklyOperation();
     ref.createWeeklyPossibilityOperationVector();
 
@@ -571,22 +587,22 @@ public class Household
     Freezer fr = new Freezer();
     appliances.add(fr);
     fr.setApplianceOf(this);
-    fr.initialize(this.name, conf, gen);
-    checkProbability(fr, gen);
+    fr.initialize(this.name, conf, seedId++);
+    checkProbability(fr);
 
     // Space Heater
     SpaceHeater sh = new SpaceHeater();
     appliances.add(sh);
     sh.setApplianceOf(this);
-    sh.initialize(this.name, conf, gen);
-    checkProbability(sh, gen);
+    sh.initialize(this.name, conf, seedId++);
+    checkProbability(sh);
 
     // Water Heater
     WaterHeater wh = new WaterHeater();
     appliances.add(wh);
     wh.setApplianceOf(this);
-    wh.initialize(this.name, conf, gen);
-    checkProbability(wh, gen);
+    wh.initialize(this.name, conf, seedId++);
+    checkProbability(wh);
 
     // SEMI SHIFTING ================================
 
@@ -594,21 +610,21 @@ public class Household
     Dishwasher dw = new Dishwasher();
     appliances.add(dw);
     dw.setApplianceOf(this);
-    dw.initialize(this.name, conf, gen);
-    checkProbability(dw, gen);
+    dw.initialize(this.name, conf, seedId++);
+    checkProbability(dw);
 
     // Stove
     Stove st = new Stove();
     appliances.add(st);
     st.setApplianceOf(this);
-    st.initialize(this.name, conf, gen);
-    checkProbability(st, gen);
+    st.initialize(this.name, conf, seedId++);
+    checkProbability(st);
 
     // Washing Machine
     WashingMachine wm = new WashingMachine();
     appliances.add(wm);
     wm.setApplianceOf(this);
-    wm.initialize(this.name, conf, gen);
+    wm.initialize(this.name, conf, seedId++);
     wm.fillWeeklyOperation();
     wm.createWeeklyPossibilityOperationVector();
 
@@ -616,8 +632,8 @@ public class Household
     Dryer dr = new Dryer();
     appliances.add(dr);
     dr.setApplianceOf(this);
-    dr.initialize(this.name, conf, gen);
-    checkProbability(dr, gen);
+    dr.initialize(this.name, conf, seedId++);
+    checkProbability(dr);
 
   }
 
@@ -1007,7 +1023,7 @@ public class Household
    * @param gen
    * @return
    */
-  void refresh (Properties conf, RandomSeed gen)
+  void refresh (Properties conf)
   {
 
     // For each member of the household
@@ -1061,6 +1077,7 @@ public class Household
 
         if (appliance.getWeeklyLoadVector().get(day + 1).get(0) > 0) {
           // log.debug("Changed Space Heater indeed");
+
           dailyWeatherSensitiveLoad = fillDailyWeatherSensitiveLoad(day + 1);
           weeklyWeatherSensitiveLoad.set(day + 1, dailyWeatherSensitiveLoad);
           dailyWeatherSensitiveLoadInHours =
@@ -1095,6 +1112,14 @@ public class Household
         }
       }
     }
+
+  }
+
+  public void test ()
+  {
+
+    for (Appliance appliance: appliances)
+      appliance.test();
 
   }
 

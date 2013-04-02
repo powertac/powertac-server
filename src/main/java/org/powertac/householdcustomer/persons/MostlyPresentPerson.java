@@ -20,7 +20,8 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.enumerations.Status;
 
@@ -37,9 +38,9 @@ public class MostlyPresentPerson extends Person
 
   @Override
   public void initialize (String AgentName, Properties conf,
-                          Vector<Integer> publicVacationVector,
-                          RandomSeed generator)
+                          Vector<Integer> publicVacationVector, int seed)
   {
+
     // Variables Taken from the configuration file
     double sicknessMean = Double.parseDouble(conf.getProperty("SicknessMean"));
     double sicknessDev = Double.parseDouble(conf.getProperty("SicknessDev"));
@@ -50,9 +51,11 @@ public class MostlyPresentPerson extends Person
     double MPLeisure = Double.parseDouble(conf.getProperty("MPLeisure"));
 
     // Filling the main variables
-    gen = generator;
     name = AgentName;
     status = Status.Normal;
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen = randomSeedRepo.getRandomSeed(toString(), seed, "Person Model" + seed);
     sicknessVector = createSicknessVector(sicknessMean, sicknessDev);
     this.publicVacationVector = publicVacationVector;
     int x = (int) (gen.nextGaussian() + MPLeisure);
