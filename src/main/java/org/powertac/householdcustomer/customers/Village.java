@@ -2577,8 +2577,8 @@ public class Village extends AbstractCustomer
 
     consumePower();
 
-    System.out.println("Timeslot:" + timeslotRepo.currentSerialNumber());
-
+    // System.out.println("Timeslot:" + timeslotRepo.currentSerialNumber());
+    //
     // for (Household house: getHouses())
     // house.test();
 
