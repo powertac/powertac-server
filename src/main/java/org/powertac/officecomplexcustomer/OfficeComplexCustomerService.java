@@ -35,6 +35,7 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.OfficeComplex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,8 +72,13 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
+  @Autowired
+  private TimeslotRepo timeslotRepo;
+
   /** Random Number Generator */
   private RandomSeed rs1;
+
+  int seedId = 1;
 
   // read this from configurator
   private String configFile1 = null;
@@ -190,7 +196,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
         new OfficeComplex("OfficeComplexType1 OfficeComplex " + i);
       officeComplex.addCustomerInfo(officeComplexInfo);
       officeComplex.addCustomerInfo(officeComplexInfo2);
-      officeComplex.initialize(configuration, rs1);
+      officeComplex.initialize(configuration, seedId++);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault();
     }
@@ -234,7 +240,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
         new OfficeComplex("OfficeComplexType2 OfficeComplex " + i);
       officeComplex.addCustomerInfo(officeComplexInfo);
       officeComplex.addCustomerInfo(officeComplexInfo2);
-      officeComplex.initialize(configuration, rs1);
+      officeComplex.initialize(configuration, seedId++);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault();
     }
@@ -254,6 +260,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
               .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
 
     publishedTariffs.addAll(temp);
+
+    // System.out.println("Timeslot: " + timeslotRepo.currentSerialNumber());
 
     // For each village of the server //
     for (OfficeComplex officeComplex: officeComplexList) {

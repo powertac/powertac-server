@@ -19,7 +19,8 @@ package org.powertac.officecomplexcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -35,13 +36,17 @@ public class VendingMachine extends FullyShiftingAppliance
 {
 
   @Override
-  public void initialize (String office, Properties conf, RandomSeed generator)
+  public void initialize (String office, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = office + " Vending Machine";
     saturation =
       Double.parseDouble(conf.getProperty("VendingMachineSaturation"));
+
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     power =
       (int) (OfficeComplexConstants.VENDING_MACHINE_POWER_VARIANCE
              * gen.nextGaussian() + OfficeComplexConstants.VENDING_MACHINE_POWER_MEAN);

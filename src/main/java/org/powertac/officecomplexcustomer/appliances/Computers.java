@@ -18,7 +18,8 @@ package org.powertac.officecomplexcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -38,12 +39,15 @@ public class Computers extends NotShiftingAppliance
   private double operationPercentage;
 
   @Override
-  public void initialize (String office, Properties conf, RandomSeed generator)
+  public void initialize (String office, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = office + " Computers";
     saturation = Double.parseDouble(conf.getProperty("ComputersSaturation"));
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     power =
       (int) (OfficeComplexConstants.COMPUTERS_POWER_VARIANCE
              * gen.nextGaussian() + OfficeComplexConstants.COMPUTERS_POWER_MEAN);

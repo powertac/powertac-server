@@ -24,8 +24,10 @@ import org.apache.log4j.Logger;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.Office;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * A appliance domain instance represents a single appliance inside a household.
@@ -45,6 +47,9 @@ public class Appliance
    * debugging.
    */
   static protected Logger log = Logger.getLogger(Appliance.class.getName());
+
+  @Autowired
+  protected RandomSeedRepo randomSeedRepo;
 
   /**
    * The appliance name. Appliances are named after the type of appliance and
@@ -209,7 +214,7 @@ public class Appliance
    * @param gen
    * @return
    */
-  public void initialize (String office, Properties conf, RandomSeed generator)
+  public void initialize (String office, Properties conf, int seed)
   {
 
   }
@@ -328,6 +333,11 @@ public class Appliance
    */
   public void refresh ()
   {
+  }
+
+  public void test ()
+  {
+    System.out.println(toString() + " " + gen.nextDouble());
   }
 
   /**

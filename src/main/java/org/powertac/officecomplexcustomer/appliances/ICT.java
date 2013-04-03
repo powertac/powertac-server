@@ -19,7 +19,8 @@ package org.powertac.officecomplexcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -35,13 +36,15 @@ public class ICT extends NotShiftingAppliance
 {
 
   @Override
-  public void initialize (String household, Properties conf,
-                          RandomSeed generator)
+  public void initialize (String household, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = household + " ICT";
     saturation = 1;
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     power =
       (int) (OfficeComplexConstants.ICT_POWER_VARIANCE * gen.nextGaussian() + OfficeComplexConstants.ICT_POWER_MEAN);
     cycleDuration = OfficeComplexConstants.ICT_DURATION_CYCLE;

@@ -19,7 +19,6 @@ package org.powertac.officecomplexcustomer.customers;
 import java.util.Arrays;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.Random;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -27,6 +26,8 @@ import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.officecomplexcustomer.appliances.AirCondition;
 import org.powertac.officecomplexcustomer.appliances.Appliance;
 import org.powertac.officecomplexcustomer.appliances.CoffeeMachine;
@@ -45,6 +46,7 @@ import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.enumerations.Status;
 import org.powertac.officecomplexcustomer.persons.PeriodicPresentPerson;
 import org.powertac.officecomplexcustomer.persons.Person;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The office is the domain instance represents a single working facility with
@@ -65,6 +67,11 @@ public class Office
    * debugging.
    */
   static protected Logger log = Logger.getLogger(Office.class.getName());
+
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
+
+  int seedId = 1;
 
   /**
    * The office name. It is different for each one to be able to tell them
@@ -172,12 +179,15 @@ public class Office
    * @return
    */
   public void initialize (String OfficeName, Properties conf,
-                          Vector<Integer> publicVacationVector,
-                          RandomSeed generator)
+                          Vector<Integer> publicVacationVector, int seed)
   {
-    gen = generator;
+
     name = OfficeName;
-    int persons = memberRandomizer(conf, gen);
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen = randomSeedRepo.getRandomSeed(toString(), seed, "Office Model" + seed);
+
+    int persons = memberRandomizer(conf);
     for (int i = 0; i < persons; i++)
       addPerson(i + 1, conf, publicVacationVector);
 
@@ -283,7 +293,7 @@ public class Office
     // int pp = Integer.parseInt(conf.getProperty("PeriodicPresent"));
 
     PeriodicPresentPerson ppp = new PeriodicPresentPerson();
-    ppp.initialize("PPP" + counter, conf, publicVacationVector, gen);
+    ppp.initialize("PPP" + counter, conf, publicVacationVector, seedId++);
     members.add(ppp);
 
   }
@@ -391,7 +401,7 @@ public class Office
    * @param gen
    * @return
    */
-  int memberRandomizer (Properties conf, Random gen)
+  int memberRandomizer (Properties conf)
   {
     int one = Integer.parseInt(conf.getProperty("OneToFivePersons"));
     int two = Integer.parseInt(conf.getProperty("SixToTenPersons"));
@@ -432,7 +442,7 @@ public class Office
    * @param gen
    * @return
    */
-  void checkProbability (Appliance app, Random gen)
+  void checkProbability (Appliance app)
   {
     // Creating auxiliary variables
 
@@ -465,14 +475,14 @@ public class Office
     AirCondition ac = new AirCondition();
     appliances.add(ac);
     ac.setApplianceOf(this);
-    ac.initialize(this.name, conf, gen);
-    checkProbability(ac, gen);
+    ac.initialize(this.name, conf, seedId++);
+    checkProbability(ac);
 
     // Consumer Electronics
     ConsumerElectronics ce = new ConsumerElectronics();
     appliances.add(ce);
     ce.setApplianceOf(this);
-    ce.initialize(this.name, conf, gen);
+    ce.initialize(this.name, conf, seedId++);
     ce.fillWeeklyOperation();
     ce.createWeeklyPossibilityOperationVector();
 
@@ -480,7 +490,7 @@ public class Office
     ICT ict = new ICT();
     appliances.add(ict);
     ict.setApplianceOf(this);
-    ict.initialize(this.name, conf, gen);
+    ict.initialize(this.name, conf, seedId++);
     ict.fillWeeklyOperation();
     ict.createWeeklyPossibilityOperationVector();
 
@@ -488,7 +498,7 @@ public class Office
     Lights lights = new Lights();
     appliances.add(lights);
     lights.setApplianceOf(this);
-    lights.initialize(this.name, conf, gen);
+    lights.initialize(this.name, conf, seedId++);
     lights.fillWeeklyOperation();
     lights.createWeeklyPossibilityOperationVector();
 
@@ -496,7 +506,7 @@ public class Office
     Computers com = new Computers();
     appliances.add(com);
     com.setApplianceOf(this);
-    com.initialize(this.name, conf, gen);
+    com.initialize(this.name, conf, seedId++);
     com.fillWeeklyOperation();
     com.createWeeklyPossibilityOperationVector();
 
@@ -504,8 +514,8 @@ public class Office
     Servers servers = new Servers();
     appliances.add(servers);
     servers.setApplianceOf(this);
-    servers.initialize(this.name, conf, gen);
-    checkProbability(servers, gen);
+    servers.initialize(this.name, conf, seedId++);
+    checkProbability(servers);
 
     // FULLY SHIFTING ================================
 
@@ -513,7 +523,7 @@ public class Office
     Refrigerator ref = new Refrigerator();
     appliances.add(ref);
     ref.setApplianceOf(this);
-    ref.initialize(this.name, conf, gen);
+    ref.initialize(this.name, conf, seedId++);
     ref.fillWeeklyOperation();
     ref.createWeeklyPossibilityOperationVector();
 
@@ -521,15 +531,15 @@ public class Office
     CoffeeMachine coffee = new CoffeeMachine();
     appliances.add(coffee);
     coffee.setApplianceOf(this);
-    coffee.initialize(this.name, conf, gen);
-    checkProbability(coffee, gen);
+    coffee.initialize(this.name, conf, seedId++);
+    checkProbability(coffee);
 
     // Vending Machine
     VendingMachine vm = new VendingMachine();
     appliances.add(vm);
     vm.setApplianceOf(this);
-    vm.initialize(this.name, conf, gen);
-    checkProbability(vm, gen);
+    vm.initialize(this.name, conf, seedId++);
+    checkProbability(vm);
 
     // SEMI SHIFTING ================================
 
@@ -537,15 +547,15 @@ public class Office
     MicrowaveOven mo = new MicrowaveOven();
     appliances.add(mo);
     mo.setApplianceOf(this);
-    mo.initialize(this.name, conf, gen);
-    checkProbability(mo, gen);
+    mo.initialize(this.name, conf, seedId++);
+    checkProbability(mo);
 
     // Copy Machine
     CopyMachine cm = new CopyMachine();
     appliances.add(cm);
     cm.setApplianceOf(this);
-    cm.initialize(this.name, conf, gen);
-    checkProbability(cm, gen);
+    cm.initialize(this.name, conf, seedId++);
+    checkProbability(cm);
 
   }
 
@@ -1163,6 +1173,13 @@ public class Office
     log.debug("New Dominant Load: " + Arrays.toString(dominantLoad));
 
     return dominantLoad;
+  }
+
+  public void test ()
+  {
+    for (Appliance appliance: appliances)
+      appliance.test();
+
   }
 
   /**

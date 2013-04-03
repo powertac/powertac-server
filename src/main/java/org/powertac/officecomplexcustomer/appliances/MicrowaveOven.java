@@ -20,9 +20,10 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 
 /**
@@ -43,13 +44,17 @@ public class MicrowaveOven extends SemiShiftingAppliance
   private double operationPercentage;
 
   @Override
-  public void initialize (String office, Properties conf, RandomSeed generator)
+  public void initialize (String office, Properties conf, int seed)
   {
     // Filling the base variables
-    gen = generator;
     name = office + " MicrowaveOven";
     saturation =
       Double.parseDouble(conf.getProperty("MicrowaveOvenSaturation"));
+
+    randomSeedRepo =
+      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "Appliance Model" + seed);
     power =
       (int) (OfficeComplexConstants.MICROWAVE_OVEN_POWER_VARIANCE
              * gen.nextGaussian() + OfficeComplexConstants.MICROWAVE_OVEN_POWER_MEAN);

@@ -182,6 +182,8 @@ public class OfficeComplex extends AbstractCustomer
    */
   RandomSeed gen;
 
+  int seedId = 1;
+
   /**
    * These variables are mapping of the characteristics of the types of offices.
    * The first is used to keep track of their subscription at any given time.
@@ -266,7 +268,7 @@ public class OfficeComplex extends AbstractCustomer
    * @param conf
    * @param gen
    */
-  public void initialize (Properties conf, RandomSeed generator)
+  public void initialize (Properties conf, int seed)
   {
     // Initializing variables
 
@@ -275,7 +277,9 @@ public class OfficeComplex extends AbstractCustomer
       Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
-    gen = generator;
+    gen =
+      randomSeedRepo.getRandomSeed(toString(), seed, "OfficeComplex Model"
+                                                     + seed);
 
     createCostEstimationDaysList(OfficeComplexConstants.RANDOM_DAYS_NUMBER);
 
@@ -285,7 +289,7 @@ public class OfficeComplex extends AbstractCustomer
       log.info("Initializing " + toString() + " NSoffice " + i);
       Office of = new Office();
       of.initialize(toString() + " NSoffice" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       notShiftingOffices.add(of);
       of.officeOf = this;
     }
@@ -294,7 +298,7 @@ public class OfficeComplex extends AbstractCustomer
       log.info("Initializing " + toString() + " SSoffice " + i);
       Office hh = new Office();
       hh.initialize(toString() + " SSoffice" + i, conf, publicVacationVector,
-                    gen);
+                    seedId++);
       smartShiftingOffices.add(hh);
       hh.officeOf = this;
     }
@@ -2051,6 +2055,11 @@ public class OfficeComplex extends AbstractCustomer
     checkCurtailment(serial, day, hour);
 
     consumePower();
+
+    // System.out.println("Timeslot " + timeslotRepo.currentSerialNumber());
+    //
+    // for (Office office: getOffices())
+    // office.test();
 
     if (hour == 23) {
 
