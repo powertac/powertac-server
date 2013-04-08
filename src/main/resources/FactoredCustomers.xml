@@ -343,7 +343,7 @@
         <capacityBundle id="2" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
-                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <benchmarkRisk enable="true" ratio="1:10" />
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
@@ -386,7 +386,7 @@
         <capacityBundle id="" population="1" powerType="SOLAR_PRODUCTION" multiContracting="false" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
-                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <benchmarkRisk enable="true" ratio="1:10" />
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
@@ -429,7 +429,7 @@
         <capacityBundle id="1" population="50" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
-                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <benchmarkRisk enable="true" ratio="1:10" />
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
@@ -464,7 +464,7 @@
         <capacityBundle id="2" population="40" powerType="WIND_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
-                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <benchmarkRisk enable="true" ratio="1:10" />
                     <tariffThrottling enable="true" /> 
                 </constraints>
                 <influenceFactors>
