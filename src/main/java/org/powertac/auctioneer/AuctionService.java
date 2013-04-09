@@ -36,6 +36,7 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.OrderStatus;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,6 +173,8 @@ public class AuctionService
   {
     // TODO - give feedback to broker if possible.
     if (!timeslotRepo.isTimeslotEnabled(order.getTimeslot())) {
+      OrderStatus status = new OrderStatus(order.getBroker(), order.getId());
+      brokerProxyService.sendMessage(order.getBroker(), status);
       log.error("Order submitted for disabled timeslot");
       return false;
     }

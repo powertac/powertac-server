@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2013 by the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.powertac.auctioneer;
 
 import static org.junit.Assert.*;
@@ -32,6 +47,7 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.msg.OrderStatus;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +55,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * Test cases for AuctionService
+ * @author John Collins
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
@@ -180,7 +200,7 @@ public class AuctionServiceTests
   public void testReceiveMessage ()
   {
     // try a good one
-    Order good = new Order(b1, ts1, 1.0, -22.0);
+    Order good = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
     svc.handleMessage(good);
     assertEquals("one order received", 1, svc.getIncoming().size());
   }
@@ -188,20 +208,36 @@ public class AuctionServiceTests
   @Test
   public void testValidateOrder ()
   {
-    Order bogus= new Order(b1, ts0, 1.0, -22.0);
-    assertFalse("ts0 not enabled", timeslotRepo.isTimeslotEnabled(ts0));
-    assertFalse("current timeslot not valid", svc.validateOrder(bogus));
-    Order good = new Order(b1, ts1, 1.0, -22.0);
+    // mock the Broker Proxy for b1, capture messages
+    doAnswer(new Answer() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        brokerMsgs.add(args[1]);
+        return null;
+      }
+    }).when(mockProxy).sendMessage(eq(b1), anyObject());
+    
+    Order good = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
     assertTrue("ts1 enabled", timeslotRepo.isTimeslotEnabled(ts1));
     assertTrue("next timeslot valid", svc.validateOrder(good));
+    
+    Order bogus= new Order(b1, ts0.getSerialNumber(), 1.0, -22.0);
+    assertFalse("ts0 not enabled", timeslotRepo.isTimeslotEnabled(ts0));
+    assertFalse("current timeslot not valid", svc.validateOrder(bogus));
+    assertEquals("1 message sent", 1, brokerMsgs.size());
+    OrderStatus status = (OrderStatus)brokerMsgs.get(0);
+    assertNotNull("status got sent", status);
+    assertEquals("correct broker", b1, status.getBroker());
+    assertEquals("correct order", bogus.getId(), status.getOrderId());
   }
 
   // one ask, one bid, equal qty, tradeable
   @Test
   public void testActivate1 ()
   {
-    Order sell = new Order(s1, ts1, -1.0, 20.0);
-    Order buy = new Order(b1, ts1, 1.0, -22.0);
+    Order sell = new Order(s1, ts1.getSerialNumber(), -1.0, 20.0);
+    Order buy = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
     svc.handleMessage(sell);
     svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
