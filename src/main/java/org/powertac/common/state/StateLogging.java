@@ -63,9 +63,12 @@ public class StateLogging
   public void domainConstructor() {}
     
   @Pointcut ("execution (Object XStreamStateLoggable.readResolve())")
-  public void readResolveMethod() {} 
+  public void readResolveMethod() {}
   
-  @Pointcut ("domainConstructor() || readResolveMethod()")
+  @Pointcut("execution (@ChainedConstructor *.new (..))")
+  public void chainedConstructor() {}
+  
+  @Pointcut ("(domainConstructor() && !chainedConstructor()) || readResolveMethod()")
   public void newState() {}
   
   @AfterReturning ("setState()")

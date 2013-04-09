@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 //import org.powertac.common.xml.TimeslotConverter;
 import com.thoughtworks.xstream.annotations.*;
@@ -52,6 +53,7 @@ public class WeatherForecast
   }
   
   @Deprecated
+  @ChainedConstructor
   public WeatherForecast (Timeslot timeslot, List<WeatherForecastPrediction> predictions)
   {
     this(timeslot.getSerialNumber(), predictions);

@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
@@ -103,6 +104,7 @@ public class Order extends XStreamStateLoggable
    * New code should not use this method.
    */
   @Deprecated
+  @ChainedConstructor
   public Order (Broker broker, Timeslot timeslot, 
                 double mWh, Double limitPrice)
   {

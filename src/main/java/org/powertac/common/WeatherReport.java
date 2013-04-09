@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
@@ -73,6 +74,7 @@ public class WeatherReport
    * Constructor that uses timeslot is deprecated
    */
   @Deprecated
+  @ChainedConstructor
   public WeatherReport (Timeslot timeslot, double temperature,
                         double windSpeed, double windDirection,
                         double cloudCover)

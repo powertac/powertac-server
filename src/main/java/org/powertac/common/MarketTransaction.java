@@ -19,6 +19,7 @@ package org.powertac.common;
 //import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.*;
 
@@ -47,7 +48,6 @@ public class MarketTransaction extends BrokerTransaction
   
   /** the timeslot for which this trade or quote information is created */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
   
   public MarketTransaction (Broker broker, int when, 
@@ -59,6 +59,7 @@ public class MarketTransaction extends BrokerTransaction
     this.mWh = mWh;
   }
   
+  @ChainedConstructor
   public MarketTransaction (Broker broker, int when, 
                             Timeslot timeslot, double mWh, double price)
   {

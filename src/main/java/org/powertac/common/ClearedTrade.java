@@ -19,6 +19,7 @@ package org.powertac.common;
 import org.joda.time.Instant;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 //import org.powertac.common.xml.TimeslotConverter;
 
@@ -74,6 +75,7 @@ public class ClearedTrade
     this.dateExecuted = dateExecuted;
   }
   
+  @ChainedConstructor
   public ClearedTrade (Timeslot timeslot, double executionMWh,
                        double executionPrice, Instant dateExecuted)
   {
