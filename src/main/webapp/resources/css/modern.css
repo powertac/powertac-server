@@ -4721,7 +4721,7 @@ th[class*="span"] {
   letter-spacing: 0.02em;
   line-height: 20px;
   font-smooth: always;
-  margin: 0 10px 10px 0;
+  margin: 0 5px 10px 0;
   overflow: hidden;
 }
 .tile * {

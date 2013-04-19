@@ -1,27 +1,22 @@
 package org.powertac.visualizer.services;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.joda.time.Instant;
 import org.powertac.common.ClearedTrade;
-import org.powertac.common.msg.TimeslotUpdate;
 import org.powertac.visualizer.beans.VisualizerBean;
-import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
-import org.powertac.visualizer.interfaces.WholesaleServiceBeanAccess;
-import org.powertac.visualizer.statistical.SingleTimeslotWholesaleData;
+import org.powertac.visualizer.push.StatisticsPusher;
+import org.powertac.visualizer.services.handlers.VisualizerHelperService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class WholesaleService implements Serializable, Recyclable,
-		TimeslotCompleteActivation, WholesaleServiceBeanAccess {
+		TimeslotCompleteActivation {
 
 	private static final long serialVersionUID = 1L;
 	private ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> clearedTrades;
@@ -29,7 +24,10 @@ public class WholesaleService implements Serializable, Recyclable,
 	private BrokerService brokerService;
 	@Autowired
 	private VisualizerBean visualizerBean;
-
+	@Autowired
+	private PushService pushService;
+	@Autowired
+	private VisualizerHelperService visualizerHelperService;
 	public WholesaleService() {
 		recycle();
 	}
@@ -44,25 +42,27 @@ public class WholesaleService implements Serializable, Recyclable,
 		return clearedTrades;
 	}
 
-	public ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> getFinalClearedTrades() {
-		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> finalClearedTrades = new ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>>();
 
-		TimeslotUpdate timeslotUpdate = visualizerBean.getTimeslotUpdate();
-
-		if (timeslotUpdate != null) {
-			// this should get all the final cleared trades
-			SortedSet<Long> keys = new TreeSet<Long>(clearedTrades.keySet())
-					.headSet(timeslotUpdate.getPostedTime().getMillis());
-			for (Long key : keys) {
-				finalClearedTrades.put(key, clearedTrades.get(key));
-			}
-		}
-		return finalClearedTrades;
-
-	}
-
+	//called when TimeslotCompleteActivation message is received, used for dynamically adding points to wholesale graph
+	//displaying average clearing price and amount of traded energy in timeslot
 	@Override
 	public void activate(int timeslotIndex, Instant postedTime) {
+		ArrayList<StatisticsPusher> statisticsPushers = new ArrayList<StatisticsPusher>();
+		double totalRevenue = 0;
+		double totalEnergy = 0;
+		int numberOfTransactions = 0;
+		//get all cleared trades for timeslot with timeslot index = safety
+		ConcurrentHashMap<Long, ClearedTrade> clearedTradesInSafetyTimeslot = clearedTrades.get(visualizerHelperService.getMillisForIndex(visualizerHelperService.getSafetyWholesaleTimeslotIndex()));
+		//calculate total revenue and amount of traded energy for safety timeslot and count number of transactions in that timeslot
+		for (ClearedTrade clearedTrade : clearedTradesInSafetyTimeslot.values()){
+			totalRevenue += clearedTrade.getExecutionPrice();
+			totalEnergy += clearedTrade.getExecutionMWh();
+			numberOfTransactions++;
+		}
+		statisticsPushers.add(new StatisticsPusher(visualizerHelperService.getMillisForIndex(visualizerHelperService.getSafetyWholesaleTimeslotIndex()), totalRevenue/numberOfTransactions,  totalEnergy));
+		pushService.pushWholesaleAvg(statisticsPushers);
+	
+		
 	}
 
 }

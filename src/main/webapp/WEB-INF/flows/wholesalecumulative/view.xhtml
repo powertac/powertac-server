@@ -24,13 +24,14 @@
 				});
 			wholesaleDynData.redraw();
 		}
-			var wholesaleDynData;
-			$(document).ready(
-						function() {
-						
-							wholesaleDynData = dynDataGraph('wholesaleDynData',#{wholesaleMarketBean.wholesaleDynData},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
-						}		
-				);
+		
+		var wholesaleDynData;
+		$(document).ready(
+			function() {
+			
+				wholesaleDynData = dynDataGraph('wholesaleDynData',#{wholesaleMarketBean.wholesaleDynData},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
+			}		
+		);
 			
 			
 			    

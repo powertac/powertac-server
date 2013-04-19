@@ -18,6 +18,7 @@ public class TariffData {
 	
 	private double profit;
 	private double netKWh;
+	private String powerType;
 	private ConcurrentHashMap<CustomerInfo, TariffCustomerStats> tariffCustomerStats;
 
 	public TariffData(TariffSpecification spec, BrokerModel broker) {
@@ -28,10 +29,10 @@ public class TariffData {
 	}
 	
 	public double getNetKWh() {
-		return netKWh;
+		return Math.round(netKWh);
 	}
 	public double getProfit() {
-		return profit;
+		return Math.round(profit);
 	}
 	public TariffSpecification getSpec() {
 		return spec;
@@ -45,11 +46,20 @@ public class TariffData {
 		netKWh+=tx.getKWh();
 		tariffCustomerStats.putIfAbsent(tx.getCustomerInfo(), new TariffCustomerStats(tx.getCustomerInfo(),spec));
 		tariffCustomerStats.get(tx.getCustomerInfo()).addAmounts(tx.getCharge(),tx.getKWh());
+		powerType = tx.getTariffSpec().getPowerType().toString();
 		
 	}
 	
+	public String getPowerType() {
+		return powerType;
+	}
+
 	public BrokerModel getBroker() {
 		return broker;
+	}
+	
+	public double getNetMWh() {
+		return Math.round(netKWh/1000);
 	}
 
 }

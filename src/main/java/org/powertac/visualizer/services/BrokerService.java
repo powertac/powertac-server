@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 //import org.apache.tools.ant.taskdefs.Tstamp;
 import org.joda.time.Instant;
+import org.powertac.common.ClearedTrade;
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
@@ -21,6 +22,7 @@ import org.powertac.visualizer.push.DynDataPusher;
 import org.powertac.visualizer.push.FinancePusher;
 import org.powertac.visualizer.push.NominationCategoryPusher;
 import org.powertac.visualizer.push.NominationPusher;
+import org.powertac.visualizer.push.StatisticsPusher;
 import org.powertac.visualizer.push.TariffMarketPusher;
 import org.powertac.visualizer.push.WholesaleMarketPusher;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
@@ -55,6 +57,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	private VisualizerBean visualizerBean; 
 	@Autowired
 	private VisualizerHelperService helper;
+
 
 	public BrokerService() {
 		recycle();
@@ -147,11 +150,14 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 				profit = lastWholesaledd.getProfit();
 				energy = lastWholesaledd.getEnergy();
 			}
+			
+			
 
 			WholesaleMarketPusher wmp = new WholesaleMarketPusher(b.getName(),
 					helper.getMillisForIndex(safetyTxIndex), profitDelta,
 					energyDelta, newMarketTxs, profit, energy);
 			wholesaleMarketPushers.add(wmp);
+			
 
 			// balancing market pushers:
 			BalancingCategory bc = b.getBalancingCategory();
@@ -200,6 +206,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 				}
 			}
 		}
+		
 		if(np!=null){
 			visualizerBean.setNominationPusher(np);
 		}

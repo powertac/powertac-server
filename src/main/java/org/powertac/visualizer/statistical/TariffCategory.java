@@ -1,11 +1,10 @@
 package org.powertac.visualizer.statistical;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction;
-import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.CustomerTariffData;
 import org.powertac.visualizer.domain.broker.TariffData;
@@ -27,6 +26,8 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 	private ConcurrentHashMap<Integer, TariffDynamicData> tariffDynamicDataMap;
 	private ConcurrentHashMap<CustomerInfo, CustomerTariffData> customerTariffData;
 	private ConcurrentHashMap<TariffSpecification, TariffData> tariffData;
+	
+	
 
 	public TariffCategory(BrokerModel broker) {
 		super(broker);
@@ -82,5 +83,6 @@ public class TariffCategory extends AbstractPerformanceCategory implements
 	public TariffDynamicData getLastTariffDynamicData() {
 		return lastTariffDynamicData;
 	}
+
 
 }

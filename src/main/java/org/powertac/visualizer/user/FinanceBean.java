@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.OrderbookOrder;
@@ -21,7 +22,6 @@ import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.domain.wholesale.VisualizerOrderbookOrder;
 import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
-import org.powertac.visualizer.interfaces.WholesaleServiceBeanAccess;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.WholesaleService;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
@@ -39,6 +39,7 @@ public class FinanceBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
+	private Logger log = Logger.getLogger(FinanceBean.class);
 	private String financeDynData;
 	private String financeDynDataOneTimeslot;
 
@@ -77,6 +78,7 @@ public class FinanceBean implements Serializable {
 				Object[] profitOneTimeslot = { helper.getMillisForIndex(key),
 						dynData.getProfitDelta() };
 				profitDataOneTimeslot.add(profitOneTimeslot);
+				log.info("***LOG***" + key);
 		
 			}
 			if(dynDataSet.size()==0){
