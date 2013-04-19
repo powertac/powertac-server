@@ -231,6 +231,7 @@ public class Village extends AbstractCustomer
   HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
   HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
+  HashMap<String, Double> riskMap = new HashMap<String, Double>();
 
   /**
    * These vectors contain the houses of type in the village. There are 4 types
@@ -271,6 +272,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
+      riskMap.put(type, null);
     }
   }
 
@@ -298,6 +300,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
+      riskMap.put(type, null);
     }
   }
 
@@ -371,6 +374,9 @@ public class Village extends AbstractCustomer
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
       superseded.put(type, false);
+      double weight = gen.nextDouble() * VillageConstants.WEIGHT_RISK;
+      double risk = gen.nextDouble() * VillageConstants.RISK_FACTOR;
+      riskMap.put(type, weight * risk);
       /*
             
             System.out.println(toString() + " " + type);
@@ -380,26 +386,27 @@ public class Village extends AbstractCustomer
             + Arrays.toString(getNonDominantLoad(type)));
             */
     }
-    /*
-    System.out.println(toString() + " "
-                       + aggDailyDominantLoadInHoursNS.get(0).toString());
 
-    System.out.println(toString() + " "
-                       + aggDailyNonDominantLoadInHoursNS.get(0).toString());
+    // System.out.println(toString() + " "
+    // + aggDailyDominantLoadInHoursNS.get(0).toString());
+    //
+    // System.out.println(toString() + " "
+    // + aggDailyNonDominantLoadInHoursNS.get(0).toString());
+    //
+    //
+    // System.out.println("Subscriptions:" + subscriptionMap.toString());
+    // System.out.println("Controllable Subscriptions:" +
+    // controllableSubscriptionMap.toString());
+    // System.out.println("Inertia:" + inertiaMap.toString());
+    // System.out.println("Period:" + periodMap.toString());
+    // System.out.println("Lamda:" + lamdaMap.toString());
+    // System.out.println("Risk:" + riskMap.toString());
+    //
+    //
+    // for (String type : subscriptionMap.keySet()) {
+    // showAggLoad(type);
+    // }
 
-    
-     * System.out.println("Subscriptions:" + subscriptionMap.toString());
-     * System.out.println("Controllable Subscriptions:" +
-     * controllableSubscriptionMap.toString());
-     * System.out.println("Inertia:" + inertiaMap.toString());
-     * System.out.println("Period:" + periodMap.toString());
-     * System.out.println("Lamda:" + lamdaMap.toString());
-     * 
-     * 
-     * for (String type : subscriptionMap.keySet()) {
-     * showAggLoad(type);
-     * }
-     */
   }
 
   // =====SUBSCRIPTION FUNCTIONS===== //
@@ -2172,10 +2179,8 @@ public class Village extends AbstractCustomer
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation
-                    .add(-(costEstimation(tariff, type, rand)
-                           * VillageConstants.WEIGHT_COST + VillageConstants.WEIGHT_RISK
-                                                            * VillageConstants.RISK_FACTOR));
+            estimation.add(-(costEstimation(tariff, type, rand) - riskMap
+                    .get(type)));
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);

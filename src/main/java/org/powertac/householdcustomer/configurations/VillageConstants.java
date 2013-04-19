@@ -36,9 +36,10 @@ public class VillageConstants
   public static final double OPERATION_PARTITION = 0.05;
   public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
   public static final double DISTRUST_FACTOR = 2;
-  public static final double WEIGHT_COST = 0.9;
-  public static final double WEIGHT_RISK = 0.1;
-  public static final double RISK_FACTOR = 0;
+  public static final double WEIGHT_RISK = 1;
+  public static final double RISK_FACTOR = 10;
+  public static final double MIN_DEFAULT_DURATION = 1;
+  public static final double MAX_DEFAULT_DURATION = 6;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;

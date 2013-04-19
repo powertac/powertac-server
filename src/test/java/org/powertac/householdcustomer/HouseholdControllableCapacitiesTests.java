@@ -15,6 +15,23 @@
  */
 package org.powertac.householdcustomer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
@@ -27,7 +44,17 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powertac.common.*;
+import org.powertac.common.Broker;
+import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
@@ -35,7 +62,13 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
-import org.powertac.common.repo.*;
+import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +76,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.TreeMap;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyDouble;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Antonios Chrysopoulos
@@ -133,11 +155,15 @@ public class HouseholdControllableCapacitiesTests
     timeService.setCurrentTime(now);
     timeService.setBase(now.getMillis());
     exp = now.plus(TimeService.WEEK * 10);
+    //
+    // defaultTariffSpec =
+    // new TariffSpecification(broker1, PowerType.CONSUMPTION)
+    // .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
+    // .addRate(new Rate().withValue(-0.222));
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-              .addRate(new Rate().withValue(-0.222));
+              .withExpiration(exp).addRate(new Rate().withValue(-0.222));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);
@@ -172,8 +198,8 @@ public class HouseholdControllableCapacitiesTests
 
     // Set up serverProperties mock
     ReflectionTestUtils.setField(householdCustomerService,
-        "serverPropertiesService",
-        mockServerProperties);
+                                 "serverPropertiesService",
+                                 mockServerProperties);
     config = new Configurator();
 
     doAnswer(new Answer() {
@@ -244,8 +270,8 @@ public class HouseholdControllableCapacitiesTests
     assertEquals("correct forth configuration file", "VillageType4.properties",
                  householdCustomerService.getConfigFile4());
     assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-        .currentCompetition().getExpectedTimeslotCount()
-        / VillageConstants.HOURS_OF_DAY);
+            .currentCompetition().getExpectedTimeslotCount()
+                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -649,7 +675,7 @@ public class HouseholdControllableCapacitiesTests
     tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-        .size());
+            .size());
 
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
@@ -782,7 +808,7 @@ public class HouseholdControllableCapacitiesTests
     tariff3.setState(Tariff.State.OFFERED);
 
     assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-        .size());
+            .size());
 
     assertNotNull("first tariff found", tariff1);
     assertNotNull("second tariff found", tariff2);
@@ -1109,7 +1135,7 @@ public class HouseholdControllableCapacitiesTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     timeService.setCurrentTime(timeService.getCurrentTime()
-        .plus(TimeService.HOUR * 23));
+            .plus(TimeService.HOUR * 23));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
