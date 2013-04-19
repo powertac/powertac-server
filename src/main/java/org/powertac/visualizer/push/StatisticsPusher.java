@@ -1,0 +1,52 @@
+package org.powertac.visualizer.push;
+
+
+/**
+ * Tom
+ * */
+public class StatisticsPusher {
+	
+	private long millis;
+	private double averagePrice;
+	private double energy;
+//	private double profitDelta;
+//	private double energyDelta;
+//	private ArrayList<Object> newMarketTxs;
+
+	public StatisticsPusher(long millis, double price, double energy) {
+		
+		this.millis = millis;
+		this.averagePrice = price;
+//		this.name = name;
+//		this.profitDelta = profitDelta;
+//		this.energyDelta = energyDelta;
+//		this.newMarketTxs = newMarketTxs;
+		this.energy = energy;
+		
+	}
+
+	public double getEnergy() {
+		return energy;
+	}
+
+	public void setEnergy(double energy) {
+		this.energy = energy;
+	}
+
+	public long getMillis() {
+		return millis;
+	}
+
+	public void setMillis(long millis) {
+		this.millis = millis;
+	}
+
+	public double getAveragePrice() {
+		return averagePrice;
+	}
+
+	public void setAveragePrice(double averagePrice) {
+		this.averagePrice = averagePrice;
+	}
+
+}

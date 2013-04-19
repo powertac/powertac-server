@@ -10,30 +10,29 @@
 
 	<ui:define name="headInclude">
 		<script type="text/javascript">
-	var financeDynData;
-	  $(document).ready(
+			var financeDynData;
+			
+			$(document).ready(
 				function() {
 					financeDynData = dynDataGraph('financeDynData',#{financeBean.financeDynData},'',getOneDynYAxisData('Profit(&euro;)'));
-					
+				}
+			);
+			  	
+			function handleFinancePush(data) {
+				var array = jQuery.parseJSON(data);
+				var cnt = 0;
+				jQuery.each(array, function() {
+					var pushObject = this;
+					//known ordering: profit
+					financeDynData.series[cnt++].addPoint([pushObject["millis"],pushObject["profit"]],false);
 				});
-	  	
-	function handleFinancePush(data) {
-		var array = jQuery.parseJSON(data);
-		var cnt = 0;
-		jQuery.each(array, function() {
-			  var pushObject = this;
-			  //known ordering: profit
-			  financeDynData.series[cnt++].addPoint([pushObject["millis"],pushObject["profit"]],false);
-		 
-			});
-		financeDynData.redraw();
-}
-</script>
+				financeDynData.redraw();
+			}
+		</script>
 	</ui:define>
 
 	<ui:define name="maincontent">
-		<div id="financeDynData"
-			style="min-width: 400px; height: 620px; margin: 0 auto" />
+		<div id="financeDynData" style="min-width: 400px; height: 620px; margin: 0 auto" />
 		<p:socket onMessage="handleFinancePush" channel="/financepush" />
 	</ui:define>
 

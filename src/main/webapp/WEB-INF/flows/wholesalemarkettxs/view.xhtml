@@ -11,28 +11,34 @@
 	<ui:define name="headInclude">
 		<script type="text/javascript">
 				
-function handleWholesaleMarketPush(data) {
-			
-			var array = jQuery.parseJSON(data);
-			var cnt = 0;
-			jQuery.each(array, function() {
-				 var pushObject = this;
-				 var marketTxArray = pushObject["newMarketTxs"];
-				 jQuery.each(marketTxArray, function() {
-					  var entry = this;
-					  marketTxScatter.series[cnt].addPoint(entry,false);  
-				  });
-				 cnt++;
-			});
-			marketTxScatter.redraw();
-		}
-			var marketTxScatter;
-			$(document).ready(
-						function() {
+			function handleWholesaleMarketPush(data) {
+				marketTxScatter.redraw();
+				 
+				var array = jQuery.parseJSON(data);
+				var cnt = 0;
+				jQuery.each(array, function() {
+					var pushObject = this;
+					var marketTxArray = pushObject["newMarketTxs"];
+					
+					jQuery.each(marketTxArray, function() {
+						var entry = this;
 						
-							marketTxScatter = scatterMarketTxs('marketTxScatter', '', 'Select the area to zoom-in', 'Price (&euro;/MWh)', 'Energy (MWh)', '&euro;/MWh', 'MWh', #{wholesaleMarketBean.allMarketTransactionsData})
-							}		
-				);
+					  	marketTxScatter.series[cnt].addPoint(entry,false);  
+					});
+					cnt++;
+				});  
+			//	marketTxScatter = scatterMarketTxs('marketTxScatter', '', 'Select the area to zoom-in', 'Price (&euro;/MWh)', 'Energy (MWh)', '&euro;/MWh', 'MWh', #{wholesaleMarketBean.allMarketTransactionsData})
+			//marketTxScatter.redraw();
+			}
+			
+			var marketTxScatter;
+			
+			$(document).ready(
+				function() {
+					marketTxScatter = scatterMarketTxs('marketTxScatter', '', 'Select the area to zoom-in', 'Price (&euro;/MWh)', 'Energy (MWh)', '&euro;/MWh', 'MWh', #{wholesaleMarketBean.allMarketTransactionsData});
+					console.log( #{wholesaleMarketBean.allMarketTransactionsData});
+				}		
+			);
 			
 			    
 			  

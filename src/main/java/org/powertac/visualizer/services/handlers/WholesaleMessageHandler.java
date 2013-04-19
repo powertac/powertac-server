@@ -60,6 +60,10 @@ public class WholesaleMessageHandler implements Initializable {
 
 	}
 
+	/**
+	 * Handles message received when wholesale market transaction has been made.
+	 * Updates timeslot in marketTxs with received data, and adds received transaction to list of transactions. 
+	 * */
 	public void handleMessage(MarketTransaction msg) {
 
 		BrokerModel broker = brokerService.getBrokersMap().get(
@@ -97,8 +101,7 @@ public class WholesaleMessageHandler implements Initializable {
 	}
 
 	public void handleMessage(ClearedTrade ct) {
-		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService
-				.getClearedTrades();
+		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService.getClearedTrades();
 		// if there is a new key:
 		map.putIfAbsent(ct.getTimeslot().getStartInstant().getMillis(),
 				new ConcurrentHashMap<Long, ClearedTrade>(24, 0.75f, 1));

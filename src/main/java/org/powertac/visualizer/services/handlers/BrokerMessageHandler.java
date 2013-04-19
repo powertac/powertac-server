@@ -79,7 +79,7 @@ public class BrokerMessageHandler implements Initializable {
 			log.debug("NO of tariffspec:"
 					+ tariffSpecification.getSupersedes().size());
 		}
-
+		
 		// find matching broker and add received tariff spec. to its history.
 		BrokerModel brokerModel = brokerService
 				.findBrokerByName(tariffSpecification.getBroker().getUsername());
@@ -128,6 +128,8 @@ public class BrokerMessageHandler implements Initializable {
 			}
 			tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
 					Helper.getCustomerCount(msg));
+			
+			broker.getTariffCategory().getTariffData().get(msg.getTariffSpec()).processTariffTx(msg);//tom
 
 		}
 

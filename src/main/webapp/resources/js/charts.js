@@ -106,6 +106,7 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 			layout : "vertical",
 			enabled : true,
 			verticalAlign : "middle"
+			
 		/*
 		 * labelFormatter: function() { return this.name + ' (T)'; }
 		 */
@@ -117,6 +118,111 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 	});
 
 }
+
+
+function wholesaleClearingEnergy(renderDiv, receivedData, titleData, yAxisData) {
+	
+	var data = receivedData[0]["data"];
+	// split the data set into revenue and amount of energy
+	var revenue = [];
+	var	energy = [];
+	var	dataLength = data.length;
+		
+	for (var i = 0; i < dataLength; i++) {
+		
+		revenue.push([
+		    data[i][0], //timeslot
+			data[i][1]  //revenue
+
+		]);
+		
+		energy.push([
+			data[i][0], //timeslot
+			data[i][2]  //energy
+		]);
+		
+	}
+
+	return new Highcharts.StockChart({
+		
+		chart : {
+			renderTo : renderDiv,
+			alignTicks : false,
+			backgroundColor: null,
+			marginRight: 130,
+			marginBottom: 70 
+		},
+		
+		plotLines : [ {
+			value : 0,
+			width : 1,
+			color : '#808080'
+		} ],
+		
+		yAxis : yAxisData,
+
+		rangeSelector : {
+			buttons : [ {
+				count : 1,
+				type : 'hour',
+				text : '1H'
+			}, {
+				count : 1,
+				type : 'day',
+				text : '1D'
+			}, {
+				count : 1,
+				type : 'week',
+				text : '1W'
+			}, {
+				count : 2,
+				type : 'week',
+				text : '2W'
+			}, {
+				count : 1,
+				type : 'month',
+				text : '1M'
+			}, {
+				type : 'all',
+				text : 'All'
+			} ],
+			inputEnabled : true,
+			selected : 5
+		},
+
+	    title: {
+	        text: ''
+	    },
+
+	    yAxis: yAxisData,
+	    
+	    series: [
+	    {
+	        name: 'Average clearing price',
+			//marker : {enabled : true,radius : 3	},
+			dataGrouping: {enabled: false},
+			data: revenue,
+			tooltip: {
+				valueDecimals: 2
+			}
+	    }, 
+	    {
+	    	name: 'Total energy',
+	        type: 'column',
+	        data: energy,
+	        yAxis: 1,
+	        dataGrouping: {enabled: false},
+	        color: '#8BBC21',
+	        tooltip: {
+				valueDecimals: 2
+			}
+	    },
+	    ]
+	});
+}
+
+
+
 
 function scatterMarketTxs(targetDiv, title, subtitle, xAxisTitle,yAxisTitle,xMeasureUnit,yMeasureUnit,seriesData) {
 	return new Highcharts.Chart({
