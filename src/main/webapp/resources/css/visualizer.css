@@ -49,3 +49,7 @@
 .margin10{
 	padding-top:25px;
 }
+
+.tile.double.last{
+	margin: 0 0px 0px 0;
+}
