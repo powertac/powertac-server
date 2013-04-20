@@ -26,6 +26,7 @@ public class TariffData {
 		this.broker = broker;
 		tariffCustomerStats = new ConcurrentHashMap<CustomerInfo, TariffCustomerStats>(
 				20, 0.75f, 1);
+		powerType = spec.getPowerType().toString();
 	}
 	
 	public double getNetKWh() {
@@ -44,9 +45,11 @@ public class TariffData {
 	public void processTariffTx(TariffTransaction tx) {
 		profit+=tx.getCharge();
 		netKWh+=tx.getKWh();
+		if(tx.getCustomerInfo()!=null){ //otherwise this tx is most likely to be PUBLISH
 		tariffCustomerStats.putIfAbsent(tx.getCustomerInfo(), new TariffCustomerStats(tx.getCustomerInfo(),spec));
 		tariffCustomerStats.get(tx.getCustomerInfo()).addAmounts(tx.getCharge(),tx.getKWh());
-		powerType = tx.getTariffSpec().getPowerType().toString();
+		}
+		
 		
 	}
 	

@@ -53,6 +53,9 @@ public class WholesaleService implements Serializable, Recyclable,
 		int numberOfTransactions = 0;
 		//get all cleared trades for timeslot with timeslot index = safety
 		ConcurrentHashMap<Long, ClearedTrade> clearedTradesInSafetyTimeslot = clearedTrades.get(visualizerHelperService.getMillisForIndex(visualizerHelperService.getSafetyWholesaleTimeslotIndex()));
+		
+		if(clearedTradesInSafetyTimeslot!=null){
+		
 		//calculate total revenue and amount of traded energy for safety timeslot and count number of transactions in that timeslot
 		for (ClearedTrade clearedTrade : clearedTradesInSafetyTimeslot.values()){
 			totalRevenue += clearedTrade.getExecutionPrice();
@@ -61,7 +64,7 @@ public class WholesaleService implements Serializable, Recyclable,
 		}
 		statisticsPushers.add(new StatisticsPusher(visualizerHelperService.getMillisForIndex(visualizerHelperService.getSafetyWholesaleTimeslotIndex()), totalRevenue/numberOfTransactions,  totalEnergy));
 		pushService.pushWholesaleAvg(statisticsPushers);
-	
+		}
 		
 	}
 
