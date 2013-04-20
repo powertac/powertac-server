@@ -53,6 +53,14 @@ public class VariableRateUpdate extends TariffUpdate
     return payload;
   }
   
+  /**
+   * conventional getter to satisfy beanutils
+   */
+  public HourlyCharge getPayload ()
+  {
+    return payload;
+  }
+  
   public long getHourlyChargeId ()
   {
     return payload.getId();

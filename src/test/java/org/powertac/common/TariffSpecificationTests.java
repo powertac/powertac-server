@@ -18,6 +18,7 @@ package org.powertac.common;
 import static org.junit.Assert.*;
 
 import java.io.StringWriter;
+import java.util.List;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -162,6 +163,7 @@ public class TariffSpecificationTests
         .withMinDuration(20000l)
         .withSignupPayment(35.0)
         .withPeriodicPayment(-0.05)
+        .addSupersedes(42l)
         .addRate(r);
 
     XStream xstream = new XStream();
@@ -172,6 +174,10 @@ public class TariffSpecificationTests
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xspec);
     assertEquals("correct signup", 35.0, xspec.getSignupPayment(), 1e-6);
+    List<Long> supersedes = xspec.getSupersedes();
+    assertNotNull("non-empty supersedes list", supersedes);
+    assertEquals("one entry", 1, supersedes.size());
+    assertEquals("correct entry", new Long(42l), supersedes.get(0));
     Rate xr = (Rate)xspec.getRates().get(0);
     assertNotNull("rate present", xr);
     assertTrue("correct rate type", xr.isFixed());
