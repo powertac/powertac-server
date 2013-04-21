@@ -217,8 +217,8 @@ public class TariffSubscription
     }
     // if the tariff has already been superseded, then switch subscription to
     // that new tariff
-    Tariff newTariff = null;
-//    Tariff newTariff = tariff.getIsSupersededBy();
+    //Tariff newTariff = null;
+    Tariff newTariff = tariff.getIsSupersededBy();
     if (newTariff == null) {
       // there is no superseding tariff, so we have to revert to the default tariff.
       newTariff =
