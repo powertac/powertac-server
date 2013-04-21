@@ -384,12 +384,13 @@ public class TariffMarketService
    */
   public void handleMessage (TariffRevoke update)
   {
+    // basic validation
     ValidationResult result = validateUpdate(update);
-    if (result.tariff == null)
+    if (result.tariff == null) {
       send(result.message);
-    else {
-      addPendingRevoke(result.tariff);
+      return;
     }
+    addPendingRevoke(result.tariff);
     success(update);
   }
 
