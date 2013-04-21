@@ -75,6 +75,18 @@ public class TariffRepo implements DomainRepo
     return specs.get(id);
   }
   
+  public synchronized List<TariffSpecification>
+  findTariffSpecificationsByPowerType (PowerType type)
+  {
+    List<TariffSpecification> result = new ArrayList<TariffSpecification>();
+    for (TariffSpecification spec : specs.values()) {
+      if (spec.getPowerType() == type) {
+        result.add(spec);
+      }
+    }
+    return result;
+  }
+  
   public synchronized List<TariffSpecification> findAllTariffSpecifications()
   {
     return new ArrayList<TariffSpecification>(specs.values());

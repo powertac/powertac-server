@@ -78,7 +78,7 @@ public class VariableRateUpdateTests
     xstream.processAnnotations(VariableRateUpdate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(vru));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     VariableRateUpdate xvru =
         (VariableRateUpdate)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xvru);

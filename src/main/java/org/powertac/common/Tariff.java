@@ -146,6 +146,12 @@ public class Tariff
         Tariff supersededTariff = tariffRepo.findTariffById(supId);
         if (supersededTariff == null)
           log.error("Superseded tariff " + supId + " not found");
+        else if (!(supersededTariff.getPowerType() == this.getPowerType())
+                 && !(supersededTariff.getPowerType().canUse(this.getPowerType())))
+          log.error("Tariff " + supId
+                    + ", powerType=" + supersededTariff.getPowerType()
+                    + " cannot be superseded by tariff " + this.getId() 
+                    + ", powerType=" + this.getPowerType());
         else
           supersededTariff.isSupersededBy = this;
       }
