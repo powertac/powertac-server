@@ -282,14 +282,17 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     if (village.getSuperseded().get(type)) {
       inertia =
         village.getInertiaMap().get(type) / VillageConstants.DISTRUST_FACTOR;
+      log.debug("New Inertia = " + inertia + " with Trust Issues: "
+                + village.getSuperseded().get(type));
+      village.setSuperseded(type, false);
     }
     else {
-
       double m = 1 / Math.pow(2, publishingPeriods);
       inertia = village.getInertiaMap().get(type) * (1 - m);
+      log.debug("New Inertia = " + inertia + " with Trust Issues: "
+                + village.getSuperseded().get(type));
     }
-    log.debug("New Inertia = " + inertia + " with Trust Issues: "
-              + village.getSuperseded().get(type));
+
     return inertia;
   }
 

@@ -232,6 +232,7 @@ public class Village extends AbstractCustomer
   HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
   HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
   HashMap<String, Double> riskMap = new HashMap<String, Double>();
+  HashMap<String, Double> withdrawalMap = new HashMap<String, Double>();
 
   /**
    * These vectors contain the houses of type in the village. There are 4 types
@@ -273,6 +274,7 @@ public class Village extends AbstractCustomer
       lamdaMap.put(type, null);
       superseded.put(type, null);
       riskMap.put(type, null);
+      withdrawalMap.put(type, null);
     }
   }
 
@@ -301,6 +303,7 @@ public class Village extends AbstractCustomer
       lamdaMap.put(type, null);
       superseded.put(type, null);
       riskMap.put(type, null);
+      withdrawalMap.put(type, null);
     }
   }
 
@@ -377,6 +380,14 @@ public class Village extends AbstractCustomer
       double weight = gen.nextDouble() * VillageConstants.WEIGHT_RISK;
       double risk = gen.nextDouble() * VillageConstants.RISK_FACTOR;
       riskMap.put(type, weight * risk);
+
+      double weeks =
+        gen.nextInt(VillageConstants.MAX_DEFAULT_DURATION
+                    - VillageConstants.MIN_DEFAULT_DURATION)
+                + VillageConstants.MIN_DEFAULT_DURATION;
+
+      withdrawalMap.put(type, weeks);
+
       /*
             
             System.out.println(toString() + " " + type);
@@ -401,6 +412,7 @@ public class Village extends AbstractCustomer
     // System.out.println("Period:" + periodMap.toString());
     // System.out.println("Lamda:" + lamdaMap.toString());
     // System.out.println("Risk:" + riskMap.toString());
+    // System.out.println("Withdrawal:" + withdrawalMap.toString())
     //
     //
     // for (String type : subscriptionMap.keySet()) {
@@ -1807,6 +1819,15 @@ public class Village extends AbstractCustomer
   public HashMap<String, Boolean> getSuperseded ()
   {
     return superseded;
+  }
+
+  /**
+   * This function set the superseded map in t the inertia Map variable of the
+   * village.
+   */
+  public void setSuperseded (String type, boolean value)
+  {
+    superseded.put(type, value);
   }
 
   /**
