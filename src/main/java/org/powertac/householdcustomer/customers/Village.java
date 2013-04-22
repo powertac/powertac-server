@@ -2182,6 +2182,8 @@ public class Village extends AbstractCustomer
         return;
       }
 
+      TariffSubscription sub = subscriptionMap.get(type);
+
       Vector<Double> estimation = new Vector<Double>();
       Double rand = gen.nextDouble();
 
@@ -2196,11 +2198,22 @@ public class Village extends AbstractCustomer
           log.debug("Tariff : " + tariff.toString() + " Tariff Type : "
                     + tariff.getTariffSpecification().getPowerType()
                     + " Broker: " + tariff.getBroker().toString());
+
           if (tariff.isExpired() == false
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation.add(-(costEstimation(tariff, type, rand) - riskMap
+
+            boolean same =
+              (sub.getTariff().getTariffSpec() == tariff.getTariffSpec());
+
+            System.out.println("Now: "
+                               + sub.getTariff().getTariffSpec().toString()
+                               + " Evaluated: "
+                               + tariff.getTariffSpec().toString() + " Same:"
+                               + same);
+
+            estimation.add(-(costEstimation(tariff, type, rand, same) - riskMap
                     .get(type)));
           }
           else
@@ -2208,8 +2221,6 @@ public class Village extends AbstractCustomer
         }
 
         int minIndex = logitPossibilityEstimation(estimation, type);
-
-        TariffSubscription sub = subscriptionMap.get(type);
 
         if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION)
           sub = controllableSubscriptionMap.get(type);
@@ -2233,7 +2244,7 @@ public class Village extends AbstractCustomer
    * fixed payments as well as the variable that are depending on the tariff
    * rates
    */
-  double costEstimation (Tariff tariff, String type, Double rand)
+  double costEstimation (Tariff tariff, String type, Double rand, boolean same)
   {
     double costVariable = 0;
 
@@ -2268,11 +2279,12 @@ public class Village extends AbstractCustomer
       log.debug("Shifting Evaluation for " + type);
       costVariable = estimateShiftingVariableTariffPayment(tariff, type);
     }
-
+    double costFixed = 0.0;
     // costVariable = estimateVariableTariffPayment(tariff, type);
+    if (!same)
+      costFixed =
+        estimateFixedTariffPayments(tariff, type) * getHouses(type).size();
 
-    double costFixed =
-      estimateFixedTariffPayments(tariff) * getHouses(type).size();
     log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
     return (costVariable + costFixed) / VillageConstants.MILLION;
   }
@@ -2281,23 +2293,16 @@ public class Village extends AbstractCustomer
    * This function estimates the fixed cost, comprised by fees, bonuses and
    * penalties that are the same no matter how much you consume
    */
-  double estimateFixedTariffPayments (Tariff tariff)
+  double estimateFixedTariffPayments (Tariff tariff, String type)
   {
-    double lifecyclePayment =
-      -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
-    double minDuration;
+    double minDuration =
+      (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
+    double ff = minDuration / withdrawalMap.get(type);
 
-    // When there is not a Minimum Duration of the contract, you cannot divide
-    // with the duration
-    // because you don't know it.
-    if (tariff.getMinDuration() == 0)
-      minDuration = VillageConstants.MEAN_TARIFF_DURATION;
-    else
-      minDuration =
-        (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
+    // System.out.println("FF for type " + type + ":" + ff);
 
-    log.debug("Minimum Duration: " + minDuration);
-    return (lifecyclePayment / minDuration);
+    return -tariff.getSignupPayment() - ff * tariff.getEarlyWithdrawPayment();
+
   }
 
   /**
