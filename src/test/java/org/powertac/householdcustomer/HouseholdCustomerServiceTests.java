@@ -158,8 +158,7 @@ public class HouseholdCustomerServiceTests
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-              .addRate(new Rate().withValue(-0.5));
+              .withExpiration(exp).addRate(new Rate().withValue(-0.5));
     defaultTariff = new Tariff(defaultTariffSpec);
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);

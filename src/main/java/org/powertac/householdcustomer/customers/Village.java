@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -223,16 +225,17 @@ public class Village extends AbstractCustomer
    * best for their type. The forth is setting the lamda variable for the
    * possibility function of the evaluation.
    */
-  HashMap<String, TariffSubscription> subscriptionMap =
-    new HashMap<String, TariffSubscription>();
-  HashMap<String, TariffSubscription> controllableSubscriptionMap =
-    new HashMap<String, TariffSubscription>();
-  HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
-  HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
-  HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
-  HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
-  HashMap<String, Double> riskMap = new HashMap<String, Double>();
-  HashMap<String, Double> withdrawalMap = new HashMap<String, Double>();
+  Map<String, TariffSubscription> subscriptionMap =
+    new TreeMap<String, TariffSubscription>();
+  Map<String, TariffSubscription> controllableSubscriptionMap =
+    new TreeMap<String, TariffSubscription>();
+  Map<String, Integer> numberOfHouses = new TreeMap<String, Integer>();
+  Map<String, Double> inertiaMap = new TreeMap<String, Double>();
+  Map<String, Integer> periodMap = new TreeMap<String, Integer>();
+  Map<String, Double> lamdaMap = new TreeMap<String, Double>();
+  Map<String, Boolean> superseded = new TreeMap<String, Boolean>();
+  Map<String, Double> riskMap = new TreeMap<String, Double>();
+  Map<String, Double> withdrawalMap = new TreeMap<String, Double>();
 
   /**
    * These vectors contain the houses of type in the village. There are 4 types
@@ -269,6 +272,7 @@ public class Village extends AbstractCustomer
     for (String type: typeList) {
       subscriptionMap.put(type, null);
       controllableSubscriptionMap.put(type, null);
+      numberOfHouses.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
@@ -298,6 +302,7 @@ public class Village extends AbstractCustomer
     for (String type: typeList) {
       subscriptionMap.put(type, null);
       controllableSubscriptionMap.put(type, null);
+      numberOfHouses.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
@@ -319,12 +324,14 @@ public class Village extends AbstractCustomer
   {
     // Initializing variables
 
-    int nshouses = Integer.parseInt(conf.getProperty("NotShiftingCustomers"));
-    int rashouses =
-      Integer.parseInt(conf.getProperty("RegularlyShiftingCustomers"));
-    int reshouses =
-      Integer.parseInt(conf.getProperty("RandomlyShiftingCustomers"));
-    int sshouses = Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
+    numberOfHouses.put("NS", Integer.parseInt(conf
+            .getProperty("NotShiftingCustomers")));
+    numberOfHouses.put("RaS", Integer.parseInt(conf
+            .getProperty("RegularlyShiftingCustomers")));
+    numberOfHouses.put("ReS", Integer.parseInt(conf
+            .getProperty("RandomlyShiftingCustomers")));
+    numberOfHouses.put("SS", Integer.parseInt(conf
+            .getProperty("SmartShiftingCustomers")));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
     gen =
@@ -334,7 +341,7 @@ public class Village extends AbstractCustomer
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
-    for (int i = 0; i < nshouses; i++) {
+    for (int i = 0; i < numberOfHouses.get("NS"); i++) {
       log.info("Initializing " + toString() + " NSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " NSHouse" + i, conf, publicVacationVector,
@@ -343,7 +350,7 @@ public class Village extends AbstractCustomer
       hh.householdOf = this;
     }
 
-    for (int i = 0; i < rashouses; i++) {
+    for (int i = 0; i < numberOfHouses.get("RaS"); i++) {
       log.info("Initializing " + toString() + " RaSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " RaSHouse" + i, conf, publicVacationVector,
@@ -352,7 +359,7 @@ public class Village extends AbstractCustomer
       hh.householdOf = this;
     }
 
-    for (int i = 0; i < reshouses; i++) {
+    for (int i = 0; i < numberOfHouses.get("ReS"); i++) {
       log.info("Initializing " + toString() + " ReSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " ReSHouse" + i, conf, publicVacationVector,
@@ -361,7 +368,7 @@ public class Village extends AbstractCustomer
       hh.householdOf = this;
     }
 
-    for (int i = 0; i < sshouses; i++) {
+    for (int i = 0; i < numberOfHouses.get("SS"); i++) {
       log.info("Initializing " + toString() + " SSHouse " + i);
       Household hh = new Household();
       hh.initialize(toString() + " SSHouse" + i, conf, publicVacationVector,
@@ -408,6 +415,7 @@ public class Village extends AbstractCustomer
     // System.out.println("Subscriptions:" + subscriptionMap.toString());
     // System.out.println("Controllable Subscriptions:" +
     // controllableSubscriptionMap.toString());
+    // System.out.println("Number Of Houses:" + numberOfHouses.toString());
     // System.out.println("Inertia:" + inertiaMap.toString());
     // System.out.println("Period:" + periodMap.toString());
     // System.out.println("Lamda:" + lamdaMap.toString());
@@ -1792,31 +1800,31 @@ public class Village extends AbstractCustomer
   // =====GETTER FUNCTIONS===== //
 
   /** This function returns the subscription Map variable of the village. */
-  public HashMap<String, TariffSubscription> getSubscriptionMap ()
+  public Map<String, TariffSubscription> getSubscriptionMap ()
   {
     return subscriptionMap;
   }
 
   /** This function returns the subscription Map variable of the village. */
-  public HashMap<String, TariffSubscription> getControllableSubscriptionMap ()
+  public Map<String, TariffSubscription> getControllableSubscriptionMap ()
   {
     return controllableSubscriptionMap;
   }
 
   /** This function returns the inertia Map variable of the village. */
-  public HashMap<String, Double> getInertiaMap ()
+  public Map<String, Double> getInertiaMap ()
   {
     return inertiaMap;
   }
 
   /** This function returns the period Map variable of the village. */
-  public HashMap<String, Integer> getPeriodMap ()
+  public Map<String, Integer> getPeriodMap ()
   {
     return periodMap;
   }
 
   /** This function returns the inertia Map variable of the village. */
-  public HashMap<String, Boolean> getSuperseded ()
+  public Map<String, Boolean> getSuperseded ()
   {
     return superseded;
   }
@@ -2207,14 +2215,18 @@ public class Village extends AbstractCustomer
             boolean same =
               (sub.getTariff().getTariffSpec() == tariff.getTariffSpec());
 
+            boolean expired =
+              (sub.getExpiredCustomerCount() >= numberOfHouses.get(type));
+
             System.out.println("Now: "
                                + sub.getTariff().getTariffSpec().toString()
                                + " Evaluated: "
                                + tariff.getTariffSpec().toString() + " Same:"
-                               + same);
+                               + same + " Expired:" + expired);
 
-            estimation.add(-(costEstimation(tariff, type, rand, same) - riskMap
-                    .get(type)));
+            estimation
+                    .add(-(costEstimation(tariff, type, rand, same, expired) - riskMap
+                            .get(type)));
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
@@ -2244,7 +2256,8 @@ public class Village extends AbstractCustomer
    * fixed payments as well as the variable that are depending on the tariff
    * rates
    */
-  double costEstimation (Tariff tariff, String type, Double rand, boolean same)
+  double costEstimation (Tariff tariff, String type, Double rand, boolean same,
+                         boolean expired)
   {
     double costVariable = 0;
 
@@ -2283,7 +2296,8 @@ public class Village extends AbstractCustomer
     // costVariable = estimateVariableTariffPayment(tariff, type);
     if (!same)
       costFixed =
-        estimateFixedTariffPayments(tariff, type) * getHouses(type).size();
+        estimateFixedTariffPayments(tariff, type, expired)
+                * getHouses(type).size();
 
     log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
     return (costVariable + costFixed) / VillageConstants.MILLION;
@@ -2293,15 +2307,22 @@ public class Village extends AbstractCustomer
    * This function estimates the fixed cost, comprised by fees, bonuses and
    * penalties that are the same no matter how much you consume
    */
-  double estimateFixedTariffPayments (Tariff tariff, String type)
+  double estimateFixedTariffPayments (Tariff tariff, String type,
+                                      boolean expired)
   {
     double minDuration =
       (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
     double ff = minDuration / withdrawalMap.get(type);
 
     // System.out.println("FF for type " + type + ":" + ff);
+    double fixedCost =
+      -tariff.getSignupPayment() - ff * tariff.getEarlyWithdrawPayment();
 
-    return -tariff.getSignupPayment() - ff * tariff.getEarlyWithdrawPayment();
+    if (!expired)
+      fixedCost -=
+        subscriptionMap.get(type).getTariff().getEarlyWithdrawPayment();
+
+    return fixedCost;
 
   }
 
