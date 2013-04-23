@@ -2218,11 +2218,9 @@ public class Village extends AbstractCustomer
             boolean expired =
               (sub.getExpiredCustomerCount() >= numberOfHouses.get(type));
 
-            System.out.println("Now: "
-                               + sub.getTariff().getTariffSpec().toString()
-                               + " Evaluated: "
-                               + tariff.getTariffSpec().toString() + " Same:"
-                               + same + " Expired:" + expired);
+            log.debug("Now: " + sub.getTariff().getTariffSpec().toString()
+                      + " Evaluated: " + tariff.getTariffSpec().toString()
+                      + " Same:" + same + " Expired:" + expired);
 
             estimation
                     .add(-(costEstimation(tariff, type, rand, same, expired) - riskMap
