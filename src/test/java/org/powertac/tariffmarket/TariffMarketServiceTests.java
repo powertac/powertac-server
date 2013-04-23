@@ -854,7 +854,7 @@ public class TariffMarketServiceTests
     // retrieve and check the defaults
     assertEquals("default consumption tariff", tc1, tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION));
     assertEquals("default production tariff", tp1, tariffMarketService.getDefaultTariff(PowerType.PRODUCTION));
-    assertNull("no solar tariff", tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION));
+    assertEquals("solar tariff is default production", tp1, tariffMarketService.getDefaultTariff(PowerType.SOLAR_PRODUCTION));
   }
   
   // test balancing orders

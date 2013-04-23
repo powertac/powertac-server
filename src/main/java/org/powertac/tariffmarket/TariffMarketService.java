@@ -100,9 +100,6 @@ public class TariffMarketService
 
   @Autowired
   private RandomSeedRepo randomSeedService;
-
-  // maps power type to id of corresponding default tariff
-  private HashMap<PowerType, Long> defaultTariff;
   
   // list of tariffs that have been revoked but not processed
   private ArrayList<Tariff> pendingRevokedTariffs =
@@ -170,7 +167,6 @@ public class TariffMarketService
       return null;
     }
 
-    defaultTariff = new HashMap<PowerType, Long>();
     //brokerProxyService.registerBrokerMessageListener(this);
     for (Class<?> messageType: Arrays.asList(TariffSpecification.class,
                                              TariffExpire.class,
@@ -607,21 +603,13 @@ public class TariffMarketService
   @Override
   public Tariff getDefaultTariff (PowerType type)
   {
-    Long defaultId = defaultTariff.get(type);
-    if (defaultId == null)
-      return null;
-    return tariffRepo.findTariffById(defaultId);
+    return tariffRepo.getDefaultTariff(type);
   }
 
   @Override
   public boolean setDefaultTariff (TariffSpecification newSpec)
   {
-    tariffRepo.addSpecification(newSpec);
-    Tariff tariff = new Tariff(newSpec);
-    tariff.init();
-    //tariff.setState(Tariff.State.OFFERED);
-    //tariffRepo.addTariff(tariff);
-    defaultTariff.put(newSpec.getPowerType(), tariff.getId());
+    tariffRepo.setDefaultTariff(newSpec);
     return true;
   }
   
