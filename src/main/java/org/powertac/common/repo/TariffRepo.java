@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 by the original author
+* Copyright (c) 2011-2013 by the original author
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ public class TariffRepo implements DomainRepo
 
   private HashMap<Long, TariffSpecification> specs;
   private HashSet<Long> deletedTariffs;
+  private HashMap<PowerType, Tariff> defaultTariffs;
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
   private HashMap<Long, BalancingOrder> balancingOrders;
@@ -49,6 +50,7 @@ public class TariffRepo implements DomainRepo
     super();
     specs = new HashMap<Long, TariffSpecification>();
     deletedTariffs = new HashSet<Long>();
+    defaultTariffs = new HashMap<PowerType, Tariff>();
     tariffs = new HashMap<Long, Tariff>();
     rates = new HashMap<Long, Rate>();
     balancingOrders = new HashMap<Long, BalancingOrder>();
@@ -68,6 +70,26 @@ public class TariffRepo implements DomainRepo
     for (Rate r : spec.getRates()) {
       rates.put(r.getId(), r);
     }
+  }
+  
+  public void setDefaultTariff (TariffSpecification newSpec)
+  {
+    addSpecification(newSpec);
+    Tariff tariff = new Tariff(newSpec);
+    tariff.init();
+    defaultTariffs.put(newSpec.getPowerType(), tariff);
+  }
+  
+  public Tariff getDefaultTariff (PowerType type)
+  {
+    Tariff result = defaultTariffs.get(type);
+    if (null == result) {
+      result = defaultTariffs.get(type.getGenericType());
+    }
+    if (null == result) {
+      log.error("Cannot find default tariff for PowerType " + type);
+    }
+    return result;
   }
   
   public synchronized TariffSpecification findSpecificationById (long id)

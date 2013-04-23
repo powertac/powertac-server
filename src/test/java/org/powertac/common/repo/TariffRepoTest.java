@@ -47,7 +47,7 @@ public class TariffRepoTest
     Competition.newInstance("test");
     repo = new TariffRepo();
     broker = new Broker("Sally");
-    rate = new Rate().withValue(0.121);
+    rate = new Rate().withValue(-0.121);
     spec = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 8)
       .addRate(rate);
@@ -149,7 +149,7 @@ public class TariffRepoTest
     repo.addTariff(t1);
     TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
       .withMinDuration(TimeService.WEEK * 10)
-      .addRate(new Rate().withValue(0.2));
+      .addRate(new Rate().withValue(-0.2));
     repo.addSpecification(spec2);
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
