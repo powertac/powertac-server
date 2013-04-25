@@ -97,7 +97,9 @@ public class VariableRateUpdate extends TariffUpdate
     if (0.0 == rate.getMinValue() && 0.0 == rate.getMaxValue())
       return (0.0 == value);
     
-    double sgn = Math.signum(rate.getMaxValue());
+    double sgn = 1.0;
+    if (rate.getMaxValue() < 0.0)
+      sgn = -1.0;
     if (sgn * value < sgn * rate.getMinValue() || sgn * value > sgn * rate.getMaxValue())
       return false;
     return true;
