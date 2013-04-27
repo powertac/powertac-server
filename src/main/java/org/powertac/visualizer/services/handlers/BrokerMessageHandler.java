@@ -130,6 +130,7 @@ public class BrokerMessageHandler implements Initializable {
 					Helper.getCustomerCount(msg));
 			
 			broker.getTariffCategory().getTariffData().get(msg.getTariffSpec()).processTariffTx(msg);//tom
+			
 
 		}
 
