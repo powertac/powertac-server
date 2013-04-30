@@ -61,8 +61,14 @@ public class CustomerRepo implements DomainRepo
   {
     return customers.values();
   }
-  
+
+  @Deprecated
   public int count ()
+  {
+    return size();
+  }
+  
+  public int size()
   {
     return customers.values().size();
   }
@@ -101,8 +107,15 @@ public class CustomerRepo implements DomainRepo
     
     if (candidates.size() == 0)
       return null;
-    else
-      return candidates.get(0);
+
+    if (candidates.size() > 1) {
+      // return the first one with an exact match
+      for (CustomerInfo customer : candidates)
+        if (type == customer.getPowerType())
+          return customer;
+    }
+
+    return candidates.get(0);
   }
 
   public void recycle ()
