@@ -485,6 +485,14 @@ public class Tariff
   {
     return state == State.KILLED;
   }
+  
+  /**
+   * True just in case this tariff can accept new subscriptions
+   */
+  public boolean isSubscribable ()
+  {
+    return isActive() && !isExpired() && !isRevoked();
+  }
 
   /**
    * Processes the tariffSpec, extracting tiers and rates, building a map. We start by

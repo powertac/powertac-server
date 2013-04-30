@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -37,6 +38,9 @@ import org.springframework.stereotype.Repository;
 public class TariffRepo implements DomainRepo
 {
   static private Logger log = Logger.getLogger(TariffRepo.class.getName());
+  
+  //@Autowired
+  //private TimeService timeService;
 
   private HashMap<Long, TariffSpecification> specs;
   private HashSet<Long> deletedTariffs;
@@ -44,6 +48,7 @@ public class TariffRepo implements DomainRepo
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
   private HashMap<Long, BalancingOrder> balancingOrders;
+  private HashMap<Long, LinkedList<Tariff>> brokerTariffs;
   
   public TariffRepo ()
   {
@@ -52,6 +57,7 @@ public class TariffRepo implements DomainRepo
     deletedTariffs = new HashSet<Long>();
     defaultTariffs = new HashMap<PowerType, Tariff>();
     tariffs = new HashMap<Long, Tariff>();
+    brokerTariffs = new HashMap<Long, LinkedList<Tariff>>();
     rates = new HashMap<Long, Rate>();
     balancingOrders = new HashMap<Long, BalancingOrder>();
   }
@@ -116,11 +122,20 @@ public class TariffRepo implements DomainRepo
   
   public synchronized void addTariff (Tariff tariff)
   {
+    // add to the tariffs list
     if (isRemoved(tariff.getId()) || null != tariffs.get(tariff.getId())) {
       log.error("Attempt to insert tariff with duplicate ID " + tariff.getId());
       return;
     }
     tariffs.put(tariff.getId(), tariff);
+    
+    // add to the brokerTariffs list
+    LinkedList<Tariff> tariffList = brokerTariffs.get(tariff.getBroker().getId());
+    if (null == tariffList) {
+      tariffList = new LinkedList<Tariff>();
+      brokerTariffs.put(tariff.getBroker().getId(), tariffList);
+    }
+    tariffList.push(tariff);
   }
   
   public synchronized Tariff findTariffById (long id)
@@ -152,8 +167,7 @@ public class TariffRepo implements DomainRepo
   {
     List<Tariff> result = new ArrayList<Tariff>();
     for (Tariff tariff : tariffs.values()) {
-      if (tariff.getPowerType() == type && tariff.isActive() &&
-              !tariff.isExpired() && !tariff.isRevoked()) {
+      if (tariff.getPowerType() == type && tariff.isSubscribable()) {
         result.add(tariff);
       }
     }
@@ -169,9 +183,34 @@ public class TariffRepo implements DomainRepo
   {
     List<Tariff> result = new ArrayList<Tariff>();
     for (Tariff tariff : tariffs.values()) {
-      if (type.canUse(tariff.getPowerType()) && tariff.isActive() &&
-              !tariff.isExpired() && !tariff.isRevoked()) {
+      if (type.canUse(tariff.getPowerType()) && tariff.isSubscribable()) {
         result.add(tariff);
+      }
+    }
+    return result;
+  }
+  
+  /**
+   * Returns the n most "recent" active tariffs from each broker
+   * that can be used by a customer with the given powerType. 
+   */
+  public synchronized List<Tariff> findRecentActiveTariffs (int n, PowerType type)
+  {
+    List<Tariff> result = new ArrayList<Tariff>();
+    HashMap<PowerType,Integer> ptCounter = new HashMap<PowerType,Integer>(); 
+    for (Long id : brokerTariffs.keySet()) {
+      ptCounter.clear();
+      for (Tariff tariff : brokerTariffs.get(id)) {
+        PowerType pt = tariff.getPowerType();
+        if (tariff.isSubscribable() && type.canUse(pt)) {
+          Integer count = ptCounter.get(pt);
+          if (null == count)
+            count = 0;
+          if (count < n) {
+            result.add(tariff);
+            ptCounter.put(pt, count + 1);
+          }
+        }
       }
     }
     return result;
