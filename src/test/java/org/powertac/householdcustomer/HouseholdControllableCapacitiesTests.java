@@ -168,6 +168,8 @@ public class HouseholdControllableCapacitiesTests
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);
 
+    tariffRepo.setDefaultTariff(defaultTariffSpec);
+
     defaultTariffSpecControllable =
       new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
               .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
@@ -175,6 +177,8 @@ public class HouseholdControllableCapacitiesTests
     defaultTariffControllable = new Tariff(defaultTariffSpecControllable);
     defaultTariffControllable.init();
     defaultTariffControllable.setState(Tariff.State.OFFERED);
+
+    tariffRepo.setDefaultTariff(defaultTariffSpecControllable);
 
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
