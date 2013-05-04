@@ -498,7 +498,10 @@ public class CompetitionControlService
       computeBrokerKey(broker);
     }
     // assign prefix and key with accept message
-    brokerProxyService.sendMessage(broker, new BrokerAccept(++idPrefix, broker.getKey()));
+    int prefix = ++idPrefix;
+    log.info("Broker " + broker.getUsername()
+             + " key: " + broker.getKey() + ", prefix: " + prefix);
+    brokerProxyService.sendMessage(broker, new BrokerAccept(prefix, broker.getKey()));
     
     // clear the broker from the list, and if the list is now empty, then
     // notify the simulation to start
@@ -515,7 +518,6 @@ public class CompetitionControlService
     int hash = broker.hashCode();
     int code = (int)((hash * time) & 0x7fffffff);
     String key = Integer.toString(code, 36);
-    log.info("Broker " + broker.getUsername() + " key: " + key);
     broker.setKey(key);
   }
 
