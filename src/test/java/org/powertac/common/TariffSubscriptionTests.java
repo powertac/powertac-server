@@ -272,6 +272,23 @@ public class TariffSubscriptionTests
     timeService.setCurrentTime(now.plus(TimeService.DAY * 6));
     assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
   }
+
+  @Test
+  public void testGetExpiredCustomerCountNoMin ()
+  {
+    TariffSpecification mySpec =
+            new TariffSpecification(broker, PowerType.CONSUMPTION)
+              .withExpiration(baseTime.plus(TimeService.DAY * 10))
+              .addRate(new Rate().withValue(-0.11));
+    Tariff myTariff = new Tariff(mySpec);
+    myTariff.init();
+    TariffSubscription sub = new TariffSubscription(customer, myTariff);
+    sub.subscribe(33);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                myTariff, customer, 33, 0.0, -0.0);
+    // no min duration, so they should all be expired
+    assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
+  }
   
   @Test
   public void testBalancingControl ()
