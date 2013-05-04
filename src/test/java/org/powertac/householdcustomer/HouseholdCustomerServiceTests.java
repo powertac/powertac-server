@@ -163,6 +163,8 @@ public class HouseholdCustomerServiceTests
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);
 
+    tariffRepo.setDefaultTariff(defaultTariffSpec);
+
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
 

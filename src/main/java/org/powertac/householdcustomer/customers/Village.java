@@ -38,6 +38,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -70,6 +71,9 @@ public class Village extends AbstractCustomer
 
   @Autowired
   WeatherReportRepo weatherReportRepo;
+
+  @Autowired
+  TariffRepo tariffRepo;
 
   int seedId = 1;
 
@@ -234,7 +238,7 @@ public class Village extends AbstractCustomer
   Map<String, Integer> periodMap = new TreeMap<String, Integer>();
   Map<String, Double> lamdaMap = new TreeMap<String, Double>();
   Map<String, Boolean> superseded = new TreeMap<String, Boolean>();
-  Map<String, Double> riskMap = new TreeMap<String, Double>();
+  Map<String, Double> inconvenienceMap = new TreeMap<String, Double>();
   Map<String, Double> withdrawalMap = new TreeMap<String, Double>();
 
   /**
@@ -262,6 +266,7 @@ public class Village extends AbstractCustomer
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     weatherReportRepo =
       (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
@@ -277,7 +282,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
-      riskMap.put(type, null);
+      inconvenienceMap.put(type, null);
       withdrawalMap.put(type, null);
     }
   }
@@ -292,6 +297,7 @@ public class Village extends AbstractCustomer
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     weatherReportRepo =
       (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
@@ -307,7 +313,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
-      riskMap.put(type, null);
+      inconvenienceMap.put(type, null);
       withdrawalMap.put(type, null);
     }
   }
@@ -385,8 +391,8 @@ public class Village extends AbstractCustomer
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
       superseded.put(type, false);
       double weight = gen.nextDouble() * VillageConstants.WEIGHT_RISK;
-      double risk = gen.nextDouble() * VillageConstants.RISK_FACTOR;
-      riskMap.put(type, weight * risk);
+      double inconvenience = gen.nextDouble() * VillageConstants.INCONVENIENCE_FACTOR;
+      inconvenienceMap.put(type, weight * inconvenience);
 
       double weeks =
         gen.nextInt(VillageConstants.MAX_DEFAULT_DURATION
@@ -2218,15 +2224,21 @@ public class Village extends AbstractCustomer
             boolean expired =
               (sub.getExpiredCustomerCount() >= numberOfHouses.get(type));
 
-            System.out.println("Now: "
-                               + sub.getTariff().getTariffSpec().toString()
-                               + " Evaluated: "
-                               + tariff.getTariffSpec().toString() + " Same:"
-                               + same + " Expired:" + expired);
+            log.debug("Now: " + sub.getTariff().getTariffSpec().toString()
+                      + " Evaluated: " + tariff.getTariffSpec().toString()
+                      + " Same:" + same + " Expired:" + expired);
 
-            estimation
-                    .add(-(costEstimation(tariff, type, rand, same, expired) - riskMap
-                            .get(type)));
+            double costValue =
+              costEstimation(tariff, type, rand, same, expired);
+
+            double riskValue = 0.0;
+            if (!same)
+              riskValue -= inconvenienceMap.get(type);
+            double estimationValue = costValue + riskValue;
+
+            log.debug("Cost estimation:" + costValue + " Risk:" + riskValue);
+
+            estimation.add(estimationValue);
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
@@ -2259,48 +2271,70 @@ public class Village extends AbstractCustomer
   double costEstimation (Tariff tariff, String type, Double rand, boolean same,
                          boolean expired)
   {
-    double costVariable = 0;
+    Tariff defaultTariff = tariffRepo.getDefaultTariff(tariff.getPowerType());
 
-    /*
-     * if it is NotShifting Houses the evaluation is done without shifting
-     * devices
-     * if it is RandomShifting Houses the evaluation is may be done without
-     * shifting devices or maybe shifting will be taken into consideration
-     * In any other case shifting will be done.
-     */
-    if (type.equals("NS")) {
-      // System.out.println("Simple Evaluation for " + type);
-      log.debug("Simple Evaluation for " + type);
-      costVariable = estimateVariableTariffPayment(tariff, type);
-    }
-    else if (type.equals("RaS")) {
+    if (tariff.getTariffSpec().equals(defaultTariff.getTariffSpec()))
+      return 0;
+    else {
+      double costVariable = 0;
+      double defaultCostVariable = 0;
 
-      // System.out.println(rand);
-      if (rand < getInertiaMap().get(type)) {
+      /*
+       * if it is NotShifting Houses the evaluation is done without shifting
+       * devices
+       * if it is RandomShifting Houses the evaluation is may be done without
+       * shifting devices or maybe shifting will be taken into consideration
+       * In any other case shifting will be done.
+       */
+      if (type.equals("NS")) {
         // System.out.println("Simple Evaluation for " + type);
         log.debug("Simple Evaluation for " + type);
-        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+        costVariable = estimateVariableTariffPayment(tariff, type);
+        defaultCostVariable =
+          estimateVariableTariffPayment(defaultTariff, type);
+      }
+      else if (type.equals("RaS")) {
+
+        // System.out.println(rand);
+        if (rand < getInertiaMap().get(type)) {
+          // System.out.println("Simple Evaluation for " + type);
+          log.debug("Simple Evaluation for " + type);
+          costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+          defaultCostVariable =
+            estimateShiftingVariableTariffPayment(defaultTariff, type);
+        }
+        else {
+          // System.out.println("Shifting Evaluation for " + type);
+          log.debug("Shifting Evaluation for " + type);
+          costVariable = estimateVariableTariffPayment(tariff, type);
+          defaultCostVariable =
+            estimateVariableTariffPayment(defaultTariff, type);
+        }
       }
       else {
         // System.out.println("Shifting Evaluation for " + type);
         log.debug("Shifting Evaluation for " + type);
-        costVariable = estimateVariableTariffPayment(tariff, type);
+        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+        defaultCostVariable =
+          estimateShiftingVariableTariffPayment(defaultTariff, type);
       }
-    }
-    else {
-      // System.out.println("Shifting Evaluation for " + type);
-      log.debug("Shifting Evaluation for " + type);
-      costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-    }
-    double costFixed = 0.0;
-    // costVariable = estimateVariableTariffPayment(tariff, type);
-    if (!same)
-      costFixed =
-        estimateFixedTariffPayments(tariff, type, expired)
-                * getHouses(type).size();
+      double costFixed = 0.0;
+      double defaultCostFixed = 0.0;
 
-    log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
-    return (costVariable + costFixed) / VillageConstants.MILLION;
+      if (!same)
+        costFixed =
+          estimateFixedTariffPayments(tariff, type, expired)
+                  * getHouses(type).size();
+
+      log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
+      log.debug("Default Cost Variable: " + defaultCostVariable
+                + " Cost Fixed: " + defaultCostFixed);
+
+      double defaultCost = defaultCostVariable + defaultCostFixed;
+      double cost = costVariable + costFixed;
+
+      return (defaultCost - cost) / defaultCost;
+    }
   }
 
   /**
