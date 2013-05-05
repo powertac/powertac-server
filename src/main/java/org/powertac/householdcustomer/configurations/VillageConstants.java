@@ -36,8 +36,7 @@ public class VillageConstants
   public static final double OPERATION_PARTITION = 0.05;
   public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
   public static final double DISTRUST_FACTOR = 2;
-  public static final double WEIGHT_RISK = 1;
-  public static final double INCONVENIENCE_FACTOR = 1;
+  public static final double WEIGHT_INCONVENIENCE = 1;
   public static final int MIN_DEFAULT_DURATION = 1;
   public static final int MAX_DEFAULT_DURATION = 6;
 

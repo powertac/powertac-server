@@ -238,7 +238,7 @@ public class Village extends AbstractCustomer
   Map<String, Integer> periodMap = new TreeMap<String, Integer>();
   Map<String, Double> lamdaMap = new TreeMap<String, Double>();
   Map<String, Boolean> superseded = new TreeMap<String, Boolean>();
-  Map<String, Double> inconvenienceMap = new TreeMap<String, Double>();
+  Map<String, Double> inconvenienceWeightMap = new TreeMap<String, Double>();
   Map<String, Double> withdrawalMap = new TreeMap<String, Double>();
 
   /**
@@ -282,7 +282,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
-      inconvenienceMap.put(type, null);
+      inconvenienceWeightMap.put(type, null);
       withdrawalMap.put(type, null);
     }
   }
@@ -313,7 +313,7 @@ public class Village extends AbstractCustomer
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
-      inconvenienceMap.put(type, null);
+      inconvenienceWeightMap.put(type, null);
       withdrawalMap.put(type, null);
     }
   }
@@ -390,9 +390,9 @@ public class Village extends AbstractCustomer
       periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
       superseded.put(type, false);
-      double weight = gen.nextDouble() * VillageConstants.WEIGHT_RISK;
-      double inconvenience = gen.nextDouble() * VillageConstants.INCONVENIENCE_FACTOR;
-      inconvenienceMap.put(type, weight * inconvenience);
+
+      double weight = gen.nextDouble() * VillageConstants.WEIGHT_INCONVENIENCE;
+      inconvenienceWeightMap.put(type, weight);
 
       double weeks =
         gen.nextInt(VillageConstants.MAX_DEFAULT_DURATION
@@ -401,14 +401,13 @@ public class Village extends AbstractCustomer
 
       withdrawalMap.put(type, weeks);
 
-      /*
-            
-            System.out.println(toString() + " " + type);
-            System.out.println("Dominant Consumption:"
-            + Arrays.toString(getDominantLoad(type)));
-            System.out.println("Non Dominant Consumption:"
-            + Arrays.toString(getNonDominantLoad(type)));
-            */
+      //
+      // System.out.println(toString() + " " + type);
+      // System.out.println("Dominant Consumption:"
+      // + Arrays.toString(getDominantLoad(type)));
+      // System.out.println("Non Dominant Consumption:"
+      // + Arrays.toString(getNonDominantLoad(type)));
+      //
     }
 
     // System.out.println(toString() + " "
@@ -1829,19 +1828,28 @@ public class Village extends AbstractCustomer
     return periodMap;
   }
 
-  /** This function returns the inertia Map variable of the village. */
+  /** This function returns the superseded Map variable of the village. */
   public Map<String, Boolean> getSuperseded ()
   {
     return superseded;
   }
 
-  /**
-   * This function set the superseded map in t the inertia Map variable of the
-   * village.
-   */
-  public void setSuperseded (String type, boolean value)
+  /** This function returns the inconvenience Map variable of the village. */
+  public Map<String, Double> getInconvenienceWeightMap ()
   {
-    superseded.put(type, value);
+    return inconvenienceWeightMap;
+  }
+
+  /** This function returns the withdrawal Map variable of the village. */
+  public Map<String, Double> getWithdrawalMap ()
+  {
+    return withdrawalMap;
+  }
+
+  /** This function sets the superseded flag of a type of the village. */
+  public void setSuperseded (String type, boolean flag)
+  {
+    superseded.put(type, flag);
   }
 
   /**
@@ -2233,7 +2241,7 @@ public class Village extends AbstractCustomer
 
             double riskValue = 0.0;
             if (!same)
-              riskValue -= inconvenienceMap.get(type);
+              riskValue -= inconvenienceWeightMap.get(type);
             double estimationValue = costValue + riskValue;
 
             log.debug("Cost estimation:" + costValue + " Risk:" + riskValue);
