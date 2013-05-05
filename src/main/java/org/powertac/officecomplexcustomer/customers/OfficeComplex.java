@@ -21,7 +21,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 import java.util.Vector;
 
 import org.apache.log4j.Logger;
@@ -36,6 +38,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -68,6 +71,9 @@ public class OfficeComplex extends AbstractCustomer
 
   @Autowired
   WeatherReportRepo weatherReportRepo;
+
+  @Autowired
+  TariffRepo tariffRepo;
 
   /**
    * These are the vectors containing aggregated each day's base load from the
@@ -192,14 +198,17 @@ public class OfficeComplex extends AbstractCustomer
    * best for their type. The forth is setting the lamda variable for the
    * possibility function of the evaluation.
    */
-  HashMap<String, TariffSubscription> subscriptionMap =
+  Map<String, TariffSubscription> subscriptionMap =
     new HashMap<String, TariffSubscription>();
-  HashMap<String, TariffSubscription> controllableSubscriptionMap =
+  Map<String, TariffSubscription> controllableSubscriptionMap =
     new HashMap<String, TariffSubscription>();
-  HashMap<String, Double> inertiaMap = new HashMap<String, Double>();
-  HashMap<String, Integer> periodMap = new HashMap<String, Integer>();
-  HashMap<String, Double> lamdaMap = new HashMap<String, Double>();
-  HashMap<String, Boolean> superseded = new HashMap<String, Boolean>();
+  Map<String, Integer> numberOfOffices = new TreeMap<String, Integer>();
+  Map<String, Double> inertiaMap = new HashMap<String, Double>();
+  Map<String, Integer> periodMap = new HashMap<String, Integer>();
+  Map<String, Double> lamdaMap = new HashMap<String, Double>();
+  Map<String, Boolean> superseded = new HashMap<String, Boolean>();
+  Map<String, Double> inconvenienceWeightMap = new HashMap<String, Double>();
+  Map<String, Double> withdrawalMap = new TreeMap<String, Double>();
 
   /**
    * These vectors contain the offices of type in the office complex. There are
@@ -220,6 +229,7 @@ public class OfficeComplex extends AbstractCustomer
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     weatherReportRepo =
       (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
@@ -228,10 +238,13 @@ public class OfficeComplex extends AbstractCustomer
     for (String type: typeList) {
       subscriptionMap.put(type, null);
       controllableSubscriptionMap.put(type, null);
+      numberOfOffices.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
+      inconvenienceWeightMap.put(type, null);
+      withdrawalMap.put(type, null);
     }
   }
 
@@ -245,6 +258,7 @@ public class OfficeComplex extends AbstractCustomer
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     weatherReportRepo =
       (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
 
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
@@ -253,10 +267,13 @@ public class OfficeComplex extends AbstractCustomer
     for (String type: typeList) {
       subscriptionMap.put(type, null);
       controllableSubscriptionMap.put(type, null);
+      numberOfOffices.put(type, null);
       inertiaMap.put(type, null);
       periodMap.put(type, null);
       lamdaMap.put(type, null);
       superseded.put(type, null);
+      inconvenienceWeightMap.put(type, null);
+      withdrawalMap.put(type, null);
     }
   }
 
@@ -272,9 +289,10 @@ public class OfficeComplex extends AbstractCustomer
   {
     // Initializing variables
 
-    int nsoffices = Integer.parseInt(conf.getProperty("NotShiftingCustomers"));
-    int ssoffices =
-      Integer.parseInt(conf.getProperty("SmartShiftingCustomers"));
+    numberOfOffices.put("NS", Integer.parseInt(conf
+            .getProperty("NotShiftingCustomers")));
+    numberOfOffices.put("SS", Integer.parseInt(conf
+            .getProperty("SmartShiftingCustomers")));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
     gen =
@@ -285,7 +303,7 @@ public class OfficeComplex extends AbstractCustomer
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
-    for (int i = 0; i < nsoffices; i++) {
+    for (int i = 0; i < numberOfOffices.get("NS"); i++) {
       log.info("Initializing " + toString() + " NSoffice " + i);
       Office of = new Office();
       of.initialize(toString() + " NSoffice" + i, conf, publicVacationVector,
@@ -294,7 +312,7 @@ public class OfficeComplex extends AbstractCustomer
       of.officeOf = this;
     }
 
-    for (int i = 0; i < ssoffices; i++) {
+    for (int i = 0; i < numberOfOffices.get("SS"); i++) {
       log.info("Initializing " + toString() + " SSoffice " + i);
       Office hh = new Office();
       hh.initialize(toString() + " SSoffice" + i, conf, publicVacationVector,
@@ -311,30 +329,47 @@ public class OfficeComplex extends AbstractCustomer
       lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
       superseded.put(type, false);
 
-      /*
-      System.out.println(toString() + " " + type);
-      System.out.println("Dominant Consumption:"
-      + Arrays.toString(getDominantLoad(type)));
-      System.out.println("Non Dominant Consumption:"
-      + Arrays.toString(getNonDominantLoad(type)));
-      */
-    }
-    /*
-    System.out.println(toString() + " "
-                       + aggDailyDominantLoadInHoursNS.get(0).toString());
+      double weight = gen.nextDouble() * OfficeComplexConstants.WEIGHT_RISK;
+      inconvenienceWeightMap.put(type, weight);
 
-    System.out.println(toString() + " "
-                       + aggDailyNonDominantLoadInHoursNS.get(0).toString());
-    
-      System.out.println("Subscriptions:" + subscriptionMap.toString());
-      System.out.println("Inertia:" + inertiaMap.toString());
-      System.out.println("Period:" + periodMap.toString());
-      System.out.println("Lamda:" + lamdaMap.toString());
-    
-    for (String type : subscriptionMap.keySet()) {
-    showAggLoad(type);
+      double weeks =
+        gen.nextInt(OfficeComplexConstants.MAX_DEFAULT_DURATION
+                    - OfficeComplexConstants.MIN_DEFAULT_DURATION)
+                + OfficeComplexConstants.MIN_DEFAULT_DURATION;
+
+      withdrawalMap.put(type, weeks);
+
+      //
+      // System.out.println(toString() + " " + type);
+      // System.out.println("Dominant Consumption:"
+      // + Arrays.toString(getDominantLoad(type)));
+      // System.out.println("Non Dominant Consumption:"
+      // + Arrays.toString(getNonDominantLoad(type)));
+      //
     }
-    */
+
+    // System.out.println(toString() + " "
+    // + aggDailyDominantLoadInHoursNS.get(0).toString());
+    //
+    // System.out.println(toString() + " "
+    // + aggDailyNonDominantLoadInHoursNS.get(0).toString());
+    //
+    //
+    // System.out.println("Subscriptions:" + subscriptionMap.toString());
+    // System.out.println("Controllable Subscriptions:" +
+    // controllableSubscriptionMap.toString());
+    // System.out.println("Number Of Houses:" + numberOfHouses.toString());
+    // System.out.println("Inertia:" + inertiaMap.toString());
+    // System.out.println("Period:" + periodMap.toString());
+    // System.out.println("Lamda:" + lamdaMap.toString());
+    // System.out.println("Risk:" + riskMap.toString());
+    // System.out.println("Withdrawal:" + withdrawalMap.toString())
+    //
+    //
+    // for (String type : subscriptionMap.keySet()) {
+    // showAggLoad(type);
+    // }
+
   }
 
   // =====SUBSCRIPTION FUNCTIONS===== //
@@ -1325,33 +1360,51 @@ public class OfficeComplex extends AbstractCustomer
   // =====GETTER FUNCTIONS===== //
 
   /** This function returns the subscription Map variable of the office complex. */
-  public HashMap<String, TariffSubscription> getSubscriptionMap ()
+  public Map<String, TariffSubscription> getSubscriptionMap ()
   {
     return subscriptionMap;
   }
 
   /** This function returns the subscription Map variable of the OfficeComplex. */
-  public HashMap<String, TariffSubscription> getControllableSubscriptionMap ()
+  public Map<String, TariffSubscription> getControllableSubscriptionMap ()
   {
     return controllableSubscriptionMap;
   }
 
   /** This function returns the inertia Map variable of the office complex. */
-  public HashMap<String, Double> getInertiaMap ()
+  public Map<String, Double> getInertiaMap ()
   {
     return inertiaMap;
   }
 
   /** This function returns the period Map variable of the office complex. */
-  public HashMap<String, Integer> getPeriodMap ()
+  public Map<String, Integer> getPeriodMap ()
   {
     return periodMap;
   }
 
-  /** This function returns the inertia Map variable of the village. */
-  public HashMap<String, Boolean> getSuperseded ()
+  /** This function returns the superseded Map variable of the village. */
+  public Map<String, Boolean> getSuperseded ()
   {
     return superseded;
+  }
+
+  /** This function returns the inconvenience Map variable of the village. */
+  public Map<String, Double> getInconvenienceWeightMap ()
+  {
+    return inconvenienceWeightMap;
+  }
+
+  /** This function returns the withdrawal Map variable of the village. */
+  public Map<String, Double> getWithdrawalMap ()
+  {
+    return withdrawalMap;
+  }
+
+  /** This function sets the superseded flag of a type of the village. */
+  public void setSuperseded (String type, boolean flag)
+  {
+    superseded.put(type, flag);
   }
 
   /**
@@ -1660,6 +1713,8 @@ public class OfficeComplex extends AbstractCustomer
         return;
       }
 
+      TariffSubscription sub = subscriptionMap.get(type);
+
       Vector<Double> estimation = new Vector<Double>();
       Double rand = gen.nextDouble();
 
@@ -1672,23 +1727,41 @@ public class OfficeComplex extends AbstractCustomer
       if (evaluationTariffs.size() > 1) {
         for (Tariff tariff: evaluationTariffs) {
           log.debug("Tariff : " + tariff.toString() + " Tariff Type : "
-                    + tariff.getTariffSpecification().getPowerType());
+                    + tariff.getTariffSpecification().getPowerType()
+                    + " Broker: " + tariff.getBroker().toString());
+
           if (tariff.isExpired() == false
               && (tariff.getTariffSpecification().getPowerType() == customer
                       .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
                       .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-            estimation
-                    .add(-(costEstimation(tariff, type, rand)
-                           * OfficeComplexConstants.WEIGHT_COST + OfficeComplexConstants.WEIGHT_RISK
-                                                                  * OfficeComplexConstants.RISK_FACTOR));
+
+            boolean same =
+              (sub.getTariff().getTariffSpec() == tariff.getTariffSpec());
+
+            boolean expired =
+              (sub.getExpiredCustomerCount() >= numberOfOffices.get(type));
+
+            log.debug("Now: " + sub.getTariff().getTariffSpec().toString()
+                      + " Evaluated: " + tariff.getTariffSpec().toString()
+                      + " Same:" + same + " Expired:" + expired);
+
+            double costValue =
+              costEstimation(tariff, type, rand, same, expired);
+
+            double riskValue = 0.0;
+            if (!same)
+              riskValue -= inconvenienceWeightMap.get(type);
+            double estimationValue = costValue + riskValue;
+
+            log.debug("Cost estimation:" + costValue + " Risk:" + riskValue);
+
+            estimation.add(estimationValue);
           }
           else
             estimation.add(Double.NEGATIVE_INFINITY);
         }
 
         int minIndex = logitPossibilityEstimation(estimation, type);
-
-        TariffSubscription sub = subscriptionMap.get(type);
 
         if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION)
           sub = controllableSubscriptionMap.get(type);
@@ -1712,71 +1785,96 @@ public class OfficeComplex extends AbstractCustomer
    * fixed payments as well as the variable that are depending on the tariff
    * rates
    */
-  double costEstimation (Tariff tariff, String type, Double rand)
+  double costEstimation (Tariff tariff, String type, Double rand, boolean same,
+                         boolean expired)
   {
-    double costVariable = 0;
+    Tariff defaultTariff = tariffRepo.getDefaultTariff(tariff.getPowerType());
 
-    /*
-     * if it is NotShifting Houses the evaluation is done without shifting
-     * devices
-     * if it is RandomShifting Houses the evaluation is may be done without
-     * shifting devices or maybe shifting will be taken into consideration
-     * In any other case shifting will be done.
-     */
-    if (type.equals("NS")) {
-      // System.out.println("Simple Evaluation for " + type);
-      log.debug("Simple Evaluation for " + type);
-      costVariable = estimateVariableTariffPayment(tariff, type);
-    }
-    else if (type.equals("RaS")) {
+    if (tariff.getTariffSpec().equals(defaultTariff.getTariffSpec()))
+      return 0;
+    else {
+      double costVariable = 0;
+      double defaultCostVariable = 0;
 
-      // System.out.println(rand);
-      if (rand < getInertiaMap().get(type)) {
+      /*
+       * if it is NotShifting Houses the evaluation is done without shifting
+       * devices
+       * if it is RandomShifting Houses the evaluation is may be done without
+       * shifting devices or maybe shifting will be taken into consideration
+       * In any other case shifting will be done.
+       */
+      if (type.equals("NS")) {
         // System.out.println("Simple Evaluation for " + type);
         log.debug("Simple Evaluation for " + type);
-        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+        costVariable = estimateVariableTariffPayment(tariff, type);
+        defaultCostVariable =
+          estimateVariableTariffPayment(defaultTariff, type);
+      }
+      else if (type.equals("RaS")) {
+
+        // System.out.println(rand);
+        if (rand < getInertiaMap().get(type)) {
+          // System.out.println("Simple Evaluation for " + type);
+          log.debug("Simple Evaluation for " + type);
+          costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+          defaultCostVariable =
+            estimateShiftingVariableTariffPayment(defaultTariff, type);
+        }
+        else {
+          // System.out.println("Shifting Evaluation for " + type);
+          log.debug("Shifting Evaluation for " + type);
+          costVariable = estimateVariableTariffPayment(tariff, type);
+          defaultCostVariable =
+            estimateVariableTariffPayment(defaultTariff, type);
+        }
       }
       else {
         // System.out.println("Shifting Evaluation for " + type);
         log.debug("Shifting Evaluation for " + type);
-        costVariable = estimateVariableTariffPayment(tariff, type);
+        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
+        defaultCostVariable =
+          estimateShiftingVariableTariffPayment(defaultTariff, type);
       }
-    }
-    else {
-      // System.out.println("Shifting Evaluation for " + type);
-      log.debug("Shifting Evaluation for " + type);
-      costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-    }
+      double costFixed = 0.0;
+      double defaultCostFixed = 0.0;
 
-    // costVariable = estimateVariableTariffPayment(tariff, type);
+      if (!same)
+        costFixed =
+          estimateFixedTariffPayments(tariff, type, expired)
+                  * getOffices(type).size();
 
-    double costFixed =
-      estimateFixedTariffPayments(tariff) * getOffices(type).size();
-    log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
-    return (costVariable + costFixed) / OfficeComplexConstants.MILLION;
+      log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
+      log.debug("Default Cost Variable: " + defaultCostVariable
+                + " Cost Fixed: " + defaultCostFixed);
+
+      double defaultCost = defaultCostVariable + defaultCostFixed;
+      double cost = costVariable + costFixed;
+
+      return (defaultCost - cost) / defaultCost;
+    }
   }
 
   /**
    * This function estimates the fixed cost, comprised by fees, bonuses and
    * penalties that are the same no matter how much you consume
    */
-  double estimateFixedTariffPayments (Tariff tariff)
+  double estimateFixedTariffPayments (Tariff tariff, String type,
+                                      boolean expired)
   {
-    double lifecyclePayment =
-      -tariff.getEarlyWithdrawPayment() - tariff.getSignupPayment();
-    double minDuration;
+    double minDuration =
+      (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
+    double ff = minDuration / withdrawalMap.get(type);
 
-    // When there is not a Minimum Duration of the contract, you cannot divide
-    // with the duration
-    // because you don't know it.
-    if (tariff.getMinDuration() == 0)
-      minDuration = OfficeComplexConstants.MEAN_TARIFF_DURATION;
-    else
-      minDuration =
-        (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
+    // System.out.println("FF for type " + type + ":" + ff);
+    double fixedCost =
+      -tariff.getSignupPayment() - ff * tariff.getEarlyWithdrawPayment();
 
-    log.debug("Minimum Duration: " + minDuration);
-    return (lifecyclePayment / minDuration);
+    if (!expired)
+      fixedCost -=
+        subscriptionMap.get(type).getTariff().getEarlyWithdrawPayment();
+
+    return fixedCost;
+
   }
 
   /**
@@ -1789,6 +1887,7 @@ public class OfficeComplex extends AbstractCustomer
     double finalCostSummary = 0;
 
     double dominantCostSummary = 0, nonDominantCostSummary = 0;
+
     double[] dominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
     double[] nonDominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
@@ -1812,7 +1911,9 @@ public class OfficeComplex extends AbstractCustomer
     log.debug("Dominant Cost Summary: " + dominantCostSummary);
     log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
     finalCostSummary = dominantCostSummary + nonDominantCostSummary;
+
     return -finalCostSummary;
+
   }
 
   /**
@@ -1825,6 +1926,7 @@ public class OfficeComplex extends AbstractCustomer
    */
   double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
   {
+
     double finalCostSummary = 0;
     double costSummary = 0;
 
@@ -1850,7 +1952,6 @@ public class OfficeComplex extends AbstractCustomer
     }
     log.debug("Variable Cost Summary: " + finalCostSummary);
     return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
-
   }
 
   /**

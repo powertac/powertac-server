@@ -164,6 +164,8 @@ public class OfficeComplexCustomerServiceTests
     defaultTariff.init();
     defaultTariff.setState(Tariff.State.OFFERED);
 
+    tariffRepo.setDefaultTariff(defaultTariffSpec);
+
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
             .thenReturn(defaultTariff);
     // when(mockTariffMarket.getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION)).thenReturn(defaultTariff);

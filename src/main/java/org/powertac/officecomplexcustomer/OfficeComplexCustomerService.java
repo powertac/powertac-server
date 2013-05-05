@@ -181,16 +181,15 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     int ssoffices =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
-    int villagePopulation = nsoffices + ssoffices;
+    int officePopulation = nsoffices + ssoffices;
 
     for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
       CustomerInfo officeComplexInfo =
         new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
-                         villagePopulation)
-                .withPowerType(PowerType.CONSUMPTION);
+                         officePopulation).withPowerType(PowerType.CONSUMPTION);
       CustomerInfo officeComplexInfo2 =
         new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
-                         villagePopulation)
+                         officePopulation)
                 .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
       OfficeComplex officeComplex =
         new OfficeComplex("OfficeComplexType1 OfficeComplex " + i);
@@ -225,16 +224,15 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     ssoffices =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
 
-    villagePopulation = nsoffices + ssoffices;
+    officePopulation = nsoffices + ssoffices;
 
     for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
       CustomerInfo officeComplexInfo =
         new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
-                         villagePopulation)
-                .withPowerType(PowerType.CONSUMPTION);
+                         officePopulation).withPowerType(PowerType.CONSUMPTION);
       CustomerInfo officeComplexInfo2 =
         new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
-                         villagePopulation)
+                         officePopulation)
                 .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
       OfficeComplex officeComplex =
         new OfficeComplex("OfficeComplexType2 OfficeComplex " + i);
@@ -252,6 +250,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   public void publishNewTariffs (List<Tariff> tariffs)
   {
 
+    publishedTariffs.clear();
+
     publishedTariffs =
       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
 
@@ -264,22 +264,23 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     // System.out.println("Timeslot: " + timeslotRepo.currentSerialNumber());
 
     // For each village of the server //
-    for (OfficeComplex officeComplex: officeComplexList) {
+    for (OfficeComplex village: officeComplexList) {
 
       // For each type of houses of the villages //
-      for (String type: officeComplex.getSubscriptionMap().keySet()) {
+      for (String type: village.getSubscriptionMap().keySet()) {
 
         // if the publishingPeriod is divided exactly with the periodicity of
         // the evaluation of each type. //
-        if (publishingPeriods % officeComplex.getPeriodMap().get(type) == 0) {
+        if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
 
-          double inertia = estimateInertia(officeComplex, type);
-
-          // System.out.println("Evaluation for " + type + " of village " +
-          // village.toString());
+          // System.out.println("Evaluation for " + type + " of village "
+          // + village.toString());
           log.debug("Evaluation for " + type + " of village "
-                    + officeComplex.toString());
+                    + village.toString());
+
+          double inertia = estimateInertia(village, type);
           double rand = rs1.nextDouble();
+
           // System.out.println(rand);
           // If the percentage is smaller that inertia then evaluate the new
           // tariffs then evaluate //
@@ -287,9 +288,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
             // System.out.println("Inertia Passed for " + type + " of village "
             // + village.toString());
             log.debug("Inertia Passed for " + type + " of village "
-                      + officeComplex.toString());
-            officeComplex.possibilityEvaluationNewTariffs(publishedTariffs,
-                                                          type);
+                      + village.toString());
+            village.possibilityEvaluationNewTariffs(publishedTariffs, type);
           }
         }
       }
@@ -308,14 +308,17 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
       inertia =
         officeComplex.getInertiaMap().get(type)
                 / OfficeComplexConstants.DISTRUST_FACTOR;
+      log.debug("New Inertia = " + inertia + " with Trust Issues: "
+                + officeComplex.getSuperseded().get(type));
+      officeComplex.setSuperseded(type, false);
     }
     else {
-
       double m = 1 / Math.pow(2, publishingPeriods);
       inertia = officeComplex.getInertiaMap().get(type) * (1 - m);
+      log.debug("New Inertia = " + inertia + " with Trust Issues: "
+                + officeComplex.getSuperseded().get(type));
     }
-    log.debug("New Inertia = " + inertia + " with Trust Issues: "
-              + officeComplex.getSuperseded().get(type));
+
     return inertia;
   }
 
