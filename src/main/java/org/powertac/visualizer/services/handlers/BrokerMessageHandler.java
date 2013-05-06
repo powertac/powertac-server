@@ -128,7 +128,7 @@ public class BrokerMessageHandler implements Initializable {
 			}
 			tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
 					Helper.getCustomerCount(msg));
-			
+			tc.getTariffData().get(msg.getTariffSpec()).setCustomers(Helper.getCustomerCount(msg));//tom
 			broker.getTariffCategory().getTariffData().get(msg.getTariffSpec()).processTariffTx(msg);//tom
 			
 

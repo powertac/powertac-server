@@ -42,5 +42,10 @@ public class TariffCustomerStats {
 		netKWh += kWh;
 
 	}
+	
+	public String toString(){
+		return "" + customerInfo.getName() + " - " + customerInfo.getPopulation();
+	}
+	
 
 }

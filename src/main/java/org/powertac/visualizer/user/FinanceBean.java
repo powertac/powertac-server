@@ -4,33 +4,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.ClearedTrade;
-import org.powertac.common.MarketTransaction;
-import org.powertac.common.OrderbookOrder;
-import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.domain.broker.BrokerModel;
-import org.powertac.visualizer.domain.broker.TariffDynamicData;
-import org.powertac.visualizer.domain.wholesale.VisualizerOrderbookOrder;
-import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
-import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.services.BrokerService;
-import org.powertac.visualizer.services.WholesaleService;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
-import org.powertac.visualizer.statistical.DynamicData;
 import org.powertac.visualizer.statistical.FinanceDynamicData;
-import org.powertac.visualizer.statistical.SingleTimeslotWholesaleData;
-import org.primefaces.component.datatable.DataTable;
-import org.primefaces.component.paginator.PaginatorElementRenderer;
-import org.primefaces.model.TreeNode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.gson.Gson;
@@ -71,14 +54,13 @@ public class FinanceBean implements Serializable {
 				FinanceDynamicData dynData = dynDataMap.get(key);
 
 				Object[] profit = { helper.getMillisForIndex(key),
-					dynData.getProfit() };
+						dynData.getProfit() };
 				profitData.add(profit);
 
 				// one timeslot:
 				Object[] profitOneTimeslot = { helper.getMillisForIndex(key),
-						dynData.getProfitDelta() };
+						dynData.getProfitDelta()};
 				profitDataOneTimeslot.add(profitOneTimeslot);
-				log.info("***LOG***" + key);
 		
 			}
 			if(dynDataSet.size()==0){

@@ -1,37 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:p="http://www.springframework.org/schema/p"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
                       http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 	                    http://www.springframework.org/schema/context
 	                    http://www.springframework.org/schema/context/spring-context.xsd">
-  <bean id="visualizerApplicationContext" class="org.powertac.visualizer.VisualizerApplicationContext"/>
+	<bean id="visualizerApplicationContext" class="org.powertac.visualizer.VisualizerApplicationContext" />
 
-  <bean id="imageBean" class="org.powertac.visualizer.beans.ImageBean">
-    <property name="logoPath"
-              value="/app/resources/resources/images/powertac-banner-powerman.png" />
-    <property name="offeredTarrifPath" value="/app/resources/resources/images/offered_tarrif.png"/>
-    <property name="moneyPath" value="/app/resources/resources/images/money_icon.png"/>
-  </bean>
+	<bean id="imageBean" class="org.powertac.visualizer.beans.ImageBean">
+		<property name="logoPath"
+			value="/app/resources/resources/images/powertac-banner-powerman.png" />
+		<property name="offeredTarrifPath"
+			value="/app/resources/resources/images/offered_tarrif.png" />
+		<property name="moneyPath"
+			value="/app/resources/resources/images/money_icon.png" />
+	</bean>
 
-  <!-- A connection to ActiveMQ -->
-  <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
-        p:brokerURL="tcp://localhost:61616" />
+	<!-- A connection to ActiveMQ -->
+	<bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
+		p:brokerURL="tcp://localhost:61616" />
 
-  <!-- A cached connection to wrap the ActiveMQ connection -->
-  <bean id="jmsFactory" class="org.springframework.jms.connection.CachingConnectionFactory"
-        p:targetConnectionFactory-ref="amqConnectionFactory"
-        p:sessionCacheSize="10" />
+	<!-- A cached connection to wrap the ActiveMQ connection -->
+	<bean id="jmsFactory"
+		class="org.springframework.jms.connection.CachingConnectionFactory"
+		p:targetConnectionFactory-ref="amqConnectionFactory"
+		p:sessionCacheSize="10" />
 
-  <!-- A JmsTemplate instance that uses the cached connection and destination -->
-  <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate"
-        p:connectionFactory-ref="jmsFactory" />
+	<!-- A JmsTemplate instance that uses the cached connection and destination -->
+	<bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate"
+		p:connectionFactory-ref="jmsFactory" />
 
-  <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
+	<bean id="taskExecutor"
+		class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"
+		p:corePoolSize="5" p:maxPoolSize="25" />
 
-  <bean id="appearanceListBean" class="org.powertac.visualizer.beans.AppearanceListBean">
+	<bean id="appearanceListBean" class="org.powertac.visualizer.beans.AppearanceListBean">
 		<constructor-arg name="appereanceList">
 			<list>
 				<bean class="org.powertac.visualizer.domain.Appearance">
@@ -131,6 +135,8 @@
 	</bean>
 
 	<!-- ......USER SESSION BEANS:..................... -->
+	<bean id="gameOverviewBean" class="org.powertac.visualizer.user.GameOverviewBean"
+		scope="request" />
 	<bean id="wholesaleMarketBean" class="org.powertac.visualizer.user.WholesaleMarketBean"
 		scope="request" />
 	<bean id="gencosBean" class="org.powertac.visualizer.user.GencosBean"
@@ -147,10 +153,14 @@
 		scope="request" />
 	<bean id="weatherBean" class="org.powertac.visualizer.user.WeatherBean"
 		scope="request" />
-		<bean id="balancingMarketBean" class="org.powertac.visualizer.user.BalancingMarketBean" scope="request"/>
-		<bean id="distributionBean" class="org.powertac.visualizer.user.DistributionBean" scope="request"/>
-		<bean id="chatBean" class="org.powertac.visualizer.user.ChatBean"
+	<bean id="balancingMarketBean" class="org.powertac.visualizer.user.BalancingMarketBean"
+		scope="request" />
+	<bean id="distributionBean" class="org.powertac.visualizer.user.DistributionBean"
+		scope="request" />
+	<bean id="chatBean" class="org.powertac.visualizer.user.ChatBean"
 		scope="session" />
-		<bean id="financeBean" class="org.powertac.visualizer.user.FinanceBean" scope="request"/>
-		<bean id="globalBean" class="org.powertac.visualizer.user.GlobalBean" scope="request"/>
+	<bean id="financeBean" class="org.powertac.visualizer.user.FinanceBean"
+		scope="request" />
+	<bean id="globalBean" class="org.powertac.visualizer.user.GlobalBean"
+		scope="request" />
 </beans>

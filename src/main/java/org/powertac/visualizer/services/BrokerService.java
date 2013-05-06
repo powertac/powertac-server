@@ -1,10 +1,13 @@
 package org.powertac.visualizer.services;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NavigableSet;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,6 +17,7 @@ import org.joda.time.Instant;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.beans.VisualizerBean;
+import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Recyclable;
@@ -54,10 +58,12 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	private ConcurrentHashMap<String, BrokerModel> brokersMap;
 	private ArrayList<BrokerModel> brokers;
 	@Autowired
-	private VisualizerBean visualizerBean; 
+	private VisualizerBean visualizerBean;
 	@Autowired
 	private VisualizerHelperService helper;
-
+	
+	private final int TIMESLOTS_TO_DISPLAY = 2;
+	 
 
 	public BrokerService() {
 		recycle();
@@ -102,11 +108,16 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 		ArrayList<DynDataPusher> balancingMarketPushers = new ArrayList<DynDataPusher>();
 		ArrayList<DynDataPusher> distributionPushers = new ArrayList<DynDataPusher>();
 		ArrayList<FinancePusher> financePushers = new ArrayList<FinancePusher>();
+		ArrayList allWholesaleData = new ArrayList();
+		ArrayList<ArrayList<Double>> brokersOverview = new ArrayList<ArrayList<Double>>();
 
 		NominationPusher np = null;
 		for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
 
 			BrokerModel b = (BrokerModel) iterator.next();
+			
+			ArrayList<Object> wholesaleTxBrokerData = new ArrayList<Object>();
+			ArrayList<Double> brokerOverview = new ArrayList<Double>();
 
 			// Tariff market push
 			TariffCategory tc = b.getTariffCategory();
@@ -114,29 +125,47 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 			TariffMarketPusher tp = new TariffMarketPusher(
 					b.getName(),
 					helper.getMillisForIndex(tdd.getDynamicData().getTsIndex()),
-					tdd.getDynamicData().getProfit(), tdd.getDynamicData()
-							.getEnergy(), tdd.getCustomerCount(), tdd
-							.getDynamicData().getProfitDelta(), tdd
-							.getDynamicData().getEnergyDelta(), tdd
-							.getCustomerCountDelta());
+					tdd.getDynamicData().getProfit(), 
+					tdd.getDynamicData().getEnergy(), 
+					tdd.getCustomerCount(), 
+					tdd.getDynamicData().getProfitDelta(), 
+					tdd.getDynamicData().getEnergyDelta(), 
+					tdd.getCustomerCountDelta());
 			tariffMarketPushers.add(tp);
+			
 
 			// Wholesale market push
 			int safetyTxIndex = timeslotIndex - 1;
 			WholesaleCategory wc = b.getWholesaleCategory();
 			wc.updateAccounts(safetyTxIndex);
-			ArrayList<Object> newMarketTxs = new ArrayList<Object>();
 
-			if (wc.getMarketTxs().containsKey(safetyTxIndex)) {
-				List<MarketTransaction> mtxs = wc.getMarketTxs().get(
-						safetyTxIndex);
-				for (Iterator iterator2 = mtxs.iterator(); iterator2.hasNext();) {
-					MarketTransaction mtx = (MarketTransaction) iterator2
+			ConcurrentHashMap<Integer, List<MarketTransaction>> mtxMap = wc.getMarketTxs();
+			SortedSet<Integer> mtxSortedSet = new TreeSet<Integer>(wc
+					.getMarketTxs().keySet()).headSet(safetyTxIndex, true);
+			SortedSet<Integer> mtxSortedSetSubset = mtxSortedSet
+					.subSet(((safetyTxIndex - TIMESLOTS_TO_DISPLAY) < 0) ? 0
+							: safetyTxIndex - TIMESLOTS_TO_DISPLAY, safetyTxIndex);// tom
+			
+			for (Iterator iterator2 = mtxSortedSetSubset.iterator(); iterator2
+					.hasNext();) {
+				int key = (Integer) iterator2.next();
+
+				List<MarketTransaction> mtxList = mtxMap.get(key);
+				for (Iterator iterator3 = mtxList.iterator(); iterator3
+						.hasNext();) {
+					MarketTransaction marketTransaction = (MarketTransaction) iterator3
 							.next();
-					Object[] mtxEntry = { mtx.getPrice(), mtx.getMWh() };
-					newMarketTxs.add(mtxEntry);
+					ArrayList<Double> transaction = new ArrayList<Double>();
+					transaction.add(marketTransaction.getPrice());
+					transaction.add(marketTransaction.getMWh());
+					//Object[] mtxEntry = { marketTransaction.getPrice(),	marketTransaction.getMWh() };
+					wholesaleTxBrokerData.add(transaction);
 				}
+
 			}
+			
+			allWholesaleData.add(wholesaleTxBrokerData);
+
 			double profitDelta = 0, profit = 0, energy = 0, energyDelta = 0;
 
 			NavigableSet<Integer> safeKeys = new TreeSet<Integer>(wc
@@ -150,64 +179,81 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 				profit = lastWholesaledd.getProfit();
 				energy = lastWholesaledd.getEnergy();
 			}
-			
-			
 
 			WholesaleMarketPusher wmp = new WholesaleMarketPusher(b.getName(),
 					helper.getMillisForIndex(safetyTxIndex), profitDelta,
-					energyDelta, newMarketTxs, profit, energy);
+					energyDelta, profit, energy);
 			wholesaleMarketPushers.add(wmp);
-			
 
 			// balancing market pushers:
 			BalancingCategory bc = b.getBalancingCategory();
 			DynamicData bdd = bc.getLastDynamicData();
-			DynDataPusher bddp = new DynDataPusher(b.getName(),
+			DynDataPusher bddp = new DynDataPusher(
+					b.getName(),
 					helper.getMillisForIndex(bdd.getTsIndex()),
-					bdd.getProfit(), bdd.getEnergy(), bdd.getProfitDelta(),
+					bdd.getProfit(), 
+					bdd.getEnergy(), 
+					bdd.getProfitDelta(),
 					bdd.getEnergyDelta());
 			balancingMarketPushers.add(bddp);
 
 			// balancing market pushers:
 			DistributionCategory dc = b.getDistributionCategory();
 			DynamicData ddd = dc.getLastDynamicData();
-			DynDataPusher dddp = new DynDataPusher(b.getName(),
+			DynDataPusher dddp = new DynDataPusher(
+					b.getName(),
 					helper.getMillisForIndex(ddd.getTsIndex()),
-					ddd.getProfit(), ddd.getEnergy(), ddd.getProfitDelta(),
+					ddd.getProfit(), 
+					ddd.getEnergy(), 
+					ddd.getProfitDelta(),
 					ddd.getEnergyDelta());
 			distributionPushers.add(dddp);
 
 			// finance push
 			FinanceCategory fc = b.getFinanceCategory();
 			FinanceDynamicData fdd = fc.getLastFinanceDynamicData();
-			FinancePusher fp = new FinancePusher(b.getName(),
+			FinancePusher fp = new FinancePusher(
+					b.getName(),
 					helper.getMillisForIndex(fdd.getTsIndex()),
-					fdd.getProfit(), fdd.getProfitDelta());
+					fdd.getProfit(), 
+					fdd.getProfitDelta());
 			financePushers.add(fp);
+			
+			//game overview push
+			brokerOverview.add(fdd.getProfit());
+			brokerOverview.add(tdd.getDynamicData().getProfit());
+			brokerOverview.add(profit);
+			brokerOverview.add(bdd.getProfit());
+			brokerOverview.add(ddd.getProfit());
+			brokersOverview.add(brokerOverview);
 
 			if (np == null) {
 				np = new NominationPusher(new NominationCategoryPusher(
 						b.getName(), (long) fc.getProfit()),
-						new NominationCategoryPusher(b.getName(), (long) Math.abs(bc
-								.getEnergy())), new NominationCategoryPusher(
-								b.getName(), tc.getCustomerCount()));
+						new NominationCategoryPusher(b.getName(), (long) Math
+								.abs(bc.getEnergy())),
+						new NominationCategoryPusher(b.getName(), tc
+								.getCustomerCount()));
 			} else {
 				long profitAmount = (long) fc.getProfit();
 				long balanceAmount = (long) Math.abs(bc.getEnergy());
 				long customerAmount = (long) tc.getCustomerCount();
-				if(profitAmount>np.getProfit().getAmount()){
-					np.setProfit(new NominationCategoryPusher(b.getName(), profitAmount));
+				if (profitAmount > np.getProfit().getAmount()) {
+					np.setProfit(new NominationCategoryPusher(b.getName(),
+							profitAmount));
 				}
-				if(balanceAmount<Math.abs(np.getBalance().getAmount())){
-					np.setBalance(new NominationCategoryPusher(b.getName(), balanceAmount));
+				if (balanceAmount < Math.abs(np.getBalance().getAmount())) {
+					np.setBalance(new NominationCategoryPusher(b.getName(),
+							balanceAmount));
 				}
-				if(customerAmount>np.getCustomerNumber().getAmount()){
-					np.setCustomerNumber(new NominationCategoryPusher(b.getName(), customerAmount));
+				if (customerAmount > np.getCustomerNumber().getAmount()) {
+					np.setCustomerNumber(new NominationCategoryPusher(b
+							.getName(), customerAmount));
 				}
 			}
 		}
 		
-		if(np!=null){
+		if (np != null) {
 			visualizerBean.setNominationPusher(np);
 		}
 
@@ -218,6 +264,9 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 				gson.toJson(balancingMarketPushers));
 		pushContext.push("/distributionpush", gson.toJson(distributionPushers));
 		pushContext.push("/financepush", gson.toJson(financePushers));
+		pushContext.push("/markettransactionepush", gson.toJson(allWholesaleData));
+		pushContext.push("/gameoverview", gson.toJson(brokersOverview));
+		
 	}
 
 	public ArrayList<BrokerModel> getBrokers() {

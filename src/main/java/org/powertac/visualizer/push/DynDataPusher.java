@@ -1,15 +1,17 @@
 package org.powertac.visualizer.push;
 
+import java.math.BigDecimal;
+
 public class DynDataPusher {
 
 	private String name;
 	private long millis;
-	private double profit;
-	private double energy;
-	private double profitDelta;
-	private double energyDelta;
+	private double  profit;
+	private double  energy;
+	private double  profitDelta;
+	private double  energyDelta;
 
-	public DynDataPusher(String name, long millis, double profit, double energy, double profitDelta, double energyDelta) {
+	public DynDataPusher(String name, long millis, double  profit, double  energy, double  profitDelta, double  energyDelta) {
 		this.name = name;
 		this.millis = millis;
 		this.profit = profit;
@@ -33,8 +35,6 @@ public class DynDataPusher {
 	public double getEnergy() {
 		return energy;
 	}
-
-	
 
 	public double getProfitDelta() {
 		return profitDelta;

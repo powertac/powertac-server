@@ -65,16 +65,16 @@ public class BalancingMarketBean implements Serializable {
 								
 				Object[] profit = { helper.getMillisForIndex(key),
 						dynData.getProfit()};
-				Object[] netMwh = { helper.getMillisForIndex(key), dynData.getEnergy() };
+				Object[] netMwh = { helper.getMillisForIndex(key), dynData.getEnergy()};
 
 				profitData.add(profit);
 				netKwhData.add(netMwh);
 
 				// one timeslot:
 				Object[] profitOneTimeslot = { helper.getMillisForIndex(key),
-						dynData.getProfitDelta() };
+						dynData.getProfitDelta()};
 				Object[] kWhOneTimeslot = { helper.getMillisForIndex(key),
-						dynData.getEnergyDelta() };
+						dynData.getEnergyDelta()};
 				profitDataOneTimeslot.add(profitOneTimeslot);
 				kwhDataOneTimeslot.add(kWhOneTimeslot);
 			}

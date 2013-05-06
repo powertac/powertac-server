@@ -6,45 +6,34 @@
 	xmlns:p="http://primefaces.org/ui"
 	template="/WEB-INF/layouts/visualizer/master.xhtml">
 
-	<ui:define name="title">Wholesale market - market transactions</ui:define>
+	<ui:define name="title">Transactions Summary</ui:define>
 
 	<ui:define name="headInclude">
-		<script type="text/javascript">
-				
-			function handleWholesaleMarketPush(data) {
-				
+		 <script type="text/javascript">
+			var transactionsSummary;
+			$(document).ready(
+				function() {
+					transactionsSummary = transactionsSummary(#{gameOverviewBean.gameOverview});
+				});
+			  	
+			function handleGameOverview(data) {
 				var array = jQuery.parseJSON(data);
 				var cnt = 0;
-				
 				jQuery.each(array, 
 						function() {
 							var pushObject = this;
 							//known ordering: profit
-							marketTxScatter.series[cnt++].setData(pushObject,true);	
+							transactionsSummary.series[cnt++].setData(pushObject,true);	
 						});
-				marketTxScatter.redraw();
-
+				transactionsSummary.redraw();
 			}
-			
-			var marketTxScatter;
-			
-			$(document).ready(
-				function() {
-					//console.log("-----" + #{wholesaleMarketBean.allMarketTransactionsData});
-					marketTxScatter = scatterMarketTxs('marketTxScatter', '', 'Select the area to zoom-in', 'Price (&euro;/MWh)', 'Energy (MWh)', '&euro;/MWh', 'MWh', #{wholesaleMarketBean.allMarketTransactionsData});
-				}		
-			);
-			
-			    
-			  
 		</script>
 	</ui:define>
 
 	<ui:define name="maincontent">
-		<div id="marketTxScatter"
+		<div id="transactionsSummary"
 			style="min-width: 400px; height: 620px; margin: 0 auto" />
-		<p:socket onMessage="handleWholesaleMarketPush"
-			channel="/markettransactionepush" />
+		<p:socket onMessage="handleGameOverview" channel="/gameoverview" />
 	</ui:define>
 
 	<ui:define name="rowcontent"></ui:define>
