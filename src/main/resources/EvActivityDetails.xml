@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<details>
+  <detail group_id="1">
+    <activity id="1" male_daily_km="0.09"   female_daily_km="0.19"  prob="0.1"  />
+    <activity id="2" male_daily_km="0"      female_daily_km="0"     prob="0.1"  />
+    <activity id="3" male_daily_km="0.48"   female_daily_km="0.38"  prob="1"    />
+    <activity id="4" male_daily_km="1.4"    female_daily_km="1.71"  prob="0.5"  />
+    <activity id="5" male_daily_km="3.25"   female_daily_km="2.98"  prob="1"    />
+    <activity id="6" male_daily_km="3.85"   female_daily_km="4.05"  prob="1"    />
+    <activity id="7" male_daily_km="3.93"   female_daily_km="4.27"  prob="0.7"  />
+    <activity id="8" male_daily_km="0.51"   female_daily_km="0.45"  prob="0.9"  />
+    <activity id="9" male_daily_km="1.25"   female_daily_km="1.1"   prob="0.9"  />
+  </detail>
+
+  <detail group_id="2">
+    <activity id="1" male_daily_km="10.62"  female_daily_km="8.28"  prob="1"    />
+    <activity id="2" male_daily_km="0.82"   female_daily_km="0.69"  prob="1"    />
+    <activity id="3" male_daily_km="0.88"   female_daily_km="0.9"   prob="1"    />
+    <activity id="4" male_daily_km="2.02"   female_daily_km="3.69"  prob="1"    />
+    <activity id="5" male_daily_km="1.91"   female_daily_km="0.96"  prob="0.9"  />
+    <activity id="6" male_daily_km="4.31"   female_daily_km="5.11"  prob="0.7"  />
+    <activity id="7" male_daily_km="4"      female_daily_km="5.15"  prob="0.9"  />
+    <activity id="8" male_daily_km="1.03"   female_daily_km="0.82"  prob="0.9"  />
+    <activity id="9" male_daily_km="4.26"   female_daily_km="3.51"  prob="0.5"  />
+  </detail>
+
+  <detail group_id="3">
+    <activity id="1" male_daily_km="23.31"  female_daily_km="15.58" prob="1"    />
+    <activity id="2" male_daily_km="4.99"   female_daily_km="2.18"  prob="1"    />
+    <activity id="3" male_daily_km="0.85"   female_daily_km="0.88"  prob="1"    />
+    <activity id="4" male_daily_km="2.43"   female_daily_km="3.51"  prob="1"    />
+    <activity id="5" male_daily_km="0.58"   female_daily_km="0.99"  prob="0.9"  />
+    <activity id="6" male_daily_km="4.38"   female_daily_km="5.21"  prob="0.7"  />
+    <activity id="7" male_daily_km="6.06"   female_daily_km="5.11"  prob="0.9"  />
+    <activity id="8" male_daily_km="1.13"   female_daily_km="1.02"  prob="0.9"  />
+    <activity id="9" male_daily_km="3.5"    female_daily_km="2.88"  prob="0.5"  />
+  </detail>
+
+<group id="4">
+  <detail group_id="4">
+    <activity id="1" male_daily_km="0"      female_daily_km="0"     prob="0"    />
+    <activity id="2" male_daily_km="0"      female_daily_km="0"     prob="0"    />
+    <activity id="3" male_daily_km="1.6"    female_daily_km="2.54"  prob="1"    />
+    <activity id="4" male_daily_km="2.89"   female_daily_km="3.88"  prob="1"    />
+    <activity id="5" male_daily_km="0"      female_daily_km="0"     prob="0.9"  />
+    <activity id="6" male_daily_km="5.45"   female_daily_km="5.94"  prob="0.9"  />
+    <activity id="7" male_daily_km="4.64"   female_daily_km="4.43"  prob="0.9"  />
+    <activity id="8" male_daily_km="0.84"   female_daily_km="0.66"  prob="0.9"  />
+    <activity id="9" male_daily_km="3.28"   female_daily_km="2.06"  prob="0.5"  />
+  </detail>
+</group>
+
+  <detail group_id="5">
+    <activity id="1" male_daily_km="3.02"   female_daily_km="3.49"  prob="0.2"  />
+    <activity id="2" male_daily_km="0"      female_daily_km="0"     prob="0"    />
+    <activity id="3" male_daily_km="0.25"   female_daily_km="0.49"  prob="1"    />
+    <activity id="4" male_daily_km="1.38"   female_daily_km="2.5"   prob="1"    />
+    <activity id="5" male_daily_km="10.53"  female_daily_km="9.43"  prob="0.9"  />
+    <activity id="6" male_daily_km="4.34"   female_daily_km="4.64"  prob="1"    />
+    <activity id="7" male_daily_km="5.71"   female_daily_km="5.21"  prob="0.9"  />
+    <activity id="8" male_daily_km="0.28"   female_daily_km="0.31"  prob="0.9"  />
+    <activity id="9" male_daily_km="2.71"   female_daily_km="2.75"  prob="0.5"  />
+  </detail>
+
+  <detail group_id="6">
+    <activity id="1" male_daily_km="10.98"  female_daily_km="4.94"  prob="0"    />
+    <activity id="2" male_daily_km="5.92"   female_daily_km="0"     prob="0"    />
+    <activity id="3" male_daily_km="0"      female_daily_km="0.69"  prob="1"    />
+    <activity id="4" male_daily_km="2.97"   female_daily_km="2.93"  prob="1"    />
+    <activity id="5" male_daily_km="0"      female_daily_km="0.47"  prob="0.9"  />
+    <activity id="6" male_daily_km="5.77"   female_daily_km="5.18"  prob="0.7"  />
+    <activity id="7" male_daily_km="5.64"   female_daily_km="4.99"  prob="0.9"  />
+    <activity id="8" male_daily_km="1.81"   female_daily_km="1.79"  prob="0.9"  />
+    <activity id="9" male_daily_km="1.83"   female_daily_km="4.75"  prob="1"    />
+  </detail>
+
+  <detail group_id="7">
+    <activity id="1" male_daily_km="0.99"   female_daily_km="0.26"  prob="0"    />
+    <activity id="2" male_daily_km="0.43"   female_daily_km="0"     prob="0"    />
+    <activity id="3" male_daily_km="1.33"   female_daily_km="0.96"  prob="1"    />
+    <activity id="4" male_daily_km="3.7"    female_daily_km="2.91"  prob="1"    />
+    <activity id="5" male_daily_km="0.12"   female_daily_km="0.13"  prob="0.9"  />
+    <activity id="6" male_daily_km="6.06"   female_daily_km="3.81"  prob="0.7"  />
+    <activity id="7" male_daily_km="4.85"   female_daily_km="3.22"  prob="0.9"  />
+    <activity id="8" male_daily_km="1.76"   female_daily_km="1.3"   prob="0.9"  />
+    <activity id="9" male_daily_km="2.66"   female_daily_km="1.11"  prob="0.5"  />
+  </detail>
+
+  <detail group_id="8">
+    <activity id="1" male_daily_km="0"      female_daily_km="0"     prob="0"    />
+    <activity id="2" male_daily_km="0"      female_daily_km="0"     prob="0"    />
+    <activity id="3" male_daily_km="1.98"   female_daily_km="2.21"  prob="1"    />
+    <activity id="4" male_daily_km="2.25"   female_daily_km="4.8"   prob="1"    />
+    <activity id="5" male_daily_km="0"      female_daily_km="0"     prob="0.9"  />
+    <activity id="6" male_daily_km="3.13"   female_daily_km="5.26"  prob="0.7"  />
+    <activity id="7" male_daily_km="2.79"   female_daily_km="2.64"  prob="0.9"  />
+    <activity id="8" male_daily_km="2.31"   female_daily_km="0.75"  prob="0.9"  />
+    <activity id="9" male_daily_km="1.49"   female_daily_km="2.23"  prob="0.5"  />
+  </detail>
+</details>

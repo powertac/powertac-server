@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<activities>
+  <activity name="commuting"        id="1" weekday_weight="0.80" weekend_weight="0.05" />
+  <activity name="business_trip"    id="2" weekday_weight="0.80" weekend_weight="0.05" />
+  <activity name="personal_care"    id="3" weekday_weight="0.80" weekend_weight="0.90" />
+  <activity name="shopping"         id="4" weekday_weight="0.85" weekend_weight="0.15" />
+  <activity name="education"        id="5" weekday_weight="0.75" weekend_weight="0.15" />
+  <activity name="visit"            id="6" weekday_weight="0.10" weekend_weight="0.80" />
+  <activity name="sports"           id="7" weekday_weight="0.05" weekend_weight="0.85" />
+  <activity name="touring"          id="8" weekday_weight="0.05" weekend_weight="0.85" />
+  <activity name="other"            id="9" weekday_weight="0.05" weekend_weight="0.50" />
+</activities>
