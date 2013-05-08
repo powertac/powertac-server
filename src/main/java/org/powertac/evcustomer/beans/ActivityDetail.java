@@ -19,21 +19,19 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 public class ActivityDetail {
-  private int groupId;
   private int activityId;
   private double maleDailyKm;
   private double femaleDailyKm;
   private double maleProbability;
   private double femaleProbability;
 
-  public ActivityDetail (int groupId, int activityId,
+  public ActivityDetail (int activityId,
                          double maleDailyKm, double femaleDailyKm,
                          double maleProbability, double femaleProbability)
   {
-    this.groupId = groupId;
     this.activityId = activityId;
     this.maleDailyKm = maleDailyKm;
     this.femaleDailyKm = femaleDailyKm;
@@ -41,27 +39,28 @@ public class ActivityDetail {
     this.femaleProbability = femaleProbability;
   }
 
-  public int getGroupId () {
-    return groupId;
-  }
-
-  public int getActivityId () {
+  public int getActivityId ()
+  {
     return activityId;
   }
 
-  public double getMaleDailyKm () {
+  public double getMaleDailyKm ()
+  {
     return maleDailyKm;
   }
 
-  public double getFemaleDailyKm () {
+  public double getFemaleDailyKm ()
+  {
     return femaleDailyKm;
   }
 
-  public double getMaleProbability () {
+  public double getMaleProbability ()
+  {
     return maleProbability;
   }
 
-  public double getFemaleProbability () {
+  public double getFemaleProbability ()
+  {
     return femaleProbability;
   }
 }

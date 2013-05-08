@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<classes>
+  <!-- TODO Write test to check sum(probs) == 1 -->
+  <class name="HighIncome 1"  minCount="15" maxCount="25">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="HighIncome 2"  minCount="10" maxCount="20">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="HighIncome 3"  minCount="20" maxCount="40">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+
+  <class name="MiddleIncome 1"  minCount="15" maxCount="25">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="MiddleIncome 2"  minCount="10" maxCount="20">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="MiddleIncome 3"  minCount="20" maxCount="40">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+
+  <class name="LowIncome 1"  minCount="15" maxCount="25">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="LowIncome 2"  minCount="10" maxCount="20">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+
+  <class name="LowIncome 3"  minCount="20" maxCount="40">
+    <group id="1" probability="0.125" male_probability="0.50" />
+    <group id="2" probability="0.125" male_probability="0.50" />
+    <group id="3" probability="0.125" male_probability="0.50" />
+    <group id="4" probability="0.125" male_probability="0.50" />
+    <group id="5" probability="0.125" male_probability="0.50" />
+    <group id="6" probability="0.125" male_probability="0.50" />
+    <group id="7" probability="0.125" male_probability="0.50" />
+    <group id="8" probability="0.125" male_probability="0.50" />
+  </class>
+</classes>

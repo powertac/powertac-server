@@ -30,9 +30,8 @@ import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.Car;
 import org.powertac.evcustomer.beans.SocialGroup;
-import org.powertac.evcustomer.customers.EvCustomer;
 import org.powertac.evcustomer.customers.EvSocialClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,15 +42,14 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 /**
  * TODO
  *
  * @author Konstantina Valogianni, Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 @Service
 public class EvCustomerService extends TimeslotPhaseProcessor
@@ -78,10 +76,10 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   private ArrayList<EvSocialClass> evSocialClassList;
 
   // Shared by all customers
-  private List<CarType> carTypes;
+  private List<Car> cars;
   private List<SocialGroup> socialGroups;
-  private List<Activity> activities;
-  private List<List<ActivityDetail>> activityDetails;
+  private Map<Integer, Activity> activities;
+  private Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails;
 
   /**
    * This is called once at the beginning of each game.
@@ -100,9 +98,8 @@ public class EvCustomerService extends TimeslotPhaseProcessor
                                        "EV Customer Models");
     super.init();
 
-    int daysOfCompetition =
-        Competition.currentCompetition().getExpectedTimeslotCount()
-            / EvSocialClass.HOURS_OF_DAY;
+    int daysOfCompetition = Competition.currentCompetition()
+        .getExpectedTimeslotCount() / EvSocialClass.HOURS_OF_DAY;
     if (daysOfCompetition == 0) {
       log.info("No Days Of Competition Taken");
       daysOfCompetition = 63;
@@ -111,16 +108,16 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
     loadCarTypes("EvCarTypes.xml");
     loadSocialGroups("EvSocialGroups.xml");
-    loadActivities("EvActivities.xml");
-    loadActivityDetails("EvActivityDetails.xml");
-    loadSocialClasses("TODO");
+    activities = loadActivities("EvActivities.xml");
+    allActivityDetails = loadActivityDetails("EvActivityDetails.xml");
+    loadSocialClasses("EvSocialClasses.xml");
 
     return "EvCustomer";
   }
 
   private void loadCarTypes (String configResource)
   {
-    carTypes = new ArrayList<CarType>();
+    cars = new ArrayList<Car>();
 
     log.info("Attempting to load CarTypes from : " + configResource);
     try {
@@ -147,13 +144,71 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         double away = Double.parseDouble(element.getElementsByTagName("away_charging")
             .item(0).getFirstChild().getNodeValue());
 
-        carTypes.add(new CarType(name, kwh, range, home, away));
+        cars.add(new Car(name, kwh, range, home, away));
       }
 
       log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
     }
     catch (Exception e) {
       log.error("Error loading CarTypes from : " + configResource);
+      log.error(e.toString());
+    }
+  }
+
+  private void loadSocialClasses (String configResource)
+  {
+    evSocialClassList = new ArrayList<EvSocialClass>();
+
+    log.info("Attempting to load SocialGroups from : " + configResource);
+    try {
+      InputStream configStream = Thread.currentThread().getContextClassLoader()
+          .getResourceAsStream(configResource);
+
+      DocumentBuilderFactory docBuilderFactory =
+          DocumentBuilderFactory.newInstance();
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(configStream);
+
+      NodeList classNodes = doc.getElementsByTagName("class");
+      log.info("Loading " + classNodes.getLength() + " SocialClass");
+
+      for (int i = 0; i < classNodes.getLength(); i++) {
+        Element classElement = (Element) classNodes.item(i);
+        String className = classElement.getAttribute("name");
+        // TODO Test for maxCount >= minCount
+        int minCount = Integer.parseInt(classElement.getAttribute("minCount"));
+        int maxCount = Integer.parseInt(classElement.getAttribute("maxCount"));
+        int populationCount = minCount + rs1.nextInt(maxCount - minCount);
+
+        NodeList groupNodes = classElement.getElementsByTagName("group");
+        double[] groupProbabilities = new double[groupNodes.getLength()];
+        double[] maleProbabilities = new double[groupNodes.getLength()];
+        for (int j = 0; j < groupNodes.getLength(); j++) {
+          Element element = (Element) groupNodes.item(j);
+          int groupId = Integer.parseInt(element.getAttribute("id"));
+          groupProbabilities[groupId-1] =
+              Double.parseDouble(element.getAttribute("probability"));
+          maleProbabilities[groupId-1] =
+              Double.parseDouble(element.getAttribute("male_probability"));
+        }
+
+        String base = "EV SocialClass " + className;
+        EvSocialClass evSocialClass = new EvSocialClass(base);
+        evSocialClass.addCustomerInfo(
+            new CustomerInfo(base + " CONSUMPTION", populationCount)
+                .withPowerType(PowerType.CONSUMPTION));
+        evSocialClass.addCustomerInfo(
+            new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(), populationCount)
+                .withPowerType(PowerType.ELECTRIC_VEHICLE));
+        evSocialClass.initialize(socialGroups, activities, allActivityDetails,
+            cars, populationCount, groupProbabilities, maleProbabilities, rs1);
+        evSocialClassList.add(evSocialClass);
+      }
+
+      log.info("Successfully loaded " + classNodes.getLength() + " SocialClasses");
+    }
+    catch (Exception e) {
+      log.error("Error loading SocialClasses from : " + configResource);
       log.error(e.toString());
     }
   }
@@ -179,9 +234,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         Element groupElement = (Element) groupNodes.item(i);
         String groupName = groupElement.getAttribute("name");
         int id = Integer.parseInt(groupElement.getAttribute("id"));
-        double prob = Double.parseDouble(
-            groupElement.getAttribute("male_probability"));
-        socialGroups.add(new SocialGroup(id, groupName, prob));
+        socialGroups.add(new SocialGroup(id, groupName));
       }
 
       log.info("Successfully loaded " + groupNodes.getLength() + " SocialGroups");
@@ -192,9 +245,9 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     }
   }
 
-  private void loadActivities (String configResource)
+  public static Map<Integer, Activity> loadActivities (String configResource)
   {
-    activities = new ArrayList<Activity>();
+    Map<Integer, Activity> activities = new HashMap<Integer, Activity>();
 
     log.info("Attempting to load SocialGroups from : " + configResource);
     try {
@@ -218,7 +271,8 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         double weekendWeight = Double.parseDouble(
             element.getAttribute("weekend_weight"));
 
-        activities.add(new Activity(id, name, weekdayWeight, weekendWeight));
+        activities.put(id,
+            new Activity(id, name, weekdayWeight, weekendWeight));
       }
 
       log.info("Successfully loaded " + activityNodes.getLength() + " Activities");
@@ -227,11 +281,15 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       log.error("Error loading Activities from : " + configResource);
       log.error(e.toString());
     }
+
+    return activities;
   }
 
-  private void loadActivityDetails (String configResource)
+  public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails (
+      String configResource)
   {
-    activityDetails = new ArrayList<List<ActivityDetail>>();
+    Map<Integer, Map<Integer, ActivityDetail>> activityDetails =
+        new HashMap<Integer, Map<Integer, ActivityDetail>>();
 
     log.info("Attempting to load Details from : " + configResource);
     try {
@@ -249,7 +307,8 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         Element detailElement = (Element) detailNodes.item(i);
         int groupId = Integer.parseInt(detailElement.getAttribute("group_id"));
 
-        List<ActivityDetail> details = new ArrayList<ActivityDetail>();
+        Map<Integer, ActivityDetail> details =
+            new HashMap<Integer, ActivityDetail>();
 
         NodeList activityNodes = detailElement.getElementsByTagName("activity");
         for (int j = 0; j < activityNodes.getLength(); j++) {
@@ -264,10 +323,10 @@ public class EvCustomerService extends TimeslotPhaseProcessor
               element.getAttribute("prob"));
 
           // For now probabilities are equal for male and female
-          details.add(new ActivityDetail(groupId, id,
-              maleKm, femaleKm, activityProbability, activityProbability));
+          details.put(id, new ActivityDetail(id, maleKm, femaleKm,
+              activityProbability, activityProbability));
         }
-        activityDetails.add(details);
+        activityDetails.put(groupId, details);
       }
 
       log.info("Successfully loaded factored customer structures");
@@ -276,22 +335,8 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       log.error("Error loading SocialClasses from : " + configResource);
       log.error(e.toString());
     }
-  }
 
-  private void loadSocialClasses (String configResource)
-  {
-    evSocialClassList = new ArrayList<EvSocialClass>();
-
-    // TODO Get this from some config file + more classes
-    String base = "EV SocialClass MiddleIncome 1";
-    EvSocialClass evSocialClass = new EvSocialClass(base);
-    evSocialClass.addCustomerInfo(new CustomerInfo(base + " CONSUMPTION", 1)
-        .withPowerType(PowerType.CONSUMPTION));
-    evSocialClass.addCustomerInfo(
-        new CustomerInfo(base + " " + EvCustomer.powerType.toString(), 1)
-        .withPowerType(EvCustomer.powerType));
-    evSocialClass.initialize(socialGroups, activities, activityDetails, carTypes, 100, rs1);
-    evSocialClassList.add(evSocialClass);
+    return activityDetails;
   }
 
   /**
@@ -300,12 +345,12 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     List<Tariff> publishedTariffs =
-        tariffMarketService.getActiveTariffList(EvCustomer.powerType);
+        tariffMarketService.getActiveTariffList(PowerType.ELECTRIC_VEHICLE);
     publishedTariffs.addAll(
        tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION));
 
     for (EvSocialClass evSocialClass : evSocialClassList) {
-      for (String type: evSocialClass.getStorageSubscriptionMap().keySet()) {
+      for (String type: evSocialClass.getEvSubscriptionMap().keySet()) {
         log.debug("Evaluation of social class " + evSocialClass.toString());
         evSocialClass.possibilityEvaluationNewTariffs(publishedTariffs, type);
       }

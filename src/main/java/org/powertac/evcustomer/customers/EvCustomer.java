@@ -17,13 +17,12 @@
 package org.powertac.evcustomer.customers;
 
 import org.apache.log4j.Logger;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.Car;
 import org.powertac.evcustomer.beans.SocialGroup;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -31,7 +30,7 @@ import java.util.Random;
  * TODO
  *
  * @author Konstantina Valogianni, Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 public class EvCustomer {
   static protected Logger log = Logger.getLogger(EvCustomer.class.getName());
@@ -41,42 +40,36 @@ public class EvCustomer {
                             // 2 : risk neutral; charges when below 50%
                             // 3 : risk eager; charges when below 20%
 
-  private CarType car;
+  private Car car;
   private SocialGroup socialGroup;
-  private List<Activity> activities;
-  private List<ActivityDetail> activityDetails;
+  private Map<Integer, Activity> activities;
+  private Map<Integer, ActivityDetail> activityDetails;
 
-  private Random gen;
+  private double[] nomalizingFactors;
+
+  private Random generator;
 
   // We are driving this timeslot, so we can't charge
   private boolean driving;
 
-  // TODO Replace in code
-  public static PowerType powerType = PowerType.ELECTRIC_VEHICLE;
-
-  public void initialize (List<SocialGroup> socialGroups,
-                          List<Activity> activities,
-                          List<List<ActivityDetail>> allActivityDetails,
-                          List<CarType> carTypes, Random gen)
+  public void initialize (SocialGroup socialGroup,
+                          String gender,
+                          Map<Integer, Activity> activities,
+                          Map<Integer, ActivityDetail> activityDetails,
+                          Car car,
+                          Random generator)
   {
-    this.gen = gen;
-
-    int randomGroup =  gen.nextInt(socialGroups.size());
-    socialGroup = socialGroups.get(randomGroup);
-    this.activityDetails = allActivityDetails.get(randomGroup);
-
-    if (gen.nextDouble() <=  socialGroup.getMaleProbability()) {
-      gender = "male";
-    } else {
-      gender = "female";
-    }
-
+    this.generator = generator;
+    this.socialGroup = socialGroup;
     this.activities = activities;
+    this.activityDetails = activityDetails;
+    this.gender = gender;
+    this.car = car;
 
-    car = carTypes.get(gen.nextInt(carTypes.size()));
+    // For now all rask attitudes have same probability
+    riskAttitude = generator.nextInt(3);
 
-    // TODO Get probabilities from a config file ??
-    riskAttitude = gen.nextInt(3);
+    nomalizingFactors = calculatedNormalizingFactors(socialGroup.getId());
   }
 
   /*
@@ -87,56 +80,39 @@ public class EvCustomer {
   {
     driving = false;
 
-    // Load the probabilities
-    double[] probabilities = new double[activities.size()];
-    for (int activityId = 0; activityId < activities.size(); activityId++) {
+    for (int activityId = 1; activityId <= activities.size(); activityId++) {
+      Activity activity = activities.get(activityId);
       ActivityDetail activityDetail = activityDetails.get(activityId);
+      double normalizingFactor = nomalizingFactors[activityId - 1];
+
+      // Get probability (based on gender) and distance for activity
+      double dailyDistance;
+      double probability;
       if (gender.equals("male")) {
-        probabilities[activityId] = activityDetail.getMaleProbability();
+        probability = activityDetail.getMaleProbability();
+        dailyDistance = activityDetails.get(activityId).getMaleDailyKm();
       }
       else {
-        probabilities[activityId] = activityDetail.getFemaleProbability();
+        probability = activityDetail.getFemaleProbability();
+        dailyDistance = activityDetails.get(activityId).getFemaleDailyKm();
       }
-    }
 
-    // Adjust for weekday / weekend
-    for (int i = 0; i < probabilities.length; i++) {
-      double weight;
-      if (day < 6) { // mon = 1 .. fri = 5, sat = 6, sun = 7
-        weight = activities.get(i).getWeekdayWeight();
-      }
-      else {
-        weight = activities.get(i).getWeekendWeight();
-      }
-      probabilities[i] = probabilities[i] * weight;
-    }
+      // Adjust by day weight
+      probability *= activity.getDayWeight(day);
 
-    // TODO Adjust for hour of day
+      // Adjust by hour weight
+      probability *= activity.getHourWeight(hour, generator.nextDouble());
 
-    // TODO Normalize ??
-
-    // Depending on probability try the activity
-    for (int i=0; i < probabilities.length; i++) {
-      boolean driveQM = gen.nextInt(100) <= (100 * probabilities[i]);
-      if (driveQM) {
-        driveIfPossible(i);
+      if (100 * probability > generator.nextInt(100)) {
+        driveIfPossible(dailyDistance * normalizingFactor);
       }
     }
   }
 
-  private void driveIfPossible (int activityId)
+  private void driveIfPossible (double distance)
   {
-    // Calculate kms for this activity
-    double activityDistance;
-    if (gender.equals("male")) {
-      activityDistance = activityDetails.get(activityId).getMaleDailyKm();
-    }
-    else {
-      activityDistance = activityDetails.get(activityId).getFemaleDailyKm();
-    }
-
     // Check if we have enough capacity for this activity
-    double neededCapacity = activityDistance / car.getFuelEconomy();
+    double neededCapacity = car.getNeededCapacity(distance);
     if (neededCapacity > car.getCurrentCapacity()) {
       return;
     }
@@ -145,7 +121,7 @@ public class EvCustomer {
     try {
       car.discharge(neededCapacity);
     }
-    catch (CarType.ChargeException ce) {
+    catch (Car.ChargeException ce) {
       log.error(ce);
       return;
     }
@@ -180,70 +156,194 @@ public class EvCustomer {
     }
 
     // TODO Weigh with hour probalities?
-
     // TODO Get charge type depending on time (and on day?)
     double maxCharging = car.getAwayCharging();
     double needed = car.getMaxCapacity() - car.getCurrentCapacity();
 
-    // Only charge what we need
+    // Only charge what we need or can
     double charge = Math.min(maxCharging, needed);
 
     try {
       car.charge(charge);
     }
-    catch (CarType.ChargeException ce) {
+    catch (Car.ChargeException ce) {
       log.error(ce);
+      ce.printStackTrace();
       return 0.0;
     }
     return charge;
   }
 
+  public void calculateNomalizingFactors ()
+  {
+    nomalizingFactors = new double[activities.size()];
+
+    for (int activityId = 1; activityId <= activities.size(); activityId++) {
+      Activity activity = activities.get(activityId);
+      ActivityDetail activityDetail = activityDetails.get(activityId);
+
+      double nomalizingFactor = 0.0;
+      int itns = 1000000;
+      for (int i = 0; i < itns; i++) {
+        for (int day =0; day < 7; day++) {
+          for (int hour = 0; hour < 24; hour++) {
+            double probability;
+            if (gender.equals("male")) {
+              probability = activityDetail.getMaleProbability();
+            }
+            else {
+              probability = activityDetail.getFemaleProbability();
+            }
+            probability *= activity.getDayWeight(day);
+            probability *= activity.getHourWeight(hour, generator.nextDouble());
+
+            nomalizingFactor += probability;
+          }
+        }
+      }
+
+      if (Math.abs(nomalizingFactor) > 0.000001) {
+        nomalizingFactor = 7 * itns / nomalizingFactor;
+      }
+      else {
+        nomalizingFactor = 1;
+      }
+
+      nomalizingFactors[activityId-1] = nomalizingFactor;
+    }
+  }
+
+  public static double[] calculatedNormalizingFactors (int groupId)
+  {
+    // TODO For now equal between male and female
+
+    double[] nomalizingFactors;
+    switch (groupId) {
+      case 1:
+        nomalizingFactors = new double[]{
+            0.6013745697576719, 0.6013745697576719, 0.08771463620789377,
+            0.19047553189488367, 0.06272401431339633, 0.27027840108063333,
+            0.621140149089667, 0.483081972886419, 0.6944550879790746};
+        break;
+      case 2:
+        nomalizingFactors = new double[]{
+            0.06013745721562055, 0.06013745721562055, 0.08771572061554128,
+            0.09523756497742943, 0.06969334942192819, 0.38611408144508347,
+            0.48314644161753045, 0.48314255353064334, 1.250051480084142};
+        break;
+      case 3:
+        nomalizingFactors = new double[]{
+            0.06013745721562055, 0.06013745721562055, 0.087721418537831,
+            0.09524343278247911, 0.06969334942192819, 0.38610554656996915,
+            0.4830392427830233, 0.4830814628107712, 1.2499358171974833};
+        break;
+      case 4:
+        nomalizingFactors = new double[]{
+            1.0, 1.0, 0.08772270286001668,
+            0.09523614065438413, 0.06969334942192819, 0.3002881927598783,
+            0.483028995282524, 0.4830832840858321, 1.2500221256774735};
+        break;
+      case 5:
+        nomalizingFactors = new double[]{
+            0.30068728487883595, 1.0, 0.08771531887818548,
+            0.09523470756342392, 0.06969334942192819, 0.27025937174400355,
+            0.4830639318652277, 0.48312299099548967, 1.250050966650248};
+        break;
+      case 6:
+        nomalizingFactors = new double[]{
+            1.0, 1.0, 0.08772548083145358,
+            0.09524097529803068, 0.06969334942192819, 0.38610749353185775,
+            0.48314608596980746, 0.48302124544904895, 0.6250686845880942};
+        break;
+      case 7:
+        nomalizingFactors = new double[]{
+            1.0, 1.0, 0.08771916416678519,
+            0.09523617648059308, 0.06969334942192819, 0.38609083020078405,
+            0.4831131765625636, 0.483093113807499, 1.2500517088981693};
+        break;
+      default:
+        nomalizingFactors = new double[]{
+            1.0, 1.0, 0.08771837492246468,
+            0.09524162198875058, 0.06969334942192819, 0.38609647690834564,
+            0.4830488907101153, 0.4830690398007624, 1.2500035036442108};
+    }
+    return nomalizingFactors;
+  }
+
   /*
    * This gives an estimation of the daily load.
    */
-  // TODO Check if this is correct
   public double getDominantLoad ()
   {
-    // Aggregate daily kms, divide by km/kwh
+    // Aggregate daily kms
     double dailyKm = 0.0;
-    for (ActivityDetail activityDetail: activityDetails) {
+    for (Map.Entry<Integer, ActivityDetail> entry : activityDetails.entrySet())
+    {
       if (gender.equals("male")) {
-        dailyKm += activityDetail.getMaleDailyKm();
+        dailyKm += entry.getValue().getMaleDailyKm();
       }
       else {
-        dailyKm += activityDetail.getFemaleDailyKm();
+        dailyKm += entry.getValue().getFemaleDailyKm();
       }
     }
 
-    return dailyKm / car.getFuelEconomy();
+    return car.getNeededCapacity(dailyKm);
   }
 
-  /* Used for unit tests */
-  public CarType getCar () {
+  /*
+   * Used for testing
+   */
+  public Car getCar ()
+  {
     return car;
   }
 
-  public SocialGroup getSocialGroup () {
+  public SocialGroup getSocialGroup ()
+  {
     return socialGroup;
   }
 
-  public List<Activity> getActivities () {
+  public Map<Integer, Activity> getActivities ()
+  {
     return activities;
   }
 
-  public List<ActivityDetail> getActivityDetails () {
+  public Map<Integer, ActivityDetail> getActivityDetails ()
+  {
     return activityDetails;
   }
 
-  public String getGender () {
+  public String getGender ()
+  {
     return gender;
   }
 
-  public int getRiskAttitude () {
+  public void setGenerator (Random generator)
+  {
+    this.generator = generator;
+  }
+
+  public int getRiskAttitude ()
+  {
     return riskAttitude;
   }
 
-  public boolean isDriving () {
+  public void setDriving (boolean driving)
+  {
+    this.driving = driving;
+  }
+
+  public boolean isDriving ()
+  {
     return driving;
+  }
+
+  public double[] getNomalizingFactors ()
+  {
+    return nomalizingFactors;
+  }
+  public void setNomalizingFactors (double[] nomalizingFactors)
+  {
+    this.nomalizingFactors = nomalizingFactors;
   }
 }

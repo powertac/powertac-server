@@ -19,9 +19,9 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
-public class CarType {
+public class Car {
   private String name;
   private double maxCapacity;     // kwh
   private double currentCapacity; // kwh
@@ -29,18 +29,20 @@ public class CarType {
   private double homeCharging;    // Charging speed at home, kwh / h == kw
   private double awayCharging;    // Charging speed away from home
 
-  public CarType (String name, double batteryCapacity, double range,
-                  double homeCharging, double awayCharging)
+  public Car (String name, double batteryCapacity, double range,
+              double homeCharging, double awayCharging)
   {
     this.name = name;
     this.maxCapacity = batteryCapacity;
-    // TODO Check with Konstantina if OK
+    // TODO Konstantina : is this OK?
     this.currentCapacity = this.maxCapacity; // Let's start with a full battery
     this.range = range;
     this.homeCharging = homeCharging;
     this.awayCharging = awayCharging;
   }
 
+  // TODO Set min charge to 20%
+  // TODO Add
   public void discharge (double charge) throws ChargeException
   {
     if (currentCapacity >= charge) {
@@ -63,37 +65,45 @@ public class CarType {
     }
   }
 
-  public double getFuelEconomy ()
+  public double getNeededCapacity (double distance)
   {
-    // Assuming linear
-    return range / maxCapacity;
+    // For now assume a linear relation
+    double fuelEconomy = range / maxCapacity;
+    return distance / fuelEconomy;
   }
 
-  public String getName () {
+  public String getName ()
+  {
     return name;
   }
 
-  public double getMaxCapacity () {
+  public double getMaxCapacity ()
+  {
     return maxCapacity;
   }
 
-  public double getCurrentCapacity () {
+  public double getCurrentCapacity ()
+  {
     return currentCapacity;
   }
 
-  public double getRange () {
+  public double getRange ()
+  {
     return range;
   }
 
-  public double getHomeCharging () {
+  public double getHomeCharging ()
+  {
     return homeCharging;
   }
 
-  public double getAwayCharging () {
+  public double getAwayCharging ()
+  {
     return awayCharging;
   }
 
-  public class ChargeException extends Exception {
+  public class ChargeException extends Exception
+  {
     public ChargeException (String message)
     {
       super(message);

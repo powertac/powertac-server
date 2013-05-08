@@ -25,7 +25,7 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.Car;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -36,7 +36,7 @@ import java.util.*;
  * TODO
  *
  * @author Konstantina Valogianni, Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 public class EvSocialClass extends AbstractCustomer
 {
@@ -67,8 +67,7 @@ public class EvSocialClass extends AbstractCustomer
 
   private HashMap<String, TariffSubscription> subscriptionMap =
       new HashMap<String, TariffSubscription>();
-  // TODO Rename
-  private HashMap<String, TariffSubscription> storageSubscriptionMap =
+  private HashMap<String, TariffSubscription> evSubscriptionMap =
       new HashMap<String, TariffSubscription>();
 
   private Vector<EvCustomer> evCustomers;
@@ -80,29 +79,60 @@ public class EvSocialClass extends AbstractCustomer
         (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
     timeService = (TimeService) SpringApplicationContext.getBean("timeService");
 
-    String[] typeList = new String[] { "NS"};
+    String[] typeList = new String[] { "NS" };
     for (String type: typeList) {
       subscriptionMap.put(type, null);
-      storageSubscriptionMap.put(type, null);
+      evSubscriptionMap.put(type, null);
     }
   }
 
   /**
    * TODO
    */
-  public void initialize (List<SocialGroup> socialGroups,
-                          List<Activity> activities,
-                          List<List<ActivityDetail>> activityDetails,
-                          List<CarType> carTypes,
-                          int count, Random generator)
+  public void initialize (List<SocialGroup> groups,
+                          Map<Integer, Activity> activities,
+                          Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
+                          List<Car> cars,
+                          int count,
+                          double[] groupProbilities,
+                          double[] maleProbilities,
+                          Random generator)
   {
     evCustomers = new Vector<EvCustomer>();
-    for (int i = 0; i < count; i++) {
-      EvCustomer evCustomer = new EvCustomer();
-      evCustomer.initialize(socialGroups, activities, activityDetails, carTypes, generator);
 
+    for (int i = 0; i < count; i++) {
+      int randomGroupId = getRandomGroupId(groupProbilities, generator);
+      SocialGroup group = groups.get(randomGroupId);
+      Map<Integer, ActivityDetail> details = allActivityDetails.get(group.getId());
+      String gender = "female";
+      if (generator.nextDouble() <  maleProbilities[randomGroupId]) {
+        gender = "male";
+      }
+      // For now, all cars have equal probability
+      Car car = cars.get(generator.nextInt(cars.size()));
+
+      EvCustomer evCustomer = new EvCustomer();
+      evCustomer.initialize(group, gender, activities, details, car, generator);
       evCustomers.add(evCustomer);
     }
+  }
+
+  private int getRandomGroupId (double[] probabilities, Random gen)
+  {
+    int[] newProbs = new int[probabilities.length];
+    int sum = 0;
+    for (int i = 0; i < probabilities.length; i++) {
+      newProbs[i] = (int) (1000 * probabilities[i]);
+      sum += newProbs[i];
+    }
+
+    int tmp = gen.nextInt(sum);
+
+    int j = -1;
+    while (tmp >= 0) {
+      tmp -= newProbs[++j];
+    }
+    return j;
   }
 
   // =====EVALUATION FUNCTIONS===== //
@@ -114,6 +144,8 @@ public class EvSocialClass extends AbstractCustomer
   public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs,
                                                String type)
   {
+    // TODO Implement changes in household-customer.Village
+
     for (CustomerInfo customer: customerInfos) {
       List<TariffSubscription> subscriptions =
           tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
@@ -136,15 +168,13 @@ public class EvSocialClass extends AbstractCustomer
             + tariff.getTariffSpecification().getPowerType()
             + " Broker: " + tariff.getBroker().toString());
 
-        // TODO Check this. Rewrite?
         boolean case1 = customer.getPowerType() ==
             tariff.getTariffSpecification().getPowerType();
-        boolean case2 = customer.getPowerType() == EvCustomer.powerType;
-        boolean case2B = (
-            customer.getPowerType() == EvCustomer.powerType &&
+        boolean case2 = (
+            customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
             tariff.getTariffSpecification().getPowerType() == PowerType.CONSUMPTION);
 
-        if (!tariff.isExpired() && (case1 || case2B) ) {
+        if (!tariff.isExpired() && (case1 || case2) ) {
           estimation.add(-costEstimation(tariff, type));
         }
         else {
@@ -155,8 +185,8 @@ public class EvSocialClass extends AbstractCustomer
       int minIndex = logitPossibilityEstimation(estimation);
 
       TariffSubscription sub = subscriptionMap.get(type);
-      if (customer.getPowerType() == EvCustomer.powerType) {
-        sub = storageSubscriptionMap.get(type);
+      if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE) {
+        sub = evSubscriptionMap.get(type);
       }
 
       log.debug("Equality: "
@@ -174,7 +204,7 @@ public class EvSocialClass extends AbstractCustomer
     }
   }
 
-  public void changeSubscription (Tariff tariff, Tariff newTariff, String type,
+  private void changeSubscription (Tariff tariff, Tariff newTariff, String type,
                                   CustomerInfo customer)
   {
     TariffSubscription ts =
@@ -201,10 +231,10 @@ public class EvSocialClass extends AbstractCustomer
     log.debug(this.toString() + " Changing Only " + type);
     log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
 
-    if (customer.getPowerType() == EvCustomer.powerType) {
+    if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE) {
       log.debug("For " + customer.getPowerType().toString());
-      log.debug("Controllable Subscription Map: " + storageSubscriptionMap.toString());
-      storageSubscriptionMap.put("NS", newTs);
+      log.debug("Controllable Subscription Map: " + evSubscriptionMap.toString());
+      evSubscriptionMap.put("NS", newTs);
     }
     else {
       log.debug("Subscription Map: " + subscriptionMap.toString());
@@ -245,6 +275,11 @@ public class EvSocialClass extends AbstractCustomer
           dominantUsage[i] += evCustomer.getDominantLoad() / HOURS_OF_DAY;
         }
       }
+    }
+
+    // TODO dominantUsage should be for one customer only
+    for (int i=0; i<dominantUsage.length; i++) {
+      dominantUsage[i] /= evCustomers.size();
     }
 
     double dominantCostSummary = tariffEvalHelper.estimateCost(tariff, dominantUsage);
@@ -315,20 +350,17 @@ public class EvSocialClass extends AbstractCustomer
     super.subscribeDefault();
 
     for (CustomerInfo customer: customerInfos) {
-      if (customer.getPowerType() == EvCustomer.powerType &&
+      if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
           tariffMarketService
-              .getDefaultTariff(EvCustomer.powerType) == null) {
+              .getDefaultTariff(PowerType.ELECTRIC_VEHICLE) == null) {
 
-        log.debug("No Default Tariff for "
-            + EvCustomer.powerType.toString() + " so the customer "
+        log.debug("No Default Tariff for ELECTRIC_VEHICLE so the customer "
             + customer.toString()
             + " subscribe to CONSUMPTION Default Tariff instead");
         tariffMarketService.subscribeToTariff(tariffMarketService
             .getDefaultTariff(PowerType.CONSUMPTION), customer, customer
             .getPopulation());
-        log.info("CustomerInfo of type "
-            + EvCustomer.powerType.toString() + " of "
-            + toString()
+        log.info("CustomerInfo of type ELECTRIC_VEHICLE of " + toString()
             + " was subscribed to the default CONSUMPTION tariff successfully.");
       }
 
@@ -342,15 +374,15 @@ public class EvSocialClass extends AbstractCustomer
           if (customer.getPowerType() == PowerType.CONSUMPTION) {
             subscriptionMap.put(type, subscriptions.get(0));
           }
-          if (customer.getPowerType() == EvCustomer.powerType) {
-            storageSubscriptionMap.put(type, subscriptions.get(0));
+          if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE) {
+            evSubscriptionMap.put(type, subscriptions.get(0));
           }
         }
       }
     }
 
     log.info("Consume Subscriptions:" + subscriptionMap.toString());
-    log.info("Storage Subscriptions:" + storageSubscriptionMap.toString());
+    log.info("Storage Subscriptions:" + evSubscriptionMap.toString());
   }
 
   @Override
@@ -390,7 +422,7 @@ public class EvSocialClass extends AbstractCustomer
       subs.put(sub, 0.0);
     }
 
-    for (TariffSubscription sub: storageSubscriptionMap.values()) {
+    for (TariffSubscription sub: evSubscriptionMap.values()) {
       subs.put(sub, getConsumptionByTimeslot(serial));
     }
 
@@ -443,8 +475,19 @@ public class EvSocialClass extends AbstractCustomer
     return name;
   }
 
-  public HashMap<String, TariffSubscription> getStorageSubscriptionMap ()
+  public HashMap<String, TariffSubscription> getEvSubscriptionMap ()
   {
-    return storageSubscriptionMap;
+    return evSubscriptionMap;
+  }
+
+  /* Used for testing */
+  public HashMap<String, TariffSubscription> getSubscriptionMap ()
+  {
+    return subscriptionMap;
+  }
+
+  public Vector<EvCustomer> getEvCustomers ()
+  {
+    return evCustomers;
   }
 }

@@ -36,7 +36,6 @@
     <activity id="9" male_daily_km="3.5"    female_daily_km="2.88"  prob="0.5"  />
   </detail>
 
-<group id="4">
   <detail group_id="4">
     <activity id="1" male_daily_km="0"      female_daily_km="0"     prob="0"    />
     <activity id="2" male_daily_km="0"      female_daily_km="0"     prob="0"    />
@@ -48,7 +47,6 @@
     <activity id="8" male_daily_km="0.84"   female_daily_km="0.66"  prob="0.9"  />
     <activity id="9" male_daily_km="3.28"   female_daily_km="2.06"  prob="0.5"  />
   </detail>
-</group>
 
   <detail group_id="5">
     <activity id="1" male_daily_km="3.02"   female_daily_km="3.49"  prob="0.2"  />

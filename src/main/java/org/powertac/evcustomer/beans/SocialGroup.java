@@ -19,29 +19,25 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 public class SocialGroup {
   private int id;
   private String name;
-  private double maleProbability;
 
-  public SocialGroup  (int id, String name, double maleProbability)
+  public SocialGroup  (int id, String name)
   {
     this.id = id;
     this.name = name;
-    this.maleProbability = maleProbability;
   }
 
-  public int getId () {
+  public int getId ()
+  {
     return id;
   }
 
-  public String getName () {
+  public String getName ()
+  {
     return name;
-  }
-
-  public double getMaleProbability () {
-    return maleProbability;
   }
 }

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <groups>
-  <group name="under15"     id="1"  male_probability="0.50" />
-  <group name="parttime"    id="2"  male_probability="0.50" />
-  <group name="fulltime"    id="3"  male_probability="0.50" />
-  <group name="unemployed"  id="4"  male_probability="0.50" />
-  <group name="student"     id="5"  male_probability="0.50" />
-  <group name="other"       id="6"  male_probability="0.50" />
-  <group name="retired"     id="7"  male_probability="0.50" />
-  <group name="disabled"    id="8"  male_probability="0.50" />
+  <group name="under15"     id="1" />
+  <group name="parttime"    id="2" />
+  <group name="fulltime"    id="3" />
+  <group name="unemployed"  id="4" />
+  <group name="student"     id="5" />
+  <group name="other"       id="6" />
+  <group name="retired"     id="7" />
+  <group name="disabled"    id="8" />
 </groups>

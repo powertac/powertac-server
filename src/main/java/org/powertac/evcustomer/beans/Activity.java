@@ -19,7 +19,7 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.1, Date: 2013.03.21
+ * @version 0.2, Date: 2013.05.08
  */
 public class Activity {
   private int id;
@@ -36,19 +36,98 @@ public class Activity {
     this.weekendWeight = weekendWeight;
   }
 
-  public int getId () {
+  public double getDayWeight (int day)
+  {
+    // TODO Add some randomness (ie holidays/free days)?
+
+    if (day < 6) { // mon = 1 .. fri = 5, sat = 6, sun = 7
+      return weekdayWeight;
+    }
+    else {
+      return weekendWeight;
+    }
+  }
+
+  public double getHourWeight (int hour, double ra)
+  {
+    // TODO Clean up / make more clear
+
+    // TODO Get hour weigths from XML?
+
+    double t1 = 6    + 4   * ra;
+    double t2 = 6.5  + 4.5 * ra; // waking up in the interval 6-7,5
+    double t3 = 16.5 + 4.5 * ra; // returning from work at 16.30-18
+    double t4 = 21   + 4   * ra; // going to bed from 9-12.00
+
+    int available1 = 1;
+    int available2 = 1;
+    int available3 = 1;
+
+    if (id == 1 || id == 2 || id == 5) {
+      if (hour < t1) {
+        available1 = 1;
+      }
+      else if ((hour > t2) && (hour < t3)) {
+        available1 = 1;
+      }
+      else {
+        available1 = 1;
+      }
+    }
+    else if (id == 4 || id == 3 || id == 7 || id == 8 || id == 9) {
+      if (hour < t1) {
+        available2 = 1;
+      }
+      else if ((hour > t2) && (hour < t3)) {
+        available2 = 0;
+      }
+      else if (hour > t3 && hour < t4) {
+        available2 = 1;
+      }
+      else {
+        available2 = 1;
+      }
+    }
+    else if (id == 6) {
+      if (hour < t1) {
+        available3 = 1;
+      }
+      else if (hour > t2 && hour < t3) {
+        available3 = 1;
+      }
+      else if (hour > t3 && hour < t4) {
+        available3 = 0;
+      }
+      else {
+        available3 = 0;
+      }
+    }
+
+    if (available1 * available2 * available3 == 1) {
+      return 1.0;
+    }
+
+    return 0.0;
+  }
+
+
+  public int getId ()
+  {
     return id;
   }
 
-  public String getName () {
+  public String getName ()
+  {
     return name;
   }
 
-  public double getWeekdayWeight () {
+  public double getWeekdayWeight ()
+  {
     return weekdayWeight;
   }
 
-  public double getWeekendWeight () {
+  public double getWeekendWeight ()
+  {
     return weekendWeight;
   }
 }
