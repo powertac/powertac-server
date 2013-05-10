@@ -302,6 +302,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
         return capacity * weatherFactor;
     }
     
+    @Override
     public double adjustCapacityForSubscription(Timeslot timeslot, double totalCapacity, TariffSubscription subscription)
     {
         double subCapacity = adjustCapacityForPopulationRatio(totalCapacity, subscription);
@@ -312,7 +313,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     {
         double popRatio = getPopulationRatio(subscription.getCustomersCommitted(), parentBundle.getPopulation());
         logCapacityDetails(logIdentifier + ": population ratio = " + popRatio);
-        return capacity * popRatio;     
+        return capacity * popRatio;
     }
 
     private double getPopulationRatio(int customerCount, int population) 

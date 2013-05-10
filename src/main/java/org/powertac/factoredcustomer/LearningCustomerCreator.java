@@ -26,6 +26,7 @@ import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
  */
 public class LearningCustomerCreator implements CustomerCreator
 {
+    @Override
     public String getKey() 
     {
         return "LEARNING";

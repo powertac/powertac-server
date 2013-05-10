@@ -33,6 +33,7 @@ import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
@@ -54,6 +55,9 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
 
     @Autowired
     private TariffMarket tariffMarketService;
+    
+    @Autowired
+    private TariffRepo tariffRepo;
   
     @Autowired
     private ServerConfiguration serverConfig;
@@ -184,19 +188,16 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
       log.info("Successfully loaded factored customer structures");
   }
 
-  /**
-   * @Override @code{NewTariffListener}
-   **/
+  @Override
   public void publishNewTariffs(List<Tariff> tariffs)
   {
-      for (FactoredCustomer customer : customers) {
-          customer.handleNewTariffs(tariffs);
-      }
+    // Find the subset of tariffs to evaluate
+    for (FactoredCustomer customer : customers) {
+      customer.evaluateTariffs();
+    }
   }
 
-  /**
-   * @Override @code{TimeslotPhaseProcessor}
-   */
+  @Override
   public void activate(Instant now, int phase)
   {
       for (FactoredCustomer customer : customers) {

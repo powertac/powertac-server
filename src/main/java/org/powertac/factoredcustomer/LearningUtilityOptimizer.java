@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.commons.math.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
-import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
 import org.powertac.common.state.Domain;
@@ -66,9 +65,9 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
     
     @Override
-    public void handleNewTariffs (List<Tariff> newTariffs)
+    public void evaluateTariffs ()
     {        
-        super.handleNewTariffs(newTariffs);
+        super.evaluateTariffs();
         
         recommendProfilesToBundles();
     }

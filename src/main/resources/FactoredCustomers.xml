@@ -28,7 +28,7 @@
                 </allocation>
                 <reconsideration period="28"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.7" stdDev="0.1" low="0" high="1" />
                     <inertiaFactors> <!-- N/A -->
                         <customerWealth distribution="NORMAL" mean="30000" stdDev="5000" referenceMedian="50000" />
                         <newTariffsExposure distribution="NORMAL" mean="0.3" stdDev="0.1" />
@@ -92,7 +92,7 @@
                 </allocation>
                 <reconsideration period="8"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.8" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Collection of urban households.">
@@ -135,7 +135,7 @@
                 </allocation>
                 <reconsideration period="8"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.6" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Downtown office buildings.">
@@ -178,7 +178,7 @@
                 </allocation>
                 <reconsideration period="8"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.7" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Suburban office buildings.">
@@ -226,7 +226,7 @@
                 </allocation>
                 <reconsideration period="8"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.8" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="3" description="Refrigerated storage warehouses.">
@@ -272,7 +272,7 @@
                 </allocation>
                 <reconsideration period="12"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.7" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Chemical processing plants.">
@@ -319,7 +319,7 @@
                 </allocation>
                 <reconsideration period="16"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.5" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Facilities in hospital complex.">
@@ -397,7 +397,7 @@
                 </allocation>
                 <reconsideration period="8"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="POINTMASS" value="0.1" />
+                    <inertiaDistribution distribution="POINTMASS" value="0.3" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Community solar farm.">
@@ -440,7 +440,7 @@
                 </allocation>
                 <reconsideration period="28"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="INTERVAL" mean="0.2" stdDev="0.1" low="0" high="1" />
+                    <inertiaDistribution distribution="INTERVAL" mean="0.3" stdDev="0.1" low="0" high="1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="First subset of small windmills.">
@@ -475,7 +475,7 @@
                 </allocation>
                 <reconsideration period="4"/>
                 <switchingInertia>
-                    <inertiaDistribution distribution="POINTMASS" value="0.0" />
+                    <inertiaDistribution distribution="POINTMASS" value="0.1" />
                 </switchingInertia>
             </tariffSubscriber>
             <capacity count="1" description="Second subset of small windmills.">

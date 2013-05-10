@@ -16,8 +16,6 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
-import java.util.List;
-import org.powertac.common.Tariff;
 import org.powertac.common.Timeslot;
 
 /**
@@ -27,7 +25,7 @@ public interface UtilityOptimizer
 {
     void initialize();
     
-    void handleNewTariffs (List<Tariff> newTariffs);
+    void evaluateTariffs ();
     
     void handleNewTimeslot(Timeslot timeslot);
 }

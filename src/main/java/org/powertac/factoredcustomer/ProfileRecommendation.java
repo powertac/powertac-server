@@ -192,6 +192,7 @@ public class ProfileRecommendation
         double normProfileChange;
         double normBundleValue;        
         
+        @Override
         public String toString() 
         {
             return "Opinion:[" + usageCharge + ", " + profileChange + ", " + bundleValue + ", "

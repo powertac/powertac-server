@@ -170,8 +170,10 @@ final class ProbabilityDistribution
         
         DegenerateSampler(double v) { value = v; }
         
+        @Override
         public void reseedRandomGenerator(long seed) {}
             
+        @Override
         public double sample()  throws MathException { return value; }
     }
     
@@ -188,11 +190,13 @@ final class ProbabilityDistribution
             random = new Random();
         }
         
+        @Override
         public void reseedRandomGenerator(long seed)
         {
             random.setSeed(seed);
         }
         
+        @Override
         public double sample() throws MathException
         {
             return low + random.nextInt(range);
@@ -219,11 +223,13 @@ final class ProbabilityDistribution
             high = h;
         }
         
+        @Override
         public void reseedRandomGenerator(long seed)
         {
             normalSampler.reseedRandomGenerator(seed);
         }
         
+        @Override
         public double sample() throws MathException
         {
             return Math.min(high, Math.max(low, normalSampler.sample()));
@@ -239,11 +245,13 @@ final class ProbabilityDistribution
             normalSampler = new NormalDistributionImpl(Math.log(m), Math.log(s));
         }
         
+        @Override
         public void reseedRandomGenerator(long seed)
         {
             normalSampler.reseedRandomGenerator(seed);
         }
         
+        @Override
         public double sample() throws MathException
         {
             return Math.exp(normalSampler.sample());
@@ -259,11 +267,13 @@ final class ProbabilityDistribution
             impl = i;
         }
         
+        @Override
         public void reseedRandomGenerator(long seed)
         {
             impl.reseedRandomGenerator(seed);
         }
         
+        @Override
         public double sample() throws MathException
         {
             return impl.sample();
@@ -279,11 +289,13 @@ final class ProbabilityDistribution
             impl = i;
         }
         
+        @Override
         public void reseedRandomGenerator(long seed)
         {
             impl.reseedRandomGenerator(seed);
         }
         
+        @Override
         public double sample() throws MathException
         {
             return impl.sample();

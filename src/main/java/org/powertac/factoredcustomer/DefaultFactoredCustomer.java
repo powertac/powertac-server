@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
 import org.apache.log4j.Logger;
-import org.powertac.common.Tariff;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -87,11 +86,11 @@ class DefaultFactoredCustomer implements FactoredCustomer
     }
     
     @Override 
-    public void handleNewTariffs(List<Tariff> newTariffs)
+    public void evaluateTariffs()
     {
         Timeslot timeslot =  timeslotRepo.currentTimeslot();
-        log.info("Customer " + getName() + " received " + newTariffs.size() + " new tariffs at timeslot " + timeslot.getSerialNumber());
-        utilityOptimizer.handleNewTariffs(newTariffs);
+        log.info("Customer " + getName() + " evaluating tariffs at timeslot " + timeslot.getSerialNumber());
+        utilityOptimizer.evaluateTariffs();
     }
 	    
     @Override 
@@ -122,6 +121,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     
     public static class Creator implements CustomerCreator
     {
+        @Override
         public String getKey() 
         {
             return null;  // registered as default creator
