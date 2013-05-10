@@ -101,6 +101,7 @@ public class PowerType
   public boolean isConsumption ()
   {
     return (label == TypeLabel.CONSUMPTION
+            || label == TypeLabel.ELECTRIC_VEHICLE
             || label == TypeLabel.INTERRUPTIBLE_CONSUMPTION
             || label == TypeLabel.THERMAL_STORAGE_CONSUMPTION);
   }
@@ -146,7 +147,6 @@ public class PowerType
   {
     return (label == TypeLabel.STORAGE
             || label == TypeLabel.BATTERY_STORAGE
-            || label == TypeLabel.ELECTRIC_VEHICLE
             || label == TypeLabel.PUMPED_STORAGE_PRODUCTION);
   }
   
