@@ -172,7 +172,7 @@ public class EvSocialClass extends AbstractCustomer
             tariff.getTariffSpecification().getPowerType();
         boolean case2 = (
             customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
-            tariff.getTariffSpecification().getPowerType() == PowerType.CONSUMPTION);
+            tariff.getTariffSpecification().getPowerType().isConsumption());
 
         if (!tariff.isExpired() && (case1 || case2) ) {
           estimation.add(-costEstimation(tariff, type));

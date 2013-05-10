@@ -22,12 +22,15 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
 import org.powertac.evcustomer.beans.Car;
@@ -65,15 +68,25 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TariffMarket tariffMarketService;
+  
+  @Autowired
+  private TariffRepo tariffRepo;
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
+  
+  @Autowired
+  private ServerConfiguration serverProps;
 
   /** Random Number Generator */
   private RandomSeed rs1;
 
   /** List of the SocialClass Customers in the competition */
   private ArrayList<EvSocialClass> evSocialClassList;
+
+  @ConfigurableValue(valueType = "Integer",
+          description = "Number of tariffs of each type from each broker to consider")
+  private int tariffEvalCount = 5;
 
   // Shared by all customers
   private List<Car> cars;
@@ -97,6 +110,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     rs1 = randomSeedRepo.getRandomSeed("EvCustomerService", 1,
                                        "EV Customer Models");
     super.init();
+    serverProps.publishConfiguration(this);
 
     int daysOfCompetition = Competition.currentCompetition()
         .getExpectedTimeslotCount() / EvSocialClass.HOURS_OF_DAY;
@@ -344,15 +358,13 @@ public class EvCustomerService extends TimeslotPhaseProcessor
    **/
   public void publishNewTariffs (List<Tariff> tariffs)
   {
-    List<Tariff> publishedTariffs =
-        tariffMarketService.getActiveTariffList(PowerType.ELECTRIC_VEHICLE);
-    publishedTariffs.addAll(
-       tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION));
+    List<Tariff> possibleTariffs = tariffRepo.findRecentActiveTariffs(tariffEvalCount,
+                                                                      PowerType.ELECTRIC_VEHICLE);
 
     for (EvSocialClass evSocialClass : evSocialClassList) {
       for (String type: evSocialClass.getEvSubscriptionMap().keySet()) {
         log.debug("Evaluation of social class " + evSocialClass.toString());
-        evSocialClass.possibilityEvaluationNewTariffs(publishedTariffs, type);
+        evSocialClass.possibilityEvaluationNewTariffs(possibleTariffs, type);
       }
     }
   }
