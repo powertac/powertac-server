@@ -202,7 +202,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         bundle.getSubscriberStructure().inertiaDistribution.drawSample();
     }
     // adjust for BOG
-    inertia = (1.0 - Math.pow(2, tariffEvaluationCounter - 1)) * inertia;
+    inertia = (1.0 - Math.pow(2, 1 - tariffEvaluationCounter)) * inertia;
     
     // Get the cost eval for the appropriate default tariff
     Tariff defaultTariff =
