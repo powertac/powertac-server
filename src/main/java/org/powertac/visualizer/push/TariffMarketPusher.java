@@ -1,18 +1,20 @@
 package org.powertac.visualizer.push;
 
+import java.math.BigDecimal;
+
 public class TariffMarketPusher {
 
 	private String name;
 	private long millis;
-	private double profit;
-	private double energy;
+	private double  profit;
+	private double  energy;
 	private int customerCount;
-	private double profitDelta;
-	private double energyDelta;
+	private double  profitDelta;
+	private double  energyDelta;
 	private int customerCountDelta;
 
-	public TariffMarketPusher(String name, long millis, double profit, double energy,
-			int customerCount, double profitDelta, double energyDelta,
+	public TariffMarketPusher(String name, long millis, double  profit, double  energy,
+			int customerCount, double  profitDelta, double  energyDelta,
 			int customerCountDelta) {
 		this.name = name;
 		this.millis = millis;
@@ -32,11 +34,11 @@ public class TariffMarketPusher {
 		return millis;
 	}
 
-	public double getProfit() {
+	public double  getProfit() {
 		return profit;
 	}
 
-	public double getEnergy() {
+	public double  getEnergy() {
 		return energy;
 	}
 
@@ -44,20 +46,16 @@ public class TariffMarketPusher {
 		return customerCount;
 	}
 
-	public double getProfitDelta() {
+	public double  getProfitDelta() {
 		return profitDelta;
 	}
 
-	public double getEnergyDelta() {
+	public double  getEnergyDelta() {
 		return energyDelta;
 	}
 
 	public int getCustomerCountDelta() {
 		return customerCountDelta;
 	}
-
-	
-	
-	
 
 }

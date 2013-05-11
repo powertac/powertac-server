@@ -12,6 +12,7 @@
 	<ui:insert name="headInclude" />
 	<h:outputScript library="js" name="scripts.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
+	<h:outputStylesheet library="css" name="theme1.css" />
 	<!-- <script src="http://code.highcharts.com/highcharts.js"></script>
 	<script src="http://code.highcharts.com/highcharts-more.js"></script>  -->
 	<script src="http://code.highcharts.com/modules/exporting.js"></script>
@@ -61,12 +62,17 @@
 		<div class="nav-bar">
 			<div class="nav-bar-inner padding10">
 				<span class="pull-menu"></span> <a href="financecumulative"><span
-					class="element brand"> <small>Power TAC Visualizer</small>
+					class="element brand"> <small>Power TAC</small>
 				</span></a>
 
 				<div class="divider"></div>
 
 				<ul class="menu">
+					<li data-role="dropdown"><a href="#">Overview</a>
+						<ul class="dropdown-menu">
+							<li><a href="transactionssummary">Game overview #1</a></li>
+							<li><a href="#">Game overview #2</a></li>
+						</ul></li>
 					<li data-role="dropdown"><a href="#">Finance</a>
 						<ul class="dropdown-menu">
 							<li><a href="financecumulative">Cumulative scores</a></li>
@@ -77,9 +83,9 @@
 							<li><a href="tariffcumulative">Cumulative scores</a></li>
 							<li><a href="tariffpertimeslot">Per timeslot scores</a></li>
 							<li class="divider"></li>
-							<li><a href="tariffanalysis">Tariff analysis</a></li>
+							<li><a href="tariffanalysis">Tariff Analysis</a></li>
 							<li class="divider"></li>
-							<li><a href="tairffstatistics">Statistics - TODO</a></li>
+							<li><a href="tariffstatistics">Customer Statistics</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Wholesale market</a>
 						<ul class="dropdown-menu">
@@ -88,18 +94,19 @@
 							<li class="divider"></li>
 							<li><a href="wholesalemarkettxs">Market transactions</a></li>
 							<li class="divider"></li>
-							<li><a href="wholesaleavgpricepertimeslot">Average price per timeslot</a></li>
+							<li><a href="wholesaleavgpricepertimeslot">Average price
+									per timeslot</a></li>
 							<li class="divider"></li>
-							<li><a href="wholesalegencos">GenCos - TODO</a></li>
+							<li><a href="#">GenCos - TODO</a></li>
 							<li class="divider"></li>
-							<li><a href="wholesalestatistics">Statistics - TODO</a></li>
+							<li><a href="#">Statistics - TODO</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Balancing</a>
 						<ul class="dropdown-menu">
 							<li><a href="balancingcumulative">Cumulative scores</a></li>
 							<li><a href="balancingpertimeslot">Per timeslot scores</a></li>
 							<li class="divider"></li>
-							<li><a href="balancingstatistics">Statistics - TODO</a></li>
+							<li><a href="#">Statistics - TODO</a></li>
 						</ul></li>
 
 					<li data-role="dropdown"><a href="#">Distribution</a>
@@ -108,7 +115,7 @@
 							<li><a href="distributionpertimeslot">Per timeslot
 									scores</a></li>
 							<li class="divider"></li>
-							<li><a href="distributionstatistics">Statistics - TODO</a></li>
+							<li><a href="#">Statistics - TODO</a></li>
 						</ul></li>
 					<li><a href="weatherreport">Weather report</a></li>
 				</ul>
@@ -179,8 +186,191 @@
 					</div>
 				</div-->
 
-
+				<!--**************************************************** Tom *************************************************-->
 				<div class="grid">
+					<div class="row">
+
+						<div class="tile double-vertical bg-color-yellow"
+							data-role="tile-slider" data-param-period="5000"
+							data-param-direction="left">
+							<div class="tile-content">
+								<h2>Game Name and Status</h2>
+								<br />
+								<h2 id="gameName">
+									<b><h:outputText value="#{visualizerBean.competition.name}" /></b>
+								</h2>
+								<br />
+								<h3 id="gameStatus">
+									<h:outputText
+										rendered="${!visualizerBean.running and !visualizerBean.finished}"
+										value="no game" />
+									<h:outputText
+										rendered="${!visualizerBean.running and visualizerBean.finished}"
+										value="game finished" />
+									<h:outputText
+										rendered="${visualizerBean.running and !visualizerBean.finished}"
+										value="game in progress" />
+								</h3>
+
+
+							</div>
+							<div class="brand">
+
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-green" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Date and Time</h2>
+								<br />
+								<h3 id="date"></h3>
+								<h4 id="clock"></h4>
+							</div>
+							<div class="brand">
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-red" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Profit Leader</h2>
+								<br />
+								<h4 id="profitBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="profitAmount" style="float: right"></div>
+								<div class=" icon-diamond statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-purple" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Balance Leader</h2>
+								<br />
+								<h4 id="balanceBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
+								<div class=" icon-meter-slow statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-pink" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Customers Leader</h2>
+								<br />
+								<h4 id="customersBroker"></h4>
+								<p>Congrats!</p>
+
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-user statusIcon" />
+							</div>
+						</div>
+
+
+
+						<div class="tile last bg-color-orangeDark" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>To Be Defined</h2>
+								<br />
+								<h4 id="date"></h4>
+								<p id="clock"></p>
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-darken" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>To Be Defined</h2>
+								<br />
+								<h4 id="date"></h4>
+								<p id="clock"></p>
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-grey" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>To Be Defined</h2>
+								<br />
+								<h4 id="date"></h4>
+								<p id="clock"></p>
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+
+
+						<div class="tile double custom bg-color-blue"
+							data-role="tile-slider" data-param-period="5000"
+							data-param-direction="left">
+							<div class="tile-content">
+								<h2>Weather Info</h2>
+								<br /> <br /> <br />
+								<div class=" icon-thermometer weatherIcon" />
+								<div class=" weatherText" style="margin-left: -20px"
+									id="temperature"></div>
+								<div class=" icon-arrow-up-left arrow" style="margin-left: 20px"
+									id="windArrow" />
+								<div class=" weatherText" style="margin-left: -10px"
+									id="windspeed"></div>
+								<div class=" icon-sun weatherIcon" style="margin-left: 20px"
+									id="cloudCover" />
+							</div>
+
+						</div>
+
+						<div class="tile last bg-color-green" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>To Be Defined</h2>
+								<br />
+								<h4 id="date"></h4>
+								<p id="clock"></p>
+							</div>
+							<div class="brand">
+								<div class="statusIcon" id="customersAmount"
+									style="float: right"></div>
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+
+					</div>
+				</div>
+
+
+				<div></div>
+				<!--****************************************************END Tom *************************************************-->
+
+				<!-- <div class="grid">
 					<div class="row">
 						<div class="tile double bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
@@ -228,23 +418,6 @@
 								<div class=" icon-user statusIcon" />
 							</div>
 						</div>
-
-						<!-- div class="tile single bg-color-purple" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Customers Leader2</h2>
-								<br />
-								<h4 id="customersBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-user statusIcon" />
-							</div>
-						</div-->
-
 					</div>
 				</div>
 
@@ -342,7 +515,7 @@
 
                     <tfoot></tfoot>
                 </table>
-				</div>
+				</div> -->
 
 
 

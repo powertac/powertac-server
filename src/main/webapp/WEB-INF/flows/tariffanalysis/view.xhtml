@@ -13,28 +13,35 @@
 		<script>
 			$(window).load(function(){ 
 				/*code here*/
+				document.getElementsByTagName("tbody")[0].removeAttribute("class"); //removing primefaces's css
 				document.getElementsByTagName("form")[0].setAttribute("class", "margin10");
 				document.getElementsByTagName("table")[0].setAttribute("class", "bordered");
-				$("th").each(function(){$(this)[0].setAttribute("class", "text-center")});
-				$("td").each(function(){$(this)[0].setAttribute("class", "text-center")});
+				//$("th").each(function(){$(this)[0].setAttribute("class", "text-center")});
+				//$("td").each(function(){$(this)[0].setAttribute("class", "text-center")});
 				//document.getElementsByTagName("th")[0].setAttribute("class", "text-center");
 				})
 		</script>
 	</ui:define> 
 
 	<ui:define name="maincontent">	
+		<f:facet name="override">
+			<h:outputStylesheet library="css" name="bordered_table.css" />
+		</f:facet>
 		<h:form>
 			<p:dataTable value="#{tariffMarketBean.allTarifs}" var="o"
 				styleClass="order-table" headerClass="order-table-header"
 				rowClasses="order-table-odd-row,order-table-even-row"
-				filteredValue="#{tariffMarketBean.filteredValue}">
+				filteredValue="#{tariffMarketBean.filteredValue}"
+				paginator="true" rows="10"  
+                 paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"  
+                 rowsPerPageTemplate="5,10,15">
 				
 				<p:column sortBy="#{o.spec.id}" headerText="Tariff ID" filterBy="#{o.spec.id}" filterMatchMode="contains">
 					<h:outputText value="#{o.spec.id}" />
 				</p:column>
 
-				<p:column sortBy="#{o.profit}" headerText="Profit [EUR]" filterBy="#{o.profit}" filterMatchMode="contains">
-					<h:outputText value="#{o.profit}" />
+				<p:column sortBy="#{o.profitInThousandsOfEuro}" headerText="Profit ['000 EUR]" filterBy="#{o.profitInThousandsOfEuro}" filterMatchMode="contains">
+					<h:outputText value="#{o.profitInThousandsOfEuro}" />
 				</p:column>
 
 				<p:column sortBy="#{o.netMWh}" headerText="Traded energy [MWh]" filterBy="#{o.netMWh}" filterMatchMode="contains">

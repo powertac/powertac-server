@@ -50,6 +50,16 @@
 	padding-top:25px;
 }
 
-.tile.double.last{
-	margin: 0 0px 0px 0;
+.tile.last{
+	margin: 0 0px 0px 0!important;
+}
+.tile{
+margin: 0 8px 10px 0!important;
+}
+
+table.bordered tbody tr:last-child td {
+	border-bottom: 1px #ddd solid!important;
+}
+.tile.double.custom{
+	width: 308px!important;
 }

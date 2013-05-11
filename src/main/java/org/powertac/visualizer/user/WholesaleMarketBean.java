@@ -37,6 +37,8 @@ public class WholesaleMarketBean implements Serializable {
 	private String wholesaleDynData;
 	private String wholesaleDynDataOneTimeslot;
 	private String wholesaleAverageTimeslotPriceData;// tom
+	
+	private final int TIMESLOTS_TO_DISPLAY = 2;
 
 	@Autowired
 	public WholesaleMarketBean(BrokerService brokerService,
@@ -97,7 +99,7 @@ public class WholesaleMarketBean implements Serializable {
 
 				// one timeslot:
 				Object[] profitOneTimeslot = { helper.getMillisForIndex(key),
-						dynData.getProfitDelta() };
+						dynData.getProfitDelta()};
 				Object[] kWhOneTimeslot = { helper.getMillisForIndex(key),
 						dynData.getEnergyDelta() };
 				profitDataOneTimeslot.add(profitOneTimeslot);
@@ -120,9 +122,9 @@ public class WholesaleMarketBean implements Serializable {
 					.getWholesaleCategory().getMarketTxs().keySet()).headSet(
 					safetyTsIndex, true);
 			
-			//SortedSet<Integer> mtxSortedSetSubset = mtxSortedSet.subSet(((safetyTsIndex - 2*24)<0)? 0:safetyTsIndex - 2*24, safetyTsIndex);//tom
+			SortedSet<Integer> mtxSortedSetSubset = mtxSortedSet.subSet(((safetyTsIndex - TIMESLOTS_TO_DISPLAY)<0)? 0:safetyTsIndex - TIMESLOTS_TO_DISPLAY, safetyTsIndex);//tom
 
-			for (Iterator iterator2 = mtxSortedSet.iterator(); iterator2
+			for (Iterator iterator2 = mtxSortedSetSubset.iterator(); iterator2
 					.hasNext();) {
 				int key = (Integer) iterator2.next();
 
