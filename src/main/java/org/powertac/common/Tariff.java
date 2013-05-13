@@ -284,14 +284,6 @@ public class Tariff
     }
 
   }
-  
-  ///**
-  // * Adds periodic payments to the total cost, so realized price includes it.
-  // */
-  //public void addPeriodicPayment ()
-  //{
-    //totalCost += getPeriodicPayment();
-  //}
 
   /** 
    * Returns the usage charge for a single customer in the current timeslot. 
@@ -492,6 +484,57 @@ public class Tariff
   public boolean isSubscribable ()
   {
     return isActive() && !isExpired() && !isRevoked();
+  }
+  
+  /**
+   * True just in case this tariff has at least one Time-of-Use rate
+   */
+  public boolean isTimeOfUse ()
+  {
+    for (Rate rate : this.getTariffSpec().getRates())
+    {
+      if (rate.isTimeOfUse())
+        return true;
+    }
+    return false;
+  }
+  
+  /**
+   * True just in case this tariff has at least one tiered rate
+   */
+  public boolean isTiered ()
+  {
+    for (Rate rate : this.getTariffSpec().getRates()) {
+      if (rate.getTierThreshold() != 0.0)
+        return true;
+    }
+    return false;
+  }
+  
+  /**
+   * True just in case this tariff has at least one dynamic rate
+   */
+  public boolean isVariableRate ()
+  {
+    for (Rate rate : this.getTariffSpec().getRates()) {
+      if (!rate.isFixed())
+        return true;
+    }
+    return false;
+  }
+  
+  /**
+   * True just in case this tariff could result in curtailment
+   */
+  public boolean isInterruptible ()
+  {
+    if (this.getPowerType().isInterruptible()) {
+      for (Rate rate : this.getTariffSpec().getRates()) {
+        if (rate.getMaxCurtailment() != 0.0)
+          return true;
+      }
+    }
+    return false;
   }
 
   /**

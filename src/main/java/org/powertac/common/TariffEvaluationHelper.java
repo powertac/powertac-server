@@ -21,8 +21,9 @@ import org.powertac.common.spring.SpringApplicationContext;
 
 /**
  * Probe object that can be used by customer models and other players
- * to generate a risk-adjusted estimate of the actual cost of a
- * variable-rate tariff. There are four values for a variable-rate tariff
+ * to generate cost estimates for tariffs, including a risk-adjusted
+ * estimates of the actual cost of
+ * variable-rate tariffs. There are four values for a variable-rate tariff
  * that must be combined to generate an estimate: the broker's claim of
  * the expectedMean price, the brokers commitment to a maxValue of the
  * price, the actual experienced realizedPrice, and the amount of power
@@ -68,6 +69,12 @@ public class TariffEvaluationHelper
   // normalized weights
   private double normWtExpected = 0.0;
   private double normWtMax = 0.0;
+  
+  // inconvenience factors
+  private double touFactor = 0.2;
+  private double tieredRateFactor = 0.1;
+  private double variablePricingFactor = 0.5;
+  private double interruptibilityFactor = 0.2;
 
   // evaluation state
   private double alpha = 0.0;
@@ -85,7 +92,7 @@ public class TariffEvaluationHelper
   }
   
   /**
-   * Initialize, setting parameters, then normalize the weights for
+   * Initializes, setting parameters, then normalize the weights for
    * expectedMean and maxValue.
    */
   public void init (double wtExpected, double wtMax,
@@ -99,7 +106,7 @@ public class TariffEvaluationHelper
   }
   
   /**
-   * Initialize, without changing parameter settings
+   * Initializes, without changing parameter settings
    */
   public void init ()
   {
@@ -109,6 +116,33 @@ public class TariffEvaluationHelper
     if (null == timeService) {
       timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     }
+  }
+  
+  /**
+   * Initializes cost factors and normalize
+   */
+  public void
+  initializeCostFactors (double wtExpected, double wtMax,
+                         double wtRealized, double soldThreshold)
+  {
+    this.init(wtExpected, wtMax, wtRealized, soldThreshold);
+  }
+  
+  /**
+   * Initializes the per-tariff inconvenience factors.
+   * These are not normalized; it is up to the user to normalize the
+   * per-tariff and cross-tariff factors as appropriate
+   */
+  public void
+  initializeInconvenienceFactors (double touFactor,
+                                  double tieredRateFactor,
+                                  double variablePricingFactor,
+                                  double interruptibilityFactor)
+  {
+    this.touFactor = touFactor;
+    this.tieredRateFactor = tieredRateFactor;
+    this.variablePricingFactor = variablePricingFactor;
+    this.interruptibilityFactor = interruptibilityFactor;
   }
   
   /**
@@ -282,5 +316,65 @@ public class TariffEvaluationHelper
     double sum = wtExpected + wtMax;
     normWtExpected = wtExpected / sum;
     normWtMax = wtMax / sum;
+  }
+  
+  // inconvenience computation
+  /**
+   * Returns inconvenience of time-of-use rate.
+   */
+  public double getTouFactor ()
+  {
+    return touFactor;
+  }
+  
+  /**
+   * Returns inconvenience of tiered rate.
+   */
+  public double getTieredRateFactor ()
+  {
+    return tieredRateFactor;
+  }
+  
+  /**
+   * Returns inconvenience of variable pricing.
+   */
+  public double getVariablePricingFactor ()
+  {
+    return variablePricingFactor;
+  }
+  
+  /**
+   * Returns inconvenience of interruptibility.
+   */
+  public double getInterruptibilityFactor ()
+  {
+    return interruptibilityFactor;
+  }
+  
+  /**
+   * Computes composite per-tariff inconvenience of a tariff.
+   */  
+  public double computeInconvenience (Tariff tariff)
+  {
+    double result = 0.0;
+    // Time-of-use tariffs have multiple Rates, at least one of which
+    // has a daily or weekly begin/end
+    if (tariff.isTimeOfUse())
+      result += touFactor;
+
+    // Tiered tariffs have multiple Rates, at least one having
+    // a non-zero tier threshold.
+    if (tariff.isTiered())
+      result += tieredRateFactor;
+
+    // Variable-rate tariffs have at least one non-fixed Rate
+    if (tariff.isVariableRate())
+      result += variablePricingFactor;
+    
+    // Interruptible tariffs are for an interruptible PowerType, and 
+    // have a Rate with a maxCurtailment != 0
+    if (tariff.isInterruptible())
+      result += interruptibilityFactor;
+    return result;
   }
 }

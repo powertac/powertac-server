@@ -513,6 +513,16 @@ public class Rate extends XStreamStateLoggable
     return this;
   }
   
+  /**
+   * True just in case this Rate does not apply everywhen
+   */
+  public boolean isTimeOfUse ()
+  {
+    if (dailyBegin >= 0 || weeklyBegin >= 0)
+      return true;
+    return false;
+  }
+  
   public double getExpectedMean ()
   {
     return expectedMean;
