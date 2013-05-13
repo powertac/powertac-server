@@ -34,7 +34,6 @@ import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.factoredcustomer.interfaces.*;
@@ -52,12 +51,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   protected Logger log =
           Logger.getLogger(DefaultUtilityOptimizer.class.getName());
 
-  protected final FactoredCustomerService factoredCustomerService;
-  protected final TariffMarket tariffMarketService;
-  protected final TariffSubscriptionRepo tariffSubscriptionRepo;
-  protected final TariffRepo tariffRepo;
-  protected final TimeslotRepo timeslotRepo;
-  protected final RandomSeedRepo randomSeedRepo;
+  private FactoredCustomerService service;
 
   protected static final int NUM_HOURS_IN_DAY = 24;
   protected static final long MEAN_TARIFF_DURATION = 5; // number of days
@@ -89,38 +83,53 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     customerStructure = structure;
     capacityBundles = bundles;
 
-    factoredCustomerService =
-      (FactoredCustomerService) SpringApplicationContext
-              .getBean("factoredCustomerService");
-    tariffMarketService =
-      (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
-    tariffSubscriptionRepo =
-      (TariffSubscriptionRepo) SpringApplicationContext
-              .getBean("tariffSubscriptionRepo");
-    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
-    timeslotRepo =
-      (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-    randomSeedRepo =
-      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
     cache = new TariffEvalCache();
   }
 
   @Override
-  public void initialize ()
+  public void initialize (FactoredCustomerService service)
   {
+    this.service = service;
     inertiaSampler =
-      new Random(randomSeedRepo
+      new Random(getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.DefaultUtilityOptimizer",
                              SeedIdGenerator.getId(), "InertiaSampler")
               .getValue());
     tariffSelector =
-      new Random(randomSeedRepo
+      new Random(getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.DefaultUtilityOptimizer",
                              SeedIdGenerator.getId(), "TariffSelector")
               .getValue());
 
     subscribeDefault();
   }
+  
+  // ----- Lazy component loaders to support testing ------
+
+  protected RandomSeedRepo getRandomSeedRepo ()
+  {
+    return service.getRandomSeedRepo();
+  }
+
+  protected TariffMarket getTariffMarket ()
+  {
+    return service.getTariffMarket();
+  }
+
+  protected TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    return service.getTariffSubscriptionRepo();
+  }
+  
+  protected TariffRepo getTariffRepo ()
+  {
+    return service.getTariffRepo();
+  }
+  
+  protected TimeslotRepo getTimeslotRepo ()
+  {
+    return service.getTimeslotRepo();
+  }  
 
   // /////////////// TARIFF EVALUATION //////////////////////
 
@@ -128,7 +137,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   protected void subscribe (Tariff tariff, CapacityBundle bundle,
                             int customerCount, boolean verbose)
   {
-    tariffMarketService.subscribeToTariff(tariff, bundle.getCustomerInfo(),
+    getTariffMarket().subscribeToTariff(tariff, bundle.getCustomerInfo(),
                                           customerCount);
     if (verbose)
       log.info(bundle.getName() + ": Subscribed " + customerCount
@@ -152,17 +161,17 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     for (CapacityBundle bundle: capacityBundles) {
       PowerType powerType = bundle.getPowerType();
-      if (tariffMarketService.getDefaultTariff(powerType) != null) {
+      if (getTariffMarket().getDefaultTariff(powerType) != null) {
         log.info(bundle.getName() + ": Subscribing " + bundle.getPopulation()
                  + " customers to default " + powerType + " tariff");
-        subscribe(tariffMarketService.getDefaultTariff(powerType), bundle,
+        subscribe(getTariffMarket().getDefaultTariff(powerType), bundle,
                   bundle.getPopulation(), false);
       }
       else {
         log.info(bundle.getName() + ": No default tariff for power type "
                  + powerType + "; trying generic type");
         PowerType genericType = powerType.getGenericType();
-        if (tariffMarketService.getDefaultTariff(genericType) == null) {
+        if (getTariffMarket().getDefaultTariff(genericType) == null) {
           log.error(bundle.getName()
                     + ": No default tariff for generic power type "
                     + genericType + " either!");
@@ -170,7 +179,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         else {
           log.info(bundle.getName() + ": Subscribing " + bundle.getPopulation()
                    + " customers to default " + genericType + " tariff");
-          subscribe(tariffMarketService.getDefaultTariff(genericType), bundle,
+          subscribe(getTariffMarket().getDefaultTariff(genericType), bundle,
                     bundle.getPopulation(), false);
         }
       }
@@ -184,7 +193,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     ++tariffEvaluationCounter;
     for (CapacityBundle bundle: capacityBundles) {
       List<Tariff> newTariffs =
-              tariffRepo.findRecentActiveTariffs(tariffEvalCount,
+              getTariffRepo().findRecentActiveTariffs(tariffEvalCount,
                                                  bundle.getPowerType());
       evaluateTariffs(bundle, newTariffs);
     }
@@ -206,7 +215,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     
     // Get the cost eval for the appropriate default tariff
     Tariff defaultTariff =
-            tariffMarketService.getDefaultTariff(bundle.getPowerType());
+            getTariffMarket().getDefaultTariff(bundle.getPowerType());
     EvalData defaultEval = cache.getEvaluation(defaultTariff);
     if (null == defaultEval) {
       defaultEval =
@@ -229,7 +238,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     // for each current subscription
     allocations = new HashMap<Tariff, Integer>();
     for (TariffSubscription subscription
-            : tariffSubscriptionRepo.
+            : getTariffSubscriptionRepo().
             findSubscriptionsForCustomer(bundle.getCustomerInfo())) {
       Tariff subTariff = subscription.getTariff();
       // find out how many of these customers can withdraw without penalty
@@ -397,7 +406,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //      Tariff evalTariff = evalTariffs.get(i);
 //      int allocation = allocations.get(i);
 //      TariffSubscription subscription =
-//        tariffSubscriptionRepo
+//        getTariffSubscriptionRepo()
 //                .findSubscriptionForTariffAndCustomer(evalTariff,
 //                                                      bundle.getCustomerInfo()); // could
 //                                                                                 // be
@@ -477,27 +486,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   // the broker-switching factor because that is a function of tariff pairs
   private double evaluateHassleFactor (CapacityBundle bundle, Tariff tariff)
   {
-    double result = 0;
     TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
-    // Time-of-use tariffs have multiple Rates, at least one of which
-    // has a daily or weekly begin/end
-    if (tariff.isTimeOfUse())
-      result += subStructure.touFactor;
-
-    // Tiered tariffs have multiple Rates, at least one having
-    // a non-zero tier threshold.
-    if (tariff.isTiered())
-      result += subStructure.tieredRateFactor;
-
-    // Variable-rate tariffs have at least one non-fixed Rate
-    if (tariff.isVariableRate())
-      result += subStructure.variablePricingFactor;
-    
-    // Interruptible tariffs are for an interruptible PowerType, and 
-    // have a Rate with a maxCurtailment != 0
-    if (tariff.isInterruptible())
-      result += subStructure.interruptibilityFactor;
-    return result;
+    tariffEvalHelper.initializeInconvenienceFactors(subStructure.touFactor,
+                                                    subStructure.tieredRateFactor,
+                                                    subStructure.variablePricingFactor,
+                                                    subStructure.interruptibilityFactor);
+    return tariffEvalHelper.computeInconvenience(tariff);
   }
 
 //  private List<Double> estimatePayments (CapacityBundle bundle,
@@ -662,7 +656,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //        }
 //        else {
 //          TariffSubscription evalSub =
-//            tariffSubscriptionRepo
+//            getTariffSubscriptionRepo()
 //                    .findSubscriptionForTariffAndCustomer(evalTariff, bundle
 //                            .getCustomerInfo());
 //          if (evalSub == null || evalSub.getCustomersCommitted() == 0) {
@@ -683,7 +677,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //            else {
 //              // reevaluate previous brokerBest
 //              TariffSubscription sub =
-//                tariffSubscriptionRepo
+//                getTariffSubscriptionRepo()
 //                        .findSubscriptionForTariffAndCustomer(evalTariff,
 //                                                              bundle.getCustomerInfo());
 //              if (sub == null || sub.getCustomersCommitted() == 0) {
@@ -863,10 +857,10 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //  private Tariff getDefaultTariff (CapacityBundle bundle)
 //  {
 //    Tariff defaultTariff;
-//    defaultTariff = tariffMarketService.getDefaultTariff(bundle.getPowerType());
+//    defaultTariff = getTariffMarket().getDefaultTariff(bundle.getPowerType());
 //    if (defaultTariff == null) {
 //      defaultTariff =
-//        tariffMarketService.getDefaultTariff(bundle.getPowerType()
+//        getTariffMarket().getDefaultTariff(bundle.getPowerType()
 //                .getGenericType());
 //    }
 //    if (defaultTariff == null) {
@@ -890,7 +884,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     for (CapacityBundle bundle: capacityBundles) {
       List<TariffSubscription> revoked =
-        tariffSubscriptionRepo.getRevokedSubscriptionList(bundle
+        getTariffSubscriptionRepo().getRevokedSubscriptionList(bundle
                 .getCustomerInfo());
       for (TariffSubscription revokedSubscription: revoked) {
         revokedSubscription.handleRevokedTariff();
@@ -903,14 +897,14 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     for (CapacityBundle bundle: capacityBundles) {
       List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(bundle
+        getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(bundle
                 .getCustomerInfo());
       double totalCapacity = 0.0;
       double totalUsageCharge = 0.0;
       for (TariffSubscription subscription: subscriptions) {
         double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
         double currCapacity = usageSign * useCapacity(subscription, bundle);
-        if (factoredCustomerService.getUsageChargesLogging() == true) {
+        if (service.getUsageChargesLogging() == true) {
           double charge =
             subscription.getTariff().getUsageCharge(currCapacity,
                                                     subscription
@@ -968,7 +962,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   private void logUsageCharges (String msg)
   {
-    if (factoredCustomerService.getUsageChargesLogging() == true) {
+    if (service.getUsageChargesLogging() == true) {
       log.info(msg);
     }
   }

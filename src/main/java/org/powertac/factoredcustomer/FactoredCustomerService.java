@@ -33,7 +33,11 @@ import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
@@ -61,6 +65,21 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   
     @Autowired
     private ServerConfiguration serverConfig;
+    
+    @Autowired
+    private CustomerRepo customerRepo;
+    
+    @Autowired
+    private TariffRepo getTariffRepo;
+    
+    @Autowired
+    private TimeslotRepo timeslotRepo;
+    
+    @Autowired
+    private RandomSeedRepo randomSeedRepo;
+    
+    @Autowired
+    private TariffSubscriptionRepo tariffSubscriptionRepo;
 
     @ConfigurableValue(valueType = "String", description = "Resource name for configuration data")
     private String configResource = null;
@@ -115,12 +134,43 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
         for (CustomerStructure customerStructure: customerStructures) { 
             FactoredCustomer customer = customerFactory.processStructure(customerStructure);
             if (customer != null) {
-                customer.initialize(customerStructure);
+                customer.initialize(this, customerStructure);
                 customers.add(customer);
             } else throw new Error("Could not create factored customer for structure: " + customerStructure.name);
         }
         log.info("Successfully initialized " + customers.size() + " factored customers from " + customerStructures.size() + " structures");     
         return "FactoredCustomer";
+  }
+    
+  // mockable component access methods - package visibility
+  CustomerRepo getCustomerRepo ()
+  {
+    return customerRepo;
+  }
+  
+  TariffRepo getTariffRepo ()
+  {
+    return tariffRepo;
+  }
+  
+  TimeslotRepo getTimeslotRepo ()
+  {
+    return timeslotRepo;
+  }
+  
+  RandomSeedRepo getRandomSeedRepo ()
+  {
+    return randomSeedRepo;
+  }
+  
+  TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    return tariffSubscriptionRepo;
+  }
+  
+  TariffMarket getTariffMarket ()
+  {
+    return tariffMarketService;
   }
 
   private void registerAvailableCustomerCreators()

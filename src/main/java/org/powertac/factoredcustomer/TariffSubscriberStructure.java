@@ -51,7 +51,7 @@ public final class TariffSubscriberStructure
   double tariffSwitchFactor = 0.1;
   double brokerSwitchFactor = 0.02;
   int expectedDuration = 14; // expected subscription duration, days
-  double lambdaMultiplier = 50.0; // convert [0..1] to [0..50]
+  double lambdaMax = 100.0; // convert [0..1] to [0..100]
 
   final Double expMeanPriceWeight;
   final Double maxValuePriceWeight;
@@ -160,8 +160,11 @@ public final class TariffSubscriberStructure
     else {
       Element logitChoiceElement =
         (Element) allocationElement.getElementsByTagName("logitChoice").item(0);
-      logitChoiceRationality = lambdaMultiplier *
-        Double.parseDouble(logitChoiceElement.getAttribute("rationality"));
+      logitChoiceRationality = 
+              Math.pow(lambdaMax,
+                       Double.parseDouble(logitChoiceElement.
+                                           getAttribute("rationality")))
+              -1.0;
     }
 
     Element reconsiderationElement =

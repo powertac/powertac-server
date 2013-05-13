@@ -17,13 +17,14 @@
 package org.powertac.factoredcustomer.interfaces;
 
 import org.powertac.common.Timeslot;
+import org.powertac.factoredcustomer.FactoredCustomerService;
 
 /**
  * @author Prashant Reddy
  */
 public interface UtilityOptimizer
 {
-    void initialize();
+    void initialize(FactoredCustomerService service);
     
     void evaluateTariffs ();
     

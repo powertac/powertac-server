@@ -52,13 +52,14 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
   
     @Override
-    public void initialize()
+    public void initialize(FactoredCustomerService service)
     {
-        inertiaSampler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
+      super.initialize(service);
+        inertiaSampler = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
                                                                  SeedIdGenerator.getId(), "InertiaSampler").getValue());
-        tariffSelector = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
+        tariffSelector = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
                                                                  SeedIdGenerator.getId(), "TariffSelector").getValue());
-        recommendationMaker = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
+        recommendationMaker = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
                                                                       SeedIdGenerator.getId(), "RecommendationMaker").getValue());
 
         subscribeDefault();
@@ -141,7 +142,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     
     private List<TariffSubscription> getBundleSubscriptions(CapacityBundle bundle) 
     {
-        return tariffSubscriptionRepo.findSubscriptionsForCustomer(bundle.getCustomerInfo());
+        return getTariffSubscriptionRepo().findSubscriptionsForCustomer(bundle.getCustomerInfo());
     }
     
     private ProfileRecommendation getProfileRecommendation(CapacityOriginator capacityOriginator, CapacityBundle bundle, 
@@ -177,7 +178,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     private double computeProfileUsageCharge(CapacityProfile profile, List<TariffSubscription> subscriptions, 
                                              CapacityOriginator capacityOriginator)
     {
-        Timeslot timeslot = timeslotRepo.currentTimeslot();
+        Timeslot timeslot = getTimeslotRepo().currentTimeslot();
         double totalCharge = 0.0;
         for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
             double totalTimeslotUsage = profile.getCapacity(i);
@@ -190,7 +191,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
                 //System.out.println("timeslot charge = " + timeslotCharge);
             }
             totalCharge += timeslotCharge;
-            timeslot = timeslotRepo.getNext(timeslot);
+            timeslot = getTimeslotRepo().getNext(timeslot);
         }
         return totalCharge;    
     }

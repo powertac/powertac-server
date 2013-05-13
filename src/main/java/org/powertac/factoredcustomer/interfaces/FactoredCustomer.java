@@ -17,13 +17,15 @@
 package org.powertac.factoredcustomer.interfaces;
 
 import org.powertac.factoredcustomer.CustomerStructure;
+import org.powertac.factoredcustomer.FactoredCustomerService;
 
 /**
  * @author Prashant Reddy
  */
 public interface FactoredCustomer
 {
-    void initialize(CustomerStructure profile);
+    void initialize(FactoredCustomerService factoredCustomerService,
+                    CustomerStructure profile);
 
     void evaluateTariffs();        
     

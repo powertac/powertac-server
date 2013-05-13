@@ -23,7 +23,6 @@ import org.apache.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
@@ -39,37 +38,46 @@ class DefaultFactoredCustomer implements FactoredCustomer
 {
     protected Logger log = Logger.getLogger(DefaultFactoredCustomer.class.getName());
 
-    protected final TimeslotRepo timeslotRepo;
-    protected final CustomerRepo customerRepo;
-
     protected CustomerStructure customerStructure;    
     protected UtilityOptimizer utilityOptimizer;        
     protected final List<CapacityBundle> capacityBundles = new ArrayList<CapacityBundle>();
     
+    private FactoredCustomerService service;
     
     DefaultFactoredCustomer(CustomerStructure structure) 
-    {        
-        customerStructure = structure;
-        
-        timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-        customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
+    {
+      super();
+      customerStructure = structure;
     }
      
     @Override
-    public void initialize(CustomerStructure structure)
+    public void initialize(FactoredCustomerService service,
+                           CustomerStructure structure)
     {
         log.info("Initializing customer " + customerStructure.name);
+        this.service = service;
         NodeList capacityBundleNodes = customerStructure.getConfigXml().getElementsByTagName("capacityBundle");
         for (int i=0; i < capacityBundleNodes.getLength(); ++i) {
             Element capacityBundleElement = (Element) capacityBundleNodes.item(i);
             CapacityBundle capacityBundle = createCapacityBundle(structure, capacityBundleElement);
             capacityBundle.initialize(structure, capacityBundleElement);
             capacityBundles.add(capacityBundle);
-            customerRepo.add(capacityBundle.getCustomerInfo());
+            getCustomerRepo().add(capacityBundle.getCustomerInfo());
         }
         utilityOptimizer = createUtilityOptimizer(structure, capacityBundles);                
-        utilityOptimizer.initialize();
+        utilityOptimizer.initialize(service);
 	log.info("Successfully initialized customer " + customerStructure.name);
+    }
+    
+    // Component accessors
+    protected CustomerRepo getCustomerRepo ()
+    {
+      return service.getCustomerRepo();
+    }
+    
+    protected TimeslotRepo getTimeslotRepo ()
+    {
+      return service.getTimeslotRepo();
     }
 
     /** @Override hook **/
@@ -88,7 +96,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     @Override 
     public void evaluateTariffs()
     {
-        Timeslot timeslot =  timeslotRepo.currentTimeslot();
+        Timeslot timeslot =  getTimeslotRepo().currentTimeslot();
         log.info("Customer " + getName() + " evaluating tariffs at timeslot " + timeslot.getSerialNumber());
         utilityOptimizer.evaluateTariffs();
     }
@@ -96,7 +104,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     @Override 
     public void handleNewTimeslot()
     {
-        Timeslot timeslot =  timeslotRepo.currentTimeslot();
+        Timeslot timeslot =  getTimeslotRepo().currentTimeslot();
         log.info("Customer " + getName() + " activated for timeslot " + timeslot.getSerialNumber());   
         utilityOptimizer.handleNewTimeslot(timeslot);
     }
