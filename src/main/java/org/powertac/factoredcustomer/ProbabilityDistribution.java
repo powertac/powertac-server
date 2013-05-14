@@ -34,7 +34,7 @@ final class ProbabilityDistribution
     enum DistType { DEGENERATE, POINTMASS, UNIFORM, INTERVAL, NORMAL, GAUSSIAN, STDNORMAL, LOGNORMAL, 
                     CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL, GAMMA, WEIBULL, STUDENT, SNEDECOR }  
 
-    private RandomSeedRepo randomSeedRepo;
+    private RandomSeedRepo randomSeedRepo = null;
 
     private static long distCounter = 0;
     private final long distId = ++distCounter;
@@ -44,9 +44,11 @@ final class ProbabilityDistribution
     private double param1, param2, param3, param4;
         
     
-    ProbabilityDistribution(Element xml)
+    ProbabilityDistribution(FactoredCustomerService service,
+                            Element xml)
     {
-        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+        if (null == randomSeedRepo)
+            randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
         type = Enum.valueOf(DistType.class, xml.getAttribute("distribution"));
         switch (type) {
@@ -130,8 +132,10 @@ final class ProbabilityDistribution
             break;
         default: throw new Error("Invalid probability distribution type!");
         } 
-        sampler.reseedRandomGenerator(randomSeedRepo.getRandomSeed("factoredcustomer.ProbabilityDistribution", 
-                                                                   SeedIdGenerator.getId(), "Sampler").getValue());
+        sampler.reseedRandomGenerator
+        (service.getRandomSeedRepo().getRandomSeed
+         ("factoredcustomer.ProbabilityDistribution", 
+          SeedIdGenerator.getId(), "Sampler").getValue());
     }
         
     double drawSample()

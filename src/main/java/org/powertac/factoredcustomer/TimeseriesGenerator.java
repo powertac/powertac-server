@@ -25,8 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 import org.joda.time.DateTime;
 import org.powertac.common.Timeslot;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 
@@ -41,7 +39,7 @@ final class TimeseriesGenerator
     enum ModelType { ARIMA_101x101 }
     enum DataSource { BUILTIN, CLASSPATH, FILEPATH }
 
-    private RandomSeedRepo randomSeedRepo;
+    private FactoredCustomerService service;
 
     private final Properties modelParams = new Properties();
     
@@ -66,8 +64,10 @@ final class TimeseriesGenerator
     private Random arimaNoise;
     
     
-    TimeseriesGenerator(TimeseriesStructure structure) 
+    TimeseriesGenerator(FactoredCustomerService service,
+                        TimeseriesStructure structure) 
     {
+        this.service = service;
         tsStructure = structure;
         
         switch (tsStructure.modelType) {
@@ -124,12 +124,14 @@ final class TimeseriesGenerator
         gamma = Double.parseDouble((String) modelParams.get("gamma"));
         sigma = Double.parseDouble((String) modelParams.get("sigma"));
         
-        randomSeedRepo =
-                (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+        //randomSeedRepo =
+        //        (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
         arimaNoise =
-                new Random(randomSeedRepo.getRandomSeed("factoredcustomer.TimeseriesGenerator", 
-                                                        SeedIdGenerator.getId(), "ArimaNoise").getValue());
+                new Random(service.getRandomSeedRepo()
+                           .getRandomSeed("factoredcustomer.TimeseriesGenerator", 
+                                          SeedIdGenerator.getId(),
+                                          "ArimaNoise").getValue());
     }
     
     private void initArima101x101RefSeries()

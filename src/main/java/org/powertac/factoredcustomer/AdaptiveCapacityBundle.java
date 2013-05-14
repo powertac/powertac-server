@@ -28,15 +28,19 @@ import org.powertac.factoredcustomer.interfaces.CapacityOriginator;
 @Domain
 final class AdaptiveCapacityBundle extends DefaultCapacityBundle
 {
-    AdaptiveCapacityBundle(CustomerStructure structure, Element xml)
+    AdaptiveCapacityBundle(FactoredCustomerService service,
+                           CustomerStructure structure,
+                           Element xml)
     {
-        super(structure, xml);
+        super(service, structure, xml);
     }
     
     @Override
     protected CapacityOriginator createCapacityOriginator(CapacityStructure capacityStructure)
     {
-        return new AdaptiveCapacityOriginator(capacityStructure, this);
+        return new AdaptiveCapacityOriginator(service, 
+                                              capacityStructure,
+                                              this);
     }
     
 } // end class

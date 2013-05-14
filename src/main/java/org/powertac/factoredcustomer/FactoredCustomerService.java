@@ -27,6 +27,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
@@ -38,6 +39,8 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherForecastRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
@@ -57,6 +60,9 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
 {
     private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
+    @Autowired
+    private TimeService timeService;
+    
     @Autowired
     private TariffMarket tariffMarketService;
     
@@ -80,6 +86,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     
     @Autowired
     private TariffSubscriptionRepo tariffSubscriptionRepo;
+    
+    @Autowired
+    private WeatherReportRepo weatherReportRepo;
+    
+    @Autowired
+    private WeatherForecastRepo weatherForecastRepo;
 
     @ConfigurableValue(valueType = "String", description = "Resource name for configuration data")
     private String configResource = null;
@@ -143,6 +155,11 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   }
     
   // mockable component access methods - package visibility
+  TimeService getTimeService ()
+  {
+    return timeService;
+  }
+
   CustomerRepo getCustomerRepo ()
   {
     return customerRepo;
@@ -171,6 +188,16 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   TariffMarket getTariffMarket ()
   {
     return tariffMarketService;
+  }
+  
+  WeatherReportRepo getWeatherReportRepo ()
+  {
+    return weatherReportRepo;
+  }
+  
+  WeatherForecastRepo getWeatherForecastRepo ()
+  {
+    return weatherForecastRepo;
   }
 
   private void registerAvailableCustomerCreators()

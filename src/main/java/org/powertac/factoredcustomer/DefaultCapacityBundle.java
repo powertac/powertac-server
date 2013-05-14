@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ import org.powertac.common.state.Domain;
 @Domain
 class DefaultCapacityBundle implements CapacityBundle
 {
+  protected FactoredCustomerService service;
   private final CustomerStructure customerStructure;
 
   private final String name;
@@ -45,8 +46,11 @@ class DefaultCapacityBundle implements CapacityBundle
   protected final List<CapacityOriginator> capacityOriginators =
     new ArrayList<CapacityOriginator>();
 
-  DefaultCapacityBundle (CustomerStructure structure, Element xml)
+  DefaultCapacityBundle (FactoredCustomerService service,
+                         CustomerStructure structure,
+                         Element xml)
   {
+    this.service = service;
     customerStructure = structure;
 
     String bundleId = xml.getAttribute("id");
@@ -66,7 +70,7 @@ class DefaultCapacityBundle implements CapacityBundle
     Element tariffSubscriberElement =
       (Element) xml.getElementsByTagName("tariffSubscriber").item(0);
     subscriberStructure =
-      new TariffSubscriberStructure(structure, this, tariffSubscriberElement);
+      new TariffSubscriberStructure(service, structure, this, tariffSubscriberElement);
 
     Element profileOptimizerElement =
       (Element) xml.getElementsByTagName("profileOptimizer").item(0);
@@ -75,7 +79,8 @@ class DefaultCapacityBundle implements CapacityBundle
   }
 
   @Override
-  public void initialize (CustomerStructure structure, Element xml)
+  public void initialize (CustomerStructure structure,
+                          Element xml)
   {
     NodeList capacityNodes = xml.getElementsByTagName("capacity");
     for (int i = 0; i < capacityNodes.getLength(); ++i) {
@@ -84,7 +89,7 @@ class DefaultCapacityBundle implements CapacityBundle
       String countString = capacityElement.getAttribute("count");
       if (countString == null || Integer.parseInt(countString) == 1) {
         CapacityStructure capacityStructure =
-          new CapacityStructure(name, capacityElement, this);
+          new CapacityStructure(service, name, capacityElement, this);
         capacityOriginators.add(createCapacityOriginator(capacityStructure));
       }
       else {
@@ -92,7 +97,7 @@ class DefaultCapacityBundle implements CapacityBundle
           name = "";
         for (int j = 1; j < (1 + Integer.parseInt(countString)); ++j) {
           CapacityStructure capacityStructure =
-            new CapacityStructure(name + j, capacityElement, this);
+            new CapacityStructure(service, name + j, capacityElement, this);
           capacityOriginators.add(createCapacityOriginator(capacityStructure));
         }
       }
@@ -103,7 +108,9 @@ class DefaultCapacityBundle implements CapacityBundle
   protected CapacityOriginator
     createCapacityOriginator (CapacityStructure capacityStructure)
   {
-    return new DefaultCapacityOriginator(capacityStructure, this);
+    return new DefaultCapacityOriginator(service,
+                                         capacityStructure,
+                                         this);
   }
 
   @Override

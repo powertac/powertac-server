@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="./DescribeConfig.xsl"?>
+
+<customers>
+
+    <customer name="FrostyStorage" count="1" creatorKey="" entityType="COMMERCIAL">
+        <description>
+        A centrally-managed set of 3 cold-storage facilities with interruptible consumption.  
+        Each facility in turn has 3 capacity generators, each of which draws from an individual 
+        probability distribution. The consumption capacity is consistent regardless of the 
+        week of the day. Interrupted capacity is typically shifted over to the next two timeslots.
+        Since the population units are centrally managed, they do use similar 
+        tariff evaluation criteria but the facilities are individually metered so they can be 
+        allocated to different tariffs if needed, i.e., the aggregate customer is multicontracting. 
+        </description>
+        <capacityBundle id="" population="3" powerType="INTERRUPTIBLE_CONSUMPTION" multiContracting="true" canNegotiate="false">
+            <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="10:1" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
+                    <interruptibility discount="0.05" />
+                </influenceFactors>
+                <allocation method="LOGIT_CHOICE">
+                    <logitChoice rationality="0.95" />
+                </allocation>
+                <reconsideration period="8"/>
+                <switchingInertia>
+                    <inertiaDistribution distribution="INTERVAL" mean="0.8" stdDev="0.1" low="0" high="1" />
+                </switchingInertia>
+            </tariffSubscriber>
+            <capacity count="3" description="Refrigerated storage warehouses.">
+                <baseCapacity type="INDIVIDUAL">  
+                    <individualCapacity distribution="NORMAL" mean="1900" stdDev="100" />
+                </baseCapacity>
+                <influenceFactors>
+                    <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
+                    <hourlySkew array="0.7, 0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.9, 0.9, 1.0, 1.0, 0.9, 0.8, 0.8, 0.8, 0.7, 0.7, 0.7" />
+                    <temperature influence="DEVIATION" reference="20" rangeMap="-50~-21: -0.05, -20~0: -0.02, 1~16: 0.0, 17~24: +0.005, 25~35: +0.01, 36~50: +0.005" />
+                    <windSpeed influence="NONE" />
+                    <windDirection influence="NONE" />
+                    <cloudCover influence="NONE" />
+                    <priceElasticity>
+                        <benchmarkRates rangeMap="00~05: -0.10, 06~19: -0.20, 20~23: -0.10" />
+                        <elasticityModel type="STEPWISE" map="1.5: 0.8, 2.0: 0.7" />
+                    </priceElasticity>
+                    <curtailment shifts="0.5, 0.25" />
+                </influenceFactors>
+            </capacity>
+        </capacityBundle>
+    </customer>
+    
+</customers>
+
+

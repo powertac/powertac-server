@@ -23,17 +23,12 @@ import java.util.HashMap;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.repo.WeatherForecastRepo;
-import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.factoredcustomer.interfaces.*;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityStructure.BaseCapacityType;
 import org.powertac.factoredcustomer.CapacityStructure.InfluenceKind;
@@ -49,11 +44,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
 {
     protected Logger log = Logger.getLogger(DefaultCapacityOriginator.class.getName());
 
-    protected final FactoredCustomerService factoredCustomerService;
-    protected final TimeService timeService;
-    protected final TimeslotRepo timeslotRepo;
-    protected final WeatherReportRepo weatherReportRepo;
-    protected final WeatherForecastRepo weatherForecastRepo;
+    protected final FactoredCustomerService service;
+    //protected final TimeService timeService;
+    //protected final TimeslotRepo timeslotRepo;
+    //protected final WeatherReportRepo weatherReportRepo;
+    //protected final WeatherForecastRepo weatherForecastRepo;
     
     private final double SMOOTHING_WEIGHT = 0.4;  // 0.0 => ignore previous value
 
@@ -71,22 +66,26 @@ class DefaultCapacityOriginator implements CapacityOriginator
     protected final Map<Integer, Double> shiftedCurtailments = new HashMap<Integer, Double>();
     
     
-    DefaultCapacityOriginator(CapacityStructure structure, CapacityBundle bundle) 
+    DefaultCapacityOriginator(FactoredCustomerService service,
+                              CapacityStructure structure,
+                              CapacityBundle bundle) 
     {
+        this.service = service;
         capacityStructure = structure;
         parentBundle = bundle;
         
         logIdentifier = capacityStructure.capacityName.isEmpty() ? 
                 bundle.getName() : bundle.getName() + "#" + capacityStructure.capacityName;
         
-        factoredCustomerService = (FactoredCustomerService) SpringApplicationContext.getBean("factoredCustomerService");
-        timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-        timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-        weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
-        weatherForecastRepo = (WeatherForecastRepo) SpringApplicationContext.getBean("weatherForecastRepo");
+        //timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+        //timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+        //weatherReportRepo = (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
+        //weatherForecastRepo = (WeatherForecastRepo) SpringApplicationContext.getBean("weatherForecastRepo");
         
         if (capacityStructure.baseCapacityType == BaseCapacityType.TIMESERIES) {
-            tsGenerator = new TimeseriesGenerator(capacityStructure.baseTimeseriesStructure);
+            tsGenerator =
+                    new TimeseriesGenerator(service,
+                                            capacityStructure.baseTimeseriesStructure);
         } 
         else tsGenerator = null; 
     }
@@ -94,7 +93,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     @Override
     public CapacityProfile getCurrentForecast() 
     {
-        Timeslot timeslot = timeslotRepo.currentTimeslot();
+        Timeslot timeslot = service.getTimeslotRepo().currentTimeslot();
         List<Double> values = new ArrayList<Double>();
         for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
             Double forecastCapacity = forecastCapacities.get(timeslot.getSerialNumber());
@@ -104,7 +103,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
             else {
                 values.add(getForecastCapacity(timeslot));
             }
-            timeslot = timeslotRepo.getNext(timeslot);
+            timeslot = service.getTimeslotRepo().getNext(timeslot);
         }
         return new CapacityProfile(values);
     }
@@ -118,14 +117,14 @@ class DefaultCapacityOriginator implements CapacityOriginator
     
     private double computeForecastCapacity(Timeslot future)
     {
-        Timeslot now = timeslotRepo.currentTimeslot();
+        Timeslot now = service.getTimeslotRepo().currentTimeslot();
         int timeToFuture = future.getSerialNumber() - now.getSerialNumber();
         Weather weather = null;
         if (timeToFuture == 0) {
-            weather = new Weather(weatherReportRepo.currentWeatherReport()); 
+            weather = new Weather(service.getWeatherReportRepo().currentWeatherReport()); 
         } 
         else {
-            WeatherForecast forecast = weatherForecastRepo.currentWeatherForecast();        
+            WeatherForecast forecast = service.getWeatherForecastRepo().currentWeatherForecast();        
             List<WeatherForecastPrediction> predictions = forecast.getPredictions();
             for (WeatherForecastPrediction prediction: predictions) {
                 if (prediction.getForecastTime() == timeToFuture) {
@@ -197,7 +196,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     @Override
     public double useCapacity(TariffSubscription subscription)
     {
-        Timeslot timeslot = timeslotRepo.currentTimeslot();
+        Timeslot timeslot = service.getTimeslotRepo().currentTimeslot();
         
         double baseCapacity = getBaseCapacity(timeslot);
         if (Double.isNaN(baseCapacity)) throw new Error("Base capacity is NaN!");
@@ -208,7 +207,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
         if (parentBundle.getPowerType().isInterruptible()) {
             adjustedCapacity = adjustCapacityForCurtailments(timeslot, adjustedCapacity, subscription);
         }
-        adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity, timeService.getCurrentDateTime(), true);
+        adjustedCapacity = adjustCapacityForPeriodicSkew(adjustedCapacity, service.getTimeService().getCurrentDateTime(), true);
         adjustedCapacity = adjustCapacityForCurrentWeather(adjustedCapacity, true);        
         
         // capacity for this subscription
@@ -257,7 +256,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
 
     private double adjustCapacityForCurrentWeather(double capacity, boolean verbose)
     {
-        WeatherReport weatherReport = weatherReportRepo.currentWeatherReport();
+        WeatherReport weatherReport = service.getWeatherReportRepo().currentWeatherReport();
         return adjustCapacityForWeather(capacity, new Weather(weatherReport), verbose);
     }
     
@@ -329,7 +328,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
                                                                        baseCapacity, subscription.getTotalUsage());
         double rateForBase = chargeForBase / baseCapacity;
         
-        double benchmarkRate = capacityStructure.benchmarkRates.get(timeService.getHourOfDay());
+        double benchmarkRate = capacityStructure.benchmarkRates.get(service.getTimeService().getHourOfDay());
         double rateRatio = rateForBase / benchmarkRate;
 
         double tariffRatesFactor = determineTariffRatesFactor(rateRatio);
@@ -419,7 +418,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
 
     protected void logCapacityDetails(String msg) 
     {
-        if (factoredCustomerService.getCapacityDetailsLogging() == true) {
+        if (service.getCapacityDetailsLogging() == true) {
             log.info(msg);
         }
     }

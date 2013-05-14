@@ -42,7 +42,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     protected UtilityOptimizer utilityOptimizer;        
     protected final List<CapacityBundle> capacityBundles = new ArrayList<CapacityBundle>();
     
-    private FactoredCustomerService service;
+    protected FactoredCustomerService service;
     
     DefaultFactoredCustomer(CustomerStructure structure) 
     {
@@ -83,7 +83,7 @@ class DefaultFactoredCustomer implements FactoredCustomer
     /** @Override hook **/
     protected CapacityBundle createCapacityBundle(CustomerStructure structure, Element capacityBundleElement)
     {
-        return new DefaultCapacityBundle(structure, capacityBundleElement);
+        return new DefaultCapacityBundle(service, structure, capacityBundleElement);
     }
     
     /** @Override hook **/

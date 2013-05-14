@@ -61,7 +61,7 @@ public final class CapacityStructure
     final double[] curtailmentShifts;  // index = timeslot
     
     
-    CapacityStructure(String name, Element xml, DefaultCapacityBundle bundle) 
+    CapacityStructure(FactoredCustomerService service, String name, Element xml, DefaultCapacityBundle bundle) 
     {
         capacityName = name;
         description = xml.getAttribute("description");
@@ -71,14 +71,14 @@ public final class CapacityStructure
         switch (baseCapacityType) {
         case POPULATION: 
             Element populationCapacityElement = (Element) baseCapacityElement.getElementsByTagName("populationCapacity").item(0);
-            basePopulationCapacity = new ProbabilityDistribution(populationCapacityElement);
+            basePopulationCapacity = new ProbabilityDistribution(service, populationCapacityElement);
             baseIndividualCapacity = null;
             baseTimeseriesStructure = null;
             break;
         case INDIVIDUAL: 
             basePopulationCapacity = null;
             Element individualCapacityElement = (Element) baseCapacityElement.getElementsByTagName("individualCapacity").item(0);
-            baseIndividualCapacity = new ProbabilityDistribution(individualCapacityElement);
+            baseIndividualCapacity = new ProbabilityDistribution(service, individualCapacityElement);
             baseTimeseriesStructure = null;
             break;
         case TIMESERIES: 

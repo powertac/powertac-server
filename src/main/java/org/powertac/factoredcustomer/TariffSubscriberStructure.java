@@ -67,8 +67,10 @@ public final class TariffSubscriberStructure
   final ProbabilityDistribution switchingDelay;
   final ProbabilityDistribution waitAfterSwitch;
 
-  TariffSubscriberStructure (CustomerStructure structure,
-                             CapacityBundle bundle, Element xml)
+  TariffSubscriberStructure (FactoredCustomerService service,
+                             CustomerStructure structure,
+                             CapacityBundle bundle,
+                             Element xml)
   {
     customerStructure = structure;
     capacityBundle = bundle;
@@ -178,7 +180,7 @@ public final class TariffSubscriberStructure
     if (inertiaDistributionNode != null) {
       Element inertiaDistributionElement = (Element) inertiaDistributionNode;
       inertiaDistribution =
-        new ProbabilityDistribution(inertiaDistributionElement);
+        new ProbabilityDistribution(service, inertiaDistributionElement);
 
       customerWealthDistribution = null;
       customerWealthReferenceMedian = 0.0;
@@ -200,7 +202,7 @@ public final class TariffSubscriberStructure
         (Element) inertiaFactorsElement.getElementsByTagName("customerWealth")
                 .item(0);
       customerWealthDistribution =
-        new ProbabilityDistribution(customerWealthElement);
+        new ProbabilityDistribution(service, customerWealthElement);
       customerWealthReferenceMedian =
         Double.parseDouble(customerWealthElement
                 .getAttribute("referenceMedian"));
@@ -208,15 +210,15 @@ public final class TariffSubscriberStructure
         (Element) inertiaFactorsElement
                 .getElementsByTagName("newTariffsExposure").item(0);
       newTariffsExposure =
-        new ProbabilityDistribution(newTariffsExposureElement);
+        new ProbabilityDistribution(service, newTariffsExposureElement);
       Element switchingDelayElement =
         (Element) inertiaFactorsElement.getElementsByTagName("switchingDelay")
                 .item(0);
-      switchingDelay = new ProbabilityDistribution(switchingDelayElement);
+      switchingDelay = new ProbabilityDistribution(service, switchingDelayElement);
       Element waitAfterSwitchElement =
         (Element) inertiaFactorsElement.getElementsByTagName("waitAfterSwitch")
                 .item(0);
-      waitAfterSwitch = new ProbabilityDistribution(waitAfterSwitchElement);
+      waitAfterSwitch = new ProbabilityDistribution(service, waitAfterSwitchElement);
     }
   }
 

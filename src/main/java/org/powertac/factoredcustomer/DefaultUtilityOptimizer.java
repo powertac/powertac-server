@@ -104,7 +104,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     subscribeDefault();
   }
   
-  // ----- Lazy component loaders to support testing ------
+  // ----- Access components through service to support mocking ------
 
   protected RandomSeedRepo getRandomSeedRepo ()
   {

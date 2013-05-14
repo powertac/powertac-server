@@ -30,7 +30,8 @@ import org.powertac.factoredcustomer.TariffSubscriberStructure;
  */
 public interface CapacityBundle
 {
-    void initialize(CustomerStructure profile, Element xml);
+    void initialize(CustomerStructure profile,
+                    Element xml);
 
     String getName();
 

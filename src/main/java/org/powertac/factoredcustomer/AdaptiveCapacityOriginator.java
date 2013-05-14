@@ -23,8 +23,6 @@ import java.util.Random;
 import org.apache.log4j.Logger;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure.ProfileSelectionMethod;
 import org.powertac.factoredcustomer.ProfileRecommendation.ScoringFactor;
@@ -40,7 +38,7 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
      implements ProfileRecommendation.Listener
 {    
-    private RandomSeedRepo randomSeedRepo;
+    //private RandomSeedRepo randomSeedRepo;
     
     private final ProfileOptimizerStructure optimizerStructure;
 
@@ -48,17 +46,23 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     
     
     
-    AdaptiveCapacityOriginator(CapacityStructure capacityStructure, DefaultCapacityBundle bundle) 
+    AdaptiveCapacityOriginator(FactoredCustomerService service,
+                               CapacityStructure capacityStructure,
+                               DefaultCapacityBundle bundle) 
     {
-        super(capacityStructure, bundle);
+        super(service, capacityStructure, bundle);
         log = Logger.getLogger(AdaptiveCapacityOriginator.class.getName());
         
-        randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+        //randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 
         optimizerStructure = getParentBundle().getOptimizerStructure();
 
-        recommendationHandler = new Random(randomSeedRepo.getRandomSeed("factoredcustomer.AdaptiveCapacityOriginator", 
-                                           SeedIdGenerator.getId(), "RecommendationHandler").getValue());
+        recommendationHandler =
+                new Random(service.getRandomSeedRepo()
+                           .getRandomSeed("factoredcustomer.AdaptiveCapacityOriginator", 
+                                          SeedIdGenerator.getId(),
+                                          "RecommendationHandler")
+                                          .getValue());
     }
     
     @Override /** @code{ProfileRecommendation.Listener} **/
@@ -93,7 +97,8 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         } else { // LOGIT_CHOICE 
             chosenProfile = drawProfileFromRecommendation(localRec);        
         }
-        overwriteForecastCapacities(timeslotRepo.currentTimeslot(), chosenProfile);
+        overwriteForecastCapacities(service.getTimeslotRepo().currentTimeslot(),
+                                    chosenProfile);
     }
 
     private CapacityProfile selectBestProfileInRecommendation(ProfileRecommendation rec) 
@@ -128,14 +133,14 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         Timeslot slider = timeslot;
         for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
             forecastCapacities.put(slider.getSerialNumber(), profile.getCapacity(i));
-            slider = timeslotRepo.getNext(slider);
+            slider = service.getTimeslotRepo().getNext(slider);
         }
     }
     
     @Override
     public double useCapacity(TariffSubscription subscription)
     {
-        Timeslot timeslot = timeslotRepo.currentTimeslot();
+        Timeslot timeslot = service.getTimeslotRepo().currentTimeslot();
         
         // we don't re-adjust for current weather here; would not be accurate for wind/solar production
         double forecastCapacity = getForecastCapacity(timeslot);
