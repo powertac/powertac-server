@@ -371,8 +371,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   private void addAllocation (Tariff current, Tariff newTariff, int count)
   {
+    if (current == newTariff)
+      // ignore no-change allocations
+      return;
     Integer ac = allocations.get(current);
     if (null == ac)
+      // first time on this one
       ac = count;
     else
       ac += count;

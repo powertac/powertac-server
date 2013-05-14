@@ -27,8 +27,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -55,6 +58,7 @@ public class DefaultUtilityOptimizerTest
   // foundation components
   private Competition competition;
   private TimeService timeService;
+  private CustomerInfo customerInfo;
   
   // mocks
   private TariffMarket tariffMarket;
@@ -63,7 +67,6 @@ public class DefaultUtilityOptimizerTest
   private RandomSeedRepo randomSeedRepo;
   private RandomSeed randomSeed;
   private FactoredCustomerService service;
-  private CustomerStructure customer;
 
   private Broker bob;
 
@@ -88,6 +91,9 @@ public class DefaultUtilityOptimizerTest
     service = mock(FactoredCustomerService.class);
     tariffMarket = mock(TariffMarket.class);
     when(service.getTariffMarket()).thenReturn(tariffMarket);
+    when (tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+        .thenReturn(defaultConsumption);
+
     randomSeedRepo = mock(RandomSeedRepo.class);
     when(service.getRandomSeedRepo()).thenReturn(randomSeedRepo);
     randomSeed = mock(RandomSeed.class);
@@ -96,10 +102,21 @@ public class DefaultUtilityOptimizerTest
                                       anyLong(),
                                       anyString()))
         .thenReturn(randomSeed);
+
     tariffRepo = mock(TariffRepo.class);
     when (service.getTariffRepo()).thenReturn(tariffRepo);
+
     customerRepo = mock(CustomerRepo.class);
     when (service.getCustomerRepo()).thenReturn(customerRepo);
+    doAnswer(new Answer<Object>() {
+        @Override
+        public Object answer (InvocationOnMock invocation) throws Throwable
+        {
+          Object[] args = invocation.getArguments();
+          customerInfo = (CustomerInfo)args[0];
+          return null;
+        }
+      }).when(customerRepo).add((CustomerInfo)anyObject());
     
 
     // set up default tariffs
@@ -187,6 +204,22 @@ public class DefaultUtilityOptimizerTest
   {
     FactoredCustomer brookside = loadCustomer("Brookside");
     assertNotNull(brookside);
+    assertEquals("Correct class",
+                 DefaultFactoredCustomer.class,
+                 brookside.getClass());
+    //System.out.println(customerInfo.getName() + ": " + customerInfo.getPopulation());
+    verify(tariffMarket).subscribeToTariff(defaultConsumption,
+                                           customerInfo,
+                                           30000);
+  }
+  
+  /**
+   * Test for no new tariffs case.
+   */
+  @Test
+  public void noTariffTest ()
+  {
+    FactoredCustomer brookside = loadCustomer("Brookside");
   }
 
   /**
