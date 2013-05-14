@@ -168,18 +168,18 @@ public class EvSocialClass extends AbstractCustomer
             + tariff.getTariffSpecification().getPowerType()
             + " Broker: " + tariff.getBroker().toString());
 
-        boolean case1 = customer.getPowerType() ==
-            tariff.getTariffSpecification().getPowerType();
-        boolean case2 = (
-            customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
-            tariff.getTariffSpecification().getPowerType().isConsumption());
+//        boolean case1 = customer.getPowerType() ==
+//            tariff.getTariffSpecification().getPowerType();
+//        boolean case2 = (
+//            customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
+//            tariff.getTariffSpecification().getPowerType().isConsumption());
 
-        if (!tariff.isExpired() && (case1 || case2) ) {
-          estimation.add(-costEstimation(tariff, type));
-        }
-        else {
-          estimation.add(Double.NEGATIVE_INFINITY);
-        }
+        //if (!tariff.isExpired() && (case1 || case2) ) {
+        estimation.add(-costEstimation(tariff, type));
+        //}
+        //else {
+        //  estimation.add(Double.NEGATIVE_INFINITY);
+        //}
       }
 
       int minIndex = logitPossibilityEstimation(estimation);
