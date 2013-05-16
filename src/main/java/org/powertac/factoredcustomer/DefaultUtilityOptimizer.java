@@ -91,15 +91,13 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     this.service = service;
     inertiaSampler =
-      new Random(getRandomSeedRepo()
+      getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.DefaultUtilityOptimizer",
-                             SeedIdGenerator.getId(), "InertiaSampler")
-              .getValue());
+                             SeedIdGenerator.getId(), "InertiaSampler");
     tariffSelector =
-      new Random(getRandomSeedRepo()
+      getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.DefaultUtilityOptimizer",
-                             SeedIdGenerator.getId(), "TariffSelector")
-              .getValue());
+                             SeedIdGenerator.getId(), "TariffSelector");
 
     subscribeDefault();
   }
@@ -221,6 +219,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
       defaultEval =
               new EvalData(forecastDailyUsageCharge(bundle, defaultTariff),
                            0.0);
+      cache.addEvaluation(defaultTariff, defaultEval);
     }
     
     // Get the cost eval for each tariff
@@ -374,7 +373,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     if (current == newTariff)
       // ignore no-change allocations
       return;
-    Integer ac = allocations.get(current);
+    Integer ac = allocations.get(newTariff);
     if (null == ac)
       // first time on this one
       ac = count;

@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011-2013 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
 import org.joda.time.DateTime;
-import org.powertac.common.Timeslot;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 
@@ -175,7 +174,7 @@ final class TimeseriesGenerator
         }
     }
 
-    public double generateNext(Timeslot timeslot)
+    public double generateNext(int timeslot)
     {
         Double next;
         switch (tsStructure.modelType) {
@@ -183,10 +182,10 @@ final class TimeseriesGenerator
             if (genSeries.isEmpty()) {
                 initArima101x101GenSeries(timeslot);
             }
-            next = genSeries.get(timeslot.getSerialNumber());
+            next = genSeries.get(timeslot);
             if (next == null) {
                 next = generateNextArima101x101(timeslot);
-                genSeries.put(timeslot.getSerialNumber(), next); 
+                genSeries.put(timeslot, next); 
             }
             break;
         default: throw new Error("Unexpected timeseries model type: " + tsStructure.modelType);
@@ -194,15 +193,15 @@ final class TimeseriesGenerator
         return next;
     }
     
-    private void initArima101x101GenSeries(Timeslot timeslot)
+    private void initArima101x101GenSeries(int timeslot)
     {
-        int start = timeslot.getSerialNumber();
+        int start = timeslot;
         for (int i=0; i < refSeries.size(); ++i) {
             genSeries.put(start + i, refSeries.get(i));
         }
     }
     
-    private double generateNextArima101x101(Timeslot timeslot)
+    private double generateNextArima101x101(int timeslot)
     {
         /** R code
         boostTimeSeries = function(Xt, lambda, t, N, Xht, Xdt, gamma) {
@@ -216,11 +215,12 @@ final class TimeseriesGenerator
         }
         **/
       
-        DateTime now = timeslot.getStartInstant().toDateTime();
+        DateTime now =
+                service.getTimeslotRepo().getTimeForIndex(timeslot).toDateTime();
         int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
         int hour = now.getHourOfDay();  // 0-23
-        
-        int t = timeslot.getSerialNumber();
+ 
+        int t = timeslot;
         
         double logNext = Y0 + Yd[day-1] + Yh[hour] + phi1 * getLog(t-1) + Phi1 * getLog(t-24) 
                          + theta1 * (getLog(t-1) - getLog(t-2)) + Theta1 * (getLog(t-24) - getLog(t-25)) 

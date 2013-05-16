@@ -29,7 +29,7 @@ public interface CapacityOriginator
     
     double useCapacity(TariffSubscription subscription);
     
-    double adjustCapacityForSubscription(Timeslot timeslot, double totalCapacity, TariffSubscription subscription);
+    double adjustCapacityForSubscription(int timeslot, double totalCapacity, TariffSubscription subscription);
     
     String getCapacityName();
     

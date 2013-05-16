@@ -20,8 +20,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -36,12 +34,21 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
+import org.powertac.common.WeatherForecast;
+import org.powertac.common.WeatherForecastPrediction;
+import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherForecastRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.w3c.dom.Document;
@@ -61,11 +68,16 @@ public class DefaultUtilityOptimizerTest
   private CustomerInfo customerInfo;
   
   // mocks
+  private Accounting accountingService;
   private TariffMarket tariffMarket;
   private TariffRepo tariffRepo;
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
   private CustomerRepo customerRepo;
   private RandomSeedRepo randomSeedRepo;
   private RandomSeed randomSeed;
+  private TimeslotRepo timeslotRepo;
+  private WeatherReportRepo weatherReportRepo;
+  private WeatherForecastRepo weatherForecastRepo;
   private FactoredCustomerService service;
 
   private Broker bob;
@@ -75,6 +87,7 @@ public class DefaultUtilityOptimizerTest
   private Broker defaultBroker;
   private Tariff defaultConsumption;
   private Tariff defaultProduction;
+  private TariffSubscription defaultConsumptionSubscription;
   private long seedValue = 42l;
   private double randomValue = 1.0;
   
@@ -85,39 +98,11 @@ public class DefaultUtilityOptimizerTest
   {
     competition = Competition.newInstance("duo-test");
     timeService = new TimeService();
-    timeService.setCurrentTime(competition.getSimulationBaseTime());
+    timeService.setCurrentTime(competition.getSimulationBaseTime()
+                               .plus(TimeService.HOUR * 7));
 
     // set up mocks
-    service = mock(FactoredCustomerService.class);
-    tariffMarket = mock(TariffMarket.class);
-    when(service.getTariffMarket()).thenReturn(tariffMarket);
-    when (tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
-        .thenReturn(defaultConsumption);
-
-    randomSeedRepo = mock(RandomSeedRepo.class);
-    when(service.getRandomSeedRepo()).thenReturn(randomSeedRepo);
-    randomSeed = mock(RandomSeed.class);
-    when(randomSeed.getValue()).thenReturn(seedValue);
-    when(randomSeedRepo.getRandomSeed(anyString(),
-                                      anyLong(),
-                                      anyString()))
-        .thenReturn(randomSeed);
-
-    tariffRepo = mock(TariffRepo.class);
-    when (service.getTariffRepo()).thenReturn(tariffRepo);
-
-    customerRepo = mock(CustomerRepo.class);
-    when (service.getCustomerRepo()).thenReturn(customerRepo);
-    doAnswer(new Answer<Object>() {
-        @Override
-        public Object answer (InvocationOnMock invocation) throws Throwable
-        {
-          Object[] args = invocation.getArguments();
-          customerInfo = (CustomerInfo)args[0];
-          return null;
-        }
-      }).when(customerRepo).add((CustomerInfo)anyObject());
-    
+    makeMocks();
 
     // set up default tariffs
     defaultBroker = new Broker("default");
@@ -138,6 +123,174 @@ public class DefaultUtilityOptimizerTest
     initTariff(defaultProduction);
     when(tariffMarket.getDefaultTariff(PowerType.PRODUCTION))
         .thenReturn(defaultProduction);
+  }
+
+  /**
+   * make sure we can load customers
+   */
+  @Test
+  public void loadCustomerTest ()
+  {
+    FactoredCustomer brookside = loadCustomer("Brookside");
+    assertNotNull(brookside);
+    assertEquals("Correct class",
+                 DefaultFactoredCustomer.class,
+                 brookside.getClass());
+    //System.out.println(customerInfo.getName() + ": " + customerInfo.getPopulation());
+    verify(tariffMarket).subscribeToTariff(defaultConsumption,
+                                           customerInfo,
+                                           30000);
+  }
+
+  private FactoredCustomer setupConsumer ()
+  {
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer (InvocationOnMock invocation) throws Throwable
+      {
+        Object[] args = invocation.getArguments();
+        customerInfo = (CustomerInfo)args[1];
+        defaultConsumptionSubscription =
+                new TariffSubscription(customerInfo, (Tariff)args[0]);
+        populateSubscription(defaultConsumptionSubscription);
+        defaultConsumptionSubscription.subscribe((Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff((Tariff)anyObject(),
+                                            (CustomerInfo)anyObject(),
+                                            anyInt());
+    FactoredCustomer brookside = loadCustomer("Brookside");
+    assertNotNull("Subscription created", defaultConsumptionSubscription);
+    assertEquals("Correct population",
+                 30000,
+                 defaultConsumptionSubscription.getCustomersCommitted());
+    verify(tariffMarket, times(1))
+        .subscribeToTariff(defaultConsumption, customerInfo, 30000);
+
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer (InvocationOnMock invocation) throws Throwable
+      {
+        Object[] args = invocation.getArguments();
+        ArrayList<TariffSubscription> result =
+                new ArrayList<TariffSubscription>();
+        result.add(defaultConsumptionSubscription);
+        return result;
+      }
+    }).when(tariffSubscriptionRepo).findSubscriptionsForCustomer(customerInfo);
+    return brookside;
+  }
+  
+  /**
+   * Test for no new tariffs case.
+   */
+  @Test
+  public void noTariffTest ()
+  {
+    FactoredCustomer brookside = setupConsumer();
+    
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), (PowerType)anyObject()))
+        .thenReturn(new ArrayList<Tariff>());
+
+    brookside.evaluateTariffs();
+    assertEquals("Correct customer",
+               "BrooksideHomes", customerInfo.getName());
+    verify(tariffMarket, times(1))
+        .subscribeToTariff(defaultConsumption, customerInfo, 30000);
+  }
+
+  /**
+   * Test method for {@link org.powertac.factoredcustomer.DefaultUtilityOptimizer#evaluateTariffs()}.
+   */
+  @Test
+  public void evaluateSingleTariffConsumption ()
+  {
+    FactoredCustomer brookside = setupConsumer();
+
+    TariffSpecification newTS =
+            new TariffSpecification(defaultBroker,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.59));
+    Tariff newTariff = new Tariff(newTS);
+    initTariff(newTariff);
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(newTariff);
+
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), (PowerType)anyObject()))
+        .thenReturn(tariffs);
+    when(randomSeed.nextDouble()).thenReturn(0.5);
+    brookside.evaluateTariffs();
+    verify(tariffMarket, times(1))
+        .subscribeToTariff(newTariff, customerInfo, 30000);
+  }
+
+  @Test
+  public void evaluateTariffsProduction ()
+  {
+    fail("Not yet implemented");
+  }
+
+  @Test
+  public void evaluateTariffsTOU ()
+  {
+    fail("Not yet implemented");
+  }
+
+  private void makeMocks ()
+  {
+    service = mock(FactoredCustomerService.class);
+    timeslotRepo = new TimeslotRepo();
+    ReflectionTestUtils.setField(timeslotRepo, "timeService", timeService);
+    when (service.getTimeslotRepo()).thenReturn(timeslotRepo);
+
+    tariffMarket = mock(TariffMarket.class);
+    when(service.getTariffMarket()).thenReturn(tariffMarket);
+    when (tariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+        .thenReturn(defaultConsumption);
+
+    randomSeedRepo = mock(RandomSeedRepo.class);
+    when(service.getRandomSeedRepo()).thenReturn(randomSeedRepo);
+    randomSeed = mock(RandomSeed.class);
+    when(randomSeed.getValue()).thenReturn(seedValue);
+    when(randomSeedRepo.getRandomSeed(anyString(),
+                                      anyLong(),
+                                      anyString()))
+        .thenReturn(randomSeed);
+
+    tariffRepo = mock(TariffRepo.class);
+    when (service.getTariffRepo()).thenReturn(tariffRepo);
+
+    tariffSubscriptionRepo = mock(TariffSubscriptionRepo.class);
+    when (service.getTariffSubscriptionRepo()).thenReturn(tariffSubscriptionRepo);
+
+    customerRepo = mock(CustomerRepo.class);
+    when (service.getCustomerRepo()).thenReturn(customerRepo);
+    doAnswer(new Answer<Object>() {
+        @Override
+        public Object answer (InvocationOnMock invocation) throws Throwable
+        {
+          Object[] args = invocation.getArguments();
+          customerInfo = (CustomerInfo)args[0];
+          return null;
+        }
+      }).when(customerRepo).add((CustomerInfo)anyObject());
+    
+    weatherReportRepo = new WeatherReportRepo();
+    ReflectionTestUtils.setField(weatherReportRepo,
+                                 "timeslotRepo",
+                                 timeslotRepo);
+    when (service.getWeatherReportRepo()).thenReturn(weatherReportRepo);
+    weatherReportRepo.add(getWeatherReport(7));
+
+    weatherForecastRepo = new WeatherForecastRepo();
+    ReflectionTestUtils.setField(weatherForecastRepo,
+                                 "timeslotRepo",
+                                 timeslotRepo);
+    when (service.getWeatherForecastRepo()).thenReturn(weatherForecastRepo);
+    weatherForecastRepo.add(getWeatherForecast(7));
+    
+    accountingService = mock(Accounting.class);
   }
   
   // initialize a tariff. It needs dependencies injected
@@ -195,52 +348,49 @@ public class DefaultUtilityOptimizerTest
     }
     return null;
   }
+  
+  double[] weatherData = {11.4, 2.0, 100.0, 1.0};
+  double[][] forecastData = {{9.8, 1.43, 160.0, 1.0}, {9.5, 1.03, 162.0, 1.0},
+                         {8.4, 2.8, 156.0, 1.0}, {9.2, 3.78, 173.0, 1.0},
+                         {8.5, 2.7, 174.0, 1.0}, {10.1, 4.74, 281.0, 0.999},
+                         {11.7, 3.22, 272.0, 0.992}, {12.2, 4.02, 270.0, 0.98},
+                         {12.0, 3.32, 286.0, 1.0}, {11.6, 5.6, 297.0, 1.0},
+                         {11.7, 6.0, 308.0, 0.652}, {11.0, 8.14, 321.0, 0.875},
+                         {10.6, 8.0, 314.0, 1.0}, {9.3, 6.62, 300.0, 1.0},
+                         {8.2, 5.8, 299.0, 1.0}, {8.7, 5.01, 290.0, 1.0},
+                         {8.6, 4.9, 308.0, 1.0}, {8.7, 4.11, 328.0, 1.0},
+                         {8.8, 4.21, 326.0, 1.0}, {9.1, 3.09, 296.0, 1.0},
+                         {7.4, 3.84, 267.0, 1.0}, {6.9, 2.82, 269.0, 1.0},
+                         {5.8, 2.75, 278.0, 0.163}, {5.0, 3.97, 266.0, 0.528}};
 
-  /**
-   * make sure we can load customers
-   */
-  @Test
-  public void loadCustomerTest ()
+  private WeatherReport getWeatherReport (int ts)
   {
-    FactoredCustomer brookside = loadCustomer("Brookside");
-    assertNotNull(brookside);
-    assertEquals("Correct class",
-                 DefaultFactoredCustomer.class,
-                 brookside.getClass());
-    //System.out.println(customerInfo.getName() + ": " + customerInfo.getPopulation());
-    verify(tariffMarket).subscribeToTariff(defaultConsumption,
-                                           customerInfo,
-                                           30000);
+    return new WeatherReport(ts,
+                             weatherData[0], weatherData[1],
+                             weatherData[2], weatherData[3]);    
   }
   
-  /**
-   * Test for no new tariffs case.
-   */
-  @Test
-  public void noTariffTest ()
+  private WeatherForecast getWeatherForecast (int ts)
   {
-    FactoredCustomer brookside = loadCustomer("Brookside");
+    ArrayList<WeatherForecastPrediction> preds =
+            new ArrayList<WeatherForecastPrediction>();
+    int index = ts + 1;
+    for (double[] data : forecastData) {
+      preds.add(new WeatherForecastPrediction(index++,
+                                              data[0], data[1],
+                                              data[2], data[3]));
+    }
+    return new WeatherForecast(ts, preds);
   }
 
-  /**
-   * Test method for {@link org.powertac.factoredcustomer.DefaultUtilityOptimizer#evaluateTariffs()}.
-   */
-  @Test
-  public void evaluateTariffsConsumption ()
+  private void populateSubscription (TariffSubscription subscription)
   {
-    fail("Not yet implemented");
+    ReflectionTestUtils.setField(subscription,
+                                 "accountingService",
+                                 accountingService);
+    ReflectionTestUtils.setField(subscription,
+                                 "tariffMarketService",
+                                 tariffMarket);
+    ReflectionTestUtils.setField(subscription, "timeService", timeService);
   }
-
-  @Test
-  public void evaluateTariffsProduction ()
-  {
-    fail("Not yet implemented");
-  }
-
-  @Test
-  public void evaluateTariffsTOU ()
-  {
-    fail("Not yet implemented");
-  }
-
 }

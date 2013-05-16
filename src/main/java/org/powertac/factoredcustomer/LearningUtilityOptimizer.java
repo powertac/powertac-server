@@ -1,5 +1,5 @@
 /*
-* Copyright 2011 the original author or authors.
+* Copyright 2011-2013 the original author or authors.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.util.Random;
 import org.apache.commons.math.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.ProfileRecommendation.Opinion;
@@ -32,283 +31,357 @@ import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
 /**
- * Key class responsible for managing the tariff(s) for one customer across 
+ * Key class responsible for managing the tariff(s) for one customer across
  * multiple capacity bundles if necessary.
  * 
  * @author Prashant Reddy
  */
 @Domain
 class LearningUtilityOptimizer extends DefaultUtilityOptimizer
-{    
-    private static final double NUM_SAMPLING_ITERATIONS = 30; 
-    
-    private Random recommendationMaker;
-    
-    
-    LearningUtilityOptimizer(CustomerStructure structure, List<CapacityBundle> bundles) 
-    {
-        super(structure, bundles);
-        log = Logger.getLogger(LearningUtilityOptimizer.class.getName());
-    }
-  
-    @Override
-    public void initialize(FactoredCustomerService service)
-    {
-      super.initialize(service);
-        inertiaSampler = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                                                                 SeedIdGenerator.getId(), "InertiaSampler").getValue());
-        tariffSelector = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                                                                 SeedIdGenerator.getId(), "TariffSelector").getValue());
-        recommendationMaker = new Random(getRandomSeedRepo().getRandomSeed("factoredcustomer.LearningUtilityOptimizer", 
-                                                                      SeedIdGenerator.getId(), "RecommendationMaker").getValue());
+{
+  private static final double NUM_SAMPLING_ITERATIONS = 30;
 
-        subscribeDefault();
-    }
-    
-    @Override
-    public void evaluateTariffs ()
-    {        
-        super.evaluateTariffs();
-        
-        recommendProfilesToBundles();
-    }
-        
-    private void recommendProfilesToBundles() 
-    {
-        // Ignore cross-bundle optimization for now.  For example, we could 
-        // produce more locally when we have higher local demand, but we don't 
-        // currently support net-metering in PowerTAC, so it won't do anything.
-        
-        for (CapacityBundle bundle: capacityBundles)
-        {
-            if (bundle.getOptimizerStructure().receiveRecommendations == true) {
-                recommendProfilesToBundle(bundle);
-            }
-        }
-    }
-    
-    private void recommendProfilesToBundle(CapacityBundle bundle)
-    {
-        /**
-          find all subscriptions
-          for each subscription get forecast from each capacity originator in bundle
-          for each forecast, get permutations
-            + use learned history to determine which permutations are more likely
-            + learn value for receptivityIndex and weights for recommendationFactors
-            + weight permutations by learned history 
-          compute weight of each permutation as inverse of sum of normalized usage charge and normalized distance from forecast
-          assign weights to each permutation for each CM to make a recommendation
-            + optimize weights of permutations over all capacity originators (anti-herding)
-          make weighted recommendations to each capacity originator
-            + monitor deviation of actual from forecast and also from recommended
-        **/
-        
-        List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
-        
-        Map<CapacityOriginator, ForecastRecord> forecasts = new HashMap<CapacityOriginator, ForecastRecord>();
-        Map<CapacityOriginator, List<CapacityProfile>> perms = new HashMap<CapacityOriginator, List<CapacityProfile>>();
-        Map<CapacityOriginator, ProfileRecommendation> recs = new HashMap<CapacityOriginator, ProfileRecommendation>();
-        
-        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-            CapacityProfile forecast = capacityOriginator.getCurrentForecast();   
-            double charge = computeProfileUsageCharge(forecast, subscriptions, capacityOriginator);
-            ForecastRecord forecastRecord = new ForecastRecord(forecast, charge);
-            forecasts.put(capacityOriginator, forecastRecord);
-            PermutationRule permutationRule = bundle.getOptimizerStructure().permutationRule;
-            if (permutationRule == null) permutationRule = PermutationRule.ALL_SHIFTS;
-            perms.put(capacityOriginator, forecast.getPermutations(permutationRule));
-            log.info(bundle.getName() + ": Evaluating " + perms.get(capacityOriginator).size() + " profile permutations for " 
-                    + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
-            recs.put(capacityOriginator, getProfileRecommendation(capacityOriginator, bundle, forecastRecord, perms, subscriptions));
-        }
-        if (bundle.getOptimizerStructure().raconcileRecommendations == true) {
-            reconcileRecommendations(subscriptions, forecasts, perms, recs);
-        }
-        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-            if (capacityOriginator instanceof ProfileRecommendation.Listener) {
-                ProfileRecommendation rec = recs.get(capacityOriginator);
-                if (! rec.isEmpty()) {
-                    log.info(bundle.getName() + ": Submitting " + rec.getOpinions().size() + " profile suggestions to " 
-                             + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
-                    ((ProfileRecommendation.Listener) capacityOriginator).handleProfileRecommendation(rec);
-                }
-                else {
-                    log.info(bundle.getName() + ": No beneficial profile permutations for " 
-                             + bundle.getCustomerInfo().getPowerType() + " capacity originator: " + capacityOriginator.getCapacityName());
-                }
-            }
-        }
-    }
-    
-    private List<TariffSubscription> getBundleSubscriptions(CapacityBundle bundle) 
-    {
-        return getTariffSubscriptionRepo().findSubscriptionsForCustomer(bundle.getCustomerInfo());
-    }
-    
-    private ProfileRecommendation getProfileRecommendation(CapacityOriginator capacityOriginator, CapacityBundle bundle, 
-                                                           ForecastRecord forecastRecord, 
-                                                           Map<CapacityOriginator, List<CapacityProfile>> perms, 
-                                                           List<TariffSubscription> subscriptions)
-    {
-        logRecommendationDetails("Forecast " + forecastRecord.capacityProfile + " usage charge = " + forecastRecord.usageCharge);
+  private Random recommendationMaker;
 
-        ProfileRecommendation rec = new ProfileRecommendation();
-        for (CapacityProfile perm: perms.get(capacityOriginator)) {
-            double usageCharge = computeProfileUsageCharge(perm, subscriptions, capacityOriginator);
-            logRecommendationDetails("Permutation " + perm + " usage charge = " + usageCharge);
-            if (isPermutationAcceptable(capacityOriginator, bundle.getOptimizerStructure(), usageCharge, forecastRecord.usageCharge)) {
-                Opinion opinion = rec.new Opinion();                
-                opinion.usageCharge = computeProfileUsageCharge(perm, subscriptions, capacityOriginator);
-                opinion.profileChange = forecastRecord.capacityProfile.distanceTo(perm);
-                rec.setOpinion(perm, opinion);
-            } 
-        }
-        if (! rec.isEmpty()) computeDerivedValues(rec, bundle.getOptimizerStructure());
-        return rec;
-    }
-    
-    private void computeDerivedValues(ProfileRecommendation rec, ProfileOptimizerStructure optimizerStructure)
-    {
-        rec.normalizeOpinions();
-        rec.computeScores(optimizerStructure.profileChangeWeight, optimizerStructure.bundleValueWeight);
-        rec.computeUtilities();
-        rec.computeProbabilities(optimizerStructure.rationalityFactor);        
-    }
-  
-    private double computeProfileUsageCharge(CapacityProfile profile, List<TariffSubscription> subscriptions, 
-                                             CapacityOriginator capacityOriginator)
-    {
-        Timeslot timeslot = getTimeslotRepo().currentTimeslot();
-        double totalCharge = 0.0;
-        for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-            double totalTimeslotUsage = profile.getCapacity(i);
-            //System.out.println("timeslot usage total = " + totalTimeslotUsage);
-            double timeslotCharge = 0.0;            
-            for (TariffSubscription subscription: subscriptions) {
-                double subTimeslotUsage = capacityOriginator.adjustCapacityForSubscription(timeslot, totalTimeslotUsage, subscription);
-                //System.out.println("timeslot usage for subscription = " + totalTimeslotUsage);
-                timeslotCharge += subscription.getTariff().getUsageCharge(timeslot.getStartInstant(), subTimeslotUsage, 0.0);                
-                //System.out.println("timeslot charge = " + timeslotCharge);
-            }
-            totalCharge += timeslotCharge;
-            timeslot = getTimeslotRepo().getNext(timeslot);
-        }
-        return totalCharge;    
-    }
-    
-    private boolean isPermutationAcceptable(CapacityOriginator capacityOriginator, ProfileOptimizerStructure optimizerStructure, 
-                                            double permCharge, double forecastCharge)
-    {        
-        Double threshold = null;
-        switch (optimizerStructure.usageChargeStance) {
-        case NEUTRAL: 
-            return true;
-        case BENEFIT: 
-            if (capacityOriginator.getParentBundle().getCustomerInfo().getPowerType().isConsumption()) {  
-                // less negative is better
-                threshold = (1.0 - optimizerStructure.usageChargePercentBenefit) * forecastCharge;
-            }
-            else { 
-                // PRODUCTION or STORAGE -- more positive is better
-                threshold = (1.0 + optimizerStructure.usageChargePercentBenefit) * forecastCharge;
-            }
-            // fall through
-        case THRESHOLD:
-            if (threshold == null) {
-                threshold = optimizerStructure.usageChargeThreshold;
-            }
-            return permCharge > threshold;
-        default:
-            throw new Error("Unexpected case in usage charge stance: " + optimizerStructure.usageChargeStance);
-        }
-    }
-    
-    private void reconcileRecommendations(List<TariffSubscription> subscriptions, 
-                                          Map<CapacityOriginator, ForecastRecord> forecasts, 
-                                          Map<CapacityOriginator, List<CapacityProfile>> perms, 
-                                          Map<CapacityOriginator, ProfileRecommendation> recs)
-    {        
-        // TODO: adjust for accumulation towards tiered rates across capacity originators
+  LearningUtilityOptimizer (CustomerStructure structure,
+                            List<CapacityBundle> bundles)
+  {
+    super(structure, bundles);
+    log = Logger.getLogger(LearningUtilityOptimizer.class.getName());
+  }
 
-        for (AbstractMap.Entry<CapacityOriginator, ProfileRecommendation> targetEntry: recs.entrySet()) {
-            CapacityOriginator targetOriginator = targetEntry.getKey();
-            ProfileRecommendation targetRec = targetEntry.getValue();
-            if (targetRec.isEmpty() || 
-                targetOriginator.getParentBundle().getCapacityOriginators().size() == 1) {
-                continue;
-            }
-            double[] othersCapacities = new double[CapacityProfile.NUM_TIMESLOTS];
-            for (int s=0; s < NUM_SAMPLING_ITERATIONS; ++s) {            
-                for (AbstractMap.Entry<CapacityOriginator, ProfileRecommendation> otherEntry: recs.entrySet()) {
-                    ProfileRecommendation otherRec = otherEntry.getValue();
-                    CapacityProfile otherProfile; 
-                    if (otherRec.isEmpty()) {
-                        otherProfile = forecasts.get(otherEntry.getKey()).capacityProfile;
-                    } else {
-                        otherProfile = drawProfileFromRecommendation(otherRec);
-                    }
-                    for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-                        othersCapacities[i] += otherProfile.getCapacity(i);
-                        if (s == NUM_SAMPLING_ITERATIONS) {
-                            othersCapacities[i] = othersCapacities[i] / (double) NUM_SAMPLING_ITERATIONS;
-                        }
-                    }
-                }
-            }
-            CapacityProfile forecastProfile = forecasts.get(targetOriginator).capacityProfile;
-            double forecastVariance = computeAggregateVariance(forecastProfile, othersCapacities);
-            for (AbstractMap.Entry<CapacityProfile, Opinion> opinionEntry: targetRec.getOpinions().entrySet()) {
-                CapacityProfile targetProfile = opinionEntry.getKey();
-                double targetVariance = computeAggregateVariance(targetProfile, othersCapacities);
-                double bundleValue = forecastVariance / targetVariance;
-                opinionEntry.getValue().bundleValue = bundleValue;
-            }
-            computeDerivedValues(targetRec, targetOriginator.getParentBundle().getOptimizerStructure()); // TODO use local opt-structure
+  @Override
+  public void initialize (FactoredCustomerService service)
+  {
+    super.initialize(service);
+    inertiaSampler =
+      new Random(getRandomSeedRepo()
+              .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
+                             SeedIdGenerator.getId(), "InertiaSampler")
+              .getValue());
+    tariffSelector =
+      new Random(getRandomSeedRepo()
+              .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
+                             SeedIdGenerator.getId(), "TariffSelector")
+              .getValue());
+    recommendationMaker =
+      new Random(getRandomSeedRepo()
+              .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
+                             SeedIdGenerator.getId(), "RecommendationMaker")
+              .getValue());
+
+    subscribeDefault();
+  }
+
+  @Override
+  public void evaluateTariffs ()
+  {
+    super.evaluateTariffs();
+
+    recommendProfilesToBundles();
+  }
+
+  private void recommendProfilesToBundles ()
+  {
+    // Ignore cross-bundle optimization for now. For example, we could
+    // produce more locally when we have higher local demand, but we don't
+    // currently support net-metering in PowerTAC, so it won't do anything.
+
+    for (CapacityBundle bundle: capacityBundles) {
+      if (bundle.getOptimizerStructure().receiveRecommendations == true) {
+        recommendProfilesToBundle(bundle);
+      }
+    }
+  }
+
+  private void recommendProfilesToBundle (CapacityBundle bundle)
+  {
+    /**
+     * find all subscriptions
+     * for each subscription get forecast from each capacity originator in
+     * bundle
+     * for each forecast, get permutations
+     * + use learned history to determine which permutations are more likely
+     * + learn value for receptivityIndex and weights for recommendationFactors
+     * + weight permutations by learned history
+     * compute weight of each permutation as inverse of sum of normalized usage
+     * charge and normalized distance from forecast
+     * assign weights to each permutation for each CM to make a recommendation
+     * + optimize weights of permutations over all capacity originators
+     * (anti-herding)
+     * make weighted recommendations to each capacity originator
+     * + monitor deviation of actual from forecast and also from recommended
+     **/
+
+    List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
+
+    Map<CapacityOriginator, ForecastRecord> forecasts =
+      new HashMap<CapacityOriginator, ForecastRecord>();
+    Map<CapacityOriginator, List<CapacityProfile>> perms =
+      new HashMap<CapacityOriginator, List<CapacityProfile>>();
+    Map<CapacityOriginator, ProfileRecommendation> recs =
+      new HashMap<CapacityOriginator, ProfileRecommendation>();
+
+    for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+      CapacityProfile forecast = capacityOriginator.getCurrentForecast();
+      double charge =
+        computeProfileUsageCharge(forecast, subscriptions, capacityOriginator);
+      ForecastRecord forecastRecord = new ForecastRecord(forecast, charge);
+      forecasts.put(capacityOriginator, forecastRecord);
+      PermutationRule permutationRule =
+        bundle.getOptimizerStructure().permutationRule;
+      if (permutationRule == null)
+        permutationRule = PermutationRule.ALL_SHIFTS;
+      perms.put(capacityOriginator, forecast.getPermutations(permutationRule));
+      log.info(bundle.getName() + ": Evaluating "
+               + perms.get(capacityOriginator).size()
+               + " profile permutations for "
+               + bundle.getCustomerInfo().getPowerType()
+               + " capacity originator: "
+               + capacityOriginator.getCapacityName());
+      recs.put(capacityOriginator,
+               getProfileRecommendation(capacityOriginator, bundle,
+                                        forecastRecord, perms, subscriptions));
+    }
+    if (bundle.getOptimizerStructure().raconcileRecommendations == true) {
+      reconcileRecommendations(subscriptions, forecasts, perms, recs);
+    }
+    for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+      if (capacityOriginator instanceof ProfileRecommendation.Listener) {
+        ProfileRecommendation rec = recs.get(capacityOriginator);
+        if (!rec.isEmpty()) {
+          log.info(bundle.getName() + ": Submitting "
+                   + rec.getOpinions().size() + " profile suggestions to "
+                   + bundle.getCustomerInfo().getPowerType()
+                   + " capacity originator: "
+                   + capacityOriginator.getCapacityName());
+          ((ProfileRecommendation.Listener) capacityOriginator)
+                  .handleProfileRecommendation(rec);
         }
-    }
-    
-    private double computeAggregateVariance(CapacityProfile profile, double[] otherCapacities)
-    {
-        double[] aggCapacities = new double[CapacityProfile.NUM_TIMESLOTS];
-        for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-            aggCapacities[i] = profile.getCapacity(i) + otherCapacities[i];
+        else {
+          log.info(bundle.getName()
+                   + ": No beneficial profile permutations for "
+                   + bundle.getCustomerInfo().getPowerType()
+                   + " capacity originator: "
+                   + capacityOriginator.getCapacityName());
         }
-        return new Variance().evaluate(aggCapacities);
+      }
     }
-    
-    private CapacityProfile drawProfileFromRecommendation(ProfileRecommendation rec) 
-    {
-        double draw = recommendationMaker.nextFloat();        
-        double sumProb = 0.0;
-        for (AbstractMap.Entry<CapacityProfile, Double> entry: rec.getProbabilities().entrySet()) {
-            sumProb += entry.getValue();
-            if (draw < sumProb) {
-                return entry.getKey();
+  }
+
+  private List<TariffSubscription>
+    getBundleSubscriptions (CapacityBundle bundle)
+  {
+    return getTariffSubscriptionRepo()
+            .findSubscriptionsForCustomer(bundle.getCustomerInfo());
+  }
+
+  private
+    ProfileRecommendation
+    getProfileRecommendation (CapacityOriginator capacityOriginator,
+                              CapacityBundle bundle,
+                              ForecastRecord forecastRecord,
+                              Map<CapacityOriginator, List<CapacityProfile>> perms,
+                              List<TariffSubscription> subscriptions)
+  {
+    logRecommendationDetails("Forecast " + forecastRecord.capacityProfile
+                             + " usage charge = " + forecastRecord.usageCharge);
+
+    ProfileRecommendation rec = new ProfileRecommendation();
+    for (CapacityProfile perm: perms.get(capacityOriginator)) {
+      double usageCharge =
+        computeProfileUsageCharge(perm, subscriptions, capacityOriginator);
+      logRecommendationDetails("Permutation " + perm + " usage charge = "
+                               + usageCharge);
+      if (isPermutationAcceptable(capacityOriginator,
+                                  bundle.getOptimizerStructure(), usageCharge,
+                                  forecastRecord.usageCharge)) {
+        Opinion opinion = rec.new Opinion();
+        opinion.usageCharge =
+          computeProfileUsageCharge(perm, subscriptions, capacityOriginator);
+        opinion.profileChange = forecastRecord.capacityProfile.distanceTo(perm);
+        rec.setOpinion(perm, opinion);
+      }
+    }
+    if (!rec.isEmpty())
+      computeDerivedValues(rec, bundle.getOptimizerStructure());
+    return rec;
+  }
+
+  private void
+    computeDerivedValues (ProfileRecommendation rec,
+                          ProfileOptimizerStructure optimizerStructure)
+  {
+    rec.normalizeOpinions();
+    rec.computeScores(optimizerStructure.profileChangeWeight,
+                      optimizerStructure.bundleValueWeight);
+    rec.computeUtilities();
+    rec.computeProbabilities(optimizerStructure.rationalityFactor);
+  }
+
+  private double
+    computeProfileUsageCharge (CapacityProfile profile,
+                               List<TariffSubscription> subscriptions,
+                               CapacityOriginator capacityOriginator)
+  {
+    int timeslot = getTimeslotRepo().currentSerialNumber();
+    double totalCharge = 0.0;
+    for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+      double totalTimeslotUsage = profile.getCapacity(i);
+      // System.out.println("timeslot usage total = " + totalTimeslotUsage);
+      double timeslotCharge = 0.0;
+      for (TariffSubscription subscription: subscriptions) {
+        double subTimeslotUsage =
+          capacityOriginator.adjustCapacityForSubscription(timeslot,
+                                                           totalTimeslotUsage,
+                                                           subscription);
+        // System.out.println("timeslot usage for subscription = " +
+        // totalTimeslotUsage);
+        timeslotCharge +=
+          subscription.getTariff().getUsageCharge(getTimeslotRepo().getTimeForIndex(timeslot),
+                                                  subTimeslotUsage, 0.0);
+        // System.out.println("timeslot charge = " + timeslotCharge);
+      }
+      totalCharge += timeslotCharge;
+      timeslot += 1;
+    }
+    return totalCharge;
+  }
+
+  private boolean
+    isPermutationAcceptable (CapacityOriginator capacityOriginator,
+                             ProfileOptimizerStructure optimizerStructure,
+                             double permCharge, double forecastCharge)
+  {
+    Double threshold = null;
+    switch (optimizerStructure.usageChargeStance) {
+    case NEUTRAL:
+      return true;
+    case BENEFIT:
+      if (capacityOriginator.getParentBundle().getCustomerInfo().getPowerType()
+              .isConsumption()) {
+        // less negative is better
+        threshold =
+          (1.0 - optimizerStructure.usageChargePercentBenefit) * forecastCharge;
+      }
+      else {
+        // PRODUCTION or STORAGE -- more positive is better
+        threshold =
+          (1.0 + optimizerStructure.usageChargePercentBenefit) * forecastCharge;
+      }
+      // fall through
+    case THRESHOLD:
+      if (threshold == null) {
+        threshold = optimizerStructure.usageChargeThreshold;
+      }
+      return permCharge > threshold;
+    default:
+      throw new Error("Unexpected case in usage charge stance: "
+                      + optimizerStructure.usageChargeStance);
+    }
+  }
+
+  private
+    void
+    reconcileRecommendations (List<TariffSubscription> subscriptions,
+                              Map<CapacityOriginator, ForecastRecord> forecasts,
+                              Map<CapacityOriginator, List<CapacityProfile>> perms,
+                              Map<CapacityOriginator, ProfileRecommendation> recs)
+  {
+    // TODO: adjust for accumulation towards tiered rates across capacity
+    // originators
+
+    for (AbstractMap.Entry<CapacityOriginator, ProfileRecommendation> targetEntry: recs
+            .entrySet()) {
+      CapacityOriginator targetOriginator = targetEntry.getKey();
+      ProfileRecommendation targetRec = targetEntry.getValue();
+      if (targetRec.isEmpty()
+          || targetOriginator.getParentBundle().getCapacityOriginators().size() == 1) {
+        continue;
+      }
+      double[] othersCapacities = new double[CapacityProfile.NUM_TIMESLOTS];
+      for (int s = 0; s < NUM_SAMPLING_ITERATIONS; ++s) {
+        for (AbstractMap.Entry<CapacityOriginator, ProfileRecommendation> otherEntry: recs
+                .entrySet()) {
+          ProfileRecommendation otherRec = otherEntry.getValue();
+          CapacityProfile otherProfile;
+          if (otherRec.isEmpty()) {
+            otherProfile = forecasts.get(otherEntry.getKey()).capacityProfile;
+          }
+          else {
+            otherProfile = drawProfileFromRecommendation(otherRec);
+          }
+          for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+            othersCapacities[i] += otherProfile.getCapacity(i);
+            if (s == NUM_SAMPLING_ITERATIONS) {
+              othersCapacities[i] =
+                othersCapacities[i] / (double) NUM_SAMPLING_ITERATIONS;
             }
-        }        
-        throw new Error("Drawing from recommendation resulted in a null profile!");
-    }
-    
-    private void logRecommendationDetails(String msg)
-    {
-        //log.info(msg);
-        log.debug(msg);
-    }
-    
-    // INNER CLASS
-    
-    private class ForecastRecord
-    {
-        CapacityProfile capacityProfile;
-        double usageCharge;
-        
-        ForecastRecord(CapacityProfile p, double c)
-        {
-            capacityProfile = p;
-            usageCharge = c;
+          }
         }
+      }
+      CapacityProfile forecastProfile =
+        forecasts.get(targetOriginator).capacityProfile;
+      double forecastVariance =
+        computeAggregateVariance(forecastProfile, othersCapacities);
+      for (AbstractMap.Entry<CapacityProfile, Opinion> opinionEntry: targetRec
+              .getOpinions().entrySet()) {
+        CapacityProfile targetProfile = opinionEntry.getKey();
+        double targetVariance =
+          computeAggregateVariance(targetProfile, othersCapacities);
+        double bundleValue = forecastVariance / targetVariance;
+        opinionEntry.getValue().bundleValue = bundleValue;
+      }
+      computeDerivedValues(targetRec, targetOriginator.getParentBundle()
+              .getOptimizerStructure()); // TODO use local opt-structure
     }
-    
+  }
+
+  private double computeAggregateVariance (CapacityProfile profile,
+                                           double[] otherCapacities)
+  {
+    double[] aggCapacities = new double[CapacityProfile.NUM_TIMESLOTS];
+    for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+      aggCapacities[i] = profile.getCapacity(i) + otherCapacities[i];
+    }
+    return new Variance().evaluate(aggCapacities);
+  }
+
+  private CapacityProfile
+    drawProfileFromRecommendation (ProfileRecommendation rec)
+  {
+    double draw = recommendationMaker.nextFloat();
+    double sumProb = 0.0;
+    for (AbstractMap.Entry<CapacityProfile, Double> entry: rec
+            .getProbabilities().entrySet()) {
+      sumProb += entry.getValue();
+      if (draw < sumProb) {
+        return entry.getKey();
+      }
+    }
+    throw new Error("Drawing from recommendation resulted in a null profile!");
+  }
+
+  private void logRecommendationDetails (String msg)
+  {
+    // log.info(msg);
+    log.debug(msg);
+  }
+
+  // INNER CLASS
+
+  private class ForecastRecord
+  {
+    CapacityProfile capacityProfile;
+    double usageCharge;
+
+    ForecastRecord (CapacityProfile p, double c)
+    {
+      capacityProfile = p;
+      usageCharge = c;
+    }
+  }
+
 } // end class
 
 

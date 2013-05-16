@@ -140,12 +140,12 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     @Override
     public double useCapacity(TariffSubscription subscription)
     {
-        Timeslot timeslot = service.getTimeslotRepo().currentTimeslot();
+        int timeslot = service.getTimeslotRepo().currentSerialNumber();
         
         // we don't re-adjust for current weather here; would not be accurate for wind/solar production
         double forecastCapacity = getForecastCapacity(timeslot);
         logCapacityDetails(logIdentifier + ": Forecast capacity being used for timeslot " 
-                           + timeslot.getSerialNumber() + " = " + forecastCapacity);        
+                           + timeslot + " = " + forecastCapacity);        
 
         double adjustedCapacity = forecastCapacity;       
         adjustedCapacity = adjustCapacityForSubscription(timeslot, adjustedCapacity, subscription);
@@ -154,7 +154,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         }
         
         adjustedCapacity = truncateTo2Decimals(adjustedCapacity);
-        actualCapacities.put(timeslot.getSerialNumber(), adjustedCapacity);        
+        actualCapacities.put(timeslot, adjustedCapacity);        
         log.info(logIdentifier + ": Adjusted capacity for tariff " + subscription.getTariff().getId() + " = " + adjustedCapacity);        
         return adjustedCapacity;
     }
