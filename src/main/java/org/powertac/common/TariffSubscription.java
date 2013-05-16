@@ -382,7 +382,8 @@ public class TariffSubscription
   // -------------------- Expiration data -------------------
   /**
    * Returns the number of individual customers who may withdraw from this
-   * subscription without penalty.
+   * subscription without penalty. Should return the total customer count
+   * for a non-expiring tariff.
    */
   public int getExpiredCustomerCount ()
   {
