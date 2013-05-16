@@ -116,6 +116,11 @@ public class TariffEvaluationHelper
     if (null == timeService) {
       timeService = (TimeService) SpringApplicationContext.getBean("timeService");
     }
+    // for non-Spring test environment
+    if (null == timeService) {
+      log.warn("Direct retrieval of instance");
+      timeService = TimeService.getInstance();
+    }
   }
   
   /**

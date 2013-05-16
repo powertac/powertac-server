@@ -93,6 +93,7 @@ public class WeatherReport
     return currentTimeslot;
   }
 
+  @Deprecated
   public Timeslot getCurrentTimeslot ()
   {
     return getTimeslotRepo().findBySerialNumber(currentTimeslot);

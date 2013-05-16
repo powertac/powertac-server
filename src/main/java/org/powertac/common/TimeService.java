@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011, 2012 by the original author
+* Copyright (c) 2011 - 2013 by the original author
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -92,6 +92,7 @@ public class TimeService
   private DateTime currentDateTime;
   
   // debug code -- keep track of TimeService instances
+  private static TimeService instance;
   private static int index = 0;
   private int id;
   
@@ -102,6 +103,17 @@ public class TimeService
   {
     super();
     id = index++;
+    instance = this;
+  }
+  
+  /**
+   * Returns the most-recently created instance of TimeService. Intended
+   * to be used only for testing in Spring-free environment. Note that this
+   * is not a Singleton-type instance getter - it will not create an instance.
+   */
+  public static TimeService getInstance ()
+  {
+    return instance;
   }
   
   /**

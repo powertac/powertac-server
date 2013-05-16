@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011-2013 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 
 //import org.apache.log4j.Logger;
 import org.apache.log4j.Logger;
-import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -35,82 +34,90 @@ import org.powertac.common.exceptions.PowerTacException;
  * @author Erik Onarheim
  */
 @Repository
-public class WeatherReportRepo implements DomainRepo {
-	static private Logger log =
-	    Logger.getLogger(WeatherReportRepo.class.getName());
+public class WeatherReportRepo implements DomainRepo
+{
+  static private Logger log = Logger.getLogger(WeatherReportRepo.class
+          .getName());
 
-	// storage
-	private HashMap<Timeslot, WeatherReport> indexedWeatherReports;
+  // storage
+  private HashMap<Integer, WeatherReport> indexedWeatherReports;
 
-	// Check if the weather service has run at least once
-	private boolean hasRunOnce = false;
+  // Check if the weather service has run at least once
+  private boolean hasRunOnce = false;
 
-	@Autowired
-	private TimeslotRepo timeslotRepo;
+  @Autowired
+  private TimeslotRepo timeslotRepo;
 
-	/** standard constructor */
-	public WeatherReportRepo() {
-		super();
-		indexedWeatherReports = new HashMap<Timeslot, WeatherReport>();
-	}
+  /** standard constructor */
+  public WeatherReportRepo ()
+  {
+    super();
+    indexedWeatherReports = new HashMap<Integer, WeatherReport>();
+  }
 
-	/**
-	 * Adds a WeatherReport to the repo
-	 */
-	public void add(WeatherReport weather) {
-		runOnce();
-		indexedWeatherReports.put(weather.getCurrentTimeslot(), weather);
-	}
+  /**
+   * Adds a WeatherReport to the repo
+   */
+  public void add (WeatherReport weather)
+  {
+    runOnce();
+    indexedWeatherReports.put(weather.getTimeslotIndex(), weather);
+  }
 
-	/**
-	 * Returns the current weatherReport
-	 */
-	public WeatherReport currentWeatherReport() throws PowerTacException {
-		if (!hasRunOnce) {
-                  log.error("Weather Service has yet to run, cannot retrieve report");
-                  throw new PowerTacException("Attempt to retrieve report before data available");
-		}
-		// Returns the weather report for the current timeslot
-		return indexedWeatherReports.get(timeslotRepo.currentTimeslot());
-	}
+  /**
+   * Returns the current weatherReport
+   */
+  public WeatherReport currentWeatherReport () throws PowerTacException
+  {
+    if (!hasRunOnce) {
+      log.error("Weather Service has yet to run, cannot retrieve report");
+      throw new PowerTacException(
+                                  "Attempt to retrieve report before data available");
+    }
+    // Returns the weather report for the current timeslot
+    return indexedWeatherReports.get(timeslotRepo.currentSerialNumber());
+  }
 
-	/**
-	 * Returns a list of all the issued weather reports up to the
-	 * currentTimeslot
-	 */
-	public List<WeatherReport> allWeatherReports()
-	{
-	  Timeslot current = timeslotRepo.currentTimeslot();
-	  // Some weather reports exist in the repo for the future
-	  // but have not been issued for the current timeslot.
-	  ArrayList<WeatherReport> issuedReports = new ArrayList<WeatherReport>();
-	  for (WeatherReport w : indexedWeatherReports.values()) {
-	    if (w.getCurrentTimeslot().getStartInstant()
-	        .isBefore(current.getStartInstant())) {
-	      issuedReports.add(w);
-	    }
-	  }
-	  issuedReports.add(this.currentWeatherReport());
+  /**
+   * Returns a list of all the issued weather reports up to the
+   * currentTimeslot
+   */
+  public List<WeatherReport> allWeatherReports ()
+  {
+    Integer current = timeslotRepo.currentSerialNumber();
+    // Some weather reports exist in the repo for the future
+    // but have not been issued for the current timeslot.
+    ArrayList<WeatherReport> issuedReports = new ArrayList<WeatherReport>();
+    for (WeatherReport w: indexedWeatherReports.values()) {
+      if (w.getTimeslotIndex() < current) {
+        issuedReports.add(w);
+      }
+    }
+    issuedReports.add(this.currentWeatherReport());
 
-	  return (List<WeatherReport>) issuedReports;
-	}
+    return (List<WeatherReport>) issuedReports;
+  }
 
-	/**
-	 * Returns the number of weatherReports that have been successfully added.
-	 */
-	public int count() {
-		return indexedWeatherReports.size();
-	}
+  /**
+   * Returns the number of weatherReports that have been successfully added.
+   */
+  public int count ()
+  {
+    return indexedWeatherReports.size();
+  }
 
-	/**
-	 * Called by weather service to indicate weather exists
-	 */
-	public void runOnce() {
-		hasRunOnce = true;
-	}
+  /**
+   * Called by weather service to indicate weather exists
+   */
+  public void runOnce ()
+  {
+    hasRunOnce = true;
+  }
 
-	public void recycle() {
-	  hasRunOnce = false;
-	  indexedWeatherReports.clear();
-	}
+  @Override
+  public void recycle ()
+  {
+    hasRunOnce = false;
+    indexedWeatherReports.clear();
+  }
 }

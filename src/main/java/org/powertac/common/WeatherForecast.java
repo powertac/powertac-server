@@ -39,7 +39,6 @@ public class WeatherForecast
   
   /** the current or reference timeslot from which the weather (forecast) is generated */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int currentTimeslot;
 
   @XStreamImplicit(itemFieldName = "prediction")
@@ -74,11 +73,13 @@ public class WeatherForecast
     return currentTimeslot;
   }
   
+  @Deprecated
   public Timeslot getCurrentTimeslot ()
   {
     return getTimeslotRepo().findBySerialNumber(currentTimeslot);
   }
   
+  @Deprecated
   public Timeslot getTimeslot ()
   {
     return getCurrentTimeslot();
