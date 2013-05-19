@@ -54,10 +54,10 @@ public class Activity {
 
     // TODO Get hour weigths from XML?
 
-    double t1 = 6    + 4   * ra;
-    double t2 = 6.5  + 4.5 * ra; // waking up in the interval 6-7,5
-    double t3 = 16.5 + 4.5 * ra; // returning from work at 16.30-18
-    double t4 = 21   + 4   * ra; // going to bed from 9-12.00
+    double t1 = 6    + 1   * ra;
+    double t2 = 6.5  + 1.5 * ra; // waking up in the interval 6-7,5
+    double t3 = 16.5 + 1.5 * ra; // returning from work at 16.30-18
+    double t4 = 21   + 3   * ra; // going to bed from 9-12.00
 
     int available1 = 1;
     int available2 = 1;
@@ -71,7 +71,7 @@ public class Activity {
         available1 = 1;
       }
       else {
-        available1 = 1;
+        available1 = 0;
       }
     }
     else if (id == 4 || id == 3 || id == 7 || id == 8 || id == 9) {
