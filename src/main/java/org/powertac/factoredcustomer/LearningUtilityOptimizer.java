@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Random;
 import org.apache.commons.math.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
@@ -41,7 +42,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
 {
   private static final double NUM_SAMPLING_ITERATIONS = 30;
 
-  private Random recommendationMaker;
+  private RandomSeed recommendationMaker;
 
   LearningUtilityOptimizer (CustomerStructure structure,
                             List<CapacityBundle> bundles)
@@ -55,20 +56,17 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
   {
     super.initialize(service);
     inertiaSampler =
-      new Random(getRandomSeedRepo()
+      getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
-                             SeedIdGenerator.getId(), "InertiaSampler")
-              .getValue());
+                             SeedIdGenerator.getId(), "InertiaSampler");
     tariffSelector =
-      new Random(getRandomSeedRepo()
+      getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
-                             SeedIdGenerator.getId(), "TariffSelector")
-              .getValue());
+                             SeedIdGenerator.getId(), "TariffSelector");
     recommendationMaker =
-      new Random(getRandomSeedRepo()
+      getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
-                             SeedIdGenerator.getId(), "RecommendationMaker")
-              .getValue());
+                             SeedIdGenerator.getId(), "RecommendationMaker");
 
     subscribeDefault();
   }

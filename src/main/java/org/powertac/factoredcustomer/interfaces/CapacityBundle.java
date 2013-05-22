@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-13 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.powertac.factoredcustomer.interfaces;
 import java.util.List;
 import org.w3c.dom.Element;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.CustomerStructure;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure;
@@ -40,6 +41,8 @@ public interface CapacityBundle
     PowerType getPowerType();
     
     CustomerInfo getCustomerInfo();
+    
+    //TariffEvaluator getTariffEvaluator();
     
     TariffSubscriberStructure getSubscriberStructure();
     

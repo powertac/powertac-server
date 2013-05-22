@@ -16,22 +16,21 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.PriorityQueue;
-import java.util.Random;
 import org.apache.log4j.Logger;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TariffEvaluationHelper;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
@@ -63,16 +62,12 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   protected final List<CapacityBundle> capacityBundles;
 
   //protected final List<Tariff> ignoredTariffs = new ArrayList<Tariff>();
-  protected Random inertiaSampler;
-  protected Random tariffSelector;
+  protected RandomSeed inertiaSampler;
+  protected RandomSeed tariffSelector;
 
-  protected final TariffEvaluationHelper tariffEvalHelper =
-    new TariffEvaluationHelper();
-
-  protected int tariffEvaluationCounter = 0;
-  protected TariffEvalCache cache;
-  protected int allocationChunks = 50; // target number of allocation chunks
-  protected HashMap<Tariff, Integer> allocations;
+  //protected HashMap<Tariff, Integer> allocations;
+  // tariff evaluators
+  protected HashMap<CapacityBundle, TariffEvaluator> evaluatorMap;
 
   protected List<CapacityBundle> bundlesWithRevokedTariffs =
     new ArrayList<CapacityBundle>();
@@ -82,8 +77,28 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     customerStructure = structure;
     capacityBundles = bundles;
+    
+    // create evaluation wrappers and tariff evaluators for each bundle
+    for (CapacityBundle bundle : bundles) {
+      TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
+      TariffEvaluator evaluator =
+              new TariffEvaluator(new TariffEvaluationWrapper(bundle))
+              .withChunkSize(Math.max(1, bundle.getPopulation()/1000))
+              .withTariffSwitchFactor(subStructure.tariffSwitchFactor)
+              .withPreferredContractDuration(subStructure.expectedDuration)
+              .withInconvenienceWeight(subStructure.inconvenienceWeight)
+              .withRationality(subStructure.logitChoiceRationality);
+      evaluator.initializeCostFactors(subStructure.expMeanPriceWeight,
+                                      subStructure.maxValuePriceWeight,
+                                      subStructure.realizedPriceWeight,
+                                      subStructure.tariffVolumeThreshold);
+      evaluator.initializeInconvenienceFactors(subStructure.touFactor,
+                                               subStructure.tieredRateFactor,
+                                               subStructure.variablePricingFactor,
+                                               subStructure.interruptibilityFactor);
+      evaluatorMap.put(bundle, evaluator);
 
-    cache = new TariffEvalCache();
+    }
   }
 
   @Override
@@ -127,9 +142,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   protected TimeslotRepo getTimeslotRepo ()
   {
     return service.getTimeslotRepo();
-  }  
+  }
 
-  // /////////////// TARIFF EVALUATION //////////////////////
+  // /////////////// TARIFF SUBSCRIPTION //////////////////////
 
   @StateChange
   protected void subscribe (Tariff tariff, CapacityBundle bundle,
@@ -184,203 +199,25 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
   }
 
-  // Come here on tariff publication
+  // Tariff Evaluation --------------------------------
   @Override
   public void evaluateTariffs ()
   {
-    ++tariffEvaluationCounter;
     for (CapacityBundle bundle: capacityBundles) {
-      List<Tariff> newTariffs =
-              getTariffRepo().findRecentActiveTariffs(tariffEvalCount,
-                                                 bundle.getPowerType());
-      evaluateTariffs(bundle, newTariffs);
+      TariffEvaluator evaluator =evaluatorMap.get(bundle); 
+      if (bundle.getSubscriberStructure().inertiaDistribution != null) {
+        evaluator.withInertia
+          (bundle.getSubscriberStructure().inertiaDistribution.drawSample());
+      }
+      else {
+        log.warn("no inertia distro, using default value 0.7");
+        evaluator.withInertia(0.7);
+      }
+      evaluator.evaluateTariffs();
     }
     bundlesWithRevokedTariffs.clear();
   }
 
-  private void evaluateTariffs (CapacityBundle bundle,
-                                List<Tariff> tariffsToEval)
-  {
-    // inertia should affect the portion of the population affected,
-    // and not whether evaluation happens at all.
-    double inertia = 0.8; // default value
-    if (bundle.getSubscriberStructure().inertiaDistribution != null) {
-      inertia =
-        bundle.getSubscriberStructure().inertiaDistribution.drawSample();
-    }
-    // adjust for BOG
-    inertia = (1.0 - Math.pow(2, 1 - tariffEvaluationCounter)) * inertia;
-    
-    // Get the cost eval for the appropriate default tariff
-    Tariff defaultTariff =
-            getTariffMarket().getDefaultTariff(bundle.getPowerType());
-    EvalData defaultEval = cache.getEvaluation(defaultTariff);
-    if (null == defaultEval) {
-      defaultEval =
-              new EvalData(forecastDailyUsageCharge(bundle, defaultTariff),
-                           0.0);
-      cache.addEvaluation(defaultTariff, defaultEval);
-    }
-    
-    // Get the cost eval for each tariff
-    for (Tariff tariff : tariffsToEval) {
-      EvalData eval = cache.getEvaluation(tariff);
-      if (null == eval) {
-        // compute the projected cost for this tariff
-        double cost = forecastDailyUsageCharge(bundle, tariff);
-        double hassle = evaluateHassleFactor(bundle, tariff);
-        eval = new EvalData(cost, hassle);
-        cache.addEvaluation(tariff, eval);
-      }
-    }
-    
-    // for each current subscription
-    allocations = new HashMap<Tariff, Integer>();
-    for (TariffSubscription subscription
-            : getTariffSubscriptionRepo().
-            findSubscriptionsForCustomer(bundle.getCustomerInfo())) {
-      Tariff subTariff = subscription.getTariff();
-      // find out how many of these customers can withdraw without penalty
-      double withdrawCost = subTariff.getEarlyWithdrawPayment(); 
-      int committedCount = subscription.getCustomersCommitted();
-      int expiredCount = subscription.getExpiredCustomerCount();
-      if (withdrawCost == 0.0 || expiredCount == committedCount) {
-        // no need to worry about expiration
-        evaluateAlternativeTariffs(bundle, subscription, inertia,
-                                   0.0, committedCount,
-                                   defaultTariff, defaultEval, tariffsToEval);
-      }
-      else {
-        // Evaluate expired and unexpired subsets separately
-        evaluateAlternativeTariffs(bundle, subscription, inertia,
-                                   0.0, expiredCount,
-                                   defaultTariff, defaultEval, tariffsToEval);
-        evaluateAlternativeTariffs(bundle, subscription, inertia,
-                                   withdrawCost, committedCount - expiredCount,
-                                   defaultTariff, defaultEval, tariffsToEval);
-      }
-    }
-    for (Tariff newTariff : allocations.keySet()) {
-      this.subscribe(newTariff, bundle, allocations.get(newTariff), true);
-    }
-  }
-
-  // evaluate alternatives
-  private void evaluateAlternativeTariffs (CapacityBundle bundle,
-                                           TariffSubscription current,
-                                           double inertia,
-                                           double withdraw0,
-                                           int population,
-                                           Tariff defaultTariff,
-                                           EvalData defaultEval,
-                                           List<Tariff> tariffsToEval)
-  {
-    // Associate each alternate tariff with its utility value
-    PriorityQueue<TariffUtility> evals = new PriorityQueue<TariffUtility>();
-    TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
-    
-    HashSet<Tariff> tariffs = new HashSet<Tariff>(tariffsToEval);
-    tariffs.add(defaultTariff);
-    tariffs.add(current.getTariff());
-
-    // for each tariff, including the current and default tariffs,
-    // compute the utility
-    for (Tariff tariff: tariffs) {
-      EvalData eval = cache.getEvaluation(tariff);
-      double inconvenience = eval.inconvenience;
-      double cost = eval.costEstimate;
-      if (tariff != current.getTariff()) {
-        inconvenience += subStructure.tariffSwitchFactor;
-        if (tariff.getBroker() != current.getTariff().getBroker())
-          inconvenience += subStructure.brokerSwitchFactor;
-        cost += tariff.getSignupPayment();
-        cost += withdraw0;
-        double withdrawFactor =
-                Math.min(1.0,
-                         (double)tariff.getMinDuration()
-                         / (subStructure.expectedDuration * TimeService.DAY));
-        cost += withdrawFactor * tariff.getEarlyWithdrawPayment();
-      }
-      double utility = computeNormalizedDifference(bundle, cost,
-                                                   defaultEval.costEstimate);
-      utility -= subStructure.inconvenienceWeight * inconvenience;
-      evals.add(new TariffUtility(tariff, utility));
-    }
-    
-    // We now have utility values for each possible tariff.
-    // Time to make some choices -
-    // -- first, we have to compute the sum of transformed utilities
-    double logitDenominator = 0.0;
-    for (TariffUtility util : evals) {
-      logitDenominator +=
-              Math.exp(subStructure.logitChoiceRationality * util.utility);
-    }
-    // then we can compute the probabilities
-    for (TariffUtility util : evals) {
-      util.probability =
-              Math.exp(subStructure.logitChoiceRationality * util.utility)
-              / logitDenominator;
-    }
-    if (bundle.getCustomerInfo().isMultiContracting()) {
-      // Ideally, each individual customer makes a choice.
-      // For large populations, we do it in chunks,
-      // where "large" means n > allocationChunks.
-      int chunk = 1;
-      if (population > allocationChunks)
-        chunk = population / allocationChunks; // note integer division
-      int remainingPopulation = population;
-      while (remainingPopulation > 0) {
-        int count = (int)Math.min(remainingPopulation, chunk);
-        // allocate a chunk
-        double inertiaSample = inertiaSampler.nextDouble();
-        if (inertiaSample < inertia)
-          continue; // skip this one
-        double tariffSample = tariffSelector.nextDouble();
-        // walk down the list until we run out of probability
-        for (TariffUtility tu : evals) {
-          if (tariffSample <= tu.probability) {
-            addAllocation(current.getTariff(), tu.tariff, count);
-            remainingPopulation -= count;
-            break;
-          }
-          else {
-            tariffSample -= tu.probability;
-          }
-        }
-      }
-    }
-    else {
-      // not multicontracting
-      double inertiaSample = inertiaSampler.nextDouble();
-      if (inertiaSample >= inertia) {
-        double tariffSample = tariffSelector.nextDouble();
-        // walk down the list until we run out of probability
-        for (TariffUtility tu : evals) {
-          if (tariffSample <= tu.probability) {
-            addAllocation(current.getTariff(), tu.tariff, population);
-            break;
-          }
-          else {
-            tariffSample -= tu.probability;
-          }
-        }
-      }
-    }
-  }
-
-  private void addAllocation (Tariff current, Tariff newTariff, int count)
-  {
-    if (current == newTariff)
-      // ignore no-change allocations
-      return;
-    Integer ac = allocations.get(newTariff);
-    if (null == ac)
-      // first time on this one
-      ac = count;
-    else
-      ac += count;
-    allocations.put(newTariff, ac);
-  }
 
 //  private void manageSubscriptions (CapacityBundle bundle,
 //                                    List<Tariff> evalTariffs)
@@ -472,30 +309,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //      subscribe(evalTariffs.get(minIndex), bundle, overAllocations, false);
 //    }
 //  }
-  
-  // Computes the normalized difference between the cost of the default tariff
-  // and the cost of a proposed tariff
-  private double computeNormalizedDifference (CapacityBundle bundle,
-                                              double cost, double defaultCost)
-  {
-    double ndiff = (defaultCost - cost) / defaultCost;
-    if (bundle.getPowerType().isProduction())
-      ndiff = -ndiff;
-    return ndiff;
-  }
-  
-  // Computes the "inconvenience" factor for a tariff
-  // This computation includes only the "isolated" factors, and not
-  // the broker-switching factor because that is a function of tariff pairs
-  private double evaluateHassleFactor (CapacityBundle bundle, Tariff tariff)
-  {
-    TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
-    tariffEvalHelper.initializeInconvenienceFactors(subStructure.touFactor,
-                                                    subStructure.tieredRateFactor,
-                                                    subStructure.variablePricingFactor,
-                                                    subStructure.interruptibilityFactor);
-    return tariffEvalHelper.computeInconvenience(tariff);
-  }
 
 //  private List<Double> estimatePayments (CapacityBundle bundle,
 //                                         List<Tariff> evalTariffs)
@@ -527,26 +340,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 //    double dailyLifecyclePayment = lifecyclePayment / minDuration;
 //    return bundle.getPopulation() * (dailyLifecyclePayment);
 //  }
-
-  private double
-    forecastDailyUsageCharge (CapacityBundle bundle, Tariff tariff)
-  {
-    double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
-    double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
-    for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-      CapacityProfile forecast = capacityOriginator.getCurrentForecast();
-      for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-        double hourlyUsage = usageSign * forecast.getCapacity(i);
-        usageForecast[i] += hourlyUsage / bundle.getPopulation();
-      }
-    }
-    TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
-    tariffEvalHelper.init(subStructure.expMeanPriceWeight,
-                          subStructure.maxValuePriceWeight,
-                          subStructure.realizedPriceWeight,
-                          tariffEvalHelper.getSoldThreshold());
-    return tariffEvalHelper.estimateCost(tariff, usageForecast);
-  }
 
 //  private double adjustForInterruptibility (CapacityBundle bundle,
 //                                            Tariff tariff, double totalPayment)
@@ -942,27 +735,6 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     return customerStructure.name;
   }
 
-//  protected double truncateTo2Decimals (double x)
-//  {
-//    double fract, whole;
-//    if (x > 0) {
-//      whole = Math.floor(x);
-//      fract = Math.floor((x - whole) * 100.0) / 100.0;
-//    }
-//    else {
-//      whole = Math.ceil(x);
-//      fract = Math.ceil((x - whole) * 100.0) / 100.0;
-//    }
-//    return whole + fract;
-//  }
-
-//  private void logAllocationDetails (String msg)
-//  {
-//    if (factoredCustomerService.getAllocationDetailsLogging() == true) {
-//      log.info(msg);
-//    }
-//  }
-
   private void logUsageCharges (String msg)
   {
     if (service.getUsageChargesLogging() == true) {
@@ -975,72 +747,59 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     return this.getClass().getCanonicalName() + ":" + getCustomerName();
   }
-  
-  // Container for tariff-utility recording
-  class TariffUtility implements Comparable<TariffUtility>
+
+  class TariffEvaluationWrapper implements CustomerModelAccessor
   {
-    Tariff tariff;
-    double utility;
-    double probability = 0.0;
-    
-    TariffUtility (Tariff tariff, double utility)
+    private CapacityBundle bundle;
+    private TariffSubscriberStructure subStructure;
+
+    TariffEvaluationWrapper (CapacityBundle bundle)
     {
-      super();
-      this.tariff = tariff;
-      this.utility = utility;
+      this.bundle = bundle;
     }
 
     @Override
-    // natural ordering is by decreasing utility values
-    public int compareTo (TariffUtility other)
+    public CustomerInfo getCustomerInfo ()
     {
-      double result = other.utility - utility;
-      if (result == 0.0)
-        // consistent with equals...
-        return (int)(other.tariff.getId() - tariff.getId());
-      else if (result > 0.0)
-        return 1;
-      else
-        return -1;
+      return bundle.getCustomerInfo();
     }
-  }
-  
-  // Container for tariff-evaluation data
-  class EvalData
-  {
-    double costEstimate;
-    double inconvenience;
-    
-    EvalData (double cost, double inconvenience)
-    {
-      super();
-      this.costEstimate = cost;
-      this.inconvenience = inconvenience;
-    }
-  }
-  
-  // Tariff-evaluation cache per CapacityBundle
-  class TariffEvalCache
-  {
-    HashMap<Tariff, EvalData> evaluatedTariffs;
-    
-    TariffEvalCache ()
-    {
-      super();
-      evaluatedTariffs = new HashMap<Tariff, EvalData>();
-    }
-    
-    void addEvaluation (Tariff tariff, EvalData data)
-    {
-      evaluatedTariffs.put(tariff, data);
-    }
-    
-    EvalData getEvaluation (Tariff tariff)
-    {
-      return evaluatedTariffs.get(tariff);
-    }
-  }
 
+    @Override
+    public double[] getCapacityProfile (Tariff tariff)
+    {
+      double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
+      double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
+      for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+        CapacityProfile forecast = capacityOriginator.getCurrentForecast();
+        for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+          double hourlyUsage = usageSign * forecast.getCapacity(i);
+          usageForecast[i] += hourlyUsage / bundle.getPopulation();
+        }
+      }
+      return usageForecast;
+    }
+
+    @Override
+    public double getBrokerSwitchFactor (boolean isSuperseding)
+    {
+      double result = subStructure.brokerSwitchFactor; 
+      if (isSuperseding)
+        return result * 5.0;
+      return result;
+    }
+
+    @Override
+    public double getTariffChoiceSample ()
+    {
+      return tariffSelector.nextDouble();
+    }
+
+    @Override
+    public double getInertiaSample ()
+    {
+      return inertiaSampler.nextDouble();
+    }
+  }
 } // end class
 
 

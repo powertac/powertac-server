@@ -56,6 +56,7 @@ public final class TariffSubscriberStructure
   final Double expMeanPriceWeight;
   final Double maxValuePriceWeight;
   final Double realizedPriceWeight;
+  final Double tariffVolumeThreshold = 20000.0;
   final AllocationMethod allocationMethod;
   final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
   final double logitChoiceRationality;

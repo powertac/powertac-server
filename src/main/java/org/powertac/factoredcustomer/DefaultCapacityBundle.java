@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.common.state.Domain;
@@ -37,8 +38,12 @@ class DefaultCapacityBundle implements CapacityBundle
   protected FactoredCustomerService service;
   private final CustomerStructure customerStructure;
 
+  // identity
   private final String name;
   private final CustomerInfo customerInfo;
+
+  // evaluation tools
+  //protected TariffEvaluator tariffEvaluator;
 
   private final TariffSubscriberStructure subscriberStructure;
   private final ProfileOptimizerStructure optimizerStructure;
@@ -52,6 +57,7 @@ class DefaultCapacityBundle implements CapacityBundle
   {
     this.service = service;
     customerStructure = structure;
+    //tariffEvaluator = new TariffEvaluator();
 
     String bundleId = xml.getAttribute("id");
     name =
@@ -136,6 +142,12 @@ class DefaultCapacityBundle implements CapacityBundle
   {
     return customerInfo;
   }
+  
+  //@Override
+  //public TariffEvaluator getTariffEvaluator ()
+  //{
+    //return tariffEvaluator;
+  //}
 
   @Override
   public TariffSubscriberStructure getSubscriberStructure ()
