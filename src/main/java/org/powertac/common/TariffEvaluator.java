@@ -313,6 +313,12 @@ public class TariffEvaluator
       util.probability =
               Math.exp(lambda * util.utility)
               / logitDenominator;
+      if (Double.isNaN(util.probability)) {
+        log.error("Probability NAN, util=" + util.utility
+                  + ", denom=" + logitDenominator
+                  + ", tariff " + util.tariff);
+        util.probability = 0.0;
+      }
     }
     int remainingPopulation = population;
     int chunk = remainingPopulation;
@@ -343,6 +349,7 @@ public class TariffEvaluator
       }
       if (!allocated) {
         log.error("Failed to allocate: P=" + tariffSample);
+        remainingPopulation -= count;
       }
     }
   }

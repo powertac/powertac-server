@@ -75,7 +75,7 @@ public class TariffEvaluatorTest
   @Before
   public void setUp () throws Exception
   {
-    competition = Competition.newInstance("duo-test");
+    competition = Competition.newInstance("tariff-evaluator-test");
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
                                .plus(TimeService.HOUR * 7));

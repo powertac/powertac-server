@@ -78,9 +78,6 @@ public class TariffSubscription
     this.customer = customer;
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
-    timeService = (TimeService)SpringApplicationContext.getBean("timeService");
-    accountingService = (Accounting)SpringApplicationContext.getBean("accountingService");
-    tariffMarketService = (TariffMarket)SpringApplicationContext.getBean("tariffMarketService");
   }
   
   public long getId ()
@@ -126,7 +123,9 @@ public class TariffSubscription
     long minDuration = tariff.getMinDuration();
     //if (minDuration > 0) {
     // Compute the 00:00 Instant for the current time
-    Instant start = timeService.truncateInstant(timeService.getCurrentTime(), TimeService.DAY);
+    Instant start =
+            getTimeService().truncateInstant(getTimeService().getCurrentTime(),
+                                             TimeService.DAY);
     if (expirations.size() > 0 &&
         expirations.get(expirations.size() - 1).getHorizon() == start.getMillis() + minDuration) {
       // update existing entry
@@ -144,10 +143,10 @@ public class TariffSubscription
                 " customers, total = " + customerCount * tariff.getSignupPayment());
     }
     // signup payment is positive for a bonus, to it's a debit for the broker.
-    accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
-                                           tariff, customer, 
-                                           customerCount, 0.0,
-                                           customerCount * -tariff.getSignupPayment());
+    getAccounting().addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                         tariff, customer, 
+                                         customerCount, 0.0,
+                                         customerCount * -tariff.getSignupPayment());
   }
   
   /**
@@ -156,7 +155,7 @@ public class TariffSubscription
    */
   public void unsubscribe (int customerCount)
   {
-    tariffMarketService.subscribeToTariff(getTariff(),
+    getTariffMarket().subscribeToTariff(getTariff(),
                                           getCustomer(),
                                           -customerCount);
     pendingUnsubscribeCount += customerCount;
@@ -192,7 +191,7 @@ public class TariffSubscription
     customersCommitted -= customerCount;
     // Post withdrawal and possible penalties
     //if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
-      accountingService.addTariffTransaction(TariffTransaction.Type.WITHDRAW,
+      getAccounting().addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer, customerCount, 0.0,
           penaltyCount * -tariff.getEarlyWithdrawPayment());
     //}
@@ -222,19 +221,19 @@ public class TariffSubscription
     if (newTariff == null) {
       // there is no superseding tariff, so we have to revert to the default tariff.
       newTariff =
-        tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
+        getTariffMarket().getDefaultTariff(tariff.getTariffSpec()
                 .getPowerType());
     }
     if (newTariff == null) {
       // there is no exact match for original power type - choose generic
       newTariff =
-        tariffMarketService.getDefaultTariff(tariff.getTariffSpec()
+        getTariffMarket().getDefaultTariff(tariff.getTariffSpec()
                 .getPowerType().getGenericType());
     }
 
-    tariffMarketService.subscribeToTariff(tariff, customer,
+    getTariffMarket().subscribeToTariff(tariff, customer,
                                           -customersCommitted);
-    tariffMarketService.subscribeToTariff(newTariff, customer,
+    getTariffMarket().subscribeToTariff(newTariff, customer,
                                           customersCommitted);
     log.info("Tariff " + tariff.getId() + " superseded by " + newTariff.getId()
              + " for " + customersCommitted + " customers");
@@ -257,17 +256,17 @@ public class TariffSubscription
     // generate the usage transaction
     TariffTransaction.Type txType =
         actualKwh < 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
-    accountingService.addTariffTransaction(txType, tariff,
+    getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, -actualKwh,
         customersCommitted * -tariff.getUsageCharge(actualKwh / customersCommitted, totalUsage, true));
-    if (timeService.getHourOfDay() == 0) {
+    if (getTimeService().getHourOfDay() == 0) {
       //reset the daily usage counter
       totalUsage = 0.0;
     }
     totalUsage += actualKwh / customersCommitted;
     // generate the periodic payment if necessary
     if (tariff.getPeriodicPayment() != 0.0) {
-      accountingService.addTariffTransaction(TariffTransaction.Type.PERIODIC,
+      getAccounting().addTariffTransaction(TariffTransaction.Type.PERIODIC,
           tariff, customer, customersCommitted, 0.0,
           customersCommitted * -tariff.getPeriodicPayment() / 24.0);
     }
@@ -305,7 +304,7 @@ public class TariffSubscription
     // issue compensating tariff transaction
     TariffTransaction.Type txType =
         kwh > 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
-    accountingService.addTariffTransaction(txType, tariff,
+    getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
         tariff.getUsageCharge(kwh / customersCommitted, 
@@ -370,7 +369,7 @@ public class TariffSubscription
     maxRemainingCurtailment -= result;
     return result;
   }
-  
+
   /**
    * Adds kwh to the curtailment in the current timeslot.
    */
@@ -378,7 +377,28 @@ public class TariffSubscription
   {
     curtailment += kwh;
   }
+
+  // access to Spring components
+  private TimeService getTimeService ()
+  {
+    if (null == timeService)
+      timeService = (TimeService)SpringApplicationContext.getBean("timeService");
+    return timeService;
+  }
   
+  private Accounting getAccounting ()
+  {
+    if (null == accountingService)
+      accountingService = (Accounting)SpringApplicationContext.getBean("accountingService");
+    return accountingService;
+  }
+  
+  private TariffMarket getTariffMarket ()
+  {
+    if (null == tariffMarketService)
+      tariffMarketService = (TariffMarket)SpringApplicationContext.getBean("tariffMarketService");
+    return tariffMarketService;
+  }
   // -------------------- Expiration data -------------------
   /**
    * Returns the number of individual customers who may withdraw from this
@@ -388,7 +408,9 @@ public class TariffSubscription
   public int getExpiredCustomerCount ()
   {
     int cc = 0;
-    Instant today = timeService.truncateInstant(timeService.getCurrentTime(), TimeService.DAY);
+    Instant today =
+            getTimeService().truncateInstant(getTimeService().getCurrentTime(),
+                                             TimeService.DAY);
     for (ExpirationRecord exp : expirations) {
       if (exp.getHorizon() <= today.getMillis()) {
         cc += exp.getCount();
