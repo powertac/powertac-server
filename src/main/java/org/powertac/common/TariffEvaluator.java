@@ -63,6 +63,7 @@ public class TariffEvaluator
   private int tariffEvalDepth = 5; // # of tariffs/powerType to eval
   private double inertia = 0.8;
   private double rationality = 0.9;
+  private double lambdaMax = 100.0;
   private double inconvenienceWeight = 0.2;
   private double tariffSwitchFactor = 0.04;
   private double preferredDuration = 6;
@@ -296,16 +297,18 @@ public class TariffEvaluator
     
     // We now have utility values for each possible tariff.
     // Time to make some choices -
-    // -- first, we have to compute the sum of transformed utilities
+    // -- first, compute lambda from rationality
+    // -- second, we have to compute the sum of transformed utilities
     double logitDenominator = 0.0;
+    double lambda = Math.pow(lambdaMax, rationality) - 1.0;
     for (TariffUtility util : evals) {
       logitDenominator +=
-              Math.exp(rationality * util.utility);
+              Math.exp(lambda * util.utility);
     }
     // then we can compute the probabilities
     for (TariffUtility util : evals) {
       util.probability =
-              Math.exp(rationality * util.utility)
+              Math.exp(lambda * util.utility)
               / logitDenominator;
     }
     int remainingPopulation = population;
