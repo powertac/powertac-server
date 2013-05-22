@@ -136,8 +136,6 @@ public class Tariff
       timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     if (null == tariffRepo)
       tariffRepo= (TariffRepo)SpringApplicationContext.getBean("tariffRepo");
-    if (timeService == null)
-      log.error("timeService not initialized!");
     offerDate = timeService.getCurrentTime();
     tariffRepo.addTariff(this);
     if (tariffSpec.getSupersedes() != null) {
@@ -558,6 +556,7 @@ public class Tariff
     tiers.add(0.0 * tierSign);
     int weekMultiplier = 1;
     for (Rate rate : tariffSpec.getRates()) {
+      rate.setTimeService(timeService);
       if (rate.getWeeklyBegin() >= 0) {
         isWeekly = true;
         weekMultiplier = 7;

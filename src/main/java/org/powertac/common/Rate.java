@@ -780,7 +780,13 @@ public class Rate extends XStreamStateLoggable
       timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     return timeService.getCurrentTime();
   }
-  
+
+  // allows tariff to set timeService, needed for testing
+  void setTimeService (TimeService service)
+  {
+    timeService = service;
+  }
+
   class ProbeCharge extends HourlyCharge
   {
     public ProbeCharge (Instant when, double charge)

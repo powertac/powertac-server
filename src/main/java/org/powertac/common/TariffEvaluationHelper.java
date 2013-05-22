@@ -108,9 +108,9 @@ public class TariffEvaluationHelper
     alpha = 0.0;
     tariff = null;
     normalizeWeights();
-    if (null == timeService) {
-      timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-    }
+    //if (null == timeService) {
+    //  timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    //}
     // for non-Spring test environment
     if (null == timeService) {
       timeService = TimeService.getInstance();
@@ -148,6 +148,8 @@ public class TariffEvaluationHelper
     double dailyUsage = 0.0;
     double result = 0.0;
     Instant time = timeService.getCurrentTime();
+    if (null == time)
+      log.error("Time is null!");
     for (int index = 0; index < usage.length; index++) {
       time = time.plus(TimeService.HOUR);
       result += tariff.getUsageCharge(time, usage[index], dailyUsage, this);
