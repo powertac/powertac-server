@@ -77,7 +77,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   {
     customerStructure = structure;
     capacityBundles = bundles;
-    
+    evaluatorMap = new HashMap<CapacityBundle, TariffEvaluator>();
+
     // create evaluation wrappers and tariff evaluators for each bundle
     for (CapacityBundle bundle : bundles) {
       TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
@@ -756,6 +757,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     TariffEvaluationWrapper (CapacityBundle bundle)
     {
       this.bundle = bundle;
+      subStructure = bundle.getSubscriberStructure();
     }
 
     @Override

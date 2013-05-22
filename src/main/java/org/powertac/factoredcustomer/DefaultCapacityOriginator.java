@@ -140,7 +140,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
         service.getWeatherForecastRepo().currentWeatherForecast();
       List<WeatherForecastPrediction> predictions = forecast.getPredictions();
       for (WeatherForecastPrediction prediction: predictions) {
-        if (prediction.getForecastTime() == future) {
+        if (prediction.getForecastTime() == timeToFuture) {
           weather = new Weather(prediction);
         }
       }

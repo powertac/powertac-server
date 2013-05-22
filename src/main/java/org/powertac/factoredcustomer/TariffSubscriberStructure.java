@@ -164,10 +164,8 @@ public final class TariffSubscriberStructure
       Element logitChoiceElement =
         (Element) allocationElement.getElementsByTagName("logitChoice").item(0);
       logitChoiceRationality = 
-              Math.pow(lambdaMax,
-                       Double.parseDouble(logitChoiceElement.
-                                           getAttribute("rationality")))
-              -1.0;
+              Double.parseDouble(logitChoiceElement.
+                                 getAttribute("rationality"));
     }
 
     Element reconsiderationElement =
