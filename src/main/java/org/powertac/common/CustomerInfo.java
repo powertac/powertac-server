@@ -125,7 +125,8 @@ public class CustomerInfo //implements Serializable
   }
   
   /**
-   * Fluent setter to set PowerType fpr this CustomerInfo.
+   * Fluent setter to set PowerType for this CustomerInfo.
+   * Default value is PowerType.CONSUMPTION.
    */
   @StateChange
   public CustomerInfo withPowerType (PowerType type)
@@ -145,6 +146,8 @@ public class CustomerInfo //implements Serializable
 
   /**
    * Fluent setter for the multiContracting property.
+   * Default is false - all entities in the model will subscribe to the
+   * same tariff.
    */
   @StateChange
   public CustomerInfo withMultiContracting (boolean value)
