@@ -63,7 +63,6 @@ public class TariffEvaluator
   private int tariffEvalDepth = 5; // # of tariffs/powerType to eval
   private double inertia = 0.8;
   private double rationality = 0.9;
-  private double lambdaMax = 100.0;
   private double inconvenienceWeight = 0.2;
   private double tariffSwitchFactor = 0.04;
   private double preferredDuration = 6;
@@ -72,6 +71,10 @@ public class TariffEvaluator
   private int evaluationCounter = 0;
   private HashMap<Tariff, EvalData> evaluatedTariffs;
   private HashMap<Tariff, Integer> allocations;
+
+  // algorithm parameters - needed for numerical stablity
+  private double lambdaMax = 50.0;
+  private double maxLinearUtility = 7.0;
 
   public TariffEvaluator (CustomerModelAccessor cma)
   {
@@ -292,7 +295,7 @@ public class TariffEvaluator
       double utility = computeNormalizedDifference(cost,
                                                    defaultEval.costEstimate);
       utility -= inconvenienceWeight * inconvenience;
-      evals.add(new TariffUtility(tariff, utility));
+      evals.add(new TariffUtility(tariff, constrainUtility(utility)));
     }
     
     // We now have utility values for each possible tariff.
@@ -342,6 +345,21 @@ public class TariffEvaluator
         log.error("Failed to allocate: P=" + tariffSample);
       }
     }
+  }
+
+  // Ensures numeric stability by constraining range of utility values.
+  private double constrainUtility (double utility)
+  {
+    if (utility > maxLinearUtility) {
+      double compressed = Math.log10(utility - maxLinearUtility);
+      return Math.min(maxLinearUtility + compressed,
+                      maxLinearUtility * 2);
+    }
+    else if (utility < -maxLinearUtility) {
+      return -maxLinearUtility; // these will never be chosen anyway
+    }
+    else
+      return utility;
   }
 
   // Computes the normalized difference between the cost of the default tariff
