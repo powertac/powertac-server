@@ -132,6 +132,10 @@ public class CompetitionControlService
   @ConfigurableValue(valueType = "Integer",
       description = "Maximum time in msec to wait for subsequent broker login")
   private int loginTimeout = 0;
+  
+  @ConfigurableValue(valueType = "Boolean",
+          description = "If true, then brokers can send PauseRequest messages")
+  private boolean brokerPauseAllowed = false;
 
   private ArrayList<String> pendingLogins; // external logins expected
   private int loginCount = 0; // number of external brokers logged in so far
@@ -940,8 +944,13 @@ public class CompetitionControlService
    * cycle has finished, or immediately if no simulation cycle is currently
    * in progress.
    */
-  public void handleMessage (PauseRequest msg)
+  public synchronized void handleMessage (PauseRequest msg)
   {
+    if (!brokerPauseAllowed) {
+      log.info("Pause request by " + msg.getBroker().getUsername()
+               + " disallowed");
+      return;
+    }
     if (pauseRequester != null) {
       log.info("Pause request by " + msg.getBroker().getUsername() + 
                " rejected; already paused by " + pauseRequester);
@@ -956,7 +965,7 @@ public class CompetitionControlService
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
    */
-  public void handleMessage (PauseRelease msg)
+  public synchronized void handleMessage (PauseRelease msg)
   {
     if (pauseRequester == null) {
       log.info("Release request by " + msg.getBroker().getUsername() + 
