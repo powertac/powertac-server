@@ -162,6 +162,14 @@ public class TariffEvaluator
   public TariffEvaluator withRationality (double rationality)
   {
     this.rationality = rationality;
+    if (rationality < 0.0) {
+      log.error("Rationality " + rationality + "< 0.0");
+      this.rationality = 0.01;
+    }
+    else if (rationality > 1.0) {
+      log.error("Rationality " + rationality + "> 1.0");
+      this.rationality = 1.0;
+    }
     return this;
   }
 
@@ -188,7 +196,9 @@ public class TariffEvaluator
   /**
    * Sets the preferred maximum contract duration in days. For tariffs
    * having a non-zero early-withdraway fee, this is the period after which
-   * the cost of withdrawal is discounted. Default value is 6 days.
+   * the cost of withdrawal is discounted. It is also the standard period
+   * over which usage cost is compared against signup/withdrawal payments.
+   * Default value is 6 days.
    */
   public TariffEvaluator withPreferredContractDuration (double days)
   {
@@ -221,6 +231,9 @@ public class TariffEvaluator
         // compute the projected cost for this tariff
         double cost = forecastCost(tariff);
         double hassle = computeInconvenience(tariff);
+        log.info("Evaluated tariff " + tariff.getId()
+                 + ": cost=" + cost
+                 + ", inconvenience=" + hassle);
         eval = new EvalData(cost, hassle);
         evaluatedTariffs.put(tariff, eval);
       }
@@ -329,17 +342,19 @@ public class TariffEvaluator
     }
     while (remainingPopulation > 0) {
       int count = (int)Math.min(remainingPopulation, chunk);
+      remainingPopulation -= count;
       // allocate a chunk
       double inertiaSample = accessor.getInertiaSample();
-      if (inertiaSample < inertia)
-        continue; // skip this one
+      if (inertiaSample < inertia) {
+        // skip this one
+        continue;
+      }
       double tariffSample = accessor.getTariffChoiceSample();
       // walk down the list until we run out of probability
       boolean allocated = false;
       for (TariffUtility tu : evals) {
         if (tariffSample <= tu.probability) {
           addAllocation(current.getTariff(), tu.tariff, count);
-          remainingPopulation -= count;
           allocated = true;
           break;
         }
@@ -349,7 +364,6 @@ public class TariffEvaluator
       }
       if (!allocated) {
         log.error("Failed to allocate: P=" + tariffSample);
-        remainingPopulation -= count;
       }
     }
   }
@@ -402,7 +416,9 @@ public class TariffEvaluator
   private double forecastCost (Tariff tariff)
   {
     double[] profile = accessor.getCapacityProfile(tariff);
-    return helper.estimateCost(tariff, profile);
+    double profileCost = helper.estimateCost(tariff, profile);
+    double scale = preferredDuration * 24.0 / profile.length;
+    return profileCost * scale;
   }
 
   // tracks additions and deletions for tariff subscriptions
@@ -553,7 +569,7 @@ public class TariffEvaluator
     if (null != tariffMarket)
       return tariffMarket;
     tariffMarket =
-            (TariffMarket) SpringApplicationContext.getBean("tariffMarket");
+            (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
     return tariffMarket;
   }
 

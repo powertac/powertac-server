@@ -40,7 +40,9 @@ public interface CustomerModelAccessor
   public CustomerInfo getCustomerInfo ();
 
   /**
-   * Returns a capacity profile for the given tariff.
+   * Returns a capacity profile for the given tariff. This must represent
+   * the usage of a single individual in a population model over some
+   * model-specific time period.
    */
   public double[] getCapacityProfile (Tariff tariff);
   
