@@ -15,30 +15,6 @@
  */
 package org.powertac.server;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -64,9 +40,20 @@ import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.*;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Manages command-line and file processing for pre-game simulation setup. 
@@ -209,6 +196,7 @@ public class CompetitionSetupService
         bootSession(options.valueOf(bootOutput),
                     serverConfig,
                     logSuffix,
+                    options.valueOf(seedData),
                     options.valueOf(weatherData));
       }
       else if (options.has("sim")) {
@@ -245,7 +233,9 @@ public class CompetitionSetupService
   // ---------- top-level boot and sim session control ----------
   @Override
   public String bootSession (String bootFilename, String config,
-                             String logSuffix, String weatherData)
+                             String logSuffix,
+                             String seedData,
+                             String weatherData)
   {
     String error = null;
     try {
@@ -259,6 +249,9 @@ public class CompetitionSetupService
 
       // Use weather file instead of webservice, this sets baseTime also
       useWeatherDataMaybe(weatherData, true);
+
+      // load random seeds if requested
+      seedSource = seedData;
 
       // set the logfile suffix
       setLogSuffix(logSuffix, "boot");
@@ -313,7 +306,7 @@ public class CompetitionSetupService
       serverProps.recycle();
       setConfigMaybe(config);
 
-      // Use weather file instead of webservice
+      // Use weather file instead of webservice, this sets baseTime also
       useWeatherDataMaybe(weatherData, false);
       
       // load random seeds if requested
