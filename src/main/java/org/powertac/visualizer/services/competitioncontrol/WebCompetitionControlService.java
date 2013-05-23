@@ -98,6 +98,7 @@ public class WebCompetitionControlService
     String result = css.bootSession(gameParameters.getBootstrapFilename(),
                                     gameParameters.getServerConfig(),
                                     gameParameters.getLogSuffix(),
+                                    gameParameters.getSeedName(),
                                     gameParameters.getWeatherName());
     if (result == null) {
       message = "Bootstrap mode started.";
