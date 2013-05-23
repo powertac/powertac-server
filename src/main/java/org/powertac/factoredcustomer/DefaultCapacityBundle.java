@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.TariffEvaluator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.common.state.Domain;

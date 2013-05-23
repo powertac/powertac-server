@@ -23,7 +23,6 @@ import java.util.HashMap;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;

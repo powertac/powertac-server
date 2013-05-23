@@ -17,7 +17,6 @@
 package org.powertac.factoredcustomer.interfaces;
 
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
 import org.powertac.factoredcustomer.CapacityProfile;
 
 /**
