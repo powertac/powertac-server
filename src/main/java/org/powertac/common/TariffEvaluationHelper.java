@@ -114,7 +114,7 @@ public class TariffEvaluationHelper
     // for non-Spring test environment
     if (null == timeService) {
       timeService = TimeService.getInstance();
-      log.warn("Direct retrieval of instance " + timeService);
+      //log.warn("Direct retrieval of instance " + timeService);
     }
   }
   

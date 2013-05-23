@@ -28,6 +28,19 @@ import org.springframework.stereotype.Service;
 /**
  * Static methods to access the Spring application context. It is set up
  * as a service so Spring will create and initialize it.
+ * 
+ * NOTE: These methods should NOT be used in constructors. Doing so makes it
+ * vitually impossible to test with mocks, and makes transitive dependencies
+ * very difficult in a test environment. Better to use them in individual
+ * "service getter" methods that do nothing for dependencies that have
+ * already been satisfied by test code using ReflectionTestUtils.setField().
+ * 
+ * ALSO NOTE: Even when used outside a constructor, there are still potential
+ * problems in a test environment, because if any test in a suite initializes
+ * Spring, then later tests that do not initialize Spring can retrieve
+ * instances from earlier tests, which may not be what the test expects.
+ * This can lead to baffling problems.
+ * 
  * @author John Collins
  */
 @Service
