@@ -253,6 +253,9 @@ public class CompetitionSetupService
       // load random seeds if requested
       seedSource = seedData;
 
+      // Set min- and expectedTsCount if seed-data is given
+      loadTimeslotCountsMaybe();
+
       // set the logfile suffix
       setLogSuffix(logSuffix, "boot");
 
@@ -312,6 +315,9 @@ public class CompetitionSetupService
       // load random seeds if requested
       seedSource = seedData;
 
+      // Set min- and expectedTsCount if seed-data is given
+      loadTimeslotCountsMaybe();
+
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim-" + gameId);
     
@@ -361,6 +367,49 @@ public class CompetitionSetupService
       return;
     log.info("Reading configuration from " + config);
     serverProps.setUserConfig(makeUrl(config));
+  }
+
+  private void loadTimeslotCountsMaybe ()
+  {
+    if (seedSource == null)
+      return;
+
+    log.info("Getting minimumTimeslotCount and expectedTimeslotCount from "
+        + seedSource);
+
+    int minCount = -1;
+    int expCount = -1;
+    try {
+      BufferedReader br = new BufferedReader(new FileReader(seedSource));
+      String line;
+      while((line = br.readLine()) != null) {
+        if (line.contains("withMinimumTimeslotCount")) {
+          String[] s = line.split("::");
+          minCount = Integer.valueOf(s[s.length-1]);
+        }
+        if (line.contains("withExpectedTimeslotCount")) {
+          String[] s = line.split("::");
+          expCount = Integer.valueOf(s[s.length-1]);
+        }
+
+        if (minCount != -1 && expCount != -1) {
+          break;
+        }
+      }
+      br.close();
+      if (minCount != -1) {
+        serverProps.setProperty("common.competition.minimumTimeslotCount",
+            minCount);
+      }
+      if (expCount != -1) {
+        serverProps.setProperty("common.competition.expectedTimeslotCount",
+            expCount);
+      }
+    }
+    catch(IOException e) {
+      log.error("Cannot load minimumTimeslotCount and "
+          + "expectedTimeslotCount from " + seedSource);
+    }
   }
   
   private void loadSeedsMaybe ()
