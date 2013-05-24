@@ -15,35 +15,12 @@
  */
 package org.powertac.du;
 
-import static org.powertac.util.MessageDispatcher.dispatch;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.Broker;
-import org.powertac.common.CashPosition;
-import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.MarketPosition;
-import org.powertac.common.MarketTransaction;
-import org.powertac.common.RandomSeed;
-import org.powertac.common.Rate;
-import org.powertac.common.Order;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction;
-import org.powertac.common.Timeslot;
-import org.powertac.common.WeatherReport;
+import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.BootstrapDataCollector;
-import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.CompetitionControl;
-import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.interfaces.*;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.MarketBootstrapData;
 import org.powertac.common.msg.TimeslotComplete;
@@ -53,6 +30,12 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.powertac.util.MessageDispatcher.dispatch;
 
 /**
  * Default broker implementation. We do the implementation in a service, because
@@ -127,6 +110,8 @@ public class DefaultBrokerService
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
   private RandomSeed randomSeed;
   private HashMap<Timeslot, Order> lastOrder;
+
+  private double minMWh = 1E-06; // don't worry about 1 Wh or less
 
   /**
    * Default constructor, called once when the server starts, before
@@ -234,7 +219,7 @@ public class DefaultBrokerService
   {
     Timeslot current = timeslotRepo.currentTimeslot();
     log.info("activate: timeslot " + current.getSerialNumber());
-    
+
     // In the first through 23rd timeslot, we buy enough to meet what was
     // used in the previous timeslot. Note that this is called after the
     // customer model has run in the current timeslot, for a market clearing
@@ -308,7 +293,7 @@ public class DefaultBrokerService
     if (posn != null)
       neededMWh -= posn.getOverallBalance();
     log.debug("needed mWh=" + neededMWh);
-    if (neededMWh == 0.0) {
+    if (Math.abs(neededMWh) < minMWh) {
       log.info("no power required in timeslot " + timeslot.getSerialNumber());
       return;
     }
