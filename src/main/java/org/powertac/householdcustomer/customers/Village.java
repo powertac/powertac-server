@@ -15,16 +15,7 @@
  */
 package org.powertac.householdcustomer.customers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.Vector;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -400,38 +391,7 @@ public class Village extends AbstractCustomer
                 + VillageConstants.MIN_DEFAULT_DURATION;
 
       withdrawalMap.put(type, weeks);
-
-      //
-      // System.out.println(toString() + " " + type);
-      // System.out.println("Dominant Consumption:"
-      // + Arrays.toString(getDominantLoad(type)));
-      // System.out.println("Non Dominant Consumption:"
-      // + Arrays.toString(getNonDominantLoad(type)));
-      //
     }
-
-    // System.out.println(toString() + " "
-    // + aggDailyDominantLoadInHoursNS.get(0).toString());
-    //
-    // System.out.println(toString() + " "
-    // + aggDailyNonDominantLoadInHoursNS.get(0).toString());
-    //
-    //
-    // System.out.println("Subscriptions:" + subscriptionMap.toString());
-    // System.out.println("Controllable Subscriptions:" +
-    // controllableSubscriptionMap.toString());
-    // System.out.println("Number Of Houses:" + numberOfHouses.toString());
-    // System.out.println("Inertia:" + inertiaMap.toString());
-    // System.out.println("Period:" + periodMap.toString());
-    // System.out.println("Lamda:" + lamdaMap.toString());
-    // System.out.println("Risk:" + riskMap.toString());
-    // System.out.println("Withdrawal:" + withdrawalMap.toString())
-    //
-    //
-    // for (String type : subscriptionMap.keySet()) {
-    // showAggLoad(type);
-    // }
-
   }
 
   // =====SUBSCRIPTION FUNCTIONS===== //
@@ -1720,25 +1680,16 @@ public class Village extends AbstractCustomer
     double summary = 0;
     double summaryControllable = 0;
 
-    HashMap<TariffSubscription, Double> subs =
+    Map<TariffSubscription, Double> subs =
       new HashMap<TariffSubscription, Double>();
-
     for (TariffSubscription sub: subscriptionMap.values()) {
-
-      subs.put(sub, Double.valueOf(0));
-
+      subs.put(sub, 0.0);
     }
-
     for (TariffSubscription sub: controllableSubscriptionMap.values()) {
-
-      subs.put(sub, Double.valueOf(0));
-
+      subs.put(sub, 0.0);
     }
-
-    // log.debug(subs.toString());
 
     for (String type: subscriptionMap.keySet()) {
-
       if (ts == null) {
         log.debug("Current timeslot is null");
         int serial =
@@ -1754,27 +1705,32 @@ public class Village extends AbstractCustomer
           getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
       }
 
-      // log.debug("Consumption Load for " + type + ": Base Load " + summary
-      // + " Controllable Load " + summaryControllable);
-
       TariffSubscription tempSub = subscriptionMap.get(type);
       TariffSubscription tempContSub = controllableSubscriptionMap.get(type);
 
       subs.put(tempSub, summary + subs.get(tempSub));
       subs.put(tempContSub, summaryControllable + subs.get(tempContSub));
-
     }
 
-    for (TariffSubscription sub: subs.keySet()) {
+    Comparator<TariffSubscription> comp = new Comparator<TariffSubscription>()
+    {
+      public int compare (TariffSubscription ts1, TariffSubscription ts2)
+      {
+        return ((Long) ts1.getId()).compareTo(ts2.getId());
+      }
+    };
 
+    @SuppressWarnings("unchecked")
+    List<TariffSubscription> sortedKeys = new ArrayList(subs.keySet());
+    Collections.sort(sortedKeys, comp);
+
+    for (TariffSubscription sub: sortedKeys) {
       log.debug("Consumption Load for Customer " + sub.getCustomer().toString()
-                + ": " + subs.get(sub));
+          + ": " + subs.get(sub));
 
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(subs.get(sub));
-
     }
-
   }
 
   /**
