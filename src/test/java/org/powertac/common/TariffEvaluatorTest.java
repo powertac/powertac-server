@@ -62,7 +62,6 @@ public class TariffEvaluatorTest
   private Broker defaultBroker;
   private Tariff defaultConsumption;
   private Tariff defaultProduction;
-  private TariffSubscription defaultConsumptionSubscription;
   private Broker bob;
   private Broker jim;
 
@@ -120,21 +119,25 @@ public class TariffEvaluatorTest
       .withMultiContracting(true);
     cma = new TestAccessor();
 
-    // default subscription
-    defaultConsumptionSubscription =
-            new TariffSubscription(customer, defaultConsumption);
-    initSubscription(defaultConsumptionSubscription);
-    defaultConsumptionSubscription.subscribe(customer.getPopulation());
-    tariffSubscriptionRepo.add(defaultConsumptionSubscription);
-
     // uut setup
-    evaluator = new TariffEvaluator(cma);
+    evaluator = new TariffEvaluator(cma).
+            withPreferredContractDuration(4).withRationality(0.8);
     ReflectionTestUtils.setField(evaluator,
                                  "tariffRepo", tariffRepo);
     ReflectionTestUtils.setField(evaluator,
                                  "tariffMarket", tariffMarket);
     ReflectionTestUtils.setField(evaluator,
                                  "tariffSubscriptionRepo", tariffSubscriptionRepo);
+  }
+
+  private TariffSubscription subscribeTo (Tariff tariff, int count)
+  {
+    TariffSubscription subscription =
+            new TariffSubscription(customer, tariff);
+    initSubscription(subscription);
+    subscription.subscribe(count);
+    tariffSubscriptionRepo.add(subscription);
+    return subscription;
   }
 
   private void makeMocks ()
@@ -167,6 +170,7 @@ public class TariffEvaluatorTest
   @Test
   public void noTariffTest ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
     ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
@@ -181,6 +185,7 @@ public class TariffEvaluatorTest
   @Test
   public void singleNewTariffConsumption ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification newTS =
             new TariffSpecification(bob,
                                     PowerType.CONSUMPTION).
@@ -195,7 +200,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
-    cma.setChoiceSequence(0.4, 0.6);
+    cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
@@ -223,6 +228,7 @@ public class TariffEvaluatorTest
   @Test
   public void singleNewTariffSmallChunk ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification newTS =
             new TariffSpecification(bob,
                                     PowerType.CONSUMPTION).
@@ -237,7 +243,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
-    cma.setChoiceSequence(0.4, 0.6);
+    cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
@@ -265,6 +271,7 @@ public class TariffEvaluatorTest
   @Test
   public void twoTariffSplit ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification bobTS =
             new TariffSpecification(bob,
                                     PowerType.CONSUMPTION).
@@ -287,7 +294,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
-    cma.setChoiceSequence(0.4, 0.6);
+    cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
@@ -317,6 +324,7 @@ public class TariffEvaluatorTest
   @Test
   public void withdrawCost ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification bobTS =
             new TariffSpecification(bob,
                                     PowerType.CONSUMPTION).
@@ -340,7 +348,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
-    cma.setChoiceSequence(0.4, 0.6);
+    cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
@@ -368,6 +376,7 @@ public class TariffEvaluatorTest
   @Test
   public void BogusWithdrawCost ()
   {
+    subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification jimTS =
             new TariffSpecification(jim,
                                     PowerType.CONSUMPTION).
@@ -384,7 +393,7 @@ public class TariffEvaluatorTest
 
     double[] profile = {1.0, 2.0};
     cma.capacityProfile = profile;
-    cma.setChoiceSequence(0.4, 0.6);
+    cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
     final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
@@ -409,16 +418,261 @@ public class TariffEvaluatorTest
                  new Integer(10000), calls.get(jimTariff));
   }
 
+  @Test
+  public void twoTariffInertia ()
+  {
+    // do an eval to bump up inertia
+    this.noTariffTest();
+
+    // inertia should now be 0.4
+    TariffSpecification bobTS =
+            new TariffSpecification(bob,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    TariffSpecification jimTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    tariffs.add(jimTariff);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = profile;
+    cma.setChoiceSamples(0.4, 0.6);
+    cma.setInertiaSamples(0.35, 0.45); // half should skip
+
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+
+    evaluator.withChunkSize(50); // 200 chunks
+    evaluator.evaluateTariffs();
+    assertEquals("three tariffs", 3, calls.size());
+    assertEquals("-5000 for default",
+                 new Integer(-5000), calls.get(defaultConsumption));
+    assertEquals("+2500 for bob",
+                 new Integer(2500), calls.get(bobTariff));
+    assertEquals("+2500 for jim",
+                 new Integer(2500), calls.get(jimTariff));
+  }
+
+  // Test min contract duration. Two tariffs from Jim have equal signup
+  // bonus and withdrawal payment, but one has a minDuration half the
+  // customer's preferred duration. This one should get all the action.
+  @Test
+  public void minDurationTest ()
+  {
+    subscribeTo(defaultConsumption, customer.getPopulation());
+    TariffSpecification bobTS =
+            new TariffSpecification(bob,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    TariffSpecification jimTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 2).
+                                    withEarlyWithdrawPayment(-50.0).
+                                    withSignupPayment(50.0).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+    TariffSpecification jimLong =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 4).
+                                    withEarlyWithdrawPayment(-50.0).
+                                    withSignupPayment(50.0).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariffL = new Tariff(jimLong);
+    initTariff(jimTariffL);
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    tariffs.add(jimTariff);
+    tariffs.add(jimTariffL);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = profile;
+    cma.setChoiceSamples(0.4, 0.6);
+
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+
+    evaluator.withChunkSize(50); // 200 chunks
+    evaluator.evaluateTariffs();
+    assertEquals("two changes", 2, calls.size());
+    assertEquals("-10000 for default",
+                 new Integer(-10000), calls.get(defaultConsumption));
+    assertEquals("+10000 for jim",
+                 new Integer(10000), calls.get(jimTariff));
+  }
+
+  // Revoke to default tariff
+  @Test
+  public void revokeToDefault ()
+  {
+    TariffSpecification bobTS =
+            new TariffSpecification(bob,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    TariffSpecification jimTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = profile;
+    cma.setChoiceSamples(0.4, 0.6);
+
+    // distribute all customers across jim & bob
+    subscribeTo(bobTariff, 5000);
+    subscribeTo(jimTariff, 5000);
+
+    // revoke Jim's tariff - should move everyone to Bob
+    jimTariff.setState(Tariff.State.KILLED);
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    evaluator.evaluateTariffs();
+    assertEquals("two calls", 2, calls.size());
+    assertEquals("-5000 for jim",
+                 new Integer(-5000), calls.get(jimTariff));
+    assertEquals("+5000 for bob",
+                 new Integer(5000), calls.get(bobTariff));
+  }
+
+  // Revoke to superseding tariff
+  @Test
+  public void revokeSuperseding ()
+  {
+    TariffSpecification bobTS =
+            new TariffSpecification(bob,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    TariffSpecification jimTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = profile;
+    cma.setChoiceSamples(0.45, 0.55);
+
+    // distribute all customers across jim & bob
+    subscribeTo(bobTariff, 5000);
+    subscribeTo(jimTariff, 5000);
+
+    // revoke Jim's tariff, supersede it
+    jimTariff.setState(Tariff.State.KILLED);
+    TariffSpecification jimSTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addSupersedes(jimTariff.getId()).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimSuper = new Tariff(jimSTS);
+    when(tariffRepo.findTariffById(jimTariff.getId()))
+        .thenReturn(jimTariff);
+    initTariff(jimSuper);
+
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    tariffs.add(jimSuper);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    evaluator.evaluateTariffs();
+    assertEquals("two calls", 2, calls.size());
+    assertEquals("-5000 for jim",
+                 new Integer(-5000), calls.get(jimTariff));
+    assertEquals("+5000 for jimSuper",
+                 new Integer(5000), calls.get(jimSuper));
+  }
+
+  // Revoke to better tariff
+
+  // Revoke to superseding tariff, with inertia
+
   // --------------- model accessor ------------------------------------
   class TestAccessor implements CustomerModelAccessor
   {
     // values to return
     double[] capacityProfile;
-    double tariffSwitchFactor = 0.02;
     double brokerSwitchFactor = 0.05;
-    int preferredContractDuration = 4;
-    double inconvenienceWeight = 0.5;
-    double rationality = 0.8;
     
     double[] choiceSamples = {0.5};
     int choicePtr = 0;
@@ -445,7 +699,8 @@ public class TariffEvaluatorTest
     @Override
     public double getBrokerSwitchFactor (boolean isSuperseding)
     {
-      return brokerSwitchFactor;
+      double multiplier = isSuperseding? 5.0: 1.0;
+      return multiplier * brokerSwitchFactor;
     }
 
     @Override
@@ -465,7 +720,7 @@ public class TariffEvaluatorTest
     }
     
     // sets the choice sequence
-    void setChoiceSequence (double... samples)
+    void setChoiceSamples (double... samples)
     {
       choiceSamples = samples;
     }

@@ -96,7 +96,7 @@ public class TariffEvaluator
 
   /**
    * Initializes the per-tariff inconvenience factors.
-   * These are not normalized; it is up to the user to normalize the
+   * These are not normalized; it is up to the customer model to normalize the
    * per-tariff and cross-tariff factors as appropriate
    */
   public void initializeInconvenienceFactors (double touFactor,
@@ -209,14 +209,21 @@ public class TariffEvaluator
   /**
    * Evaluates tariffs and updates subscriptions
    * for a single customer model with a single power type.
+   * Also handles tariff revoke/supersede. This requires that each
+   * Customer model call this method once on each tariff publication cycle.
    */
   public void evaluateTariffs ()
   {
     evaluationCounter += 1;
     allocations.clear();
-    List<Tariff> newTariffs =
-      getTariffRepo().findRecentActiveTariffs(tariffEvalDepth,
-                                              customerInfo.getPowerType());
+    HashSet<Tariff> newTariffs =
+      new HashSet<Tariff>(getTariffRepo()
+              .findRecentActiveTariffs(tariffEvalDepth,
+                                       customerInfo.getPowerType()));
+
+    // make sure all superseding tariffs are in the set
+    addSupersedingTariffs(newTariffs);
+
     // adjust inertia for BOG
     double actualInertia =
             (1.0 - Math.pow(2, 1 - evaluationCounter)) * inertia;
@@ -224,7 +231,7 @@ public class TariffEvaluator
     // Get the cost eval for the appropriate default tariff
     EvalData defaultEval = getDefaultTariffEval();
     
-    // get the cost eval for each of the new tariffs
+    // ensure we have the cost eval for each of the new tariffs
     for (Tariff tariff : newTariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
       if (null == eval) {
@@ -270,6 +277,19 @@ public class TariffEvaluator
     updateSubscriptions();
   }
 
+  // Ensures that superseding tariffs are evaluated by adding them
+  // to the newTariffs list
+  private void addSupersedingTariffs (HashSet<Tariff> newTariffs)
+  {
+    List<TariffSubscription> revokedSubscriptions =
+            tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
+    for (TariffSubscription sub : revokedSubscriptions) {
+      Tariff supTariff = sub.getTariff().getIsSupersededBy();
+      if (null != supTariff)
+        newTariffs.add(supTariff);
+    }
+  }
+
   // evaluate alternatives
   private void evaluateAlternativeTariffs (TariffSubscription current,
                                            double inertia,
@@ -277,15 +297,31 @@ public class TariffEvaluator
                                            int population,
                                            Tariff defaultTariff,
                                            EvalData defaultEval,
-                                           List<Tariff> tariffsToEval)
+                                           HashSet<Tariff> tariffs)
   {
     // Associate each alternate tariff with its utility value
     PriorityQueue<TariffUtility> evals = new PriorityQueue<TariffUtility>();
-    //TariffSubscriberStructure subStructure = bundle.getSubscriberStructure();
-    
-    HashSet<Tariff> tariffs = new HashSet<Tariff>(tariffsToEval);
     tariffs.add(defaultTariff);
-    tariffs.add(current.getTariff());
+
+    // Check whether the current tariff is revoked, add it if not
+    Tariff currentTariff = current.getTariff();
+    boolean revoked = false;
+    Tariff replacementTariff = null;
+    if (currentTariff.getState() == Tariff.State.KILLED) {
+      revoked = true;
+      replacementTariff = currentTariff.getIsSupersededBy();
+      log.info("Customer " + customerInfo.getName() + ": tariff "
+               + currentTariff.getId() + " revoked, superseded by "
+               + ((null == replacementTariff)
+                       ? "default": replacementTariff.getId()));
+      if (null == replacementTariff) {
+        replacementTariff = defaultTariff;
+      }
+      //currentTariff = replacement;
+      withdraw0 = 0.0; // withdraw without penalty
+    }
+    else
+      tariffs.add(currentTariff);
 
     // for each tariff, including the current and default tariffs,
     // compute the utility
@@ -293,10 +329,13 @@ public class TariffEvaluator
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
       double cost = eval.costEstimate;
-      if (tariff != current.getTariff()) {
+      if (tariff != currentTariff
+              && tariff != replacementTariff) {
         inconvenience += tariffSwitchFactor;
-        if (tariff.getBroker() != current.getTariff().getBroker())
-          inconvenience += accessor.getBrokerSwitchFactor(false);
+        if (tariff.getBroker() != currentTariff.getBroker()) {
+          inconvenience +=
+                  accessor.getBrokerSwitchFactor(revoked);
+        }
         cost += tariff.getSignupPayment();
         cost += withdraw0;
         double withdrawFactor =
@@ -305,10 +344,13 @@ public class TariffEvaluator
                          / (preferredDuration * TimeService.DAY));
         cost += withdrawFactor * tariff.getEarlyWithdrawPayment();
       }
-      double utility = computeNormalizedDifference(cost,
-                                                   defaultEval.costEstimate);
-      utility -= inconvenienceWeight * inconvenience;
-      evals.add(new TariffUtility(tariff, constrainUtility(utility)));
+      // don't consider current tariff if it's revoked
+      if (!revoked || tariff != currentTariff) {
+        double utility = computeNormalizedDifference(cost,
+                                                     defaultEval.costEstimate);
+        utility -= inconvenienceWeight * inconvenience;
+        evals.add(new TariffUtility(tariff, constrainUtility(utility)));
+      }
     }
     
     // We now have utility values for each possible tariff.
@@ -345,8 +387,8 @@ public class TariffEvaluator
       remainingPopulation -= count;
       // allocate a chunk
       double inertiaSample = accessor.getInertiaSample();
-      if (inertiaSample < inertia) {
-        // skip this one
+      if (!revoked && inertiaSample < inertia) {
+        // skip this one if not processing revoked tariff
         continue;
       }
       double tariffSample = accessor.getTariffChoiceSample();
@@ -354,7 +396,7 @@ public class TariffEvaluator
       boolean allocated = false;
       for (TariffUtility tu : evals) {
         if (tariffSample <= tu.probability) {
-          addAllocation(current.getTariff(), tu.tariff, count);
+          addAllocation(currentTariff, tu.tariff, count);
           allocated = true;
           break;
         }
