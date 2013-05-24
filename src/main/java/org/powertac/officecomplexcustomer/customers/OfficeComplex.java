@@ -15,16 +15,7 @@
  */
 package org.powertac.officecomplexcustomer.customers;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.Vector;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -1270,30 +1261,16 @@ public class OfficeComplex extends AbstractCustomer
     double summary = 0;
     double summaryControllable = 0;
 
-    HashMap<TariffSubscription, Double> subs =
+    Map<TariffSubscription, Double> subs =
       new HashMap<TariffSubscription, Double>();
-
     for (TariffSubscription sub: subscriptionMap.values()) {
-
-      subs.put(sub, Double.valueOf(0));
-
+      subs.put(sub, 0.0);
     }
-
     for (TariffSubscription sub: controllableSubscriptionMap.values()) {
-
-      subs.put(sub, Double.valueOf(0));
-
+      subs.put(sub, 0.0);
     }
-
-    // log.debug(subs.toString());
-    // log.debug("Subscription Map : " + subscriptionMap.toString());
-    // log.debug("Controllable Subscription Map : " +
-    // controllableSubscriptionMap.toString());
-    // log.debug("Subscription Keys : " + subscriptionMap.keySet());
-    // log.debug(subs.toString());
 
     for (String type: subscriptionMap.keySet()) {
-
       if (ts == null) {
         log.debug("Current timeslot is null");
         int serial =
@@ -1309,27 +1286,32 @@ public class OfficeComplex extends AbstractCustomer
           getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
       }
 
-      // log.debug("Consumption Load for " + type + ": Base Load " + summary
-      // + " Controllable Load " + summaryControllable);
-
       TariffSubscription tempSub = subscriptionMap.get(type);
       TariffSubscription tempContSub = controllableSubscriptionMap.get(type);
 
       subs.put(tempSub, summary + subs.get(tempSub));
       subs.put(tempContSub, summaryControllable + subs.get(tempContSub));
-
     }
 
-    for (TariffSubscription sub: subs.keySet()) {
+    Comparator<TariffSubscription> comp = new Comparator<TariffSubscription>()
+    {
+      public int compare (TariffSubscription ts1, TariffSubscription ts2)
+      {
+        return ((Long) ts1.getId()).compareTo(ts2.getId());
+      }
+    };
 
+    @SuppressWarnings("unchecked")
+    List<TariffSubscription> sortedKeys = new ArrayList(subs.keySet());
+    Collections.sort(sortedKeys, comp);
+
+    for (TariffSubscription sub: sortedKeys) {
       log.debug("Consumption Load for Customer " + sub.getCustomer().toString()
                 + ": " + subs.get(sub));
 
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(subs.get(sub));
-
     }
-
   }
 
   /**
