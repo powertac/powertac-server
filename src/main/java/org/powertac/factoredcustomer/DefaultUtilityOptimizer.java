@@ -225,22 +225,22 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   @Override
   public void handleNewTimeslot (Timeslot timeslot)
   {
-    checkRevokedSubscriptions();
+    //checkRevokedSubscriptions();
     usePower(timeslot);
   }
 
-  private void checkRevokedSubscriptions ()
-  {
-    for (CapacityBundle bundle: capacityBundles) {
-      List<TariffSubscription> revoked =
-        getTariffSubscriptionRepo().getRevokedSubscriptionList(bundle
-                .getCustomerInfo());
-      for (TariffSubscription revokedSubscription: revoked) {
-        revokedSubscription.handleRevokedTariff();
-        bundlesWithRevokedTariffs.add(bundle);
-      }
-    }
-  }
+  //private void checkRevokedSubscriptions ()
+  //{
+  //  for (CapacityBundle bundle: capacityBundles) {
+  //    List<TariffSubscription> revoked =
+  //      getTariffSubscriptionRepo().getRevokedSubscriptionList(bundle
+  //              .getCustomerInfo());
+  //    for (TariffSubscription revokedSubscription: revoked) {
+  //      revokedSubscription.handleRevokedTariff();
+  //      bundlesWithRevokedTariffs.add(bundle);
+  //    }
+  //  }
+  //}
 
   private void usePower (Timeslot timeslot)
   {
