@@ -256,9 +256,9 @@ public class DefaultBrokerService
           count += 1;
         }
         submitOrder((neededKWh / count), timeslot);
-      }      
+      }
     }
-    
+
     // Finally, once we have a full week of records, we use the data for
     // the hour and day-of-week.
     else {
@@ -829,7 +829,7 @@ public class DefaultBrokerService
       int result = (int)((when.getMillis() - base.getMillis()) /
                          (Competition.currentCompetition().getTimeslotDuration()))
                    - offset;
-      log.info("offset=" + offset + ", index=" + result);
+      log.debug("offset=" + offset + ", index=" + result);
       return result;
     }
     
