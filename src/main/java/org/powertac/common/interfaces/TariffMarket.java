@@ -48,32 +48,24 @@ public interface TariffMarket {
   public void subscribeToTariff (Tariff tariff,
                                  CustomerInfo customer, 
                                  int customerCount);
-  
+
   /**
    * Returns the list of currently active tariffs for the given PowerType.
    * The list contains only non-expired tariffs that cover the given type.
    */
   public List<Tariff> getActiveTariffList(PowerType type);
-  
-  /**
-   * Returns the list of tariffs that have been revoked and have
-   * active subscriptions. Customers are obligated to process this
-   * list by calling handleRevokedTariff() on each such subscription.
-   */
-  //public List<TariffSubscription> getRevokedSubscriptionList(CustomerInfo customer);
-  // see Issue #384
-  
+
   /**
    * Returns the default tariff.
    */
   public Tariff getDefaultTariff (PowerType type);
-  
+
   /**
    * Convenience method to set the default tariff at the beginning of the game.
    * Returns true just in case the tariff was valid and was successfully saved.
    */
   public boolean setDefaultTariff (TariffSpecification newTariff);
-  
+
   /**
    * Registers a listener for publication of new Tariffs.
    */
@@ -83,5 +75,6 @@ public interface TariffMarket {
    * Revokes tariffs for which TariffRevoke messages have been received
    * since the last time this method was called in an earlier timeslot.
    */
+  @Deprecated
   public void processRevokedTariffs ();
 }

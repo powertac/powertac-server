@@ -282,7 +282,7 @@ public class TariffEvaluator
   private void addSupersedingTariffs (HashSet<Tariff> newTariffs)
   {
     List<TariffSubscription> revokedSubscriptions =
-            tariffSubscriptionRepo.getRevokedSubscriptionList(customerInfo);
+            getTariffSubscriptionRepo().getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription sub : revokedSubscriptions) {
       Tariff supTariff = sub.getTariff().getIsSupersededBy();
       if (null != supTariff)
@@ -496,7 +496,7 @@ public class TariffEvaluator
       if (count < 0) {
         //unsubscribe
         TariffSubscription sub =
-                tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer
+                getTariffSubscriptionRepo().findSubscriptionForTariffAndCustomer
                   (tariff, customerInfo);
         sub.unsubscribe(-count);
         log.info("customer " + customerInfo.getName()

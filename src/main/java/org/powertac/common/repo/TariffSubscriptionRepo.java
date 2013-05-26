@@ -166,7 +166,7 @@ public class TariffSubscriptionRepo implements DomainRepo
   public List<TariffSubscription>
   getRevokedSubscriptionList (CustomerInfo customer)
   {
-    tariffMarketService.processRevokedTariffs();
+    //tariffMarketService.processRevokedTariffs();
     if (null == customerMap.get(customer))
       // can happen first time...
       return new ArrayList<TariffSubscription>();
