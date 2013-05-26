@@ -165,6 +165,8 @@ public class AccountingService
                                             tariffRepo.findSpecificationById(tariff.getSpecId()),
                                             customer, customerCount,
                                             kWh, charge);
+    if (null == ttx.getTariffSpec())
+      log.error("Null tariff spec in addTariffTx()");
     pendingTransactions.add(ttx);
     return ttx;
   }

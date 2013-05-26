@@ -18,7 +18,6 @@ package org.powertac.tariffmarket;
 import static org.powertac.util.ListTools.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -493,6 +492,11 @@ public class TariffMarketService
   @Override
   public void processRevokedTariffs ()
   {
+    // nothing happens -- this is deprecated.
+  }
+  
+  private void updateRevokedTariffs ()
+  {
     List<Tariff> pending = getPendingRevokes();
     if (pending == null)
       return;
@@ -556,13 +560,14 @@ public class TariffMarketService
   {
     log.info("Activate");
     processPendingSubscriptions();
-    removeRevokedTariffs();
     processPendingVrus();
     long msec = timeService.getCurrentTime().getMillis();
     if (!firstPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
       // time to publish or never published
+      updateRevokedTariffs();
       publishTariffs();
+      //removeRevokedTariffs();
       firstPublication = true;
     }
   }
