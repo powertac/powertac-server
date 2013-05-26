@@ -110,6 +110,7 @@ public class AccountingService
   {
     pendingTransactions.clear();
     super.init();
+    bankInterest = null;
     serverProps.configureMe(this);
 
     RandomSeed random =
