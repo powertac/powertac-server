@@ -24,17 +24,10 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.NewTariffListener;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.interfaces.*;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
-import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
-import org.powertac.evcustomer.beans.SocialGroup;
+import org.powertac.evcustomer.beans.*;
 import org.powertac.evcustomer.customers.EvSocialClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -74,7 +67,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
-  
+
   @Autowired
   private ServerConfiguration serverProps;
 
@@ -82,17 +75,17 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   private RandomSeed rs1;
 
   /** List of the SocialClass Customers in the competition */
-  private ArrayList<EvSocialClass> evSocialClassList;
+  private List<EvSocialClass> evSocialClassList;
 
   @ConfigurableValue(valueType = "Integer",
           description = "Number of tariffs of each type from each broker to consider")
   private int tariffEvalCount = 5;
 
-  // Shared by all customers
-  private List<Car> cars;
-  private List<SocialGroup> socialGroups;
-  private Map<Integer, Activity> activities;
-  private Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails;
+  protected static String carTypesXml = "EvCarTypes.xml";
+  protected static String socialGroupsXml = "EvSocialGroups.xml";
+  protected static String activitiesXml = "EvActivities.xml";
+  protected static String activityDetailsXml = "EvActivityDetails.xml";
+  protected static String socialClassesXml = "EvSocialClasses.xml";
 
   /**
    * This is called once at the beginning of each game.
@@ -120,23 +113,60 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     }
     EvSocialClass.DAYS_OF_COMPETITION = daysOfCompetition;
 
-    loadCarTypes("EvCarTypes.xml");
-    loadSocialGroups("EvSocialGroups.xml");
-    activities = loadActivities("EvActivities.xml");
-    allActivityDetails = loadActivityDetails("EvActivityDetails.xml");
-    loadSocialClasses("EvSocialClasses.xml");
+    // Shared by all customers
+    List<Car> cars = loadCarTypes();
+    Map<Integer, SocialGroup> socialGroups = loadSocialGroups();
+    Map<Integer, Activity> activities = loadActivities();
+    Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails =
+        loadActivityDetails();
+    List<SocialClassDetail> socialClassDetails = loadSocialClassesDetails();
+
+    evSocialClassList = initializeSocialClasses (socialGroups, activities,
+        allActivityDetails, socialClassDetails, cars, rs1);
+
+    //evSocialClassList = loadSocialClasses(socialGroups, activities,
+    //    allActivityDetails, cars, rs1);
 
     return "EvCustomer";
   }
 
-  private void loadCarTypes (String configResource)
+  private List<EvSocialClass> initializeSocialClasses (
+      Map<Integer, SocialGroup> socialGroups,
+      Map<Integer, Activity> activities,
+      Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
+      List<SocialClassDetail> socialClassDetails,
+      List<Car> cars, RandomSeed rs1)
   {
-    cars = new ArrayList<Car>();
+    List<EvSocialClass> evSocialClassList = new ArrayList<EvSocialClass>();
 
-    log.info("Attempting to load CarTypes from : " + configResource);
+    for (SocialClassDetail classDetail: socialClassDetails) {
+      int populationCount = classDetail.getMinCount() +
+          rs1.nextInt(classDetail.getMaxCount() - classDetail.getMinCount());
+
+      String base = "EV SocialClass " + classDetail.getName();
+      EvSocialClass evSocialClass = new EvSocialClass(base);
+      evSocialClass.addCustomerInfo(
+          new CustomerInfo(base + " CONSUMPTION", populationCount)
+              .withPowerType(PowerType.CONSUMPTION));
+      evSocialClass.addCustomerInfo(
+          new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(),
+              populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
+      evSocialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
+          activities, allActivityDetails, cars, populationCount, rs1);
+      evSocialClassList.add(evSocialClass);
+    }
+
+    return evSocialClassList;
+  }
+
+  public static List<Car> loadCarTypes ()
+  {
+    List<Car> cars = new ArrayList<Car>();
+
+    log.info("Attempting to load CarTypes from : " + carTypesXml);
     try {
       InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(configResource);
+          .getResourceAsStream(carTypesXml);
 
       DocumentBuilderFactory docBuilderFactory =
           DocumentBuilderFactory.newInstance();
@@ -164,19 +194,26 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
     }
     catch (Exception e) {
-      log.error("Error loading CarTypes from : " + configResource);
+      log.error("Error loading CarTypes from : " + carTypesXml);
       log.error(e.toString());
     }
+
+    return cars;
   }
 
-  private void loadSocialClasses (String configResource)
+  /*public static List<EvSocialClass> loadSocialClasses (
+      Map<Integer, SocialGroup> socialGroups,
+      Map<Integer, Activity> activities,
+      Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
+      List<Car> cars,
+      RandomSeed rs1)
   {
-    evSocialClassList = new ArrayList<EvSocialClass>();
+    List<EvSocialClass> evSocialClassList = new ArrayList<EvSocialClass>();
 
-    log.info("Attempting to load SocialGroups from : " + configResource);
+    log.info("Attempting to load SocialGroups from : " + socialClassesXml);
     try {
       InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(configResource);
+          .getResourceAsStream(socialClassesXml);
 
       DocumentBuilderFactory docBuilderFactory =
           DocumentBuilderFactory.newInstance();
@@ -189,7 +226,6 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       for (int i = 0; i < classNodes.getLength(); i++) {
         Element classElement = (Element) classNodes.item(i);
         String className = classElement.getAttribute("name");
-        // TODO Test for maxCount >= minCount
         int minCount = Integer.parseInt(classElement.getAttribute("minCount"));
         int maxCount = Integer.parseInt(classElement.getAttribute("maxCount"));
         int populationCount = minCount + rs1.nextInt(maxCount - minCount);
@@ -212,29 +248,84 @@ public class EvCustomerService extends TimeslotPhaseProcessor
             new CustomerInfo(base + " CONSUMPTION", populationCount)
                 .withPowerType(PowerType.CONSUMPTION));
         evSocialClass.addCustomerInfo(
-            new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(), populationCount)
-                .withPowerType(PowerType.ELECTRIC_VEHICLE));
+            new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(),
+                populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
         evSocialClass.initialize(socialGroups, activities, allActivityDetails,
             cars, populationCount, groupProbabilities, maleProbabilities, rs1);
         evSocialClassList.add(evSocialClass);
       }
 
-      log.info("Successfully loaded " + classNodes.getLength() + " SocialClasses");
+      log.info("Successfully loaded "+ classNodes.getLength() +" SocialClasses");
     }
     catch (Exception e) {
-      log.error("Error loading SocialClasses from : " + configResource);
+      log.error("Error loading SocialClasses from : " + socialClassesXml);
       log.error(e.toString());
     }
-  }
 
-  private void loadSocialGroups (String configResource)
+    return evSocialClassList;
+  }*/
+
+  public static List<SocialClassDetail> loadSocialClassesDetails ()
   {
-    socialGroups = new ArrayList<SocialGroup>();
+    List<SocialClassDetail> socialClassDetails =
+        new ArrayList<SocialClassDetail>();
 
-    log.info("Attempting to load SocialGroups from : " + configResource);
+    log.info("Attempting to load SocialGroups from : " + socialClassesXml);
     try {
       InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(configResource);
+          .getResourceAsStream(socialClassesXml);
+
+      DocumentBuilderFactory docBuilderFactory =
+          DocumentBuilderFactory.newInstance();
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(configStream);
+
+      NodeList classNodes = doc.getElementsByTagName("class");
+      log.info("Loading " + classNodes.getLength() + " SocialClass");
+
+      for (int i = 0; i < classNodes.getLength(); i++) {
+        Element classElement = (Element) classNodes.item(i);
+        String className = classElement.getAttribute("name");
+        // TODO Test for maxCount >= minCount
+        int minCount = Integer.parseInt(classElement.getAttribute("minCount"));
+        int maxCount = Integer.parseInt(classElement.getAttribute("maxCount"));
+
+        Map<Integer, SocialGroupDetail> groupDetails =
+            new HashMap<Integer, SocialGroupDetail>();
+        NodeList groupNodes = classElement.getElementsByTagName("group");
+        for (int j = 0; j < groupNodes.getLength(); j++) {
+          Element element = (Element) groupNodes.item(j);
+          int groupId = Integer.parseInt(element.getAttribute("id"));
+          double probability =
+              Double.parseDouble(element.getAttribute("probability"));
+          double maleProbability =
+              Double.parseDouble(element.getAttribute("male_probability"));
+          groupDetails.put(groupId,
+              new SocialGroupDetail(groupId, probability, maleProbability));
+        }
+
+        socialClassDetails.add(
+            new SocialClassDetail(className, minCount, maxCount, groupDetails));
+      }
+
+      log.info("Successfully loaded "+ classNodes.getLength() +" SocialClasses");
+    }
+    catch (Exception e) {
+      log.error("Error loading SocialClasses from : " + socialClassesXml);
+      log.error(e.toString());
+    }
+
+    return socialClassDetails;
+  }
+
+  public static Map<Integer, SocialGroup> loadSocialGroups ()
+  {
+    Map<Integer, SocialGroup> socialGroups = new HashMap<Integer, SocialGroup>();
+
+    log.info("Attempting to load SocialGroups from : " + socialGroupsXml);
+    try {
+      InputStream configStream = Thread.currentThread().getContextClassLoader()
+          .getResourceAsStream(socialGroupsXml);
 
       DocumentBuilderFactory docBuilderFactory =
           DocumentBuilderFactory.newInstance();
@@ -248,25 +339,27 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         Element groupElement = (Element) groupNodes.item(i);
         String groupName = groupElement.getAttribute("name");
         int id = Integer.parseInt(groupElement.getAttribute("id"));
-        socialGroups.add(new SocialGroup(id, groupName));
+        socialGroups.put(id, new SocialGroup(id, groupName));
       }
 
       log.info("Successfully loaded " + groupNodes.getLength() + " SocialGroups");
     }
     catch (Exception e) {
-      log.error("Error loading SocialGroups from : " + configResource);
+      log.error("Error loading SocialGroups from : " + socialGroupsXml);
       log.error(e.toString());
     }
+
+    return socialGroups;
   }
 
-  public static Map<Integer, Activity> loadActivities (String configResource)
+  public static Map<Integer, Activity> loadActivities ()
   {
     Map<Integer, Activity> activities = new HashMap<Integer, Activity>();
 
-    log.info("Attempting to load SocialGroups from : " + configResource);
+    log.info("Attempting to load SocialGroups from : " + activitiesXml);
     try {
       InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(configResource);
+          .getResourceAsStream(activitiesXml);
 
       DocumentBuilderFactory docBuilderFactory =
           DocumentBuilderFactory.newInstance();
@@ -292,23 +385,22 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       log.info("Successfully loaded " + activityNodes.getLength() + " Activities");
     }
     catch (Exception e) {
-      log.error("Error loading Activities from : " + configResource);
+      log.error("Error loading Activities from : " + activitiesXml);
       log.error(e.toString());
     }
 
     return activities;
   }
 
-  public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails (
-      String configResource)
+  public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails ()
   {
     Map<Integer, Map<Integer, ActivityDetail>> activityDetails =
         new HashMap<Integer, Map<Integer, ActivityDetail>>();
 
-    log.info("Attempting to load Details from : " + configResource);
+    log.info("Attempting to load Details from : " + activityDetailsXml);
     try {
       InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(configResource);
+          .getResourceAsStream(activityDetailsXml);
 
       DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
       DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -346,7 +438,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       log.info("Successfully loaded factored customer structures");
     }
     catch (Exception e) {
-      log.error("Error loading SocialClasses from : " + configResource);
+      log.error("Error loading SocialClasses from : " + activityDetailsXml);
       log.error(e.toString());
     }
 
