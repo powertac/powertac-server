@@ -34,8 +34,8 @@ public class Car {
   {
     this.name = name;
     this.maxCapacity = batteryCapacity;
-    // TODO Konstantina : is this OK?
-    this.currentCapacity = this.maxCapacity; // Let's start with a full battery
+    // Let's start with a full battery
+    this.currentCapacity = this.maxCapacity;
     this.range = range;
     this.homeCharging = homeCharging;
     this.awayCharging = awayCharging;
