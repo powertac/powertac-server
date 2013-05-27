@@ -15,7 +15,18 @@
  */
 package org.powertac.householdcustomer.customers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -1712,8 +1723,7 @@ public class Village extends AbstractCustomer
       subs.put(tempContSub, summaryControllable + subs.get(tempContSub));
     }
 
-    Comparator<TariffSubscription> comp = new Comparator<TariffSubscription>()
-    {
+    Comparator<TariffSubscription> comp = new Comparator<TariffSubscription>() {
       public int compare (TariffSubscription ts1, TariffSubscription ts2)
       {
         return ((Long) ts1.getId()).compareTo(ts2.getId());
@@ -1726,7 +1736,7 @@ public class Village extends AbstractCustomer
 
     for (TariffSubscription sub: sortedKeys) {
       log.debug("Consumption Load for Customer " + sub.getCustomer().toString()
-          + ": " + subs.get(sub));
+                + ": " + subs.get(sub));
 
       if (sub.getCustomersCommitted() > 0)
         sub.usePower(subs.get(sub));
@@ -2632,17 +2642,17 @@ public class Village extends AbstractCustomer
     // for (Household house: getHouses())
     // house.test();
 
-    if (hour == 23) {
-
-      for (String type: subscriptionMap.keySet()) {
-        if (!(type.equals("NS"))) {
-          log.info("Rescheduling " + type);
-          rescheduleNextDay(type);
-        }
-
-      }
-
-    }
+    // if (hour == 23) {
+    //
+    // for (String type: subscriptionMap.keySet()) {
+    // if (!(type.equals("NS"))) {
+    // log.info("Rescheduling " + type);
+    // rescheduleNextDay(type);
+    // }
+    //
+    // }
+    //
+    // }
 
   }
 
