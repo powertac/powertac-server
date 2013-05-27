@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, 2012 by the original author or authors.
+ * Copyright (c) 2011 - 2013 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,11 +171,11 @@ public class AuctionService
   
   public boolean validateOrder (Order order)
   {
-    // TODO - give feedback to broker if possible.
     if (!timeslotRepo.isTimeslotEnabled(order.getTimeslot())) {
       OrderStatus status = new OrderStatus(order.getBroker(), order.getId());
       brokerProxyService.sendMessage(order.getBroker(), status);
-      log.error("Order submitted for disabled timeslot");
+      log.error("Order from " + order.getBroker().getUsername()
+                +" submitted for disabled timeslot");
       return false;
     }
     return true;
