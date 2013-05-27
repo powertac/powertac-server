@@ -133,7 +133,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     serverPropertiesService.configureMe(this);
 
     villageList.clear();
-    tariffMarketService.registerNewTariffListener(this);
+    // *** Temporarily disable tariff evaluation ***
+    //tariffMarketService.registerNewTariffListener(this);
     rs1 =
       randomSeedRepo.getRandomSeed("HouseholdCustomerService", seedId++,
                                    "Household Customer Models");
