@@ -268,32 +268,41 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
       // For each type of houses of the villages //
       for (String type: village.getSubscriptionMap().keySet()) {
+        try {
+          // if the publishingPeriod is divided exactly with the periodicity of
+          // the evaluation of each type. //
+          if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
 
-        // if the publishingPeriod is divided exactly with the periodicity of
-        // the evaluation of each type. //
-        if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
-
-          // System.out.println("Evaluation for " + type + " of village "
-          // + village.toString());
-          log.debug("Evaluation for " + type + " of village "
+            // System.out.println("Evaluation for " + type + " of village "
+            // + village.toString());
+            log.debug("Evaluation for " + type + " of village "
                     + village.toString());
 
-          double inertia = estimateInertia(village, type);
-          double rand = rs1.nextDouble();
+            double inertia = estimateInertia(village, type);
+            double rand = rs1.nextDouble();
 
-          // System.out.println(rand);
-          // If the percentage is smaller that inertia then evaluate the new
-          // tariffs then evaluate //
-          if (rand > inertia) {
-            // System.out.println("Inertia Passed for " + type + " of village "
-            // + village.toString());
-            log.debug("Inertia Passed for " + type + " of village "
+            // System.out.println(rand);
+            // If the percentage is smaller that inertia then evaluate the new
+            // tariffs then evaluate //
+            if (rand > inertia) {
+              // System.out.println("Inertia Passed for " + type + " of village "
+              // + village.toString());
+              log.debug("Inertia Passed for " + type + " of village "
                       + village.toString());
-            village.possibilityEvaluationNewTariffs(publishedTariffs, type);
+              village.possibilityEvaluationNewTariffs(publishedTariffs, type);
+            }
           }
         }
+        catch (Exception e) {
+          StackTraceElement[] trace = e.getStackTrace();
+          log.error(e.toString()
+                    + "\n.. " + trace[0].toString()
+                    + "\n.. " + trace[1].toString()
+                    + "\n.. " + trace[2].toString()
+                    + "\n.. " + trace[3].toString()
+                    );
+        }
       }
-
     }
     publishingPeriods++;
 
