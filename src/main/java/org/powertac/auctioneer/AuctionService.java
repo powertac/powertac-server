@@ -175,7 +175,7 @@ public class AuctionService
       OrderStatus status = new OrderStatus(order.getBroker(), order.getId());
       brokerProxyService.sendMessage(order.getBroker(), status);
       log.error("Order from " + order.getBroker().getUsername()
-                +" submitted for disabled timeslot");
+                +" for disabled timeslot " + order.getTimeslot());
       return false;
     }
     return true;
