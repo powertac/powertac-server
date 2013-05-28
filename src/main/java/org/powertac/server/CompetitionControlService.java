@@ -986,8 +986,8 @@ public class CompetitionControlService
    * Authenticate Broker.
    */
   public void handleMessage(BrokerAuthentication msg) {
-    log.info("receiveMessage(BrokerAuthentication) " + 
-             msg.getUsername());
+    log.info("receiveMessage(BrokerAuthentication) " + msg.getUsername()
+             + ", time offset = " + (msg.getBrokerTime() - new Date().getTime()));
     loginBroker(msg.getUsername());
   }
   
