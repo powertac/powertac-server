@@ -40,13 +40,13 @@ public class BrokerAuthentication
 {
   @XStreamAsAttribute
   private String username;
-  
+
   @XStreamAsAttribute
   private String password;
   
-  //@XStreamAsAttribute
-  //private String queueName;
-  
+  @XStreamAsAttribute
+  private long brokerTime = 0l;
+
   /**
    * Creates an instance from a broker
    */
@@ -55,9 +55,8 @@ public class BrokerAuthentication
     super();
     this.username = broker.getUsername();
     this.password = broker.getPassword();
-    //this.queueName = broker.toQueueName();
   }
-  
+
   /**
    * Creates an instance from a username, password
    */
@@ -67,16 +66,6 @@ public class BrokerAuthentication
     this.username = username;
     this.password = password;
   }
-  
-//  /**
-//   * Creates an instance with a queue name
-//   */
-//  public BrokerAuthentication (String username,
-//                               String password)
-//  {
-//    this(username, password);
-//    //this.queueName = queueName;
-//  }
 
   /**
    * @return the broker username
@@ -94,20 +83,21 @@ public class BrokerAuthentication
     return password;
   }
 
-//  /**
-//   * Returns the queue name
-//   */
-//  public String getQueueName ()
-//  {
-//    return queueName;
-//  }
-  
-//  /**
-//   * @param password new password
-//   */
-//  @StateChange
-//  public void setPassword (String password)
-//  {
-//    this.password = password;
-//  }
+  /**
+   * Sets the system time. Should be set immediately before sending the
+   * message to the server.
+   */
+  public void setBrokerTime (long time)
+  {
+    brokerTime = time;
+  }
+
+  /**
+   * Returns the system time set by the broker. Used by the server to
+   * estimate clock offset.
+   */
+  public long getBrokerTime ()
+  {
+    return brokerTime;
+  }
 }

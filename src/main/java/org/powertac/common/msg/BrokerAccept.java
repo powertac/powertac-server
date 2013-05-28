@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.powertac.common.msg;
 
-import org.powertac.common.state.Domain;
+import java.util.Date;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -25,6 +25,12 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * Server sends this message to broker after successful validation of 
  * BrokerAuthentication message from the broker.  Broker must use the prefix
  * to initialize its IdGenerator. 
+ * 
+ * Note that the system time is acquired in the constructor. To maximize
+ * synchronization value, the delay between constructing and sending this
+ * message must be minimized.
+ * 
+ * @author John Collins
  */
 
 //@Domain
@@ -36,12 +42,16 @@ public class BrokerAccept
 
   @XStreamAsAttribute
   private String key;
-  
+
+  @XStreamAsAttribute
+  private long serverTime = 0l;
+
   public BrokerAccept (int prefix)
   {
     this.prefix = prefix;
+    this.serverTime = new Date().getTime();
   }
-  
+
   public BrokerAccept (int prefix, String key)
   {
     this(prefix);
@@ -65,5 +75,13 @@ public class BrokerAccept
   public String getKey ()
   {
     return key;
+  }
+  
+  /**
+   * Returns the server's system time at the time this instance was created.
+   */
+  public long getServerTime ()
+  {
+    return serverTime;
   }
 }
