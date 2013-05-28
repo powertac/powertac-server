@@ -1012,6 +1012,7 @@ public class CompetitionControlService
   class SimRunner extends Thread
   {
     CompetitionControlService parent;
+    int maxSequentialExceptions = 4;
     
     public SimRunner (CompetitionControlService instance)
     {
@@ -1022,6 +1023,8 @@ public class CompetitionControlService
     @Override
     public void run ()
     {
+      int sequentialExceptions = 0;
+
       SimulationClockControl.initialize(parent, timeService);
       clock = SimulationClockControl.getInstance();
       // wait for start time
@@ -1054,10 +1057,25 @@ public class CompetitionControlService
         clock.waitForTick(currentSlot);
         try {
           step();
+          sequentialExceptions = 0;
         }
         catch (Exception e) {
-          e.printStackTrace();
-          running = false;
+          try {
+            StackTraceElement[] trace = e.getStackTrace();
+            StringBuffer sb = new StringBuffer();
+            sb.append(e.toString());
+            int depth = Math.min(5, trace.length);
+            for (int index = 0; index < depth; index++) {
+              sb.append("\n.. " + trace[index].toString());
+            }
+            log.error(sb.toString());
+          }
+          catch (Exception e1) {
+            log.error("Exception " + e1.toString()
+                      + " trying to log exception " + e.toString());
+          }
+          if (++sequentialExceptions >= maxSequentialExceptions)
+            running = false;
         }
         currentSlot += 1;
         clock.complete();
