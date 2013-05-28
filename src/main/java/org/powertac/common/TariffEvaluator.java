@@ -214,7 +214,6 @@ public class TariffEvaluator
    */
   public void evaluateTariffs ()
   {
-    evaluationCounter += 1;
     allocations.clear();
     HashSet<Tariff> newTariffs =
       new HashSet<Tariff>(getTariffRepo()
@@ -224,9 +223,12 @@ public class TariffEvaluator
     // make sure all superseding tariffs are in the set
     addSupersedingTariffs(newTariffs);
 
-    // adjust inertia for BOG
+    // adjust inertia for BOG, accounting for the extra
+    // evaluation cycle at ts 0
     double actualInertia =
-            (1.0 - Math.pow(2, 1 - evaluationCounter)) * inertia;
+            Math.max(0.0,
+                     (1.0 - Math.pow(2, 1 - evaluationCounter)) * inertia);
+    evaluationCounter += 1;
 
     // Get the cost eval for the appropriate default tariff
     EvalData defaultEval = getDefaultTariffEval();

@@ -421,8 +421,9 @@ public class TariffEvaluatorTest
   @Test
   public void twoTariffInertia ()
   {
-    // do an eval to bump up inertia
+    // do two evals to bump up inertia
     this.noTariffTest();
+    evaluator.evaluateTariffs();
 
     // inertia should now be 0.4
     TariffSpecification bobTS =

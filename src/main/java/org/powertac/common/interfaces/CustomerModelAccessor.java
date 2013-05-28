@@ -45,7 +45,7 @@ public interface CustomerModelAccessor
    * model-specific time period.
    */
   public double[] getCapacityProfile (Tariff tariff);
-  
+
   /**
    * Returns the inconvenience of switching brokers. The value may depend
    * on whether the current subscription is being switched to a superseding
