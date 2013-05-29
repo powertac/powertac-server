@@ -84,7 +84,7 @@ public class BrokerProxyService implements BrokerProxy
     
     // don't communicate with non-enabled brokers
     if (!broker.isEnabled()) {
-      log.warn("broker " + broker.getUsername() + " is disabled");
+      //log.warn("broker " + broker.getUsername() + " is disabled");
       return;
     }
     

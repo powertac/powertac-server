@@ -754,6 +754,8 @@ public class CompetitionControlService
     if (badQueues != null && badQueues.size() > 0) {
       for (Broker broker : brokerRepo.list()) {
         if (badQueues.contains(broker.toQueueName())) {
+          // disable broker and revoke all its tariffs
+          log.warn("Disabling unresponsive broker " + broker.getUsername());
           broker.setEnabled(false);
         }
       }
