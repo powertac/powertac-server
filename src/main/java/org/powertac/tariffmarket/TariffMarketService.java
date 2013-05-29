@@ -18,8 +18,8 @@ package org.powertac.tariffmarket;
 import static org.powertac.util.ListTools.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -52,6 +52,7 @@ import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.msg.TariffUpdate;
 import org.powertac.common.msg.VariableRateUpdate;
+import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
@@ -84,6 +85,9 @@ public class TariffMarketService
   
   @Autowired
   private BrokerProxy brokerProxyService;
+  
+  @Autowired
+  private BrokerRepo brokerRepo;
   
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -120,15 +124,15 @@ public class TariffMarketService
       publish = true,
       description = "set publication fee directly to override random selection")
   private Double publicationFee = null;
-  
+
   @ConfigurableValue(valueType = "Double",
       description = "low end of tariff revocation fee range")
   private double minRevocationFee = -100.0;
-  
+
   @ConfigurableValue(valueType = "Double",
       description = "high end of tariff revocation fee range")
   private double maxRevocationFee = -500.0;
-  
+
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Set revocation fee directly to override random selection")
@@ -142,10 +146,13 @@ public class TariffMarketService
   // list of pending subscription events.
   private List<PendingSubscription> pendingSubscriptionEvents =
           new ArrayList<PendingSubscription>();
-  
+
   // list of pending variable-rate updates.
   private List<VariableRateUpdate> pendingVrus = new ArrayList<VariableRateUpdate>();
-  
+
+  // set of already-disabled brokers
+  private HashSet<Broker> disabledBrokers = new HashSet<Broker>(); 
+
   /**
    * Default constructor
    */
@@ -185,6 +192,7 @@ public class TariffMarketService
     pendingSubscriptionEvents.clear();
     pendingRevokedTariffs.clear();
     pendingVrus.clear();
+    disabledBrokers.clear();
     revokedTariffs = null;
     lastRevokeProcess = new Instant(0);
 
@@ -494,7 +502,24 @@ public class TariffMarketService
   {
     // nothing happens -- this is deprecated.
   }
-  
+
+  private void revokeTariffsForDisabledBrokers ()
+  {
+    for (Broker broker : brokerRepo.findDisabledBrokers()) {
+      if (!disabledBrokers.contains(broker)) {
+        // this is a new one
+        disabledBrokers.add(broker);
+        for (Tariff tariff : tariffRepo.findTariffsByBroker(broker)) {
+          if (Tariff.State.KILLED != tariff.getState()) {
+            log.info("Revoking tariff " + tariff.getId()
+                     + " from disabled broker " + broker.getUsername());
+            addPendingRevoke(tariff);
+          }
+        }
+      }
+    }
+  }
+
   private void updateRevokedTariffs ()
   {
     List<Tariff> pending = getPendingRevokes();
@@ -565,6 +590,7 @@ public class TariffMarketService
     if (!firstPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
       // time to publish or never published
+      revokeTariffsForDisabledBrokers();
       updateRevokedTariffs();
       publishTariffs();
       //removeRevokedTariffs();
