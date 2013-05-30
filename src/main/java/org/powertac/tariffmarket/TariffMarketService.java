@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -341,7 +341,12 @@ public class TariffMarketService
     }
     tariffRepo.addSpecification(spec);
     Tariff tariff = new Tariff(spec);
-    tariff.init();
+    if (!tariff.init()) {
+      log.warn("incomplete coverage in multi-rate tariff " + spec.getId());
+      tariffRepo.removeTariff(tariff);
+      send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                            TariffStatus.Status.invalidTariff));
+    }
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
                                            tariff, null, 0, 0.0, publicationFee);
