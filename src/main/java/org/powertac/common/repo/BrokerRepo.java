@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,6 +109,17 @@ public class BrokerRepo implements DomainRepo
     return result;
   }
   
+  public List<Broker> findDisabledBrokers ()
+  {
+    ArrayList<Broker> result = new ArrayList<Broker>();
+    for (Broker broker : nameTable.values()) {
+      if (!broker.isEnabled())
+        result.add(broker);
+    }
+    return result;
+  }
+  
+  @Override
   public void recycle ()
   {
     log.debug("recycle");
