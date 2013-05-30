@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
@@ -189,7 +190,7 @@ public class TariffRepo implements DomainRepo
     }
     return result;
   }
-  
+
   /**
    * Returns the n most "recent" active tariffs from each broker
    * that can be used by a customer with the given powerType. 
@@ -215,7 +216,12 @@ public class TariffRepo implements DomainRepo
     }
     return result;
   }
-  
+
+  public List<Tariff> findTariffsByBroker (Broker broker)
+  {
+    return brokerTariffs.get(broker.getId());
+  }
+
   /**
    * Removes a tariff and its specification from the repo
    */
@@ -225,7 +231,7 @@ public class TariffRepo implements DomainRepo
     deletedTariffs.add(tariff.getId());
     specs.remove(tariff.getId());
   }
-  
+
   /**
    * Tests whether a tariff has been deleted.
    */
@@ -238,7 +244,7 @@ public class TariffRepo implements DomainRepo
   {
     return rates.get(id);
   }
-  
+
   /**
    * Adds a balancing order, indexed by its TariffSpec
    */

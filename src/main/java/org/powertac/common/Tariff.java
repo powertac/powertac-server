@@ -130,13 +130,20 @@ public class Tariff
    * usage charges can be computed. This is not in the constructor because
    * of testability problems.
    */
-  public void init ()
+  public boolean init ()
   {
     if (null == timeService)
       timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     if (null == tariffRepo)
       tariffRepo= (TariffRepo)SpringApplicationContext.getBean("tariffRepo");
     offerDate = timeService.getCurrentTime();
+
+    // make sure this tariff is valid before adding it to the repo
+    analyze();
+    if (!isCovered())
+      return false;
+
+    // it's good.
     tariffRepo.addTariff(this);
     if (tariffSpec.getSupersedes() != null) {
       for (long supId : tariffSpec.getSupersedes()) {
@@ -153,7 +160,7 @@ public class Tariff
           supersededTariff.isSupersededBy = this;
       }
     }
-    analyze();
+    return true;
   }
   
   public TariffSpecification getTariffSpecification ()

@@ -8,11 +8,10 @@ import org.powertac.common.spring.SpringApplicationContext;
 public class TariffSpecificationConverter implements SingleValueConverter
 {
   private TariffRepo tariffRepo;
-  
+
   public TariffSpecificationConverter ()
   {
     super();
-    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
   }
   
   @SuppressWarnings("rawtypes")
@@ -23,7 +22,7 @@ public class TariffSpecificationConverter implements SingleValueConverter
 
   public Object fromString (String id)
   {
-    return tariffRepo.findSpecificationById(Long.parseLong(id));
+    return getTariffRepo().findSpecificationById(Long.parseLong(id));
   }
 
   public String toString (Object tariffSpec)
@@ -31,4 +30,10 @@ public class TariffSpecificationConverter implements SingleValueConverter
     return Long.toString(((TariffSpecification)tariffSpec).getId());
   }
 
+  private TariffRepo getTariffRepo ()
+  {
+    if (null == tariffRepo)
+      tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
+    return tariffRepo;
+  }
 }

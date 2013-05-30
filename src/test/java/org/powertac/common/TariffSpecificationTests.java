@@ -173,6 +173,7 @@ public class TariffSpecificationTests
     //System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xspec);
+    //assertEquals("correct match", spec, xspec);
     assertEquals("correct signup", 35.0, xspec.getSignupPayment(), 1e-6);
     List<Long> supersedes = xspec.getSupersedes();
     assertNotNull("non-empty supersedes list", supersedes);
