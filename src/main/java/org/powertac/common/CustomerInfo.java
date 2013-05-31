@@ -43,12 +43,6 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private String name;
 
-  /** gives a "rough" classification what type of customer to 
-   * expect based on an enumeration, i.e. a fixed set of 
-   * customer types. Defaults to CustomerHousehold. */
-  //@XStreamAsAttribute
-  //private CustomerType customerType = CustomerType.CustomerHousehold;
-  
   /** population represented by this model */
   @XStreamAsAttribute
   private int population;
@@ -56,7 +50,19 @@ public class CustomerInfo //implements Serializable
   /** gives the available power classifications of the customer */
   @XStreamAsAttribute
   private PowerType powerType;
-  
+
+  /** total controllable capacity in kWh per member */
+  @XStreamAsAttribute
+  private double controllableKWh = 0.0;
+
+  /** Maximum up-regulation rate in kW per member */
+  @XStreamAsAttribute
+  private double upRegulationKW = 0.0;
+
+  /** Maximum down-regulation rate in kW per member */
+  @XStreamAsAttribute
+  private double downRegulationKW = 0.0;
+
   /** describes whether or not this customer engages in multiple contracts at the same time.
    * Defaults to false. */
   @XStreamAsAttribute

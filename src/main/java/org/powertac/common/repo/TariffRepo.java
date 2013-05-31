@@ -268,8 +268,10 @@ public class TariffRepo implements DomainRepo
   {
     specs.clear();
     tariffs.clear();
+    defaultTariffs.clear();
     deletedTariffs.clear();
     rates.clear();
     balancingOrders.clear();
+    brokerTariffs.clear();
   }
 }
