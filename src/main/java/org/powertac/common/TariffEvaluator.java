@@ -248,10 +248,10 @@ public class TariffEvaluator
       }
     }
 
-    // Iterate through the current subscriptions
+    // Iterate through the current active subscriptions
     for (TariffSubscription subscription
             : getTariffSubscriptionRepo().
-            findSubscriptionsForCustomer(customerInfo)) {
+            findActiveSubscriptionsForCustomer(customerInfo)) {
       Tariff subTariff = subscription.getTariff();
       // find out how many of these customers can withdraw without penalty
       double withdrawCost = subTariff.getEarlyWithdrawPayment(); 
