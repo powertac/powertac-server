@@ -589,7 +589,6 @@ public class TariffMarketService
   public void activate (Instant time, int phase)
   {
     log.info("Activate");
-    processPendingSubscriptions();
     processPendingVrus();
     long msec = timeService.getCurrentTime().getMillis();
     if (!firstPublication ||
@@ -599,6 +598,7 @@ public class TariffMarketService
       updateRevokedTariffs();
       publishTariffs();
       //removeRevokedTariffs();
+      processPendingSubscriptions();
       firstPublication = true;
     }
   }
