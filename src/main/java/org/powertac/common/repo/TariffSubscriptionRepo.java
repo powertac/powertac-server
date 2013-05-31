@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011-2013 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 //import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
@@ -38,14 +39,14 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffSubscriptionRepo implements DomainRepo
 {
-  //static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
+  static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
 
   private HashMap<Tariff, List<TariffSubscription>> tariffMap;
   private HashMap<CustomerInfo, List<TariffSubscription>> customerMap;
   
   @Autowired
   private TariffRepo tariffRepo;
-  
+
   @Autowired
   private TariffMarket tariffMarketService;
 
@@ -77,7 +78,6 @@ public class TariffSubscriptionRepo implements DomainRepo
       // subscription exists
       return result;
     }
-      
     result = new TariffSubscription(customer, tariff);
     storeSubscription(result, customer, tariff);
     return result;
@@ -129,8 +129,13 @@ public class TariffSubscriptionRepo implements DomainRepo
   {
     List<TariffSubscription> result = new ArrayList<TariffSubscription>();
     for (TariffSubscription sub : findSubscriptionsForCustomer(customer)) {
-      if (sub.getCustomersCommitted() > 0)
+      if (sub.getCustomersCommitted() > 0) {
+        //if (sub.getTariff().getState() == Tariff.State.KILLED)
+        //  log.warn("Subscription for revoked tariff " + sub.getTariff().getId()
+        //           + ", customer " + customer.getName()
+        //           + " has non-zero count " + sub.getCustomersCommitted());
         result.add(sub);
+      }
     }
     return result;
   }

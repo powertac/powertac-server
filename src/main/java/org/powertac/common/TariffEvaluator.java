@@ -502,7 +502,7 @@ public class TariffEvaluator
                   (tariff, customerInfo);
         sub.unsubscribe(-count);
         log.info("customer " + customerInfo.getName()
-                 + " unsubscribes " + count
+                 + " unsubscribes " + -count
                  + " from tariff " + tariff.getId());
       }
       else if (count > 0) {
