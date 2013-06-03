@@ -18,8 +18,11 @@ package org.powertac.householdcustomer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -80,9 +83,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
   // read this from configurator
   private String configFile1 = null;
-  private String configFile2 = null;
-  private String configFile3 = null;
-  private String configFile4 = null;
   private int daysOfCompetition = 0;
 
   /**
@@ -134,7 +134,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
     villageList.clear();
     // *** Temporarily disable tariff evaluation ***
-    //tariffMarketService.registerNewTariffListener(this);
+    // tariffMarketService.registerNewTariffListener(this);
     rs1 =
       randomSeedRepo.getRandomSeed("HouseholdCustomerService", seedId++,
                                    "Household Customer Models");
@@ -142,18 +142,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     if (configFile1 == null) {
       log.info("No Config File for VillageType1 Taken");
       configFile1 = "VillageDefault.properties";
-    }
-    if (configFile2 == null) {
-      log.info("No Config File for VillageType2 Taken");
-      configFile2 = "VillageDefault.properties";
-    }
-    if (configFile3 == null) {
-      log.info("No Config File for VillageType3 Taken");
-      configFile3 = "VillageDefault.properties";
-    }
-    if (configFile4 == null) {
-      log.info("No Config File for VillageType4 Taken");
-      configFile4 = "VillageDefault.properties";
     }
 
     super.init();
@@ -170,9 +158,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     }
 
     addVillages(configFile1, "1");
-    addVillages(configFile2, "2");
-    addVillages(configFile3, "3");
-    addVillages(configFile4, "4");
 
     return "HouseholdCustomer";
   }
@@ -191,121 +176,66 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       return;
     }
 
+    String[] types = { "NS", "RaS", "ReS", "SS" };
+    String[] shifts = { "Base", "Controllable" };
+    Map<String, Integer> houses = new TreeMap<String, Integer>();
     int numberOfVillages =
       Integer.parseInt(configuration.getProperty("NumberOfVillages"));
     int nshouses =
       Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    houses.put("NS", nshouses);
     int rashouses =
       Integer.parseInt(configuration.getProperty("RandomlyShiftingCustomers"));
+    houses.put("RaS", rashouses);
     int reshouses =
       Integer.parseInt(configuration.getProperty("RegularlyShiftingCustomers"));
+    houses.put("ReS", reshouses);
     int sshouses =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    houses.put("SS", sshouses);
 
-    int villagePopulation = nshouses + rashouses + reshouses + sshouses;
+    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      public int compare (CustomerInfo customer1, CustomerInfo customer2)
+      {
+        return customer1.getName().compareToIgnoreCase(customer2.getName());
+      }
+    };
 
     for (int i = 1; i < numberOfVillages + 1; i++) {
-      CustomerInfo villageInfo =
-        new CustomerInfo("VillageType" + type + " Village " + i + " Base",
-                         villagePopulation)
-                .withPowerType(PowerType.CONSUMPTION);
-      CustomerInfo villageInfo2 =
-        new CustomerInfo("VillageType" + type + " Village " + i
-                         + " Controllable", villagePopulation)
-                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
-      Village village = new Village("VillageType" + type + " Village " + i);
-      village.addCustomerInfo(villageInfo);
-      village.addCustomerInfo(villageInfo2);
-      village.initialize(configuration, seedId++);
+      Village village = new Village("Village " + i);
+      Map<CustomerInfo, String> map = new TreeMap<CustomerInfo, String>(comp);
+
+      for (String houseType: types) {
+        for (String shifting: shifts) {
+
+          CustomerInfo villageInfo =
+            new CustomerInfo("Village " + i + " " + houseType + " " + shifting,
+                             houses.get(houseType));
+          if (shifting.equalsIgnoreCase("Base"))
+            villageInfo.withPowerType(PowerType.CONSUMPTION);
+          else
+            villageInfo.withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+          map.put(villageInfo, houseType + " " + shifting);
+          village.addCustomerInfo(villageInfo);
+        }
+
+      }
+
+      village.initialize(configuration, seedId++, map);
       villageList.add(village);
       village.subscribeDefault();
+
     }
   }
 
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
-
-    publishedTariffs.clear();
-
-    publishedTariffs =
-      tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
-
-    List<Tariff> temp =
-      tariffMarketService
-              .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
-
-    publishedTariffs.addAll(temp);
-
-    // System.out.println("Timeslot: " + timeslotRepo.currentSerialNumber());
-
     // For each village of the server //
-    for (Village village: villageList) {
+    for (Village village: villageList)
+      village.evaluateNewTariffs();
 
-      // For each type of houses of the villages //
-      for (String type: village.getSubscriptionMap().keySet()) {
-
-        try {
-          // if the publishingPeriod is divided exactly with the periodicity of
-          // the evaluation of each type. //
-          if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
-
-            // System.out.println("Evaluation for " + type + " of village "
-            // + village.toString());
-            log.debug("Evaluation for " + type + " of village "
-                    + village.toString());
-
-            double inertia = estimateInertia(village, type);
-            double rand = rs1.nextDouble();
-
-            // System.out.println(rand);
-            // If the percentage is smaller that inertia then evaluate the new
-            // tariffs then evaluate //
-            if (rand > inertia) {
-              // System.out.println("Inertia Passed for " + type + " of village "
-              // + village.toString());
-              log.debug("Inertia Passed for " + type + " of village "
-                      + village.toString());
-              village.possibilityEvaluationNewTariffs(publishedTariffs, type);
-            }
-          }
-        }
-        catch (Exception e) {
-          StackTraceElement[] trace = e.getStackTrace();
-          log.error(e.toString()
-                    + "\n.. " + trace[0].toString()
-                    + "\n.. " + trace[1].toString()
-                    + "\n.. " + trace[2].toString()
-                    + "\n.. " + trace[3].toString()
-                    );
-        }
-      }
-
-    }
-    publishingPeriods++;
-
-  }
-
-  double estimateInertia (Village village, String type)
-  {
-    double inertia = 0;
-
-    // New Inertia Formula
-    if (village.getSuperseded().get(type)) {
-      inertia =
-        village.getInertiaMap().get(type) / VillageConstants.DISTRUST_FACTOR;
-      log.debug("New Inertia = " + inertia + " with Trust Issues: "
-                + village.getSuperseded().get(type));
-      village.setSuperseded(type, false);
-    }
-    else {
-      double m = 1 / Math.pow(2, publishingPeriods);
-      inertia = village.getInertiaMap().get(type) * (1 - m);
-      log.debug("New Inertia = " + inertia + " with Trust Issues: "
-                + village.getSuperseded().get(type));
-    }
-
-    return inertia;
   }
 
   // ----------------- Data access -------------------------
@@ -336,45 +266,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     configFile1 = config;
   }
 
-  /** Getter method for the second configuration file */
-  public String getConfigFile2 ()
-  {
-    return configFile2;
-  }
-
-  @ConfigurableValue(valueType = "String", description = "second configuration file of the household customers")
-  public
-    void setConfigFile2 (String config)
-  {
-    configFile2 = config;
-  }
-
-  /** Getter method for the third configuration file */
-  public String getConfigFile3 ()
-  {
-    return configFile3;
-  }
-
-  @ConfigurableValue(valueType = "String", description = "third configuration file of the household customers")
-  public
-    void setConfigFile3 (String config)
-  {
-    configFile3 = config;
-  }
-
-  /** Getter method for the forth configuration file */
-  public String getConfigFile4 ()
-  {
-    return configFile4;
-  }
-
-  @ConfigurableValue(valueType = "String", description = "forth configuration file of the household customers")
-  public
-    void setConfigFile4 (String config)
-  {
-    configFile4 = config;
-  }
-
   /**
    * This function returns the list of the villages created at the beginning of
    * the game by the service
@@ -391,9 +282,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   public void clearConfiguration ()
   {
     configFile1 = null;
-    configFile2 = null;
-    configFile3 = null;
-    configFile4 = null;
     publishingPeriods = 0;
   }
 
@@ -423,18 +311,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       }
     }
   }
-
-  // @Override
-  // public void receiveMessage (Object msg)
-  // {
-  // TODO Implement per-message behavior. Note that incoming messages
-  // from brokers arrive in a JMS thread, so you need to synchronize
-  // access to shared data structures. See AuctionService for an example.
-
-  // If you need to handle a number of different message types, it may make
-  // make sense to use a reflection-based dispatcher. Both
-  // TariffMarketService and AccountingService work this way.
-  // }
 
   @Override
   public void setDefaults ()

@@ -36,9 +36,17 @@ public class VillageConstants
   public static final double OPERATION_PARTITION = 0.05;
   public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
   public static final double DISTRUST_FACTOR = 2;
+  public static final double TOU_FACTOR = 0.05;
+  public static final double INTERRUPTIBILITY_FACTOR = 0.5;
+  public static final double VARIABLE_PRICING_FACTOR = 0.7;
+  public static final double TIERED_RATE_FACTOR = 0.1;
+  public static final double TARIFF_SWITCH_FACTOR = 0.1;
+  public static final double BROKER_SWITCH_FACTOR = 0.02;
+  public static final double RATIONALITY_FACTOR = 0.9;
+  public static final int TARIFF_COUNT = 5;
   public static final double WEIGHT_INCONVENIENCE = 1;
   public static final int MIN_DEFAULT_DURATION = 1;
-  public static final int MAX_DEFAULT_DURATION = 6;
+  public static final int MAX_DEFAULT_DURATION = 3;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;

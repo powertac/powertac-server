@@ -1115,13 +1115,13 @@ public class Household
 
   }
 
-  public void test ()
-  {
-
-    for (Appliance appliance: appliances)
-      appliance.test();
-
-  }
+  // public void test ()
+  // {
+  //
+  // for (Appliance appliance: appliances)
+  // appliance.test();
+  //
+  // }
 
   /**
    * This is the function that takes every appliance in the household and reads
