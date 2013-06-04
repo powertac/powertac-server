@@ -335,10 +335,10 @@ public class Appliance
   {
   }
 
-  public void test ()
-  {
-    System.out.println(toString() + " " + gen.nextDouble());
-  }
+  // public void test ()
+  // {
+  // System.out.println(toString() + " " + gen.nextDouble());
+  // }
 
   /**
    * This is an function to fill the maps utilized by Services in order to keep

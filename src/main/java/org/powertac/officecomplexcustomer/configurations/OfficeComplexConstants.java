@@ -27,17 +27,20 @@ public class OfficeComplexConstants
   // GENERAL VARIABLES -----------------------------//
   public static final int PERCENTAGE = 100;
   public static final int THOUSAND = 1000;
-  public static final int KWH = 1000;
-  public static final int MWH = 1000000;
-  public static final int MILLION = 1000000;
-  public static final int MEAN_TARIFF_DURATION = 7;
   public static final double SAME = 0.60;
-  public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.02;
   public static final double DISTRUST_FACTOR = 2;
-  public static final double WEIGHT_RISK = 1;
+  public static final double TOU_FACTOR = 0.05;
+  public static final double INTERRUPTIBILITY_FACTOR = 0.5;
+  public static final double VARIABLE_PRICING_FACTOR = 0.7;
+  public static final double TIERED_RATE_FACTOR = 0.1;
+  public static final double TARIFF_SWITCH_FACTOR = 0.1;
+  public static final double BROKER_SWITCH_FACTOR = 0.02;
+  public static final double RATIONALITY_FACTOR = 0.9;
+  public static final int TARIFF_COUNT = 5;
+  public static final double WEIGHT_INCONVENIENCE = 1;
   public static final int MIN_DEFAULT_DURATION = 1;
-  public static final int MAX_DEFAULT_DURATION = 6;
+  public static final int MAX_DEFAULT_DURATION = 3;
 
   // TIME VARIABLES -----------------------------//
   public static int DAYS_OF_COMPETITION;
@@ -218,14 +221,6 @@ public class OfficeComplexConstants
     FRIDAY = (FRIDAY + bias) % DAYS_OF_WEEK;
     SATURDAY = (SATURDAY + bias) % DAYS_OF_WEEK;
     SUNDAY = (SUNDAY + bias) % DAYS_OF_WEEK;
-    /*
-        System.out.println(MONDAY);
-        System.out.println(TUESDAY);
-        System.out.println(WEDNESDAY);
-        System.out.println(THURSDAY);
-        System.out.println(FRIDAY);
-        System.out.println(SATURDAY);
-        System.out.println(SUNDAY);
-    */
+
   }
 }

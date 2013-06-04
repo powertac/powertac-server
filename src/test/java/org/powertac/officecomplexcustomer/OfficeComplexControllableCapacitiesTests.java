@@ -59,8 +59,6 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.msg.TariffRevoke;
-import org.powertac.common.msg.TariffStatus;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -216,8 +214,6 @@ public class OfficeComplexControllableCapacitiesTests
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("officecomplexcustomer.officeComplexCustomerService.configFile1",
             "OfficeComplexType1.properties");
-    map.put("officecomplexcustomer.officeComplexCustomerService.configFile2",
-            "OfficeComplexType2.properties");
     map.put("common.competition.expectedTimeslotCount", "1440");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
@@ -233,9 +229,6 @@ public class OfficeComplexControllableCapacitiesTests
     assertEquals("correct first configuration file",
                  "OfficeComplexType1.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertEquals("correct second configuration file",
-                 "OfficeComplexType2.properties",
-                 officeComplexCustomerService.getConfigFile2());
     assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
             .currentCompetition().getExpectedTimeslotCount()
                                                                       / OfficeComplexConstants.HOURS_OF_DAY);
@@ -251,9 +244,6 @@ public class OfficeComplexControllableCapacitiesTests
     assertEquals("correct return value", "OfficeComplexCustomer", result);
     assertEquals("correct configuration file", "OfficeComplexType1.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertEquals("correct second configuration file",
-                 "OfficeComplexType2.properties",
-                 officeComplexCustomerService.getConfigFile2());
     assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
             .currentCompetition().getExpectedTimeslotCount()
                                                                       / OfficeComplexConstants.HOURS_OF_DAY);
@@ -267,8 +257,6 @@ public class OfficeComplexControllableCapacitiesTests
     TreeMap<String, String> map2 = new TreeMap<String, String>();
     map2.put("officecomplexcustomer.officeComplexCustomerService.configFile1",
              null);
-    map2.put("officecomplexcustomer.officeComplexCustomerService.configFile2",
-             null);
     Configuration mapConfig = new MapConfiguration(map2);
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
@@ -278,9 +266,6 @@ public class OfficeComplexControllableCapacitiesTests
     assertEquals("correct configuration file",
                  "OfficeComplexDefault.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertEquals("correct configuration file",
-                 "OfficeComplexDefault.properties",
-                 officeComplexCustomerService.getConfigFile2());
     assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
             .currentCompetition().getExpectedTimeslotCount()
                                                                       / OfficeComplexConstants.HOURS_OF_DAY);
@@ -301,45 +286,44 @@ public class OfficeComplexControllableCapacitiesTests
   public void testServiceInitialization ()
   {
     initializeService();
-    assertEquals("Four Consumers Created", 4, officeComplexCustomerService
+    assertEquals("Two Consumers Created", 2, officeComplexCustomerService
             .getOfficeComplexList().size());
+
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
 
-      assertEquals("one subscription for CONSUMPTION customerInfo",
-                   1,
-                   tariffSubscriptionRepo
-                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                 .get(0))
-                           .size());
-      assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION customerInfo",
-                   1,
-                   tariffSubscriptionRepo
-                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                 .get(1))
-                           .size());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
-      assertEquals("customer on DefaultTariff",
-                   mockTariffMarket.getDefaultTariff(customer.getCustomerInfo()
-                           .get(0).getPowerType()),
-                   tariffSubscriptionRepo
-                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                 .get(0))
-                           .get(0).getTariff());
+        assertEquals("one subscription for each customerInfo",
+                     1,
+                     tariffSubscriptionRepo
+                             .findSubscriptionsForCustomer(customerInfo).size());
+
+        assertEquals("customer on DefaultTariff",
+                     mockTariffMarket.getDefaultTariff(customerInfo
+                             .getPowerType()), tariffSubscriptionRepo
+                             .findSubscriptionsForCustomer(customerInfo).get(0)
+                             .getTariff());
+      }
     }
   }
 
@@ -352,391 +336,42 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
-
     }
 
     timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-
-      assertFalse("OfficeComplex consumed power for CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findActiveSubscriptionsForCustomer(customer
-                                  .getCustomerInfo().get(0)) == null
-                          || tariffSubscriptionRepo
-                                  .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                              .get(0))
-                                  .get(0).getTotalUsage() < 0);
-      assertFalse("OfficeComplex consumed power for INTERRUPTIBLE_CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findActiveSubscriptionsForCustomer(customer
-                                  .getCustomerInfo().get(1)) == null
-                          || tariffSubscriptionRepo
-                                  .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                              .get(1))
-                                  .get(0).getTotalUsage() < 0);
-    }
+            .getOfficeComplexList())
+      for (CustomerInfo customerInfo: customer.getCustomerInfo())
+        assertFalse("Household consumed power for each customerInfo",
+                    tariffSubscriptionRepo
+                            .findActiveSubscriptionsForCustomer(customerInfo) == null
+                            || tariffSubscriptionRepo
+                                    .findActiveSubscriptionsForCustomer(customerInfo)
+                                    .get(0).getTotalUsage() < 0);
 
     assertEquals("Tariff Transactions Created",
-                 4 * officeComplexCustomerService.getOfficeComplexList().size(),
+                 8 * officeComplexCustomerService.getOfficeComplexList().size(),
                  accountingArgs.size());
-
-  }
-
-  // @Repeat(20)
-  @Test
-  public void changeSubscription ()
-  {
-    initializeService();
-
-    Rate r2 = new Rate().withValue(-0.222);
-    Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
-
-    TariffSpecification tsc1 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 =
-      new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
-    TariffSpecification tsc3 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
-
-    Tariff tariff1 = new Tariff(tsc1);
-    tariff1.init();
-    tariff1.setState(Tariff.State.OFFERED);
-    Tariff tariff2 = new Tariff(tsc2);
-    tariff2.init();
-    tariff2.setState(Tariff.State.OFFERED);
-    Tariff tariff3 = new Tariff(tsc3);
-    tariff3.init();
-    tariff3.setState(Tariff.State.OFFERED);
-
-    assertEquals("Five tariffs", 5, tariffRepo.findAllTariffs().size());
-
-    ArgumentCaptor<PowerType> powerArg =
-      ArgumentCaptor.forClass(PowerType.class);
-
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      customer.subscribeDefault();
-
-    }
-
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-
-      // Changing from default to another tariff
-      TariffSubscription sub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), tariff1);
-      sub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription sub2 =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), tariff2);
-      sub2.subscribe(customer.getCustomerInfo().get(1).getPopulation());
-
-      when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-              .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION))
-              .thenReturn(tariffRepo
-                                  .findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION));
-
-      // System.out.println("Subscriptions: " +
-      // tariffSubscriptionRepo.findSubscriptionsForCustomer(customer.getCustomerInfo()).toString());
-
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(0).getPowerType()), customer
-              .getCustomerInfo().get(0));
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(1).getPowerType()), customer
-              .getCustomerInfo().get(1));
-
-      assertFalse("Changed from default tariff",
-                  tariffSubscriptionRepo
-                          .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                      .get(0))
-                          .get(1).getTariff() == mockTariffMarket
-                          .getDefaultTariff(customer.getCustomerInfo().get(0)
-                                  .getPowerType()));
-
-      assertFalse("Changed from default tariff for PowerType INTERRUPTIBLE_CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                .get(1)).get(1)
-                          .getTariff() == mockTariffMarket
-                          .getDefaultTariff(customer.getCustomerInfo().get(1)
-                                  .getPowerType()));
-
-      // Changing back from the new tariff to the default one in order to check
-      // every changeSubscription Method
-      Tariff lastTariff =
-        tariffSubscriptionRepo
-                .findSubscriptionsForCustomer(customer.getCustomerInfo().get(0))
-                .get(1).getTariff();
-      Tariff lastTariff2 =
-        tariffSubscriptionRepo
-                .findSubscriptionsForCustomer(customer.getCustomerInfo().get(1))
-                .get(1).getTariff();
-
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
-
-      customer.changeSubscription(lastTariff, mockTariffMarket
-              .getDefaultTariff(customer.getCustomerInfo().get(0)
-                      .getPowerType()), customer.getCustomerInfo().get(0));
-      customer.changeSubscription(lastTariff2, mockTariffMarket
-              .getDefaultTariff(customer.getCustomerInfo().get(1)
-                      .getPowerType()), customer.getCustomerInfo().get(1));
-
-      assertTrue("Changed to default tariff for CONSUMPTION",
-                 tariffSubscriptionRepo
-                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                               .get(0)).get(0)
-                         .getTariff() == mockTariffMarket
-                         .getDefaultTariff(PowerType.CONSUMPTION));
-
-      assertTrue("Changed to default tariff for INTERRUPTIBLE_CONSUMPTION",
-                 tariffSubscriptionRepo
-                         .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                               .get(1)).get(0)
-                         .getTariff() == mockTariffMarket
-                         .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
-
-      sub.subscribe(customer.getOffices("SS").size());
-      sub2.subscribe(customer.getOffices("SS").size());
-
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(0).getPowerType()), lastTariff, customer
-              .getOffices("SS").size(), customer.getCustomerInfo().get(0));
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(1).getPowerType()), lastTariff2, customer
-              .getOffices("SS").size(), customer.getCustomerInfo().get(1));
-
-      assertFalse("Changed from default tariff for CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                .get(0)).get(1)
-                          .getTariff() == mockTariffMarket
-                          .getDefaultTariff(PowerType.CONSUMPTION));
-
-      assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                .get(1)).get(1)
-                          .getTariff() == mockTariffMarket
-                          .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
-
-      sub.subscribe(customer.getOffices("NS").size());
-      sub2.subscribe(customer.getOffices("NS").size());
-
-      when(mockTariffMarket.getActiveTariffList(powerArg.capture()))
-              .thenReturn(tariffRepo.findActiveTariffs(PowerType.CONSUMPTION))
-              .thenReturn(tariffRepo
-                                  .findActiveTariffs(PowerType.INTERRUPTIBLE_CONSUMPTION));
-
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(0).getPowerType()), "NS", customer
-              .getCustomerInfo().get(0));
-      customer.changeSubscription(mockTariffMarket.getDefaultTariff(customer
-              .getCustomerInfo().get(1).getPowerType()), "NS", customer
-              .getCustomerInfo().get(1));
-
-      assertFalse("Changed NS of CONSUMPTION from default tariff", customer
-              .getSubscriptionMap().get("NS").getTariff() == mockTariffMarket
-              .getDefaultTariff(customer.getCustomerInfo().get(0)
-                      .getPowerType()));
-      assertFalse("Changed NS of INTERRUPTIBLE_CONSUMPTION from default tariff",
-                  customer.getControllableSubscriptionMap().get("NS")
-                          .getTariff() == mockTariffMarket
-                          .getDefaultTariff(customer.getCustomerInfo().get(1)
-                                  .getPowerType()));
-
-    }
-
-  }
-
-  // @Repeat(20)
-  @Test
-  public void revokeSubscription ()
-  {
-    initializeService();
-
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      customer.subscribeDefault();
-
-      assertEquals("one subscription for CONSUMPTION",
-                   1,
-                   tariffSubscriptionRepo
-                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                 .get(0))
-                           .size());
-      assertEquals("one subscription for INTERRUPTIBLE_CONSUMPTION",
-                   1,
-                   tariffSubscriptionRepo
-                           .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                 .get(1))
-                           .size());
-
-    }
-
-    Rate r2 = new Rate().withValue(-0.222);
-    Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
-
-    TariffSpecification tsc1 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
-    TariffSpecification tsc2 =
-      new TariffSpecification(broker1, PowerType.INTERRUPTIBLE_CONSUMPTION)
-              .withExpiration(now.plus(TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r3);
-    TariffSpecification tsc3 =
-      new TariffSpecification(broker1, PowerType.CONSUMPTION)
-              .withExpiration(now.plus(3 * TimeService.DAY))
-              .withMinDuration(TimeService.WEEK * 8).addRate(r2);
-
-    Tariff tariff1 = new Tariff(tsc1);
-    tariff1.init();
-    tariff1.setState(Tariff.State.OFFERED);
-    Tariff tariff2 = new Tariff(tsc2);
-    tariff2.init();
-    tariff2.setState(Tariff.State.OFFERED);
-    Tariff tariff3 = new Tariff(tsc3);
-    tariff3.init();
-    tariff3.setState(Tariff.State.OFFERED);
-
-    assertEquals("Five consumption tariffs", 5, tariffRepo.findAllTariffs()
-            .size());
-
-    assertNotNull("first tariff found", tariff1);
-    assertNotNull("second tariff found", tariff2);
-    assertNotNull("third tariff found", tariff3);
-
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-
-      TariffSubscription tsd =
-        tariffSubscriptionRepo
-                .findSubscriptionForTariffAndCustomer(mockTariffMarket
-                        .getDefaultTariff(PowerType.CONSUMPTION), customer
-                        .getCustomerInfo().get(0));
-      customer.unsubscribe(tsd, 3);
-      TariffSubscription sub1 =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), tariff1);
-      sub1.subscribe(3);
-      TariffSubscription sub2 =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), tariff2);
-      sub2.subscribe(3);
-      TariffSubscription sub3 =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), tariff3);
-      sub3.subscribe(4);
-
-      TariffSubscription ts1 =
-        tariffSubscriptionRepo
-                .findSubscriptionForTariffAndCustomer(tariff1, customer
-                        .getCustomerInfo().get(0));
-      customer.unsubscribe(ts1, 2);
-      TariffSubscription ts2 =
-        tariffSubscriptionRepo
-                .findSubscriptionForTariffAndCustomer(tariff2, customer
-                        .getCustomerInfo().get(1));
-      customer.unsubscribe(ts2, 1);
-      TariffSubscription ts3 =
-        tariffSubscriptionRepo
-                .findSubscriptionForTariffAndCustomer(tariff3, customer
-                        .getCustomerInfo().get(0));
-      customer.unsubscribe(ts3, 2);
-      assertEquals("3 Subscriptions for customerInfo CONSUMPTION",
-                   3,
-                   tariffSubscriptionRepo
-                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                       .get(0))
-                           .size());
-      assertEquals("3 Subscriptions for customerInfo INTERRUPTIBLE_CONSUMPTION",
-                   2,
-                   tariffSubscriptionRepo
-                           .findActiveSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                       .get(1))
-                           .size());
-      timeService.setCurrentTime(timeService.getCurrentTime()
-              .plus(TimeService.HOUR));
-
-    }
-
-    timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
-            .getMillis() + TimeService.HOUR));
-    TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
-    tariff2.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff2.isRevoked());
-
-    officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-
-    TariffStatus st2 =
-      new TariffStatus(broker1, tariff3.getId(), tariff3.getId(),
-                       TariffStatus.Status.success);
-
-    TariffRevoke tex2 =
-      new TariffRevoke(tariff3.getBroker(), tariff3.getTariffSpec());
-    tariff3.setState(Tariff.State.KILLED);
-    assertTrue("tariff revoked", tariff3.isRevoked());
-
-    officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
   }
 
@@ -752,16 +387,21 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
@@ -834,16 +474,21 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
@@ -909,16 +554,21 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
@@ -1037,16 +687,21 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
@@ -1076,19 +731,6 @@ public class OfficeComplexControllableCapacitiesTests
       officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
     }
 
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-      customer.showAggDailyLoad("SS", 36);
-    }
-
-    // for (int i = 0; i < 10; i++) {
-    // timeService.setBase(now.getMillis());
-    // timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR
-    // 12));
-    // officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-
-    // }
-
   }
 
   @Test
@@ -1099,24 +741,24 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
-    }
-
-    for (OfficeComplex customer: officeComplexCustomerService
-            .getOfficeComplexList()) {
-      customer.showAggDailyLoad("SS", 0);
     }
 
     timeService.setBase(now.getMillis());
@@ -1159,16 +801,21 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription defaultSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(0), defaultTariff);
-      defaultSub.subscribe(customer.getCustomerInfo().get(0).getPopulation());
-      TariffSubscription defaultControllableSub =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), defaultTariffControllable);
-      defaultControllableSub.subscribe(customer.getCustomerInfo().get(1)
-              .getPopulation());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
+        if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
+
+          TariffSubscription defaultSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
+          defaultSub.subscribe(customerInfo.getPopulation());
+        }
+        else {
+          TariffSubscription defaultControllableSub =
+            tariffSubscriptionRepo.getSubscription(customerInfo,
+                                                   defaultTariffControllable);
+          defaultControllableSub.subscribe(customerInfo.getPopulation());
+        }
+      }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
@@ -1190,39 +837,37 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      TariffSubscription sub2 =
-        tariffSubscriptionRepo.getSubscription(customer.getCustomerInfo()
-                .get(1), tariff1);
-      sub2.subscribe(customer.getOffices("SS").size());
+      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
 
-      customer.changeSubscription(mockTariffMarket
-                                          .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
-                                  tariff1,
-                                  "SS", customer.getCustomerInfo().get(1));
+        TariffSubscription sub2 =
+          tariffSubscriptionRepo.getSubscription(customerInfo, tariff1);
+        sub2.subscribe(customerInfo.getPopulation());
 
-      assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
-                  tariffSubscriptionRepo
-                          .findSubscriptionsForCustomer(customer.getCustomerInfo()
-                                                                .get(1)).get(1)
-                          .getTariff() == mockTariffMarket
-                          .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
+        customer.changeSubscription(mockTariffMarket
+                                            .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
+                                    tariff1, customerInfo);
 
-      List<TariffSubscription> subs =
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer
-                .getCustomerInfo().get(1));
-      // System.out.println(customer.toString() + " " + subs.toString());
+        assertFalse("Changed from default tariff for INTERRUPTIBLE_CONSUMPTION",
+                    tariffSubscriptionRepo
+                            .findSubscriptionsForCustomer(customerInfo).get(1)
+                            .getTariff() == mockTariffMarket
+                            .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION));
 
-      for (TariffSubscription sub: subs)
-        sub.postBalancingControl(1);
+        List<TariffSubscription> subs =
+          tariffSubscriptionRepo.findSubscriptionsForCustomer(customerInfo);
+        // System.out.println(customer.toString() + " " + subs.toString());
+
+        for (TariffSubscription sub: subs)
+          sub.postBalancingControl(1);
+
+      }
+      timeService.setBase(now.getMillis());
+      timeService.setCurrentTime(timeService.getCurrentTime());
+      officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
+      timeService.setCurrentTime(timeService.getCurrentTime()
+              .plus(timeService.HOUR));
+      officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
     }
-    timeService.setBase(now.getMillis());
-    timeService.setCurrentTime(timeService.getCurrentTime());
-    officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-    timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(timeService.HOUR));
-    officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
-
   }
-
 }

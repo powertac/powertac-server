@@ -1175,12 +1175,12 @@ public class Office
     return dominantLoad;
   }
 
-  public void test ()
-  {
-    for (Appliance appliance: appliances)
-      appliance.test();
-
-  }
+  // public void test ()
+  // {
+  // for (Appliance appliance: appliances)
+  // appliance.test();
+  //
+  // }
 
   /**
    * This function prints to the screen the daily load of the office for the

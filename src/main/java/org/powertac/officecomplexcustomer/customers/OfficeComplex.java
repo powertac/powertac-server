@@ -17,10 +17,7 @@ package org.powertac.officecomplexcustomer.customers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -35,11 +32,13 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
@@ -76,6 +75,8 @@ public class OfficeComplex extends AbstractCustomer
 
   @Autowired
   TariffRepo tariffRepo;
+
+  int seedId = 1;
 
   /**
    * These are the vectors containing aggregated each day's base load from the
@@ -173,14 +174,6 @@ public class OfficeComplex extends AbstractCustomer
   double[] nonDominantLoadNS = new double[OfficeComplexConstants.HOURS_OF_DAY];
   double[] nonDominantLoadSS = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-  /**
-   * This is an vector containing the days of the competition that the office
-   * complex model will use in order to check which of the tariffs that are
-   * available at any given moment are the optimal for their consumption or
-   * production.
-   **/
-  Vector<Integer> daysList = new Vector<Integer>();
-
   protected final TariffEvaluationHelper tariffEvalHelper =
     new TariffEvaluationHelper();
 
@@ -190,27 +183,12 @@ public class OfficeComplex extends AbstractCustomer
    */
   RandomSeed gen;
 
-  int seedId = 1;
-
   /**
-   * These variables are mapping of the characteristics of the types of offices.
-   * The first is used to keep track of their subscription at any given time.
-   * The second is the inertia parameter for each type of offices. The third is
-   * the period that they are evaluating the available tariffs and choose the
-   * best for their type. The forth is setting the lamda variable for the
-   * possibility function of the evaluation.
+   * These variables are mapping of the characteristics of the types of houses.
    */
-  Map<String, TariffSubscription> subscriptionMap =
-    new HashMap<String, TariffSubscription>();
-  Map<String, TariffSubscription> controllableSubscriptionMap =
-    new HashMap<String, TariffSubscription>();
   Map<String, Integer> numberOfOffices = new TreeMap<String, Integer>();
-  Map<String, Double> inertiaMap = new HashMap<String, Double>();
-  Map<String, Integer> periodMap = new HashMap<String, Integer>();
-  Map<String, Double> lamdaMap = new HashMap<String, Double>();
-  Map<String, Boolean> superseded = new HashMap<String, Boolean>();
-  Map<String, Double> inconvenienceWeightMap = new HashMap<String, Double>();
-  Map<String, Double> withdrawalMap = new TreeMap<String, Double>();
+  Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
+  Map<CustomerInfo, String> officeMapping = new TreeMap<CustomerInfo, String>();
 
   /**
    * These vectors contain the offices of type in the office complex. There are
@@ -237,16 +215,16 @@ public class OfficeComplex extends AbstractCustomer
     typeList.add("NS");
     typeList.add("SS");
 
+    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      public int compare (CustomerInfo customer1, CustomerInfo customer2)
+      {
+        return customer1.getName().compareToIgnoreCase(customer2.getName());
+      }
+    };
+
     for (String type: typeList) {
-      subscriptionMap.put(type, null);
-      controllableSubscriptionMap.put(type, null);
       numberOfOffices.put(type, null);
-      inertiaMap.put(type, null);
-      periodMap.put(type, null);
-      lamdaMap.put(type, null);
-      superseded.put(type, null);
-      inconvenienceWeightMap.put(type, null);
-      withdrawalMap.put(type, null);
+      tariffEvaluators = new TreeMap<CustomerInfo, TariffEvaluator>(comp);
     }
   }
 
@@ -266,16 +244,16 @@ public class OfficeComplex extends AbstractCustomer
     typeList.add("NS");
     typeList.add("SS");
 
+    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      public int compare (CustomerInfo customer1, CustomerInfo customer2)
+      {
+        return customer1.getName().compareToIgnoreCase(customer2.getName());
+      }
+    };
+
     for (String type: typeList) {
-      subscriptionMap.put(type, null);
-      controllableSubscriptionMap.put(type, null);
       numberOfOffices.put(type, null);
-      inertiaMap.put(type, null);
-      periodMap.put(type, null);
-      lamdaMap.put(type, null);
-      superseded.put(type, null);
-      inconvenienceWeightMap.put(type, null);
-      withdrawalMap.put(type, null);
+      tariffEvaluators = new TreeMap<CustomerInfo, TariffEvaluator>(comp);
     }
   }
 
@@ -287,9 +265,11 @@ public class OfficeComplex extends AbstractCustomer
    * @param conf
    * @param gen
    */
-  public void initialize (Properties conf, int seed)
+  public void initialize (Properties conf, int seed,
+                          Map<CustomerInfo, String> mapping)
   {
     // Initializing variables
+    officeMapping = mapping;
 
     numberOfOffices.put("NS", Integer.parseInt(conf
             .getProperty("NotShiftingCustomers")));
@@ -300,8 +280,6 @@ public class OfficeComplex extends AbstractCustomer
     gen =
       randomSeedRepo.getRandomSeed(toString(), seed, "OfficeComplex Model"
                                                      + seed);
-
-    createCostEstimationDaysList(OfficeComplexConstants.RANDOM_DAYS_NUMBER);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -323,55 +301,68 @@ public class OfficeComplex extends AbstractCustomer
       hh.officeOf = this;
     }
 
-    for (String type: subscriptionMap.keySet()) {
+    for (String type: numberOfOffices.keySet()) {
       fillAggWeeklyLoad(type);
-      inertiaMap.put(type,
-                     Double.parseDouble(conf.getProperty(type + "Inertia")));
-      periodMap.put(type, Integer.parseInt(conf.getProperty(type + "Period")));
-      lamdaMap.put(type, Double.parseDouble(conf.getProperty(type + "Lamda")));
-      superseded.put(type, false);
-
-      double weight = gen.nextDouble() * OfficeComplexConstants.WEIGHT_RISK;
-      inconvenienceWeightMap.put(type, weight);
+      double weight =
+        gen.nextDouble() * OfficeComplexConstants.WEIGHT_INCONVENIENCE;
 
       double weeks =
         gen.nextInt(OfficeComplexConstants.MAX_DEFAULT_DURATION
                     - OfficeComplexConstants.MIN_DEFAULT_DURATION)
                 + OfficeComplexConstants.MIN_DEFAULT_DURATION;
 
-      withdrawalMap.put(type, weeks);
+      List<CustomerInfo> customer =
+        customerRepo.findByName(name + " " + type + " Base");
 
-      //
-      // System.out.println(toString() + " " + type);
-      // System.out.println("Dominant Consumption:"
-      // + Arrays.toString(getDominantLoad(type)));
-      // System.out.println("Non Dominant Consumption:"
-      // + Arrays.toString(getNonDominantLoad(type)));
-      //
+      TariffEvaluationWrapper wrapper =
+        new TariffEvaluationWrapper(type, customer.get(0));
+
+      TariffEvaluator te = new TariffEvaluator(wrapper);
+
+      te.initializeInconvenienceFactors(OfficeComplexConstants.TOU_FACTOR,
+                                        OfficeComplexConstants.TIERED_RATE_FACTOR,
+                                        OfficeComplexConstants.VARIABLE_PRICING_FACTOR,
+                                        OfficeComplexConstants.INTERRUPTIBILITY_FACTOR);
+      te.withInconvenienceWeight(weight)
+              .withInertia(Double.parseDouble(conf
+                                   .getProperty(type + "Inertia")))
+              .withPreferredContractDuration(weeks
+                                                     * OfficeComplexConstants.DAYS_OF_WEEK)
+              .withRationality(OfficeComplexConstants.RATIONALITY_FACTOR)
+              .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
+              .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
+
+      tariffEvaluators.put(customer.get(0), te);
+
+      customer = customerRepo.findByName(name + " " + type + " Controllable");
+
+      wrapper = new TariffEvaluationWrapper(type, customer.get(0));
+
+      te = new TariffEvaluator(wrapper);
+
+      te.initializeInconvenienceFactors(OfficeComplexConstants.TOU_FACTOR,
+                                        OfficeComplexConstants.TIERED_RATE_FACTOR,
+                                        OfficeComplexConstants.VARIABLE_PRICING_FACTOR,
+                                        OfficeComplexConstants.INTERRUPTIBILITY_FACTOR);
+      te.withInconvenienceWeight(weight)
+              .withInertia(Double.parseDouble(conf
+                                   .getProperty(type + "Inertia")))
+              .withPreferredContractDuration(weeks
+                                                     * OfficeComplexConstants.DAYS_OF_WEEK)
+              .withRationality(OfficeComplexConstants.RATIONALITY_FACTOR)
+              .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
+              .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
+
+      tariffEvaluators.put(customer.get(0), te);
+
     }
 
-    // System.out.println(toString() + " "
-    // + aggDailyDominantLoadInHoursNS.get(0).toString());
-    //
-    // System.out.println(toString() + " "
-    // + aggDailyNonDominantLoadInHoursNS.get(0).toString());
-    //
-    //
-    // System.out.println("Subscriptions:" + subscriptionMap.toString());
-    // System.out.println("Controllable Subscriptions:" +
-    // controllableSubscriptionMap.toString());
-    // System.out.println("Number Of Houses:" + numberOfHouses.toString());
-    // System.out.println("Inertia:" + inertiaMap.toString());
-    // System.out.println("Period:" + periodMap.toString());
-    // System.out.println("Lamda:" + lamdaMap.toString());
-    // System.out.println("Risk:" + riskMap.toString());
-    // System.out.println("Withdrawal:" + withdrawalMap.toString())
-    //
-    //
-    // for (String type : subscriptionMap.keySet()) {
-    // showAggLoad(type);
-    // }
+  }
 
+  public void addCustomerInfo (CustomerInfo customer)
+  {
+    customerInfos.add(customer);
+    customerRepo.add(customer);
   }
 
   // =====SUBSCRIPTION FUNCTIONS===== //
@@ -379,6 +370,7 @@ public class OfficeComplex extends AbstractCustomer
   @Override
   public void subscribeDefault ()
   {
+
     super.subscribeDefault();
 
     for (CustomerInfo customer: customerInfos) {
@@ -399,260 +391,6 @@ public class OfficeComplex extends AbstractCustomer
 
       }
 
-      List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findSubscriptionsForCustomer(customer);
-
-      if (subscriptions.size() > 0) {
-        log.debug(subscriptions.toString());
-
-        for (String type: subscriptionMap.keySet()) {
-          if (customer.getPowerType() == PowerType.CONSUMPTION) {
-            subscriptionMap.put(type, subscriptions.get(0));
-          }
-          else if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
-            controllableSubscriptionMap.put(type, subscriptions.get(0));
-          }
-        }
-      }
-    }
-
-    log.debug("Base Load Subscriptions:" + subscriptionMap.toString());
-    log.debug("Controllable Load Subscriptions:"
-              + controllableSubscriptionMap.toString());
-  }
-
-  /**
-   * The first implementation of the changing subscription function. Here we
-   * just put the tariff we want to change and the whole population is moved to
-   * another random tariff.
-   * 
-   * @param tariff
-   */
-  public void changeSubscription (Tariff tariff, CustomerInfo customer)
-  {
-
-    TariffSubscription ts =
-      tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff,
-                                                                  customer);
-    int populationCount = ts.getCustomersCommitted();
-    unsubscribe(ts, populationCount);
-
-    Tariff newTariff;
-
-    if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
-        && tariffMarketService
-                .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION)
-                .size() > 1)
-      newTariff = selectTariff(PowerType.INTERRUPTIBLE_CONSUMPTION);
-    else
-      newTariff = selectTariff(PowerType.CONSUMPTION);
-
-    subscribe(newTariff, populationCount, customer);
-
-    updateSubscriptions(tariff, newTariff, customer, false);
-
-  }
-
-  /**
-   * The second implementation of the changing subscription function only for
-   * certain type of the households.
-   * 
-   * @param tariff
-   */
-  public void changeSubscription (Tariff tariff, String type,
-                                  CustomerInfo customer)
-  {
-    TariffSubscription ts =
-      tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff,
-                                                                  customer);
-    int populationCount = getOffices(type).size();
-    unsubscribe(ts, populationCount);
-
-    Tariff newTariff;
-
-    if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
-        && tariffMarketService
-                .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION)
-                .size() > 1)
-      newTariff = selectTariff(PowerType.INTERRUPTIBLE_CONSUMPTION);
-    else
-      newTariff = selectTariff(PowerType.CONSUMPTION);
-
-    subscribe(newTariff, populationCount, customer);
-
-    updateSubscriptions(tariff, newTariff, type, customer);
-  }
-
-  /**
-   * In this overloaded implementation of the changing subscription function,
-   * Here we just put the tariff we want to change and the whole population is
-   * moved to another random tariff.
-   * 
-   * @param tariff
-   */
-  public void changeSubscription (Tariff tariff, Tariff newTariff,
-                                  CustomerInfo customer)
-  {
-    TariffSubscription ts =
-      tariffSubscriptionRepo.getSubscription(customer, tariff);
-    int populationCount = ts.getCustomersCommitted();
-    unsubscribe(ts, populationCount);
-
-    subscribe(newTariff, populationCount, customer);
-
-    updateSubscriptions(tariff, newTariff, customer, false);
-  }
-
-  /**
-   * In this overloaded implementation of the changing subscription function
-   * only certain type of the households.
-   * 
-   * @param tariff
-   */
-  public void changeSubscription (Tariff tariff, Tariff newTariff, String type,
-                                  CustomerInfo customer)
-  {
-    TariffSubscription ts =
-      tariffSubscriptionRepo.getSubscription(customer, tariff);
-    int populationCount = getOffices(type).size();
-    unsubscribe(ts, populationCount);
-    subscribe(newTariff, populationCount, customer);
-
-    updateSubscriptions(tariff, newTariff, type, customer);
-  }
-
-  /**
-   * This function is used to update the subscriptionMap variable with the
-   * changes made.
-   * 
-   */
-  public void updateSubscriptions (Tariff tariff, Tariff newTariff,
-                                   CustomerInfo customer, boolean superseded)
-  {
-
-    TariffSubscription ts =
-      tariffSubscriptionRepo.getSubscription(customer, tariff);
-    TariffSubscription newTs =
-      tariffSubscriptionRepo.getSubscription(customer, newTariff);
-    boolean controllable =
-      (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION);
-    log.debug(this.toString() + " Changing");
-    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
-
-    if (controllable) {
-
-      if (controllableSubscriptionMap.get("NS") == ts
-          || controllableSubscriptionMap.get("NS") == null) {
-        controllableSubscriptionMap.put("NS", newTs);
-        if (superseded)
-          this.superseded.put("NS", true);
-      }
-      if (controllableSubscriptionMap.get("SS") == ts
-          || controllableSubscriptionMap.get("SS") == null) {
-        controllableSubscriptionMap.put("SS", newTs);
-        if (superseded)
-          this.superseded.put("SS", true);
-      }
-
-      log.debug("Controllable Subscription Map: "
-                + controllableSubscriptionMap.toString());
-    }
-    else {
-
-      if (subscriptionMap.get("NS") == ts || subscriptionMap.get("NS") == null) {
-        subscriptionMap.put("NS", newTs);
-        if (superseded)
-          this.superseded.put("NS", true);
-      }
-      if (subscriptionMap.get("SS") == ts || subscriptionMap.get("SS") == null) {
-        subscriptionMap.put("SS", newTs);
-        if (superseded)
-          this.superseded.put("SS", true);
-      }
-
-      log.debug("Subscription Map: " + subscriptionMap.toString());
-    }
-  }
-
-  /**
-   * This function is overloading the previous one and is used when only certain
-   * types of houses changed tariff.
-   * 
-   */
-  private void updateSubscriptions (Tariff tariff, Tariff newTariff,
-                                    String type, CustomerInfo customer)
-  {
-
-    TariffSubscription ts =
-      tariffSubscriptionRepo.getSubscription(customer, tariff);
-    TariffSubscription newTs =
-      tariffSubscriptionRepo.getSubscription(customer, newTariff);
-    boolean controllable =
-      (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION);
-    log.debug(this.toString() + " Changing Only " + type);
-    log.debug("Old:" + ts.toString() + "  New:" + newTs.toString());
-
-    if (controllable) {
-
-      log.debug("For Controllable");
-
-      if (type.equals("NS")) {
-        controllableSubscriptionMap.put("NS", newTs);
-      }
-      else {
-        controllableSubscriptionMap.put("SS", newTs);
-      }
-
-      log.debug("Controllable Subscription Map: "
-                + controllableSubscriptionMap.toString());
-
-    }
-    else {
-
-      if (type.equals("NS")) {
-        subscriptionMap.put("NS", newTs);
-      }
-      else {
-        subscriptionMap.put("SS", newTs);
-      }
-
-      log.debug("Subscription Map: " + subscriptionMap.toString());
-
-    }
-
-  }
-
-  @Override
-  public void checkRevokedSubscriptions ()
-  {
-    for (CustomerInfo customer: customerInfos) {
-      List<TariffSubscription> revoked =
-        tariffSubscriptionRepo.getRevokedSubscriptionList(customer);
-
-      log.debug(revoked.toString());
-      for (TariffSubscription revokedSubscription: revoked) {
-        Tariff tariff = revokedSubscription.getTariff();
-        Tariff newTariff = revokedSubscription.handleRevokedTariff();
-
-        // Tariff newTariff =
-        // revokedSubscription.getTariff().getIsSupersededBy();
-        Tariff defaultTariff =
-          tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION);
-
-        log.debug("Tariff:" + tariff.toString() + " PowerType: "
-                  + tariff.getPowerType());
-        if (newTariff != null)
-          log.debug("New Tariff:" + newTariff.toString());
-        else {
-          log.debug("New Tariff is Null");
-          log.debug("Default Tariff:" + defaultTariff.toString());
-        }
-
-        if (newTariff == null)
-          updateSubscriptions(tariff, defaultTariff, customer, true);
-        else
-          updateSubscriptions(tariff, newTariff, customer, true);
-      }
     }
   }
 
@@ -1186,141 +924,43 @@ public class OfficeComplex extends AbstractCustomer
     return daily;
   }
 
-  /**
-   * This function is used in order to print the aggregated hourly load of the
-   * office complex's offices.
-   * 
-   * @param type
-   * @return
-   */
-  void showAggLoad (String type)
-  {
-
-    log.info("Portion " + type + " Weekly Aggregated Load");
-
-    if (type.equals("NS")) {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
-                          + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursNS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursNS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
-        }
-      }
-    }
-    else {
-      for (int i = 0; i < OfficeComplexConstants.DAYS_OF_COMPETITION
-                          + OfficeComplexConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursSS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursSS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
-        }
-      }
-    }
-  }
-
-  /**
-   * This function is used in order to print the aggregated hourly load of the
-   * office complex offices for a certain type of offices.
-   * 
-   * @param type
-   * @return
-   */
-  public void showAggDailyLoad (String type, int day)
-  {
-
-    log.debug("Portion " + type + " Daily Aggregated Load");
-    log.debug("Day " + day);
-
-    if (type.equals("NS")) {
-      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursNS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursNS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
-      }
-    }
-    else {
-      for (int j = 0; j < OfficeComplexConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursSS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursSS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
-      }
-    }
-  }
-
   // =====CONSUMPTION FUNCTIONS===== //
 
   @Override
   public void consumePower ()
   {
     Timeslot ts = timeslotRepo.currentTimeslot();
-    double summary = 0;
-    double summaryControllable = 0;
+    int serial;
 
-    Map<TariffSubscription, Double> subs =
-      new HashMap<TariffSubscription, Double>();
-    for (TariffSubscription sub: subscriptionMap.values()) {
-      subs.put(sub, 0.0);
-    }
-    for (TariffSubscription sub: controllableSubscriptionMap.values()) {
-      subs.put(sub, 0.0);
-    }
+    for (CustomerInfo customer: customerInfos) {
 
-    for (String type: subscriptionMap.keySet()) {
+      List<TariffSubscription> subscriptions =
+        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
+
+      String temp = officeMapping.get(customer);
+
+      String type = temp.substring(0, 2);
+
+      boolean controllable = temp.contains("Controllable");
+
       if (ts == null) {
         log.debug("Current timeslot is null");
-        int serial =
+        serial =
           (int) ((timeService.getCurrentTime().getMillis() - timeService
                   .getBase()) / TimeService.HOUR);
-        summary = getConsumptionByTimeslot(serial, type, false);
-        summaryControllable = getConsumptionByTimeslot(serial, type, true);
       }
       else {
         log.debug("Timeslot Serial: " + ts.getSerialNumber());
-        summary = getConsumptionByTimeslot(ts.getSerialNumber(), type, false);
-        summaryControllable =
-          getConsumptionByTimeslot(ts.getSerialNumber(), type, true);
+        serial = ts.getSerialNumber();
       }
 
-      TariffSubscription tempSub = subscriptionMap.get(type);
-      TariffSubscription tempContSub = controllableSubscriptionMap.get(type);
+      double load = getConsumptionByTimeslot(serial, type, controllable);
 
-      subs.put(tempSub, summary + subs.get(tempSub));
-      subs.put(tempContSub, summaryControllable + subs.get(tempContSub));
-    }
+      log.debug("Consumption Load for Customer " + customer.toString() + ": "
+                + load + " for subscriptions " + subscriptions.toString());
 
-    Comparator<TariffSubscription> comp = new Comparator<TariffSubscription>() {
-      public int compare (TariffSubscription ts1, TariffSubscription ts2)
-      {
-        return ((Long) ts1.getId()).compareTo(ts2.getId());
-      }
-    };
+      subscriptions.get(0).usePower(load);
 
-    @SuppressWarnings("unchecked")
-    List<TariffSubscription> sortedKeys = new ArrayList(subs.keySet());
-    Collections.sort(sortedKeys, comp);
-
-    for (TariffSubscription sub: sortedKeys) {
-      log.debug("Consumption Load for Customer " + sub.getCustomer().toString()
-                + ": " + subs.get(sub));
-
-      if (sub.getCustomersCommitted() > 0)
-        sub.usePower(subs.get(sub));
     }
   }
 
@@ -1351,52 +991,16 @@ public class OfficeComplex extends AbstractCustomer
 
   // =====GETTER FUNCTIONS===== //
 
-  /** This function returns the subscription Map variable of the office complex. */
-  public Map<String, TariffSubscription> getSubscriptionMap ()
+  /** This function returns the inertia Map variable of the village. */
+  public Map<CustomerInfo, String> getOfficeMapping ()
   {
-    return subscriptionMap;
+    return officeMapping;
   }
 
-  /** This function returns the subscription Map variable of the OfficeComplex. */
-  public Map<String, TariffSubscription> getControllableSubscriptionMap ()
+  /** This function returns the period Map variable of the village. */
+  public Map<CustomerInfo, TariffEvaluator> getTariffEvaluators ()
   {
-    return controllableSubscriptionMap;
-  }
-
-  /** This function returns the inertia Map variable of the office complex. */
-  public Map<String, Double> getInertiaMap ()
-  {
-    return inertiaMap;
-  }
-
-  /** This function returns the period Map variable of the office complex. */
-  public Map<String, Integer> getPeriodMap ()
-  {
-    return periodMap;
-  }
-
-  /** This function returns the superseded Map variable of the village. */
-  public Map<String, Boolean> getSuperseded ()
-  {
-    return superseded;
-  }
-
-  /** This function returns the inconvenience Map variable of the village. */
-  public Map<String, Double> getInconvenienceWeightMap ()
-  {
-    return inconvenienceWeightMap;
-  }
-
-  /** This function returns the withdrawal Map variable of the village. */
-  public Map<String, Double> getWithdrawalMap ()
-  {
-    return withdrawalMap;
-  }
-
-  /** This function sets the superseded flag of a type of the village. */
-  public void setSuperseded (String type, boolean flag)
-  {
-    superseded.put(type, flag);
+    return tariffEvaluators;
   }
 
   /**
@@ -1689,299 +1293,21 @@ public class OfficeComplex extends AbstractCustomer
 
   /**
    * This is the basic evaluation function, taking into consideration the
-   * minimum cost without shifting the appliances' load but the tariff chosen is
-   * picked up randomly by using a possibility pattern. The better tariffs have
+   * minimum cost without shifting the appliances' load but the tariff chosen
+   * is
+   * picked up randomly by using a possibility pattern. The better tariffs
+   * have
    * more chances to be chosen.
    */
-  public void possibilityEvaluationNewTariffs (List<Tariff> newTariffs,
-                                               String type)
+  public void evaluateNewTariffs ()
   {
     for (CustomerInfo customer: customerInfos) {
-      List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
 
-      if (subscriptions == null || subscriptions.size() == 0) {
-        subscribeDefault();
-        return;
-      }
+      TariffEvaluator evaluator = tariffEvaluators.get(customer);
 
-      TariffSubscription sub = subscriptionMap.get(type);
-
-      Vector<Double> estimation = new Vector<Double>();
-      Double rand = gen.nextDouble();
-
-      // getting the active tariffs for evaluation
-      ArrayList<Tariff> evaluationTariffs = new ArrayList<Tariff>(newTariffs);
-
-      log.debug("Estimation size for " + this.toString() + " = "
-                + evaluationTariffs.size());
-
-      if (evaluationTariffs.size() > 1) {
-        for (Tariff tariff: evaluationTariffs) {
-          log.debug("Tariff : " + tariff.toString() + " Tariff Type : "
-                    + tariff.getTariffSpecification().getPowerType()
-                    + " Broker: " + tariff.getBroker().toString());
-
-          if (tariff.isExpired() == false
-              && (tariff.getTariffSpecification().getPowerType() == customer
-                      .getPowerType() || (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION && tariff
-                      .getTariffSpecification().getPowerType() == PowerType.CONSUMPTION))) {
-
-            boolean same =
-              (sub.getTariff().getTariffSpec() == tariff.getTariffSpec());
-
-            boolean expired =
-              (sub.getExpiredCustomerCount() >= numberOfOffices.get(type));
-
-            log.debug("Now: " + sub.getTariff().getTariffSpec().toString()
-                      + " Evaluated: " + tariff.getTariffSpec().toString()
-                      + " Same:" + same + " Expired:" + expired);
-
-            double costValue =
-              costEstimation(tariff, type, rand, same, expired);
-
-            double riskValue = 0.0;
-            if (!same)
-              riskValue -= inconvenienceWeightMap.get(type);
-            double estimationValue = costValue + riskValue;
-
-            log.debug("Cost estimation:" + costValue + " Risk:" + riskValue);
-
-            estimation.add(estimationValue);
-          }
-          else
-            estimation.add(Double.NEGATIVE_INFINITY);
-        }
-
-        int minIndex = logitPossibilityEstimation(estimation, type);
-
-        if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION)
-          sub = controllableSubscriptionMap.get(type);
-
-        log.debug("Equality: " + sub.getTariff().getTariffSpec().toString()
-                  + " = "
-                  + evaluationTariffs.get(minIndex).getTariffSpec().toString());
-        if (!(sub.getTariff().getTariffSpec() == evaluationTariffs
-                .get(minIndex).getTariffSpec())) {
-          log.debug("Changing From " + sub.toString() + " For PowerType "
-                    + customer.getPowerType() + " After Evaluation");
-          changeSubscription(sub.getTariff(), evaluationTariffs.get(minIndex),
-                             type, customer);
-        }
-      }
-    }
-  }
-
-  /**
-   * This function estimates the overall cost, taking into consideration the
-   * fixed payments as well as the variable that are depending on the tariff
-   * rates
-   */
-  double costEstimation (Tariff tariff, String type, Double rand, boolean same,
-                         boolean expired)
-  {
-    Tariff defaultTariff = tariffRepo.getDefaultTariff(tariff.getPowerType());
-
-    if (tariff.getTariffSpec().equals(defaultTariff.getTariffSpec()))
-      return 0;
-    else {
-      double costVariable = 0;
-      double defaultCostVariable = 0;
-
-      /*
-       * if it is NotShifting Houses the evaluation is done without shifting
-       * devices
-       * if it is RandomShifting Houses the evaluation is may be done without
-       * shifting devices or maybe shifting will be taken into consideration
-       * In any other case shifting will be done.
-       */
-      if (type.equals("NS")) {
-        // System.out.println("Simple Evaluation for " + type);
-        log.debug("Simple Evaluation for " + type);
-        costVariable = estimateVariableTariffPayment(tariff, type);
-        defaultCostVariable =
-          estimateVariableTariffPayment(defaultTariff, type);
-      }
-      else if (type.equals("RaS")) {
-
-        // System.out.println(rand);
-        if (rand < getInertiaMap().get(type)) {
-          // System.out.println("Simple Evaluation for " + type);
-          log.debug("Simple Evaluation for " + type);
-          costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-          defaultCostVariable =
-            estimateShiftingVariableTariffPayment(defaultTariff, type);
-        }
-        else {
-          // System.out.println("Shifting Evaluation for " + type);
-          log.debug("Shifting Evaluation for " + type);
-          costVariable = estimateVariableTariffPayment(tariff, type);
-          defaultCostVariable =
-            estimateVariableTariffPayment(defaultTariff, type);
-        }
-      }
-      else {
-        // System.out.println("Shifting Evaluation for " + type);
-        log.debug("Shifting Evaluation for " + type);
-        costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-        defaultCostVariable =
-          estimateShiftingVariableTariffPayment(defaultTariff, type);
-      }
-      double costFixed = 0.0;
-      double defaultCostFixed = 0.0;
-
-      if (!same)
-        costFixed =
-          estimateFixedTariffPayments(tariff, type, expired)
-                  * getOffices(type).size();
-
-      log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
-      log.debug("Default Cost Variable: " + defaultCostVariable
-                + " Cost Fixed: " + defaultCostFixed);
-
-      double defaultCost = defaultCostVariable + defaultCostFixed;
-      double cost = costVariable + costFixed;
-
-      return (defaultCost - cost) / defaultCost;
-    }
-  }
-
-  /**
-   * This function estimates the fixed cost, comprised by fees, bonuses and
-   * penalties that are the same no matter how much you consume
-   */
-  double estimateFixedTariffPayments (Tariff tariff, String type,
-                                      boolean expired)
-  {
-    double minDuration =
-      (double) (tariff.getMinDuration()) / (double) (TimeService.DAY);
-    double ff = minDuration / withdrawalMap.get(type);
-
-    // System.out.println("FF for type " + type + ":" + ff);
-    double fixedCost =
-      -tariff.getSignupPayment() - ff * tariff.getEarlyWithdrawPayment();
-
-    if (!expired)
-      fixedCost -=
-        subscriptionMap.get(type).getTariff().getEarlyWithdrawPayment();
-
-    return fixedCost;
-
-  }
-
-  /**
-   * This function estimates the variable cost, depending only to the load
-   * quantity you consume
-   */
-  double estimateVariableTariffPayment (Tariff tariff, String type)
-  {
-
-    double finalCostSummary = 0;
-
-    double dominantCostSummary = 0, nonDominantCostSummary = 0;
-
-    double[] dominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
-    double[] nonDominantUsage = new double[OfficeComplexConstants.HOURS_OF_DAY];
-
-    if (type.equals("NS")) {
-
-      dominantUsage = dominantLoadNS;
-      nonDominantUsage = nonDominantLoadNS;
+      evaluator.evaluateTariffs();
 
     }
-    else {
-
-      dominantUsage = dominantLoadSS;
-      nonDominantUsage = nonDominantLoadSS;
-
-    }
-
-    dominantCostSummary = tariffEvalHelper.estimateCost(tariff, dominantUsage);
-    nonDominantCostSummary =
-      tariffEvalHelper.estimateCost(tariff, nonDominantUsage);
-
-    log.debug("Dominant Cost Summary: " + dominantCostSummary);
-    log.debug("Non Dominant Cost Summary: " + nonDominantCostSummary);
-    finalCostSummary = dominantCostSummary + nonDominantCostSummary;
-
-    return -finalCostSummary;
-
-  }
-
-  /**
-   * This is the new function, used in order to find the most cost efficient
-   * tariff over the available ones. It is using Daily shifting in order to put
-   * the appliances operation in most suitable hours (less costly) of the day.
-   * 
-   * @param tariff
-   * @return
-   */
-  double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
-  {
-
-    double finalCostSummary = 0;
-    double costSummary = 0;
-
-    int serial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
-
-    int daylimit = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
-
-    for (int day: daysList) {
-      if (day < daylimit)
-        day =
-          (int) (day + (daylimit / OfficeComplexConstants.RANDOM_DAYS_NUMBER));
-
-      double[] nonDominantUsage = getNonDominantUsage(day, type);
-
-      double[] overallUsage =
-        dailyShifting(tariff, nonDominantUsage, day, type);
-
-      costSummary = tariffEvalHelper.estimateCost(tariff, overallUsage);
-      log.debug("Variable Dominant Cost Summary: " + costSummary);
-
-      finalCostSummary += costSummary;
-    }
-    log.debug("Variable Cost Summary: " + finalCostSummary);
-    return -finalCostSummary / OfficeComplexConstants.RANDOM_DAYS_NUMBER;
-  }
-
-  /**
-   * This is the function that realizes the mathematical possibility formula for
-   * the choice of tariff.
-   */
-  int logitPossibilityEstimation (Vector<Double> estimation, String type)
-  {
-
-    double lamda = lamdaMap.get(type);
-    double summedEstimations = 0;
-    Vector<Integer> randomizer = new Vector<Integer>();
-    Vector<Integer> possibilities = new Vector<Integer>();
-
-    for (int i = 0; i < estimation.size(); i++) {
-      log.debug("Estimation for " + i + ": " + estimation.get(i));
-      summedEstimations +=
-        Math.pow(OfficeComplexConstants.EPSILON, lamda * estimation.get(i));
-      log.debug("Cost variable: " + 50 * estimation.get(i));
-      log.debug("Summary of Estimation: " + summedEstimations);
-    }
-
-    for (int i = 0; i < estimation.size(); i++) {
-
-      possibilities
-              .add((int) (OfficeComplexConstants.PERCENTAGE * (Math
-                      .pow(OfficeComplexConstants.EPSILON,
-                           lamda * estimation.get(i)) / summedEstimations)));
-      for (int j = 0; j < possibilities.get(i); j++) {
-        randomizer.add(i);
-      }
-    }
-
-    log.debug("Randomizer Vector: " + randomizer);
-    log.debug("Possibility Vector: " + possibilities.toString());
-    int index = randomizer.get((int) (randomizer.size() * rs1.nextDouble()));
-    log.debug("Resulting Index = " + index);
-    return index;
   }
 
   // =====SHIFTING FUNCTIONS===== //
@@ -2035,39 +1361,6 @@ public class OfficeComplex extends AbstractCustomer
     return newControllableLoad;
   }
 
-  // =====STATUS FUNCTIONS===== //
-
-  /**
-   * This function prints to the screen the daily load of the office complex's
-   * offices for the weekday at hand.
-   * 
-   * @param day
-   * @param type
-   * @return
-   */
-  void printDailyLoad (int day, String type)
-  {
-
-    Vector<Office> offices = new Vector<Office>();
-    int dayTemp =
-      day
-              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
-
-    if (type.equals("NS")) {
-      offices = notShiftingOffices;
-    }
-    else {
-      offices = smartShiftingOffices;
-    }
-
-    log.debug("Day " + day);
-
-    for (Office office: offices) {
-      office.printDailyLoad(dayTemp);
-    }
-
-  }
-
   // =====VECTOR CREATION===== //
 
   /**
@@ -2101,35 +1394,6 @@ public class OfficeComplex extends AbstractCustomer
     return v;
   }
 
-  /**
-   * This function is creating the list of days for each office complex that
-   * will be utilized for the tariff evaluation.
-   * 
-   * @param days
-   * @param gen
-   * @return
-   */
-  void createCostEstimationDaysList (int days)
-  {
-
-    for (int i = 0; i < days; i++) {
-      int x =
-        gen.nextInt(OfficeComplexConstants.DAYS_OF_COMPETITION
-                    + OfficeComplexConstants.DAYS_OF_BOOTSTRAP);
-      ListIterator<Integer> iter = daysList.listIterator();
-      while (iter.hasNext()) {
-        int temp = (int) iter.next();
-        if (x == temp) {
-          x = x + 1;
-          iter = daysList.listIterator();
-        }
-      }
-      daysList.add(x);
-    }
-    java.util.Collections.sort(daysList);
-
-  }
-
   // =====STEP FUNCTIONS===== //
 
   @Override
@@ -2149,22 +1413,18 @@ public class OfficeComplex extends AbstractCustomer
 
     consumePower();
 
-    // System.out.println("Timeslot " + timeslotRepo.currentSerialNumber());
-    //
     // for (Office office: getOffices())
     // office.test();
 
-    // if (hour == 23) {
-    //
-    // for (String type: subscriptionMap.keySet()) {
-    // if (!(type.equals("NS"))) {
-    // log.info("Rescheduling " + type);
-    // rescheduleNextDay(type);
-    // }
-    //
-    // }
-    //
-    // }
+    if (hour == 23) {
+
+      for (String type: numberOfOffices.keySet()) {
+        if (!(type.equals("NS"))) {
+          log.info("Rescheduling " + type);
+          rescheduleNextDay(type);
+        }
+      }
+    }
 
   }
 
@@ -2190,13 +1450,12 @@ public class OfficeComplex extends AbstractCustomer
         office.weatherCheck(dayTemp, hour, now, temperature);
       }
 
-      for (String type: subscriptionMap.keySet()) {
+      for (String type: numberOfOffices.keySet()) {
         updateAggDailyWeatherSensitiveLoad(type, day);
         if (dayTemp + 1 < OfficeComplexConstants.DAYS_OF_COMPETITION) {
           updateAggDailyWeatherSensitiveLoad(type, dayTemp + 1);
         }
-        // showAggDailyLoad(type, dayTemp);
-        // showAggDailyLoad(type, dayTemp + 1);
+
       }
     }
   }
@@ -2220,44 +1479,32 @@ public class OfficeComplex extends AbstractCustomer
       nextDay
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
-    Collection<TariffSubscription> tempCol =
-      controllableSubscriptionMap.values();
-    ArrayList<TariffSubscription> subs = new ArrayList<TariffSubscription>();
+    for (CustomerInfo customer: customerInfos) {
 
-    for (TariffSubscription sub: tempCol)
-      if (!subs.contains(sub))
-        subs.add(sub);
+      if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
 
-    log.debug(this.toString() + " " + subs.toString());
+        List<TariffSubscription> subs =
+          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
 
-    for (TariffSubscription sub: subs) {
+        long curt =
+          (long) subs.get(0).getCurtailment() * OfficeComplexConstants.THOUSAND;
+        log.debug(this.toString() + " Subscription " + subs.get(0).toString()
+                  + " Curtailment " + curt);
 
-      long curt = (long) sub.getCurtailment() * OfficeComplexConstants.THOUSAND;
-      log.debug(this.toString() + " Subscription " + sub + " Curtailment "
-                + curt);
+        if (curt > 0) {
 
-      if (curt > 0) {
+          String temp = officeMapping.get(customer);
 
-        ArrayList<String> temp = new ArrayList<String>();
+          String type = temp.substring(0, 2);
 
-        for (String type: controllableSubscriptionMap.keySet())
-          if (controllableSubscriptionMap.get(type) == sub)
-            temp.add(type);
-
-        for (int i = 0; i < temp.size(); i++) {
-          String type = temp.get(i);
-          curtailControllableConsumption(dayTemp, hour, type,
-                                         -(long) (curt / temp.size()));
+          curtailControllableConsumption(dayTemp, hour, type, -(long) (curt));
           curtailControllableConsumption(nextDayTemp, nextHour, type,
-                                         (long) (curt / temp.size()));
-        }
+                                         (long) (curt));
 
+        }
       }
 
     }
-
-    // showAggDailyLoad(type, dayTemp);
-    // showAggDailyLoad(type, dayTemp + 1);
 
   }
 
@@ -2280,7 +1527,13 @@ public class OfficeComplex extends AbstractCustomer
 
     Vector<Long> controllableVector = new Vector<Long>();
 
-    TariffSubscription sub = subscriptionMap.get(type);
+    CustomerInfo customer =
+      customerRepo.findByNameAndPowerType(name + " " + type + " Controllable",
+                                          PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+    TariffSubscription sub =
+      tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer)
+              .get(0);
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
@@ -2305,6 +1558,78 @@ public class OfficeComplex extends AbstractCustomer
   public String toString ()
   {
     return name;
+  }
+
+  public class TariffEvaluationWrapper implements CustomerModelAccessor
+  {
+    private String type;
+    private int day;
+    private CustomerInfo customerInfo;
+
+    public TariffEvaluationWrapper (String type, CustomerInfo customer)
+    {
+      this.type = type;
+      customerInfo = customer;
+      day =
+        gen.nextInt(OfficeComplexConstants.DAYS_OF_BOOTSTRAP
+                    + OfficeComplexConstants.DAYS_OF_COMPETITION);
+    }
+
+    @Override
+    public CustomerInfo getCustomerInfo ()
+    {
+      return customerInfo;
+    }
+
+    public String getType ()
+    {
+      return type;
+    }
+
+    public int getPopulation ()
+    {
+      return getOffices(type).size();
+    }
+
+    @Override
+    public double[] getCapacityProfile (Tariff tariff)
+    {
+      double[] result = new double[OfficeComplexConstants.HOURS_OF_DAY];
+
+      if (type.equalsIgnoreCase("NS"))
+        result = getDominantLoad(type);
+
+      else {
+        double[] nonDominantUsage = getNonDominantUsage(day, type);
+
+        result = dailyShifting(tariff, nonDominantUsage, day, type);
+      }
+
+      return result;
+    }
+
+    @Override
+    public double getBrokerSwitchFactor (boolean isSuperseding)
+    {
+      double result = OfficeComplexConstants.BROKER_SWITCH_FACTOR;
+      if (isSuperseding)
+        return result * 5.0;
+      return result;
+    }
+
+    @Override
+    public double getTariffChoiceSample ()
+    {
+      return gen.nextDouble();
+    }
+
+    @Override
+    public double getInertiaSample ()
+    {
+
+      return gen.nextDouble();
+    }
+
   }
 
 }

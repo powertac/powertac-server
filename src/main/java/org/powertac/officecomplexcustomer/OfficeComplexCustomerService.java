@@ -18,8 +18,11 @@ package org.powertac.officecomplexcustomer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -82,7 +85,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
   // read this from configurator
   private String configFile1 = null;
-  private String configFile2 = null;
   private int daysOfCompetition = 0;
 
   /**
@@ -94,20 +96,10 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   /** List of the Office Customers in the competition */
   ArrayList<OfficeComplex> officeComplexList;
 
-  /** The Tariffs that will receive while registered as New Tariff Listener */
-  List<Tariff> publishedTariffs = new ArrayList<Tariff>();
-
-  /**
-   * Counter of the publishing periods, useful for customers that won't check
-   * for tariffs each time they are published.
-   */
-  int publishingPeriods;
-
   /** This is the constructor of the Office Consumer Service. */
   public OfficeComplexCustomerService ()
   {
     super();
-    publishingPeriods = 0;
     officeComplexList = new ArrayList<OfficeComplex>();
   }
 
@@ -132,7 +124,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
     officeComplexList.clear();
     // *** disable tariff evaluation ***
-    //tariffMarketService.registerNewTariffListener(this);
+    // tariffMarketService.registerNewTariffListener(this);
     rs1 =
       randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
                                    "Office Complex Customer Models");
@@ -140,10 +132,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     if (configFile1 == null) {
       log.info("No Config File for OfficeComplexType1 Taken");
       configFile1 = "OfficeComplexDefault.properties";
-    }
-    if (configFile2 == null) {
-      log.info("No Config File for OfficeComplexType2 Taken");
-      configFile2 = "OfficeComplexDefault.properties";
     }
 
     super.init();
@@ -158,6 +146,15 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
       log.info("No Days Of Competition Taken");
       daysOfCompetition = 63;
     }
+
+    addOfficeComplexes(configFile1, "1");
+
+    return "OfficeComplexCustomer";
+  }
+
+  private void addOfficeComplexes (String configFile, String type)
+  {
+
     // =======FIRST OFFICE COMPLEX TYPE=========//
 
     InputStream cfgFile = null;
@@ -174,162 +171,63 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
       e.printStackTrace();
     }
 
+    String[] types = { "NS", "SS" };
+    String[] shifts = { "Base", "Controllable" };
+    Map<String, Integer> offices = new TreeMap<String, Integer>();
+
     int numberOfOfficeComplexes =
       Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
-
     int nsoffices =
       Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
+    offices.put("NS", nsoffices);
     int ssoffices =
       Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
+    offices.put("SS", ssoffices);
 
-    int officePopulation = nsoffices + ssoffices;
-
-    for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
-      CustomerInfo officeComplexInfo =
-        new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
-                         officePopulation).withPowerType(PowerType.CONSUMPTION);
-      CustomerInfo officeComplexInfo2 =
-        new CustomerInfo("OfficeComplexType1 OfficeComplex " + i,
-                         officePopulation)
-                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
-      OfficeComplex officeComplex =
-        new OfficeComplex("OfficeComplexType1 OfficeComplex " + i);
-      officeComplex.addCustomerInfo(officeComplexInfo);
-      officeComplex.addCustomerInfo(officeComplexInfo2);
-      officeComplex.initialize(configuration, seedId++);
-      officeComplexList.add(officeComplex);
-      officeComplex.subscribeDefault();
-    }
-
-    // =======SECOND OFFICE COMPLEX TYPE=========//
-
-    cfgFile = null;
-    // cfgFile = new FileInputStream(configFile);
-    cfgFile =
-      Thread.currentThread().getContextClassLoader()
-              .getResourceAsStream(configFile2);
-    try {
-      configuration.load(cfgFile);
-      cfgFile.close();
-    }
-    catch (IOException e) {
-
-      e.printStackTrace();
-    }
-
-    numberOfOfficeComplexes =
-      Integer.parseInt(configuration.getProperty("NumberOfOfficeComplexes"));
-
-    nsoffices =
-      Integer.parseInt(configuration.getProperty("NotShiftingCustomers"));
-    ssoffices =
-      Integer.parseInt(configuration.getProperty("SmartShiftingCustomers"));
-
-    officePopulation = nsoffices + ssoffices;
+    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      public int compare (CustomerInfo customer1, CustomerInfo customer2)
+      {
+        return customer1.getName().compareToIgnoreCase(customer2.getName());
+      }
+    };
 
     for (int i = 1; i < numberOfOfficeComplexes + 1; i++) {
-      CustomerInfo officeComplexInfo =
-        new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
-                         officePopulation).withPowerType(PowerType.CONSUMPTION);
-      CustomerInfo officeComplexInfo2 =
-        new CustomerInfo("OfficeComplexType2 OfficeComplex " + i,
-                         officePopulation)
-                .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
-      OfficeComplex officeComplex =
-        new OfficeComplex("OfficeComplexType2 OfficeComplex " + i);
-      officeComplex.addCustomerInfo(officeComplexInfo);
-      officeComplex.addCustomerInfo(officeComplexInfo2);
-      officeComplex.initialize(configuration, seedId++);
+      OfficeComplex officeComplex = new OfficeComplex("OfficeComplex " + i);
+      Map<CustomerInfo, String> map = new TreeMap<CustomerInfo, String>(comp);
+
+      for (String officeType: types) {
+        for (String shifting: shifts) {
+
+          CustomerInfo officeComplexInfo =
+            new CustomerInfo("OfficeComplex " + i + " " + officeType + " "
+                             + shifting, offices.get(officeType));
+          if (shifting.equalsIgnoreCase("Base"))
+            officeComplexInfo.withPowerType(PowerType.CONSUMPTION);
+          else
+            officeComplexInfo
+                    .withPowerType(PowerType.INTERRUPTIBLE_CONSUMPTION);
+
+          map.put(officeComplexInfo, officeType + " " + shifting);
+          officeComplex.addCustomerInfo(officeComplexInfo);
+        }
+
+      }
+
+      officeComplex.initialize(configuration, seedId++, map);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault();
-    }
 
-    return "OfficeComplexCustomer";
+    }
   }
 
   @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
 
-    publishedTariffs.clear();
-
-    publishedTariffs =
-      tariffMarketService.getActiveTariffList(PowerType.CONSUMPTION);
-
-    List<Tariff> temp =
-      tariffMarketService
-              .getActiveTariffList(PowerType.INTERRUPTIBLE_CONSUMPTION);
-
-    publishedTariffs.addAll(temp);
-
-    // System.out.println("Timeslot: " + timeslotRepo.currentSerialNumber());
-
     // For each village of the server //
-    for (OfficeComplex village: officeComplexList) {
+    for (OfficeComplex officeComplex: officeComplexList)
+      officeComplex.evaluateNewTariffs();
 
-      // For each type of houses of the villages //
-      for (String type: village.getSubscriptionMap().keySet()) {
-        try {
-          // if the publishingPeriod is divided exactly with the periodicity of
-          // the evaluation of each type. //
-          if (publishingPeriods % village.getPeriodMap().get(type) == 0) {
-
-            // System.out.println("Evaluation for " + type + " of village "
-            // + village.toString());
-            log.debug("Evaluation for " + type + " of village "
-                    + village.toString());
-
-            double inertia = estimateInertia(village, type);
-            double rand = rs1.nextDouble();
-
-            // System.out.println(rand);
-            // If the percentage is smaller that inertia then evaluate the new
-            // tariffs then evaluate //
-            if (rand > inertia) {
-              // System.out.println("Inertia Passed for " + type + " of village "
-              // + village.toString());
-              log.debug("Inertia Passed for " + type + " of village "
-                      + village.toString());
-              village.possibilityEvaluationNewTariffs(publishedTariffs, type);
-            }
-          }
-        }
-        catch (Exception e) {
-          StackTraceElement[] trace = e.getStackTrace();
-          log.error(e.toString()
-                    + "\n.. " + trace[0].toString()
-                    + "\n.. " + trace[1].toString()
-                    + "\n.. " + trace[2].toString()
-                    + "\n.. " + trace[3].toString()
-                    );
-        }
-      }
-    }
-    publishingPeriods++;
-
-  }
-
-  double estimateInertia (OfficeComplex officeComplex, String type)
-  {
-    double inertia = 0;
-
-    // New Inertia Formula
-    if (officeComplex.getSuperseded().get(type)) {
-      inertia =
-        officeComplex.getInertiaMap().get(type)
-                / OfficeComplexConstants.DISTRUST_FACTOR;
-      log.debug("New Inertia = " + inertia + " with Trust Issues: "
-                + officeComplex.getSuperseded().get(type));
-      officeComplex.setSuperseded(type, false);
-    }
-    else {
-      double m = 1 / Math.pow(2, publishingPeriods);
-      inertia = officeComplex.getInertiaMap().get(type) * (1 - m);
-      log.debug("New Inertia = " + inertia + " with Trust Issues: "
-                + officeComplex.getSuperseded().get(type));
-    }
-
-    return inertia;
   }
 
   // ----------------- Data access -------------------------
@@ -360,19 +258,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     configFile1 = config;
   }
 
-  /** Getter method for the second configuration file */
-  public String getConfigFile2 ()
-  {
-    return configFile2;
-  }
-
-  @ConfigurableValue(valueType = "String", description = "second configuration file of the office complex customers")
-  public
-    void setConfigFile2 (String config)
-  {
-    configFile2 = config;
-  }
-
   /**
    * This function returns the list of the villages created at the beginning of
    * the game by the service
@@ -389,8 +274,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   public void clearConfiguration ()
   {
     configFile1 = null;
-    configFile2 = null;
-    publishingPeriods = 0;
   }
 
   /**
