@@ -16,6 +16,7 @@
 package org.powertac.householdcustomer.customers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ListIterator;
@@ -30,6 +31,7 @@ import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
@@ -211,6 +213,9 @@ public class Village extends AbstractCustomer
    **/
   Vector<Integer> daysList = new Vector<Integer>();
 
+  protected final TariffEvaluationHelper tariffEvalHelper =
+    new TariffEvaluationHelper();
+
   /**
    * This variable is utilized for the creation of the RandomSeed numbers and is
    * taken from the service.
@@ -336,7 +341,7 @@ public class Village extends AbstractCustomer
     gen =
       randomSeedRepo.getRandomSeed(toString(), seed, "Village Model" + seed);
 
-    createCostEstimationDaysList(VillageConstants.RANDOM_DAYS_NUMBER);
+    // createCostEstimationDaysList(VillageConstants.RANDOM_DAYS_NUMBER);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -2006,62 +2011,61 @@ public class Village extends AbstractCustomer
 
   // =====SHIFTING FUNCTIONS===== //
 
-  // /**
-  // * This is the function that takes every household in the village and reads
-  // * the shifted Controllable Consumption for the needs of the tariff
-  // * evaluation.
-  // *
-  // * @param tariff
-  // * @param now
-  // * @param day
-  // * @param type
-  // * @return
-  // */
-  // double[] dailyShifting (Tariff tariff, double[] nonDominantUsage, int day,
-  // String type)
-  // {
-  //
-  // double[] newControllableLoad = nonDominantUsage;
-  // int dayTemp =
-  // day
-  // % (VillageConstants.DAYS_OF_BOOTSTRAP +
-  // VillageConstants.DAYS_OF_COMPETITION);
-  //
-  // Vector<Household> houses = new Vector<Household>();
-  //
-  // if (type.equals("NS")) {
-  // houses = notShiftingHouses;
-  // }
-  // else if (type.equals("RaS")) {
-  // houses = randomlyShiftingHouses;
-  // }
-  // else if (type.equals("ReS")) {
-  // houses = regularlyShiftingHouses;
-  // }
-  // else {
-  // houses = smartShiftingHouses;
-  // }
-  //
-  // for (Household house: houses) {
-  // double[] temp =
-  // house.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
-  // dayTemp, gen);
-  //
-  // log.debug("New Dominant Load for house " + house.toString()
-  // + " for Tariff " + tariff.toString() + ": "
-  // + Arrays.toString(temp));
-  //
-  // for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
-  // newControllableLoad[j] += temp[j];
-  //
-  // }
-  //
-  // log.debug("New Overall Load of Village " + toString() + " type " + type
-  // + " for Tariff " + tariff.toString() + ": "
-  // + Arrays.toString(newControllableLoad));
-  //
-  // return newControllableLoad;
-  // }
+  /**
+   * This is the function that takes every household in the village and reads
+   * the shifted Controllable Consumption for the needs of the tariff
+   * evaluation.
+   * 
+   * @param tariff
+   * @param now
+   * @param day
+   * @param type
+   * @return
+   */
+  double[] dailyShifting (Tariff tariff, double[] nonDominantUsage, int day,
+                          String type)
+  {
+
+    double[] newControllableLoad = nonDominantUsage;
+    int dayTemp =
+      day
+              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+
+    Vector<Household> houses = new Vector<Household>();
+
+    if (type.equals("NS")) {
+      houses = notShiftingHouses;
+    }
+    else if (type.equals("RaS")) {
+      houses = randomlyShiftingHouses;
+    }
+    else if (type.equals("ReS")) {
+      houses = regularlyShiftingHouses;
+    }
+    else {
+      houses = smartShiftingHouses;
+    }
+
+    for (Household house: houses) {
+      double[] temp =
+        house.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
+                            dayTemp, gen);
+
+      log.debug("New Dominant Load for house " + house.toString()
+                + " for Tariff " + tariff.toString() + ": "
+                + Arrays.toString(temp));
+
+      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
+        newControllableLoad[j] += temp[j];
+
+    }
+
+    log.debug("New Overall Load of Village " + toString() + " type " + type
+              + " for Tariff " + tariff.toString() + ": "
+              + Arrays.toString(newControllableLoad));
+
+    return newControllableLoad;
+  }
 
   // =====VECTOR CREATION===== //
 
@@ -2096,34 +2100,34 @@ public class Village extends AbstractCustomer
     return v;
   }
 
-  /**
-   * This function is creating the list of days for each village that will be
-   * utilized for the tariff evaluation.
-   * 
-   * @param days
-   * @param gen
-   * @return
-   */
-  void createCostEstimationDaysList (int days)
-  {
-
-    for (int i = 0; i < days; i++) {
-      int x =
-        gen.nextInt(VillageConstants.DAYS_OF_COMPETITION
-                    + VillageConstants.DAYS_OF_BOOTSTRAP);
-      ListIterator<Integer> iter = daysList.listIterator();
-      while (iter.hasNext()) {
-        int temp = (int) iter.next();
-        if (x == temp) {
-          x = x + 1;
-          iter = daysList.listIterator();
-        }
-      }
-      daysList.add(x);
-    }
-    java.util.Collections.sort(daysList);
-
-  }
+  // /**
+  // * This function is creating the list of days for each village that will be
+  // * utilized for the tariff evaluation.
+  // *
+  // * @param days
+  // * @param gen
+  // * @return
+  // */
+  // void createCostEstimationDaysList (int days)
+  // {
+  //
+  // for (int i = 0; i < days; i++) {
+  // int x =
+  // gen.nextInt(VillageConstants.DAYS_OF_COMPETITION
+  // + VillageConstants.DAYS_OF_BOOTSTRAP);
+  // ListIterator<Integer> iter = daysList.listIterator();
+  // while (iter.hasNext()) {
+  // int temp = (int) iter.next();
+  // if (x == temp) {
+  // x = x + 1;
+  // iter = daysList.listIterator();
+  // }
+  // }
+  // daysList.add(x);
+  // }
+  // java.util.Collections.sort(daysList);
+  //
+  // }
 
   // =====STEP FUNCTIONS===== //
 
@@ -2143,8 +2147,6 @@ public class Village extends AbstractCustomer
 
     consumePower();
 
-    // System.out.println("Timeslot:" + timeslotRepo.currentSerialNumber());
-
     // for (Household house: getHouses())
     // house.test();
 
@@ -2153,7 +2155,7 @@ public class Village extends AbstractCustomer
       for (String type: numberOfHouses.keySet()) {
         if (!(type.equals("NS"))) {
           log.info("Rescheduling " + type);
-          // rescheduleNextDay(type);
+          rescheduleNextDay(type);
         }
 
       }
@@ -2278,8 +2280,8 @@ public class Village extends AbstractCustomer
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
-    double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
-    // dailyShifting(sub.getTariff(), nonDominantUsage, dayTemp, type);
+    double[] newControllableLoad =
+      dailyShifting(sub.getTariff(), nonDominantUsage, dayTemp, type);
 
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       String newControllableLoadString =
@@ -2312,12 +2314,16 @@ public class Village extends AbstractCustomer
   public class TariffEvaluationWrapper implements CustomerModelAccessor
   {
     private String type;
+    private int day;
     private CustomerInfo customerInfo;
 
     public TariffEvaluationWrapper (String type, CustomerInfo customer)
     {
       this.type = type;
       customerInfo = customer;
+      day =
+        gen.nextInt(VillageConstants.DAYS_OF_BOOTSTRAP
+                    + VillageConstants.DAYS_OF_COMPETITION);
     }
 
     @Override
@@ -2340,15 +2346,15 @@ public class Village extends AbstractCustomer
     public double[] getCapacityProfile (Tariff tariff)
     {
       double[] result = new double[VillageConstants.HOURS_OF_DAY];
-      boolean controllable = true;
 
-      if (customerInfo.getPowerType() == PowerType.CONSUMPTION)
-        controllable = false;
-
-      if (controllable)
+      if (type.equalsIgnoreCase("NS"))
         result = getDominantLoad(type);
-      else
-        result = getNonDominantLoad(type);
+
+      else {
+        double[] nonDominantUsage = getNonDominantUsage(day, type);
+
+        result = dailyShifting(tariff, nonDominantUsage, day, type);
+      }
 
       return result;
     }
