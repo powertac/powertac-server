@@ -363,10 +363,10 @@ public class Appliance
     }
   }
 
-  public void test ()
-  {
-    System.out.println(toString() + " " + gen.nextDouble());
-  }
+  // public void test ()
+  // {
+  // System.out.println(toString() + " " + gen.nextDouble());
+  // }
 
   /**
    * This is an function created to estimate the overall power consumption of a

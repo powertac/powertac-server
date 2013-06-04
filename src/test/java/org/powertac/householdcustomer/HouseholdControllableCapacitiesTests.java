@@ -745,18 +745,6 @@ public class HouseholdControllableCapacitiesTests
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
 
-    for (Village customer: householdCustomerService.getVillageList()) {
-      customer.showAggDailyLoad("SS", 36);
-    }
-
-    // for (int i = 0; i < 10; i++) {
-    // timeService.setBase(now.getMillis());
-    // timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR
-    // 12));
-    // householdCustomerService.activate(timeService.getCurrentTime(), 1);
-
-    // }
-
   }
 
   @Test
@@ -784,10 +772,6 @@ public class HouseholdControllableCapacitiesTests
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
       customer.subscribeDefault();
-    }
-
-    for (Village customer: householdCustomerService.getVillageList()) {
-      customer.showAggDailyLoad("SS", 0);
     }
 
     timeService.setBase(now.getMillis());

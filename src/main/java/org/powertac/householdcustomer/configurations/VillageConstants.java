@@ -27,12 +27,7 @@ public class VillageConstants
   // GENERAL VARIABLES -----------------------------//
   public static final int PERCENTAGE = 100;
   public static final int THOUSAND = 1000;
-  public static final int KWH = 1000;
-  public static final int MWH = 1000000;
-  public static final int MILLION = 1000000;
-  public static final long MEAN_TARIFF_DURATION = 7;
   public static final double SAME = 0.60;
-  public static final double EPSILON = 2.7;
   public static final double OPERATION_PARTITION = 0.05;
   public static final double OPERATION_DAILY_TIMES_LIMIT = 2;
   public static final double DISTRUST_FACTOR = 2;
@@ -239,9 +234,6 @@ public class VillageConstants
   public static final int FREEZER_SHIFTING_INTERVAL = 2;
   public static final int FREEZER_SHIFTING_PERIODS = 12;
 
-  // COST ESTIMATION VARIABLES ------------------------//
-  public static final int RANDOM_DAYS_NUMBER = 3;
-
   /**
    * This is the function utilized in order to estimate the days of Competition
    * for precomputing the model's behavior
@@ -270,15 +262,7 @@ public class VillageConstants
     FRIDAY = (FRIDAY + bias) % DAYS_OF_WEEK;
     SATURDAY = (SATURDAY + bias) % DAYS_OF_WEEK;
     SUNDAY = (SUNDAY + bias) % DAYS_OF_WEEK;
-    /*
-        System.out.println(MONDAY);
-        System.out.println(TUESDAY);
-        System.out.println(WEDNESDAY);
-        System.out.println(THURSDAY);
-        System.out.println(FRIDAY);
-        System.out.println(SATURDAY);
-        System.out.println(SUNDAY);
-    */
+
   }
 
 }

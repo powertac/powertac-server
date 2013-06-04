@@ -848,10 +848,6 @@ public class HouseholdCustomerServiceTests
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
 
-    for (Village customer: householdCustomerService.getVillageList()) {
-      customer.showAggDailyLoad("SS", 36);
-    }
-
   }
 
   @Test
@@ -873,10 +869,6 @@ public class HouseholdCustomerServiceTests
       // SubscriptionMapping //
       customer.subscribeDefault();
 
-    }
-
-    for (Village customer: householdCustomerService.getVillageList()) {
-      customer.showAggDailyLoad("SS", 0);
     }
 
     timeService.setBase(now.getMillis());

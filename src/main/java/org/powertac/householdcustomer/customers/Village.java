@@ -206,13 +206,6 @@ public class Village extends AbstractCustomer
   double[] nonDominantLoadReS = new double[VillageConstants.HOURS_OF_DAY];
   double[] nonDominantLoadSS = new double[VillageConstants.HOURS_OF_DAY];
 
-  /**
-   * This is an vector containing the days of the competition that the household
-   * model will use in order to check which of the tariffs that are available at
-   * any given moment are the optimal for their consumption or production.
-   **/
-  Vector<Integer> daysList = new Vector<Integer>();
-
   protected final TariffEvaluationHelper tariffEvalHelper =
     new TariffEvaluationHelper();
 
@@ -224,16 +217,9 @@ public class Village extends AbstractCustomer
 
   /**
    * These variables are mapping of the characteristics of the types of houses.
-   * The first is used to keep track of their subscription at any given time.
-   * The second is the inertia parameter for each type of houses. The third is
-   * the period that they are evaluating the available tariffs and choose the
-   * best for their type. The forth is setting the lamda variable for the
-   * possibility function of the evaluation.
    */
-
   Map<String, Integer> numberOfHouses = new TreeMap<String, Integer>();
   Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
-
   Map<CustomerInfo, String> houseMapping = new TreeMap<CustomerInfo, String>();
 
   /**
@@ -341,8 +327,6 @@ public class Village extends AbstractCustomer
     gen =
       randomSeedRepo.getRandomSeed(toString(), seed, "Village Model" + seed);
 
-    // createCostEstimationDaysList(VillageConstants.RANDOM_DAYS_NUMBER);
-
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
     for (int i = 0; i < numberOfHouses.get("NS"); i++) {
@@ -381,7 +365,6 @@ public class Village extends AbstractCustomer
       hh.householdOf = this;
     }
 
-    // TODO
     for (String type: numberOfHouses.keySet()) {
       fillAggWeeklyLoad(type);
 
@@ -629,20 +612,6 @@ public class Village extends AbstractCustomer
       return dominantLoadReS;
     else
       return dominantLoadSS;
-
-  }
-
-  private double[] getNonDominantLoad (String type)
-  {
-
-    if (type.equals("NS"))
-      return nonDominantLoadNS;
-    else if (type.equals("RaS"))
-      return nonDominantLoadRaS;
-    else if (type.equals("ReS"))
-      return nonDominantLoadReS;
-    else
-      return nonDominantLoadSS;
 
   }
 
@@ -1278,189 +1247,6 @@ public class Village extends AbstractCustomer
     return daily;
   }
 
-  /**
-   * This function is used in order to print the aggregated hourly load of the
-   * village's households.
-   * 
-   * @param type
-   * @return
-   */
-  void showAggLoad (String type)
-  {
-
-    log.info("Portion " + type + " Weekly Aggregated Load");
-
-    if (type.equals("NS")) {
-      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                          + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursNS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursNS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursNS.get(i).get(j));
-        }
-      }
-    }
-    else if (type.equals("RaS")) {
-      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                          + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursRaS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursRaS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursRaS.get(i).get(j));
-        }
-      }
-    }
-    else if (type.equals("ReS")) {
-      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                          + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursReS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursReS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursReS.get(i).get(j));
-        }
-      }
-    }
-    else {
-      for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                          + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-        log.debug("Day " + i);
-        for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-          log.debug("Hour : " + j + " Base Load : "
-                    + aggDailyBaseLoadInHoursSS.get(i).get(j)
-                    + " Controllable Load: "
-                    + aggDailyControllableLoadInHoursSS.get(i).get(j)
-                    + " Weather Sensitive Load: "
-                    + aggDailyWeatherSensitiveLoadInHoursSS.get(i).get(j));
-        }
-      }
-    }
-  }
-
-  /**
-   * This function is used in order to print the aggregated hourly load of the
-   * village households for a certain type of households.
-   * 
-   * @param type
-   * @return
-   */
-  public void showAggDailyLoad (String type, int day)
-  {
-
-    log.debug("Portion " + type + " Daily Aggregated Load");
-    log.debug("Day " + day);
-
-    if (type.equals("NS")) {
-      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursNS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursNS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(j));
-      }
-
-    }
-    else if (type.equals("RaS")) {
-      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursRaS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursRaS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(j));
-      }
-
-    }
-    else if (type.equals("ReS")) {
-      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursReS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursReS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(j));
-      }
-
-    }
-    else {
-      for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++) {
-        log.debug("Hour : " + j + " Base Load : "
-                  + aggDailyBaseLoadInHoursSS.get(day).get(j)
-                  + " Controllable Load: "
-                  + aggDailyControllableLoadInHoursSS.get(day).get(j)
-                  + " Weather Sensitive Load: "
-                  + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(j));
-      }
-    }
-  }
-
-  /**
-   * This function is used in order to print the aggregated hourly load of the
-   * village households for a certain type of households.
-   * 
-   * @param type
-   * @return
-   */
-  public void showAggDailyLoad (String type, int day, int hour)
-  {
-
-    log.info("Portion " + type + " Hourly Aggregated Load");
-    log.info("Day " + day + " Hour " + hour);
-
-    if (type.equals("NS")) {
-
-      log.info("Hour : " + hour + " Base Load : "
-               + aggDailyBaseLoadInHoursNS.get(day).get(hour)
-               + " Controllable Load: "
-               + aggDailyControllableLoadInHoursNS.get(day).get(hour)
-               + " Weather Sensitive Load: "
-               + aggDailyWeatherSensitiveLoadInHoursNS.get(day).get(hour));
-
-    }
-    else if (type.equals("RaS")) {
-
-      log.info("Hour : " + hour + " Base Load : "
-               + aggDailyBaseLoadInHoursRaS.get(day).get(hour)
-               + " Controllable Load: "
-               + aggDailyControllableLoadInHoursRaS.get(day).get(hour)
-               + " Weather Sensitive Load: "
-               + aggDailyWeatherSensitiveLoadInHoursRaS.get(day).get(hour));
-
-    }
-    else if (type.equals("ReS")) {
-
-      log.info("Hour : " + hour + " Base Load : "
-               + aggDailyBaseLoadInHoursReS.get(day).get(hour)
-               + " Controllable Load: "
-               + aggDailyControllableLoadInHoursReS.get(day).get(hour)
-               + " Weather Sensitive Load: "
-               + aggDailyWeatherSensitiveLoadInHoursReS.get(day).get(hour));
-
-    }
-    else {
-
-      log.info("Hour : " + hour + " Base Load : "
-               + aggDailyBaseLoadInHoursSS.get(day).get(hour)
-               + " Controllable Load: "
-               + aggDailyControllableLoadInHoursSS.get(day).get(hour)
-               + " Weather Sensitive Load: "
-               + aggDailyWeatherSensitiveLoadInHoursSS.get(day).get(hour));
-
-    }
-  }
-
   // // =====CONSUMPTION FUNCTIONS===== //
 
   @Override
@@ -1893,122 +1679,6 @@ public class Village extends AbstractCustomer
     }
   }
 
-  // /**
-  // * This function estimates the overall cost, taking into consideration the
-  // * fixed payments as well as the variable that are depending on the tariff
-  // * rates
-  // */
-  // double costEstimation (Tariff tariff, String type, Double rand, boolean
-  // same,
-  // boolean expired)
-  // {
-  // Tariff defaultTariff = tariffRepo.getDefaultTariff(tariff.getPowerType());
-  //
-  // if (tariff.getTariffSpec().equals(defaultTariff.getTariffSpec()))
-  // return 0;
-  // else {
-  // double costVariable = 0;
-  // double defaultCostVariable = 0;
-  //
-  // /*
-  // * if it is NotShifting Houses the evaluation is done without shifting
-  // * devices
-  // * if it is RandomShifting Houses the evaluation is may be done without
-  // * shifting devices or maybe shifting will be taken into consideration
-  // * In any other case shifting will be done.
-  // */
-  // if (type.equals("NS")) {
-  // // System.out.println("Simple Evaluation for " + type);
-  // log.debug("Simple Evaluation for " + type);
-  // costVariable = estimateVariableTariffPayment(tariff, type);
-  // defaultCostVariable =
-  // estimateVariableTariffPayment(defaultTariff, type);
-  // }
-  // else if (type.equals("RaS")) {
-  //
-  // // System.out.println(rand);
-  // if (rand < getInertiaMap().get(type)) {
-  // // System.out.println("Simple Evaluation for " + type);
-  // log.debug("Simple Evaluation for " + type);
-  // costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-  // defaultCostVariable =
-  // estimateShiftingVariableTariffPayment(defaultTariff, type);
-  // }
-  // else {
-  // // System.out.println("Shifting Evaluation for " + type);
-  // log.debug("Shifting Evaluation for " + type);
-  // costVariable = estimateVariableTariffPayment(tariff, type);
-  // defaultCostVariable =
-  // estimateVariableTariffPayment(defaultTariff, type);
-  // }
-  // }
-  // else {
-  // // System.out.println("Shifting Evaluation for " + type);
-  // log.debug("Shifting Evaluation for " + type);
-  // costVariable = estimateShiftingVariableTariffPayment(tariff, type);
-  // defaultCostVariable =
-  // estimateShiftingVariableTariffPayment(defaultTariff, type);
-  // }
-  // double costFixed = 0.0;
-  // double defaultCostFixed = 0.0;
-  //
-  // if (!same)
-  // costFixed =
-  // estimateFixedTariffPayments(tariff, type, expired)
-  // * getHouses(type).size();
-  //
-  // log.debug("Cost Variable: " + costVariable + " Cost Fixed: " + costFixed);
-  // log.debug("Default Cost Variable: " + defaultCostVariable
-  // + " Cost Fixed: " + defaultCostFixed);
-  //
-  // double defaultCost = defaultCostVariable + defaultCostFixed;
-  // double cost = costVariable + costFixed;
-  //
-  // return (defaultCost - cost) / defaultCost;
-  // }
-  // }
-  //
-
-  // /**
-  // * This is the new function, used in order to find the most cost efficient
-  // * tariff over the available ones. It is using Daily shifting in order to
-  // put
-  // * the appliances operation in most suitable hours (less costly) of the day.
-  // *
-  // * @param tariff
-  // * @return
-  // */
-  // double estimateShiftingVariableTariffPayment (Tariff tariff, String type)
-  // {
-  //
-  // double finalCostSummary = 0;
-  // double costSummary = 0;
-  //
-  // int serial =
-  // (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) /
-  // TimeService.HOUR);
-  //
-  // int daylimit = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
-  //
-  // for (int day: daysList) {
-  // if (day < daylimit)
-  // day = (int) (day + (daylimit / VillageConstants.RANDOM_DAYS_NUMBER));
-  //
-  // double[] nonDominantUsage = getNonDominantUsage(day, type);
-  //
-  // double[] overallUsage =
-  // dailyShifting(tariff, nonDominantUsage, day, type);
-  //
-  // costSummary = tariffEvalHelper.estimateCost(tariff, overallUsage);
-  // log.debug("Variable Dominant Cost Summary: " + costSummary);
-  //
-  // finalCostSummary += costSummary;
-  // }
-  // log.debug("Variable Cost Summary: " + finalCostSummary);
-  // return -finalCostSummary / VillageConstants.RANDOM_DAYS_NUMBER;
-  // }
-  //
-
   // =====SHIFTING FUNCTIONS===== //
 
   /**
@@ -2100,35 +1770,6 @@ public class Village extends AbstractCustomer
     return v;
   }
 
-  // /**
-  // * This function is creating the list of days for each village that will be
-  // * utilized for the tariff evaluation.
-  // *
-  // * @param days
-  // * @param gen
-  // * @return
-  // */
-  // void createCostEstimationDaysList (int days)
-  // {
-  //
-  // for (int i = 0; i < days; i++) {
-  // int x =
-  // gen.nextInt(VillageConstants.DAYS_OF_COMPETITION
-  // + VillageConstants.DAYS_OF_BOOTSTRAP);
-  // ListIterator<Integer> iter = daysList.listIterator();
-  // while (iter.hasNext()) {
-  // int temp = (int) iter.next();
-  // if (x == temp) {
-  // x = x + 1;
-  // iter = daysList.listIterator();
-  // }
-  // }
-  // daysList.add(x);
-  // }
-  // java.util.Collections.sort(daysList);
-  //
-  // }
-
   // =====STEP FUNCTIONS===== //
 
   @Override
@@ -2194,8 +1835,7 @@ public class Village extends AbstractCustomer
         if (dayTemp + 1 < VillageConstants.DAYS_OF_COMPETITION) {
           updateAggDailyWeatherSensitiveLoad(type, dayTemp + 1);
         }
-        // showAggDailyLoad(type, dayTemp);
-        // showAggDailyLoad(type, dayTemp + 1);
+
       }
     }
   }
@@ -2246,8 +1886,7 @@ public class Village extends AbstractCustomer
       }
 
     }
-    // showAggDailyLoad(type, dayTemp);
-    // showAggDailyLoad(type, dayTemp + 1);
+
   }
 
   /**

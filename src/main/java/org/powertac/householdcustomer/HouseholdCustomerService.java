@@ -94,22 +94,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   /** List of the Household Customers in the competition */
   ArrayList<Village> villageList;
 
-  /** The Tariffs that will receive while registered as New Tariff Listener */
-  List<Tariff> publishedTariffs = new ArrayList<Tariff>();
-
-  /**
-   * Counter of the publishing periods, useful for customers that won't check
-   * for tariffs each time they are published.
-   */
-  int publishingPeriods;
-
   int seedId = 1;
 
   /** This is the constructor of the Household Consumer Service. */
   public HouseholdCustomerService ()
   {
     super();
-    publishingPeriods = 0;
     villageList = new ArrayList<Village>();
   }
 
@@ -282,7 +272,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   public void clearConfiguration ()
   {
     configFile1 = null;
-    publishingPeriods = 0;
   }
 
   /**

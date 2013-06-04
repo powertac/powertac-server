@@ -1153,27 +1153,6 @@ public class Household
     return dominantLoad;
   }
 
-  /**
-   * This function prints to the screen the daily load of the household for the
-   * weekday at hand.
-   * 
-   * @param weekday
-   * @return
-   */
-  public void printDailyLoad (int day)
-  {
-    ListIterator<Integer> iter = weeklyBaseLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter2 =
-      weeklyControllableLoadInHours.get(day).listIterator();
-    ListIterator<Integer> iter3 =
-      weeklyWeatherSensitiveLoadInHours.get(day).listIterator();
-    log.info("Summary of Daily Load of House " + name);
-    for (int j = 0; j < VillageConstants.HOURS_OF_DAY; j++)
-      log.info("Hour : " + j + 1 + " Base Load : " + iter.next()
-               + " Controllable Load : " + iter2.next()
-               + " Weather Sensitive Load : " + iter3.next());
-  }
-
   @Override
   public String toString ()
   {
