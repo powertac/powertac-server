@@ -443,7 +443,7 @@ public class TariffMarketService
   /**
    * Processes an incoming ControlEvent from a broker
    */
-  public void handleMessage (EconomicControlEvent msg)
+  public synchronized void handleMessage (EconomicControlEvent msg)
   {
     ValidationResult result = validateUpdate(msg);
     if (result.tariff == null) {
@@ -469,7 +469,7 @@ public class TariffMarketService
   /**
    * Processes an incoming BalancingOrder by storing it in the tariffRepo
    */
-  public void handleMessage (BalancingOrder msg)
+  public synchronized void handleMessage (BalancingOrder msg)
   {
     ValidationResult result = validateUpdate(msg);
     if (result.tariff == null) {
