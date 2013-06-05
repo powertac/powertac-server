@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,9 +73,16 @@ public class RandomSeedRepoTests
   @Test
   public void checkLogfile ()
   {
-    // at this point, the file log/test.state should contain two lines from
-    // the two preceding tests, assuming the tests are run in order.
+    // Need to do this without depending on test sequence:
+    File state = new File("log/test.state");
     try {
+      FileOutputStream stateFile = new FileOutputStream(state);
+      stateFile.getChannel().truncate(0);
+      stateFile.close();
+      randomSeedRepo.getRandomSeed("Foo", 3, "test");
+      randomSeedRepo.getRandomSeed("Bar", 42, "more test");
+      randomSeedRepo.getRandomSeed("Baz", -36, "third test");
+
       BufferedReader input = new BufferedReader(new FileReader("log/test.state"));
       String seedClass = RandomSeed.class.getName();
       ArrayList<String> lines = new ArrayList<String>();
@@ -89,7 +97,7 @@ public class RandomSeedRepoTests
         if(seedClass.equals(fields[1]))
           rsLines += 1;
       }
-      assertTrue("at least three RandomSeed lines", rsLines >= 3);
+      assertTrue("exactly three RandomSeed lines", rsLines == 3);
     }
     catch (IOException ioe) {
       fail("IOException reading seedfile:" + ioe.toString());
