@@ -50,7 +50,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   protected Logger log =
           Logger.getLogger(DefaultUtilityOptimizer.class.getName());
 
-  private FactoredCustomerService service;
+  protected FactoredCustomerService service;
 
   protected static final int NUM_HOURS_IN_DAY = 24;
   protected static final long MEAN_TARIFF_DURATION = 5; // number of days
@@ -205,7 +205,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   public void evaluateTariffs ()
   {
     for (CapacityBundle bundle: capacityBundles) {
-      TariffEvaluator evaluator =evaluatorMap.get(bundle); 
+      TariffEvaluator evaluator = evaluatorMap.get(bundle); 
       if (bundle.getSubscriberStructure().inertiaDistribution != null) {
         evaluator.withInertia
           (bundle.getSubscriberStructure().inertiaDistribution.drawSample());
