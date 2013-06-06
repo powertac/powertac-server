@@ -761,7 +761,7 @@ public class Rate extends XStreamStateLoggable
     if (weeklyBegin >= 0) {
       result += (", " + (weeklyEnd >= 0 ? "starts " : "") + "day" + weeklyBegin);
       if (weeklyEnd >= 0) {
-        result += (" ends day ${weeklyEnd}");
+        result += (" ends day " + weeklyEnd);
       }
     }
     if (dailyBegin >= 0) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author
+ * Copyright (c) 2011-2013 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,11 @@ import org.powertac.common.spring.SpringApplicationContext;
 
 import com.thoughtworks.xstream.converters.SingleValueConverter;
 
+/**
+ * Converts a Broker instance to its username
+ * 
+ * @author John Collins
+ */
 public class BrokerConverter implements SingleValueConverter
 {
   private static Logger log = Logger.getLogger(BrokerConverter.class.getName());
@@ -41,7 +46,7 @@ public class BrokerConverter implements SingleValueConverter
       return true;
     }
     else {
-      log.info("BrokerConverter cannot convert ${type}");
+      log.info("BrokerConverter cannot convert " + type.getName());
       return false;
     }
   }

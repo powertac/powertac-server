@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,7 +120,7 @@ public class TimeServiceTests
       Thread.sleep(5000); // 5 seconds
       ts.updateTime();
       long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("${offset} is 30 min", 30 * TimeService.MINUTE, offset);
+      assertEquals("offset is 30 min", 30 * TimeService.MINUTE, offset);
     }
     catch (InterruptedException ie) {
       fail("unexpected exception " + ie.toString());
@@ -168,7 +168,7 @@ public class TimeServiceTests
       ts.updateTime();
       assertEquals("var changed", 2, var.getValue());
       long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("${offset} is 15 min", 15*60*1000, offset);
+      assertEquals("offset is 15 min", 15*60*1000, offset);
     }
     catch (InterruptedException ie) {
       fail("unexpected " + ie.toString());
