@@ -117,7 +117,10 @@ public class TariffEvaluator
    */
   public TariffEvaluator withChunkSize (int size)
   {
-    chunkSize = size;
+    if (size > 0)
+      chunkSize = size;
+    else
+      log.error("chunk size " + size + " < 0");
     return this;
   }
 
