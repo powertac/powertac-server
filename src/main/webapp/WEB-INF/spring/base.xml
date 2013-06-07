@@ -163,4 +163,6 @@
 		scope="request" />
 	<bean id="globalBean" class="org.powertac.visualizer.user.GlobalBean"
 		scope="request" />
+	<bean id="tariffHelperBean" class="org.powertac.visualizer.user.TariffHelperBean"
+		scope="session" />
 </beans>

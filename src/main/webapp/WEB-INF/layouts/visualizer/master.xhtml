@@ -20,6 +20,7 @@
 	<script src="http://code.highcharts.com/stock/highcharts-more.js"></script>
 	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
 
+	
 	<h:outputStylesheet library="css" name="modern.css" />
 	<h:outputStylesheet library="css" name="site.css" />
 	<h:outputScript library="js" name="charts.js" />
@@ -36,6 +37,7 @@
 	<h:outputScript library="javascript" name="slider.js" />
 	<h:outputScript library="javascript" name="tile-slider.js" />
 	<h:outputScript library="javascript" name="tile-drag.js" />
+
 	<script type="text/javascript">
 		$(document).ready(function() {
 			Highcharts.setOptions({
@@ -85,7 +87,7 @@
 							<li class="divider"></li>
 							<li><a href="tariffanalysis">Tariff Analysis</a></li>
 							<li class="divider"></li>
-							<li><a href="tariffstatistics">Customer Statistics</a></li>
+							<li><a href="customerstatistics">Customer Statistics</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Wholesale market</a>
 						<ul class="dropdown-menu">
@@ -328,21 +330,18 @@
 
 
 
-						<div class="tile double custom bg-color-blue"
+						<div class="tile double custom bg-color-blue weatherinfo"
 							data-role="tile-slider" data-param-period="5000"
 							data-param-direction="left">
-							<div class="tile-content">
+							<div class="tile-content weather">
 								<h2>Weather Info</h2>
-								<br /> <br /> <br />
-								<div class=" icon-thermometer weatherIcon" />
-								<div class=" weatherText" style="margin-left: -20px"
-									id="temperature"></div>
-								<div class=" icon-arrow-up-left arrow" style="margin-left: 20px"
-									id="windArrow" />
-								<div class=" weatherText" style="margin-left: -10px"
-									id="windspeed"></div>
-								<div class=" icon-sun weatherIcon" style="margin-left: 20px"
-									id="cloudCover" />
+								<div class="weather-content">
+									<div class="icon-thermometer weatherIcon" />
+									<div class="weatherText" id="temperature"></div>
+									<div class="icon-arrow-up-left arrow" id="windArrow" />
+									<div class="weatherText" id="windspeed"></div>
+									<div class="icon-sun weatherIcon" id="cloudCover" />
+								</div>
 							</div>
 
 						</div>
@@ -640,7 +639,7 @@
 
 			var balance = nominations["balance"];
 			var balBroker = balance["name"];
-			var balAmount = balance["amount"]/1000;
+			var balAmount = (balance["amount"]/1000).toFixed(2);
 
 			var customerNumber = nominations["customerNumber"];
 			var cusNumBroker = customerNumber["name"];

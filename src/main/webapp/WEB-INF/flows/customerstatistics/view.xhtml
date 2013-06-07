@@ -1,0 +1,45 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title">Customer Statistics</ui:define>
+
+	<ui:define name="headInclude">
+		 <script type="text/javascript">
+			var customerStatistics;
+			$(document).ready(
+				function() {
+					customerStatistics = customerStatisticsPieChart(#{tariffMarketBean.customerStatictics});
+				});
+		/*	  	
+			function handleWholesaleAnalysis(data) {
+				var array = jQuery.parseJSON(data);
+				var cnt = 0;
+				jQuery.each(array, 
+						function() {
+							var pushObject = this;
+							//known ordering: profit
+							wholesaleAverageTimeslotPriceData.series[cnt++].addPoint([pushObject["millis"],pushObject["averagePrice"]],false);	
+							wholesaleAverageTimeslotPriceData.series[cnt++].addPoint([pushObject["millis"],pushObject["energy"]],false);
+						});
+				wholesaleAverageTimeslotPriceData.redraw();
+			}   */
+		</script>
+	</ui:define>
+
+	<ui:define name="maincontent">
+		<div id="customerStatistics"
+			style="min-width: 400px; height: 620px; margin: 0 auto" />
+		<!-- p:socket onMessage="handleWholesaleAnalysis" channel="/statisticspush" /-->
+	</ui:define>
+
+	<ui:define name="rowcontent">
+
+	</ui:define>
+
+
+</ui:composition>

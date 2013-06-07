@@ -21,10 +21,11 @@ public class BrokerSeriesTemplate {
 	
 
 	public BrokerSeriesTemplate(String name, String color,
-			ArrayList<Object> data) {
+			ArrayList<Object> data, boolean showInLegend) {
 		this.name = name;
 		this.color = color;
 		this.data = data;
+		this.showInLegend = showInLegend;
 	}
 	
 	public BrokerSeriesTemplate(String name, String color, int yAxis,
@@ -64,7 +65,7 @@ public class BrokerSeriesTemplate {
 	}
 	
 	private class Tooltip{
-		private int valueDecimals = 1;
+		private int valueDecimals = 2;
 	}
 
 }
