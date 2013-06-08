@@ -123,8 +123,8 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     serverPropertiesService.configureMe(this);
 
     officeComplexList.clear();
-    // *** disable tariff evaluation ***
-    // tariffMarketService.registerNewTariffListener(this);
+
+    tariffMarketService.registerNewTariffListener(this);
     rs1 =
       randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
                                    "Office Complex Customer Models");
