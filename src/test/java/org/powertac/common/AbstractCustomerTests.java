@@ -180,8 +180,8 @@ public class AbstractCustomerTests
             .getPopulation());
 
     customer.subscribeDefault();
-    verify(mockTariffMarket).subscribeToTariff(defaultTariff, info, 100);
-    verify(mockTariffMarket).subscribeToTariff(defaultTariffControllable, info2, 100);
+    verify(mockTariffMarket).subscribeToTariff(defaultTariff, info, info.getPopulation());
+    verify(mockTariffMarket).subscribeToTariff(defaultTariffControllable, info2, info2.getPopulation());
 
 //    assertEquals("one subscription for CONSUMPTION customerInfo",
 //                 1,
