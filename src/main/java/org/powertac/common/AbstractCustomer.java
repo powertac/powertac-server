@@ -148,9 +148,9 @@ public class AbstractCustomer
     return Long.toString(getId()) + " " + getName();
   }
 
-  public int getPopulation ()
+  public int getPopulation (CustomerInfo customer)
   {
-    return customerInfos.get(0).getPopulation();
+    return customerInfos.get(customerInfos.indexOf(customer)).getPopulation();
   }
 
   public long getCustId ()
@@ -238,7 +238,7 @@ public class AbstractCustomer
       }
       else {
         tariffMarketService.subscribeToTariff(tariffMarketService
-                .getDefaultTariff(type), customer, getPopulation());
+                .getDefaultTariff(type), customer, customer.getPopulation());
         log.info("CustomerInfo of type " + type.toString() + " of "
                  + this.toString()
                  + " was subscribed to the default broker successfully.");
