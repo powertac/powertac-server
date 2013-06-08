@@ -268,38 +268,6 @@ public class Village extends AbstractCustomer
     }
   }
 
-  /** This is the second constructor function of the Village customer */
-  public Village (String name, ArrayList<CustomerInfo> customerInfo)
-  {
-    super(name, customerInfo);
-
-    timeslotRepo =
-      (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-    weatherReportRepo =
-      (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
-    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
-
-    ArrayList<String> typeList = new ArrayList<String>();
-    typeList.add("NS");
-    typeList.add("RaS");
-    typeList.add("ReS");
-    typeList.add("SS");
-
-    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
-      public int compare (CustomerInfo customer1, CustomerInfo customer2)
-      {
-        return customer1.getName().compareToIgnoreCase(customer2.getName());
-      }
-    };
-
-    for (String type: typeList) {
-      numberOfHouses.put(type, null);
-      tariffEvaluators = new TreeMap<CustomerInfo, TariffEvaluator>(comp);
-    }
-
-  }
-
   /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the village with its households and then fill
