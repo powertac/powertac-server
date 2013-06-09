@@ -1378,7 +1378,7 @@ public class OfficeComplex extends AbstractCustomer
 
     weatherCheck(day, hour, now);
 
-    checkRevokedSubscriptions();
+    //checkRevokedSubscriptions();
 
     checkCurtailment(serial, day, hour);
 
