@@ -25,133 +25,149 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class BrokerMessageHandler implements Initializable {
+public class BrokerMessageHandler implements Initializable
+{
 
-	private Logger log = Logger.getLogger(BrokerMessageHandler.class);
+  private Logger log = Logger.getLogger(BrokerMessageHandler.class);
 
-	@Autowired
-	private MessageDispatcher router;
-	@Autowired
-	private BrokerService brokerService;
-	@Autowired
-	private AppearanceListBean appearanceListBean;
-	@Autowired
-	private VisualizerBean vizBean;
-	@Autowired
-	private PushService pushService;
+  @Autowired
+  private MessageDispatcher router;
+  @Autowired
+  private BrokerService brokerService;
+  @Autowired
+  private AppearanceListBean appearanceListBean;
+  @Autowired
+  private VisualizerBean vizBean;
+  @Autowired
+  private PushService pushService;
 
-	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(Competition.class,
-				TariffSpecification.class, CashPosition.class,
-				TariffTransaction.class, DistributionTransaction.class,
-				BalancingTransaction.class)) {
-			router.registerMessageHandler(this, clazz);
-		}
-	}
+  public void initialize ()
+  {
+    for (Class<?> clazz: Arrays.asList(Competition.class,
+                                       TariffSpecification.class,
+                                       CashPosition.class,
+                                       TariffTransaction.class,
+                                       DistributionTransaction.class,
+                                       BalancingTransaction.class)) {
+      router.registerMessageHandler(this, clazz);
+    }
+  }
 
-	public void handleMessage(Competition competition) {
-		List<String> brokersName = competition.getBrokers();
+  public void handleMessage (Competition competition)
+  {
+    List<String> brokersName = competition.getBrokers();
 
-		ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
-		ConcurrentHashMap<String, BrokerModel> map = new ConcurrentHashMap<String, BrokerModel>(
-				10, 0.75f, 1);
+    ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
+    ConcurrentHashMap<String, BrokerModel> map =
+      new ConcurrentHashMap<String, BrokerModel>(10, 0.75f, 1);
 
-		for (Iterator<String> iterator = brokersName.iterator(); iterator
-				.hasNext();) {
-			String name = (String) iterator.next();
-			BrokerModel brokerModel = new BrokerModel(name,
-					appearanceListBean.getAppereance());
-			list.add(brokerModel);
-			map.put(brokerModel.getName(), brokerModel);
-		}
-		brokerService.setBrokersMap(map);
-		brokerService.setBrokers(list);
-		vizBean.setCompetition(competition);
-		vizBean.setRunning(true);
-		vizBean.setFinished(false);
-		//notification:
-		pushService.pushInfoMessage(new InfoPush("start"));		
-		pushService.pushInfoMessage(new InfoPush(competition.getName()));	
-	}
+    for (Iterator<String> iterator = brokersName.iterator(); iterator.hasNext();) {
+      String name = (String) iterator.next();
+      BrokerModel brokerModel =
+        new BrokerModel(name, appearanceListBean.getAppereance());
+      list.add(brokerModel);
+      map.put(brokerModel.getName(), brokerModel);
+    }
+    brokerService.setBrokersMap(map);
+    brokerService.setBrokers(list);
+    vizBean.setCompetition(competition);
+    vizBean.setRunning(true);
+    vizBean.setFinished(false);
+    // notification:
+    pushService.pushInfoMessage(new InfoPush("start"));
+    pushService.pushInfoMessage(new InfoPush(competition.getName()));
+  }
 
-	public void handleMessage(TariffSpecification tariffSpecification) {
-		if (tariffSpecification.getSupersedes() != null) {
-			log.debug("NO of tariffspec:"
-					+ tariffSpecification.getSupersedes().size());
-		}
-		
-		// find matching broker and add received tariff spec. to its history.
-		BrokerModel brokerModel = brokerService
-				.findBrokerByName(tariffSpecification.getBroker().getUsername());
-		if (brokerModel != null) {
-			brokerModel.getTariffCategory().processTariffSpecification(
-					tariffSpecification);
-		}
+  public void handleMessage (TariffSpecification tariffSpecification)
+  {
+    if (tariffSpecification.getSupersedes() != null) {
+      log.debug("NO of tariffspec:"
+                + tariffSpecification.getSupersedes().size());
+    }
 
-	}
+    // find matching broker and add received tariff spec. to its history.
+    BrokerModel brokerModel =
+      brokerService.findBrokerByName(tariffSpecification.getBroker()
+              .getUsername());
+    if (brokerModel != null) {
+      brokerModel.getTariffCategory()
+              .processTariffSpecification(tariffSpecification);
+    }
 
-	public void handleMessage(CashPosition msg) {
+  }
 
-		// update balance, if such broker exists
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			FinanceCategory fc = broker.getFinanceCategory();
-			int tsIndex = vizBean.getCurrentTimeslotSerialNumber();
-			ConcurrentHashMap<Integer, FinanceDynamicData> fddMap = fc.getFinanceDynamicDataMap();
-			if(!fddMap.containsKey(tsIndex)){
-				FinanceDynamicData fdd = new FinanceDynamicData(fc.getProfit(), tsIndex);
-				fc.setLastFinanceDynamicData(fdd);
-				fddMap.put(tsIndex, fdd);
-			}
-			fddMap.get(tsIndex).updateProfit(msg.getBalance());
-			fc.setProfit(msg.getBalance());
-		}
-		
-	}
+  public void handleMessage (CashPosition msg)
+  {
 
-	public void handleMessage(TariffTransaction msg) {
-		// broker, not genco:
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			TariffCategory tc = broker.getTariffCategory();
+    // update balance, if such broker exists
+    BrokerModel broker =
+      brokerService.findBrokerByName(msg.getBroker().getUsername());
+    if (broker != null) {
+      FinanceCategory fc = broker.getFinanceCategory();
+      int tsIndex = vizBean.getCurrentTimeslotSerialNumber();
+      ConcurrentHashMap<Integer, FinanceDynamicData> fddMap =
+        fc.getFinanceDynamicDataMap();
+      if (!fddMap.containsKey(tsIndex)) {
+        FinanceDynamicData fdd =
+          new FinanceDynamicData(fc.getProfit(), tsIndex);
+        fc.setLastFinanceDynamicData(fdd);
+        fddMap.put(tsIndex, fdd);
+      }
+      fddMap.get(tsIndex).updateProfit(msg.getBalance());
+      fc.setProfit(msg.getBalance());
+    }
 
-			int tsIndex = msg.getPostedTimeslotIndex();
-			ConcurrentHashMap<Integer, TariffDynamicData> tddmap = tc
-					.getTariffDynamicDataMap();
+  }
 
-			if (!tddmap.containsKey(tsIndex)) {
-				TariffDynamicData tdd = new TariffDynamicData(tsIndex,
-						tc.getProfit(), tc.getEnergy(), tc.getCustomerCount());
-				tc.addTariffDynamicData(tdd);
-			}
-			tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
-					Helper.getCustomerCount(msg));
-			tc.getTariffData().get(msg.getTariffSpec()).setCustomers(Helper.getCustomerCount(msg));//tom
-			broker.getTariffCategory().getTariffData().get(msg.getTariffSpec()).processTariffTx(msg);//tom
-			
+  public void handleMessage (TariffTransaction msg)
+  {
+    // broker, not genco:
+    BrokerModel broker =
+      brokerService.findBrokerByName(msg.getBroker().getUsername());
+    if (broker != null) {
+      TariffCategory tc = broker.getTariffCategory();
 
-		}
+      int tsIndex = msg.getPostedTimeslotIndex();
+      ConcurrentHashMap<Integer, TariffDynamicData> tddmap =
+        tc.getTariffDynamicDataMap();
 
-	}
+      if (!tddmap.containsKey(tsIndex)) {
+        TariffDynamicData tdd =
+          new TariffDynamicData(tsIndex, tc.getProfit(), tc.getEnergy(),
+                                tc.getCustomerCount());
+        tc.addTariffDynamicData(tdd);
+      }
+      tc.update(tsIndex, msg.getKWh(), msg.getCharge(),
+                Helper.getCustomerCount(msg));
+      if (broker != null) {
+        broker.getTariffCategory()
+                .processTariffSpecification(msg.getTariffSpec());
+      }
+      tc.getTariffData().get(msg.getTariffSpec())
+              .setCustomers(Helper.getCustomerCount(msg));// tom
+      broker.getTariffCategory().getTariffData().get(msg.getTariffSpec())
+              .processTariffTx(msg);// tom
+    }
+  }
 
-	public void handleMessage(DistributionTransaction msg) {
-		BrokerModel broker = brokerService.findBrokerByName(msg.getBroker()
-				.getUsername());
-		if (broker != null) {
-			DistributionCategory dc = broker.getDistributionCategory();
-			dc.update(msg.getPostedTimeslotIndex(),msg.getKWh(),msg.getCharge());
-		}
+  public void handleMessage (DistributionTransaction msg)
+  {
+    BrokerModel broker =
+      brokerService.findBrokerByName(msg.getBroker().getUsername());
+    if (broker != null) {
+      DistributionCategory dc = broker.getDistributionCategory();
+      dc.update(msg.getPostedTimeslotIndex(), msg.getKWh(), msg.getCharge());
+    }
 
-	}
+  }
 
-	public void handleMessage(BalancingTransaction bt) {
-		BrokerModel broker = brokerService.findBrokerByName(bt.getBroker()
-				.getUsername());
-		if (broker != null) {
-			BalancingCategory bc = broker.getBalancingCategory();
-			bc.update(bt.getPostedTimeslotIndex(),bt.getKWh(), bt.getCharge());
-		}
-	}
+  public void handleMessage (BalancingTransaction bt)
+  {
+    BrokerModel broker =
+      brokerService.findBrokerByName(bt.getBroker().getUsername());
+    if (broker != null) {
+      BalancingCategory bc = broker.getBalancingCategory();
+      bc.update(bt.getPostedTimeslotIndex(), bt.getKWh(), bt.getCharge());
+    }
+  }
 }

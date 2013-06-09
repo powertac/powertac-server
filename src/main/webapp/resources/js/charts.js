@@ -6,6 +6,54 @@ function getOneDynYAxisData(firstTitle) {
 		lineWidth : 2
 	} ];
 }
+/*
+function shown(dataGraph) {
+	
+	var chart = new Highcharts.Chart({
+
+		chart : {
+			renderTo : 'chart'
+		},
+		
+		yAxis: {
+            title: {
+                text: 'Price (€/kWh)'
+            }
+        },
+        
+        legend: {
+            enabled:false
+        },
+        
+        tooltip: {
+        	enabled:false
+        },
+		
+		title: {
+            text: 'Rates'
+        },
+
+		xAxis : {
+			type : 'datetime',
+			minTickInterval : 3600 * 1000,
+			labels : {
+				formatter : function() {
+					var d = new Date(this.value);
+					if (d.getFullYear() == 2007)
+						return Highcharts.dateFormat('%a, %Hh', this.value);
+					else
+						return Highcharts.dateFormat('%Hh', this.value);
+				}
+			}
+
+		},
+		series : [ {
+			data : dataGraph
+		} ]
+
+	});
+}
+*/
 function checkRange(x, n, m) {
 	if (x >= n && x <= m) {
 		return true;
@@ -111,13 +159,14 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 						var appending = new Array("PRICE", "ENER", "CUST");
 						var broker = this.points[0].series.name;
 						var increment = 1;
-						//console.log(this);
-						if (this.points[increment] !== undefined){
-							
-							while (this.points[increment] !== undefined && this.points[increment].series.name == broker)
-							
+						// console.log(this);
+						if (this.points[increment] !== undefined) {
+
+							while (this.points[increment] !== undefined
+									&& this.points[increment].series.name == broker)
+
 								increment++;
-						}	
+						}
 						// console.log(this);
 						var builder = "";
 						for ( var i = 0; i < this.points.length; i++) {
@@ -153,9 +202,9 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 			function(chart) {
 				var broker = chart.series[0].name;
 				var increment = 1;
-				if(chart.series[increment] !== undefined)
-				while (chart.series[increment].name == broker)
-					increment++;
+				if (chart.series[increment] !== undefined)
+					while (chart.series[increment].name == broker)
+						increment++;
 				for ( var index = 0; index < chart.series.length - 2; index += increment)
 					$(chart.series[index]).each(function(i, e) {
 						e.legendItem.on('click', function(event) {
@@ -468,7 +517,6 @@ function weatherReportGraph(targetDiv, title, temperatureData, windSpeedData,
 
 function customerStatisticsPieChart(graphData) {
 
-	
 	var colors = Highcharts.getOptions().colors, categories = [], data = graphData;
 
 	function setChart(name, categories, data, color) {

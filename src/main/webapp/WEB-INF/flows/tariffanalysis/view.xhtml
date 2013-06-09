@@ -32,7 +32,6 @@
 			<h:outputStylesheet library="css" name="bordered_table.css" />
 		</f:facet>
 		<h:form id="form">
-
 			<p:dataTable id="tableActive" value="#{tariffHelperBean.allTarifs}"
 				var="o" styleClass="order-table" headerClass="order-table-header"
 				rowClasses="order-table-odd-row,order-table-even-row"
@@ -83,8 +82,9 @@
 			</p:dataTable>
 
 			<p:dialog header="Tariff Details" widgetVar="tariffDialog"
-				resizable="false" width="500" showEffect="explode"
-				hideEffect="explode">
+				resizable="false" width="500" showEffect="fade" hideEffect="fade">
+				<!-- onShow="shown(#{tariffHelperBean.selectedTariff.ratesGraph})">  -->
+
 
 				<h:panelGrid id="display" columns="2" cellpadding="4">
 
@@ -121,62 +121,19 @@
 					<h:outputText
 						value="#{tariffHelperBean.selectedTariff.spec.supersedes}"
 						id="supersedes" />
-						
+
 					<h:outputText value="Rates:" />
-					<h:outputText
-						value="#{tariffHelperBean.selectedTariff.spec.rates}"
+					<h:outputText value="#{tariffHelperBean.selectedTariff.spec.rates}"
 						id="rates" />
-				</h:panelGrid>
-
-
-				<div id="aaa"
-					style="min-width: 500px; height: 200px; margin: 0 auto">
-					<script type="text/javascript">
-						$(function() { // I use jQuery in this example
-							$('#aaa').highcharts({
-					            chart: {
-					                type: 'line',
-					                marginRight: 130,
-					                marginBottom: 25
-					            },
-					            title: {
-					                text: 'Rates',
-					                x: -20 //center
-					            },
-					            xAxis: {
-					                categories: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6',
-					                    'M7', 'M8', 'M9', 'M10', 'M11', 'M12']
-					            },
-					            yAxis: {
-					                title: {
-					                    text: 'EUR'
-					                },
-					                plotLines: [{
-					                    value: 0,
-					                    width: 1,
-					                    color: '#808080'
-					                }]
-					            },
-					            tooltip: {
-					                valueSuffix: ' EUR'
-					            },
-					            legend: {
-					                layout: 'vertical',
-					                align: 'right',
-					                verticalAlign: 'top',
-					                x: -10,
-					                y: 100,
-					                borderWidth: 0
-					            },
-					            series: [{
-					                name: 'Tokyo',
-					                data: [10, 10, 10, 10, 15, 15, 15, 15, 5, 5, 5, 5]
-					            }]
-					        });
-						});
+<!--					<script>
+						shown(#{tariffHelperBean.selectedTariff.ratesGraph});
 					</script>
-				</div>
+-->				</h:panelGrid>
 
+<!--  
+				<div id="chart"
+					style="min-width: 400px; height: 200px; margin: 0 auto"></div>
+-->
 
 			</p:dialog>
 		</h:form>
