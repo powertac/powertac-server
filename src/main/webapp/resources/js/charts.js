@@ -6,6 +6,54 @@ function getOneDynYAxisData(firstTitle) {
 		lineWidth : 2
 	} ];
 }
+/*
+function shown(dataGraph) {
+	
+	var chart = new Highcharts.Chart({
+
+		chart : {
+			renderTo : 'chart'
+		},
+		
+		yAxis: {
+            title: {
+                text: 'Price (€/kWh)'
+            }
+        },
+        
+        legend: {
+            enabled:false
+        },
+        
+        tooltip: {
+        	enabled:false
+        },
+		
+		title: {
+            text: 'Rates'
+        },
+
+		xAxis : {
+			type : 'datetime',
+			minTickInterval : 3600 * 1000,
+			labels : {
+				formatter : function() {
+					var d = new Date(this.value);
+					if (d.getFullYear() == 2007)
+						return Highcharts.dateFormat('%a, %Hh', this.value);
+					else
+						return Highcharts.dateFormat('%Hh', this.value);
+				}
+			}
+
+		},
+		series : [ {
+			data : dataGraph
+		} ]
+
+	});
+}
+*/
 function checkRange(x, n, m) {
 	if (x >= n && x <= m) {
 		return true;
@@ -48,78 +96,135 @@ function getTariffDynYAxisData(title, firstBaseTitle, secondBaseTitle) {
 }
 
 function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
-	return new Highcharts.StockChart({
-		chart : {
-			renderTo : renderDiv,
-			alignTicks : false,
-			backgroundColor : null,
-			marginRight : 130,
-			marginBottom : 70
+	return new Highcharts.StockChart(
+			{
+				chart : {
+					renderTo : renderDiv,
+					alignTicks : false,
+					backgroundColor : null,
+					marginRight : 130,
+					marginBottom : 70
 
-		},
+				},
 
-		plotLines : [ {
-			value : 0,
-			width : 1,
-			color : '#808080'
-		} ],
-		yAxis : yAxisData,
+				plotLines : [ {
+					value : 0,
+					width : 1,
+					color : '#808080'
+				} ],
+				yAxis : yAxisData,
 
-		rangeSelector : {
-			buttons : [ {
-				count : 1,
-				type : 'hour',
-				text : '1H'
-			}, {
-				count : 1,
-				type : 'day',
-				text : '1D'
-			}, {
-				count : 1,
-				type : 'week',
-				text : '1W'
-			}, {
-				count : 2,
-				type : 'week',
-				text : '2W'
-			}, {
-				count : 1,
-				type : 'month',
-				text : '1M'
-			}, {
-				type : 'all',
-				text : 'All'
-			} ],
-			inputEnabled : true,
-			selected : 5
-		},
+				rangeSelector : {
+					buttons : [ {
+						count : 1,
+						type : 'hour',
+						text : '1H'
+					}, {
+						count : 1,
+						type : 'day',
+						text : '1D'
+					}, {
+						count : 1,
+						type : 'week',
+						text : '1W'
+					}, {
+						count : 2,
+						type : 'week',
+						text : '2W'
+					}, {
+						count : 1,
+						type : 'month',
+						text : '1M'
+					}, {
+						type : 'all',
+						text : 'All'
+					} ],
+					inputEnabled : true,
+					selected : 5
+				},
 
-		title : {
-			text : titleData
-		},
+				title : {
+					text : titleData
+				},
 
-		exporting : {
-			enabled : true
-		},
-		tooltip : {
-			yDecimals : 2
+				exporting : {
+					enabled : true
+				},
+				// tooltip : {
+				// yDecimals : 2
+				//
+				// },
+				tooltip : {
+					formatter : function() {
+						var appending = new Array("PRICE", "ENER", "CUST");
+						var broker = this.points[0].series.name;
+						var increment = 1;
+						// console.log(this);
+						if (this.points[increment] !== undefined) {
 
-		},
-		legend : {
-			align : "right",
-			layout : "vertical",
-			enabled : true,
-			verticalAlign : "middle"
+							while (this.points[increment] !== undefined
+									&& this.points[increment].series.name == broker)
 
-		/*
-		 * labelFormatter: function() { return this.name + ' (T)'; }
-		 */
+								increment++;
+						}
+						// console.log(this);
+						var builder = "";
+						for ( var i = 0; i < this.points.length; i++) {
+							builder += '<span style="color:'
+									+ this.points[i].series.color
+									+ '">'
+									+ this.points[i].series.name
+									+ ' '
+									+ appending[i % increment]
+									+ ': '
+									+ '</span><b>'
+									+ Highcharts.numberFormat(this.points[i].y,
+											2) + '</b><br />';
+						}
+						return builder;
+					}
+				},
+				legend : {
+					align : "right",
+					layout : "vertical",
+					enabled : true,
+					verticalAlign : "middle"
 
-		},
+				/*
+				 * labelFormatter: function() { return this.name + ' (T)'; }
+				 */
 
-		series : seriesData
+				},
 
-	});
+				series : seriesData
+
+			},
+			function(chart) {
+				var broker = chart.series[0].name;
+				var increment = 1;
+				if (chart.series[increment] !== undefined)
+					while (chart.series[increment].name == broker)
+						increment++;
+				for ( var index = 0; index < chart.series.length - 2; index += increment)
+					$(chart.series[index]).each(function(i, e) {
+						e.legendItem.on('click', function(event) {
+							var legendItem = e.name;
+							event.stopPropagation();
+							$(chart.series).each(function(j, f) {
+								$(this).each(function(k, z) {
+									if (z.name == legendItem) {
+										if (z.visible) {
+											z.setVisible(false);
+										} else {
+											z.setVisible(true);
+										}
+									}
+								});
+							});
+
+						});
+					});
+			});
 
 }
 
@@ -412,8 +517,7 @@ function weatherReportGraph(targetDiv, title, temperatureData, windSpeedData,
 
 function customerStatisticsPieChart(graphData) {
 
-	var colors = Highcharts.getOptions().colors, categories = [], 
-	data = graphData;
+	var colors = Highcharts.getOptions().colors, categories = [], data = graphData;
 
 	function setChart(name, categories, data, color) {
 		customerStatistics.xAxis[0].setCategories(categories);
@@ -425,128 +529,127 @@ function customerStatisticsPieChart(graphData) {
 		});
 	}
 
-	return new Highcharts.Chart({
-		chart : {
-			renderTo : 'customerStatistics',
-			type : 'pie'
-		},
-		title : {
-			text : ''
-		},
-		xAxis : {
-			categories : categories
-		},
-		yAxis : {
-			title : {
-				text : ''
-			}
-		},
-		plotOptions : {
-			pie : {
-				cursor : 'pointer',
-				point : {
-					events : {
-						click : function() {
-							var drilldown = this.drilldown;
-							if (drilldown) { // drill down
-								setChart(drilldown.name, drilldown.categories,
-										drilldown.data, drilldown.color);
-							} else { // restore
-								setChart(name, categories, data);
+	return new Highcharts.Chart(
+			{
+				chart : {
+					renderTo : 'customerStatistics',
+					type : 'pie'
+				},
+				title : {
+					text : ''
+				},
+				xAxis : {
+					categories : categories
+				},
+				yAxis : {
+					title : {
+						text : ''
+					}
+				},
+				plotOptions : {
+					pie : {
+						cursor : 'pointer',
+						point : {
+							events : {
+								click : function() {
+									var drilldown = this.drilldown;
+									if (drilldown) { // drill down
+										setChart(drilldown.name,
+												drilldown.categories,
+												drilldown.data, drilldown.color);
+									} else { // restore
+										setChart(name, categories, data);
+									}
+								}
+							}
+						},
+						dataLabels : {
+							enabled : true,
+							color : colors[0],
+							style : {
+								fontWeight : 'bold'
+							},
+							formatter : function() {
+								return this.point.name + '<br>' + this.y
+										+ ' customers';
 							}
 						}
 					}
 				},
-				dataLabels : {
-					enabled : true,
-					color : colors[0],
-					style : {
-						fontWeight : 'bold'
-					},
+				tooltip : {
 					formatter : function() {
-						return this.point.name + '<br>' + this.y + ' customers';
+						var point = this.point, s = '<b>' + this.point.name
+								+ '</b><br>';
+						if (point.drilldown) {
+							s += 'Click for detail view';
+						} else {
+							s += 'Click to return';
+						}
+						return s;
 					}
+				},
+				series : [ {
+					name : name,
+					data : data,
+					color : 'white'
+				} ],
+				exporting : {
+					enabled : false
 				}
-			}
-		},
-		tooltip : {
-			formatter : function() {
-				var point = this.point, s = '<b>' + this.point.name
-						+ '</b><br>';
-				if (point.drilldown) {
-					s += 'Click for detail view';
-				} else {
-					s += 'Click to return';
-				}
-				return s;
-			}
-		},
-		series : [ {
-			name : name,
-			data : data,
-			color : 'white'
-		} ],
-		exporting : {
-			enabled : false
-		}
-	});
+			});
 }
 
-function transactionsSummary(seriesData){
-	return new Highcharts.Chart({
-	            
-	    chart: {
-            renderTo: 'transactionsSummary',
-	        polar: true,
-	        type: 'line'
-	    },
-	    
-	    title: {
-	        text: '',
-	        x: -80
-	    },
-	    
-	    pane: {
-	    	size: '80%'
-	    },
-	    
-	    xAxis: {
-	        categories: ['Total', 'Tariff', 'Wholesale', 'Balancing', 'Distribution'],
-	        tickmarkPlacement: 'on',
-	        lineWidth: 0
-	    },
-	        
-	    yAxis: {
-	        gridLineInterpolation: 'polygon',
-	        lineWidth: 0,
-	        min: -10000
-	    },
-	    
-	    tooltip: {
-	    	shared: true,
-	        pointFormat: '<span style="color:{series.color}">{series.name}: <b>€{point.y:,.0f}</b><br/>'
-	    },
-	    
-	    legend: {
-	        align: 'right',
-	        verticalAlign: 'top',
-	        y: 40,
-	        layout: 'vertical',
-	        floating:true
-	    },
-	    
-	    series: seriesData
-/*	    	
-	    	[{
-	        name: 'Broker 1',
-	        data: [1000000,900000, 111000, 12000, -3000],
-	        pointPlacement: 'on'
-	    }, {
-	        name: 'Broker2',
-	        data: [1400000, 1430000, 137000, 386000, 239000],
-	        pointPlacement: 'on'
-	    }]
-*/	
-	});
+function transactionsSummary(seriesData) {
+	return new Highcharts.Chart(
+			{
+
+				chart : {
+					renderTo : 'transactionsSummary',
+					polar : true,
+					type : 'line'
+				},
+
+				title : {
+					text : '',
+					x : -80
+				},
+
+				pane : {
+					size : '80%'
+				},
+
+				xAxis : {
+					categories : [ 'Total', 'Tariff', 'Wholesale', 'Balancing',
+							'Distribution' ],
+					tickmarkPlacement : 'on',
+					lineWidth : 0
+				},
+
+				yAxis : {
+					gridLineInterpolation : 'polygon',
+					lineWidth : 0,
+					min : -10000000
+				},
+
+				tooltip : {
+					shared : true,
+					pointFormat : '<span style="color:{series.color}">{series.name}: <b>€{point.y:,.0f}</b><br/>'
+				},
+
+				legend : {
+					align : 'right',
+					verticalAlign : 'top',
+					y : 40,
+					layout : 'vertical',
+					floating : true
+				},
+
+				series : seriesData
+			/*
+			 * [{ name: 'Broker 1', data: [1000000,900000, 111000, 12000,
+			 * -3000], pointPlacement: 'on' }, { name: 'Broker2', data:
+			 * [1400000, 1430000, 137000, 386000, 239000], pointPlacement: 'on' }]
+			 */
+			});
 
 }

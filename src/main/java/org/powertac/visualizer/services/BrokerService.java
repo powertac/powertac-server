@@ -62,7 +62,7 @@ public class BrokerService implements TimeslotCompleteActivation, Recyclable,
 	@Autowired
 	private VisualizerHelperService helper;
 	
-	private final int TIMESLOTS_TO_DISPLAY = 2;
+	private final int TIMESLOTS_TO_DISPLAY = 48;
 	 
 
 	public BrokerService() {

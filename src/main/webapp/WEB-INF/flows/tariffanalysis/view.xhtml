@@ -8,59 +8,137 @@
 
 	<ui:define name="title">Tariff analysis</ui:define>
 
-	<ui:define name="headInclude">	
-	
-		<script>
-			$(window).load(function(){ 
-				/*code here*/
-				document.getElementsByTagName("tbody")[0].removeAttribute("class"); //removing primefaces's css
-				document.getElementsByTagName("form")[0].setAttribute("class", "margin10");
-				document.getElementsByTagName("table")[0].setAttribute("class", "bordered");
-				//$("th").each(function(){$(this)[0].setAttribute("class", "text-center")});
-				//$("td").each(function(){$(this)[0].setAttribute("class", "text-center")});
-				//document.getElementsByTagName("th")[0].setAttribute("class", "text-center");
-				})
-		</script>
-	</ui:define> 
+	<ui:define name="headInclude">
 
-	<ui:define name="maincontent">	
+		<script>
+			$(window).load(
+					function() {
+						/*code here*/
+						document.getElementsByTagName("tbody")[0]
+								.removeAttribute("class"); //removing primefaces's css
+						document.getElementsByTagName("form")[0].setAttribute(
+								"class", "margin10");
+						document.getElementsByTagName("table")[0].setAttribute(
+								"class", "bordered");
+						//$("th").each(function(){$(this)[0].setAttribute("class", "text-center")});
+						//$("td").each(function(){$(this)[0].setAttribute("class", "text-center")});
+						//document.getElementsByTagName("th")[0].setAttribute("class", "text-center");
+					})
+		</script>
+	</ui:define>
+
+	<ui:define name="maincontent">
 		<f:facet name="override">
 			<h:outputStylesheet library="css" name="bordered_table.css" />
 		</f:facet>
-		<h:form>
-			<p:dataTable value="#{tariffMarketBean.allTarifs}" var="o"
-				styleClass="order-table" headerClass="order-table-header"
+		<h:form id="form">
+			<p:dataTable id="tableActive" value="#{tariffHelperBean.allTarifs}"
+				var="o" styleClass="order-table" headerClass="order-table-header"
 				rowClasses="order-table-odd-row,order-table-even-row"
-				filteredValue="#{tariffMarketBean.filteredValue}"
-				paginator="true" rows="10"  
-                 paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"  
-                 rowsPerPageTemplate="5,10,15">
-				
-				<p:column sortBy="#{o.spec.id}" headerText="Tariff ID" filterBy="#{o.spec.id}" filterMatchMode="contains">
-					<h:outputText value="#{o.spec.id}" />
+				filteredValue="#{tariffHelperBean.filteredValue}" rowKey="#{o.spec}"
+				paginator="true" rows="5"
+				paginatorTemplate="{FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink}"
+				rowsPerPageTemplate="5,10,15"
+				selection="#{tariffHelperBean.selectedTariff}"
+				selectionMode="single">
+
+				<p:column id="id" sortBy="#{o.spec.id}" headerText="Tariff ID"
+					filterBy="#{o.spec.id}" filterMatchMode="contains">
+					#{o.spec.id}	
 				</p:column>
 
-				<p:column sortBy="#{o.profitInThousandsOfEuro}" headerText="Profit ['000 EUR]" filterBy="#{o.profitInThousandsOfEuro}" filterMatchMode="contains">
+				<p:column id="profit" sortBy="#{o.profitInThousandsOfEuro}"
+					headerText="Profit ['000 EUR]"
+					filterBy="#{o.profitInThousandsOfEuro}" filterMatchMode="contains">
 					<h:outputText value="#{o.profitInThousandsOfEuro}" />
 				</p:column>
 
-				<p:column sortBy="#{o.netMWh}" headerText="Traded energy [MWh]" filterBy="#{o.netMWh}" filterMatchMode="contains">
+				<p:column id="energy" sortBy="#{o.netMWh}"
+					headerText="Traded energy [MWh]" filterBy="#{o.netMWh}"
+					filterMatchMode="contains">
 					<h:outputText value="#{o.netMWh}" />
 				</p:column>
 
-				<p:column sortBy="#{o.powerType}" headerText="Power Type" filterBy="#{o.powerType}" filterMatchMode="contains">
+				<p:column id="power_type" sortBy="#{o.powerType}"
+					headerText="Power Type" filterBy="#{o.powerType}"
+					filterMatchMode="contains">
 					<h:outputText value="#{o.powerType}" />
 				</p:column>
-				
-				<p:column sortBy="#{o.broker.name}" headerText="Offered by" filterBy="#{o.broker.name}" filterMatchMode="contains">
+
+				<p:column id="broker" sortBy="#{o.broker.name}"
+					headerText="Offered by" filterBy="#{o.broker.name}"
+					filterMatchMode="contains">
 					<h:outputText value="#{o.broker.name}" />
 				</p:column>
 
-
+				<p:column style="width:4%">
+					<p:commandButton id="selectButton" update=":form:display"
+						oncomplete="tariffDialog.show()" icon="ui-icon-search"
+						title="View">
+						<f:setPropertyActionListener value="#{o}"
+							target="#{tariffHelperBean.selectedTariff}" />
+					</p:commandButton>
+				</p:column>
 			</p:dataTable>
-    	</h:form>               
+
+			<p:dialog header="Tariff Details" widgetVar="tariffDialog"
+				resizable="false" width="500" showEffect="fade" hideEffect="fade">
+				<!-- onShow="shown(#{tariffHelperBean.selectedTariff.ratesGraph})">  -->
+
+
+				<h:panelGrid id="display" columns="2" cellpadding="4">
+
+					<h:outputText value="Id:" />
+					<h:outputText value="#{tariffHelperBean.selectedTariff.spec.id}"
+						id="id" />
+
+					<h:outputText value="Expiration" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.expiration}"
+						id="expiration" />
+
+					<h:outputText value="Minimal duration:" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.minDuration}"
+						id="minimalDuration" />
+
+					<h:outputText value="Signup payment:" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.signupPayment}"
+						id="signupPayment" />
+
+					<h:outputText value="Early withdraw payment:" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.earlyWithdrawPayment}"
+						id="earlyWithdrawPayment" />
+
+					<h:outputText value="Periodic payment:" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.periodicPayment}"
+						id="periodicPayment" />
+
+					<h:outputText value="Supersedes:" />
+					<h:outputText
+						value="#{tariffHelperBean.selectedTariff.spec.supersedes}"
+						id="supersedes" />
+
+					<h:outputText value="Rates:" />
+					<h:outputText value="#{tariffHelperBean.selectedTariff.spec.rates}"
+						id="rates" />
+<!--					<script>
+						shown(#{tariffHelperBean.selectedTariff.ratesGraph});
+					</script>
+-->				</h:panelGrid>
+
+<!--  
+				<div id="chart"
+					style="min-width: 400px; height: 200px; margin: 0 auto"></div>
+-->
+
+			</p:dialog>
+		</h:form>
 	</ui:define>
-	
+
 	<ui:define name="rowcontent">
 	</ui:define>
 

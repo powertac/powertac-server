@@ -38,7 +38,7 @@ public class WholesaleMarketBean implements Serializable {
 	private String wholesaleDynDataOneTimeslot;
 	private String wholesaleAverageTimeslotPriceData;// tom
 	
-	private final int TIMESLOTS_TO_DISPLAY = 2;
+	private final int TIMESLOTS_TO_DISPLAY = 48;
 
 	@Autowired
 	public WholesaleMarketBean(BrokerService brokerService,
@@ -141,22 +141,22 @@ public class WholesaleMarketBean implements Serializable {
 			}
 
 			wholesaleTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ " PRICE", brokerModel.getAppearance().getColorCode(), 0,
-					profitData));
+					, brokerModel.getAppearance().getColorCode(), 0, //+ " PRICE"
+					profitData, true));
 			wholesaleTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ " MWH", brokerModel.getAppearance().getColorCode(), 1,
-					netMwhData));
+					, brokerModel.getAppearance().getColorCode(), 1, //+ " MWH"
+					netMwhData, false));
 
 			// one timeslot:
 			wholesaleTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + " PRICE", brokerModel.getAppearance()
-					.getColorCode(), 0, profitDataOneTimeslot));
+					.getName(), brokerModel.getAppearance() // + " PRICE"
+					.getColorCode(), 0, profitDataOneTimeslot, true));
 			wholesaleTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + " MWH", brokerModel.getAppearance()
-					.getColorCode(), 1, mwhDataOneTimeslot));
+					.getName(), brokerModel.getAppearance() // + " MWH"
+					.getColorCode(), 1, mwhDataOneTimeslot, false));
 			allWholesaleData.add(new BrokerSeriesTemplate(
 					brokerModel.getName(), brokerModel.getAppearance()
-							.getColorCodeRGBShading(), wholesaleTxBrokerData));
+							.getColorCodeRGBShading(), wholesaleTxBrokerData, true));
 
 		}
 		this.wholesaleDynData = gson.toJson(wholesaleTxData);

@@ -88,19 +88,19 @@ public class DistributionBean implements Serializable {
 			}
 
 			distributionTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ " PRICE", brokerModel.getAppearance().getColorCode(), 0,
-					profitData));
+					, brokerModel.getAppearance().getColorCode(), 0, //+ " PRICE"
+					profitData, true));
 			distributionTxData.add(new BrokerSeriesTemplate(brokerModel.getName()
-					+ " KWH", brokerModel.getAppearance().getColorCode(), 1,
-					netKwhData));
+					, brokerModel.getAppearance().getColorCode(), 1, //+ " KWH"
+					netKwhData, false));
 
 			// one timeslot:
 			distributionTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + " PRICE", brokerModel.getAppearance()
-					.getColorCode(), 0, profitDataOneTimeslot));
+					.getName(), brokerModel.getAppearance() // + " PRICE"
+					.getColorCode(), 0, profitDataOneTimeslot, true));
 			distributionTxDataOneTimeslot.add(new BrokerSeriesTemplate(brokerModel
-					.getName() + " KWH", brokerModel.getAppearance()
-					.getColorCode(), 1, kwhDataOneTimeslot));
+					.getName(), brokerModel.getAppearance() // + " KWH"
+					.getColorCode(), 1, kwhDataOneTimeslot, false));
 
 
 		}
