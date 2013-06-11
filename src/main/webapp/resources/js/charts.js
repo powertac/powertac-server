@@ -6,7 +6,7 @@ function getOneDynYAxisData(firstTitle) {
 		lineWidth : 2
 	} ];
 }
-/*
+
 function shown(dataGraph) {
 	
 	var chart = new Highcharts.Chart({
@@ -17,7 +17,7 @@ function shown(dataGraph) {
 		
 		yAxis: {
             title: {
-                text: 'Price (€/kWh)'
+                text: 'Price (€cent/kWh)'
             }
         },
         
@@ -47,13 +47,11 @@ function shown(dataGraph) {
 			}
 
 		},
-		series : [ {
-			data : dataGraph
-		} ]
+		series : dataGraph
 
 	});
 }
-*/
+
 function checkRange(x, n, m) {
 	if (x >= n && x <= m) {
 		return true;

@@ -39,7 +39,7 @@ public class TariffData
     tariffCustomerStats =
       new ConcurrentHashMap<CustomerInfo, TariffCustomerStats>(20, 0.75f, 1);
     powerType = spec.getPowerType().toString();
-    // createRatesGraph();
+    createRatesGraph();
   }
 
   public double getNetKWh ()
@@ -113,60 +113,74 @@ public class TariffData
     return tariffCustomerStats.toString();
   }
 
-  /*
-   * private void createRatesGraph ()
-   * {
-   * ArrayList<Object> data = new ArrayList<Object>();
-   * 
-   * for (Rate rate: spec.getRates()) {
-   * 
-   * if (rate.getWeeklyBegin() != -1) {
-   * Object[] start =
-   * {
-   * Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
-   * rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * {
-   * Date.UTC(2007 - 1900,
-   * 0,
-   * rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
-   * .getDailyBegin(),
-   * rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else if (rate.getDailyBegin() != -1 && rate.getDailyEnd() != -1) {
-   * Object[] start =
-   * { Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(), 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * { Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else if (rate.getDailyBegin() == -1 && rate.getDailyEnd() == -1
-   * && rate.getWeeklyBegin() == -1 && rate.getWeeklyEnd() == -1) {
-   * Object[] start =
-   * { Date.UTC(2007 - 1900, 0, 1, 0, 0, 0), rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * { Date.UTC(2007 - 1900, 0, 7, 0, 0, 0), rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else {
-   * System.out.println("NO template in TariffData!");
-   * }
-   * }
-   * ratesGraph = gson.toJson(data);
-   * 
-   * }
-   */
+  private void createRatesGraph ()
+  {
+    ArrayList<Object> series = new ArrayList<Object>();
+
+    for (Rate rate: spec.getRates()) {
+
+      if (rate.getWeeklyBegin() != -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        Object[] start =
+          {
+           Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
+                    rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
+           rate.getMinValue() * 100 };
+        data.add(start);
+        Object[] end =
+          {
+           Date.UTC(2007 - 1900,
+                    0,
+                    rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
+                            .getDailyBegin(),
+                    rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0, 0),
+           rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else if (rate.getDailyBegin() != -1 && rate.getDailyEnd() != -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        Object[] start =
+          { Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(), 0, 0),
+           rate.getMinValue() * 100 };
+        data.add(start);
+        Object[] end =
+          { Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0, 0),
+           rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else if (rate.getDailyBegin() == -1 && rate.getDailyEnd() == -1
+               && rate.getWeeklyBegin() == -1 && rate.getWeeklyEnd() == -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        Object[] start =
+          { Date.UTC(2007 - 1900, 0, 1, 0, 0, 0), rate.getMinValue() * 100 };
+        data.add(start);
+        Object[] end =
+          { Date.UTC(2007 - 1900, 0, 7, 0, 0, 0), rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else {
+        System.out.println("NO template in TariffData!");
+      }
+    }
+    ratesGraph = gson.toJson(series);
+  }
+
+  private class RatesGraphTemplate
+  {
+    ArrayList<Object> data;
+
+    public RatesGraphTemplate (ArrayList<Object> data)
+    {
+      this.data = data;
+    }
+  }
+
   public String getRatesGraph ()
   {
     return ratesGraph;
