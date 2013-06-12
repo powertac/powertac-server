@@ -1250,8 +1250,11 @@ public class Village extends AbstractCustomer
       log.debug("Consumption Load for Customer " + customer.toString() + ": "
                 + load + " for subscriptions " + subscriptions.toString());
 
-      subscriptions.get(0).usePower(load);
+      if (subscriptions != null || subscriptions.size() != 0) {
 
+        subscriptions.get(0).usePower(load);
+
+      }
     }
   }
 
