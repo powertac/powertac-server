@@ -290,7 +290,7 @@ public class TariffEvaluator
             getTariffSubscriptionRepo().getRevokedSubscriptionList(customerInfo);
     for (TariffSubscription sub : revokedSubscriptions) {
       Tariff supTariff = sub.getTariff().getIsSupersededBy();
-      if (null != supTariff)
+      if (null != supTariff && supTariff.isSubscribable())
         newTariffs.add(supTariff);
     }
   }

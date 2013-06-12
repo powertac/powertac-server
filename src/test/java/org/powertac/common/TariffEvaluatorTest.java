@@ -664,6 +664,75 @@ public class TariffEvaluatorTest
                  new Integer(5000), calls.get(jimSuper));
   }
 
+  // Revoke to superseding tariff
+  @Test
+  public void revokeToKilledSuperseding ()
+  {
+    TariffSpecification bobTS =
+            new TariffSpecification(bob,
+                                    PowerType.CONSUMPTION).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    TariffSpecification jimTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = profile;
+    cma.setChoiceSamples(0.45, 0.55);
+
+    // distribute all customers across jim & bob
+    subscribeTo(bobTariff, 5000);
+    subscribeTo(jimTariff, 5000);
+
+    // revoke Jim's tariff, supersede it
+    jimTariff.setState(Tariff.State.KILLED);
+    TariffSpecification jimSTS =
+            new TariffSpecification(jim,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    addSupersedes(jimTariff.getId()).
+                                    addRate(new Rate().withValue(-0.4));
+    Tariff jimSuper = new Tariff(jimSTS);
+    when(tariffRepo.findTariffById(jimTariff.getId()))
+        .thenReturn(jimTariff);
+    initTariff(jimSuper);
+    // Revoke the superseding tariff
+    jimSuper.setState(Tariff.State.KILLED);
+
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    //tariffs.add(jimSuper);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    evaluator.evaluateTariffs();
+    assertEquals("two calls", 2, calls.size());
+    assertEquals("-5000 for jim",
+                 new Integer(-5000), calls.get(jimTariff));
+    assertEquals("+5000 for defaultConsumption",
+                 new Integer(5000), calls.get(bobTariff));
+  }
+
   // Revoke to better tariff
 
   // Revoke to superseding tariff, with inertia
