@@ -235,24 +235,35 @@ public class SimulationClockControl
         wait();
       }
       catch (InterruptedException ie) { }
+    }
 
-      // find the delay offset for this tick
-      long offset = new Date().getTime() - scheduledTickTime;
-      if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
-        log.warn("clock delay: " + offset + " msec");
-        updateStart(offset);
-      }
-      
-      // update the time, set the watchdog, and schedule the next tick.
-      timeService.updateTime();
-      setState(Status.CLEAR);
-      long earliestPause = new Date().getTime() + minPauseInterval;
-      long wdTime = computeNextTickTime() - minWindow;
-      if (wdTime < earliestPause)
-        wdTime = earliestPause;
-      //System.out.println("watchdog set for " + wdTime);
-      currentWatchdog = new WatchdogAction(this);
-      theTimer.schedule(currentWatchdog, new Date(wdTime));
+    // find the delay offset for this tick
+    long offset = new Date().getTime() - scheduledTickTime;
+    if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+      log.warn("clock delay: " + offset + " msec");
+      updateStart(offset);
+    }
+
+    // update the time, set the watchdog, and schedule the next tick.
+    timeService.updateTime();
+    setState(Status.CLEAR);
+    long earliestPause = new Date().getTime() + minPauseInterval;
+    long wdTime = computeNextTickTime() - minWindow;
+    if (wdTime < earliestPause)
+      wdTime = earliestPause;
+    //System.out.println("watchdog set for " + wdTime);
+    currentWatchdog = new WatchdogAction(this);
+    theTimer.schedule(currentWatchdog, new Date(wdTime));
+  }
+  
+  /**
+   * Compares sim time to sys time, updates start if it's off too much
+   */
+  public void checkClockDrift() {
+    long offset = timeService.getOffset();
+    if (offset > (long)(tickInterval / maxTickOffsetRatio)) {
+      log.warn("clock drift " + offset);
+      updateStart(offset);
     }
   }
   

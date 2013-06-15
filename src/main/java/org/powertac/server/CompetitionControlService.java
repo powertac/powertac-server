@@ -722,6 +722,9 @@ public class CompetitionControlService
 
     Instant time = timeService.getCurrentTime();
     Date started = new Date();
+    
+    // make sure the clock has not drifted
+    clock.checkClockDrift();
 
     int ts = activateNextTimeslot();
     log.info("step at " + time.toString());
