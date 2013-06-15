@@ -150,7 +150,6 @@ public class TimeService
     if (busy) {
       //log.info "Timer busy";
       start += HOUR / rate;
-      // TODO: broadcast to brokers
       return;
     }
     busy = true;
@@ -290,6 +289,17 @@ public class TimeService
     log.debug("ts" + id + " setCurrentTime to " + time.toString());
     currentTime = time;
     currentDateTime = new DateTime(time, DateTimeZone.UTC);
+  }
+  
+  /**
+   * Computes and returns the offset in msec between the current system time
+   * and the current clock time.
+   */
+  public long getOffset ()
+  {
+    long systemTime = new Instant().getMillis();
+    long simTime = (currentTime.getMillis() - base) / rate + start;
+    return systemTime - simTime;
   }
   
   /**

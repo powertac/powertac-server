@@ -49,19 +49,14 @@ public class TimeServiceTests
   {
     theBase = new DateTime(2008, 6, 21, 12, 0, 0, 0, DateTimeZone.UTC);
     theStart = new DateTime(DateTimeZone.UTC);
-    theRate = 360;
-    theMod = 15*60*1000;
+    theRate = 360;       // 6 min/sec -- 10 sec/hr
+    theMod = 15*60*1000; // 15 min (2.5 sec) timeslots
     ts = new TimeService(theBase.getMillis(),
                          theStart.getMillis(),
                          theRate,
                          theMod);
     ts.updateTime();
   }
-
-//  protected void tearDown() throws Exception
-//  {
-//    super.tearDown();
-//  }
 
   @Test
   public void testCreate ()
@@ -117,10 +112,28 @@ public class TimeServiceTests
   public void testTimePass() 
   {
     try {
-      Thread.sleep(5000); // 5 seconds
+      Thread.sleep(5000); // 5 seconds / 30 min
       ts.updateTime();
-      long offset = ts.getCurrentTime().getMillis() - theBase.getMillis();
-      assertEquals("offset is 30 min", 30 * TimeService.MINUTE, offset);
+      long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
+      assertEquals("delay is 30 min", 30 * TimeService.MINUTE, delay);
+    }
+    catch (InterruptedException ie) {
+      fail("unexpected exception " + ie.toString());
+    }
+  }
+  
+  // Test offset detection
+  @Test
+  public void testOffset ()
+  {
+    try {
+      Thread.sleep(2500); // 2.5 sec, 15 min
+      ts.updateTime();
+      Thread.sleep(1000);
+      long offset = ts.getOffset();
+      assertTrue("offset > 1000 msec", (offset > 1000l));
+      if (offset > 2000l)
+        System.out.println("Slow response - offset should be 1000, was " + offset);
     }
     catch (InterruptedException ie) {
       fail("unexpected exception " + ie.toString());
