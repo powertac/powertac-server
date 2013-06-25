@@ -40,7 +40,8 @@ public class Activity {
   {
     // TODO Add some randomness (ie holidays/free days)?
 
-    if (day < 6) { // mon = 1 .. fri = 5, sat = 6, sun = 7
+    // day comes from Joda, mon = 1 .. fri = 5, sat = 6, sun = 7
+    if (day < 6) {
       return weekdayWeight;
     }
     else {

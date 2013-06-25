@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <classes>
-  <!-- TODO Write test to check sum(probs) == 1 -->
+  <!-- Every group in SocialGroups has to be in every SocialClass -->
+
   <class name="HighIncome 1"  minCount="15" maxCount="25">
     <group id="1" probability="0.125" male_probability="0.50" />
     <group id="2" probability="0.125" male_probability="0.50" />

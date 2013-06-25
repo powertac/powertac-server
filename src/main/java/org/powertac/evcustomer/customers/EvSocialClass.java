@@ -23,10 +23,7 @@ import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
-import org.powertac.evcustomer.beans.SocialGroup;
+import org.powertac.evcustomer.beans.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -89,53 +86,52 @@ public class EvSocialClass extends AbstractCustomer
     }
   }
 
-  /**
-   * TODO
-   */
-  public void initialize (List<SocialGroup> groups,
+  public void initialize (Map<Integer, SocialGroup> groups,
+                          Map<Integer, SocialGroupDetail> groupDetails,
                           Map<Integer, Activity> activities,
                           Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
                           List<Car> cars,
-                          int count,
-                          double[] groupProbilities,
-                          double[] maleProbilities,
+                          int populationCount,
                           Random generator)
   {
     evCustomers = new Vector<EvCustomer>();
 
-    for (int i = 0; i < count; i++) {
-      int randomGroupId = getRandomGroupId(groupProbilities, generator);
+    for (int i = 0; i < populationCount; i++) {
+      int randomGroupId = getRandomGroupIdNew(groupDetails, generator);
+
       SocialGroup group = groups.get(randomGroupId);
-      Map<Integer, ActivityDetail> details = allActivityDetails.get(group.getId());
+      SocialGroupDetail groupDetail = groupDetails.get(randomGroupId);
+      Map<Integer, ActivityDetail> activityDetails =
+          allActivityDetails.get(randomGroupId);
+
       String gender = "female";
-      if (generator.nextDouble() <  maleProbilities[randomGroupId]) {
+      if (generator.nextDouble() < groupDetail.getMaleProbability()) {
         gender = "male";
       }
+
       // For now, all cars have equal probability
-      Car car = cars.get(generator.nextInt(cars.size()));
+      int randomCar = generator.nextInt(cars.size());
+      Car car = cars.get(randomCar);
 
       EvCustomer evCustomer = new EvCustomer();
-      evCustomer.initialize(group, gender, activities, details, car, generator);
+      evCustomer.initialize(
+          group, gender, activities, activityDetails, car, generator);
       evCustomers.add(evCustomer);
     }
   }
 
-  private int getRandomGroupId (double[] probabilities, Random gen)
+  private int getRandomGroupIdNew (Map<Integer, SocialGroupDetail> groupDetails,
+                                   Random gen)
   {
-    int[] newProbs = new int[probabilities.length];
-    int sum = 0;
-    for (int i = 0; i < probabilities.length; i++) {
-      newProbs[i] = (int) (1000 * probabilities[i]);
-      sum += newProbs[i];
+    double r = gen.nextDouble();
+    for (Map.Entry entry: groupDetails.entrySet()) {
+      r -= ((SocialGroupDetail) entry.getValue()).getProbability();
+      if (r < 0) {
+        return (Integer) entry.getKey();
+      }
     }
 
-    int tmp = gen.nextInt(sum);
-
-    int j = -1;
-    while (tmp >= 0) {
-      tmp -= newProbs[++j];
-    }
-    return j;
+    return 1;
   }
 
   // =====EVALUATION FUNCTIONS===== //
@@ -197,18 +193,7 @@ public class EvSocialClass extends AbstractCustomer
             + tariff.getTariffSpecification().getPowerType()
             + " Broker: " + tariff.getBroker().toString());
 
-//        boolean case1 = customer.getPowerType() ==
-//            tariff.getTariffSpecification().getPowerType();
-//        boolean case2 = (
-//            customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
-//            tariff.getTariffSpecification().getPowerType().isConsumption());
-
-        //if (!tariff.isExpired() && (case1 || case2) ) {
         estimation.add(-costEstimation(tariff, type));
-        //}
-        //else {
-        //  estimation.add(Double.NEGATIVE_INFINITY);
-        //}
       }
 
       int minIndex = logitPossibilityEstimation(estimation);
@@ -963,7 +948,17 @@ subscribe(evalTariffs.get(minIndex), bundle, overAllocations, false);
       subs.put(sub, getConsumptionByTimeslot(serial));
     }
 
-    for (TariffSubscription sub: subs.keySet()) {
+    @SuppressWarnings("unchecked")
+    List<TariffSubscription> sortedKeys = new ArrayList(subs.keySet());
+    Collections.sort(sortedKeys, new Comparator<TariffSubscription>()
+    {
+      public int compare (TariffSubscription ts1, TariffSubscription ts2)
+      {
+        return ((Long) ts1.getId()).compareTo(ts2.getId());
+      }
+    });
+
+    for (TariffSubscription sub: sortedKeys) {
       if (sub == null) {
         continue;
       }

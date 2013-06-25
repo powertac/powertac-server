@@ -69,7 +69,7 @@ public class EvCustomer {
     // For now all rask attitudes have same probability
     riskAttitude = generator.nextInt(3);
 
-    nomalizingFactors = calculatedNormalizingFactors(socialGroup.getId());
+    calculateNomalizingFactors();
   }
 
   /*
@@ -182,92 +182,32 @@ public class EvCustomer {
       Activity activity = activities.get(activityId);
       ActivityDetail activityDetail = activityDetails.get(activityId);
 
-      double nomalizingFactor = 0.0;
-      int itns = 1000000;
-      for (int i = 0; i < itns; i++) {
-        for (int day =0; day < 7; day++) {
-          for (int hour = 0; hour < 24; hour++) {
-            double probability;
-            if (gender.equals("male")) {
-              probability = activityDetail.getMaleProbability();
-            }
-            else {
-              probability = activityDetail.getFemaleProbability();
-            }
-            probability *= activity.getDayWeight(day);
-            probability *= activity.getHourWeight(hour, generator.nextDouble());
+      double factor = 0.0;
 
-            nomalizingFactor += probability;
+      for (int day = 1; day <= 7; day++) {  // Simulating Joda dayOfWeek
+        for (int hour = 0; hour < 24; hour++) {
+          double probability;
+          if (gender.equals("male")) {
+            probability = activityDetail.getMaleProbability();
           }
+          else {
+            probability = activityDetail.getFemaleProbability();
+          }
+          probability *= activity.getDayWeight(day);
+          probability *= activity.getHourWeight(hour, 0);
+          factor += probability;
         }
       }
 
-      if (Math.abs(nomalizingFactor) > 0.000001) {
-        nomalizingFactor = 7 * itns / nomalizingFactor;
+      if (Math.abs(factor) > 1E-06) {
+        factor = 7 / factor;
       }
       else {
-        nomalizingFactor = 1;
+        factor = 1;
       }
 
-      nomalizingFactors[activityId-1] = nomalizingFactor;
+      nomalizingFactors[activityId-1] = factor;
     }
-  }
-
-  public static double[] calculatedNormalizingFactors (int groupId)
-  {
-    // TODO For now equal between male and female
-
-    double[] nomalizingFactors;
-    switch (groupId) {
-      case 1:
-        nomalizingFactors = new double[]{
-            0.6013745697576719, 0.6013745697576719, 0.08771463620789377,
-            0.19047553189488367, 0.06272401431339633, 0.27027840108063333,
-            0.621140149089667, 0.483081972886419, 0.6944550879790746};
-        break;
-      case 2:
-        nomalizingFactors = new double[]{
-            0.06013745721562055, 0.06013745721562055, 0.08771572061554128,
-            0.09523756497742943, 0.06969334942192819, 0.38611408144508347,
-            0.48314644161753045, 0.48314255353064334, 1.250051480084142};
-        break;
-      case 3:
-        nomalizingFactors = new double[]{
-            0.06013745721562055, 0.06013745721562055, 0.087721418537831,
-            0.09524343278247911, 0.06969334942192819, 0.38610554656996915,
-            0.4830392427830233, 0.4830814628107712, 1.2499358171974833};
-        break;
-      case 4:
-        nomalizingFactors = new double[]{
-            1.0, 1.0, 0.08772270286001668,
-            0.09523614065438413, 0.06969334942192819, 0.3002881927598783,
-            0.483028995282524, 0.4830832840858321, 1.2500221256774735};
-        break;
-      case 5:
-        nomalizingFactors = new double[]{
-            0.30068728487883595, 1.0, 0.08771531887818548,
-            0.09523470756342392, 0.06969334942192819, 0.27025937174400355,
-            0.4830639318652277, 0.48312299099548967, 1.250050966650248};
-        break;
-      case 6:
-        nomalizingFactors = new double[]{
-            1.0, 1.0, 0.08772548083145358,
-            0.09524097529803068, 0.06969334942192819, 0.38610749353185775,
-            0.48314608596980746, 0.48302124544904895, 0.6250686845880942};
-        break;
-      case 7:
-        nomalizingFactors = new double[]{
-            1.0, 1.0, 0.08771916416678519,
-            0.09523617648059308, 0.06969334942192819, 0.38609083020078405,
-            0.4831131765625636, 0.483093113807499, 1.2500517088981693};
-        break;
-      default:
-        nomalizingFactors = new double[]{
-            1.0, 1.0, 0.08771837492246468,
-            0.09524162198875058, 0.06969334942192819, 0.38609647690834564,
-            0.4830488907101153, 0.4830690398007624, 1.2500035036442108};
-    }
-    return nomalizingFactors;
   }
 
   /*
@@ -318,11 +258,6 @@ public class EvCustomer {
     return gender;
   }
 
-  public void setGenerator (Random generator)
-  {
-    this.generator = generator;
-  }
-
   public int getRiskAttitude ()
   {
     return riskAttitude;
@@ -338,10 +273,6 @@ public class EvCustomer {
     return driving;
   }
 
-  public double[] getNomalizingFactors ()
-  {
-    return nomalizingFactors;
-  }
   public void setNomalizingFactors (double[] nomalizingFactors)
   {
     this.nomalizingFactors = nomalizingFactors;
