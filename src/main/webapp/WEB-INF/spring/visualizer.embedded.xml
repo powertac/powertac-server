@@ -10,13 +10,11 @@
 
   <context:annotation-config />
 
-  <context:component-scan base-package="org.powertac.visualizer" />
-
   <!-- MODIFIED FOR VISUALIZER: exclude visualizer from scanning-->
   <context:annotation-config />
   <context:component-scan base-package="org.powertac">
     <context:exclude-filter type="regex"
-                            expression="org.powertac.visualizer.*" />
+                            expression="org.powertac.visualizer.services.VisualizerServiceTournament.*" />
   </context:component-scan>
 
   <!-- need explicit list of beans that have properties to set -->

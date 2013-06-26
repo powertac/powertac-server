@@ -133,6 +133,9 @@ public class VisualizerServiceTournament
   public VisualizerServiceTournament ()
   {
     super();
+    System.out.println();
+    System.out.println("!!!!!!! This shouldn't happen 1 !!!!!!!!!!!!!!!!!!!!!");
+    System.out.println();
   }
 
   /**
