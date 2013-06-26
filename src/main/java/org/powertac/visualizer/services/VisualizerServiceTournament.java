@@ -130,14 +130,6 @@ public class VisualizerServiceTournament
   @Autowired
   private MessageDispatcher dispatcher;
 
-  public VisualizerServiceTournament ()
-  {
-    super();
-    System.out.println();
-    System.out.println("!!!!!!! This shouldn't happen 1 !!!!!!!!!!!!!!!!!!!!!");
-    System.out.println();
-  }
-
   /**
    * Called on initialization to start message feeder and state machine.
    */
