@@ -7,7 +7,7 @@
 	<input name="tab" value="flowScope.tab" required="false" />
 	
 	<on-start>
-		<evaluate expression="brokerService.getBrokers()"
+		<evaluate expression="brokerService.getBrokersMap().values()"
 			result="conversationScope.brokersClone"></evaluate>
 		<!-- <evaluate expression="customerService.getCustomerList()"
 			result="conversationScope.customers"></evaluate> -->
