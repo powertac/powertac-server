@@ -11,7 +11,7 @@
 
   <artifactId>server-interface</artifactId>
   <name>Power TAC server interface</name>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <description>
     interfaces and domain types shared by multiple server components
   </description>
