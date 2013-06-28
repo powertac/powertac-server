@@ -1,6 +1,5 @@
 package org.powertac.visualizer.services.competitioncontrol;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.CompetitionSetup;
 import org.powertac.common.interfaces.VisualizerProxy;
@@ -21,9 +20,6 @@ import java.util.List;
 @Service
 public class WebCompetitionControlService
 {
-  static private Logger log = Logger
-          .getLogger(WebCompetitionControlService.class);
-
   @Autowired
   private CompetitionSetup css;
 

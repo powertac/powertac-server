@@ -1,17 +1,12 @@
 package org.powertac.visualizer.domain.broker;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 
-import com.google.gson.Gson;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Holds the data for broker's tariff.
@@ -29,7 +24,7 @@ public class TariffData
   private long customers;
   private String powerType;
   private String ratesGraph;
-  Gson gson = new Gson();
+  //Gson gson = new Gson();
   private ConcurrentHashMap<CustomerInfo, TariffCustomerStats> tariffCustomerStats;
 
   public TariffData (TariffSpecification spec, BrokerModel broker)

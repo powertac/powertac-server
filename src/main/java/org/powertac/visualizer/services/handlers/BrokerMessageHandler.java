@@ -55,21 +55,15 @@ public class BrokerMessageHandler implements Initializable
 
   public void handleMessage (Competition competition)
   {
-    List<String> brokersName = competition.getBrokers();
-
-    ArrayList<BrokerModel> list = new ArrayList<BrokerModel>();
     ConcurrentHashMap<String, BrokerModel> map =
       new ConcurrentHashMap<String, BrokerModel>(10, 0.75f, 1);
 
-    for (Iterator<String> iterator = brokersName.iterator(); iterator.hasNext();) {
-      String name = (String) iterator.next();
+    for (String name : competition.getBrokers()) {
       BrokerModel brokerModel =
-        new BrokerModel(name, appearanceListBean.getAppereance());
-      list.add(brokerModel);
+          new BrokerModel(name, appearanceListBean.getAppereance());
       map.put(brokerModel.getName(), brokerModel);
     }
     brokerService.setBrokersMap(map);
-    brokerService.setBrokers(list);
     vizBean.setCompetition(competition);
     vizBean.setRunning(true);
     vizBean.setFinished(false);
@@ -93,7 +87,6 @@ public class BrokerMessageHandler implements Initializable
       brokerModel.getTariffCategory()
               .processTariffSpecification(tariffSpecification);
     }
-
   }
 
   public void handleMessage (CashPosition msg)
@@ -116,7 +109,6 @@ public class BrokerMessageHandler implements Initializable
       fddMap.get(tsIndex).updateProfit(msg.getBalance());
       fc.setProfit(msg.getBalance());
     }
-
   }
 
   public void handleMessage (TariffTransaction msg)
@@ -158,7 +150,6 @@ public class BrokerMessageHandler implements Initializable
       DistributionCategory dc = broker.getDistributionCategory();
       dc.update(msg.getPostedTimeslotIndex(), msg.getKWh(), msg.getCharge());
     }
-
   }
 
   public void handleMessage (BalancingTransaction bt)

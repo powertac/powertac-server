@@ -9,7 +9,6 @@ import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -26,7 +25,6 @@ public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 	private static Logger log = Logger.getLogger(CustomerService.class);
 
 	private HashMap<CustomerInfo, Customer> customerMap;
-	private ArrayList<Customer> customerList;
 
 	public CustomerService() {
 		recycle();
@@ -37,18 +35,14 @@ public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 	 * customerInfo.
 	 */
 	public void addCustomers(List<CustomerInfo> customerInfos) {
-		HashMap<CustomerInfo, Customer> customers = new HashMap<CustomerInfo, Customer>();
+    customerMap = new HashMap<CustomerInfo, Customer>();
 		for (CustomerInfo customerInfo : customerInfos) {
 			Customer customer = new Customer(customerInfo);
-			customers.put(customerInfo, customer);
+      customerMap.put(customerInfo, customer);
 		}
 		
-		customerMap=customers;
-
 		// build list:
-		customerList = new ArrayList<Customer>(customerMap.values());
-		log.info("Customers added: List size:" + customerList.size()
-				+ " Map size:" + customerMap.size());
+		log.info("Customers added: Map size:" + customerMap.size());
 	}
 
 	/**
@@ -72,24 +66,16 @@ public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 
 	public void recycle() {
 		customerMap = new HashMap<CustomerInfo, Customer>();
-		customerList = new ArrayList<Customer>();
-	}
-
-	@SuppressWarnings("unchecked")
-	public List<Customer> getCustomerList() {
-		return (List<Customer>) customerList.clone();
 	}
 
 	public void activate(int timeslotIndex, Instant postedTime) {
 		// update jsons for all customers:
-
-		for (Customer type : customerList) {
+		for (Customer type : customerMap.values()) {
 			type.update(timeslotIndex, postedTime);
 
 		}
 		log.debug("Customer service activation complete. Timeslotindex:"
 				+ timeslotIndex);
-
 	}
 
 	public Customer findCustomerByCustomerInfo(CustomerInfo customerInfo) {
