@@ -1,8 +1,19 @@
 package org.powertac.visualizer.services.handlers;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.log4j.Logger;
-//import org.apache.tools.ant.taskdefs.Tstamp;
-import org.powertac.common.*;
+import org.powertac.common.BalancingTransaction;
+import org.powertac.common.CashPosition;
+import org.powertac.common.Competition;
+import org.powertac.common.DistributionTransaction;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TariffTransaction.Type;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.AppearanceListBean;
@@ -12,6 +23,7 @@ import org.powertac.visualizer.domain.broker.TariffDynamicData;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.push.InfoPush;
 import org.powertac.visualizer.services.BrokerService;
+import org.powertac.visualizer.services.GradingService;
 import org.powertac.visualizer.services.PushService;
 import org.powertac.visualizer.statistical.BalancingCategory;
 import org.powertac.visualizer.statistical.DistributionCategory;
@@ -20,9 +32,7 @@ import org.powertac.visualizer.statistical.FinanceDynamicData;
 import org.powertac.visualizer.statistical.TariffCategory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+//import org.apache.tools.ant.taskdefs.Tstamp;
 
 @Service
 public class BrokerMessageHandler implements Initializable
@@ -40,6 +50,8 @@ public class BrokerMessageHandler implements Initializable
   private VisualizerBean vizBean;
   @Autowired
   private PushService pushService;
+  @Autowired
+  private GradingService gradingBean;
 
   public void initialize ()
   {
@@ -93,7 +105,6 @@ public class BrokerMessageHandler implements Initializable
       brokerModel.getTariffCategory()
               .processTariffSpecification(tariffSpecification);
     }
-
   }
 
   public void handleMessage (CashPosition msg)
@@ -125,8 +136,24 @@ public class BrokerMessageHandler implements Initializable
     BrokerModel broker =
       brokerService.findBrokerByName(msg.getBroker().getUsername());
     if (broker != null) {
-      TariffCategory tc = broker.getTariffCategory();
+      gradingBean.addCharge(Math.abs(msg.getCharge()));
+      if (msg.getTxType() == Type.SIGNUP) {
+        broker.getTariffCategory().addCustomers(msg.getCustomerCount());
+      }
 
+      if (msg.getTxType() == Type.CONSUME) {
+        gradingBean.addSoldEnergyTariffMarket(Math.abs(msg.getKWh()));
+        broker.getTariffCategory()
+                .addConsumptionConsumers(msg.getCustomerCount());
+        broker.getTariffCategory().addSoldEnergy(Math.abs(msg.getKWh()));
+        broker.getTariffCategory().addMoneyFromSold(msg.getCharge());
+      }
+      if (msg.getTxType() == Type.PRODUCE) {
+        gradingBean.addBoughtEnergyTariffMarket(msg.getKWh());
+        broker.getTariffCategory().addBoughtEnergy(msg.getKWh());
+      }
+      TariffCategory tc = broker.getTariffCategory();
+      tc.addCharge(Math.abs(msg.getCharge()));
       int tsIndex = msg.getPostedTimeslotIndex();
       ConcurrentHashMap<Integer, TariffDynamicData> tddmap =
         tc.getTariffDynamicDataMap();
@@ -157,6 +184,7 @@ public class BrokerMessageHandler implements Initializable
     if (broker != null) {
       DistributionCategory dc = broker.getDistributionCategory();
       dc.update(msg.getPostedTimeslotIndex(), msg.getKWh(), msg.getCharge());
+      gradingBean.addEnergyDistribution(Math.abs(msg.getKWh()));
     }
 
   }

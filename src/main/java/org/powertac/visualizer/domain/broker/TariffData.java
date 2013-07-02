@@ -3,7 +3,8 @@ package org.powertac.visualizer.domain.broker;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.powertac.common.CustomerInfo;
@@ -116,38 +117,64 @@ public class TariffData
   private void createRatesGraph ()
   {
     ArrayList<Object> series = new ArrayList<Object>();
+    Calendar calendar = GregorianCalendar.getInstance();
 
+    // for every rate in TariffSpecification
     for (Rate rate: spec.getRates()) {
-
+      // check if day of the week is specified
       if (rate.getWeeklyBegin() != -1) {
         ArrayList<Object> data = new ArrayList<Object>();
+        // For start we only need the day of the week; January 2007 is used
+        // since the days for January 2007 correspond to days in Rate class
+        // (1 == monday, ...)
+        calendar.clear();
+        calendar.set(2007, 0, rate.getWeeklyBegin(),
+                     rate.getDailyBegin() >= 0? rate.getDailyBegin() + 1: 0, 0, 0);
         Object[] start =
           {
-           Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
-                    rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
-           rate.getMinValue() * 100 };
+           // If the start hour of rate is specified, use it; otherwise it is
+           // set to 0
+           // Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
+           // rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
+           // rate.getMinValue() * 100
+
+           calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        // System.out.println("UTC: " + Date.UTC(2007 - 1900, 0,
+        // rate.getWeeklyBegin(), rate.getDailyBegin() >= 0?
+        // rate.getDailyBegin(): 0, 0, 0) + " -- Calendar: " +
+        // calendar.getTimeInMillis());
         data.add(start);
-        Object[] end =
-          {
-           Date.UTC(2007 - 1900,
-                    0,
-                    rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
-                            .getDailyBegin(),
-                    rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0, 0),
-           rate.getMinValue() * 100 };
+        calendar.clear();
+        calendar.set(2007, 0, rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd()
+                                                      : rate.getWeeklyBegin(),
+                     rate.getDailyEnd() >= 0? rate.getDailyEnd() + 1: 23, 0, 0);
+        Object[] end = {
+                        // Date.UTC(2007 - 1900,
+                        // 0,
+                        // rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
+                        // .getDailyBegin(),
+                        // rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0,
+                        // 0)
+                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }
 
       else if (rate.getDailyBegin() != -1 && rate.getDailyEnd() != -1) {
         ArrayList<Object> data = new ArrayList<Object>();
-        Object[] start =
-          { Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(), 0, 0),
-           rate.getMinValue() * 100 };
+        calendar.clear();
+        calendar.set(2006, 0, 1, rate.getDailyBegin() + 1, 0, 0);
+        Object[] start = {
+                          // Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(),
+                          // 0, 0),
+                          calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(start);
-        Object[] end =
-          { Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0, 0),
-           rate.getMinValue() * 100 };
+        calendar.clear();
+        calendar.set(2006, 0, 1, rate.getDailyEnd() + 1, 0, 0);
+        Object[] end = {
+                        // Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0,
+                        // 0),
+                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }
@@ -155,11 +182,17 @@ public class TariffData
       else if (rate.getDailyBegin() == -1 && rate.getDailyEnd() == -1
                && rate.getWeeklyBegin() == -1 && rate.getWeeklyEnd() == -1) {
         ArrayList<Object> data = new ArrayList<Object>();
-        Object[] start =
-          { Date.UTC(2007 - 1900, 0, 1, 0, 0, 0), rate.getMinValue() * 100 };
+        calendar.clear();
+        calendar.set(2007, 0, 1, 1, 0, 0);
+        Object[] start = {
+                          // Date.UTC(2007 - 1900, 0, 1, 0, 0, 0),
+                          calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(start);
-        Object[] end =
-          { Date.UTC(2007 - 1900, 0, 7, 0, 0, 0), rate.getMinValue() * 100 };
+        calendar.clear();
+        calendar.set(2007, 0, 7, 1, 0, 0);
+        Object[] end = {
+                        // Date.UTC(2007 - 1900, 0, 7, 0, 0, 0),
+                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }

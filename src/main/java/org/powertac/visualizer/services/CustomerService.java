@@ -7,6 +7,7 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.visualizer.domain.customer.Customer;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
+import org.primefaces.event.TabChangeEvent;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -96,4 +97,7 @@ public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 		return customerMap.get(customerInfo);
 	}
 
+
+
+	 
 }

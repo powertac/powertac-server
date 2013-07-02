@@ -24,6 +24,7 @@
 	<h:outputStylesheet library="css" name="modern.css" />
 	<h:outputStylesheet library="css" name="site.css" />
 	<h:outputScript library="js" name="charts.js" />
+	<h:outputScript library="js" name="move.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
 	<h:outputScript library="javascript" name="pagecontrol.js" />
 	<h:outputScript library="javascript" name="dropdown.js" />
@@ -73,7 +74,7 @@
 					<li data-role="dropdown"><a href="#">Overview</a>
 						<ul class="dropdown-menu">
 							<li><a href="transactionssummary">Game overview #1</a></li>
-							<li><a href="#">Game overview #2</a></li>
+							<li><a href="ranking">Game overview #2</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Finance</a>
 						<ul class="dropdown-menu">
@@ -88,6 +89,7 @@
 							<li><a href="tariffanalysis">Tariff Analysis</a></li>
 							<li class="divider"></li>
 							<li><a href="customerstatistics">Customer Statistics</a></li>
+							<li><a href="customermodels">Customer Models</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Wholesale market</a>
 						<ul class="dropdown-menu">
@@ -285,37 +287,35 @@
 
 						<div class="tile last bg-color-orangeDark" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>To Be Defined</h2>
+							<!-- <div class="tile-content">
+								 <h2>To Be Defined</h2> 
 								<br />
 								<h4 id="date"></h4>
 								<p id="clock"></p>
-							</div>
+							</div> 
 							<div class="brand">
 								<div class="statusIcon" id="customersAmount"
 									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
-							</div>
+							</div> -->
 						</div>
 
 						<div class="tile bg-color-darken" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>To Be Defined</h2>
+							 <div class="tile-content">
+								<h2>Timeslot</h2>
 								<br />
-								<h4 id="date"></h4>
+								<h3 id="timeslot"></h3>
 								<p id="clock"></p>
 							</div>
 							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
-							</div>
+							</div> 
 						</div>
 
 						<div class="tile bg-color-grey" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
+							<!-- <div class="tile-content">
 								<h2>To Be Defined</h2>
 								<br />
 								<h4 id="date"></h4>
@@ -325,7 +325,7 @@
 								<div class="statusIcon" id="customersAmount"
 									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
-							</div>
+							</div> -->
 						</div>
 
 
@@ -348,7 +348,7 @@
 
 						<div class="tile last bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
+							<!-- <div class="tile-content">
 								<h2>To Be Defined</h2>
 								<br />
 								<h4 id="date"></h4>
@@ -358,7 +358,7 @@
 								<div class="statusIcon" id="customersAmount"
 									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
-							</div>
+							</div> -->
 						</div>
 
 
@@ -655,6 +655,7 @@
 			var temperature = weather["temperature"];
 			var windDirection = weather["windDirection"];
 			var windSpeed = weather["windSpeed"];
+			var timeslot = weather["timeslot"];
 
 			console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
 					+ " " + cusNumAmount + " " + profitBroker + " "
@@ -666,6 +667,7 @@
 			document.getElementById("balanceAmount").innerHTML = +balAmount+" MWh";
 			document.getElementById("customersBroker").innerHTML = cusNumBroker;
 			document.getElementById("customersAmount").innerHTML = cusNumAmount;
+			document.getElementById("timeslot").innerHTML = timeslot;
 			var d = new Date(millis);
 			var date = $.datepicker.formatDate('yy-mm-dd', d);
 			var minutes = d.getMinutes();

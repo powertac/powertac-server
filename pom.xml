@@ -11,7 +11,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <relativePath />
   </parent>
 
@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>webapp-dependencies</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>1.0.1-SNAPSHOT</version>
       <type>pom</type>
     </dependency>
     <!-- Servlet provided dependencies -->
@@ -69,7 +69,7 @@
         <dependency>
           <groupId>org.powertac</groupId>
           <artifactId>server-main</artifactId>
-          <version>1.0.0-SNAPSHOT</version>
+          <version>1.0.1-SNAPSHOT</version>
         </dependency>
       </dependencies>
     
