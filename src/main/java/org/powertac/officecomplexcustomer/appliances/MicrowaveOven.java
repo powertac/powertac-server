@@ -150,7 +150,8 @@ public class MicrowaveOven extends SemiShiftingAppliance
       }
 
       if (counter == OfficeComplexConstants.END_OF_LAUNCH_BREAK_HOUR + 2
-                     - (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1)) {
+                     - (OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1)
+          || minIndex == -1) {
         minIndex =
           (int) (gen.nextDouble() * counter)
                   + OfficeComplexConstants.START_OF_LAUNCH_BREAK_HOUR - 1;

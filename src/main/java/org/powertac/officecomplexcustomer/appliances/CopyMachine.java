@@ -165,7 +165,8 @@ public class CopyMachine extends SemiShiftingAppliance
       }
 
       if (counter == OfficeComplexConstants.END_OF_FUNCTION_HOUR
-                     - OfficeComplexConstants.START_OF_FUNCTION_HOURS) {
+                     - OfficeComplexConstants.START_OF_FUNCTION_HOURS
+          || minIndex == -1) {
         minIndex =
           (int) (gen.nextDouble() * counter)
                   + OfficeComplexConstants.START_OF_FUNCTION_HOURS;
