@@ -34,7 +34,7 @@ import org.powertac.householdcustomer.configurations.VillageConstants;
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
-public class Refrigerator extends FullyShiftingAppliance
+public class Refrigerator extends NotShiftingAppliance
 {
 
   @Override

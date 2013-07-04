@@ -173,7 +173,7 @@ public class Stove extends SemiShiftingAppliance
 
       }
 
-      if (counter == possibleHours.size()) {
+      if (counter == possibleHours.size() || minIndex == -1) {
         minIndex = (int) (gen.nextDouble() * possibleHours.size());
         // System.out.println("MinIndex: " + minIndex);
         // log.debug("All the same, I choose: " + minIndex);

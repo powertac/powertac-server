@@ -34,7 +34,7 @@ import org.powertac.householdcustomer.configurations.VillageConstants;
  * @author Antonios Chrysopoulos
  * @version 1.5, Date: 2.25.12
  */
-public class Freezer extends FullyShiftingAppliance
+public class Freezer extends NotShiftingAppliance
 {
 
   public void fillWeeklyFunction ()
