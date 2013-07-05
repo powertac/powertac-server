@@ -157,41 +157,7 @@
 					</div>
 				</div>
 
-
-				<!-- div class="grid">
-					<div class="row">
-						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
-							<br />
-							<div id="gameName" class="fg-color-white bigStatusText"
-								>
-								<h:outputText value="#{visualizerBean.competition.name}"
-									 />
-
-							</div>
-
-						</div>
-
-						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
-							<br />
-							<div id="gameStatus" class="fg-color-white normalStatusText" >
-								<h:outputText
-									rendered="${!visualizerBean.running and !visualizerBean.finished}"
-									value="no game" />
-								<h:outputText
-									rendered="${!visualizerBean.running and visualizerBean.finished}"
-									value="game finished" />
-								<h:outputText
-									rendered="${visualizerBean.running and !visualizerBean.finished}"
-									value="game in progress" />
-							</div>
-
-						</div>
-
-
-					</div>
-				</div-->
-
-				<!--**************************************************** Tom *************************************************-->
+				
 				<div class="grid">
 					<div class="row">
 
@@ -351,158 +317,7 @@
 
 
 				<div></div>
-				<!--****************************************************END Tom *************************************************-->
-
-				<!-- <div class="grid">
-					<div class="row">
-						<div class="tile double bg-color-green" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Profit Leader</h2>
-								<br />
-								<h4 id="profitBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="profitAmount" style="float: right"></div>
-								<div class=" icon-diamond statusIcon" />
-							</div>
-						</div>
-
-						<div class="tile double bg-color-orangeDark"
-							data-role="tile-slider" data-param-period="5000"
-							data-param-direction="left">
-							<div class="tile-content">
-								<h2>Balance Leader</h2>
-								<br />
-								<h4 id="balanceBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
-								<div class=" icon-meter-slow statusIcon" />
-							</div>
-						</div>
-
-						<div class="tile double last bg-color-purple" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Customers Leader</h2>
-								<br />
-								<h4 id="customersBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-user statusIcon" />
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="grid">
-					<div class="row">
-						<div class="span4 bg-color-red"
-							style="height: 80px; text-align: center">
-							<br />
-							<div class=" icon-clock bigStatusIcon" />
-							<div class=" bigStatusText" id="clock"></div>
-							<br />
-
-
-						</div>
-						<div class="span8 bg-color-greenDark"
-							style="height: 80px; text-align: center">
-							<br />
-							<div class=" icon-calendar bigStatusIcon" />
-							<div class=" bigStatusText" id="date"></div>
-							<br />
-
-						</div>
-					</div>
-				</div>
-
-				<div class="grid">
-					<div class="row">
-						<div class="span4 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" weatherText">Weather info</div>
-							<br />
-
-
-						</div>
-						<div class="span2 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" icon-thermometer weatherIcon" />
-							<div class=" weatherText" id="temperature"></div>
-							<br />
-
-
-						</div>
-
-						<div class="span4 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" weatherText" id="windspeed"></div>
-							<div class=" icon-arrow-up-left arrow" id="windArrow" />
-
-							<br />
-
-
-						</div>
-
-						<div class="span2 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" icon-sun weatherIcon" id="cloudCover" />
-
-							<br />
-
-
-						</div>
-
-					</div>
-				</div>
 				
-				<div>
-				 <table class="bordered">
-                    <thead>
-                        <tr class="info">
-                            <th>Game name</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr><td id="gameName"><h:outputText value="#{visualizerBean.competition.name}"
-									 /></td>
-                        	<td id="gameStatus"><h:outputText
-									rendered="${!visualizerBean.running and !visualizerBean.finished}"
-									value="no game" />
-								<h:outputText
-									rendered="${!visualizerBean.running and visualizerBean.finished}"
-									value="game finished" />
-								<h:outputText
-									rendered="${visualizerBean.running and !visualizerBean.finished}"
-									value="game in progress" />
-							</td>
-						</tr>
-                        
-                    </tbody>
-
-                    <tfoot></tfoot>
-                </table>
-				</div> -->
-
-
-
-
 				<div class="page">
 
 					<div class="grid">
@@ -641,10 +456,10 @@
 			var windSpeed = weather["windSpeed"];
 			var timeslot = weather["timeslot"];
 
-			console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
+			/* console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
 					+ " " + cusNumAmount + " " + profitBroker + " "
 					+ profitAmount + " " + cloudCover + " " + millis + " "
-					+ temperature + " " + windDirection + " " + windSpeed);
+					+ temperature + " " + windDirection + " " + windSpeed); */
 			document.getElementById("profitBroker").innerHTML = profitBroker;
 			document.getElementById("profitAmount").innerHTML = "&euro; "+profitAmount;
 			document.getElementById("balanceBroker").innerHTML = balBroker;

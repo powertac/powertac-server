@@ -171,9 +171,9 @@ public class BrokerMessageHandler implements Initializable
                 .processTariffSpecification(msg.getTariffSpec());
       }
       tc.getTariffData().get(msg.getTariffSpec())
-              .setCustomers(Helper.getCustomerCount(msg));// tom
+              .setCustomers(Helper.getCustomerCount(msg));
       broker.getTariffCategory().getTariffData().get(msg.getTariffSpec())
-              .processTariffTx(msg);// tom
+              .processTariffTx(msg);
     }
   }
 

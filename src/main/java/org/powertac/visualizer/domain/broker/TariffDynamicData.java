@@ -1,7 +1,5 @@
 package org.powertac.visualizer.domain.broker;
 
-import javax.swing.text.DefaultEditorKit.CutAction;
-
 import org.powertac.visualizer.statistical.DynamicData;
 
 /**

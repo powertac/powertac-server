@@ -1,13 +1,11 @@
 package org.powertac.visualizer.services;
 
-import org.apache.log4j.Logger;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class GradingService implements Recyclable
 {
-  private Logger log = Logger.getLogger(GradingService.class);
   // tariff market
   private double totalSoldEnergyTariffMarket;
   private double totalBoughtEnergyTariffMarket;
@@ -25,35 +23,19 @@ public class GradingService implements Recyclable
                                 double soldEnergy, int customerCount,
                                 int lostCustomers)
   {
-    /*
-     * log.info("---->moneyFlow: " + moneyFlow + ", totalMoneyFlow: "
-     * + totalMoneyFlowTariffMarket);
-     * log.info("---->moneySoldEnergy: " + moneySoldEnergy
-     * + ", consumptionConsumers: " + consumptionConsumers);
-     * log.info("---->boughtEnergy: " + boughtEnergy
-     * + ", totalBoughtEnergyTariffMarket: "
-     * + totalBoughtEnergyTariffMarket);
-     * log.info("---->soldEnergy: " + soldEnergy
-     * + ", totalSoldEnergyTariffMarket: " + totalSoldEnergyTariffMarket);
-     * log.info("---->lostCustomers: " + lostCustomers + ", customerCount: "
-     * + customerCount);
-     */double gradeProfit =
+
+    double gradeProfit =
       totalMoneyFlowTariffMarket != 0? moneyFlow / totalMoneyFlowTariffMarket
                                      : 0;
-    // double gradeCR = lostCustomers / customerCount;
-    // double gradeARPU =
-    // consumptionConsumers != 0? moneySoldEnergy / consumptionConsumers: 0;
+
     double gradeTariffSellShare =
       totalBoughtEnergyTariffMarket != 0? boughtEnergy
                                           / totalBoughtEnergyTariffMarket: 0;
     double gradeTariffBuyShare =
       totalSoldEnergyTariffMarket != 0? soldEnergy
                                         / totalSoldEnergyTariffMarket: 0;
-    /*
-     * log.info("---->profit: " + 100 / 3 * gradeProfit + ", sell: " + 100 / 3
-     * gradeTariffSellShare + ", buy: " + 100 / 3 * gradeTariffBuyShare);
-     */return 100 / 3 * gradeProfit + 100 / 3 * gradeTariffSellShare + 100 / 3
-              * gradeTariffBuyShare;
+    return 100 / 3 * gradeProfit + 100 / 3 * gradeTariffSellShare + 100 / 3
+           * gradeTariffBuyShare;
   }
 
   public double getDistributionGrade (double energy)
@@ -103,22 +85,15 @@ public class GradingService implements Recyclable
     else {
       // wholesaleGradeRevenue is 50 in this case
     }
-    /*
-     * log.info("Buying: " + totalAggregateCost + " -- " + totalCost);
-     * log.info("Selling: " + totalAggregateRevenue + " -- " + totalRevenue);
-     * log.info("--- Total Grade: "
-     * + (wholesaleGradeCost / 2 + wholesaleGradeRevenue / 2));
-     */return (wholesaleGradeCost / 2 + wholesaleGradeRevenue / 2);
+    return (wholesaleGradeCost / 2 + wholesaleGradeRevenue / 2);
   }
 
   public double getBalancingGrade (double balancedEnergy,
-                                   double energyDelivered, double cost
-                                   )
+                                   double energyDelivered, double cost)
   {
     double imbalanceRatio =
       energyDelivered != 0? balancedEnergy / energyDelivered: 0;
     double costPerkWh = balancedEnergy != 0? cost / balancedEnergy: 0;
-    // log.info("Cost per kwh: " + costPerkWh);
 
     double gradeRatio = 0;
     if (Math.abs(imbalanceRatio) <= 1) {
@@ -141,11 +116,13 @@ public class GradingService implements Recyclable
 
     return gradeRatio / 2 + gradeCostPerkWh / 2;
   }
-  
-  public double getImbalanceRatio(double balancedEnergy,
-                                   double energyDelivered){
+
+  public double
+    getImbalanceRatio (double balancedEnergy, double energyDelivered)
+  {
     return energyDelivered != 0? balancedEnergy / energyDelivered: 0;
   }
+
   /*----------------------------------- Getters and Setters ------------------------------------*/
   public double getTotalMoneyFlow ()
   {

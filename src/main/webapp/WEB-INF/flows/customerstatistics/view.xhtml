@@ -15,19 +15,7 @@
 				function() {
 					customerStatistics = customerStatisticsPieChart(#{tariffMarketBean.customerStatictics});
 				});
-		/*	  	
-			function handleWholesaleAnalysis(data) {
-				var array = jQuery.parseJSON(data);
-				var cnt = 0;
-				jQuery.each(array, 
-						function() {
-							var pushObject = this;
-							//known ordering: profit
-							wholesaleAverageTimeslotPriceData.series[cnt++].addPoint([pushObject["millis"],pushObject["averagePrice"]],false);	
-							wholesaleAverageTimeslotPriceData.series[cnt++].addPoint([pushObject["millis"],pushObject["energy"]],false);
-						});
-				wholesaleAverageTimeslotPriceData.redraw();
-			}   */
+
 		</script>
 	</ui:define>
 

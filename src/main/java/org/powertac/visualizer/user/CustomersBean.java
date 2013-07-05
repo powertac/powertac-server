@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.domain.customer.Customer;
@@ -12,7 +11,6 @@ import org.powertac.visualizer.services.CustomerService;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
 import org.primefaces.event.TabChangeEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
 
@@ -24,7 +22,6 @@ public class CustomersBean implements Serializable
   private ArrayList<Customer> customers;
   private UserSessionBean userSessionBean;
   private String wholesaleDynDataOneTimeslot;
-  private Logger log = Logger.getLogger(CustomersBean.class);
   @Autowired
   VisualizerHelperService helper;
 
@@ -37,7 +34,6 @@ public class CustomersBean implements Serializable
                         UserSessionBean userSessionBean,
                         VisualizerHelperService helper)
   {
-    log.info("***Inside CustomerBean constructor, i=" + customerType);
     this.customerService = customerService;
     this.userSessionBean = userSessionBean;
 
@@ -85,7 +81,6 @@ public class CustomersBean implements Serializable
     ArrayList<Object> wholesaleTxDataOneTimeslot = new ArrayList<Object>();
     ArrayList<Object> profitDataOneTimeslot = new ArrayList<Object>();
     ArrayList<Object> mwhDataOneTimeslot = new ArrayList<Object>();
-    log.info("Getting data for index: " + index);
     for (TariffTransaction tx: customerService.getCustomerList()
             .get(index).getCustomerModel().getTariffTransactions()) {
       Object[] profitOneTimeslot =
@@ -110,14 +105,12 @@ public class CustomersBean implements Serializable
 
   public void onChange (TabChangeEvent event)
   {
-    log.info("***Inside onChange");
     int i;
     for (i=0; i < this.customerService.getCustomerList().size(); i++)
       if (customerService.getCustomerList().get(i).getCustomerInfo().getName()
               .equals(event.getData().toString()))
         break;
     this.customerType = i;
-    System.out.println("*****" + customerType);
   }
 
 }

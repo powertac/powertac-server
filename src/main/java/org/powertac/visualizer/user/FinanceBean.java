@@ -22,7 +22,6 @@ public class FinanceBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	private Logger log = Logger.getLogger(FinanceBean.class);
 	private String financeDynData;
 	private String financeDynDataOneTimeslot;
 

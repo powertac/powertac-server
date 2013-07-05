@@ -80,38 +80,13 @@
 				}
 		</script>
 
-
-
-
-		<!-- <script type="text/javascript">
-			var transactionsSummary;
-			$(document).ready(
-				function() {
-					transactionsSummary = transactionsSummary(#{gameOverviewBean.gameOverview});
-				});
-			  	
-			function handleGameOverview(data) {
-				var array = jQuery.parseJSON(data);
-				var cnt = 0;
-				jQuery.each(array, 
-						function() {
-							var pushObject = this;
-							//known ordering: profit
-							transactionsSummary.series[cnt++].setData(pushObject,true);	
-						});
-				transactionsSummary.redraw();
-			}
-		</script> -->
 	</ui:define>
 
 	<ui:define name="maincontent">
 
-		<div id="broker0" style="width: 650px; height:10px; padding-left:10px; margin:auto;" />
+		<div id="broker0"
+			style="width: 650px; height: 10px; padding-left: 10px; margin: auto;" />
 
-
-
-		<!-- <div id="transactionsSummary"
-			style="min-width: 400px; height: 620px; margin: 0 auto" /> -->
 		<p:socket onMessage="generateRanking" channel="/ranking" />
 	</ui:define>
 

@@ -13,7 +13,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.beans.VisualizerBean;
@@ -55,7 +54,6 @@ public class BrokerService
   implements TimeslotCompleteActivation, Recyclable, Serializable
 {
 
-  private Logger log = Logger.getLogger(BrokerService.class);
   private static final long serialVersionUID = 15L;
   private ConcurrentHashMap<String, BrokerModel> brokersMap;
   private ArrayList<BrokerModel> brokers;
@@ -123,18 +121,6 @@ public class BrokerService
     ArrayList allWholesaleData = new ArrayList();
     ArrayList<ArrayList<Double>> brokersOverview =
       new ArrayList<ArrayList<Double>>();
-
-    // Iterator<BrokerModel> brokerIterator = brokers.iterator();
-    // double highestEnergyAmount =
-    // brokerIterator.next().getDistributionCategory().getLastDynamicData()
-    // .getEnergy();
-    // while (brokerIterator.hasNext()) {
-    // double energy =
-    // brokerIterator.next().getDistributionCategory().getLastDynamicData()
-    // .getEnergy();
-    // if (energy > highestEnergyAmount)
-    // highestEnergyAmount = energy;
-    // }
 
     NominationPusher np = null;
     for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
@@ -239,20 +225,13 @@ public class BrokerService
                 .getTsIndex()), fdd.getProfit(), fdd.getProfitDelta());
       financePushers.add(fp);
 
-      // game overview push
-
-      // total
-      // brokerOverview.add(fdd.getProfit());
-      // brokerOverview.add(tdd.getDynamicData().getProfit());
-
-      // tariff
+      // tariff grade
       brokerOverview.add(gradingBean.getTariffGrade(tc.getTotalMoneyFlow(), tc
               .getConsumptionConsumers(), tc.getTotalMoneyFromSold(), tc
               .getTotalBoughtEnergy(), tc.getTotalSoldEnergy(), tc
               .getCustomerCount(), tc.getLostCustomers()));
 
-      // wholesale
-      // brokerOverview.add(profit);
+      // wholesale grade
       WholesaleCategory wcat = b.getWholesaleCategory();
       brokerOverview
               .add(gradingBean.getWholesaleGrade(wcat.getTotalRevenueFromSelling(),
@@ -260,14 +239,12 @@ public class BrokerService
                                                  wcat.getTotalEnergyBought(),
                                                  wcat.getTotalEnergySold()));
 
-      // balancing
-      // brokerOverview.add(bdd.getProfit());
+      // balancing grade
       brokerOverview.add(gradingBean.getBalancingGrade(b.getBalancingCategory()
               .getEnergy(), b.getDistributionCategory().getLastDynamicData()
               .getEnergy(), b.getBalancingCategory().getProfit()));
 
-      // distribution
-      // brokerOverview.add(ddd.getProfit());
+      // distribution grade
       brokerOverview.add(gradingBean.getDistributionGrade(b
               .getDistributionCategory().getLastDynamicData().getEnergy()));
 

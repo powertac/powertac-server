@@ -1,6 +1,5 @@
 package org.powertac.visualizer.push;
 
-import java.math.BigDecimal;
 
 public class FinancePusher {
 

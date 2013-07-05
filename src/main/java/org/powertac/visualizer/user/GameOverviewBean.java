@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
 import org.powertac.visualizer.display.GameOverviewTemplate;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.services.BrokerService;
@@ -21,7 +20,6 @@ public class GameOverviewBean implements Serializable
 {
 
   private static final long serialVersionUID = 1L;
-  private Logger log = Logger.getLogger(GameOverviewBean.class);
   private String gameOverview;
 
   @Autowired
@@ -63,14 +61,6 @@ public class GameOverviewBean implements Serializable
       BrokerModel brokerModel = (BrokerModel) iterator.next();
       TariffCategory tc = brokerModel.getTariffCategory();
 
-      // total grade
-//      data.add(brokerModel.getFinanceCategory().getLastFinanceDynamicData()
-//              .getProfit());
-
-      // tariff grade
-      // data.add(brokerModel.getTariffCategory().getLastTariffDynamicData()
-      // .getDynamicData().getProfit());
-//      log.info("--------> " + brokerModel.getName());
       data.add(gradingBean.getTariffGrade(tc.getTotalMoneyFlow(),
                                           tc.getConsumptionConsumers(),
                                           tc.getTotalMoneyFromSold(),
@@ -78,47 +68,17 @@ public class GameOverviewBean implements Serializable
                                           tc.getTotalSoldEnergy(),
                                           tc.getCustomerCount(),
                                           tc.getLostCustomers()));
-//      log.info("------------------------------------------------");
-
       // wholesale grade
-      // NavigableSet<Integer> safeKeys =
-      // new TreeSet<Integer>(brokerModel.getWholesaleCategory()
-      // .getDynamicDataMap().keySet()).headSet(helper
-      // .getSafetyWholesaleTimeslotIndex(), true);
-      // if (!safeKeys.isEmpty()) {
-      // DynamicData lastWholesaledd =
-      // brokerModel.getWholesaleCategory().getDynamicDataMap()
-      // .get(safeKeys.last());
-      // double profit = lastWholesaledd.getProfit();
-      // data.add(profit);
       WholesaleCategory wc = brokerModel.getWholesaleCategory();
       data.add(gradingBean.getWholesaleGrade(wc.getTotalRevenueFromSelling(),
                                              wc.getTotalCostFromBuying(),
                                              wc.getTotalEnergyBought(),
                                              wc.getTotalEnergySold()));
-/*      log.info("****("
-               + brokerModel.getName()
-               + ") "
-               + gradingBean.getWholesaleGrade(wc.getTotalRevenueFromSelling(),
-                                               wc.getTotalCostFromBuying(),
-                                               wc.getTotalEnergyBought(),
-                                               wc.getTotalEnergySold()));
-*/
       // balancing grade
-//      data.add(brokerModel.getBalancingCategory().getLastDynamicData()
-//              .getProfit());
-      data.add(gradingBean.getBalancingGrade(brokerModel
-                                             .getBalancingCategory().getEnergy(), brokerModel
-                                             .getDistributionCategory().getLastDynamicData()
-                                             .getEnergy(), brokerModel.getBalancingCategory()
-                                             .getProfit()));
-/*      log.info("Balance grade: "
-               + gradingBean.getBalancingGrade(brokerModel
-                       .getBalancingCategory().getEnergy(), brokerModel
-                       .getDistributionCategory().getLastDynamicData()
-                       .getEnergy(), brokerModel.getBalancingCategory()
-                       .getProfit()));
-*/
+      data.add(gradingBean.getBalancingGrade(brokerModel.getBalancingCategory()
+              .getEnergy(), brokerModel.getDistributionCategory()
+              .getLastDynamicData().getEnergy(), brokerModel
+              .getBalancingCategory().getProfit()));
       // distribution grade
       data.add(gradingBean.getDistributionGrade(brokerModel
               .getDistributionCategory().getLastDynamicData().getEnergy()));

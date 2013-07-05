@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
@@ -22,6 +23,7 @@ import com.google.gson.Gson;
  */
 public class TariffData
 {
+  private Logger log = Logger.getLogger(TariffData.class);
   private BrokerModel broker;
   private TariffSpecification spec;
 
@@ -129,33 +131,17 @@ public class TariffData
         // (1 == monday, ...)
         calendar.clear();
         calendar.set(2007, 0, rate.getWeeklyBegin(),
-                     rate.getDailyBegin() >= 0? rate.getDailyBegin() + 1: 0, 0, 0);
+                     rate.getDailyBegin() >= 0? rate.getDailyBegin() + 1: 0, 0,
+                     0);
         Object[] start =
-          {
-           // If the start hour of rate is specified, use it; otherwise it is
-           // set to 0
-           // Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
-           // rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
-           // rate.getMinValue() * 100
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
 
-           calendar.getTimeInMillis(), rate.getMinValue() * 100 };
-        // System.out.println("UTC: " + Date.UTC(2007 - 1900, 0,
-        // rate.getWeeklyBegin(), rate.getDailyBegin() >= 0?
-        // rate.getDailyBegin(): 0, 0, 0) + " -- Calendar: " +
-        // calendar.getTimeInMillis());
         data.add(start);
         calendar.clear();
         calendar.set(2007, 0, rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd()
                                                       : rate.getWeeklyBegin(),
                      rate.getDailyEnd() >= 0? rate.getDailyEnd() + 1: 23, 0, 0);
-        Object[] end = {
-                        // Date.UTC(2007 - 1900,
-                        // 0,
-                        // rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
-                        // .getDailyBegin(),
-                        // rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0,
-                        // 0)
-                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }
@@ -164,17 +150,12 @@ public class TariffData
         ArrayList<Object> data = new ArrayList<Object>();
         calendar.clear();
         calendar.set(2006, 0, 1, rate.getDailyBegin() + 1, 0, 0);
-        Object[] start = {
-                          // Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(),
-                          // 0, 0),
-                          calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        Object[] start =
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(start);
         calendar.clear();
         calendar.set(2006, 0, 1, rate.getDailyEnd() + 1, 0, 0);
-        Object[] end = {
-                        // Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0,
-                        // 0),
-                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }
@@ -184,21 +165,18 @@ public class TariffData
         ArrayList<Object> data = new ArrayList<Object>();
         calendar.clear();
         calendar.set(2007, 0, 1, 1, 0, 0);
-        Object[] start = {
-                          // Date.UTC(2007 - 1900, 0, 1, 0, 0, 0),
-                          calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        Object[] start =
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(start);
         calendar.clear();
         calendar.set(2007, 0, 7, 1, 0, 0);
-        Object[] end = {
-                        // Date.UTC(2007 - 1900, 0, 7, 0, 0, 0),
-                        calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
         data.add(end);
         series.add(new RatesGraphTemplate(data));
       }
 
       else {
-        System.out.println("NO template in TariffData!");
+        log.info("NO template in TariffData!");
       }
     }
     ratesGraph = gson.toJson(series);

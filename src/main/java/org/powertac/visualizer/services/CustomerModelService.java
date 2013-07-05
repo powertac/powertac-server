@@ -2,7 +2,6 @@ package org.powertac.visualizer.services;
 
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
@@ -26,8 +25,6 @@ public class CustomerModelService
   private String wholesaleDynDataOneTimeslot;
   private int customerType = 0;
 
-  private Logger log = Logger.getLogger(CustomerModelService.class);
-
   public ArrayList<Customer> getCustomers ()
   {
     return customers;
@@ -40,8 +37,6 @@ public class CustomerModelService
 
   public String getWholesaleDynDataOneTimeslot ()
   {
-    log.info("***Inside getWholesaleDynDataOneTimeslot. Getting data for index: "
-             + customerType);
     Gson gson = new Gson();
     ArrayList<Object> wholesaleTxDataOneTimeslot = new ArrayList<Object>();
     ArrayList<Object> profitDataOneTimeslot = new ArrayList<Object>();
@@ -69,13 +64,11 @@ public class CustomerModelService
                                                             mwhDataOneTimeslot,
                                                             true));
     this.wholesaleDynDataOneTimeslot = gson.toJson(wholesaleTxDataOneTimeslot);
-    log.info("***" + gson.toJson(wholesaleTxDataOneTimeslot));
     return gson.toJson(wholesaleTxDataOneTimeslot);
   }
 
   public void onChange (TabChangeEvent event)
   {
-    log.info("***Inside onChange");
     int i;
     int j = 0;
     for (i = 0; i < this.customerService.getCustomerList().size(); i++) {
@@ -86,6 +79,5 @@ public class CustomerModelService
         j++;
     }
     this.customerType = j;
-    log.info("***" + customerType);
   }
 }

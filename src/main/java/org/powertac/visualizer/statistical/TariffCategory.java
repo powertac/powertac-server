@@ -1,14 +1,9 @@
 package org.powertac.visualizer.statistical;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction;
-import org.powertac.common.TariffTransaction.Type;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.domain.broker.CustomerTariffData;
 import org.powertac.visualizer.domain.broker.TariffData;
@@ -44,7 +39,6 @@ public class TariffCategory extends AbstractPerformanceCategory
 
   private int customerCount;
   private TariffDynamicData lastTariffDynamicData;
-  private Logger log = Logger.getLogger(TariffCategory.class);
 
   // key: postedTime
   private ConcurrentHashMap<Integer, TariffDynamicData> tariffDynamicDataMap;

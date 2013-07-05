@@ -1,13 +1,11 @@
 package org.powertac.visualizer.domain.broker;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
-import org.powertac.common.TariffTransaction.Type;
 import org.powertac.visualizer.Helper;
 
 /**

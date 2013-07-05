@@ -19,9 +19,7 @@
 				});
 			
 			function handleTabChange(event, index) {
-				console.log("+++" + index);
 				var data = #{customerModelService.wholesaleDynDataOneTimeslot};
-				console.log(data);
 				customerModels = customerModelsChart('customerModels', data ,'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
 				customerModels.redraw();
 				

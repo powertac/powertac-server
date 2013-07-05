@@ -2,37 +2,23 @@ package org.powertac.visualizer.services.handlers;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.log4j.Logger;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
-import org.powertac.common.OrderbookOrder;
 import org.powertac.common.msg.TimeslotUpdate;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.MessageDispatcher;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.domain.broker.BrokerModel;
-import org.powertac.visualizer.domain.broker.TariffDynamicData;
-import org.powertac.visualizer.domain.wholesale.VisualizerOrderbook;
-import org.powertac.visualizer.domain.wholesale.WholesaleMarket;
-import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.interfaces.Initializable;
-import org.powertac.visualizer.json.WholesaleServiceJSON;
 import org.powertac.visualizer.services.BrokerService;
 import org.powertac.visualizer.services.GradingService;
 import org.powertac.visualizer.services.WholesaleService;
-import org.powertac.visualizer.statistical.DynamicData;
-import org.powertac.visualizer.statistical.TariffCategory;
 import org.powertac.visualizer.statistical.WholesaleCategory;
-import org.primefaces.json.JSONArray;
-import org.primefaces.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
