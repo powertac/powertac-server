@@ -107,7 +107,6 @@ public class BrokerService
 
   public void activate (int timeslotIndex, Instant postedTime)
   {
-
     // // do the push:
     PushContext pushContext = PushContextFactory.getDefault().getPushContext();
 
@@ -125,17 +124,17 @@ public class BrokerService
     ArrayList<ArrayList<Double>> brokersOverview =
       new ArrayList<ArrayList<Double>>();
 
-    Iterator<BrokerModel> brokerIterator = brokers.iterator();
-    double highestEnergyAmount =
-      brokerIterator.next().getDistributionCategory().getLastDynamicData()
-              .getEnergy();
-    while (brokerIterator.hasNext()) {
-      double energy =
-        brokerIterator.next().getDistributionCategory().getLastDynamicData()
-                .getEnergy();
-      if (energy > highestEnergyAmount)
-        highestEnergyAmount = energy;
-    }
+    // Iterator<BrokerModel> brokerIterator = brokers.iterator();
+    // double highestEnergyAmount =
+    // brokerIterator.next().getDistributionCategory().getLastDynamicData()
+    // .getEnergy();
+    // while (brokerIterator.hasNext()) {
+    // double energy =
+    // brokerIterator.next().getDistributionCategory().getLastDynamicData()
+    // .getEnergy();
+    // if (energy > highestEnergyAmount)
+    // highestEnergyAmount = energy;
+    // }
 
     NominationPusher np = null;
     for (Iterator iterator = brokers.iterator(); iterator.hasNext();) {
@@ -346,6 +345,7 @@ public class BrokerService
     for (int i = 0; i < brokers.size(); i++) {
       map.put(i, brokers.get(i).getFinanceCategory().getProfit());
     }
+
     ValueComparator bvc = new ValueComparator(map);
     TreeMap<Integer, Double> sorted_map = new TreeMap<Integer, Double>(bvc);
     sorted_map.putAll(map);
@@ -354,12 +354,37 @@ public class BrokerService
       int brokerID = (Integer) sorted_map.keySet().toArray()[j];
       TariffDynamicData tdd =
         brokers.get(brokerID).getTariffCategory().getLastTariffDynamicData();
+      // ///
+      NavigableSet<Integer> safeKeys =
+        new TreeSet<Integer>(brokers.get(brokerID).getWholesaleCategory()
+                .getDynamicDataMap().keySet()).headSet(helper
+                .getSafetyTimeslotIndex(), true);
+      double profitDelta = 0;
+      double energyDelta = 0;
+      if (!safeKeys.isEmpty()) {
+        DynamicData lastWholesaledd =
+          brokers.get(brokerID).getWholesaleCategory().getDynamicDataMap()
+                  .get(safeKeys.last());
+
+        profitDelta = lastWholesaledd.getProfitDelta();
+        energyDelta = lastWholesaledd.getEnergyDelta();
+      }
+      // //
       int customerDelta = tdd.getCustomerCount();
       Object[] pair =
-        { sorted_map.keySet().toArray()[j], sorted_map.values().toArray()[j],
-         customerDelta, tdd.getDynamicData().getTsIndex(),
+        {
+         sorted_map.keySet().toArray()[j],
+         sorted_map.values().toArray()[j],
+         customerDelta,
+         tdd.getDynamicData().getTsIndex(),
          tdd.getDynamicData().getEnergyDelta(),
-         tdd.getDynamicData().getProfitDelta(), tdd.getCustomerCountDelta() };
+         tdd.getDynamicData().getProfitDelta(),
+         tdd.getDynamicData().getTsIndex() != helper.getSafetyTimeslotIndex()? 0
+                                                                             : tdd.getCustomerCountDelta(),
+         profitDelta, energyDelta
+
+        };
+
       result.add(pair);
     }
     Gson gson = new Gson();

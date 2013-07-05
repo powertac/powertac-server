@@ -19,8 +19,9 @@
 	<script src="http://code.highcharts.com/stock/highstock.js"></script>
 	<script src="http://code.highcharts.com/stock/highcharts-more.js"></script>
 	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
+	<script type="text/javascript"
+		src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 
-	
 	<h:outputStylesheet library="css" name="modern.css" />
 	<h:outputStylesheet library="css" name="site.css" />
 	<h:outputScript library="js" name="charts.js" />
@@ -73,8 +74,8 @@
 				<ul class="menu">
 					<li data-role="dropdown"><a href="#">Overview</a>
 						<ul class="dropdown-menu">
-							<li><a href="transactionssummary">Game overview #1</a></li>
-							<li><a href="ranking">Game overview #2</a></li>
+							<li><a href="transactionssummary">Game overview</a></li>
+							<li><a href="ranking">Ranking</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Finance</a>
 						<ul class="dropdown-menu">
@@ -98,19 +99,19 @@
 							<li class="divider"></li>
 							<li><a href="wholesalemarkettxs">Market transactions</a></li>
 							<li class="divider"></li>
-							<li><a href="wholesaleavgpricepertimeslot">Average price
-									per timeslot</a></li>
-							<li class="divider"></li>
+							<li><a href="wholesaleavgpricepertimeslot">Average
+									clearing price</a></li>
+							<!--<li class="divider"></li>
 							<li><a href="#">GenCos - TODO</a></li>
 							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Balancing</a>
 						<ul class="dropdown-menu">
 							<li><a href="balancingcumulative">Cumulative scores</a></li>
 							<li><a href="balancingpertimeslot">Per timeslot scores</a></li>
-							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<!--<li class="divider"></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 
 					<li data-role="dropdown"><a href="#">Distribution</a>
@@ -118,8 +119,8 @@
 							<li><a href="distributioncumulative">Cumulative scores</a></li>
 							<li><a href="distributionpertimeslot">Per timeslot
 									scores</a></li>
-							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<!--<li class="divider"></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 					<li><a href="weatherreport">Weather report</a></li>
 				</ul>
@@ -227,13 +228,11 @@
 						<div class="tile bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>Date and Time</h2>
-								<br />
-								<h3 id="date"></h3>
-								<h4 id="clock"></h4>
+
+								<h2>Information Panel</h2>
 							</div>
 							<div class="brand">
-								<div class=" icon-clock statusIcon" />
+								<div class=" icon-info statusIcon" />
 							</div>
 						</div>
 
@@ -255,7 +254,7 @@
 						<div class="tile bg-color-purple" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>Balance Leader</h2>
+								<h2>Imbalanced Energy</h2>
 								<br />
 								<h4 id="balanceBroker"></h4>
 								<p>Congrats!</p>
@@ -287,45 +286,37 @@
 
 						<div class="tile last bg-color-orangeDark" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<!-- <div class="tile-content">
-								 <h2>To Be Defined</h2> 
-								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
-							</div> 
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-clock statusIcon" />
-							</div> -->
+							<div class="tile-content">
+								<h2>Power TAC</h2>
+
+							</div>
+
 						</div>
 
 						<div class="tile bg-color-darken" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							 <div class="tile-content">
-								<h2>Timeslot</h2>
+							<div class="tile-content">
+								<h2>Date and Time</h2>
+								<br />
+								<h3 id="date"></h3>
+								<h4 id="clock"></h4>
+							</div>
+							<div class="brand">
+								<div class=" icon-clock statusIcon" />
+							</div>
+						</div>
+
+						<div class="tile bg-color-grey" data-role="tile-slider"
+							data-param-period="5000" data-param-direction="left">
+							<div class="tile-content">
+								<h2>Current Timeslot</h2>
 								<br />
 								<h3 id="timeslot"></h3>
 								<p id="clock"></p>
 							</div>
 							<div class="brand">
 								<div class=" icon-clock statusIcon" />
-							</div> 
-						</div>
-
-						<div class="tile bg-color-grey" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<!-- <div class="tile-content">
-								<h2>To Be Defined</h2>
-								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-clock statusIcon" />
-							</div> -->
 						</div>
 
 
@@ -348,17 +339,10 @@
 
 						<div class="tile last bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
-							<!-- <div class="tile-content">
-								<h2>To Be Defined</h2>
-								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
+							<div class="tile-content">
+								<h2>Visualizer</h2>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-clock statusIcon" />
-							</div> -->
+
 						</div>
 
 

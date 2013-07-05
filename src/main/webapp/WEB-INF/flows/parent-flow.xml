@@ -4,12 +4,10 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/webflow
         http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd">
 
-	
-	
 	<input name="tab" value="flowScope.tab" required="false" />
 	
 	<on-start>
-		<evaluate expression="brokerService.getBrokers()"
+		<evaluate expression="brokerService.getBrokersMap().values()"
 			result="conversationScope.brokersClone"></evaluate>
 		<!-- <evaluate expression="customerService.getCustomerList()"
 			result="conversationScope.customers"></evaluate> -->
@@ -18,13 +16,8 @@
 	<end-state id="end"
 		view="externalRedirect:servletRelative:/home?tab=#{tab}" />
 		
-		
 	<global-transitions>
-
 		<transition on="exit" to="end" />
-		
-	
-		
 	</global-transitions>
 
 </flow>

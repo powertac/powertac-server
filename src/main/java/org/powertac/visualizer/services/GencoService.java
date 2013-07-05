@@ -1,9 +1,5 @@
 package org.powertac.visualizer.services;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
@@ -11,6 +7,9 @@ import org.powertac.visualizer.domain.genco.Genco;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Takes care of gencos' data.
@@ -24,7 +23,6 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 	private static Logger log = Logger.getLogger(GencoService.class);
 
 	private HashMap<String, Genco> gencoMap;
-	private ArrayList<Genco> gencoList;
 
 	public GencoService() {
 		recycle();
@@ -33,16 +31,13 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 	/**
 	 * Creates and adds genco for the specified broker.
 	 * 
-	 * @param template
-	 *            broker
-	 * @return created broker
+	 * @param broker
+	 * @return created genco
 	 */
 	public Genco addGenco(Broker broker) {
 		Genco genco = new Genco(broker);
 
 		gencoMap.put(genco.getBroker().getUsername(), genco);
-		// rebuild list:
-		gencoList = new ArrayList<Genco>(gencoMap.values());
 		log.info(genco.toString() + " added.");
 		return genco;
 	}
@@ -51,7 +46,7 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 	 * Returns null if genco cannot be found.
 	 * 
 	 * @param username
-	 * @return
+	 * @return genco
 	 */
 	public Genco findGencoByUsername(String username) {
 		return gencoMap.get(username);
@@ -59,18 +54,17 @@ public class GencoService implements TimeslotCompleteActivation, Recyclable {
 
 	@SuppressWarnings("unchecked")
 	public List<Genco> getGencoList() {
-		return (List<Genco>) gencoList.clone();
+		return (List<Genco>) gencoMap.values();
 	}
 
 	public void activate(int timeslotIndex, Instant postedTime) {
-    for (Genco genco: gencoList) {
+    for (Genco genco: gencoMap.values()) {
       genco.update(timeslotIndex, postedTime);
     }
 	}
 
 	public void recycle() {
 		gencoMap = new HashMap<String, Genco>();
-		gencoList = new ArrayList<Genco>();
 	}
 
 }

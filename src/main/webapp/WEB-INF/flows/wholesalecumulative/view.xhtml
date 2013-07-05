@@ -14,7 +14,6 @@
 		function handleWholesaleMarketPush(data) {
 			
 			var array = jQuery.parseJSON(data);
-			console.log(array);
 			var cnt = 0;
 			jQuery.each(array, function() {
 				  var pushObject = this;
@@ -28,8 +27,8 @@
 		var wholesaleDynData;
 		$(document).ready(
 			function() {
-			
-				wholesaleDynData = dynDataGraph('wholesaleDynData',#{wholesaleMarketBean.wholesaleDynData},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
+				var appending = new Array("PRICE(&euro;)", "ENERGY(MWh)");
+				wholesaleDynData = dynDataGraph('wholesaleDynData',#{wholesaleMarketBean.wholesaleDynData},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"), appending);
 			}		
 		);
 			

@@ -1,11 +1,10 @@
 package org.powertac.visualizer.domain.genco;
 
-import java.util.ArrayList;
-import java.util.TreeMap;
-
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
 import org.powertac.common.Timeslot;
+
+import java.util.ArrayList;
 
 /**
  * Contains data about broker's wholesale performance for one timeslot. Firstly

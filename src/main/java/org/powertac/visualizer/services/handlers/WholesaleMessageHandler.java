@@ -26,6 +26,7 @@ import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
 import org.powertac.visualizer.interfaces.Initializable;
 import org.powertac.visualizer.json.WholesaleServiceJSON;
 import org.powertac.visualizer.services.BrokerService;
+import org.powertac.visualizer.services.GradingService;
 import org.powertac.visualizer.services.WholesaleService;
 import org.powertac.visualizer.statistical.DynamicData;
 import org.powertac.visualizer.statistical.TariffCategory;
@@ -36,85 +37,115 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class WholesaleMessageHandler implements Initializable {
+public class WholesaleMessageHandler implements Initializable
+{
 
-	private Logger log = Logger.getLogger(WholesaleMessageHandler.class);
+  private Logger log = Logger.getLogger(WholesaleMessageHandler.class);
 
-	@Autowired
-	private VisualizerBean visualizerBean;
-	@Autowired
-	private MessageDispatcher router;
-	@Autowired
-	private WholesaleService wholesaleService;
-	@Autowired
-	private BrokerService brokerService;
-	@Autowired
-	private VisualizerHelperService helper;
+  @Autowired
+  private VisualizerBean visualizerBean;
+  @Autowired
+  private MessageDispatcher router;
+  @Autowired
+  private WholesaleService wholesaleService;
+  @Autowired
+  private BrokerService brokerService;
+  @Autowired
+  private VisualizerHelperService helper;
+  @Autowired
+  private GradingService gradingBean;
 
-	public void initialize() {
-		for (Class<?> clazz : Arrays.asList(Order.class, Orderbook.class,
-				ClearedTrade.class, MarketPosition.class,
-				MarketTransaction.class)) {
-			router.registerMessageHandler(this, clazz);
-		}
+  public void initialize ()
+  {
+    for (Class<?> clazz: Arrays.asList(Order.class, Orderbook.class,
+                                       ClearedTrade.class,
+                                       MarketPosition.class,
+                                       MarketTransaction.class)) {
+      router.registerMessageHandler(this, clazz);
+    }
 
-	}
+  }
 
-	/**
-	 * Handles message received when wholesale market transaction has been made.
-	 * Updates timeslot in marketTxs with received data, and adds received transaction to list of transactions. 
-	 * */
-	public void handleMessage(MarketTransaction msg) {
+  /**
+   * Handles message received when wholesale market transaction has been made.
+   * Updates timeslot in marketTxs with received data, and adds received
+   * transaction to list of transactions.
+   * */
+  public void handleMessage (MarketTransaction msg)
+  {
 
-		BrokerModel broker = brokerService.getBrokersMap().get(
-				msg.getBroker().getUsername());
+    BrokerModel broker =
+      brokerService.getBrokersMap().get(msg.getBroker().getUsername());
 
-		if (broker != null) {
-			WholesaleCategory wc = broker.getWholesaleCategory();
+    if (broker != null) {
+      WholesaleCategory wc = broker.getWholesaleCategory();
 
-			int tsIndex = msg.getTimeslot().getSerialNumber();
-			wc.update(tsIndex, msg.getMWh(), msg.getPrice()*msg.getMWh());
-			
-			wc.getMarketTxs().putIfAbsent(msg.getTimeslot().getSerialNumber(), new ArrayList<MarketTransaction>(24));
-			wc.getMarketTxs().get(msg.getTimeslot().getSerialNumber()).add(msg);
-		}
-	}
+      int tsIndex = msg.getTimeslot().getSerialNumber();
+      wc.update(tsIndex, msg.getMWh(), msg.getPrice() * msg.getMWh());
 
-	public void handleMessage(MarketPosition marketPosition) {
+      wc.getMarketTxs().putIfAbsent(msg.getTimeslot().getSerialNumber(),
+                                    new ArrayList<MarketTransaction>(24));
+      wc.getMarketTxs().get(msg.getTimeslot().getSerialNumber()).add(msg);
+      if (msg.getMWh() > 0){
+        wc.addEnergyBought(msg.getMWh());
+        wc.addCostFromBuying(msg.getPrice()* msg.getMWh());
+        gradingBean.addBoughtEnergyWholesaleMarket(msg.getMWh());
+        gradingBean.addMoneyFromBuyingWholesaleMarket(msg.getPrice()* msg.getMWh());
+      }
+    
+      else{
+        wc.addEnergySold(msg.getMWh());
+        wc.addRevenueFromSelling(msg.getPrice() * msg.getMWh());
+        gradingBean.addSoldEnergyWholesaleMarket(msg.getMWh());
+        gradingBean.addMoneyFromSellingWholesaleMarket(msg.getPrice() * msg.getMWh());
+      }
+    }
+  }
 
-	}
+  public void handleMessage (MarketPosition marketPosition)
+  {
 
-	public void handleMessage(Order order) {
+  }
 
-		// BrokerModel broker = brokerService.getBrokersMap().get(
-		// order.getBroker().getUsername());
-		// order.getTimeslot().getStartInstant().getMillis();
-		//
-		// if (broker != null) {
-		// WholesaleCategory cat = broker.getWholesaleCategory();
-		//
-		// }
+  public void handleMessage (Order order)
+  {
+    log.info("+++ Order in ts:" + helper.getSafetyTimeslotIndex() + "-- From: "
+             + order.getBroker() + ", for TS: " + order.getTimeslotIndex());
 
-	}
+    BrokerModel broker =
+      brokerService.getBrokersMap().get(order.getBroker().getUsername());
 
-	public void handleMessage(Orderbook orderbook) {
-	}
+    if (broker != null) {
+      WholesaleCategory cat = broker.getWholesaleCategory();
+      int tsIndex = order.getTimeslotIndex();
+      cat.getOrders().putIfAbsent(tsIndex, new ArrayList<Order>(24));
+      cat.getOrders().get(tsIndex).add(order);
+    }
 
-	public void handleMessage(ClearedTrade ct) {
-		ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map = wholesaleService.getClearedTrades();
-		// if there is a new key:
-		map.putIfAbsent(ct.getTimeslot().getStartInstant().getMillis(),
-				new ConcurrentHashMap<Long, ClearedTrade>(24, 0.75f, 1));
+  }
 
-		TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
+  public void handleMessage (Orderbook orderbook)
+  {
+  }
 
-		if (old != null) {
-			map.get(ct.getTimeslot().getStartInstant().getMillis()).put(
-					old.getPostedTime().getMillis(), ct);
-		} else {
-			log.warn("The old timeslot update does not exist.");
-		}
+  public void handleMessage (ClearedTrade ct)
+  {
+    ConcurrentHashMap<Long, ConcurrentHashMap<Long, ClearedTrade>> map =
+      wholesaleService.getClearedTrades();
+    // if there is a new key:
+    map.putIfAbsent(ct.getTimeslot().getStartInstant().getMillis(),
+                    new ConcurrentHashMap<Long, ClearedTrade>(24, 0.75f, 1));
 
-	}
+    TimeslotUpdate old = visualizerBean.getOldTimeslotUpdate();
+
+    if (old != null) {
+      map.get(ct.getTimeslot().getStartInstant().getMillis())
+              .put(old.getPostedTime().getMillis(), ct);
+    }
+    else {
+      log.warn("The old timeslot update does not exist.");
+    }
+
+  }
 
 }

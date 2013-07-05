@@ -13,11 +13,14 @@
 	var distributionDynData;
 	  $(document).ready(
 				function() {
-					distributionDynData = dynDataGraph('distributionDynData',#{distributionBean.distributionDynData},'',getBaseDynYAxisData("Price (&euro;)","Distributed energy (kWh)"));
+					var appending = new Array("PRICE(&euro;)", "ENERGY(kWh)");
+					distributionDynData = dynDataGraph('distributionDynData',#{distributionBean.distributionDynData},'',getBaseDynYAxisData("Price (&euro;)","Distributed energy (kWh)"), appending);
 					
 				});
 	  	
 	function handleDistributionPush(data) {
+		
+		console.log(data);
 		
 		var array = jQuery.parseJSON(data);
 		var cnt = 0;

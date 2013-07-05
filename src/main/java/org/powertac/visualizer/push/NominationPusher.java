@@ -5,6 +5,7 @@ public class NominationPusher {
 	private NominationCategoryPusher profit;
 	private NominationCategoryPusher balance;
 	private NominationCategoryPusher customerNumber;
+
 	
 	public NominationPusher() {
 		// TODO Auto-generated constructor stub

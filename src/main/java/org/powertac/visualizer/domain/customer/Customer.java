@@ -84,6 +84,13 @@ public class Customer implements TimeslotModelUpdate {
 		return customerInfo;
 	}
 
+  @Override
+  public String toString ()
+  {
+    // TODO Auto-generated method stub
+    return this.getCustomerInfo().getName();
+  }
+
 	
 
 }

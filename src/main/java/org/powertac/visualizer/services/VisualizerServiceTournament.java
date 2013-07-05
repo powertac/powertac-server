@@ -130,11 +130,6 @@ public class VisualizerServiceTournament
   @Autowired
   private MessageDispatcher dispatcher;
 
-  public VisualizerServiceTournament ()
-  {
-    super();
-  }
-
   /**
    * Called on initialization to start message feeder and state machine.
    */

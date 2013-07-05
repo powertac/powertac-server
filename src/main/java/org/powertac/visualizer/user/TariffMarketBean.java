@@ -224,6 +224,7 @@ public class TariffMarketBean implements Serializable {
 			// -tom
 		}// end BROKER for loop
 		this.tariffDynData = gson.toJson(tariffData);
+		log.info("***" + this.tariffDynData);
 		this.tariffDynDataOneTimeslot = gson.toJson(tariffDataOneTimeslot);
 		this.customerStatictics = gson.toJson(customerStaticticsArray);
 		//log.info("*****" + customerStatictics);

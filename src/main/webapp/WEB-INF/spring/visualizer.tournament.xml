@@ -10,7 +10,14 @@
 
   <context:annotation-config />
 	<!-- <context:component-scan base-package="org.powertac.visualizer" /> -->
-  <context:component-scan base-package="org.powertac" />	
+  <context:component-scan base-package="org.powertac" >
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.services.VisualizerServiceEmbedded.*" />
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.services.competitioncontrol.GameParametersBean.*" />
+    <context:exclude-filter type="regex"
+                            expression="org.powertac.visualizer.services.competitioncontrol.WebCompetitionControlService.*" />
+  </context:component-scan>
 
   <!-- externalized properties -->
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
