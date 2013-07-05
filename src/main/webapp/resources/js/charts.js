@@ -6,32 +6,32 @@ function getOneDynYAxisData(firstTitle) {
 		lineWidth : 2
 	} ];
 }
-/*
+
 function shown(dataGraph) {
-	
+
 	var chart = new Highcharts.Chart({
 
 		chart : {
 			renderTo : 'chart'
 		},
-		
-		yAxis: {
-            title: {
-                text: 'Price (€/kWh)'
-            }
-        },
-        
-        legend: {
-            enabled:false
-        },
-        
-        tooltip: {
-        	enabled:false
-        },
-		
-		title: {
-            text: 'Rates'
-        },
+
+		yAxis : {
+			title : {
+				text : 'Price (€cent/kWh)'
+			}
+		},
+
+		legend : {
+			enabled : false
+		},
+
+		tooltip : {
+			enabled : false
+		},
+
+		title : {
+			text : 'Rates'
+		},
 
 		xAxis : {
 			type : 'datetime',
@@ -47,13 +47,11 @@ function shown(dataGraph) {
 			}
 
 		},
-		series : [ {
-			data : dataGraph
-		} ]
+		series : dataGraph
 
 	});
 }
-*/
+
 function checkRange(x, n, m) {
 	if (x >= n && x <= m) {
 		return true;
@@ -95,7 +93,8 @@ function getTariffDynYAxisData(title, firstBaseTitle, secondBaseTitle) {
 	return baseDynYAxisData;
 }
 
-function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
+function dynDataGraph(renderDiv, seriesData, titleData, yAxisData, appending) {
+
 	return new Highcharts.StockChart(
 			{
 				chart : {
@@ -156,7 +155,7 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 				// },
 				tooltip : {
 					formatter : function() {
-						var appending = new Array("PRICE", "ENER", "CUST");
+						// var appending = new Array("PRICE", "ENER", "CUST");
 						var broker = this.points[0].series.name;
 						var increment = 1;
 						// console.log(this);
@@ -167,8 +166,9 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 
 								increment++;
 						}
-						// console.log(this);
+						
 						var builder = "";
+
 						for ( var i = 0; i < this.points.length; i++) {
 							builder += '<span style="color:'
 									+ this.points[i].series.color
@@ -181,6 +181,8 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 									+ Highcharts.numberFormat(this.points[i].y,
 											2) + '</b><br />';
 						}
+						builder += Highcharts.dateFormat('%A, %b %e, %Hh',
+								this.x);
 						return builder;
 					}
 				},
@@ -205,6 +207,7 @@ function dynDataGraph(renderDiv, seriesData, titleData, yAxisData) {
 				if (chart.series[increment] !== undefined)
 					while (chart.series[increment].name == broker)
 						increment++;
+				
 				for ( var index = 0; index < chart.series.length - 2; index += increment)
 					$(chart.series[index]).each(function(i, e) {
 						e.legendItem.on('click', function(event) {
@@ -235,7 +238,7 @@ function wholesaleClearingEnergy(renderDiv, receivedData, titleData, yAxisData) 
 	var revenue = [];
 	var energy = [];
 	var dataLength = data.length;
-
+	
 	for ( var i = 0; i < dataLength; i++) {
 
 		revenue.push([ data[i][0], // timeslot
@@ -303,7 +306,7 @@ function wholesaleClearingEnergy(renderDiv, receivedData, titleData, yAxisData) 
 		yAxis : yAxisData,
 
 		series : [ {
-			name : 'Average clearing price',
+			name : 'Average clearing price(€)',
 			// marker : {enabled : true,radius : 3 },
 			dataGrouping : {
 				enabled : false
@@ -313,7 +316,7 @@ function wholesaleClearingEnergy(renderDiv, receivedData, titleData, yAxisData) 
 				valueDecimals : 2
 			}
 		}, {
-			name : 'Total energy',
+			name : 'Total energy(MWh)',
 			type : 'column',
 			data : energy,
 			yAxis : 1,
@@ -619,7 +622,7 @@ function transactionsSummary(seriesData) {
 				},
 
 				xAxis : {
-					categories : [ 'Total', 'Tariff', 'Wholesale', 'Balancing',
+					categories : [ 'Tariff', 'Wholesale', 'Balancing',
 							'Distribution' ],
 					tickmarkPlacement : 'on',
 					lineWidth : 0
@@ -627,13 +630,45 @@ function transactionsSummary(seriesData) {
 
 				yAxis : {
 					gridLineInterpolation : 'polygon',
-					lineWidth : 0,
-					min : -10000000
+					lineWidth : 0
 				},
 
 				tooltip : {
 					shared : true,
-					pointFormat : '<span style="color:{series.color}">{series.name}: <b>€{point.y:,.0f}</b><br/>'
+					formatter : function() {
+						builder = "";
+						builder += this.x + ' grade<br />';
+						if (this.x == 'Wholesale') {
+							builder += "<li>*Broker's price compared to overall average price for buying energy<br/></li>";
+							builder += "<li>*Broker's price compared to overall average price for selling energy<br/></li>";
+						}
+						if (this.x == 'Tariff') {
+							builder += "<li>*Broker's share in overall money flow<br/></li>";
+							builder += "<li>*Broker's share in overall sold energy<br/></li>";
+							builder += "<li>*Broker's share in overall bought energy<br/></li>";
+						}
+						if (this.x == 'Balancing') {
+							builder += "<li>*Broker's share in overall grid's imbalance<br/></li>";
+							builder += "<li>*Imbalance fee<br/></li>";
+						}
+						if (this.x == 'Distribution') {
+							builder += "<li>*Broker's share in overall energy distribution<br/></li>";
+						}
+						
+						
+						for ( var i = 0; i < this.points.length; i++) {
+							builder += '<span style="color:'
+									+ this.points[i].series.color
+									+ '">'
+									+ this.points[i].series.name
+									+ ': '
+									+ '</span><b>'
+									+ Highcharts.numberFormat(this.points[i].y,
+											0) + '</b><br />';
+						}
+						return builder
+					}
+
 				},
 
 				legend : {
@@ -651,5 +686,99 @@ function transactionsSummary(seriesData) {
 			 * [1400000, 1430000, 137000, 386000, 239000], pointPlacement: 'on' }]
 			 */
 			});
+
+}
+
+function customerModelsChart(renderDiv, seriesData, titleData, yAxisData,
+		appending) {
+
+	return new Highcharts.StockChart({
+		chart : {
+			renderTo : renderDiv,
+			alignTicks : false,
+			backgroundColor : null,
+			marginRight : 130,
+			marginBottom : 70
+
+		},
+
+		plotLines : [ {
+			value : 0,
+			width : 1
+
+		} ],
+		yAxis : yAxisData,
+
+		rangeSelector : {
+			buttons : [ {
+				count : 1,
+				type : 'hour',
+				text : '1H'
+			}, {
+				count : 1,
+				type : 'day',
+				text : '1D'
+			}, {
+				count : 1,
+				type : 'week',
+				text : '1W'
+			}, {
+				count : 2,
+				type : 'week',
+				text : '2W'
+			}, {
+				count : 1,
+				type : 'month',
+				text : '1M'
+			}, {
+				type : 'all',
+				text : 'All'
+			} ],
+			inputEnabled : true,
+			selected : 5
+		},
+
+		title : {
+			text : titleData
+		},
+
+		exporting : {
+			enabled : true
+		},
+
+		 tooltip : {
+		 formatter : function() {
+
+		 var builder = "";
+		 				
+		 for ( var i = 0; i < this.points.length; i++) {
+		 builder += '<span style="color:'
+		 + this.points[i].series.color
+		 + '">'
+		 + this.points[i].series.name
+		 + ': '
+		 + '</span><b>'
+		 + Highcharts.numberFormat(this.points[i].y,
+		 2) + '</b><br />';
+		 }
+		 builder += Highcharts.dateFormat('%A, %b %e, %Hh', this.x);
+		 return builder;
+		 }
+		 },
+		legend : {
+			align : "right",
+			layout : "vertical",
+			enabled : true,
+			verticalAlign : "middle"
+
+		/*
+		 * labelFormatter: function() { return this.name + ' (T)'; }
+		 */
+
+		},
+
+		series : seriesData
+
+	});
 
 }

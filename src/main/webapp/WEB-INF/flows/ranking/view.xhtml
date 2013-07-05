@@ -1,0 +1,95 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title"></ui:define>
+
+	<ui:define name="headInclude">
+		<script type="text/javascript">
+			var	numberOfBrokers;
+			$(document).ready(
+				function() {
+					$('#broker0').append(&apos;&lt;div id=&quot;headerWholesale&quot; class=&quot;tile header&quot;&gt;&lt;h2&gt;Wholesale&lt;/h2&gt;&lt;/div&gt;&apos;);
+					$('#broker0').append(&apos;&lt;div id=&quot;headerRanking&quot; class=&quot;tile double header&quot;&gt;&lt;h2&gt;Ranking&lt;/h2&gt;&lt;/div&gt;&apos;);
+					$('#broker0').append(&apos;&lt;div id=&quot;headerTariff&quot; class=&quot;tile header&quot;&gt;&lt;h2&gt;Tariff&lt;/h2&gt;&lt;/div&gt;&apos;);
+					var brokers = #{brokerService.brokerNames};
+					numberOfBrokers = #{brokerService.numberOfBrokers};
+					var rank = #{brokerService.ranking};
+					var tariffEnergyDelta = #{brokerService.energyDelta};
+					var tariffRevenueDelta = #{brokerService.revenueDelta};
+					var tariffCustomersDelta = #{brokerService.customersDelta};
+					for(var i=0; i &lt; numberOfBrokers;i++){
+						var position = i+1;
+						$('#broker0').append(&apos;&lt;div id=&quot;wholesale&apos; + i + &apos;&quot; class=&quot;tile image-slider&quot; data-role=&quot;tile-slider&quot; data-param-direction=&quot;right&quot; data-param-period=&quot;4000&quot;&gt;&lt;div class=&quot;tile-content&quot;&gt;&lt;div&gt;Traded energy:&lt;/div&gt;&lt;h3 id=&quot;energyDeltaWholesale&apos;+i+&apos;&quot;&gt;&lt;/h3&gt;&lt;/div&gt;&lt;div class=&quot;tile-content&quot;&gt;&lt;div&gt;Revenue:&lt;/div&gt;&lt;h3 id=&quot;revenueDeltaWholesale&apos;+i+&apos;&quot;&gt;&lt;/h3&gt;&lt;/div&gt;&lt;/div&gt;&apos;);
+						$('#broker0').append(&apos;&lt;div id=&quot;div&apos;+i+&apos;&quot; class=&quot;tile double&quot;&gt;&lt;div id=&quot;name&quot;&gt;&lt;h2&gt;&apos;+brokers[i] +&apos;&lt;/h2&gt;&lt;/div&gt;&lt;div id=&quot;profit&apos;+i+&apos;&quot; /&gt; &lt;/div&gt;&apos;);
+						$('#broker0').append(&apos;&lt;div id=&quot;tariff&apos; + i + &apos;&quot; class=&quot;tile image-slider&quot; data-role=&quot;tile-slider&quot; data-param-direction=&quot;right&quot; data-param-period=&quot;4000&quot;&gt;&lt;div class=&quot;tile-content&quot;&gt;&lt;div&gt;Traded energy:&lt;/div&gt;&lt;h3 id=&quot;energyDelta&apos;+i+&apos;&quot;&gt;&lt;br/&gt;&lt;/h3&gt;&lt;div&gt;Revenue:&lt;/div&gt;&lt;h3 id=&quot;revenueDelta&apos;+i+&apos;&quot;&gt;&lt;br/&gt;&lt;/h3&gt;&lt;/div&gt;&lt;div class=&quot;tile-content&quot;&gt;&lt;div&gt;Customer portfolio:&lt;/div&gt;&lt;h3 id=&quot;customersDelta&apos;+i+&apos;&quot;&gt;&lt;br/&gt;&lt;/h3&gt;&lt;/div&gt;&lt;/div&gt;&apos;);
+					}
+					for(var i=0; i &lt; numberOfBrokers;i++){
+						var profit = parseFloat(rank[i][1]);
+						var customerDelta = rank[i][2];
+						var energyDelta = parseFloat(rank[i][4]);
+						var revenueDelta =parseFloat(rank[i][5]);
+						var customersDelta = rank[i][6];
+						var wholesaleProfit = rank[i][7];
+						var wholesaleEnergy = rank[i][8];
+						$("#profit"+rank[i][0]).text("Profit:" + profit.toFixed(0) + " &euro;");
+						$("#energyDelta"+rank[i][0]).text(energyDelta.toFixed(0) + " kWh");
+						$("#revenueDelta"+rank[i][0]).text(revenueDelta.toFixed(0) + " &euro;");
+						$("#energyDeltaWholesale"+rank[i][0]).text(wholesaleEnergy.toFixed(0) + " MWh");
+						$("#revenueDeltaWholesale"+rank[i][0]).text(wholesaleProfit.toFixed(0) + " &euro;");
+						var customerChange = "No changes!";
+						if (customersDelta &gt; 0) customerChange = "+" + customersDelta;
+						if (customersDelta &lt; 0) customerChange = "-" + customersDelta;
+						$("#customersDelta"+rank[i][0]).text(customerChange);
+						var movement = (rank[i][0] - i) * -160;
+						move('div'+rank[i][0]).y(movement).end();
+						move('tariff'+rank[i][0]).y(movement).end();
+						move('wholesale'+rank[i][0]).y(movement).end();
+					}		
+				});
+			
+				function generateRanking(data){	
+					var rank = jQuery.parseJSON(data);
+					for(var i=0; i &lt; numberOfBrokers;i++){
+						var profit = parseFloat(rank[i][1]);
+						var customerDelta = rank[i][2];
+						var energyDelta = parseFloat(rank[i][4]);
+						var revenueDelta =parseFloat(rank[i][5]);
+						var customersDelta = rank[i][6];
+						var wholesaleProfit = rank[i][7];
+						var wholesaleEnergy = rank[i][8];
+						$("#profit"+rank[i][0]).text("Profit: " + profit.toFixed(0) + " &euro;");
+						$("#customerCount"+rank[i][0]).text("Customers: " + customerDelta);
+						$("#energyDelta"+rank[i][0]).text(energyDelta.toFixed(0) + " kWh");
+						$("#revenueDelta"+rank[i][0]).text(revenueDelta.toFixed(0) + " &euro;");
+						$("#energyDeltaWholesale"+rank[i][0]).text(wholesaleEnergy.toFixed(0) + " MWh");
+						$("#revenueDeltaWholesale"+rank[i][0]).text(wholesaleProfit.toFixed(0) + " &euro;");
+						var customerChange = "No changes!";
+						if (customersDelta &gt; 0) customerChange = "+" + customersDelta;
+						if (customersDelta &lt; 0) customerChange = customersDelta;
+						$("#customersDelta"+rank[i][0]).text(customerChange);
+						var movement = (rank[i][0] - i) * -160;
+						move('div'+rank[i][0]).y(movement).end();
+						move('tariff'+rank[i][0]).y(movement).end();
+						move('wholesale'+rank[i][0]).y(movement).end();
+					}
+				}
+		</script>
+
+	</ui:define>
+
+	<ui:define name="maincontent">
+
+		<div id="broker0"
+			style="width: 650px; height: 10px; padding-left: 10px; margin: auto;" />
+
+		<p:socket onMessage="generateRanking" channel="/ranking" />
+	</ui:define>
+
+	<ui:define name="rowcontent"></ui:define>
+
+</ui:composition>

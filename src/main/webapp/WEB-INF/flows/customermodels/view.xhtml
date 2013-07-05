@@ -1,0 +1,81 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	template="/WEB-INF/layouts/visualizer/master.xhtml">
+
+	<ui:define name="title">Customer Models</ui:define>
+
+	<ui:define name="headInclude">
+
+		<script type="text/javascript">
+			var customerModels;
+			$(document).ready(
+				function() {
+					var appending = new Array();
+					customerModels = customerModelsChart('customerModels',#{customerModelService.wholesaleDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"), appending);
+				});
+			
+			function handleTabChange(event, index) {
+				var data = #{customerModelService.wholesaleDynDataOneTimeslot};
+				customerModels = customerModelsChart('customerModels', data ,'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
+				customerModels.redraw();
+				
+				}
+
+			
+		</script>
+
+	</ui:define>
+
+	<ui:define name="maincontent">
+		<p:tabView id="tabView" var="customer"
+			value="#{customerModelService.customerService.customerList}"
+			onTabChange="handleTabChange(event, index)">
+
+			<p:ajax event="tabChange" listener="#{customerModelService.onChange}"
+				update=":formB:mustRefresh" />
+
+			<p:tab id="customerTab" title="#{customer.customerInfo.name}">
+
+				<h:panelGrid columns="2" cellpadding="10">
+
+					<h:panelGrid columns="2" cellpadding="10">
+						<h:outputText value="Name: " />
+						<h:outputText id="customerName"
+							value="#{customer.customerInfo.name}" />
+
+						<h:outputText value="Population: " />
+						<h:outputText id="population"
+							value="#{customer.customerInfo.population}" />
+
+					</h:panelGrid>
+
+				</h:panelGrid>
+
+			</p:tab>
+
+		</p:tabView>
+		<h:form id="formB">
+			<p:panel id="mustRefresh">
+				<script>var data = #{customerModelService.wholesaleDynDataOneTimeslot};
+					customerModels = customerModelsChart('customerModels', data ,'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
+					customerModels.redraw();</script>
+			</p:panel>
+
+		</h:form>
+
+		<div id="customerModels"
+			style="min-width: 400px; height: 620px; margin: 0 auto" />
+
+
+	</ui:define>
+
+	<ui:define name="rowcontent">
+
+	</ui:define>
+
+
+</ui:composition>

@@ -1,22 +1,13 @@
 package org.powertac.visualizer.domain.customer;
 
-import javax.swing.text.DefaultEditorKit.CutAction;
-
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeField;
 import org.joda.time.Instant;
-import org.joda.time.ReadableDateTime;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.CustomerBootstrapData;
-import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.domain.broker.CustomerModel;
 import org.powertac.visualizer.interfaces.TimeslotModelUpdate;
-import org.powertac.visualizer.json.CustomerJSON;
-import org.primefaces.json.JSONArray;
-import org.primefaces.json.JSONException;
 
 /**
  * Holds data for a particular customer type.
@@ -83,6 +74,13 @@ public class Customer implements TimeslotModelUpdate {
 	public CustomerInfo getCustomerInfo() {
 		return customerInfo;
 	}
+
+  @Override
+  public String toString ()
+  {
+    // TODO Auto-generated method stub
+    return this.getCustomerInfo().getName();
+  }
 
 	
 

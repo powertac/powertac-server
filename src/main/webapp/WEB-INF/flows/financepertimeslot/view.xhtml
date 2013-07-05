@@ -13,7 +13,8 @@
 	var financeDynDataOneTimeslot;
 	  $(document).ready(
 				function() {
-					financeDynDataOneTimeslot = dynDataGraph('financeDynDataOneTimeslot',#{financeBean.financeDynDataOneTimeslot},'',getOneDynYAxisData('Profit(&euro;)'));
+					var appending = new Array("PROFIT(&euro;)");
+					financeDynDataOneTimeslot = dynDataGraph('financeDynDataOneTimeslot',#{financeBean.financeDynDataOneTimeslot},'',getOneDynYAxisData('Profit(&euro;)'), appending);
 					
 				});
 	  	

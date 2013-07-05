@@ -4,7 +4,6 @@ import java.io.Serializable;
 
 import org.primefaces.push.PushContext;
 import org.primefaces.push.PushContextFactory;
-import org.springframework.stereotype.Service;
 
 public class GlobalCounterBean implements Serializable {
 	private static final long serialVersionUID = 1L;

@@ -1,12 +1,19 @@
 package org.powertac.visualizer.domain.broker;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.concurrent.ConcurrentHashMap;
+import com.google.gson.Gson;
 
 /**
  * Holds the data for broker's tariff.
@@ -16,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class TariffData
 {
+  private Logger log = Logger.getLogger(TariffData.class);
   private BrokerModel broker;
   private TariffSpecification spec;
 
@@ -24,7 +32,7 @@ public class TariffData
   private long customers;
   private String powerType;
   private String ratesGraph;
-  //Gson gson = new Gson();
+  Gson gson = new Gson();
   private ConcurrentHashMap<CustomerInfo, TariffCustomerStats> tariffCustomerStats;
 
   public TariffData (TariffSpecification spec, BrokerModel broker)
@@ -34,7 +42,7 @@ public class TariffData
     tariffCustomerStats =
       new ConcurrentHashMap<CustomerInfo, TariffCustomerStats>(20, 0.75f, 1);
     powerType = spec.getPowerType().toString();
-    // createRatesGraph();
+    createRatesGraph();
   }
 
   public double getNetKWh ()
@@ -108,60 +116,82 @@ public class TariffData
     return tariffCustomerStats.toString();
   }
 
-  /*
-   * private void createRatesGraph ()
-   * {
-   * ArrayList<Object> data = new ArrayList<Object>();
-   * 
-   * for (Rate rate: spec.getRates()) {
-   * 
-   * if (rate.getWeeklyBegin() != -1) {
-   * Object[] start =
-   * {
-   * Date.UTC(2007 - 1900, 0, rate.getWeeklyBegin(),
-   * rate.getDailyBegin() >= 0? rate.getDailyBegin(): 0, 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * {
-   * Date.UTC(2007 - 1900,
-   * 0,
-   * rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd(): rate
-   * .getDailyBegin(),
-   * rate.getDailyEnd() >= 0? rate.getDailyEnd(): 23, 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else if (rate.getDailyBegin() != -1 && rate.getDailyEnd() != -1) {
-   * Object[] start =
-   * { Date.UTC(2006 - 1900, 0, 1, rate.getDailyBegin(), 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * { Date.UTC(2006 - 1900, 0, 1, rate.getDailyEnd(), 0, 0),
-   * rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else if (rate.getDailyBegin() == -1 && rate.getDailyEnd() == -1
-   * && rate.getWeeklyBegin() == -1 && rate.getWeeklyEnd() == -1) {
-   * Object[] start =
-   * { Date.UTC(2007 - 1900, 0, 1, 0, 0, 0), rate.getMinValue() * 100 };
-   * data.add(start);
-   * Object[] end =
-   * { Date.UTC(2007 - 1900, 0, 7, 0, 0, 0), rate.getMinValue() * 100 };
-   * data.add(end);
-   * }
-   * 
-   * else {
-   * System.out.println("NO template in TariffData!");
-   * }
-   * }
-   * ratesGraph = gson.toJson(data);
-   * 
-   * }
-   */
+  private void createRatesGraph ()
+  {
+    ArrayList<Object> series = new ArrayList<Object>();
+    Calendar calendar = GregorianCalendar.getInstance();
+
+    // for every rate in TariffSpecification
+    for (Rate rate: spec.getRates()) {
+      // check if day of the week is specified
+      if (rate.getWeeklyBegin() != -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        // For start we only need the day of the week; January 2007 is used
+        // since the days for January 2007 correspond to days in Rate class
+        // (1 == monday, ...)
+        calendar.clear();
+        calendar.set(2007, 0, rate.getWeeklyBegin(),
+                     rate.getDailyBegin() >= 0? rate.getDailyBegin() + 1: 0, 0,
+                     0);
+        Object[] start =
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+
+        data.add(start);
+        calendar.clear();
+        calendar.set(2007, 0, rate.getWeeklyEnd() >= 0? rate.getWeeklyEnd()
+                                                      : rate.getWeeklyBegin(),
+                     rate.getDailyEnd() >= 0? rate.getDailyEnd() + 1: 23, 0, 0);
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else if (rate.getDailyBegin() != -1 && rate.getDailyEnd() != -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        calendar.clear();
+        calendar.set(2006, 0, 1, rate.getDailyBegin() + 1, 0, 0);
+        Object[] start =
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        data.add(start);
+        calendar.clear();
+        calendar.set(2006, 0, 1, rate.getDailyEnd() + 1, 0, 0);
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else if (rate.getDailyBegin() == -1 && rate.getDailyEnd() == -1
+               && rate.getWeeklyBegin() == -1 && rate.getWeeklyEnd() == -1) {
+        ArrayList<Object> data = new ArrayList<Object>();
+        calendar.clear();
+        calendar.set(2007, 0, 1, 1, 0, 0);
+        Object[] start =
+          { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        data.add(start);
+        calendar.clear();
+        calendar.set(2007, 0, 7, 1, 0, 0);
+        Object[] end = { calendar.getTimeInMillis(), rate.getMinValue() * 100 };
+        data.add(end);
+        series.add(new RatesGraphTemplate(data));
+      }
+
+      else {
+        log.info("NO template in TariffData!");
+      }
+    }
+    ratesGraph = gson.toJson(series);
+  }
+
+  private class RatesGraphTemplate
+  {
+    ArrayList<Object> data;
+
+    public RatesGraphTemplate (ArrayList<Object> data)
+    {
+      this.data = data;
+    }
+  }
+
   public String getRatesGraph ()
   {
     return ratesGraph;

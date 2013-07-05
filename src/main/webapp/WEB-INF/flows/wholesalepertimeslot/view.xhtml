@@ -25,8 +25,8 @@ function handleWholesaleMarketPush(data) {
 			var wholesaleDynDataOneTimeslot;
 			$(document).ready(
 						function() {
-						
-							wholesaleDynDataOneTimeslot = dynDataGraph('wholesaleDynDataOneTimeslot',#{wholesaleMarketBean.wholesaleDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
+							var appending = new Array("PRICE(&euro;)", "ENERGY(MWh)");
+							wholesaleDynDataOneTimeslot = dynDataGraph('wholesaleDynDataOneTimeslot',#{wholesaleMarketBean.wholesaleDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"), appending);
 							}		
 				);
 			
@@ -44,7 +44,7 @@ function handleWholesaleMarketPush(data) {
 
 	<ui:define name="rowcontent">
 
-	
+
 
 
 	</ui:define>

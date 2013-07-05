@@ -13,70 +13,80 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
  * @author Jurica Babic
  * 
  */
-public abstract class AbstractPerformanceCategory {
-	private BrokerModel broker;
-	double grade = 0;
-	double energy;
-    double profit;
-	DynamicData lastDynamicData=new DynamicData(0, 0, 0);
-	private ConcurrentHashMap<Integer, DynamicData> dynamicDataMap = new ConcurrentHashMap<Integer, DynamicData>(
-			1500, 0.75f, 1);
-	
-	public AbstractPerformanceCategory() {
-		dynamicDataMap.put(0, lastDynamicData);
-	}
-	
-	
+public abstract class AbstractPerformanceCategory
+{
+  private BrokerModel broker;
+  int grade = 0;
+  double energy;
+  double profit;
+  DynamicData lastDynamicData = new DynamicData(0, 0, 0);
+  private ConcurrentHashMap<Integer, DynamicData> dynamicDataMap =
+    new ConcurrentHashMap<Integer, DynamicData>(1500, 0.75f, 1);
 
-	public ConcurrentHashMap<Integer, DynamicData> getDynamicDataMap() {
-		return dynamicDataMap;
-	}
+  public AbstractPerformanceCategory ()
+  {
+    dynamicDataMap.put(0, lastDynamicData);
+  }
 
-	/**
-	 * @return kWh
-	 */
-	public double getEnergy() {
-		return energy;
-	}
+  public ConcurrentHashMap<Integer, DynamicData> getDynamicDataMap ()
+  {
+    return dynamicDataMap;
+  }
 
-	public double getProfit() {
-		return profit;
-	}
+  /**
+   * @return kWh
+   */
+  public double getEnergy ()
+  {
+    return energy;
+  }
 
-	public void update(int tsIndex, double energy, double cash) {
-		if(!dynamicDataMap.containsKey(tsIndex)){
-			lastDynamicData = new DynamicData(tsIndex,
-					this.energy, this.profit);
-			dynamicDataMap.put(tsIndex, lastDynamicData);
-			
-		}		
-		dynamicDataMap.get(tsIndex).update(energy, cash);
-		this.energy += energy;
-		this.profit += cash;
+  public double getProfit ()
+  {
+    return profit;
+  }
 
-	}
+  public void update (int tsIndex, double energy, double cash)
+  {
+    if (!dynamicDataMap.containsKey(tsIndex)) {
+      lastDynamicData = new DynamicData(tsIndex, this.energy, this.profit);
+      dynamicDataMap.put(tsIndex, lastDynamicData);
 
-	public AbstractPerformanceCategory(BrokerModel broker) {
-		this.broker = broker;
-	}
+    }
+    dynamicDataMap.get(tsIndex).update(energy, cash);
+    this.energy += energy;
+    this.profit += cash;
 
-	public double getGrade() {
-		return grade;
-	}
+  }
 
-	public void setGrade(double d) {
-		this.grade = d;
-	}
-	public BrokerModel getBroker() {
-		return broker;
-	}
-	
-	public DynamicData getLastDynamicData() {
-		return lastDynamicData;
-	}
-	
-	public void setLastDynamicData(DynamicData lastDynamicData) {
-		this.lastDynamicData = lastDynamicData;
-	}
+  public AbstractPerformanceCategory (BrokerModel broker)
+  {
+    this.broker = broker;
+  }
+
+  public double getGrade ()
+  {
+    return grade;
+  }
+
+  public void setGrade (int d)
+  {
+    this.grade = d;
+  }
+
+  public BrokerModel getBroker ()
+  {
+    return broker;
+  }
+
+  public DynamicData getLastDynamicData ()
+  {
+    return lastDynamicData;
+  }
+
+  public void setLastDynamicData (DynamicData lastDynamicData)
+  {
+    this.lastDynamicData = lastDynamicData;
+  }
 
 }

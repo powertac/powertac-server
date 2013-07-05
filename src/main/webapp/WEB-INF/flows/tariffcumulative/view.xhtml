@@ -14,7 +14,8 @@
 	var tariffDynDataOneTimeslot;
 	  $(document).ready(
 				function() {
-					tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'',getTariffDynYAxisData('Customer count', "Price (&euro;)","Traded energy (kWh)"));
+					var appending = new Array("PRICE(&euro;)", "ENERGY(kWh)", "CUST");
+					tariffDynData = dynDataGraph('tariffDynData',#{tariffMarketBean.tariffDynData},'',getTariffDynYAxisData('Customer count', "Price (&euro;)","Traded energy (kWh)"), appending);
 				});
 	  
 	  	

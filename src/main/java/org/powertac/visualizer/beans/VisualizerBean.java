@@ -92,7 +92,7 @@ public class VisualizerBean implements Serializable {
 		currentMillis = 0;
 		NominationCategoryPusher dummyNc = new NominationCategoryPusher("", 0);
 		nominationPusher = new NominationPusher(dummyNc, dummyNc, dummyNc);
-		weatherPusher = new WeatherPusher(0, 0, 0, 0, 0);
+		weatherPusher = new WeatherPusher(0, 0, 0, 0, 0, 0);
 
 	}
 

@@ -14,7 +14,8 @@
 			
 			$(document).ready(
 				function() {
-					financeDynData = dynDataGraph('financeDynData',#{financeBean.financeDynData},'',getOneDynYAxisData('Profit(&euro;)'));
+					var appending = new Array("PROFIT(&euro;)");
+					financeDynData = dynDataGraph('financeDynData',#{financeBean.financeDynData},'',getOneDynYAxisData('Profit(&euro;)'), appending);
 				}
 			);
 			  	

@@ -8,13 +8,15 @@ import org.powertac.visualizer.domain.broker.BrokerModel;
  * @author Jurica Babic
  * 
  */
-public class BalancingCategory extends AbstractPerformanceCategory implements
-		PerformanceCategory {
+public class BalancingCategory extends AbstractPerformanceCategory
+  implements PerformanceCategory
+{
 
-	public BalancingCategory(BrokerModel broker) {
-		super(broker);
-	}
+  
+  public BalancingCategory (BrokerModel broker)
+  {
+    super(broker);
+  }
 
-	
 
 }

@@ -93,10 +93,11 @@ public class WeatherInfoService implements Recyclable,
 					currentReport.getTemperature(),
 					currentReport.getWindSpeed(),
 					currentReport.getWindDirection(),
-					currentReport.getCloudCover());
+					currentReport.getCloudCover(), currentReport.getTimeslotIndex());
 			visualizerBean.setWeatherPusher(weather);
 			String weatherReportPush = gson.toJson(weather);
 			pushContext.push("/weather", weatherReportPush);
+			
 		}
 
 	}

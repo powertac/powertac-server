@@ -13,7 +13,8 @@
 	var balancingDynData;
 	  $(document).ready(
 				function() {
-					balancingDynData = dynDataGraph('balancingDynData',#{balancingMarketBean.balancingDynData},'',getBaseDynYAxisData("Price (&euro;)","Imbalance (kWh)"));
+					var appending = new Array("PRICE(&euro;)", "ENERGY(kWh)");
+					balancingDynData = dynDataGraph('balancingDynData',#{balancingMarketBean.balancingDynData},'',getBaseDynYAxisData("Price (&euro;)","Imbalance (kWh)"), appending);
 					
 				});
 	  	

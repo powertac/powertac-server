@@ -19,11 +19,13 @@
 	<script src="http://code.highcharts.com/stock/highstock.js"></script>
 	<script src="http://code.highcharts.com/stock/highcharts-more.js"></script>
 	<script src="http://code.highcharts.com/stock/modules/exporting.js"></script>
-	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/jquery-ui.min.js"></script>
+	<script type="text/javascript"
+		src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 
 	<h:outputStylesheet library="css" name="modern.css" />
 	<h:outputStylesheet library="css" name="site.css" />
 	<h:outputScript library="js" name="charts.js" />
+	<h:outputScript library="js" name="move.js" />
 	<h:outputStylesheet library="css" name="visualizer.css" />
 	<h:outputScript library="javascript" name="pagecontrol.js" />
 	<h:outputScript library="javascript" name="dropdown.js" />
@@ -72,8 +74,8 @@
 				<ul class="menu">
 					<li data-role="dropdown"><a href="#">Overview</a>
 						<ul class="dropdown-menu">
-							<li><a href="transactionssummary">Game overview #1</a></li>
-							<li><a href="#">Game overview #2</a></li>
+							<li><a href="transactionssummary">Game overview</a></li>
+							<li><a href="ranking">Ranking</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Finance</a>
 						<ul class="dropdown-menu">
@@ -88,6 +90,7 @@
 							<li><a href="tariffanalysis">Tariff Analysis</a></li>
 							<li class="divider"></li>
 							<li><a href="customerstatistics">Customer Statistics</a></li>
+							<li><a href="customermodels">Customer Models</a></li>
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Wholesale market</a>
 						<ul class="dropdown-menu">
@@ -96,19 +99,19 @@
 							<li class="divider"></li>
 							<li><a href="wholesalemarkettxs">Market transactions</a></li>
 							<li class="divider"></li>
-							<li><a href="wholesaleavgpricepertimeslot">Average price
-									per timeslot</a></li>
-							<li class="divider"></li>
+							<li><a href="wholesaleavgpricepertimeslot">Average
+									clearing price</a></li>
+							<!--<li class="divider"></li>
 							<li><a href="#">GenCos - TODO</a></li>
 							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 					<li data-role="dropdown"><a href="#">Balancing</a>
 						<ul class="dropdown-menu">
 							<li><a href="balancingcumulative">Cumulative scores</a></li>
 							<li><a href="balancingpertimeslot">Per timeslot scores</a></li>
-							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<!--<li class="divider"></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 
 					<li data-role="dropdown"><a href="#">Distribution</a>
@@ -116,8 +119,8 @@
 							<li><a href="distributioncumulative">Cumulative scores</a></li>
 							<li><a href="distributionpertimeslot">Per timeslot
 									scores</a></li>
-							<li class="divider"></li>
-							<li><a href="#">Statistics - TODO</a></li>
+							<!--<li class="divider"></li>
+							<li><a href="#">Statistics - TODO</a></li>-->
 						</ul></li>
 					<li><a href="weatherreport">Weather report</a></li>
 				</ul>
@@ -154,41 +157,7 @@
 					</div>
 				</div>
 
-
-				<!-- div class="grid">
-					<div class="row">
-						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
-							<br />
-							<div id="gameName" class="fg-color-white bigStatusText"
-								>
-								<h:outputText value="#{visualizerBean.competition.name}"
-									 />
-
-							</div>
-
-						</div>
-
-						<div class="span6 bg-color-yellow" style="height: 80px; text-align: center">
-							<br />
-							<div id="gameStatus" class="fg-color-white normalStatusText" >
-								<h:outputText
-									rendered="${!visualizerBean.running and !visualizerBean.finished}"
-									value="no game" />
-								<h:outputText
-									rendered="${!visualizerBean.running and visualizerBean.finished}"
-									value="game finished" />
-								<h:outputText
-									rendered="${visualizerBean.running and !visualizerBean.finished}"
-									value="game in progress" />
-							</div>
-
-						</div>
-
-
-					</div>
-				</div-->
-
-				<!--**************************************************** Tom *************************************************-->
+				
 				<div class="grid">
 					<div class="row">
 
@@ -225,13 +194,11 @@
 						<div class="tile bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>Date and Time</h2>
-								<br />
-								<h3 id="date"></h3>
-								<h4 id="clock"></h4>
+
+								<h2>Information Panel</h2>
 							</div>
 							<div class="brand">
-								<div class=" icon-clock statusIcon" />
+								<div class=" icon-info statusIcon" />
 							</div>
 						</div>
 
@@ -253,7 +220,7 @@
 						<div class="tile bg-color-purple" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>Balance Leader</h2>
+								<h2>Imbalanced Energy</h2>
 								<br />
 								<h4 id="balanceBroker"></h4>
 								<p>Congrats!</p>
@@ -286,29 +253,21 @@
 						<div class="tile last bg-color-orangeDark" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>To Be Defined</h2>
-								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
+								<h2>Power TAC</h2>
+
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-clock statusIcon" />
-							</div>
+
 						</div>
 
 						<div class="tile bg-color-darken" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>To Be Defined</h2>
+								<h2>Date and Time</h2>
 								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
+								<h3 id="date"></h3>
+								<h4 id="clock"></h4>
 							</div>
 							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
 							</div>
 						</div>
@@ -316,14 +275,12 @@
 						<div class="tile bg-color-grey" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>To Be Defined</h2>
+								<h2>Current Timeslot</h2>
 								<br />
-								<h4 id="date"></h4>
+								<h3 id="timeslot"></h3>
 								<p id="clock"></p>
 							</div>
 							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
 								<div class=" icon-clock statusIcon" />
 							</div>
 						</div>
@@ -349,16 +306,9 @@
 						<div class="tile last bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
-								<h2>To Be Defined</h2>
-								<br />
-								<h4 id="date"></h4>
-								<p id="clock"></p>
+								<h2>Visualizer</h2>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-clock statusIcon" />
-							</div>
+
 						</div>
 
 
@@ -367,158 +317,7 @@
 
 
 				<div></div>
-				<!--****************************************************END Tom *************************************************-->
-
-				<!-- <div class="grid">
-					<div class="row">
-						<div class="tile double bg-color-green" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Profit Leader</h2>
-								<br />
-								<h4 id="profitBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="profitAmount" style="float: right"></div>
-								<div class=" icon-diamond statusIcon" />
-							</div>
-						</div>
-
-						<div class="tile double bg-color-orangeDark"
-							data-role="tile-slider" data-param-period="5000"
-							data-param-direction="left">
-							<div class="tile-content">
-								<h2>Balance Leader</h2>
-								<br />
-								<h4 id="balanceBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
-								<div class=" icon-meter-slow statusIcon" />
-							</div>
-						</div>
-
-						<div class="tile double last bg-color-purple" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Customers Leader</h2>
-								<br />
-								<h4 id="customersBroker"></h4>
-								<p>Congrats!</p>
-
-							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-user statusIcon" />
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<div class="grid">
-					<div class="row">
-						<div class="span4 bg-color-red"
-							style="height: 80px; text-align: center">
-							<br />
-							<div class=" icon-clock bigStatusIcon" />
-							<div class=" bigStatusText" id="clock"></div>
-							<br />
-
-
-						</div>
-						<div class="span8 bg-color-greenDark"
-							style="height: 80px; text-align: center">
-							<br />
-							<div class=" icon-calendar bigStatusIcon" />
-							<div class=" bigStatusText" id="date"></div>
-							<br />
-
-						</div>
-					</div>
-				</div>
-
-				<div class="grid">
-					<div class="row">
-						<div class="span4 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" weatherText">Weather info</div>
-							<br />
-
-
-						</div>
-						<div class="span2 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" icon-thermometer weatherIcon" />
-							<div class=" weatherText" id="temperature"></div>
-							<br />
-
-
-						</div>
-
-						<div class="span4 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" weatherText" id="windspeed"></div>
-							<div class=" icon-arrow-up-left arrow" id="windArrow" />
-
-							<br />
-
-
-						</div>
-
-						<div class="span2 bg-color-pinkDark"
-							style="height: 80px; text-align: center;">
-							<br />
-							<div class=" icon-sun weatherIcon" id="cloudCover" />
-
-							<br />
-
-
-						</div>
-
-					</div>
-				</div>
 				
-				<div>
-				 <table class="bordered">
-                    <thead>
-                        <tr class="info">
-                            <th>Game name</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr><td id="gameName"><h:outputText value="#{visualizerBean.competition.name}"
-									 /></td>
-                        	<td id="gameStatus"><h:outputText
-									rendered="${!visualizerBean.running and !visualizerBean.finished}"
-									value="no game" />
-								<h:outputText
-									rendered="${!visualizerBean.running and visualizerBean.finished}"
-									value="game finished" />
-								<h:outputText
-									rendered="${visualizerBean.running and !visualizerBean.finished}"
-									value="game in progress" />
-							</td>
-						</tr>
-                        
-                    </tbody>
-
-                    <tfoot></tfoot>
-                </table>
-				</div> -->
-
-
-
-
 				<div class="page">
 
 					<div class="grid">
@@ -655,17 +454,19 @@
 			var temperature = weather["temperature"];
 			var windDirection = weather["windDirection"];
 			var windSpeed = weather["windSpeed"];
+			var timeslot = weather["timeslot"];
 
-			console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
+			/* console.log(" " + balBroker + " " + balAmount + " " + cusNumBroker
 					+ " " + cusNumAmount + " " + profitBroker + " "
 					+ profitAmount + " " + cloudCover + " " + millis + " "
-					+ temperature + " " + windDirection + " " + windSpeed);
+					+ temperature + " " + windDirection + " " + windSpeed); */
 			document.getElementById("profitBroker").innerHTML = profitBroker;
 			document.getElementById("profitAmount").innerHTML = "&euro; "+profitAmount;
 			document.getElementById("balanceBroker").innerHTML = balBroker;
 			document.getElementById("balanceAmount").innerHTML = +balAmount+" MWh";
 			document.getElementById("customersBroker").innerHTML = cusNumBroker;
 			document.getElementById("customersAmount").innerHTML = cusNumAmount;
+			document.getElementById("timeslot").innerHTML = timeslot;
 			var d = new Date(millis);
 			var date = $.datepicker.formatDate('yy-mm-dd', d);
 			var minutes = d.getMinutes();

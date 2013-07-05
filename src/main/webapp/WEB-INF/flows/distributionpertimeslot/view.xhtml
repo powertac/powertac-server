@@ -13,7 +13,8 @@
 	var distributionDynDataOneTimeslot;
 	  $(document).ready(
 				function() {
-					distributionDynDataOneTimeslot = dynDataGraph('distributionDynDataOneTimeslot',#{distributionBean.distributionDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Distributed energy (kWh)"));
+					var appending = new Array("PRICE(&euro;)", "ENERGY(kWh)");
+					distributionDynDataOneTimeslot = dynDataGraph('distributionDynDataOneTimeslot',#{distributionBean.distributionDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Distributed energy (kWh)"), appending);
 					
 				});
 	  	

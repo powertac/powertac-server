@@ -1,43 +1,54 @@
 package org.powertac.visualizer.push;
 
+public class WeatherPusher
+{
 
-public class WeatherPusher {
+  private long millis;
+  private double temperature;
+  private double windSpeed;
+  private double windDirection;
+  private double cloudCover;
+  private int timeslot;
 
-	private long millis;
-	private double temperature;
-	private double windSpeed;
-	private double windDirection;
-	private double cloudCover;
+  public WeatherPusher (long millis, double temperature, double windSpeed,
+                        double windDirection, double cloudCover, int timeslot)
+  {
+    this.millis = millis;
+    this.temperature = temperature;
+    this.windSpeed = windSpeed;
+    this.windDirection = windDirection;
+    this.cloudCover = cloudCover;
+    this.timeslot = timeslot;
+  }
 
-	public WeatherPusher(long millis, double temperature, double windSpeed,
-			double windDirection, double cloudCover) {
-		this.millis = millis;
-		this.temperature = temperature;
-		this.windSpeed = windSpeed;
-		this.windDirection = windDirection;
-		this.cloudCover = cloudCover;
-	}
+  public long getMillis ()
+  {
+    return millis;
+  }
 
-	public long getMillis() {
-		return millis;
-	}
+  public double getTemperature ()
+  {
+    return temperature;
+  }
 
-	public double getTemperature() {
-		return temperature;
-	}
+  public double getWindSpeed ()
+  {
+    return windSpeed;
+  }
 
-	public double getWindSpeed() {
-		return windSpeed;
-	}
+  public double getWindDirection ()
+  {
+    return windDirection;
+  }
 
-	public double getWindDirection() {
-		return windDirection;
-	}
+  public double getCloudCover ()
+  {
+    return cloudCover;
+  }
 
-	public double getCloudCover() {
-		return cloudCover;
-	}
-	
-	
+  public int getTimeslot ()
+  {
+    return timeslot;
+  }
 
 }
