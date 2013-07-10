@@ -117,8 +117,9 @@ public class WeatherServiceTest
                                  brokerProxyService);
     ReflectionTestUtils.setField(weatherService, "serverProps",
                                  serverPropertiesService);
-    ReflectionTestUtils.setField(weatherService,
-                                 "competitionControlService", competitionControlService);
+    ReflectionTestUtils.setField(weatherService, "competitionControlService",
+                                 competitionControlService);
+    ReflectionTestUtils.setField(weatherService, "blocking", true);
 
     //comp = Competition.newInstance("weather-test");
 
@@ -155,7 +156,7 @@ public class WeatherServiceTest
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("server.weatherService.serverUrl", "localhost");
     map.put("server.weatherService.weatherReqInterval", "6");
-    map.put("server.weatherService.blocking", "false");
+    map.put("server.weatherService.blocking", "true");
     map.put("server.weatherService.forecastHorizon", "12");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
@@ -167,7 +168,7 @@ public class WeatherServiceTest
                  "localhost".compareTo(weatherService.getServerUrl()), 1e-6);
     assertEquals("correct weather req interval", 6,
                  weatherService.getWeatherReqInterval(), 1e-6);
-    assertEquals("correct blocking mode", false,
+    assertEquals("correct blocking mode", true,
                  weatherService.isBlocking());
     assertEquals("correct forecast horizon", 12,
                  weatherService.getForecastHorizon());
@@ -245,30 +246,26 @@ public class WeatherServiceTest
 
   @Test
   public void testReportValues() {
-
     weatherService.activate(start, 1);
 
     WeatherReport wr = weatherReportRepo.allWeatherReports().get(0);
-    assertEquals(3.5,   wr.getTemperature(), .0001);
-    assertEquals(4.0,  wr.getWindSpeed(), .0001);
+    assertEquals(3.5, wr.getTemperature(), .0001);
+    assertEquals(4.0, wr.getWindSpeed(), .0001);
     assertEquals(250.0, wr.getWindDirection(), .0001);
-    assertEquals(1.0,   wr.getCloudCover(), .0001);
+    assertEquals(1.0, wr.getCloudCover(), .0001);
 
     // Test that currentWeatherId increments correctly
-    Instant reqTime = timeslotRepo.findBySerialNumber(24)
-            .getStartInstant();
+    Instant reqTime = timeslotRepo.findBySerialNumber(24).getStartInstant();
     assertNotNull(reqTime);
     assertEquals(24, weatherReportRepo.count());
 
     timeService.setCurrentTime(reqTime);
     weatherService.activate(reqTime, 1);
-    // Check that 48 weather reports entered the repo
-    assertEquals(48, weatherReportRepo.count());
 
-    // Check that 48 weather forecast enterd the repo
+    // Check that 48 weather reports and forecasts entered the repo
+    assertEquals(48, weatherReportRepo.count());
     assertEquals(48, weatherForecastRepo.count());
 
-    assertEquals(48, weatherReportRepo.count());
     // Check beginning weather
     assertEquals(false, wr.getTemperature() == weatherReportRepo
             .allWeatherReports().get(24).getTemperature());
@@ -276,13 +273,11 @@ public class WeatherServiceTest
     // Check ending weather
     timeService.setCurrentTime(timeslotRepo.findBySerialNumber(47)
                                .getStartInstant());
-    assertEquals(
-                 false,
+    assertEquals(false,
                  weatherReportRepo.allWeatherReports().get(23).getTemperature() == weatherReportRepo
                  .allWeatherReports().get(47).getTemperature());
     assertEquals(false, wr.getId() == weatherReportRepo.allWeatherReports()
             .get(24).getId());
-
   }
 
   @Test
