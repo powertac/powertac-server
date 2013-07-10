@@ -16,8 +16,9 @@
 package org.powertac.common.repo;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 //import org.apache.log4j.Logger;
 import org.apache.log4j.Logger;
@@ -40,7 +41,7 @@ public class WeatherReportRepo implements DomainRepo
           .getName());
 
   // storage
-  private HashMap<Integer, WeatherReport> indexedWeatherReports;
+  private Map<Integer, WeatherReport> indexedWeatherReports;
 
   // Check if the weather service has run at least once
   private boolean hasRunOnce = false;
@@ -52,7 +53,8 @@ public class WeatherReportRepo implements DomainRepo
   public WeatherReportRepo ()
   {
     super();
-    indexedWeatherReports = new HashMap<Integer, WeatherReport>();
+    indexedWeatherReports =
+        new ConcurrentHashMap<Integer, WeatherReport>(2000, 0.9f, 1);
   }
 
   /**
