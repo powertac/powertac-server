@@ -179,7 +179,8 @@ public class BrokerService
       allWholesaleData.add(wholesaleTxBrokerData);
 
       double profitDelta = 0, profit = 0, energy = 0, energyDelta = 0;
-
+      
+      int timeslot = 0;
       NavigableSet<Integer> safeKeys =
         new TreeSet<Integer>(wc.getDynamicDataMap().keySet())
                 .headSet(safetyTxIndex, true);
@@ -191,14 +192,15 @@ public class BrokerService
         energyDelta = lastWholesaledd.getEnergyDelta();
         profit = lastWholesaledd.getProfit();
         energy = lastWholesaledd.getEnergy();
+        timeslot = lastWholesaledd.getTsIndex();
+        
+      
+        WholesaleMarketPusher wmp =
+          new WholesaleMarketPusher(b.getName(),
+                                    helper.getMillisForIndex(timeslot),
+                                    profitDelta, energyDelta, profit, energy);
+        wholesaleMarketPushers.add(wmp);
       }
-
-      WholesaleMarketPusher wmp =
-        new WholesaleMarketPusher(b.getName(),
-                                  helper.getMillisForIndex(safetyTxIndex),
-                                  profitDelta, energyDelta, profit, energy);
-      wholesaleMarketPushers.add(wmp);
-
       // balancing market pushers:
       BalancingCategory bc = b.getBalancingCategory();
       DynamicData bdd = bc.getLastDynamicData();
@@ -208,7 +210,7 @@ public class BrokerService
                           bdd.getProfitDelta(), bdd.getEnergyDelta());
       balancingMarketPushers.add(bddp);
 
-      // balancing market pushers:
+      // Distribution market pushers:
       DistributionCategory dc = b.getDistributionCategory();
       DynamicData ddd = dc.getLastDynamicData();
       DynDataPusher dddp =
