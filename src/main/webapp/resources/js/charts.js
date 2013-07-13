@@ -637,7 +637,7 @@ function transactionsSummary(seriesData) {
 					shared : true,
 					formatter : function() {
 						builder = "";
-						builder += this.x + ' grade<br />';
+						builder += this.x + ' grade includes following KPIs:<br />';
 						if (this.x == 'Wholesale') {
 							builder += "<li>*Broker's price compared to overall average price for buying energy<br/></li>";
 							builder += "<li>*Broker's price compared to overall average price for selling energy<br/></li>";
@@ -648,7 +648,7 @@ function transactionsSummary(seriesData) {
 							builder += "<li>*Broker's share in overall bought energy<br/></li>";
 						}
 						if (this.x == 'Balancing') {
-							builder += "<li>*Broker's share in overall grid's imbalance<br/></li>";
+							builder += "<li>*Ratio of imbalance to total energy delivered<br/></li>";
 							builder += "<li>*Imbalance fee<br/></li>";
 						}
 						if (this.x == 'Distribution') {

@@ -157,7 +157,7 @@
 					</div>
 				</div>
 
-				
+
 				<div class="grid">
 					<div class="row">
 
@@ -201,53 +201,55 @@
 								<div class=" icon-info statusIcon" />
 							</div>
 						</div>
+						<h:outputLink value="financecumulative">
+							<div class="tile bg-color-red" data-role="tile-slider"
+								data-param-period="5000" data-param-direction="left">
+								<div class="tile-content">
+									<h2>Profit Leader</h2>
+									<br />
+									<h4 id="profitBroker"></h4>
+									<p>Congrats!</p>
 
-						<div class="tile bg-color-red" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Profit Leader</h2>
-								<br />
-								<h4 id="profitBroker"></h4>
-								<p>Congrats!</p>
-
+								</div>
+								<div class="brand">
+									<div class="statusIcon" id="profitAmount" style="float: right"></div>
+									<div class=" icon-diamond statusIcon" />
+								</div>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="profitAmount" style="float: right"></div>
-								<div class=" icon-diamond statusIcon" />
-							</div>
-						</div>
+						</h:outputLink>
+						<h:outputLink value="balancingcumulative">
+							<div class="tile bg-color-purple" data-role="tile-slider"
+								data-param-period="5000" data-param-direction="left">
+								<div class="tile-content">
+									<h2>Imbalanced Energy</h2>
+									<br />
+									<h4 id="balanceBroker"></h4>
+									<p>Congrats!</p>
 
-						<div class="tile bg-color-purple" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Imbalanced Energy</h2>
-								<br />
-								<h4 id="balanceBroker"></h4>
-								<p>Congrats!</p>
-
+								</div>
+								<div class="brand">
+									<div class="statusIcon" id="balanceAmount" style="float: right"></div>
+									<div class=" icon-meter-slow statusIcon" />
+								</div>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="balanceAmount" style="float: right"></div>
-								<div class=" icon-meter-slow statusIcon" />
-							</div>
-						</div>
+						</h:outputLink>
+						<h:outputLink value="customerstatistics">
+							<div class="tile bg-color-pink" data-role="tile-slider"
+								data-param-period="5000" data-param-direction="left">
+								<div class="tile-content">
+									<h2>Customers Leader</h2>
+									<br />
+									<h4 id="customersBroker"></h4>
+									<p>Congrats!</p>
 
-						<div class="tile bg-color-pink" data-role="tile-slider"
-							data-param-period="5000" data-param-direction="left">
-							<div class="tile-content">
-								<h2>Customers Leader</h2>
-								<br />
-								<h4 id="customersBroker"></h4>
-								<p>Congrats!</p>
-
+								</div>
+								<div class="brand">
+									<div class="statusIcon" id="customersAmount"
+										style="float: right"></div>
+									<div class=" icon-user statusIcon" />
+								</div>
 							</div>
-							<div class="brand">
-								<div class="statusIcon" id="customersAmount"
-									style="float: right"></div>
-								<div class=" icon-user statusIcon" />
-							</div>
-						</div>
-
+						</h:outputLink>
 
 
 						<div class="tile last bg-color-orangeDark" data-role="tile-slider"
@@ -286,23 +288,23 @@
 						</div>
 
 
-
-						<div class="tile double custom bg-color-blue weatherinfo"
-							data-role="tile-slider" data-param-period="5000"
-							data-param-direction="left">
-							<div class="tile-content weather">
-								<h2>Weather Info</h2>
-								<div class="weather-content">
-									<div class="icon-thermometer weatherIcon" />
-									<div class="weatherText" id="temperature"></div>
-									<div class="icon-arrow-up-left arrow" id="windArrow" />
-									<div class="weatherText" id="windspeed"></div>
-									<div class="icon-sun weatherIcon" id="cloudCover" />
+						<h:outputLink value="weatherreport">
+							<div class="tile double custom bg-color-blue weatherinfo"
+								data-role="tile-slider" data-param-period="5000"
+								data-param-direction="left">
+								<div class="tile-content weather">
+									<h2>Weather Info</h2>
+									<div class="weather-content">
+										<div class="icon-thermometer weatherIcon" />
+										<div class="weatherText" id="temperature"></div>
+										<div class="icon-arrow-up-left arrow" id="windArrow" />
+										<div class="weatherText" id="windspeed"></div>
+										<div class="icon-sun weatherIcon" id="cloudCover" />
+									</div>
 								</div>
+
 							</div>
-
-						</div>
-
+						</h:outputLink>
 						<div class="tile last bg-color-green" data-role="tile-slider"
 							data-param-period="5000" data-param-direction="left">
 							<div class="tile-content">
@@ -317,7 +319,7 @@
 
 
 				<div></div>
-				
+
 				<div class="page">
 
 					<div class="grid">
