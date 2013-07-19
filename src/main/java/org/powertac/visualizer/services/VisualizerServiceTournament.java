@@ -38,6 +38,7 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -45,20 +46,14 @@ import org.w3c.dom.Node;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.jms.*;
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Date;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -71,7 +66,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 @Service
 public class VisualizerServiceTournament
-    implements MessageListener, InitializingBean, ServletContextListener
+    implements MessageListener, InitializingBean
 {
   static private Logger log =
       Logger.getLogger(VisualizerServiceTournament.class.getName());
@@ -80,7 +75,7 @@ public class VisualizerServiceTournament
   private ConnectionFactory connectionFactory;
 
   @Autowired
-  private Executor taskExecutor;
+  private ThreadPoolTaskExecutor taskExecutor;
 
   @Autowired
   XMLMessageConverter converter;
@@ -178,59 +173,54 @@ public class VisualizerServiceTournament
     stateRunner.start();
   }
 
-  // ServletContextListener callbacks
-  @Override
-  public void contextInitialized (ServletContextEvent sce)
-  {
-    // Nothing to do here    
-  }
-
-  // Wipe out timers and threads when servlet context is destroyed.
-  @Override
-  public void contextDestroyed (ServletContextEvent sce)
-  {
-    log.info("contextDestroyed - kill threads and tasks");
-    try {
-      cleanUp();
-    } catch (Exception ignored) {
-      log.error("Error destroying context");
-    }
-  }
-
   @PreDestroy
   private void cleanUp () throws Exception
   {
+    System.out.print("\nCleaning up VisualizerServiceTournament (8) : ");
+
+    // Shutdown the proxy if needed
+    if (proxy != null) {
+      proxy.shutDown();
+    }
+    System.out.print("1 ");
+
     // Kill the tick timer
-    if (null != tickTimer) {
+    // I have no idea why this loop is needed
+    while (tickTimer == null) {
+      try { Thread.sleep(100); } catch (Exception ignored) {}
+    }
+    System.out.print("2 ");
+
       tickTimer.cancel();
       tickTimer.purge();
       tickTimer = null;
-    }
+    System.out.print("3 ");
+
     if (stateTask != null) {
       stateTask.cancel();
     }
+    System.out.print("4 ");
 
     // Kill the message pump
-    messageFeeder.interrupt();
     try {
+      messageFeeder.interrupt();
       messageFeeder.join();
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
+    System.out.print("5 ");
 
     // Kill the state machine from within
     putEvent(Event.quit);
     while (runningStates) {
-      try {
-        Thread.sleep(1000);
-      } catch (Exception ignored) {
-      }
+      try { Thread.sleep(100); } catch (Exception ignored) {}
 
       if (currentState == loginWait && stateRunner != null &&
           stateRunner.getState() == Thread.State.TIMED_WAITING) {
         stateRunner.interrupt();
       }
     }
+    System.out.print("6 ");
 
     try {
       stateRunner.join();
@@ -238,6 +228,19 @@ public class VisualizerServiceTournament
     catch (InterruptedException e) {
       e.printStackTrace();
     }
+    System.out.print("7 ");
+
+    Set<Thread> threadSet = Thread.getAllStackTraces().keySet();
+    Thread[] threadArray = threadSet.toArray(new Thread[threadSet.size()]);
+    for (Thread t: threadArray) {
+      if (t.getName().contains("Timer-") || t.getName().contains("ActiveMQ")) {
+        synchronized(t) {
+          t.stop();
+        }
+      }
+    }
+
+    System.out.println("8\n");
   }
 
   // convience functions for handling the event queue
@@ -804,8 +807,6 @@ public class VisualizerServiceTournament
 
     private synchronized void closeConnection ()
     {
-      //session.close();
-      //connection.close();
       connectionOpen = false;
       notifyAll();
     }
