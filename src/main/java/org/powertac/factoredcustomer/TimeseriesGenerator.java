@@ -26,6 +26,7 @@ import java.util.Random;
 import org.joda.time.DateTime;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
 /**
  * Utility class that generates various time series patterns that can be 
@@ -35,6 +36,8 @@ import org.apache.commons.io.IOUtils;
  */
 final class TimeseriesGenerator
 {
+  protected Logger log = Logger.getLogger(TimeseriesGenerator.class.getName());
+
     enum ModelType { ARIMA_101x101 }
     enum DataSource { BUILTIN, CLASSPATH, FILEPATH }
 
@@ -235,7 +238,12 @@ final class TimeseriesGenerator
     
     private double getLog(int timeslot)
     {
-        return Math.log(genSeries.get(timeslot));
+      Double val = genSeries.get(timeslot);
+      if (null == val) {
+        log.error("Null value in genSeries for ts " + timeslot);
+        return 1.0;
+      }
+      return Math.log(val);
     }
 
 } // end class
