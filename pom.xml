@@ -5,7 +5,8 @@
      Bundle pom for Powertac server. Individual components do not
      inherit from this pom; instead they inherit from server-master,
      as does this pom. Note that this module is only needed for
-     development; there is no need to release it.
+     development; there is no need to deploy or release it, and there
+     are no dependencies on it, so its version number is irrelevant.
    -->
 
   <!--
@@ -19,7 +20,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0</version>
     <relativePath />
   </parent>
 
