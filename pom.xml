@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.0</version>
+    <version>1.0.1</version>
     <relativePath />
   </parent>
 
   <artifactId>powertac-server</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0</version>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
 
