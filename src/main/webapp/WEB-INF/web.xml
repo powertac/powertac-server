@@ -80,6 +80,10 @@
     <param-value>none</param-value>
   </context-param>
 
+  <listener>
+    <listener-class>com.sun.faces.config.ConfigureListener</listener-class>
+  </listener>
+
   <!-- DEFAULT PAGE -->
   <welcome-file-list>
     <welcome-file>index.html</welcome-file>
