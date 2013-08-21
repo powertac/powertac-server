@@ -452,6 +452,11 @@ public class VisualizerServiceTournament
         log.info(String.format(
             "Login message receieved: queueName=%s, serverQueue=%s",
             queueName, serverQueue));
+
+        // TODO Better comment
+        // We have to wait, as the server sends out a 'game_ready' before it's actually ready
+        try { Thread.sleep(1000); } catch (Exception ignored) {}
+
         putEvent(Event.accept);
       } else {
         // this is not working
