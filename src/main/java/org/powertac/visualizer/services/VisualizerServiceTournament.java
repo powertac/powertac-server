@@ -453,9 +453,8 @@ public class VisualizerServiceTournament
             "Login message receieved: queueName=%s, serverQueue=%s",
             queueName, serverQueue));
 
-        // TODO Better comment
-        // We have to wait, as the server sends out a 'game_ready' before it's actually ready
-        try { Thread.sleep(1000); } catch (Exception ignored) {}
+        // Small delay, server sends 'game_ready' before it's actually ready
+        try { Thread.sleep(5000); } catch (Exception ignored) {}
 
         putEvent(Event.accept);
       } else {
