@@ -291,7 +291,7 @@ public class WeatherServiceTest
 
 
     // Predictions should increment by one each time
-    int i = 0;
+    int i = 1;
     for (WeatherForecastPrediction p : weatherForecastRepo
             .currentWeatherForecast().getPredictions()) {
       assertEquals(i, p.getForecastTime());
