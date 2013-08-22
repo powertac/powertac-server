@@ -91,8 +91,6 @@ public class WeatherService extends TimeslotPhaseProcessor implements
 
   @ConfigurableValue(valueType = "Integer", description = "Length of forecasts (in hours)")
   private int forecastHorizon = 24; // 24 hours
-  @ConfigurableValue(valueType = "Integer", description = "Forecast offset (see issue #682)")
-  private int forecastOffset = 0; // Until #682 gets fixed, this should be 1
 
   @Autowired
   private TimeslotRepo timeslotRepo;
@@ -509,7 +507,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       String dir = reader.getAttribute("winddir");
       String cloudCvr = reader.getAttribute("cloudcover");
 
-      return new WeatherForecastPrediction(Integer.parseInt(id) + forecastOffset,
+      return new WeatherForecastPrediction(Integer.parseInt(id),
           Double.parseDouble(temp), Double.parseDouble(wind),
           Double.parseDouble(dir), Double.parseDouble(cloudCvr));
     }
