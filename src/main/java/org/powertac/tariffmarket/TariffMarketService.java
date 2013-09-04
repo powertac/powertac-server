@@ -535,6 +535,11 @@ public class TariffMarketService
     for (Tariff tariff : pending) {
       tariff.setState(Tariff.State.KILLED);
       log.info("Revoke tariff " + tariff.getId());
+      // Notify all brokers - issue #719
+      TariffRevoke msg = new TariffRevoke(tariff.getBroker(),
+                                          tariff.getTariffSpecification());
+      brokerProxyService.broadcastMessage(msg);
+
       // The actual revocation processing is delegated to the Customer,
       // who is obligated to call getRevokedSubscriptions periodically.
 

@@ -492,6 +492,10 @@ public class TariffMarketServiceTests
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 2));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
     assertTrue("tariff not yet revoked", tf.isRevoked());
+    TariffRevoke revoke = (TariffRevoke)msgs.get(2);
+    assertNotNull("revoke msg non-null", revoke);
+    assertEquals("correct broker", tariffSpec.getBroker(), revoke.getBroker());
+    assertEquals("correct tariff", tariffSpec.getId(), revoke.getTariffId());
   }
 
   // variable rate update - nominal case, 2 tariffs
