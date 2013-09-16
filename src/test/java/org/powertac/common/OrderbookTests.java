@@ -145,4 +145,23 @@ public class OrderbookTests
     assertEquals("four bids", 4, xob1.getBids().size());
     assertEquals("one ask", 1, xob1.getAsks().size());
   }
+
+  @Test
+  public void xmlSerializationTestEmpty ()
+  {
+    Orderbook ob1 = new Orderbook(timeslot, 22.1, now);
+    XStream xstream = new XStream();
+    xstream.processAnnotations(Orderbook.class);
+    xstream.processAnnotations(Timeslot.class);
+    StringWriter serialized = new StringWriter();
+    serialized.write(xstream.toXML(ob1));
+    //System.out.println(serialized.toString());
+    
+    Orderbook xob1 = (Orderbook)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xob1);
+    assertEquals("correct timeslot", timeslot, xob1.getTimeslot());
+    assertEquals("correct clearing price", 22.1, xob1.getClearingPrice(), 1e-6);
+    assertNotNull("bids", xob1.getBids().size());
+    assertNotNull("asks", xob1.getAsks().size());
+  }
 }

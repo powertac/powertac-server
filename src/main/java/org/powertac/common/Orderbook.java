@@ -134,6 +134,10 @@ public class Orderbook
    */
   public SortedSet<OrderbookOrder> getBids ()
   {
+    if (null == bids) {
+      // this can happen in deserialization
+      bids = new TreeSet<OrderbookOrder>();
+    }
     return bids;
   }
   
@@ -151,6 +155,10 @@ public class Orderbook
    */
   public SortedSet<OrderbookOrder> getAsks ()
   {
+    if (null == asks) {
+      // this can happen in deserialization
+      asks = new TreeSet<OrderbookOrder>();
+    }
     return asks;
   }
   
