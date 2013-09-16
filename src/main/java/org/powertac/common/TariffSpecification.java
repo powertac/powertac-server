@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011-2013 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
-@Domain(fields = {"broker", "powerType", "minDuration", "signupPayment", "earlyWithdrawPayment", "periodicPayment"})
+@Domain(fields = {"broker", "powerType", "minDuration",
+                  "signupPayment", "earlyWithdrawPayment", "periodicPayment",
+                  "supersedes"})
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
