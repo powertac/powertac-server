@@ -163,6 +163,13 @@ public class VisualizerServiceTournament
       {
         log.debug("message count = " + visualizerBean.getMessageCount() +
             ", queue size = " + messageQueue.size());
+
+        // Timer fires every 30 secs, but tournamentLogin() sleep for 60 secs
+        // if no game available. That would build up ticks in the queue
+        if (currentState == loginWait && eventQueue.contains(Event.tick)) {
+          return;
+        }
+
         putEvent(Event.tick);
       }
     };
@@ -211,6 +218,7 @@ public class VisualizerServiceTournament
     System.out.print("5 ");
 
     // Kill the state machine from within
+    eventQueue.clear();
     putEvent(Event.quit);
     while (runningStates) {
       try { Thread.sleep(100); } catch (Exception ignored) {}
@@ -443,21 +451,20 @@ public class VisualizerServiceTournament
         } catch (InterruptedException e) {
           //e.printStackTrace();
         }
-      } else if (loginNode != null) {
+      }
+      else if (loginNode != null) {
         log.info("Login response received! ");
         queueName = doc.getElementsByTagName("queueName")
             .item(0).getFirstChild().getNodeValue();
         serverQueue = doc.getElementsByTagName("serverQueue")
             .item(0).getFirstChild().getNodeValue();
         log.info(String.format(
-            "Login message receieved: queueName=%s, serverQueue=%s",
+            "Login message received: queueName=%s, serverQueue=%s",
             queueName, serverQueue));
 
-        // Small delay, server sends 'game_ready' before it's actually ready
-        try { Thread.sleep(5000); } catch (Exception ignored) {}
-
         putEvent(Event.accept);
-      } else {
+      }
+      else {
         // this is not working
         log.info("Invalid response from TS");
       }
