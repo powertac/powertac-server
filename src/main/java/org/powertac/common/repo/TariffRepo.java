@@ -78,7 +78,12 @@ public class TariffRepo implements DomainRepo
       rates.put(r.getId(), r);
     }
   }
-  
+
+  public void removeSpecification (long id)
+  {
+    specs.remove(id);
+  }
+
   public void setDefaultTariff (TariffSpecification newSpec)
   {
     addSpecification(newSpec);
@@ -98,24 +103,36 @@ public class TariffRepo implements DomainRepo
     }
     return result;
   }
-  
+
   public synchronized TariffSpecification findSpecificationById (long id)
   {
     return specs.get(id);
   }
-  
+
   public synchronized List<TariffSpecification>
-  findTariffSpecificationsByPowerType (PowerType type)
+  findTariffSpecificationsByBroker (Broker broker)
   {
     List<TariffSpecification> result = new ArrayList<TariffSpecification>();
     for (TariffSpecification spec : specs.values()) {
-      if (spec.getPowerType() == type) {
+      if (spec.getBroker() == broker) {
         result.add(spec);
       }
     }
     return result;
   }
-  
+
+  public synchronized List<TariffSpecification>
+  findTariffSpecificationsByPowerType (PowerType type)
+  {
+    List<TariffSpecification> result = new ArrayList<TariffSpecification>();
+    for (TariffSpecification spec : specs.values()) {
+      if (spec.getPowerType().canUse(type)) {
+        result.add(spec);
+      }
+    }
+    return result;
+  }
+
   public synchronized List<TariffSpecification> findAllTariffSpecifications()
   {
     return new ArrayList<TariffSpecification>(specs.values());
@@ -229,7 +246,7 @@ public class TariffRepo implements DomainRepo
   {
     tariffs.remove(tariff.getId());
     deletedTariffs.add(tariff.getId());
-    specs.remove(tariff.getId());
+    removeSpecification(tariff.getId());
   }
 
   /**

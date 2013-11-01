@@ -85,6 +85,31 @@ public class TariffRepoTest
   }
 
   @Test
+  public void testRemoveSpecification ()
+  {
+    List<TariffSpecification> specs = repo.findAllTariffSpecifications();
+    assertTrue("initially empty", specs.isEmpty());
+    repo.addSpecification(spec);
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("one spec", 1, specs.size());
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec));
+    assertTrue("contains second", specs.contains(spec2));
+    repo.removeSpecification(spec.getId());
+    specs = repo.findAllTariffSpecifications();    
+    assertEquals("one spec", 1, specs.size());
+    assertTrue("contains only second", specs.contains(spec2));
+    repo.removeSpecification(spec2.getId());
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("no specs", 0, specs.size());
+  }
+
+  @Test
   public void testAddDuplicateSpecification ()
   {
     repo.addSpecification(spec);
@@ -115,6 +140,63 @@ public class TariffRepoTest
     repo.addSpecification(spec2);
     assertEquals("first", spec, repo.findSpecificationById(spec.getId()));
     assertEquals("second", spec2, repo.findSpecificationById(spec2.getId()));
+  }
+  
+  // find spec by power type, including supertypes
+  @Test
+  public void testFindByPowerType ()
+  {
+    repo.addSpecification(spec);
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    TariffSpecification spec3 = new TariffSpecification(broker, PowerType.PRODUCTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec3);
+    TariffSpecification spec4 = new TariffSpecification(broker, PowerType.SOLAR_PRODUCTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec4);
+    List<TariffSpecification> specs =
+            repo.findTariffSpecificationsByPowerType(PowerType.CONSUMPTION);
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec));
+    assertTrue("contains second", specs.contains(spec2));
+    specs = repo.findTariffSpecificationsByPowerType(PowerType.PRODUCTION);
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec3));
+    assertTrue("contains second", specs.contains(spec4));
+  }
+
+  // find spec by broker
+  @Test
+  public void testFindByBroker ()
+  {
+    repo.addSpecification(spec);
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    Broker mary = new Broker("Mary");
+    TariffSpecification spec3 = new TariffSpecification(mary, PowerType.PRODUCTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec3);
+    TariffSpecification spec4 = new TariffSpecification(mary, PowerType.SOLAR_PRODUCTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec4);
+    List<TariffSpecification> specs =
+            repo.findTariffSpecificationsByBroker(broker);
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec));
+    assertTrue("contains second", specs.contains(spec2));
+    specs = repo.findTariffSpecificationsByBroker(mary);
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec3));
+    assertTrue("contains second", specs.contains(spec4));
   }
 
   /**
