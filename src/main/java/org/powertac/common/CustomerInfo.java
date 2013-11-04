@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2012 the original author or authors.
+ * Copyright 2009-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,24 +51,42 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private PowerType powerType;
 
-  /** total controllable capacity in kWh per member */
+  /** Total controllable capacity in kWh per member. This is the maximum
+   * possible response to curtailment request. For a consumption power type,
+   * this results in up-regulation and the value is <= 0,
+   * because it represents less energy being delivered to the customer. 
+   * Brokers should assume that curtailment will result in shifting of load
+   * (or supply, for a production power type) to a later timeslot. */
   @XStreamAsAttribute
   private double controllableKWh = 0.0;
 
-  /** Maximum up-regulation rate in kW per member */
+  /** Maximum up-regulation rate in kW per member,
+   * beyond the curtailment of its load.
+   * Value is zero for thermal storage or no storage,
+   * and negative for a battery
+   * (because energy is flowing away from the customer). */
   @XStreamAsAttribute
   private double upRegulationKW = 0.0;
 
-  /** Maximum down-regulation rate in kW per member */
+  /** Maximum down-regulation rate in kW per member. This is energy the
+   * customer can absorb in a timeslot, beyond its normal usage.
+   * A positive value represents charging a battery or dumping heat
+   * (or cold) into some type of thermal storage system. */
   @XStreamAsAttribute
   private double downRegulationKW = 0.0;
 
-  /** describes whether or not this customer engages in multiple contracts at the same time.
-   * Defaults to false. */
+  /** Maximum energy storage capacity.
+   * If a 2 kWh battery can be charged at 1 kW, it's max down-regulation
+   * would be 1 kW, and its capacity would be 2 kWh. */
+  @XStreamAsAttribute
+  private double storageCapacity = 0.0;
+
+  /** True just in case this customer can engage in multiple contracts
+   * at the same time. Defaults to false. */
   @XStreamAsAttribute
   private boolean multiContracting = false;
 
-  /** describes whether or not this customer negotiates over contracts.
+  /** True just in case this customer negotiates over contracts.
    * Defaults to false. */
   @XStreamAsAttribute
   private boolean canNegotiate = false;
