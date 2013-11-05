@@ -67,6 +67,7 @@ public class BrokerRepo implements DomainRepo
   {
     Broker broker = findByUsername(username);
     if (broker == null) {
+      log.info("Creating broker " + username);
       broker = new Broker(username);
       add(broker);
     }

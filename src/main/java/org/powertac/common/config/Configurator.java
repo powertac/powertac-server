@@ -35,10 +35,12 @@ import org.apache.log4j.Logger;
  * <p>
  * Configuration clauses are assumed to be of the form<br/>
  *   &nbsp; &nbsp; pkg.class[.instance].property = value<br/>
- * where pkg is the package name without org.powertac, class is the
- * classname (but the first character is lowercase),
- * instance is the optional instance name,
- * and property is the property name, which must be annotated with
+ * where pkg is the package name without org.powertac
+ * (or the full classname for classes outside the org.powertac hierarchy), 
+ * class is the classname (but the first character is lowercase),
+ * instance is an optional instance name,
+ * and property is the property name. 
+ * The target property must be annotated with
  * @ConfigurableValue, either on the property itself, or on a setter method.
  * For example, the following property will set the jmsBrokerUrl property
  * of the class JmsManagementService.</p>
@@ -318,16 +320,16 @@ public class Configurator
           log.error("Class " + type + " not found");
         }
         catch (IllegalArgumentException e) {
-          log.error(e.toString());
+          log.error("cannot configure " + key + ": " + e.toString());
         }
         catch (IllegalAccessException e) {
-          log.error(e.toString());
+          log.error("cannot configure " + key + ": " + e.toString());
         }
         catch (InvocationTargetException e) {
-          log.error(e.toString());
+          log.error("cannot configure " + key + ": " + e.toString());
         }
         catch (NoSuchMethodException e) {
-          log.error(e.toString());
+          log.error("cannot configure " + key + ": " + e.toString());
         }
       }
     }
