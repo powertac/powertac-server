@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2013 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
 
 /**
@@ -37,12 +36,27 @@ import org.apache.log4j.Logger;
  * Configuration clauses are assumed to be of the form<br/>
  *   &nbsp; &nbsp; pkg.class[.instance].property = value<br/>
  * where pkg is the package name without org.powertac, class is the
- * classname, instance is the optional instance name, and property is the
- * property name.</p>
+ * classname (but the first character is lowercase),
+ * instance is the optional instance name,
+ * and property is the property name, which must be annotated with
+ * @ConfigurableValue, either on the property itself, or on a setter method.
+ * For example, the following property will set the jmsBrokerUrl property
+ * of the class JmsManagementService.</p>
+ * <p>
+ * <code>server.jmsManagementService.jmsBrokerUrl = tcp://localhost:61616</code>
+ * </p>
  * <p>
  * In the server, an instance of this class is typically created by a service
  * that collects configuration data, creates and initializes a Configurator,
- * then waits for each service to ask for its configuration.</p>
+ * then waits for each service to ask for its configuration. There are many
+ * examples of configuration settings in the server properties file.</p>
+ * <p>
+ * When used in a broker, classes outside the org.powertac tree can be used
+ * if the full package prefix is specified. For example, the following
+ * property specification will set the foo property of class edu.umn.Bar:</p>
+ * <p>
+ * <code>edu.umn.bar.foo = 42</code></p>
+ * 
  * @author John Collins
  */
 public class Configurator
@@ -108,10 +122,10 @@ public class Configurator
     String classname = thing.getClass().getName();
     log.debug("configuring object of type " + classname);
     String[] classnamePath = classname.split("\\.");
-    if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
-      log.error("Cannot set properties for instance of type " + classname);
-      return null;
-    }
+    //if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
+    //  log.error("Cannot set properties for instance of type " + classname);
+    //  return null;
+    //}
     return classnamePath;
   }
   
@@ -137,10 +151,10 @@ public class Configurator
     String classname = type.getName();
     log.debug("configuring instances for type " + classname);
     String[] classnamePath = classname.split("\\.");
-    if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
-      log.error("Cannot configure instances of type " + classname);
-      return null;
-    }
+    //if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
+    //  log.error("Cannot configure instances of type " + classname);
+    //  return null;
+    //}
     Configuration subset = extractConfigForClass(classnamePath);
     // we should have a class with the key "instances" giving the item
     // names, and a set of clauses for each item
@@ -236,7 +250,12 @@ public class Configurator
     // Note that the classname must be lower-cased.
     StringBuilder sb = new StringBuilder();
     // discard the "org" and "powertac" elements
-    for (int i = 2; i < (classnamePath.length - 1); i++) {
+    int startIndex = 2;
+    if (!(classnamePath[0].equals("org") && classnamePath[1].equals("powertac"))) {
+      // handle classes outside org.powertac
+      startIndex = 0;
+    }
+    for (int i = startIndex; i < (classnamePath.length - 1); i++) {
       sb.append(classnamePath[i]).append(".");
     }
     sb.append(decapitalize(classnamePath[classnamePath.length - 1]));

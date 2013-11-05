@@ -28,6 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Competition;
 
+import pt.ConfigTestDummy;
+
 /**
  * Test for PowerTAC Configurator
  * @author John Collins
@@ -71,5 +73,43 @@ public class ConfiguratorTest
     uut.configureSingleton(comp);
     assertEquals("correct timeslot length", 60, comp.getTimeslotLength());
     assertEquals("correct min ts count", 480, comp.getMinimumTimeslotCount());    
+  }
+
+  @Test
+  public void testForeign1 ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("pt.configTestDummy.intProperty", "4");
+    map.put("pt.configTestDummy.fixedPerKwh", "4.2");
+    Configuration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    assertEquals("original value", 0, dummy.getIntProperty());
+    uut.configureSingleton(dummy);
+    assertEquals("new value", 4, dummy.getIntProperty());
+    assertEquals("new value", 4.2, dummy.getFixedPerKwh(), 1e-6);
+    assertEquals("original string", "dummy", dummy.stringProperty);
+  }
+
+  @Test
+  public void testForeign2 ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("pt.configTestDummy.intProperty", "-4");
+    map.put("pt.configTestDummy.fixedPerKwh", "a6.2"); // bad string
+    map.put("pt.configTestDummy.stringProperty", "new string");
+    Configuration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    assertEquals("original value", 0, dummy.getIntProperty());
+    assertEquals("original string", "dummy", dummy.stringProperty);
+    uut.configureSingleton(dummy);
+    assertEquals("new value", -4, dummy.getIntProperty());
+    assertEquals("original value", -0.06, dummy.getFixedPerKwh(), 1e-6);
+    assertEquals("new string", "new string", dummy.stringProperty);
   }
 }
