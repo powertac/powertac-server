@@ -25,8 +25,6 @@ import org.joda.time.base.AbstractInstant;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.common.state.XStreamStateLoggable;
-
 import com.thoughtworks.xstream.annotations.*;
 
 /**
@@ -99,14 +97,10 @@ import com.thoughtworks.xstream.annotations.*;
                    "tierThreshold", "fixed", "minValue", "maxValue",
                    "noticeInterval", "expectedMean", "maxCurtailment"})
 @XStreamAlias("rate")
-public class Rate extends XStreamStateLoggable
+public class Rate extends RateCore
 {
   static private Logger log = Logger.getLogger(Rate.class.getName());
 
-  @XStreamAsAttribute
-  private long id = IdGenerator.createId();
-  @XStreamAsAttribute
-  private long tariffId;
   @XStreamAsAttribute
   private int weeklyBegin = -1; // weekly applicability
   @XStreamAsAttribute
@@ -150,34 +144,6 @@ public class Rate extends XStreamStateLoggable
     probe = new ProbeCharge(new Instant(0l), 0.0);
   }
 
-  /**
-   * Returns the id of this Rate
-   */
-  public long getId ()
-  {
-    return id;
-  }
-
-  /**
-   * Returns the id of the TariffSpecification to which this Rate is
-   * attached.
-   */
-  public long getTariffId ()
-  {
-    return tariffId;
-  }
-  
-  /**
-   * Sets the backpointer to the tariff. This is a non-fluent
-   * setter, intended to be called by Tariff. It is public to better support
-   * state logging
-   */
-  @StateChange
-  public void setTariffId (long id)
-  {
-    tariffId = id;
-  }
-  
   /**
    * Sets the day of the week on which this Rate comes into effect. The
    * {@code begin} parameter is processed to extract the dayOfWeek field.
@@ -417,7 +383,7 @@ public class Rate extends XStreamStateLoggable
             rateHistory.remove(item);
           }
         }
-        newCharge.setRateId(id);
+        newCharge.setRateId(getId());
         rateHistory.add(newCharge);
         log.info("Adding HourlyCharge " + newCharge.getId() + " at " + newCharge.getAtTime() + " to " + this.toString());
         result = true;
@@ -753,7 +719,7 @@ public class Rate extends XStreamStateLoggable
   @Override
   public String toString ()
   {
-    String result = "Rate." + IdGenerator.getString(id) + ":";
+    String result = "Rate." + IdGenerator.getString(getId()) + ":";
     if (fixed)
       result += (" Fixed " + getMinValue());
     else

@@ -23,14 +23,18 @@ import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.util.Predicate;
+
+import static org.powertac.util.ListTools.filter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * Represents a Tariff offered by a Broker to customers. A Tariff specifies
- * prices for energy in various circumstances, along with upfront and periodic
- * payments and basic constraints. This class is a value type -- a 
+ * Represents a Tariff offered by a Broker to customers. A TariffSpecification
+ * may specify upfront and periodic payments, and
+ * aggregates a set of Rate instances that specify
+ * prices for energy in various circumstances. This class is a value type -- a 
  * serializable, immutable data structure. You need to initialize a 
  * Tariff from it to make serious use of it. New tariffs and their Rates
  * are communicated to Customers and to Brokers when tariffs are published.
@@ -43,12 +47,12 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * <strong>Note:</strong> Must be serialized "deep" to gather up the Rates and
  * associated HourlyCharge instances.</p>
  * <p>
- * State log entry format:<br/>
- * <code>brokerId::powerType</code><br/><br/>
+ * State log entry format for new instance:<br/>
+ * <code>long brokerId, PowerType powerType</code><br/><br/>
  * State log fields for readResolve():<br>
- * <code>new(long brokerId, PowerType powerType, long minDuration,<br>
+ * <code>long brokerId, PowerType powerType, long minDuration,<br>
  * &nbsp;&nbsp;double signupPayment, double earlyWithdrawPayment,<br>
- * &nbsp;&nbsp;double periodicPayment)</code>
+ * &nbsp;&nbsp;double periodicPayment, List<tariffId> supersedes</code>
  * 
  * @author John Collins
  */
@@ -85,7 +89,7 @@ public class TariffSpecification extends TariffMessage
   @XStreamAsAttribute
   private double periodicPayment = 0.0;
 
-  private List<Rate> rates;
+  private List<RateCore> rates;
 
   private List<Long> supersedes;
   
@@ -98,7 +102,7 @@ public class TariffSpecification extends TariffMessage
     super(broker);
     this.broker = broker;
     this.powerType = powerType;
-    this.rates = new ArrayList<Rate>();
+    this.rates = new ArrayList<RateCore>();
   }
 
   public PowerType getPowerType ()
@@ -200,20 +204,44 @@ public class TariffSpecification extends TariffMessage
     return broker;
   }
 
+  /**
+   * Returns the Rate instances from among the rates in this tariff spec.
+   */
   public List<Rate> getRates ()
   {
-    return rates;
+    List<Rate> result = new ArrayList<Rate>();
+    for (RateCore rate : rates) {
+      if (rate instanceof Rate) {
+        result.add((Rate)rate);
+      }
+    }
+    return result;
   }
 
   /**
-   * Adds a new Rate to this tariff.
+   * Returns the RegulationRate instances from among the rates
+   * in this tariff spec.
+   */
+  public List<RegulationRate> getRegulationRates ()
+  {
+    List<RegulationRate> result = new ArrayList<RegulationRate>();
+    for (RateCore rate : rates) {
+      if (rate instanceof RegulationRate) {
+        result.add((RegulationRate)rate);
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Adds a new RateCore (Rate, RegulationRate, etc.) to this tariff.
    */
   @StateChange
-  public TariffSpecification addRate (Rate rate)
+  public TariffSpecification addRate (RateCore rate)
   {
     if (null == rates)
       // readResolve does not create the list
-      rates = new ArrayList<Rate>();
+      rates = new ArrayList<RateCore>();
     rates.add(rate);
     rate.setTariffId(id);
     return this;

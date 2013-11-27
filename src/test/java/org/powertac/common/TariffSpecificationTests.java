@@ -125,6 +125,23 @@ public class TariffSpecificationTests
   }
 
   @Test
+  public void testAddRates ()
+  {
+    TariffSpecification spec = new TariffSpecification(broker,
+                                                       PowerType.CONSUMPTION);
+    Rate r = new Rate().withValue(0.-121);
+    RegulationRate rr = new RegulationRate().
+            withUpRegulationPayment(.05).
+            withDownRegulationPayment(-.05);
+    assertEquals("correct return", spec, spec.addRate(r));
+    assertEquals("correct return", spec, spec.addRate(rr));
+    assertEquals("correct length", 1, spec.getRates().size());
+    assertEquals("correct rate", r, spec.getRates().get(0));
+    assertEquals("correct length", 1, spec.getRegulationRates().size());
+    assertEquals("correct rate", rr, spec.getRegulationRates().get(0));
+  }
+
+  @Test
   public void testAddSupersedes ()
   {
     TariffSpecification spec1 = new TariffSpecification(broker, PowerType.CONSUMPTION);
@@ -133,7 +150,7 @@ public class TariffSpecificationTests
     assertEquals("correct length", 1, spec2.getSupersedes().size());
     assertEquals("correct first element", spec1.getId(), (long)spec2.getSupersedes().get(0));
   }
-  
+
   // validity test
   @Test
   public void  testValidity ()
@@ -154,23 +171,29 @@ public class TariffSpecificationTests
   @Test
   public void testXmlSerialization ()
   {
-    Rate r = new Rate().withValue(-0.121) 
-        .withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC))
-        .withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC))
-        .withTierThreshold(100.0);
-    TariffSpecification spec = new TariffSpecification(broker,
-                                                       PowerType.CONSUMPTION)
-        .withMinDuration(20000l)
-        .withSignupPayment(35.0)
-        .withPeriodicPayment(-0.05)
-        .addSupersedes(42l)
-        .addRate(r);
+    Rate r = new Rate().withValue(-0.121).
+            withDailyBegin(new DateTime(2011, 1, 1, 6, 0, 0, 0, DateTimeZone.UTC)).
+            withDailyEnd(new DateTime(2011, 1, 1, 8, 0, 0, 0, DateTimeZone.UTC)).
+            withTierThreshold(100.0);
+    RegulationRate rr = new RegulationRate().
+            withUpRegulationPayment(.05).
+            withDownRegulationPayment(-.05).
+            withResponse(RegulationRate.ResponseTime.SECONDS);
+    TariffSpecification spec = 
+            new TariffSpecification(broker,
+                                    PowerType.CONSUMPTION).
+                                    withMinDuration(20000l).
+                                    withSignupPayment(35.0).
+                                    withPeriodicPayment(-0.05).
+                                    addSupersedes(42l).
+                                    addRate(r).
+                                    addRate(rr);
 
     XStream xstream = new XStream();
     xstream.autodetectAnnotations(true);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(spec));
-    //System.out.println(serialized.toString());
+    System.out.println(serialized.toString());
     TariffSpecification xspec= (TariffSpecification)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xspec);
     //assertEquals("correct match", spec, xspec);
@@ -183,5 +206,13 @@ public class TariffSpecificationTests
     assertNotNull("rate present", xr);
     assertTrue("correct rate type", xr.isFixed());
     assertEquals("correct rate value", -0.121, xr.getMinValue(), 1e-6);
+    RegulationRate xrr = (RegulationRate)xspec.getRegulationRates().get(0);
+    assertNotNull("rate present", xrr);
+    assertEquals("correct up-reg rate",
+                 .05, xrr.getUpRegulationPayment(), 1e-6);
+    assertEquals("correct down-reg rate",
+                 -.05, xrr.getDownRegulationPayment(), 1e-6);
+    assertEquals("correct response time",
+                 RegulationRate.ResponseTime.SECONDS, xrr.getResponse());
   }
 }

@@ -75,7 +75,7 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private double downRegulationKW = 0.0;
 
-  /** Maximum energy storage capacity.
+  /** Maximum energy storage capacity in kWh.
    * If a 2 kWh battery can be charged at 1 kW, it's max down-regulation
    * would be 1 kW, and its capacity would be 2 kWh. */
   @XStreamAsAttribute
