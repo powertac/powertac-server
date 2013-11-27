@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-//import org.powertac.common.enumerations.CustomerType;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -47,37 +46,18 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private int population;
 
-  /** gives the available power classifications of the customer */
   @XStreamAsAttribute
   private PowerType powerType;
 
-  /** Total controllable capacity in kWh per member. This is the maximum
-   * possible response to curtailment request. For a consumption power type,
-   * this results in up-regulation and the value is <= 0,
-   * because it represents less energy being delivered to the customer. 
-   * Brokers should assume that curtailment will result in shifting of load
-   * (or supply, for a production power type) to a later timeslot. */
   @XStreamAsAttribute
   private double controllableKWh = 0.0;
 
-  /** Maximum up-regulation rate in kW per member,
-   * beyond the curtailment of its load.
-   * Value is zero for thermal storage or no storage,
-   * and negative for a battery
-   * (because energy is flowing away from the customer). */
   @XStreamAsAttribute
   private double upRegulationKW = 0.0;
 
-  /** Maximum down-regulation rate in kW per member. This is energy the
-   * customer can absorb in a timeslot, beyond its normal usage.
-   * A positive value represents charging a battery or dumping heat
-   * (or cold) into some type of thermal storage system. */
   @XStreamAsAttribute
   private double downRegulationKW = 0.0;
 
-  /** Maximum energy storage capacity in kWh.
-   * If a 2 kWh battery can be charged at 1 kW, it's max down-regulation
-   * would be 1 kW, and its capacity would be 2 kWh. */
   @XStreamAsAttribute
   private double storageCapacity = 0.0;
 
@@ -118,9 +98,9 @@ public class CustomerInfo //implements Serializable
   }
 
   /**
-   * Population of the model represented by the CustomerInfo. This is not
-   * necessarily the number of people represented, but the number of potential
-   * tariff subscribers.
+   * Returns the population of the model represented by this CustomerInfo.
+   * This is not necessarily the number of people represented,
+   * but the number of potential tariff subscribers.
    */
   public int getPopulation ()
   {
@@ -140,8 +120,8 @@ public class CustomerInfo //implements Serializable
   }
 
   /**
-   * The types of power consumption and/or production modalities available in
-   * the customer model.
+   * Returns the type of power consumption and/or production available in
+   * this customer model.
    */
   public PowerType getPowerType ()
   {
@@ -200,8 +180,100 @@ public class CustomerInfo //implements Serializable
     return this;
   }
 
+  /**
+   * Returns total controllable capacity in kWh per member. This is the maximum
+   * possible response to curtailment request. For a consumption power type,
+   * this results in up-regulation and the value is <= 0,
+   * because it represents less energy being delivered to the customer. 
+   * Brokers should assume that curtailment will result in shifting of load
+   * (or supply, for a production power type) to a later timeslot.
+   */
+  public double getControllableKWh ()
+  {
+    return controllableKWh;
+  }
+
+  /**
+   * Fluent setter for controllable kWh. Intended to be called only by the
+   * customer model itself.
+   */
+  @StateChange
+  public CustomerInfo withControllableKWh (double value)
+  {
+    controllableKWh = value;
+    return this;
+  }
+
+  /**
+   * Returns the maximum up-regulation rate in kW per member,
+   * beyond the curtailment of its load.
+   * Value is zero for thermal storage or no storage,
+   * and negative for a battery
+   * (because energy is flowing away from the customer).
+   */
+  public double getUpRegulationKW ()
+  {
+    return upRegulationKW;
+  }
+
+  /**
+   * Fluent setter for up-regulation kW. Intended to be called only by the
+   * customer model itself.
+   */
+  @StateChange
+  public CustomerInfo withUpRegulationKW (double value)
+  {
+    upRegulationKW = value;
+    return this;
+  }
+
+  /**
+   * Returns the maximum down-regulation rate in kW per member.
+   * This is energy the
+   * customer can absorb in a timeslot, beyond its normal usage.
+   * A positive value represents charging a battery or dumping heat
+   * (or cold) into some type of thermal storage system.
+   */
+  public double getDownRegulationKW ()
+  {
+    return downRegulationKW;
+  }
+
+  /**
+   * Fluent setter for down-regulation kW. Intended to be called only by the
+   * customer model itself.
+   */
+  @StateChange
+  public CustomerInfo withDownRegulationKW (double value)
+  {
+    downRegulationKW = value;
+    return this;
+  }
+
+  /**
+   * Returns the maximum energy storage capacity in kWh per member.
+   * If a 2 kWh battery can be charged at 1 kW, it's maximum down-regulation
+   * would be 1 kW, and its storage capacity would be 2 kWh.
+   */
+  public double getStorageCapacity ()
+  {
+    return storageCapacity;
+  }
+
+  /**
+   * Fluent setter for storage capacity. Intended to be called only by the
+   * customer model itself.
+   */
+  @StateChange
+  public CustomerInfo withStorageCapacity (double value)
+  {
+    storageCapacity = value;
+    return this;
+  }
+
   @Override
-  public String toString() {
+  public String toString()
+  {
     return "CustomerInfo(" + name + ")";
   }
 }
