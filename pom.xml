@@ -102,6 +102,11 @@
       <artifactId>officecomplex-customer</artifactId>
       <version>1.1.0-SNAPSHOT</version>
     </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>balancing-market</artifactId>
+      <version>1.1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <repositories>
