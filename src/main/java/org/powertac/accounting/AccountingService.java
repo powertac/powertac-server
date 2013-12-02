@@ -46,7 +46,8 @@ public class AccountingService
   extends TimeslotPhaseProcessor 
   implements Accounting, InitializationService
 {
-  static private Logger log = Logger.getLogger(AccountingService.class.getName());
+  static private Logger log =
+          Logger.getLogger(AccountingService.class.getSimpleName());
 
   @Autowired
   private TimeService timeService;

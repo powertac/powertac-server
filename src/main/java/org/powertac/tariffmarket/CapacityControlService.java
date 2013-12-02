@@ -47,7 +47,8 @@ public class CapacityControlService
 extends TimeslotPhaseProcessor
 implements CapacityControl, InitializationService
 {
-  static private Logger log = Logger.getLogger(CapacityControlService.class.getName());
+  static private Logger log =
+          Logger.getLogger(CapacityControlService.class.getSimpleName());
 
   @Autowired
   Accounting accountingService;

@@ -72,7 +72,8 @@ public class TariffMarketService
   extends TimeslotPhaseProcessor 
   implements TariffMarket, InitializationService
 {
-  static private Logger log = Logger.getLogger(TariffMarketService.class.getName());
+  static private Logger log =
+          Logger.getLogger(TariffMarketService.class.getSimpleName());
 
   @Autowired
   private TimeService timeService;
@@ -173,7 +174,6 @@ public class TariffMarketService
       return null;
     }
 
-    //brokerProxyService.registerBrokerMessageListener(this);
     for (Class<?> messageType: Arrays.asList(TariffSpecification.class,
                                              TariffExpire.class,
                                              TariffRevoke.class,
