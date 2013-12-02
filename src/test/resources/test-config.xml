@@ -17,22 +17,22 @@
 	      factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
 	</bean>
-  
-        <bean id="accountingService" class="org.mockito.Mockito"
+
+        <bean id="accounting" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.Accounting" />
         </bean>
-        
+
+        <bean id="balancingMarket" class = "org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.interfaces.BalancingMarket" />
+        </bean>
+
         <bean id="tariffMarketService" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
         </bean>
-        
-        <bean id="capacityControlService" class="org.mockito.Mockito"
-              factory-method="mock">
-          <constructor-arg value="org.powertac.common.interfaces.CapacityControl" />
-        </bean>
-        
+
         <bean id="serverPropertiesService" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />

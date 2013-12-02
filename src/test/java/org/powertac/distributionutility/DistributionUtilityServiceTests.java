@@ -130,29 +130,20 @@ public class DistributionUtilityServiceTests
   {
     distributionUtilityService.setDefaults();
     TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("distributionutility.distributionUtilityService.balancingCostMin", "-0.06");
-    map.put("distributionutility.distributionUtilityService.balancingCostMax", "-0.06");
+    map.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
+    map.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     distributionUtilityService.initialize(comp, new ArrayList<String>());
   }
 
-  private void updatePrices ()
+  @Test
+  public void setupTest ()
   {
-    // add some new timeslots
-    Timeslot ts0 = timeslotRepo.currentTimeslot();
-    long start = timeService.getCurrentTime().getMillis();
-    Timeslot ts1 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 3));
-    Timeslot ts2 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR * 2));
-    Timeslot ts3 = timeslotRepo.findByInstant(new Instant(start - TimeService.HOUR));
-
-    // add some orderbooks
-    orderbookRepo.makeOrderbook(ts3, 33.0);
-    orderbookRepo.makeOrderbook(ts3, 32.0);
-    orderbookRepo.makeOrderbook(ts0, 20.2);
-    orderbookRepo.makeOrderbook(ts0, 21.2);
-    orderbookRepo.makeOrderbook(ts0, 19.8);
-    // this should be the spot price
-    orderbookRepo.makeOrderbook(ts0, 20.1);
+    initializeService();
+    assertEquals("correct min dist fee", -0.01,
+                 distributionUtilityService.getDistributionFeeMin(), 1e-6);
+    assertEquals("correct max dist fee", -0.12,
+                 distributionUtilityService.getDistributionFeeMax(), 1e-6);
   }
 }

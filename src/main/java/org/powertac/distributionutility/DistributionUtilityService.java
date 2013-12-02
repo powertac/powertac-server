@@ -16,10 +16,6 @@
 
 package org.powertac.distributionutility;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,17 +23,14 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
-import org.powertac.common.interfaces.CapacityControl;
+import org.powertac.common.interfaces.BalancingMarket;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.Orderbook;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffTransaction;
-import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
-import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -51,7 +44,7 @@ public class DistributionUtilityService
 extends TimeslotPhaseProcessor
 implements InitializationService
 {
-  Logger log = Logger.getLogger(this.getClass().getName());
+  Logger log = Logger.getLogger(this.getClass().getSimpleName());
 
   @Autowired
   private BrokerRepo brokerRepo;
@@ -66,10 +59,10 @@ implements InitializationService
   private TariffRepo tariffRepo;
 
   @Autowired
-  private Accounting accountingService;
-  
+  private Accounting accounting;
+
   @Autowired
-  private CapacityControl capacityControlService;
+  private BalancingMarket balancingMarket;
   
   @Autowired
   private ServerConfiguration serverProps;
@@ -134,18 +127,17 @@ implements InitializationService
     // should be total production + total consumption
     //    + final imbalance - balancing transactions
     Map<Broker, Map<TariffTransaction.Type, Double>> totals =
-            accountingService.getCurrentSupplyDemandByBroker();
+            accounting.getCurrentSupplyDemandByBroker();
     for (Broker broker : brokerList) {
       Map<TariffTransaction.Type, Double> brokerTotals = totals.get(broker);
       if (null == brokerTotals)
         continue;
       double consumption = brokerTotals.get(TariffTransaction.Type.CONSUME);
       double production = brokerTotals.get(TariffTransaction.Type.PRODUCE);
-      double imports = accountingService.getCurrentMarketPosition(broker) * 1000.0;
+      double imports = accounting.getCurrentMarketPosition(broker) * 1000.0;
       // balancing adjusts imports
-      // TODO - get this from transactions?
-      double imbalance = 0.0; //getMarketBalance(broker); // >0 if oversupply
-      double balanceAdj = 0.0; //balancingResults.get(broker).getCurtailment();
+      double imbalance = balancingMarket.getMarketBalance(broker); // >0 if oversupply
+      double balanceAdj = balancingMarket.getRegulation(broker);
       log.info("Distribution tx for "
                + broker.getUsername() + "(c,p,m,i,b) = ("
                + consumption + ","
@@ -155,7 +147,7 @@ implements InitializationService
                + balanceAdj + ")");
       double transport = (production - consumption - balanceAdj
                           + Math.abs(imports - imbalance)) / 2.0;
-      accountingService.addDistributionTransaction(broker, transport,
+      accounting.addDistributionTransaction(broker, transport,
                                                    transport * distributionFee);
     }
   }
