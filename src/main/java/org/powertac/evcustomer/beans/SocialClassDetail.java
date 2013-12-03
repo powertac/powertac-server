@@ -22,9 +22,10 @@ import java.util.Map;
 
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.17
+ * @version 0.5, Date: 2013.11.08
  */
-public class SocialClassDetail {
+public class SocialClassDetail
+{
   private String name;
   private int minCount;
   private int maxCount;
@@ -40,19 +41,23 @@ public class SocialClassDetail {
     this.socialGroupDetails = socialGroupDetails;
   }
 
-  public String getName () {
+  public String getName ()
+  {
     return name;
   }
 
-  public int getMinCount () {
+  public int getMinCount ()
+  {
     return minCount;
   }
 
-  public int getMaxCount () {
+  public int getMaxCount ()
+  {
     return maxCount;
   }
 
-  public Map<Integer, SocialGroupDetail> getSocialGroupDetails () {
+  public Map<Integer, SocialGroupDetail> getSocialGroupDetails ()
+  {
     return socialGroupDetails;
   }
 }

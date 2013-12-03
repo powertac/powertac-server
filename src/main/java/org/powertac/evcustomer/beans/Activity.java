@@ -16,12 +16,12 @@
 
 package org.powertac.evcustomer.beans;
 
-
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.08
  */
-public class Activity {
+public class Activity
+{
   private int id;
   private String name;
   private double weekdayWeight;
@@ -52,13 +52,12 @@ public class Activity {
   public double getHourWeight (int hour, double ra)
   {
     // TODO Clean up / make more clear
+    // Get hour weigths from XML?
 
-    // TODO Get hour weigths from XML?
-
-    double t1 = 6    + 1   * ra;
-    double t2 = 6.5  + 1.5 * ra; // waking up in the interval 6-7,5
+    double t1 = 6 + 1 * ra;
+    double t2 = 6.5 + 1.5 * ra; // waking up in the interval 6-7,5
     double t3 = 16.5 + 1.5 * ra; // returning from work at 16.30-18
-    double t4 = 21   + 3   * ra; // going to bed from 9-12.00
+    double t4 = 21 + 3 * ra; // going to bed from 9-12.00
 
     int available1 = 1;
     int available2 = 1;
@@ -110,7 +109,6 @@ public class Activity {
 
     return 0.0;
   }
-
 
   public int getId ()
   {

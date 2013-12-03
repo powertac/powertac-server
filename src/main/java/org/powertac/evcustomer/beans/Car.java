@@ -16,12 +16,12 @@
 
 package org.powertac.evcustomer.beans;
 
-
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.08
  */
-public class Car {
+public class Car
+{
   private String name;
   private double maxCapacity;     // kwh
   private double currentCapacity; // kwh
@@ -42,25 +42,24 @@ public class Car {
   }
 
   // TODO Set min charge to 20%
-  // TODO Add
   public void discharge (double charge) throws ChargeException
   {
     if (currentCapacity >= charge) {
       currentCapacity -= charge;
     }
     else {
-      throw new ChargeException (
+      throw new ChargeException(
           "Not possible to discharge " + name + " : " + charge);
     }
   }
 
   public void charge (double charge) throws ChargeException
   {
-    if ( (currentCapacity+charge) <= maxCapacity) {
+    if ((currentCapacity + charge) <= maxCapacity) {
       currentCapacity += charge;
     }
     else {
-      throw new ChargeException (
+      throw new ChargeException(
           "Not possible to discharge " + name + " : " + charge);
     }
   }

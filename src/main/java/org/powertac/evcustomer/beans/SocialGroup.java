@@ -16,16 +16,16 @@
 
 package org.powertac.evcustomer.beans;
 
-
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.08
  */
-public class SocialGroup {
+public class SocialGroup
+{
   private int id;
   private String name;
 
-  public SocialGroup  (int id, String name)
+  public SocialGroup (int id, String name)
   {
     this.id = id;
     this.name = name;

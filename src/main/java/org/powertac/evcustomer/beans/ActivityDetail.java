@@ -16,12 +16,12 @@
 
 package org.powertac.evcustomer.beans;
 
-
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.08
  */
-public class ActivityDetail {
+public class ActivityDetail
+{
   private int activityId;
   private double maleDailyKm;
   private double femaleDailyKm;

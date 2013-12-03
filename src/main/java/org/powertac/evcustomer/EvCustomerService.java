@@ -18,15 +18,10 @@ package org.powertac.evcustomer;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.RandomSeed;
-import org.powertac.common.Tariff;
-import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.*;
 import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.repo.TariffRepo;
 import org.powertac.evcustomer.beans.*;
 import org.powertac.evcustomer.customers.EvSocialClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,14 +33,15 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
- * TODO
- *
  * @author Konstantina Valogianni, Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.25
  */
 @Service
 public class EvCustomerService extends TimeslotPhaseProcessor
@@ -61,31 +57,30 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TariffMarket tariffMarketService;
-  
+
   @Autowired
-  private TariffRepo tariffRepo;
+  private TimeService timeService;
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
   @Autowired
-  private ServerConfiguration serverProps;
+  private ServerConfiguration serverPropertiesService;
 
-  /** Random Number Generator */
-  private RandomSeed rs1;
-
-  /** List of the SocialClass Customers in the competition */
-  private List<EvSocialClass> evSocialClassList;
-
-  @ConfigurableValue(valueType = "Integer",
-          description = "Number of tariffs of each type from each broker to consider")
-  private int tariffEvalCount = 5;
+  protected List<EvSocialClass> evSocialClassList;
+  protected List<Car> cars;
+  protected Map<Integer, SocialGroup> socialGroups;
+  protected Map<Integer, Activity> activities;
+  protected Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails;
+  protected Map<String, SocialClassDetail> socialClassDetails;
 
   protected static String carTypesXml = "EvCarTypes.xml";
   protected static String socialGroupsXml = "EvSocialGroups.xml";
   protected static String activitiesXml = "EvActivities.xml";
   protected static String activityDetailsXml = "EvActivityDetails.xml";
   protected static String socialClassesXml = "EvSocialClasses.xml";
+
+  private static int seedId = 1;
 
   /**
    * This is called once at the beginning of each game.
@@ -99,61 +94,47 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       return null;
     }
 
+    // TODO Check if needed
+    serverPropertiesService.configureMe(this);
     tariffMarketService.registerNewTariffListener(this);
-    rs1 = randomSeedRepo.getRandomSeed("EvCustomerService", 1,
-                                       "EV Customer Models");
     super.init();
-    serverProps.publishConfiguration(this);
-
-    int daysOfCompetition = Competition.currentCompetition()
-        .getExpectedTimeslotCount() / EvSocialClass.HOURS_OF_DAY;
-    if (daysOfCompetition == 0) {
-      log.info("No Days Of Competition Taken");
-      daysOfCompetition = 63;
-    }
-    EvSocialClass.DAYS_OF_COMPETITION = daysOfCompetition;
+    serverPropertiesService.publishConfiguration(this);
 
     // Shared by all customers
-    List<Car> cars = loadCarTypes();
-    Map<Integer, SocialGroup> socialGroups = loadSocialGroups();
-    Map<Integer, Activity> activities = loadActivities();
-    Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails =
-        loadActivityDetails();
-    List<SocialClassDetail> socialClassDetails = loadSocialClassesDetails();
-
-    evSocialClassList = initializeSocialClasses (socialGroups, activities,
-        allActivityDetails, socialClassDetails, cars, rs1);
-
-    //evSocialClassList = loadSocialClasses(socialGroups, activities,
-    //    allActivityDetails, cars, rs1);
+    cars = loadCarTypes();
+    socialGroups = loadSocialGroups();
+    activities = loadActivities();
+    allActivityDetails = loadActivityDetails();
+    socialClassDetails = loadSocialClassesDetails();
+    evSocialClassList = initializeSocialClasses(seedId++);
 
     return "EvCustomer";
   }
 
-  private List<EvSocialClass> initializeSocialClasses (
-      Map<Integer, SocialGroup> socialGroups,
-      Map<Integer, Activity> activities,
-      Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
-      List<SocialClassDetail> socialClassDetails,
-      List<Car> cars, RandomSeed rs1)
+  private List<EvSocialClass> initializeSocialClasses (int seed)
   {
+    RandomSeed rs1 = randomSeedRepo.
+        getRandomSeed("EvCustomerService", seed++, "initializeSocialClasses");
+
     List<EvSocialClass> evSocialClassList = new ArrayList<EvSocialClass>();
 
-    for (SocialClassDetail classDetail: socialClassDetails) {
+    for (SocialClassDetail classDetail : socialClassDetails.values()) {
       int populationCount = classDetail.getMinCount() +
           rs1.nextInt(classDetail.getMaxCount() - classDetail.getMinCount());
 
-      String base = "EV SocialClass " + classDetail.getName();
-      EvSocialClass evSocialClass = new EvSocialClass(base);
-      evSocialClass.addCustomerInfo(
-          new CustomerInfo(base + " CONSUMPTION", populationCount)
-              .withPowerType(PowerType.CONSUMPTION));
-      evSocialClass.addCustomerInfo(
-          new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(),
-              populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
+      String base = "EV " + classDetail.getName();
+      EvSocialClass evSocialClass = new EvSocialClass(base, timeService);
+      evSocialClass.addCustomerInfo(new CustomerInfo(
+          EvSocialClass.createInfoName(base, PowerType.CONSUMPTION),
+          populationCount).withPowerType(PowerType.CONSUMPTION));
+      evSocialClass.addCustomerInfo(new CustomerInfo(
+          EvSocialClass.createInfoName(base, PowerType.ELECTRIC_VEHICLE),
+          populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
+
       evSocialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
-          activities, allActivityDetails, cars, populationCount, rs1);
+          activities, allActivityDetails, cars, populationCount, seed++);
       evSocialClassList.add(evSocialClass);
+      evSocialClass.subscribeDefault();
     }
 
     return evSocialClassList;
@@ -201,14 +182,10 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     return cars;
   }
 
-  /*public static List<EvSocialClass> loadSocialClasses (
-      Map<Integer, SocialGroup> socialGroups,
-      Map<Integer, Activity> activities,
-      Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
-      List<Car> cars,
-      RandomSeed rs1)
+  public static Map<String, SocialClassDetail> loadSocialClassesDetails ()
   {
-    List<EvSocialClass> evSocialClassList = new ArrayList<EvSocialClass>();
+    Map<String, SocialClassDetail> socialClassDetails =
+        new HashMap<String, SocialClassDetail>();
 
     log.info("Attempting to load SocialGroups from : " + socialClassesXml);
     try {
@@ -226,69 +203,10 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       for (int i = 0; i < classNodes.getLength(); i++) {
         Element classElement = (Element) classNodes.item(i);
         String className = classElement.getAttribute("name");
-        int minCount = Integer.parseInt(classElement.getAttribute("minCount"));
-        int maxCount = Integer.parseInt(classElement.getAttribute("maxCount"));
-        int populationCount = minCount + rs1.nextInt(maxCount - minCount);
-
-        NodeList groupNodes = classElement.getElementsByTagName("group");
-        double[] groupProbabilities = new double[groupNodes.getLength()];
-        double[] maleProbabilities = new double[groupNodes.getLength()];
-        for (int j = 0; j < groupNodes.getLength(); j++) {
-          Element element = (Element) groupNodes.item(j);
-          int groupId = Integer.parseInt(element.getAttribute("id"));
-          groupProbabilities[groupId-1] =
-              Double.parseDouble(element.getAttribute("probability"));
-          maleProbabilities[groupId-1] =
-              Double.parseDouble(element.getAttribute("male_probability"));
-        }
-
-        String base = "EV SocialClass " + className;
-        EvSocialClass evSocialClass = new EvSocialClass(base);
-        evSocialClass.addCustomerInfo(
-            new CustomerInfo(base + " CONSUMPTION", populationCount)
-                .withPowerType(PowerType.CONSUMPTION));
-        evSocialClass.addCustomerInfo(
-            new CustomerInfo(base + " " + PowerType.ELECTRIC_VEHICLE.toString(),
-                populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
-        evSocialClass.initialize(socialGroups, activities, allActivityDetails,
-            cars, populationCount, groupProbabilities, maleProbabilities, rs1);
-        evSocialClassList.add(evSocialClass);
-      }
-
-      log.info("Successfully loaded "+ classNodes.getLength() +" SocialClasses");
-    }
-    catch (Exception e) {
-      log.error("Error loading SocialClasses from : " + socialClassesXml);
-      log.error(e.toString());
-    }
-
-    return evSocialClassList;
-  }*/
-
-  public static List<SocialClassDetail> loadSocialClassesDetails ()
-  {
-    List<SocialClassDetail> socialClassDetails =
-        new ArrayList<SocialClassDetail>();
-
-    log.info("Attempting to load SocialGroups from : " + socialClassesXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(socialClassesXml);
-
-      DocumentBuilderFactory docBuilderFactory =
-          DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList classNodes = doc.getElementsByTagName("class");
-      log.info("Loading " + classNodes.getLength() + " SocialClass");
-
-      for (int i = 0; i < classNodes.getLength(); i++) {
-        Element classElement = (Element) classNodes.item(i);
-        String className = classElement.getAttribute("name");
-        // TODO Test for maxCount >= minCount
-        int minCount = Integer.parseInt(classElement.getAttribute("minCount"));
-        int maxCount = Integer.parseInt(classElement.getAttribute("maxCount"));
+        int temp1 = Integer.parseInt(classElement.getAttribute("minCount"));
+        int temp2 = Integer.parseInt(classElement.getAttribute("maxCount"));
+        int minCount = Math.min(temp1, temp2);
+        int maxCount = Math.max(temp1, temp2);
 
         Map<Integer, SocialGroupDetail> groupDetails =
             new HashMap<Integer, SocialGroupDetail>();
@@ -304,11 +222,11 @@ public class EvCustomerService extends TimeslotPhaseProcessor
               new SocialGroupDetail(groupId, probability, maleProbability));
         }
 
-        socialClassDetails.add(
+        socialClassDetails.put(className,
             new SocialClassDetail(className, minCount, maxCount, groupDetails));
       }
 
-      log.info("Successfully loaded "+ classNodes.getLength() +" SocialClasses");
+      log.info("Successfully loaded " + classNodes.getLength() + " SocialClasses");
     }
     catch (Exception e) {
       log.error("Error loading SocialClasses from : " + socialClassesXml);
@@ -447,17 +365,13 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
   /**
    * @Override @code{NewTariffListener}
-   **/
+   */
   public void publishNewTariffs (List<Tariff> tariffs)
   {
-    List<Tariff> possibleTariffs = tariffRepo.findRecentActiveTariffs(tariffEvalCount,
-                                                                      PowerType.ELECTRIC_VEHICLE);
+    log.info("PublishNewTariffs");
 
     for (EvSocialClass evSocialClass : evSocialClassList) {
-      for (String type: evSocialClass.getEvSubscriptionMap().keySet()) {
-        log.debug("Evaluation of social class " + evSocialClass.toString());
-        evSocialClass.possibilityEvaluationNewTariffs(possibleTariffs, type);
-      }
+      evSocialClass.evaluateNewTariffs();
     }
   }
 
@@ -478,6 +392,5 @@ public class EvCustomerService extends TimeslotPhaseProcessor
    */
   public void setDefaults ()
   {
-
   }
 }

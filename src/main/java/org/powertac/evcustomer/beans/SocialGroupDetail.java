@@ -18,9 +18,10 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.2, Date: 2013.05.17
+ * @version 0.5, Date: 2013.11.08
  */
-public class SocialGroupDetail {
+public class SocialGroupDetail
+{
   private int id;
   private double probability;
   private double maleProbability;
@@ -32,15 +33,18 @@ public class SocialGroupDetail {
     this.maleProbability = maleProbability;
   }
 
-  public int getId () {
+  public int getId ()
+  {
     return id;
   }
 
-  public double getProbability () {
+  public double getProbability ()
+  {
     return probability;
   }
 
-  public double getMaleProbability () {
+  public double getMaleProbability ()
+  {
     return maleProbability;
   }
 }

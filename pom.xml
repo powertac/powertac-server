@@ -4,16 +4,14 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
   <artifactId>ev-customer</artifactId>
   <name>Power TAC ev customer</name>
-  <version>1.0.0-SNAPSHOT</version>
-  <description>
-    TODO
-  </description>
+  <version>1.1.0-SNAPSHOT</version>
+  <description>Bottom-up model of a electrid vehicule customer</description>
 
   <repositories>
     <repository>
@@ -26,7 +24,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>1.1.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

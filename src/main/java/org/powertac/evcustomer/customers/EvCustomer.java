@@ -27,19 +27,23 @@ import java.util.Random;
 
 
 /**
- * TODO
- *
  * @author Konstantina Valogianni, Govert Buijs
- * @version 0.2, Date: 2013.05.08
+ * @version 0.5, Date: 2013.11.25
  */
-public class EvCustomer {
+public class EvCustomer
+{
   static protected Logger log = Logger.getLogger(EvCustomer.class.getName());
 
-  private String gender;
-  private int riskAttitude; // 1 : risk averse; always charges to full
-                            // 2 : risk neutral; charges when below 50%
-                            // 3 : risk eager; charges when below 20%
+  // TODO Just use a percentage? Make dynamic?
+  private static enum RiskAttitude
+  {
+    risk_averse,  // charge when below 100%
+    risk_neutral, // charge when below 50%
+    risk_eager    // charge when below 20%
+  }
 
+  private String gender;
+  private RiskAttitude riskAttitude;
   private Car car;
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
@@ -66,8 +70,8 @@ public class EvCustomer {
     this.gender = gender;
     this.car = car;
 
-    // For now all rask attitudes have same probability
-    riskAttitude = generator.nextInt(3);
+    // For now all risk attitudes have same probability
+    riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
 
     calculateNomalizingFactors();
   }
@@ -80,10 +84,10 @@ public class EvCustomer {
   {
     driving = false;
 
-    for (int activityId = 1; activityId <= activities.size(); activityId++) {
+    for (int activityId = 0; activityId < activities.size(); activityId++) {
       Activity activity = activities.get(activityId);
       ActivityDetail activityDetail = activityDetails.get(activityId);
-      double normalizingFactor = nomalizingFactors[activityId - 1];
+      double normalizingFactor = nomalizingFactors[activityId];
 
       // Get probability (based on gender) and distance for activity
       double dailyDistance;
@@ -136,27 +140,27 @@ public class EvCustomer {
       return 0.0;
     }
 
-    if (riskAttitude==0) {
+    if (riskAttitude == RiskAttitude.risk_averse) {
       // Always charge when not full
       if (car.getCurrentCapacity() >= car.getMaxCapacity()) {
         return 0.0;
       }
     }
-    else if (riskAttitude==1) {
-      // Always charge when below 50%
+    else if (riskAttitude == RiskAttitude.risk_neutral) {
+      // Only charge when below 50%
       if (car.getCurrentCapacity() >= 0.5 * car.getMaxCapacity()) {
         return 0.0;
       }
     }
-    else if (riskAttitude==2) {
-      // Always charge when below 20%
+    else if (riskAttitude == RiskAttitude.risk_eager) {
+      // Only charge when below 20%
       if (car.getCurrentCapacity() >= 0.2 * car.getMaxCapacity()) {
         return 0.0;
       }
     }
 
-    // TODO Weigh with hour probalities?
-    // TODO Get charge type depending on time (and on day?)
+    // TODO Weight with hour probalities?
+    // Get charge type depending on time (and on day?)
     double maxCharging = car.getAwayCharging();
     double needed = car.getMaxCapacity() - car.getCurrentCapacity();
 
@@ -178,7 +182,7 @@ public class EvCustomer {
   {
     nomalizingFactors = new double[activities.size()];
 
-    for (int activityId = 1; activityId <= activities.size(); activityId++) {
+    for (int activityId = 0; activityId < activities.size(); activityId++) {
       Activity activity = activities.get(activityId);
       ActivityDetail activityDetail = activityDetails.get(activityId);
 
@@ -206,19 +210,19 @@ public class EvCustomer {
         factor = 1;
       }
 
-      nomalizingFactors[activityId-1] = factor;
+      nomalizingFactors[activityId] = factor;
     }
   }
 
   /*
    * This gives an estimation of the daily load.
+   * TODO This should be hour (and day?) specific?
    */
   public double getDominantLoad ()
   {
     // Aggregate daily kms
     double dailyKm = 0.0;
-    for (Map.Entry<Integer, ActivityDetail> entry : activityDetails.entrySet())
-    {
+    for (Map.Entry<Integer, ActivityDetail> entry : activityDetails.entrySet()) {
       if (gender.equals("male")) {
         dailyKm += entry.getValue().getMaleDailyKm();
       }
@@ -258,9 +262,23 @@ public class EvCustomer {
     return gender;
   }
 
-  public int getRiskAttitude ()
+  public String getRiskAttitude ()
   {
-    return riskAttitude;
+    return riskAttitude.toString();
+  }
+
+  public void setRiskAttitude (int riskNr)
+  {
+    try {
+      riskAttitude = RiskAttitude.values()[riskNr];
+    }
+    catch (Exception ignored) {
+    }
+  }
+
+  public void setGenerator (Random generator)
+  {
+    this.generator = generator;
   }
 
   public void setDriving (boolean driving)
