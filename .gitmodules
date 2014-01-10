@@ -31,3 +31,6 @@
 [submodule "visualizer"]
 	path = visualizer
 	url = git://github.com/powertac/visualizer.git
+[submodule "balancing-market"]
+	path = balancing-market
+	url = git://github.com/powertac/balancing-market.git
