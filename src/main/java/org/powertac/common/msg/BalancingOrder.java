@@ -57,7 +57,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class BalancingOrder extends TariffUpdate
 {
   // maximum ratio of curtailable usage on this tariff that can be curtailed
-  // for balancing purposes.
+  // for balancing purposes. 
   @XStreamAsAttribute
   private double exerciseRatio = 0.0;
   
@@ -66,6 +66,17 @@ public class BalancingOrder extends TariffUpdate
   @XStreamAsAttribute
   private double price = 0.0;
 
+  /**
+   * Creates a new BalancingOrder for the given tariff. If cleared in the
+   * balancing market, the price is the per-kWh value, positive if the broker
+   * is paid. The exerciseRatio specifies the allowable amount of regulation
+   * covered by this order. Values between 0.0 and 1.0 represent curtailment,
+   * or up-regulation. Further up-regulation is possible for storage devices
+   * with values between 1.0 and 2.0. Down-regulation (charging a battery or
+   * dumping energy into a thermal storage device) is represented by values
+   * between -1.0 and 0.0. In most cases, a broker should expect to be paid
+   * for up-regulation, and to pay for down-regulation.
+   */
   public BalancingOrder (Broker broker, TariffSpecification tariff,
                          double exerciseRatio, double price)
   {
