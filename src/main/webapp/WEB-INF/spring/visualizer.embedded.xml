@@ -53,9 +53,14 @@
     <property name="timeslotPhase" value="2" />
   </bean>
 
+  <bean id="balancingMarketService"
+        class="org.powertac.balancemkt.BalancingMarketService">
+    <property name="timeslotPhase" value="3" />
+  </bean>
+
   <bean id="distributionUtilityService"
         class="org.powertac.distributionutility.DistributionUtilityService">
-    <property name="timeslotPhase" value="3" />
+    <property name="timeslotPhase" value="4" />
   </bean>
 
   <bean id="tariffMarketService"
