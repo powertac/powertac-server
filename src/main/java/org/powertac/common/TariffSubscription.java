@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011-2014 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,26 +32,26 @@ import org.powertac.common.spring.SpringApplicationContext;
  * current subscription for that Customer (which in most cases is actually
  * a population model), then a new TariffSubscription is created and
  * returned from the Tariff.  
- * @author Carsten Block, John Collins
+ * @author John Collins, Carsten Block
  */
 public class TariffSubscription 
 {
   static private Logger log = Logger.getLogger(TariffSubscription.class.getName());
 
   long id = IdGenerator.createId();
-  
+
   private TimeService timeService;
-  
+
   private Accounting accountingService;
-  
+
   private TariffMarket tariffMarketService;
-  
+
   /** The customer who has this Subscription */
   private CustomerInfo customer;
-  
+
   /** The tariff for which this subscription applies */
   private Tariff tariff;
-  
+
   /** Total number of customers within a customer model that are committed 
    * to this tariff subscription. This needs to be a count, otherwise tiered 
    * rates cannot be applied properly. */
@@ -64,14 +64,36 @@ public class TariffSubscription
    *  holds the oldest subscriptions - the ones that can be unsubscribed soonest
    *  without penalty. */
   private List<ExpirationRecord> expirations;
-  
+
   /** Total usage so far in the current day, needed to compute charges for
    *  tiered rates. */
   private double totalUsage = 0.0;
   
   /** Count of customers who will not be subscribers in the next timeslot */
   private int pendingUnsubscribeCount = 0; 
-  
+
+  // ------------- Controllable and storage capacity ----------------
+  /** Pending economic curtailment (from phase 1) */
+  double pendingCurtailmentRatio = 0.0;
+
+  /** Actual curtailment from previous timeslot. Should always be zero
+   *  after the customer model has run. */
+  double curtailment = 0.0;
+
+  /** Maximum remaining curtailment after phase 2 */
+  double maxRemainingCurtailment = 0.0;
+
+  /** Current state-of-charge of customer storage capacity */
+  double stateOfCharge = 0.0;
+
+  /** Pending up-regulation (positive) or down-regulation (negative)
+   *  from previous timeslot. Should always be zero after the customer
+   *  model has run. */
+  double pendingRegulation = 0.0;
+
+  /**
+   * You need a CustomerInfo and a Tariff to create one of these.
+   */
   public TariffSubscription (CustomerInfo customer, Tariff tariff)
   {
     super();
@@ -79,7 +101,7 @@ public class TariffSubscription
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
   }
-  
+
   public long getId ()
   {
     return id;
@@ -148,7 +170,7 @@ public class TariffSubscription
                                          customerCount, 0.0,
                                          customerCount * -tariff.getSignupPayment());
   }
-  
+
   /**
    * Removes customerCount customers (at most) from this subscription,
    * posts early-withdrawal fees if appropriate. 
@@ -160,7 +182,7 @@ public class TariffSubscription
                                           -customerCount);
     pendingUnsubscribeCount += customerCount;
   }
-  
+
   /**
    * Handles the actual unsubscribe operation. Intended to be called by
    * the TariffMarket to avoid subscription changes between customer
@@ -246,6 +268,8 @@ public class TariffSubscription
    * represents the amount of production (negative amount) or consumption
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
+   * Note that this value is the aggregate across the subscribed population,
+   * and not a per-member value.
    */
   public void usePower (double kwh)
   {
@@ -271,17 +295,7 @@ public class TariffSubscription
           customersCommitted * -tariff.getPeriodicPayment() / 24.0);
     }
   }
-  
-  // ------------- Controllable capacity ----------------
-  // pending economic curtailment (from phase 1)
-  double pendingCurtailmentRatio = 0.0;
-  // actual curtailment from previous timeslot
-  double curtailment = 0.0;
-  // maximum remaining curtailment after phase 2
-  double maxRemainingCurtailment = 0.0;
-  
-  
-  
+
   /**
    * Posts the ratio for an EconomicControlEvent to the subscription for the
    * current timeslot. .
@@ -290,7 +304,7 @@ public class TariffSubscription
   {
     pendingCurtailmentRatio = ratio;
   }
-  
+
   /**
    * Posts a BalancingControlEvent to the subscription. This simply updates
    * the curtailment for the current timeslot by the amout of the control.
@@ -311,9 +325,10 @@ public class TariffSubscription
                               totalUsage, true));
     totalUsage -= kwh / customersCommitted;
   }
-  
+
   /**
-   * Returns the curtailment in kwh for the previous timeslot. Note that this
+   * Returns the curtailment in kwh for the previous timeslot. 
+   * Intended to be called by Customer models only. Note that this
    * method is not idempotent; if you call it twice in the same timeslot, the
    * second time returns zero.
    */
@@ -323,7 +338,7 @@ public class TariffSubscription
     curtailment = 0.0;
     return result;
   }
-  
+
   /**
    * Returns the maximum curtailment possible after the customer model has
    * run and possibly applied economic controls. Since this is potentially 
@@ -344,7 +359,7 @@ public class TariffSubscription
       return (result * ratio);
     }
   }
-  
+
   /**
    * Returns the ratio curtailment in kwh for the current timeslot.
    * Value is 0.0 for no curtailment, 1.0 for full curtailment.
@@ -385,14 +400,14 @@ public class TariffSubscription
       timeService = (TimeService)SpringApplicationContext.getBean("timeService");
     return timeService;
   }
-  
+
   private Accounting getAccounting ()
   {
     if (null == accountingService)
       accountingService = (Accounting)SpringApplicationContext.getBean("accountingService");
     return accountingService;
   }
-  
+
   private TariffMarket getTariffMarket ()
   {
     if (null == tariffMarketService)
@@ -418,19 +433,19 @@ public class TariffSubscription
     }
     return cc;
   }
-  
+
   private class ExpirationRecord
   {
     private long horizon;
     private int count;
-    
+
     ExpirationRecord (long horizon, int count)
     {
       super();
       this.horizon = horizon;
       this.count = count;
     }
-    
+
     long getHorizon ()
     {
       return horizon;
@@ -440,7 +455,7 @@ public class TariffSubscription
     {
       return count;
     }
-    
+
     int updateCount (int increment)
     {
       count += increment;
