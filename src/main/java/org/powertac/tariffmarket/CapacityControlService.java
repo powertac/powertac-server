@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2014 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.interfaces.Accounting;
@@ -138,16 +139,16 @@ implements CapacityControl, InitializationService
   }
 
   /* (non-Javadoc)
-   * @see org.powertac.common.interfaces.CapacityControl#getCurrentUsage(org.powertac.common.msg.BalancingOrder)
+   * @see org.powertac.common.interfaces.CapacityControl#getCurtailableUsage(org.powertac.common.msg.BalancingOrder)
    */
   @Override
-  public double getCurtailableUsage (BalancingOrder order)
+  public RegulationCapacity getRegulationCapacity (BalancingOrder order)
   {
     Tariff tariff = tariffRepo.findTariffById(order.getTariffId());
     if (null == tariff) {
       // broker error, most likely
       log.warn("Null tariff " + order.getTariffId() + " for balancing order");
-      return 0.0;
+      return new RegulationCapacity(0.0, 0.0);
     }
     double result = 0.0;
     List<TariffSubscription> subs =
@@ -155,7 +156,7 @@ implements CapacityControl, InitializationService
     for (TariffSubscription sub : subs) {
       result += sub.getMaxRemainingCurtailment();
     }
-    return result;
+    return new RegulationCapacity(result, 0.0);
   }
 
   /**

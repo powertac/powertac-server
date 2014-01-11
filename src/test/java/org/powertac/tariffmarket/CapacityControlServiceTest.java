@@ -36,6 +36,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
@@ -196,8 +197,9 @@ public class CapacityControlServiceTest
     sub1.usePower(200);
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, spec, 1.0, 0.1);
+    RegulationCapacity cap =capacityControl.getRegulationCapacity(order); 
     assertEquals("correct curtailable usage", 0.4 * 500.0,
-                 capacityControl.getCurtailableUsage(order), 1e-6);
+                 cap.getUpRegulationCapacity(), 1e-6);
     // exercise the control
     assertEquals("no messages yet", 0, msgs.size());
     reset(mockAccounting);
