@@ -138,7 +138,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     balancingCost = null;
 
     serverProps.configureMe(this);
-    
+
     // compute randomly-generated values if not overridden
     randomGen = randomSeedService.getRandomSeed("BalancingMarketService",
                                                 0, "model");
@@ -149,7 +149,7 @@ implements BalancingMarket, SettlementContext, InitializationService
              + ", (pPlus',pMinus') = (" + pPlusPrime + "," + pMinusPrime + ")");
     
     serverProps.publishConfiguration(this);
-    return "DistributionUtility";
+    return "BalancingMarket";
   }
 
   @Override
@@ -238,7 +238,12 @@ implements BalancingMarket, SettlementContext, InitializationService
   @Override
   public double getRegulation (Broker broker)
   {
-    return balancingResults.get(broker).getCurtailment();
+    ChargeInfo ci = balancingResults.get(broker);
+    if (null == ci) {
+      log.error("Null balancing result for broker " + broker.getUsername());
+      return 0.0;
+    }
+    return ci.getCurtailment();
   }
 
   /**
