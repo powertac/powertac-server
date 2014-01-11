@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.msg.BalancingOrder;
@@ -84,8 +85,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
     // get curtailable usage for each order.
     for (BOWrapper bo : candidates) {
-      bo.availableCapacity =
-              capacityControlService.getCurtailableUsage(bo.balancingOrder);
+      RegulationCapacity cap =
+              capacityControlService.getRegulationCapacity(bo.balancingOrder);
+      bo.availableCapacity = cap.getUpRegulationCapacity();
     }
 
     // insert dummy orders to represent available balancing power through
