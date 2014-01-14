@@ -259,6 +259,12 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     weatherReqInterval = Math.min(24, weatherReqInterval);
     simulationBaseTime = competition.getSimulationBaseTime().toDateTime();
 
+    if (weatherData != null
+        && (weatherData.endsWith(".xml") || weatherData.endsWith(".state"))) {
+      log.info("read from file in blocking mode");
+      blocking = true;
+    }
+
     if (!blocking) {
       DateTime dateTime = timeslotRepo.currentTimeslot().getStartTime();
       // Get the first 3 days of weather, blocking!
