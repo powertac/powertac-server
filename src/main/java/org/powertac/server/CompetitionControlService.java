@@ -720,13 +720,13 @@ public class CompetitionControlService
       return;
     }
 
-    Instant time = timeService.getCurrentTime();
     Date started = new Date();
     
     // make sure the clock has not drifted
     clock.checkClockDrift();
 
     int ts = activateNextTimeslot();
+    Instant time = timeService.getCurrentTime();
     log.info("step at " + time.toString());
     
     // check queue status before sending new messages
@@ -804,6 +804,7 @@ public class CompetitionControlService
             competition.getTimeslotsOpen());
     Timeslot newTs = timeslotRepo.findBySerialNumber(newSerial);
     if (newTs == null) {
+      log.info("newTS null in activateNextTimeslot");
       long start = (current.getStartInstant().getMillis() +
               (newSerial - current.getSerialNumber()) * timeslotMillis);
       newTs = timeslotRepo.makeTimeslot(new Instant(start));
