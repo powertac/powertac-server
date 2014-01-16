@@ -39,7 +39,7 @@ import org.powertac.util.Predicate;
 public class StaticSettlementProcessor extends SettlementProcessor
 {
   private double epsilon = 1e-6;  // 1 milliwatt-hour
-  //private SettlementContext service;
+
   double pPlus, pMinus;
   double pPlusPrime, pMinusPrime;
   
@@ -55,7 +55,6 @@ public class StaticSettlementProcessor extends SettlementProcessor
   public void settle (SettlementContext service,
                       List<ChargeInfo> brokerData)
   {
-    //this.service = service;
     pPlus = service.getPPlus();
     pPlusPrime = service.getPPlusPrime();
     pMinus = service.getPMinus();
@@ -81,12 +80,12 @@ public class StaticSettlementProcessor extends SettlementProcessor
     // get balancing orders on correct side of imbalance, sort by price.
     // Negative total imbalance means we want to curtail consumption.
     SortedSet<BOWrapper> candidates =
-            findCandidateOrders(brokerData, totalImbalance);
+      findCandidateOrders(brokerData, totalImbalance);
 
     // get curtailable usage for each order.
-    for (BOWrapper bo : candidates) {
+    for (BOWrapper bo: candidates) {
       RegulationCapacity cap =
-              capacityControlService.getRegulationCapacity(bo.balancingOrder);
+        capacityControlService.getRegulationCapacity(bo.balancingOrder);
       bo.availableCapacity = cap.getUpRegulationCapacity();
     }
 
@@ -96,19 +95,19 @@ public class StaticSettlementProcessor extends SettlementProcessor
     
     // determine the set that will be exercised.
     double satisfied = determineExerciseSet(totalImbalance, candidates);
+    log.info("satisfied " + satisfied + " through balancing orders");
     SortedSet<BOWrapper> nonExercised = determineNonExercisedSet(candidates);
 
     // compute VCG charges (p_2) by broker.
     HashSet<ChargeInfo> nonParticipants = new HashSet<ChargeInfo>(); 
-    for (ChargeInfo info : brokerData) {
-      info.setBalanceChargeP2
-        (computeVcgCharges(info, totalImbalance,
-                           candidates, nonExercised,
-                           nonParticipants));
+    for (ChargeInfo info: brokerData) {
+      info.setBalanceChargeP2(computeVcgCharges(info, totalImbalance,
+                                                candidates, nonExercised,
+                                                nonParticipants));
     }
     
     // Determine imbalance payments (p_1) for each broker.
-    computeImbalanceCharges(brokerData, totalImbalance, candidates);//, nonExercised);
+    computeImbalanceCharges(brokerData, totalImbalance, candidates);
     
     // Exercise balancing controls
     for (ChargeInfo info : brokerData) {
@@ -616,18 +615,18 @@ public class StaticSettlementProcessor extends SettlementProcessor
       //double nePrice = getMarginalPrice(exercisedCapacity);
       //return qty * 0.5 * (nePrice + nePrice + slope * qty);
       double oldMPrice = getMarginalPrice(exercisedCapacity);
-      double newMPrice = getMarginalPrice(exercisedCapacity+qty);
-      return newMPrice * qty +        // costs of the additional qty 
-             (newMPrice - oldMPrice) * exercisedCapacity + // extra costs for the already exercisedCapacity
-             startX * (newMPrice - price);                 // extra costs for any earlier dummy orders
+      double newMPrice = getMarginalPrice(exercisedCapacity + qty);
+      return newMPrice * qty +        // cost of the additional qty 
+             (newMPrice - oldMPrice) * exercisedCapacity + // extra cost for the already exercisedCapacity
+             startX * (newMPrice - price);                 // extra cost for any earlier dummy orders
     }
     
     // Returns total price of this order, including its effect on earlier dummy orders
     double getTotalEPrice ()
     {
       double oldMPrice = getMarginalPrice(exercisedCapacity);
-      return oldMPrice * exercisedCapacity +  // costs for the already exercisedCapacity
-             startX * (oldMPrice - price);    // extra costs for any earlier dummy orders
+      return oldMPrice * exercisedCapacity +  // cost for the already exercisedCapacity
+             startX * (oldMPrice - price);    // extra cost for any earlier dummy orders
     }
 
     @Override

@@ -51,9 +51,7 @@ public class StaticSettlementProcessorTest
     b4 = new Broker("A4");
     brokerData = new ArrayList<ChargeInfo>();
     pplus = 0.06;
-    //pplusPrime = 0.00001;
     pminus = 0.015;
-    //pminusPrime = 0.00001;
     spec1 = new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
     Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
     spec1.addRate(rate);
@@ -76,9 +74,9 @@ public class StaticSettlementProcessorTest
     tariffRepo.addTariff(tariff);
   }
 
-  // Example 1 Niels/John, no balancing orders
+  // Example 1 Niels/John, up-regulation, no balancing orders
   @Test
-  public void ex1_noBO ()
+  public void ex1_up_noBO ()
   {
     ChargeInfo ci1 = new ChargeInfo(b1, -1.5);
     brokerData.add(ci1);
@@ -86,14 +84,31 @@ public class StaticSettlementProcessorTest
     brokerData.add(ci2);
     pplus = 3.0;
     pplusPrime = 1.0;
-    pminus = 1.0;
-    pminusPrime = -1.0;
+    pminus = -1.0;
+    pminusPrime = 1.0;
     uut.settle(context, brokerData);
     assertEquals("b1 pays 9", -9.0, ci1.getBalanceCharge(), 1e-6);
     assertEquals("b2 pays 9", -9.0, ci2.getBalanceCharge(), 1e-6);
   }
 
-  // Example 1 spec, slope = 0
+  // Down-regulation, no balancing orders
+  @Test
+  public void ex1_down_noBO ()
+  {
+    ChargeInfo ci1 = new ChargeInfo(b1, 1.5);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, 1.5);
+    brokerData.add(ci2);
+    pplus = 3.0;
+    pplusPrime = 1.0;
+    pminus = 1.0;
+    pminusPrime = 1.0;
+    uut.settle(context, brokerData);
+    assertEquals("b1 pays 3", -3.0, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("b2 pays 3", -3.0, ci2.getBalanceCharge(), 1e-6);
+  }
+
+  // Example 1 spec, slope = 0, imbalance = -18
   @Test
   public void ex1 ()
   {
@@ -147,7 +162,7 @@ public class StaticSettlementProcessorTest
     
     pplus = 0.1;
     pplusPrime = 0.0;
-    pminus = 1.0;
+    pminus = -1.0;
     pminusPrime = 0.0;
     uut.settle(context, brokerData);
 
@@ -174,7 +189,8 @@ public class StaticSettlementProcessorTest
     assertEquals("b4.p1 = -1.4", -1.4, ci4.getBalanceChargeP1(), 1e-4);
   }
 
-  //problem 3 from https://docs.google.com/spreadsheet/ccc?key=0AnOwYcSnDi0ZdDVNWjN4Q1FRTGdUTHhSLW9WVmF5Snc
+  // problem 3 from https://docs.google.com/spreadsheet/ccc?key=0AnOwYcSnDi0ZdDVNWjN4Q1FRTGdUTHhSLW9WVmF5Snc
+  // imbalance = -180
   @Test
   public void ex_prob3 ()
   {
@@ -310,7 +326,7 @@ public class StaticSettlementProcessorTest
   public void testSettleNoNetA ()
   {
     pplusPrime = 0.01;
-    pminusPrime = -0.01;
+    pminusPrime = 0.01;
     ChargeInfo ci1 = new ChargeInfo(b1, -10.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
@@ -340,7 +356,7 @@ public class StaticSettlementProcessorTest
   public void testSettleNetNeg ()
   {
     pplusPrime = 0.00005;
-    pminusPrime = -0.00005;
+    pminusPrime = 0.00005;
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
@@ -401,7 +417,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO ()
   {
     pplusPrime = 0.00005;
-    pminusPrime = -0.00005;
+    pminusPrime = 0.00005;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.05);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -425,7 +441,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_NoExercise ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = -0.00001;
+    pminusPrime = 0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.061);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -447,7 +463,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_splitDummy ()
   {
     pplusPrime = 0.001;
-    pminusPrime = -0.001;
+    pminusPrime = 0.001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.061);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -469,7 +485,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_HighCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = -0.00001;
+    pminusPrime = 0.00001;
     TariffSpecification spec =
             new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
     Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
@@ -496,7 +512,7 @@ public class StaticSettlementProcessorTest
   public void test2BO_LowCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = -0.00001;
+    pminusPrime = 0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
@@ -529,7 +545,7 @@ public class StaticSettlementProcessorTest
   public void test2BO_HighCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = -0.00001;
+    pminusPrime = 0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
@@ -560,7 +576,7 @@ public class StaticSettlementProcessorTest
   public void test3BO_LowCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = -0.00001;
+    pminusPrime = 0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     
