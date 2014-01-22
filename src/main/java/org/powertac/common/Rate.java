@@ -370,7 +370,6 @@ public class Rate extends RateCore
       else {
         if (probe == null) {
           probe = new ProbeCharge(new Instant(0l), 0.0);
-          System.out.println("add: probe was null");
         }
         // first, remove the existing charge for the specified time
         probe.setAtTime(newCharge.getAtTime().plus(1000l));

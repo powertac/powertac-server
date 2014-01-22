@@ -50,7 +50,7 @@ public class CustomerInfo //implements Serializable
   private PowerType powerType;
 
   @XStreamAsAttribute
-  private double controllableKWh = 0.0;
+  private double controllableKW = 0.0;
 
   @XStreamAsAttribute
   private double upRegulationKW = 0.0;
@@ -181,16 +181,25 @@ public class CustomerInfo //implements Serializable
   }
 
   /**
-   * Returns total controllable capacity in kWh per member. This is the maximum
+   * Returns total controllable capacity in kW per member. This is the maximum
    * possible response to curtailment request. For a consumption power type,
    * this results in up-regulation and the value is <= 0,
    * because it represents less energy being delivered to the customer. 
    * Brokers should assume that curtailment will result in shifting of load
    * (or supply, for a production power type) to a later timeslot.
    */
+  public double getControllableKW ()
+  {
+    return controllableKW;
+  }
+
+  /**
+   * Deprecated synonym for getControllableKW().
+   */
+  @Deprecated
   public double getControllableKWh ()
   {
-    return controllableKWh;
+    return controllableKW;
   }
 
   /**
@@ -198,9 +207,9 @@ public class CustomerInfo //implements Serializable
    * customer model itself.
    */
   @StateChange
-  public CustomerInfo withControllableKWh (double value)
+  public CustomerInfo withControllableKW (double value)
   {
-    controllableKWh = value;
+    controllableKW = value;
     return this;
   }
 
