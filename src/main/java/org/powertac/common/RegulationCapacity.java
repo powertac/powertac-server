@@ -15,6 +15,8 @@
  */
 package org.powertac.common;
 
+import org.apache.log4j.Logger;
+
 /**
  * Represents available regulation capacity for a given TariffSubscription.
  * 
@@ -22,18 +24,36 @@ package org.powertac.common;
  */
 public class RegulationCapacity
 {
+  protected static Logger log = Logger.getLogger(RegulationCapacity.class.getName());
+
   private double upRegulationCapacity = 0.0;
-  
+
   private double downRegulationCapacity = 0.0;
-  
+
+  /**
+   * Creates a new RegulationCapacity instance specifying the amounts of
+   * regulating capacity available for up-regulation and down-regulation.
+   * Values are expressed with respect to the balancing market; a negative
+   * value means power is delivered to the customer (down-regulation), and a
+   * positive value means power is delivered to the balancing market
+   * (up-regulation).
+   */
   public RegulationCapacity (double upRegulationCapacity,
                              double downRegulationCapacity)
   {
     super();
+    if (upRegulationCapacity < 0.0) {
+      log.warn("upRegulationCapacity " + upRegulationCapacity + " < 0.0");
+      upRegulationCapacity = 0.0;
+    }
+    if (downRegulationCapacity > 0.0) {
+      log.warn("downRegulationCapacity " + downRegulationCapacity + " > 0.0");
+      downRegulationCapacity = 0.0;
+    }
     this.upRegulationCapacity = upRegulationCapacity;
     this.downRegulationCapacity = downRegulationCapacity;
   }
-  
+
   /**
    * Returns the up-regulationCapacity available in kWh
    */
