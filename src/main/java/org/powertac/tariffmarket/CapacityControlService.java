@@ -97,7 +97,7 @@ implements CapacityControl, InitializationService
         new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0) {
-        double value = sub.getMaxRemainingCurtailment();
+        double value = sub.getMaxRemainingUpRegulation();
         amts.put(sub, value);
         curtailable += value;
       }
@@ -154,7 +154,7 @@ implements CapacityControl, InitializationService
     List<TariffSubscription> subs =
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
     for (TariffSubscription sub : subs) {
-      result += sub.getMaxRemainingCurtailment();
+      result += sub.getMaxRemainingUpRegulation();
     }
     return new RegulationCapacity(result, 0.0);
   }

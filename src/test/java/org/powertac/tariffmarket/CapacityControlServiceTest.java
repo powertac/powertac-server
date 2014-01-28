@@ -231,9 +231,9 @@ public class CapacityControlServiceTest
     assertEquals("correct amount", 100.0, bce.getKwh(), 1e-6);
     assertEquals("correct payment", 11.0, bce.getPayment(), 1e-6);
     assertEquals("correct timeslot", 0, bce.getTimeslotIndex());
-    // Check curtailment
-    assertEquals("correct curtailment sub1", 40.0, sub1.getCurtailment(), 1e-6);
-    assertEquals("correct curtailment sub2", 60.0, sub2.getCurtailment(), 1e-6);
+    // Check regulation
+    assertEquals("correct regulation sub1", 40.0, sub1.getCurtailment(), 1e-6);
+    assertEquals("correct regulation sub2", 60.0, sub2.getCurtailment(), 1e-6);
     // check tariff transactions
     assertEquals("correct # of calls", 2, answers.size());
     Object[] args = answers.get(customer1);
@@ -322,9 +322,9 @@ public class CapacityControlServiceTest
     assertEquals("correct kwh", -240.0, (Double) args[4], 1e-6);
     assertEquals("correct charge", 240.0 * 0.11, (Double) args[5], 1e-6);
     
-    // check curtailment info
-    assertEquals("correct curtailment sub1", 40.0, sub1.getCurtailment(), 1e-6);
-    assertEquals("correct curtailment sub1", 60.0, sub2.getCurtailment(), 1e-6);
+    // check regulation info
+    assertEquals("correct regulation sub1", 40.0, sub1.getCurtailment(), 1e-6);
+    assertEquals("correct regulation sub1", 60.0, sub2.getCurtailment(), 1e-6);
   }
 
 }
