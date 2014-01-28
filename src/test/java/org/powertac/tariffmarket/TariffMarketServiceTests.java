@@ -247,7 +247,7 @@ public class TariffMarketServiceTests
     assertNull("needs AccountingService in the list", result);
     inits.add("AccountingService");
   }
-  
+
   // valid tariffSpec
   @Test
   public void testProcessTariffSpec ()
@@ -338,39 +338,67 @@ public class TariffMarketServiceTests
     assertTrue("tariff is expired", tf.isExpired());
   }
 
+  // bogus supersede
+  @Test
+  public void bogusTariffSupersede ()
+  {
+    initializeService();
+    Broker b2 = new Broker("otherBroker");
+    TariffSpecification spec2 =
+      new TariffSpecification(b2, PowerType.CONSUMPTION).withExpiration(exp)
+          .withMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().withValue(0.121));
+
+    // spec2 supersedes tariffSpec??
+    spec2.addSupersedes(tariffSpec.getId());
+    tariffMarketService.handleMessage(tariffSpec);
+    tariffMarketService.handleMessage(spec2);
+
+    assertEquals("one message sent", 2, msgs.size());
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    // check the status return
+    assertNotNull("non-null status 0", status);
+    assertEquals("broker", tariffSpec.getBroker(), status.getBroker());
+    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+
+    status = (TariffStatus) msgs.get(1);
+    assertNotNull("non-null status 1", status);
+    assertEquals("broker 2", b2, status.getBroker());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff,
+                 status.getStatus());
+  }
+
   // bogus time-of-day
   @Test
   public void bogusTimeOfDay ()
   {
     initializeService();
     TariffSpecification ts2 =
-            new TariffSpecification(broker, PowerType.CONSUMPTION)
-                .withMinDuration(TimeService.WEEK * 4);
-    Rate r1 = new Rate()
-          .withFixed(true)
-          .withMinValue(0.1)
-          .withDailyBegin(1)
+      new TariffSpecification(broker, PowerType.CONSUMPTION)
+          .withMinDuration(TimeService.WEEK * 4);
+    Rate r1 =
+      new Rate().withFixed(true).withMinValue(0.1).withDailyBegin(1)
           .withDailyEnd(24);
-    ts2.addRate(r1);  
+    ts2.addRate(r1);
     tariffMarketService.handleMessage(ts2);
-    TariffStatus status = (TariffStatus)msgs.get(0);
+    TariffStatus status = (TariffStatus) msgs.get(0);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
-    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff,
+                 status.getStatus());
     TariffSpecification ts3 =
-            new TariffSpecification(broker, PowerType.CONSUMPTION)
-                .withMinDuration(TimeService.WEEK * 4);
-    Rate r2 = new Rate()
-          .withFixed(true)
-          .withMinValue(0.1)
-          .withDailyBegin(24)
+      new TariffSpecification(broker, PowerType.CONSUMPTION)
+          .withMinDuration(TimeService.WEEK * 4);
+    Rate r2 =
+      new Rate().withFixed(true).withMinValue(0.1).withDailyBegin(24)
           .withDailyEnd(2);
-    ts3.addRate(r2);  
+    ts3.addRate(r2);
     tariffMarketService.handleMessage(ts3);
-    status = (TariffStatus)msgs.get(1);
+    status = (TariffStatus) msgs.get(1);
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", ts3.getId(), status.getUpdateId());
-    assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff,
+                 status.getStatus());
   }
 
   // bogus day-of-week
@@ -462,8 +490,6 @@ public class TariffMarketServiceTests
     assertEquals("valid", TariffStatus.Status.success, status.getStatus());
   }
 
-  // TODO - bogus revoke
-  
   // normal revoke
   @Test
   public void testProcessTariffRevoke ()
@@ -491,11 +517,64 @@ public class TariffMarketServiceTests
     // forward two more hours and activate, should do the trick
     timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR * 2));
     tariffMarketService.activate(timeService.getCurrentTime(), 3);
-    assertTrue("tariff not yet revoked", tf.isRevoked());
+    assertTrue("tariff revoked", tf.isRevoked());
     TariffRevoke revoke = (TariffRevoke)msgs.get(2);
     assertNotNull("revoke msg non-null", revoke);
     assertEquals("correct broker", tariffSpec.getBroker(), revoke.getBroker());
     assertEquals("correct tariff", tariffSpec.getId(), revoke.getTariffId());
+  }
+
+  // bogus revoke -- wrong broker
+  @Test
+  public void bogusTariffRevoke ()
+  {
+    initializeService();
+    Broker b2 = new Broker("otherBroker");
+    TariffSpecification spec2 =
+      new TariffSpecification(b2, PowerType.CONSUMPTION).withExpiration(exp)
+          .withMinDuration(TimeService.WEEK * 8)
+          .addRate(new Rate().withValue(0.121));
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
+    tariffMarketService.handleMessage(tariffSpec);
+    TariffStatus status = (TariffStatus)msgs.get(0);
+    assertEquals("success", TariffStatus.Status.success, status.getStatus());
+
+    tariffMarketService.handleMessage(spec2);
+    TariffStatus status2 = (TariffStatus)msgs.get(1);
+    assertEquals("success", TariffStatus.Status.success, status2.getStatus());
+
+    Tariff tf = tariffRepo.findTariffById(tariffSpec.getId());
+    Tariff tf2 = tariffRepo.findTariffById(spec2.getId());
+    assertFalse("s1 not revoked", tf.isRevoked());
+    assertFalse("s2 not revoked", tf2.isRevoked());
+
+    // revoke the otherBroker's tariff
+    TariffRevoke tex = new TariffRevoke(tariffSpec.getBroker(), spec2);
+    tariffMarketService.handleMessage(tex);
+    status = (TariffStatus) msgs.get(2);
+    assertNotNull("non-null status", status);
+    assertEquals("correct status ID", tex.getId(), status.getUpdateId());
+    assertEquals("invalid", TariffStatus.Status.invalidTariff,
+                 status.getStatus());
+    assertFalse("tariff 1 not yet revoked", tf.isRevoked());
+    assertFalse("tariff 2 not yet revoked", tf2.isRevoked());
+
+    // forward an hour and activate, still should not be revoked.
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
+    assertFalse("tariff 1 not yet revoked", tf.isRevoked());
+    assertFalse("tariff 2 not yet revoked", tf2.isRevoked());
+
+    // forward two more hours and activate, should do the trick
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR * 2));
+    tariffMarketService.activate(timeService.getCurrentTime(), 3);
+    assertFalse("tariff 1 not revoked", tf.isRevoked());
+    assertFalse("tariff 2 not revoked", tf2.isRevoked());
+    Object revoke = msgs.get(3);
+    assertTrue("no revoke msg",
+               (null == revoke || !(revoke instanceof TariffRevoke)));
   }
 
   // variable rate update - nominal case, 2 tariffs

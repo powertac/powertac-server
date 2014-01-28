@@ -327,6 +327,25 @@ public class TariffMarketService
                             TariffStatus.Status.invalidTariff));
       return;
     }
+    else if (null != spec.getSupersedes()) {
+      for (Long supersede : spec.getSupersedes()) {
+        TariffSpecification other = tariffRepo.findSpecificationById(supersede);
+        if (null == other) {
+          log.warn("attempt to supersede non-existent tariff " + supersede);
+          send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                                TariffStatus.Status.invalidTariff));
+          return;
+        }
+        else if (spec.getBroker() != other.getBroker()) {
+          log.warn("attempt by " + spec.getBroker().getUsername()
+                   + " to supersede tariff of "
+                   + other.getBroker().getUsername());
+          send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
+                                TariffStatus.Status.invalidTariff));
+          return;
+        }
+      }
+    }
     else {
       for (Rate rate : spec.getRates()) {
         if (rate.getDailyBegin() >= 24 || rate.getDailyEnd() >= 24 ||
@@ -783,6 +802,13 @@ public class TariffMarketService
       return new ValidationResult(null,
                                   new TariffStatus(broker, update.getTariffId(), update.getId(),
                                                    TariffStatus.Status.noSuchTariff));
+    }
+    if (broker != tariff.getBroker()) {
+      log.error("update - attempt by " + broker.getUsername()
+                + " to revoke " + tariff.getBroker() + "'s tariff");
+      return new ValidationResult(null,
+                                  new TariffStatus(broker, update.getTariffId(), update.getId(),
+                                                   TariffStatus.Status.invalidTariff));
     }
     return new ValidationResult(tariff, null);
   }
