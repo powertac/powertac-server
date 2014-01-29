@@ -312,19 +312,22 @@ public class TariffMarketService
       log.warn("duplicate tariff spec from " + spec.getBroker().getUsername() +
                ", id = " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.invalidTariff));
+                            TariffStatus.Status.invalidTariff)
+          .withMessage("duplicate tariff spec " + spec.getId()));
       return;
     }
     if (null == spec.getRates()) {
       log.warn("no rates given for spec " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.invalidTariff));
+                            TariffStatus.Status.invalidTariff)
+          .withMessage("missing Rates"));
       return;
     }
     else if (!spec.isValid()) {
       log.warn("invalid spec " + spec.getId());
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.invalidTariff));
+                            TariffStatus.Status.invalidTariff)
+          .withMessage("spec fails validity test"));
       return;
     }
     else if (null != spec.getSupersedes()) {
@@ -333,7 +336,8 @@ public class TariffMarketService
         if (null == other) {
           log.warn("attempt to supersede non-existent tariff " + supersede);
           send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                                TariffStatus.Status.invalidTariff));
+                                TariffStatus.Status.invalidTariff)
+              .withMessage("non-existent supersede " + supersede));
           return;
         }
         else if (spec.getBroker() != other.getBroker()) {
@@ -341,7 +345,8 @@ public class TariffMarketService
                    + " to supersede tariff of "
                    + other.getBroker().getUsername());
           send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                                TariffStatus.Status.invalidTariff));
+                                TariffStatus.Status.invalidTariff)
+              .withMessage("invalid supersede " + supersede));
           return;
         }
       }
@@ -353,7 +358,8 @@ public class TariffMarketService
                 rate.getWeeklyEnd() == 0 || rate.getWeeklyEnd() > 7) {
           log.warn("invalid rate for spec " + spec.getId());
           send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                                TariffStatus.Status.invalidTariff));
+                                TariffStatus.Status.invalidTariff)
+              .withMessage("spec has invalid Rate"));
           return;
         }
       }
@@ -364,7 +370,8 @@ public class TariffMarketService
       log.warn("incomplete coverage in multi-rate tariff " + spec.getId());
       tariffRepo.removeTariff(tariff);
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
-                            TariffStatus.Status.invalidTariff));
+                            TariffStatus.Status.invalidTariff)
+          .withMessage("incomplete coverage in multi-rate tariff"));
     }
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
