@@ -463,12 +463,12 @@ public class TariffTests
     Tariff te = new Tariff(spec);
     te.init();
     assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxCurtailment(30.0, 1000.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 1000.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("correct max curtailment 1", 9.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
   }
   
   // single rate, not interruptible
@@ -486,7 +486,7 @@ public class TariffTests
     Tariff te = new Tariff(spec);
     te.init();
     assertEquals("correct max curtailment 1", 0.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
   }
   
   // multiple rates, single tier, one rate interruptible
@@ -511,19 +511,19 @@ public class TariffTests
     te.init();
     assertEquals("noon price", -3.0, te.getUsageCharge(20.0, 200.0, true), 1e-6);
     assertEquals("noon max curtailment", 3.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 1, 18, 0, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("18:00 price", -0.8, te.getUsageCharge(10.0, 220.0, true), 1e-6);
     assertEquals("18:00 max curtailment", 15.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 0, 0, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("midnight price", -0.4, te.getUsageCharge(5.0, 230.0, true), 1e-6);
     assertEquals("midnight max curtailment", 15.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
     timeService.setCurrentTime(new DateTime(2011, 1, 2, 7, 0, 0, 0, DateTimeZone.UTC).toInstant());
     assertEquals("7:00 price", -0.6, te.getUsageCharge(4.0, 235.0, true), 1e-6);
     assertEquals("7:00 max curtailment", 3.0,
-                 te.getMaxCurtailment(30.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(30.0, 0.0), 1e-6);
   }
   
   // multiple rates, multiple tiers, upper tier interruptible
@@ -544,12 +544,12 @@ public class TariffTests
     Tariff te = new Tariff(spec);
     te.init();
     assertEquals("3.0 curtailment", 0.3,
-                 te.getMaxCurtailment(3.0, 0.0), 1e-6);
+                 te.getMaxUpRegulation(3.0, 0.0), 1e-6);
     assertEquals("9.9 curtailment", 0.3,
-                 te.getMaxCurtailment(3.0, 6.9), 1e-6);
+                 te.getMaxUpRegulation(3.0, 6.9), 1e-6);
     assertEquals("cross-boundary curtailment", 1.2,
-                 te.getMaxCurtailment(4.0, 8.0), 1e-6);
+                 te.getMaxUpRegulation(4.0, 8.0), 1e-6);
     assertEquals("high curtailment", 2.0,
-                 te.getMaxCurtailment(4.0, 11.0), 1e-6);
+                 te.getMaxUpRegulation(4.0, 11.0), 1e-6);
   }
 }

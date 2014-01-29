@@ -22,8 +22,9 @@ import com.thoughtworks.xstream.annotations.*;
 
 /**
  * Tariffs are composed of Rates, including RegulationRates.
- * A RegulationRate specified a payment for up-regulation and down-regulation
- * that might be used for balancing.
+ * A RegulationRate specifies payments for up-regulation and down-regulation
+ * that might be used for balancing and might be different from the payments
+ * for ordinary consumption and/or production.
  * Typically, the payment for up-regulation is positive (the customer is paid
  * for energy supplied), and the payment for down-regulation is negative
  * (the customer pays for energy delivered).

@@ -107,6 +107,7 @@ public class Tariff
   private TreeSet< Double > tiers;
   private int tierSign = 1; // -1 for negative tiers
   private Rate[][] rateMap;
+  private RegulationRate regulationRate;
 
   /**
    * Creates a new Tariff from the given TariffSpecification. Note that 
@@ -119,8 +120,18 @@ public class Tariff
     broker = spec.getBroker();
     expiration = spec.getExpiration();
     rateIdMap = new HashMap<Long, Rate>();
-    for (Rate r : spec.getRates()) {
-      rateIdMap.put(r.getId(), r);
+    for (RateCore r : spec.getRates()) {
+      if (r instanceof RegulationRate) {
+        if (null != regulationRate) {
+          log.warn("Multiple regulation rates on tariff " + getId());
+        }
+        else {
+          regulationRate = (RegulationRate)r;
+        }
+      }
+      else {
+        rateIdMap.put(r.getId(), (Rate)r);
+      }
     }
     tiers = new TreeSet<Double>();
   }
@@ -260,7 +271,7 @@ public class Tariff
    * Returns the maximum interruptible quantity in kwh for this tariff in 
    * the current timeslot, for the specified proposed and cumulative usage.
    */
-  public double getMaxCurtailment (double kwh, double cumulativeUsage)
+  public double getMaxUpRegulation (double kwh, double cumulativeUsage)
   {
     // first, make sure this is an interruptible power type
     if (! tariffSpec.getPowerType().isInterruptible())
@@ -299,14 +310,44 @@ public class Tariff
    * If the recordUsage parameter is true, then the usage and price will be
    * recorded to update the realizedPrice.</p>
    */
-  public double getUsageCharge (double kwh, double cumulativeUsage, boolean recordUsage)
+  public double getUsageCharge (double kwh, double cumulativeUsage,
+                                boolean recordUsage)
   {
-    double amt = getUsageCharge(timeService.getCurrentTime(), kwh, cumulativeUsage);
+    double amt =
+      getUsageCharge(timeService.getCurrentTime(), kwh, cumulativeUsage);
     if (recordUsage) {
       totalUsage += kwh;
       totalCost += amt;
     }
     return amt;
+  }
+
+  /**
+   * Returns the usage charge for regulation usage/or production. If this
+   * tariff has a RegulationRate, then that will determine the charge;
+   * otherwise the call will be delegated to getUsageCharge(). 
+   * Regulation usage does not contribute to cumulative usage, since it's
+   * assumed to balance out over time.
+   * Note that
+   * positive values for kwh represent up-regulation, while negative values
+   * represent down-regulation.
+   */
+  public double getRegulationCharge (double kwh, double cumulativeUsage,
+                                     boolean recordUsage)
+  {
+    if (null == regulationRate) {
+      return getUsageCharge(kwh, cumulativeUsage, recordUsage);
+    }
+    else {
+      if (kwh > 0.0) {
+        // up-regulation
+        return kwh * regulationRate.getUpRegulationPayment();
+      }
+      else {
+        // down-regulation
+        return -kwh * regulationRate.getDownRegulationPayment();
+      }
+    }
   }
 
   /** 
@@ -324,7 +365,7 @@ public class Tariff
   {
     return getUsageCharge(when, kwh, cumulativeUsage, null);
   }
-  
+
   /**
    * Returns a risk-adjusted usage charge, with prices for variable rates
    * adjusted by the given TariffEvaluationHelper.
@@ -360,7 +401,7 @@ public class Tariff
     }
     return sign * result;
   }
-  
+
   private int getTimeIndex (Instant when)
   {
     DateTime dt = new DateTime(when, DateTimeZone.UTC);
@@ -374,7 +415,7 @@ public class Tariff
   {
     return expiration;
   }
-  
+
   /**
    * True just in case the current time is past the expiration date
    * of this Tariff.
