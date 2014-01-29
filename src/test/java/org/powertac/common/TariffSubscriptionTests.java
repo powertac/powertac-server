@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 by the original author or authors.
+ * Copyright (c) 2011-2014 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.mockito.ArgumentCaptor;
 
@@ -144,7 +141,7 @@ public class TariffSubscriptionTests
   @Test
   public void testHandleRevokedTariffDefault ()
   {
-    List<List<Object>>results = new ArrayList<List<Object>>();
+    //List<List<Object>>results = new ArrayList<List<Object>>();
     // set up default tariff, install in tariff market
     TariffSpecification defaultSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .addRate(new Rate().withValue(-0.21));
@@ -182,7 +179,7 @@ public class TariffSubscriptionTests
   @Test
   public void testHandleRevokedTariffDefaultPT ()
   {
-    List<List<Object>>results = new ArrayList<List<Object>>();
+    //List<List<Object>>results = new ArrayList<List<Object>>();
     CustomerInfo ptcustomer = new CustomerInfo("Podunk", 21).withPowerType(PowerType.SOLAR_PRODUCTION);
     TariffSpecification ptspec = new TariffSpecification(broker, PowerType.SOLAR_PRODUCTION)
       .withExpiration(baseTime.plus(TimeService.DAY * 10))
@@ -289,14 +286,15 @@ public class TariffSubscriptionTests
     // no min duration, so they should all be expired
     assertEquals("33 expired customers", 33, sub.getExpiredCustomerCount());
   }
-  
+
   @Test
-  public void testBalancingControl ()
+  public void testBalancingControlUp ()
   {
-    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-               .withExpiration(baseTime.plus(TimeService.DAY * 10))
-               .withMinDuration(TimeService.DAY * 5)
-               .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
     tariff.init();
     tariffRepo.addSpecification(tariff.getTariffSpec());
@@ -304,30 +302,105 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
     sub.subscribe(10);
-    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
-                                                tariff, customer, 10, 0.0, -0.0);
+    verify(mockAccounting)
+        .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
+                              10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
     sub.usePower(100.0);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
-                                                eq(tariff), eq(customer), eq(10), eq(-100.0), 
-                                                chargeArg.capture());
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-100.0),
+                              chargeArg.capture());
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
     sub.postBalancingControl(30.0);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.PRODUCE),
-                                                eq(tariff), eq(customer), eq(10), eq(30.0), 
-                                                chargeArg.capture());
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
+                              eq(customer), eq(10), eq(30.0),
+                              chargeArg.capture());
     assertEquals("correct charge", -2.7, chargeArg.getValue(), 1e-6);
-    assertEquals("correct curtailment", 30.0, sub.getCurtailment(), 1e-6);
-    assertEquals("no curtailment", 0.0, sub.getCurtailment(), 1e-6);
+    assertEquals("correct regulation", 30.0, sub.getRegulation(), 1e-6);
+    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
   }
-  
+
+  @Test
+  public void testBalancingControlDown ()
+  {
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    sub.subscribe(10);
+    verify(mockAccounting)
+        .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
+                              10, 0.0, -0.0);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    sub.usePower(100.0);
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-100.0),
+                              chargeArg.capture());
+    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    sub.postBalancingControl(-30.0);
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-30.0),
+                              chargeArg.capture());
+    assertEquals("correct charge", 2.7, chargeArg.getValue(), 1e-6);
+    assertEquals("correct regulation", -30.0, sub.getRegulation(), 1e-6);
+    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+  }
+  @Test
+  public void testBalancingControlRR ()
+  {
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5))
+          .addRate(new RegulationRate().withUpRegulationPayment(0.15)
+                       .withDownRegulationPayment(-0.02));
+    tariff = new Tariff(spec);
+    tariff.init();
+    tariffRepo.addSpecification(tariff.getTariffSpec());
+    tariffRepo.addTariff(tariff);
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
+    sub.subscribe(10);
+    verify(mockAccounting)
+        .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
+                              10, 0.0, -0.0);
+    timeslotRepo.findOrCreateBySerialNumber(10);
+    sub.usePower(100.0);
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-100.0),
+                              chargeArg.capture());
+    assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    sub.postBalancingControl(30.0);
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
+                              eq(customer), eq(10), eq(30.0),
+                              chargeArg.capture());
+    assertEquals("correct charge", -4.5, chargeArg.getValue(), 1e-6);
+    assertEquals("correct regulation", 30.0, sub.getRegulation(), 1e-6);
+    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+  }
+
   @Test
   public void testEconomicControl ()
   {
-    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-               .withExpiration(baseTime.plus(TimeService.DAY * 10))
-               .withMinDuration(TimeService.DAY * 5)
-               .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
     tariff.init();
     tariffRepo.addSpecification(tariff.getTariffSpec());
@@ -335,39 +408,46 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     ArgumentCaptor<Double> chargeArg = ArgumentCaptor.forClass(Double.class);
     sub.subscribe(10);
-    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
-                                                tariff, customer, 10, 0.0, -0.0);
+    verify(mockAccounting)
+        .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
+                              10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
-    assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot().getSerialNumber());
-    
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
+    assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot()
+        .getSerialNumber());
+
     sub.usePower(100.0);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
-                                                eq(tariff), eq(customer), eq(10), eq(-100.0), 
-                                                chargeArg.capture());
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-100.0),
+                              chargeArg.capture());
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
-    assertEquals("full curtailment available", 50.0, 
-                 sub.getMaxRemainingCurtailment(), 1e-6);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    assertEquals("full regulation available", 50.0, sub
+        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
     sub.postRatioControl(0.2);
     sub.usePower(100.0);
-    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.CONSUME),
-                                                eq(tariff), eq(customer), eq(10), eq(-80.0), 
-                                                chargeArg.capture());
+    verify(mockAccounting)
+        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+                              eq(customer), eq(10), eq(-80.0),
+                              chargeArg.capture());
     assertEquals("correct charge", 7.2, chargeArg.getValue(), 1e-6);
-    assertEquals("partial curtailment available", 30.0, 
-                 sub.getMaxRemainingCurtailment(), 1e-6);
-    assertEquals("correct curtailment", 20.0, sub.getCurtailment(), 1e-6);
-    assertEquals("no curtailment", 0.0, sub.getCurtailment(), 1e-6);
+    assertEquals("partial regulation available", 30.0, sub
+        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct regulation", 20.0, sub.getRegulation(), 1e-6);
+    assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
   }
-  
+
   @Test
   public void testCurtailmentUnsubscribe1 ()
   {
-    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-      .withExpiration(baseTime.plus(TimeService.DAY * 10))
-      .withMinDuration(TimeService.DAY * 5)
-      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
     tariff.init();
     tariffRepo.addSpecification(tariff.getTariffSpec());
@@ -375,20 +455,22 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
 
     sub.usePower(100.0);
-    assertEquals("correct remaining curtailment",
-                 50.0, sub.getMaxRemainingCurtailment(), 1e-6);
+    assertEquals("correct remaining regulation", 50.0, sub
+        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
   }
-  
+
   @Test
   public void testCurtailmentUnsubscribe2 ()
   {
-    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-      .withExpiration(baseTime.plus(TimeService.DAY * 10))
-      .withMinDuration(TimeService.DAY * 5)
-      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
     tariff.init();
     tariffRepo.addSpecification(tariff.getTariffSpec());
@@ -396,21 +478,23 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
 
     sub.usePower(100.0);
     sub.unsubscribe(2);
-    assertEquals("correct remaining curtailment",
-                 40.0, sub.getMaxRemainingCurtailment(), 1e-6);
+    assertEquals("correct remaining regulation", 40.0, sub
+        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
   }
-  
+
   @Test
   public void testCurtailmentUnsubscribe3 ()
   {
-    spec = new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
-      .withExpiration(baseTime.plus(TimeService.DAY * 10))
-      .withMinDuration(TimeService.DAY * 5)
-      .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
+    spec =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.09).withMaxCurtailment(0.5));
     tariff = new Tariff(spec);
     tariff.init();
     tariffRepo.addSpecification(tariff.getTariffSpec());
@@ -418,12 +502,13 @@ public class TariffSubscriptionTests
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(10);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    timeService.setCurrentTime(timeService.getCurrentTime()
+        .plus(TimeService.HOUR));
 
     sub.usePower(100.0);
     sub.unsubscribe(2);
     sub.unsubscribe(8);
-    assertEquals("correct remaining curtailment",
-                 0.0, sub.getMaxRemainingCurtailment(), 1e-6);
+    assertEquals("correct remaining regulation", 0.0, sub
+        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
   }
 }

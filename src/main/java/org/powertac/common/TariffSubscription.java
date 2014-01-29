@@ -72,16 +72,19 @@ public class TariffSubscription
   /** Count of customers who will not be subscribers in the next timeslot */
   private int pendingUnsubscribeCount = 0; 
 
-  // ------------- Controllable and storage capacity ----------------
-  /** Pending economic curtailment (from phase 1) */
-  double pendingCurtailmentRatio = 0.0;
+  // ------------- Regulation capacity ----------------
+  /** Pending economic regulation (from phase 1) */
+  double pendingUpRegulationRatio = 0.0;
 
-  /** Actual curtailment from previous timeslot. Should always be zero
+  /** Actual regulation from previous timeslot. Should always be zero
    *  after the customer model has run. */
-  double curtailment = 0.0;
+  double regulation = 0.0;
 
-  /** Maximum remaining curtailment after phase 2 */
-  double maxRemainingCurtailment = 0.0;
+  /** Maximum remaining up-regulation after phase 2 */
+  double maxRemainingUpRegulation = 0.0;
+
+  /** Maximum remaining down-regulation after phase 2 */
+  double maxRemainingDownRegulation = 0.0;
 
   /** Current state-of-charge of customer storage capacity */
   double stateOfCharge = 0.0;
@@ -126,6 +129,8 @@ public class TariffSubscription
   {
     return totalUsage;
   }
+
+  // ============================ Customer API ===============================
 
   /**
    * Subscribes some number of discrete customers. This is typically some portion of the population in a
@@ -191,7 +196,8 @@ public class TariffSubscription
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
-    maxRemainingCurtailment = 0;
+    maxRemainingUpRegulation = 0.0;
+    maxRemainingDownRegulation = 0.0;
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
     // find the number of customers who can withdraw without penalty
@@ -273,8 +279,8 @@ public class TariffSubscription
    */
   public void usePower (double kwh)
   {
-    // do curtailment first
-    double actualKwh = kwh - getCurtailedKwh(kwh, totalUsage);
+    // do regulation first
+    double actualKwh = kwh - getUpRegulationKwh(kwh, totalUsage);
     log.info("usePower " + kwh + ", actual " + actualKwh + 
              ", customer=" + customer.getName());
     // generate the usage transaction
@@ -297,103 +303,136 @@ public class TariffSubscription
   }
 
   /**
+   * Returns the regulation in kwh for the previous timeslot. 
+   * Intended to be called by Customer models only. Value is non-negative for
+   * consumption power types, non-positive for production types.
+   * Note that this
+   * method is not idempotent; if you call it twice in the same timeslot, the
+   * second time returns zero.
+   * 
+   * @deprecated Use getRegulation() instead.
+   */
+  @Deprecated
+  public synchronized double getCurtailment ()
+  {
+    double sgn = 1.0;
+    if (tariff.getPowerType().isProduction())
+      sgn = -1.0;
+    double result = sgn * Math.max(sgn * regulation, 0.0);
+    regulation = 0.0;
+    return result;
+  }
+
+  /**
+   * Returns the regulation quantity exercised in the previous timeslot. For
+   * non-storage devices, only up-regulation through curtailment is supported, 
+   * and the result will be a non-negative value.
+   * For storage devices, it may be positive (up-regulation) or negative
+   * (down-regulation). 
+   * Intended to be called by customer models. This method is not idempotent,
+   * because the regulation quantity is reset to zero after it's accessed.
+   */
+  public synchronized double getRegulation ()
+  {
+    double result = regulation;
+    regulation = 0.0;
+    return result;
+  }
+
+  // ===================== Demand Response / Balancing API ====================
+
+  /**
    * Posts the ratio for an EconomicControlEvent to the subscription for the
-   * current timeslot. .
+   * current timeslot.
    */
   public synchronized void postRatioControl (double ratio)
   {
-    pendingCurtailmentRatio = ratio;
+    pendingUpRegulationRatio = ratio;
   }
 
   /**
    * Posts a BalancingControlEvent to the subscription. This simply updates
-   * the curtailment for the current timeslot by the amout of the control.
+   * the regulation for the current timeslot by the amout of the control.
    * A positive value for kwh represents a reduction in consumption, or an
    * increase in production - in other words, a net gain for the broker's
    * energy account balance.
    */
   public synchronized void postBalancingControl (double kwh)
   {
-    addCurtailment(kwh);
+    addRegulation(kwh);
     // issue compensating tariff transaction
     TariffTransaction.Type txType =
         kwh > 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
     getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
-        tariff.getUsageCharge(kwh / customersCommitted, 
+        tariff.getRegulationCharge(kwh / customersCommitted, 
                               totalUsage, true));
     totalUsage -= kwh / customersCommitted;
   }
 
   /**
-   * Returns the curtailment in kwh for the previous timeslot. 
-   * Intended to be called by Customer models only. Note that this
-   * method is not idempotent; if you call it twice in the same timeslot, the
-   * second time returns zero.
-   */
-  public synchronized double getCurtailment ()
-  {
-    double result = curtailment;
-    curtailment = 0.0;
-    return result;
-  }
-
-  /**
-   * Returns the maximum curtailment possible after the customer model has
+   * Returns the maximum up-regulation possible after the customer model has
    * run and possibly applied economic controls. Since this is potentially 
-   * accessed after customers have updated their subscriptions, it's possible
-   * that the value will have to be changed.
+   * accessed through the balancing market after customers have updated their
+   * subscriptions, it's possible
+   * that the value will have to be changed due to a change in customer count.
    */
-  public double getMaxRemainingCurtailment ()
+  public RegulationCapacity getMaxRemainingRegulation ()
   {
-    double result = maxRemainingCurtailment;
+    double up = maxRemainingUpRegulation;
+    double down = maxRemainingDownRegulation;
     if (0 == pendingUnsubscribeCount) {
-      return result;
+      return new RegulationCapacity(up, down);
     }
     else {
-      // need to adjust 
+      // we have some unsubscribes - need to adjust 
       double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
                               / customersCommitted;
-      log.info("remaining curtailment reduced by " + ratio);
-      return (result * ratio);
+      log.info("remaining up-regulation reduced by " + ratio);
+      return new RegulationCapacity(up * ratio, down * ratio);
     }
   }
 
   /**
-   * Returns the ratio curtailment in kwh for the current timeslot.
-   * Value is 0.0 for no curtailment, 1.0 for full curtailment.
+   * Returns the regulation in kwh in the previous timeslot.
    * Value is the minimum of what's requested and what's allowed by the
-   * rates in effect given the time and cumulative usage.
+   * rates in effect given the time and cumulative usage. Intended to be
+   * called internally to implement economic control.
+   * 
+   * Note that this method is not idempotent -- if called twice in one timeslot,
+   * the second call will always return the proposedUsage value.
    */
-  double getCurtailedKwh (double proposedUsage, double cumulativeUsage)
+  double getUpRegulationKwh (double proposedUsage, double cumulativeUsage)
   {
-    // check for the usual case of no curtailment first
-    //if (0.0 == pendingCurtailmentRatio)
+    // check for the usual case of no regulation first
+    //if (0.0 == pendingUpRegulationRatio)
     //  return 0.0;
     
     // otherwise find the minimum of what's asked for and what's allowed.
-    double proposedCurtailment = proposedUsage * pendingCurtailmentRatio;
-    maxRemainingCurtailment =
-        tariff.getMaxCurtailment(proposedUsage, cumulativeUsage);
-    double result = Math.min(proposedCurtailment, maxRemainingCurtailment);
-    log.debug("proposedCurtailment=" + proposedCurtailment +
-              ", maxCurtailment=" + maxRemainingCurtailment);
-    pendingCurtailmentRatio = 0.0;
-    curtailment += result; // saved until next timeslot
-    maxRemainingCurtailment -= result;
+    double proposedUpRegulation = proposedUsage * pendingUpRegulationRatio;
+    maxRemainingUpRegulation =
+        tariff.getMaxUpRegulation(proposedUsage, cumulativeUsage);
+    double result = Math.min(proposedUpRegulation, maxRemainingUpRegulation);
+    log.debug("proposedUpRegulation=" + proposedUpRegulation +
+              ", maxUpRegulation=" + maxRemainingUpRegulation);
+    pendingUpRegulationRatio = 0.0;
+    regulation += result; // saved until next timeslot
+    maxRemainingUpRegulation -= result;
     return result;
   }
 
   /**
-   * Adds kwh to the curtailment in the current timeslot.
+   * Adds kwh to the regulation exercised in the current timeslot.
+   * Intended to be called during exercise of economic or balancing controls.
    */
-  void addCurtailment (double kwh)
+  void addRegulation (double kwh)
   {
-    curtailment += kwh;
+    regulation += kwh;
   }
 
-  // access to Spring components
+  // ================= access to Spring components =======================
+  
   private TimeService getTimeService ()
   {
     if (null == timeService)

@@ -19,6 +19,9 @@ import org.apache.log4j.Logger;
 
 /**
  * Represents available regulation capacity for a given TariffSubscription.
+ * This is basically a data structure that holds two numbers: an amount of
+ * up-regulation capacity (non-negative), and an amount of down-regulation
+ * capacity (non-positive).
  * 
  * @author John Collins
  */
