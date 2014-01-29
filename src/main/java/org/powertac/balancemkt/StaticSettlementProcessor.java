@@ -24,7 +24,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.powertac.common.RegulationCapacity;
-import org.powertac.common.Tariff;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.TariffRepo;
