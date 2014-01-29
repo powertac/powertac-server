@@ -120,17 +120,15 @@ public class Tariff
     broker = spec.getBroker();
     expiration = spec.getExpiration();
     rateIdMap = new HashMap<Long, Rate>();
-    for (RateCore r : spec.getRates()) {
-      if (r instanceof RegulationRate) {
-        if (null != regulationRate) {
-          log.warn("Multiple regulation rates on tariff " + getId());
-        }
-        else {
-          regulationRate = (RegulationRate)r;
-        }
+    for (Rate r: spec.getRates()) {
+      rateIdMap.put(r.getId(), r);
+    }
+    for (RegulationRate r: spec.getRegulationRates()) {
+      if (null != regulationRate) {
+        log.warn("Multiple regulation rates on tariff " + getId());
       }
       else {
-        rateIdMap.put(r.getId(), (Rate)r);
+        regulationRate = r;
       }
     }
     tiers = new TreeSet<Double>();

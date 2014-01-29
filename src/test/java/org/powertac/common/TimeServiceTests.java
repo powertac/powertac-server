@@ -121,7 +121,7 @@ public class TimeServiceTests
       fail("unexpected exception " + ie.toString());
     }
   }
-  
+
   // Test offset detection
   @Test
   public void testOffset ()
@@ -129,7 +129,10 @@ public class TimeServiceTests
     try {
       Thread.sleep(2500); // 2.5 sec, 15 min
       ts.updateTime();
-      Thread.sleep(1000);
+      long delay = ts.getCurrentTime().getMillis() - theBase.getMillis();
+      assertEquals("delay is 15 min", 15 * TimeService.MINUTE, delay);
+
+      Thread.sleep(1001);
       long offset = ts.getOffset();
       assertTrue("offset > 1000 msec", (offset > 1000l));
       if (offset > 2000l)
@@ -139,7 +142,7 @@ public class TimeServiceTests
       fail("unexpected exception " + ie.toString());
     }
   }
-  
+
   //@Test
   //public void testSetStart()
   //{
