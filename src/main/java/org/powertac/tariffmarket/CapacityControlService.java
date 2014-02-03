@@ -97,9 +97,9 @@ implements CapacityControl, InitializationService
         new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0) {
-        double value = sub.getMaxRemainingUpRegulation();
-        amts.put(sub, value);
-        curtailable += value;
+        RegulationCapacity value = sub.getRemainingRegulationCapacity();
+        amts.put(sub, value.getUpRegulationCapacity());
+        curtailable += value.getUpRegulationCapacity();
       }
     }
     if (Math.abs(curtailable) < epsilon) {
@@ -150,13 +150,13 @@ implements CapacityControl, InitializationService
       log.warn("Null tariff " + order.getTariffId() + " for balancing order");
       return new RegulationCapacity(0.0, 0.0);
     }
-    double result = 0.0;
+    RegulationCapacity result = new RegulationCapacity(0.0, 0.0);
     List<TariffSubscription> subs =
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
     for (TariffSubscription sub : subs) {
-      result += sub.getMaxRemainingUpRegulation();
+      result.add(sub.getRemainingRegulationCapacity());
     }
-    return new RegulationCapacity(result, 0.0);
+    return result;
   }
 
   /**

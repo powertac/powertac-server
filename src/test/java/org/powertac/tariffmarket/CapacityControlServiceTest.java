@@ -182,6 +182,26 @@ public class CapacityControlServiceTest
     assertEquals("correct control", ece2, controls.get(0));
   }
 
+  // check regulation capacity
+  @Test
+  public void regulationCapacity ()
+  {
+    TariffSubscription sub1 =
+        tariffSubscriptionRepo.getSubscription(customer1, tariff);
+    sub1.subscribe(100);
+    TariffSubscription sub2 =
+        tariffSubscriptionRepo.getSubscription(customer2, tariff);
+    sub2.subscribe(200);
+    sub1.usePower(200);
+    sub2.usePower(300);
+    BalancingOrder order = new BalancingOrder(broker, spec, 1.0, 0.1);
+    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    assertEquals("correct up-regulation", 0.4 * 500.0,
+                 cap.getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct down-regulation", 0.0,
+                 cap.getDownRegulationCapacity(), 1e-6);
+  }
+
   /**
    * Test method for {@link org.powertac.tariffmarket.CapacityControlService#exerciseBalancingControl(org.powertac.common.msg.BalancingOrder, double)}.
    */
@@ -197,9 +217,11 @@ public class CapacityControlServiceTest
     sub1.usePower(200);
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, spec, 1.0, 0.1);
-    RegulationCapacity cap =capacityControl.getRegulationCapacity(order); 
-    assertEquals("correct curtailable usage", 0.4 * 500.0,
+    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    assertEquals("correct up-regulation", 0.4 * 500.0,
                  cap.getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct down-regulation", 0.0,
+                 cap.getDownRegulationCapacity(), 1e-6);
     // exercise the control
     assertEquals("no messages yet", 0, msgs.size());
     reset(mockAccounting);
