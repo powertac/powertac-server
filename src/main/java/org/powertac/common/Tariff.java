@@ -339,11 +339,11 @@ public class Tariff
     else {
       if (kwh > 0.0) {
         // up-regulation
-        return kwh * regulationRate.getUpRegulationPayment();
+        return -kwh * regulationRate.getUpRegulationPayment();
       }
       else {
         // down-regulation
-        return -kwh * regulationRate.getDownRegulationPayment();
+        return kwh * regulationRate.getDownRegulationPayment();
       }
     }
   }
@@ -578,6 +578,14 @@ public class Tariff
       }
     }
     return false;
+  }
+
+  /**
+   * Wrapper for TariffSpecification.hasRegulationRate()
+   */
+  public boolean hasRegulationRate ()
+  {
+    return this.getTariffSpec().hasRegulationRate();
   }
 
   /**

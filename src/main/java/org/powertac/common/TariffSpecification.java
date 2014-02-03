@@ -234,6 +234,19 @@ public class TariffSpecification extends TariffMessage
   }
 
   /**
+   * Returns true just in case this tariff has one or more RegulationRates.
+   */
+  public boolean hasRegulationRate ()
+  {
+    for (RateCore rate : rates) {
+      if (rate instanceof RegulationRate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Adds a new RateCore (Rate, RegulationRate, etc.) to this tariff.
    */
   @StateChange

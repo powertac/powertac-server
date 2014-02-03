@@ -22,7 +22,8 @@ import com.thoughtworks.xstream.annotations.*;
 
 /**
  * Tariffs are composed of Rates, including RegulationRates.
- * A RegulationRate specifies payments for up-regulation and down-regulation
+ * A RegulationRate specifies exercise ratios and payments for
+ * up-regulation and down-regulation
  * that might be used for balancing and might be different from the payments
  * for ordinary consumption and/or production.
  * Typically, the payment for up-regulation is positive (the customer is paid
@@ -44,6 +45,15 @@ import com.thoughtworks.xstream.annotations.*;
  * The determination of which one applies is delegated to the interaction
  * between the balancing market and the customer models that are subscribed
  * to the tariff.
+ * 
+ * Note that
+ * (1) Up to two RegulationRates can be attached to a TariffSpecification --
+ * one for fast response, and one for slow response; and
+ * (2) the inclusion of a RegulationRate overrides the maxCurtailment
+ * attribute of any Rates attached to the same TariffSpecification.
+ * In addition, any Customer model that subscribes to RegulationRates must
+ * post their available regulation capacity to their applicable
+ * TariffSubscriptions at the end of their per-timeslot activation processing.
  * 
  * @author John Collins
  */
