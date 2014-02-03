@@ -288,6 +288,22 @@ public class TariffSubscriptionTests
   }
 
   @Test
+  public void regulationCapacity ()
+  {
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(33);
+    sub.setRegulationCapacity(new RegulationCapacity(4.5, -3.0));
+    assertEquals("no regulation yet", 0.0, sub.getRegulation(), 1e-6);
+    RegulationCapacity remaining = sub.getRemainingRegulationCapacity();
+    assertEquals("population up ", 4.5 * 33,
+                 remaining.getUpRegulationCapacity(), 1e-6);
+    assertEquals("population down ", -3.0 * 33,
+                 remaining.getDownRegulationCapacity(), 1e-6);
+    sub.usePower(330.0);
+    assertEquals("still no regulation", 0.0, sub.getRegulation(), 1e-6);
+  }
+
+  @Test
   public void testBalancingControlUp ()
   {
     spec =
@@ -318,7 +334,7 @@ public class TariffSubscriptionTests
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
     assertEquals("correct charge", -2.7, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", 30.0, sub.getRegulation(), 1e-6);
+    assertEquals("correct regulation", 3.0, sub.getRegulation(), 1e-6);
     assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
   }
 
@@ -353,11 +369,12 @@ public class TariffSubscriptionTests
                               eq(customer), eq(10), eq(-30.0),
                               chargeArg.capture());
     assertEquals("correct charge", 2.7, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", -30.0, sub.getRegulation(), 1e-6);
+    assertEquals("correct regulation", -3.0, sub.getRegulation(), 1e-6);
     assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
   }
+
   @Test
-  public void testBalancingControlRR ()
+  public void testBalancingControlRegRate ()
   {
     spec =
       new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
@@ -377,20 +394,31 @@ public class TariffSubscriptionTests
         .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
                               10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
+    sub.setRegulationCapacity(new RegulationCapacity(5.0, -2.0)); // per-member
     sub.usePower(100.0);
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
+    RegulationCapacity cap = sub.getRemainingRegulationCapacity();
+    assertEquals("correct up-reg", 50.0,
+                 cap.getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct dn-reg", -20.0,
+                 cap.getDownRegulationCapacity(), 1e-6);
     sub.postBalancingControl(30.0);
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
     assertEquals("correct charge", -4.5, chargeArg.getValue(), 1e-6);
-    assertEquals("correct regulation", 30.0, sub.getRegulation(), 1e-6);
+    assertEquals("correct regulation", 3.0, sub.getRegulation(), 1e-6);
     assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
+    cap = sub.getRemainingRegulationCapacity();
+    assertEquals("correct up-reg", 20.0,
+                 cap.getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct dn-reg", -20.0,
+                 cap.getDownRegulationCapacity(), 1e-6);
   }
 
   @Test
@@ -417,14 +445,14 @@ public class TariffSubscriptionTests
     assertEquals("correct timeslot", 1, timeslotRepo.currentTimeslot()
         .getSerialNumber());
 
-    sub.usePower(100.0);
+    sub.usePower(100.0); // per-member value
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
     assertEquals("full regulation available", 50.0, sub
-        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
     timeService.setCurrentTime(timeService.getCurrentTime()
         .plus(TimeService.HOUR));
     sub.postRatioControl(0.2);
@@ -435,8 +463,8 @@ public class TariffSubscriptionTests
                               chargeArg.capture());
     assertEquals("correct charge", 7.2, chargeArg.getValue(), 1e-6);
     assertEquals("partial regulation available", 30.0, sub
-        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
-    assertEquals("correct regulation", 20.0, sub.getRegulation(), 1e-6);
+        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct regulation", 2.0, sub.getRegulation(), 1e-6);
     assertEquals("no regulation", 0.0, sub.getRegulation(), 1e-6);
   }
 
@@ -460,7 +488,7 @@ public class TariffSubscriptionTests
 
     sub.usePower(100.0);
     assertEquals("correct remaining regulation", 50.0, sub
-        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
   }
 
   @Test
@@ -484,7 +512,7 @@ public class TariffSubscriptionTests
     sub.usePower(100.0);
     sub.unsubscribe(2);
     assertEquals("correct remaining regulation", 40.0, sub
-        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
   }
 
   @Test
@@ -509,6 +537,6 @@ public class TariffSubscriptionTests
     sub.unsubscribe(2);
     sub.unsubscribe(8);
     assertEquals("correct remaining regulation", 0.0, sub
-        .getMaxRemainingRegulation().getUpRegulationCapacity(), 1e-6);
+        .getRemainingRegulationCapacity().getUpRegulationCapacity(), 1e-6);
   }
 }

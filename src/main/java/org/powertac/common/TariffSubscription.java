@@ -74,25 +74,15 @@ public class TariffSubscription
 
   // ------------- Regulation capacity ----------------
   /** Pending economic regulation (from phase 1) */
-  double pendingUpRegulationRatio = 0.0;
+  private double pendingRegulationRatio = 0.0;
 
-  /** Actual regulation from previous timeslot. Should always be zero
-   *  after the customer model has run. */
-  double regulation = 0.0;
+  /** Available regulation capacity for the current timeslot. */
+  RegulationCapacity regulationCapacity = null;
 
-  /** Maximum remaining up-regulation after phase 2 */
-  double maxRemainingUpRegulation = 0.0;
-
-  /** Maximum remaining down-regulation after phase 2 */
-  double maxRemainingDownRegulation = 0.0;
-
-  /** Current state-of-charge of customer storage capacity */
-  double stateOfCharge = 0.0;
-
-  /** Pending up-regulation (positive) or down-regulation (negative)
-   *  from previous timeslot. Should always be zero after the customer
-   *  model has run. */
-  double pendingRegulation = 0.0;
+  /** Actual up-regulation (positive) or down-regulation (negative)
+   * from previous timeslot.
+   * Should always be zero after the customer model has run. */
+  private double regulation = 0.0;
 
   /**
    * You need a CustomerInfo and a Tariff to create one of these.
@@ -190,14 +180,13 @@ public class TariffSubscription
 
   /**
    * Handles the actual unsubscribe operation. Intended to be called by
-   * the TariffMarket to avoid subscription changes between customer
+   * the TariffMarket (phase 4) to avoid subscription changes between customer
    * consumption/production and balancing.
    */
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
-    maxRemainingUpRegulation = 0.0;
-    maxRemainingDownRegulation = 0.0;
+    regulationCapacity = new RegulationCapacity(0.0, 0.0);
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
     // find the number of customers who can withdraw without penalty
@@ -274,13 +263,19 @@ public class TariffSubscription
    * represents the amount of production (negative amount) or consumption
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
-   * Note that this value is the aggregate across the subscribed population,
-   * and not a per-member value.
+   * Note that the power usage value and the numbers in the
+   * TariffTransaction are aggregated across the subscribed population,
+   * not per-member values.
    */
   public void usePower (double kwh)
   {
-    // do regulation first
-    double actualKwh = kwh - getUpRegulationKwh(kwh, totalUsage);
+    // deal with no-regulation customers
+    ensureRegulationCapacity();
+    // do economic control first
+    double kWhPerMember = kwh / customersCommitted;
+    double actualKwh =
+      (kWhPerMember - getEconomicRegulation(kWhPerMember, totalUsage))
+          * customersCommitted;
     log.info("usePower " + kwh + ", actual " + actualKwh + 
              ", customer=" + customer.getName());
     // generate the usage transaction
@@ -303,14 +298,15 @@ public class TariffSubscription
   }
 
   /**
-   * Returns the regulation in kwh for the previous timeslot. 
+   * Returns the regulation in aggregate kwh for the previous timeslot. 
    * Intended to be called by Customer models only. Value is non-negative for
    * consumption power types, non-positive for production types.
    * Note that this
    * method is not idempotent; if you call it twice in the same timeslot, the
    * second time returns zero.
    * 
-   * @deprecated Use getRegulation() instead.
+   * @deprecated Use getRegulation() instead, but remember that it returns
+   * a per-member value, while this method returns an aggregate value.
    */
   @Deprecated
   public synchronized double getCurtailment ()
@@ -318,14 +314,15 @@ public class TariffSubscription
     double sgn = 1.0;
     if (tariff.getPowerType().isProduction())
       sgn = -1.0;
-    double result = sgn * Math.max(sgn * regulation, 0.0);
+    double result = sgn * Math.max(sgn * regulation, 0.0) * customersCommitted;
     regulation = 0.0;
     return result;
   }
 
   /**
-   * Returns the regulation quantity exercised in the previous timeslot. For
-   * non-storage devices, only up-regulation through curtailment is supported, 
+   * Returns the regulation quantity exercised per member
+   * in the previous timeslot. For non-storage devices,
+   * only up-regulation through curtailment is supported, 
    * and the result will be a non-negative value.
    * For storage devices, it may be positive (up-regulation) or negative
    * (down-regulation). 
@@ -339,6 +336,102 @@ public class TariffSubscription
     return result;
   }
 
+  /**
+   * Communicates the ability of the customer model to handle regulation
+   * requests. Quantities are per-member.
+   */
+  public void setRegulationCapacity (RegulationCapacity capacity)
+  {
+    regulationCapacity = capacity;
+  }
+  
+  /**
+   * Ensures that regulationCapacity is non-null -
+   * needed for non-regulatable customer models
+   */
+  public void ensureRegulationCapacity ()
+  {
+    if (null == regulationCapacity) {
+      regulationCapacity = new RegulationCapacity(0.0, 0.0);
+    }
+  }
+
+  /**
+   * Returns the result of economic control in kwh for the current timeslot.
+   * Value is the minimum of what's requested and what's allowed by the
+   * Rates in effect given the time and cumulative usage. Intended to be
+   * called within usePower() to implement economic control.
+   * The parameters and return value are per-member values, not aggregated
+   * across the subscription.
+   * 
+   * Depending on the value of pendingRegulationRatio, there are three possible
+   * outcomes:
+   * <ul>
+   *  <li>(0.0 <= pendingRegulationRatio <= 1.0) represents simple curtailment.
+   *    The returned value will be the minimum of the proposedUsage.
+   *    This is the only possible result for a tariff without
+   *    RegulationRates.</li>
+   *  <li>(-1.0 <= pendingRegulationRatio < 0.0) represents down-regulation,
+   *    dumping energy into a thermal or electrical storage device. Amount is
+   *    limited by the available regulation capacity. This case is only
+   *    supported under a RegulationRate.</li>
+   *  <li>(1.0 < pendingRegulationRatio <= 2.0) represents discharge of an
+   *    electrical storage device. Amount is
+   *    limited by the available regulation capacity. This case is only
+   *    supported under a RegulationRate.</li>
+   * </ul>
+   * 
+   * Note that this method is not idempotent -- it should be called at most
+   * once in each timeslot; this scheme makes one call every time the customer
+   * uses power.
+   */
+  double getEconomicRegulation (double proposedUsage, double cumulativeUsage)
+  {
+    // reset the regulation qty here
+    regulation = 0.0;
+    double result = 0.0;
+    if (getTariff().hasRegulationRate()) {
+      if (pendingRegulationRatio < 0.0) {
+        // down-regulation - negative result
+        result =
+          (-pendingRegulationRatio)
+              * regulationCapacity.getDownRegulationCapacity();
+        regulationCapacity.setDownRegulationCapacity(regulationCapacity
+            .getDownRegulationCapacity() - result);
+      }
+      else if (pendingRegulationRatio > 1.0) {
+        // discharge: between proposed usage and up-regulation capacity
+        if (regulationCapacity.getUpRegulationCapacity() > proposedUsage) {
+          double excess =
+            regulationCapacity.getUpRegulationCapacity() - proposedUsage;
+          result =
+            proposedUsage + (pendingRegulationRatio - 1.0) * excess;
+          regulationCapacity.setUpRegulationCapacity(regulationCapacity
+              .getUpRegulationCapacity() - result);
+        }
+      }
+      else {
+        // curtailment based on regulation capacity
+        result =
+          pendingRegulationRatio * regulationCapacity.getUpRegulationCapacity();
+        regulationCapacity.setUpRegulationCapacity(regulationCapacity
+            .getUpRegulationCapacity() - result);
+      }
+    }
+    else {
+      // find the minimum of what's asked for and what's allowed.
+      double proposedUpRegulation = proposedUsage * pendingRegulationRatio;
+      double mur = tariff.getMaxUpRegulation(proposedUsage, cumulativeUsage);
+      result = Math.min(proposedUpRegulation, mur);
+      log.debug("proposedUpRegulation=" + proposedUpRegulation
+                + ", maxUpRegulation=" + mur);
+      regulationCapacity.setUpRegulationCapacity(mur - result);
+    }
+    addRegulation(result); // saved until next timeslot
+    pendingRegulationRatio = 0.0;
+    return result;
+  }
+
   // ===================== Demand Response / Balancing API ====================
 
   /**
@@ -347,41 +440,59 @@ public class TariffSubscription
    */
   public synchronized void postRatioControl (double ratio)
   {
-    pendingUpRegulationRatio = ratio;
+    pendingRegulationRatio = ratio;
   }
 
   /**
-   * Posts a BalancingControlEvent to the subscription. This simply updates
+   * Posts a BalancingControlEvent to the subscription and generate the correct
+   * TariffTransaction. This updates
    * the regulation for the current timeslot by the amout of the control.
-   * A positive value for kwh represents a reduction in consumption, or an
+   * A positive value for kwh represents up-regulation, or an
    * increase in production - in other words, a net gain for the broker's
-   * energy account balance.
+   * energy account balance. The kwh value is a population value, not a
+   * per-member value.
    */
   public synchronized void postBalancingControl (double kwh)
   {
-    addRegulation(kwh);
     // issue compensating tariff transaction
     TariffTransaction.Type txType =
-        kwh > 0 ? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+      kwh > 0? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
+      // simple net metering
     getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
-        tariff.getRegulationCharge(kwh / customersCommitted, 
-                              totalUsage, true));
-    totalUsage -= kwh / customersCommitted;
+          tariff.getRegulationCharge(kwh / customersCommitted, 
+                                     totalUsage, true));
+    double kWhPerMember = kwh / customersCommitted; 
+    addRegulation(kWhPerMember);
+    if (kWhPerMember >= 0.0) {
+      // up-regulation
+      regulationCapacity.setUpRegulationCapacity(regulationCapacity
+          .getUpRegulationCapacity() - kWhPerMember);
+    }
+    else {
+      regulationCapacity.setDownRegulationCapacity(regulationCapacity
+          .getDownRegulationCapacity() - kWhPerMember);
+    }
+    totalUsage -= kWhPerMember;
   }
 
   /**
-   * Returns the maximum up-regulation possible after the customer model has
-   * run and possibly applied economic controls. Since this is potentially 
+   * Returns the maximum aggregate up-regulation possible after the
+   * customer model has run and possibly applied economic controls.
+   * Since this is potentially 
    * accessed through the balancing market after customers have updated their
    * subscriptions, it's possible
    * that the value will have to be changed due to a change in customer count.
+   * TODO: may need to be modified -- see issue #733.
    */
-  public RegulationCapacity getMaxRemainingRegulation ()
+  public RegulationCapacity getRemainingRegulationCapacity ()
   {
-    double up = maxRemainingUpRegulation;
-    double down = maxRemainingDownRegulation;
+    // generate aggregate value here
+    double up =
+      regulationCapacity.getUpRegulationCapacity() * customersCommitted;
+    double down =
+      regulationCapacity.getDownRegulationCapacity() * customersCommitted;
     if (0 == pendingUnsubscribeCount) {
       return new RegulationCapacity(up, down);
     }
@@ -389,42 +500,16 @@ public class TariffSubscription
       // we have some unsubscribes - need to adjust 
       double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
                               / customersCommitted;
-      log.info("remaining up-regulation reduced by " + ratio);
+      log.info("remaining regulation capacity reduced by " + ratio);
       return new RegulationCapacity(up * ratio, down * ratio);
     }
   }
 
   /**
-   * Returns the regulation in kwh in the previous timeslot.
-   * Value is the minimum of what's requested and what's allowed by the
-   * rates in effect given the time and cumulative usage. Intended to be
-   * called internally to implement economic control.
-   * 
-   * Note that this method is not idempotent -- if called twice in one timeslot,
-   * the second call will always return the proposedUsage value.
-   */
-  double getUpRegulationKwh (double proposedUsage, double cumulativeUsage)
-  {
-    // check for the usual case of no regulation first
-    //if (0.0 == pendingUpRegulationRatio)
-    //  return 0.0;
-    
-    // otherwise find the minimum of what's asked for and what's allowed.
-    double proposedUpRegulation = proposedUsage * pendingUpRegulationRatio;
-    maxRemainingUpRegulation =
-        tariff.getMaxUpRegulation(proposedUsage, cumulativeUsage);
-    double result = Math.min(proposedUpRegulation, maxRemainingUpRegulation);
-    log.debug("proposedUpRegulation=" + proposedUpRegulation +
-              ", maxUpRegulation=" + maxRemainingUpRegulation);
-    pendingUpRegulationRatio = 0.0;
-    regulation += result; // saved until next timeslot
-    maxRemainingUpRegulation -= result;
-    return result;
-  }
-
-  /**
    * Adds kwh to the regulation exercised in the current timeslot.
    * Intended to be called during exercise of economic or balancing controls.
+   * The kwh argument is a per-member value; positive for up-regulation,
+   * negative for down-regulation.
    */
   void addRegulation (double kwh)
   {

@@ -58,15 +58,82 @@ public class RegulationCapacity
   }
 
   /**
-   * Returns the up-regulationCapacity available in kWh
+   * Returns the available up-regulation capacity in kWh.
+   * Value is non-negative.
    */
   public double getUpRegulationCapacity ()
   {
     return upRegulationCapacity;
   }
 
+  /**
+   * Sets the up-regulation value.
+   * Argument must be non-negative.
+   */
+  public void setUpRegulationCapacity (double value)
+  {
+    if (value < 0.0) {
+      log.warn("Attempt to set negative up-regulation capacity " + value);
+      return;
+    }
+    upRegulationCapacity = value;
+  }
+
+  /**
+   * Returns the available down-regulation capacity in kWh.
+   * Value is non-positive.
+   */
   public double getDownRegulationCapacity ()
   {
     return downRegulationCapacity;
+  }
+
+  /**
+   * Sets the down-regulation value.
+   * Argument must be non-negative.
+   */
+  public void setDownRegulationCapacity (double value)
+  {
+    if (value > 0.0) {
+      log.warn("Attempt to set positive down-regulation capacity " + value);
+      return;
+    }
+    downRegulationCapacity = value;
+  }
+
+  /**
+   * Adds the capacities in the given RegulationCapacity instance to this
+   * instance. 
+   */
+  public void add (RegulationCapacity rc)
+  {
+    upRegulationCapacity += rc.upRegulationCapacity;
+    downRegulationCapacity += rc.downRegulationCapacity;
+  }
+
+  /**
+   * Adds the given amount of up-regulation capacity.
+   * Amount must be non-negative.
+   */
+  public void addUpRegulation (double amount)
+  {
+    if (amount < 0.0) {
+      log.warn("Attempt to add negative up-regulation capacity " + amount);
+      return;
+    }
+    upRegulationCapacity += amount;
+  }
+
+  /**
+   * Adds the given amount of down-regulation capacity.
+   * Amount must be non-positive.
+   */
+  public void addDownRegulation (double amount)
+  {
+    if (amount > 0.0) {
+      log.warn("Attempt to add positive down-regulation capacity " + amount);
+      return;
+    }
+    downRegulationCapacity += amount;
   }
 }
