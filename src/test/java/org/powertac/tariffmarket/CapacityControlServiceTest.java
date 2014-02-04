@@ -37,6 +37,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationRate;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
@@ -199,6 +200,37 @@ public class CapacityControlServiceTest
     assertEquals("correct up-regulation", 0.4 * 500.0,
                  cap.getUpRegulationCapacity(), 1e-6);
     assertEquals("correct down-regulation", 0.0,
+                 cap.getDownRegulationCapacity(), 1e-6);
+  }
+
+  // check regulation capacity with regulation-rates
+  @Test
+  public void regulationCapacityRegRate ()
+  {
+    TariffSpecification specRR =
+      new TariffSpecification(broker, PowerType.INTERRUPTIBLE_CONSUMPTION)
+          .withExpiration(baseTime.plus(TimeService.DAY * 10))
+          .withMinDuration(TimeService.DAY * 5)
+          .addRate(new Rate().withValue(-0.11))
+          .addRate(new RegulationRate().withUpRegulationPayment(0.15)
+                   .withDownRegulationPayment(-0.05));
+    Tariff tariffRR = new Tariff(specRR);
+    tariffRR.init();
+    TariffSubscription sub1 =
+        tariffSubscriptionRepo.getSubscription(customer1, tariffRR);
+    sub1.subscribe(100);
+    TariffSubscription sub2 =
+        tariffSubscriptionRepo.getSubscription(customer2, tariffRR);
+    sub2.subscribe(200);
+    sub1.setRegulationCapacity(new RegulationCapacity(3.0, -1.5));
+    sub1.usePower(200);
+    sub2.setRegulationCapacity(new RegulationCapacity(2.0, -1.1));
+    sub2.usePower(300);
+    BalancingOrder order = new BalancingOrder(broker, specRR, 1.0, 0.1);
+    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    assertEquals("correct up-regulation", 700.0,
+                 cap.getUpRegulationCapacity(), 1e-6);
+    assertEquals("correct down-regulation", -370.0,
                  cap.getDownRegulationCapacity(), 1e-6);
   }
 
