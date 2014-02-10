@@ -28,7 +28,7 @@ public class IdGenerator
   private static int prefix = 0; // invalid default value
   private static int counter = 0;
   private static int multiplier = 100000000;
-  
+
   /**
    * Generates a numeric ID as xA+B.
    */
@@ -36,7 +36,7 @@ public class IdGenerator
   {
     return multiplier * prefix + counter++;
   }
-  
+
   /**
    * Each entity living in a separate process must have a different prefix
    * value. These values are presumably set by the competition control service.
@@ -45,7 +45,7 @@ public class IdGenerator
   {
     prefix = value;
   }
-  
+
   /**
    * Returns the id prefix - needed for testing.
    */
@@ -53,7 +53,7 @@ public class IdGenerator
   {
     return prefix;
   }
-  
+
   /**
    * Converts ID value to String as A.B.   
    */
@@ -61,7 +61,15 @@ public class IdGenerator
   {
     return Long.toString(id / multiplier) + "." + Long.toString(id % multiplier);
   }
-  
+
+  /**
+   * Returns the multiplier for an id, needed to validate id values
+   */
+  public static int extractPrefix (long id)
+  {
+    return (int)(id / multiplier);
+  }
+
   /**
    * Recycles the generator. This should only be used in a setting where multiple
    * sessions are run in a single process.
