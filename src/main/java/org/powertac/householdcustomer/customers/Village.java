@@ -1966,6 +1966,13 @@ public class Village extends AbstractCustomer
         result = dailyShifting(tariff, nonDominantUsage, day, type);
       }
 
+      log.debug(Arrays.toString(result));
+
+      for (int i = 0; i < result.length;i++)
+    	  result[i] /= (VillageConstants.THOUSAND * getPopulation());
+      
+      log.debug(Arrays.toString(result));
+      
       return result;
     }
 
