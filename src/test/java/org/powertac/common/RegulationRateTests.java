@@ -70,7 +70,7 @@ public class RegulationRateTests
     xstream.processAnnotations(RegulationRate.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(r));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     RegulationRate xr= (RegulationRate)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xr);
     assertEquals("default response",

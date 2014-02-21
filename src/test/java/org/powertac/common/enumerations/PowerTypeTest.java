@@ -82,6 +82,8 @@ public class PowerTypeTest
     assertTrue("is interruptible 2", pt.isInterruptible());
     pt = PowerType.CONSUMPTION;
     assertFalse("not interruptible 1", pt.isInterruptible());
+    pt = PowerType.ELECTRIC_VEHICLE;
+    assertTrue("is interruptible 3", pt.isInterruptible());
   }
   
   @Test
@@ -93,9 +95,9 @@ public class PowerTypeTest
     assertEquals(PowerType.PRODUCTION, PowerType.CHP_PRODUCTION.getGenericType());
     assertEquals(PowerType.PRODUCTION, PowerType.FOSSIL_PRODUCTION.getGenericType());
     assertEquals(PowerType.PRODUCTION, PowerType.PRODUCTION.getGenericType());
-    assertEquals(PowerType.STORAGE, PowerType.BATTERY_STORAGE.getGenericType());
-    assertEquals(PowerType.STORAGE, PowerType.PUMPED_STORAGE_PRODUCTION.getGenericType());
-    assertEquals(PowerType.STORAGE, PowerType.STORAGE.getGenericType());
+    //assertEquals(PowerType.STORAGE, PowerType.BATTERY_STORAGE.getGenericType());
+    //assertEquals(PowerType.STORAGE, PowerType.PUMPED_STORAGE_PRODUCTION.getGenericType());
+    //assertEquals(PowerType.STORAGE, PowerType.STORAGE.getGenericType());
   }
 
   /**
