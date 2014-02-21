@@ -357,6 +357,14 @@ public class TariffSubscription
   }
 
   /**
+   * True just in case this subscription allows regulation.
+   */
+  public boolean hasRegulationRate ()
+  {
+    return this.tariff.hasRegulationRate();
+  }
+
+  /**
    * Returns the result of economic control in kwh for the current timeslot.
    * Value is the minimum of what's requested and what's allowed by the
    * Rates in effect given the time and cumulative usage. Intended to be

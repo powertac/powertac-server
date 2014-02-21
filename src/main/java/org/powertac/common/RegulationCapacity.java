@@ -29,6 +29,9 @@ public class RegulationCapacity
 {
   protected static Logger log = Logger.getLogger(RegulationCapacity.class.getName());
 
+  // ignore small numbers
+  private static double epsilon = 1e-4;
+
   private double upRegulationCapacity = 0.0;
 
   private double downRegulationCapacity = 0.0;
@@ -72,11 +75,13 @@ public class RegulationCapacity
    */
   public void setUpRegulationCapacity (double value)
   {
-    if (value < 0.0) {
-      log.warn("Attempt to set negative up-regulation capacity " + value);
+    double filteredValue = filterValue(value);
+    if (filteredValue < 0.0) {
+      log.warn("Attempt to set negative up-regulation capacity "
+               + filteredValue);
       return;
     }
-    upRegulationCapacity = value;
+    upRegulationCapacity = filteredValue;
   }
 
   /**
@@ -94,11 +99,12 @@ public class RegulationCapacity
    */
   public void setDownRegulationCapacity (double value)
   {
-    if (value > 0.0) {
-      log.warn("Attempt to set positive down-regulation capacity " + value);
+    double filteredValue = filterValue(value);
+    if (filteredValue > 0.0) {
+      log.warn("Attempt to set positive down-regulation capacity " + filteredValue);
       return;
     }
-    downRegulationCapacity = value;
+    downRegulationCapacity = filteredValue;
   }
 
   /**
@@ -135,5 +141,14 @@ public class RegulationCapacity
       return;
     }
     downRegulationCapacity += amount;
+  }
+
+  // filter out small values
+  private double filterValue (double original)
+  {
+    if (Math.abs(original) < epsilon)
+      return 0.0;
+    return original;
+
   }
 }
