@@ -70,7 +70,7 @@ public class TariffMarketBean implements Serializable
             put(PowerType.PUMPED_STORAGE_PRODUCTION, 0l);
             put(PowerType.RUN_OF_RIVER_PRODUCTION, 0l);
             put(PowerType.SOLAR_PRODUCTION, 0l);
-            put(PowerType.STORAGE, 0l);
+            //put(PowerType.STORAGE, 0l);
             put(PowerType.THERMAL_STORAGE_CONSUMPTION, 0l);
             put(PowerType.WIND_PRODUCTION, 0l);
           }
@@ -130,8 +130,8 @@ public class TariffMarketBean implements Serializable
               .get(PowerType.WIND_PRODUCTION)));
 
       ArrayList<Object> data_s = new ArrayList<Object>();
-      data_s.add(new PowerTypeTemplate("Storage", customerTypeSpecific
-              .get(PowerType.STORAGE)));
+      //data_s.add(new PowerTypeTemplate("Storage", customerTypeSpecific
+      //        .get(PowerType.STORAGE)));
       data_s.add(new PowerTypeTemplate("Battery storage", customerTypeSpecific
               .get(PowerType.BATTERY_STORAGE)));
       data_s.add(new PowerTypeTemplate("Electric vehicle", customerTypeSpecific
