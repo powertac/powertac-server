@@ -77,7 +77,7 @@ public class TariffSubscription
   private double pendingRegulationRatio = 0.0;
 
   /** Available regulation capacity for the current timeslot. */
-  RegulationCapacity regulationCapacity = null;
+  RegulationCapacity regulationCapacity = new RegulationCapacity(0.0, 0.0);
 
   /** Actual up-regulation (positive) or down-regulation (negative)
    * from previous timeslot.
