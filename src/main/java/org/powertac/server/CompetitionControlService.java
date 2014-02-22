@@ -503,6 +503,7 @@ public class CompetitionControlService
     }
     // assign prefix and key with accept message
     int prefix = ++idPrefix;
+    broker.setIdPrefix(prefix);
     log.info("Broker " + broker.getUsername()
              + " key: " + broker.getKey() + ", prefix: " + prefix);
     brokerProxyService.sendMessage(broker, new BrokerAccept(prefix, broker.getKey()));

@@ -10,6 +10,7 @@ import javax.jms.TextMessage;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.Broker;
+import org.powertac.common.IdGenerator;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.repo.BrokerRepo;
@@ -20,20 +21,21 @@ import org.springframework.stereotype.Service;
 public class ServerMessageReceiver implements MessageListener
 {
   static private Logger log = Logger.getLogger(ServerMessageReceiver.class);
-  
+
   @Autowired
   private XMLMessageConverter converter;
-  
+
   @Autowired 
   private BrokerProxy brokerProxy;
-  
+
   @Autowired
   private VisualizerProxyService visualizerProxy;
-  
+
   @Autowired
   private BrokerRepo brokerRepo;
-  
+
   private Pattern brokerRegex = Pattern.compile("<broker>([A-Za-z0-9_ ]+)</broker>");
+  private Pattern idRegex = Pattern.compile(" id=\"([0-9]+)\"");
 
   @Override
   public void onMessage (Message message)
@@ -70,9 +72,9 @@ public class ServerMessageReceiver implements MessageListener
     }
     else {
       // complain if message spoofed or missing validation prefix
-      validXml = validateBroker(xml);
+      validXml = validateBrokerPrefix(xml);
       if (null == validXml) {
-        log.warn("Invalid message tag: ignoring message " + xml);
+        log.warn("Invalid message: ignoring " + xml);
         return;
       }
     }
@@ -84,7 +86,7 @@ public class ServerMessageReceiver implements MessageListener
   
   // check the message prefix against the broker. If it matches, then return
   // the message with the prefix stripped off.
-  private String validateBroker (String message)
+  private String validateBrokerPrefix (String message)
   {
     int realMsg = message.indexOf('<');
     if (0 == realMsg)
@@ -96,8 +98,23 @@ public class ServerMessageReceiver implements MessageListener
       String username = m.group(1);
       log.debug("broker username=" + username);
       Broker broker = brokerRepo.findByUsername(username);
-      if (broker.getKey().equals(prefix))
-        return message.substring(realMsg);
+      if (broker.getKey().equals(prefix)) {
+        // prefix match - check id prefix
+        m = idRegex.matcher(message);
+        if (m.find(realMsg)) {
+          long idValue = Long.parseLong(m.group(1));
+          log.debug("message id: " + idValue);
+          int idPrefix = IdGenerator.extractPrefix(idValue);
+          if (broker.getIdPrefix() == idPrefix) {
+            return message.substring(realMsg);
+          }
+        }
+        else {
+          // message with no id?
+          log.warn("Incoming message with no object id: " + message);
+          return message.substring(realMsg);
+        }
+      }
     }
     return null;
   }
