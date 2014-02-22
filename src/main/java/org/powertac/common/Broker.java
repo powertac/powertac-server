@@ -58,7 +58,10 @@ public class Broker
 
   /** If true, the broker is local to the server and does not receive messages  */
   private boolean local = false;
-  
+
+  /** ID prefix for remote brokers */
+  private int idPrefix = 0;
+
   /** If true, broker is a wholesale market participant, but not a "real" broker */
   private boolean wholesale = false;
   
@@ -113,6 +116,24 @@ public class Broker
   public String getKey() 
   {
     return key;
+  }
+
+  /**
+   * Sets the ID prefix for this broker. Intended to be called by competition
+   * control when a remote broker logs in.
+   */
+  public void setIdPrefix (int prefix)
+  {
+    idPrefix = prefix;
+  }
+
+  /**
+   * Returns the ID prefix for this broker. Used in the server to validate
+   * incoming messages. Should be non-zero only for remote brokers.
+   */
+  public int getIdPrefix ()
+  {
+    return idPrefix;
   }
 
 //  /**

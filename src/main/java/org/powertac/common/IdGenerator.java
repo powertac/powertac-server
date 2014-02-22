@@ -65,6 +65,14 @@ public class IdGenerator
   /**
    * Returns the multiplier for an id, needed to validate id values
    */
+  public static int getMultiplier ()
+  {
+    return multiplier;
+  }
+
+  /**
+   * Returns the id prefix for the given id.
+   */
   public static int extractPrefix (long id)
   {
     return (int)(id / multiplier);
