@@ -727,6 +727,8 @@ public class CompetitionControlService
     clock.checkClockDrift();
 
     int ts = activateNextTimeslot();
+    if (!running)
+      return;
     Instant time = timeService.getCurrentTime();
     log.info("step at " + time.toString());
     
@@ -830,18 +832,21 @@ public class CompetitionControlService
     Timeslot next = timeslotRepo.currentTimeslot();
     while (next.getSerialNumber() > expectedIndex) {
       // time has disappeared somewhere - may need to re-sync clocks
+      // unfortunately, this does not work, so we need to abort the game
+      // -- see issue #729
       int missingTicks = next.getSerialNumber() - expectedIndex;
-      log.warn("Missed " + missingTicks + " ticks - adjusting");
-      long newStart =
-              new Date().getTime()
-              - (currentTimeslot.getStartInstant().getMillis()
-                 - timeService.getBase()) / timeService.getRate();
-      timeService.setStart(newStart);
-      timeService.setCurrentTime();
-      resume(newStart);
-      
-      // go again, just in case...
-      next = timeslotRepo.currentTimeslot();
+      log.error("Missed " + missingTicks + " ticks - adjusting");
+      stop();
+//      long newStart =
+//              new Date().getTime()
+//              - (currentTimeslot.getStartInstant().getMillis()
+//                 - timeService.getBase()) / timeService.getRate();
+//      timeService.setStart(newStart);
+//      timeService.setCurrentTime();
+//      resume(newStart);
+//      
+//      // go again, just in case...
+//      next = timeslotRepo.currentTimeslot();
     }
     
     return currentTimeslot;
