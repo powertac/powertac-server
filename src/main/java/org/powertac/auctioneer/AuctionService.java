@@ -15,19 +15,14 @@
  */
 package org.powertac.auctioneer;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Competition;
+import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
-import org.powertac.common.Order;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
@@ -41,6 +36,11 @@ import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * This is the wholesale day-ahead market. Energy is traded in future timeslots by
@@ -160,10 +160,10 @@ public class AuctionService
    */
   public void handleMessage (Order msg)
   {
-    if (validateOrder((Order)msg)) {
+    if (validateOrder(msg)) {
       // queue incoming message
       synchronized(incoming) {
-        incoming.add((Order)msg);
+        incoming.add(msg);
       }
       log.info("Received " + msg.toString());
     }
@@ -171,6 +171,14 @@ public class AuctionService
   
   public boolean validateOrder (Order order)
   {
+    if (order.getMWh().equals(Double.NaN) ||
+        order.getMWh().equals(Double.POSITIVE_INFINITY) ||
+        order.getMWh().equals(Double.NEGATIVE_INFINITY)) {
+      log.warn("Order from " + order.getBroker().getUsername()
+          + " with invalid quantity " + order.getMWh());
+      return false;
+    }
+
     if (!timeslotRepo.isTimeslotEnabled(order.getTimeslot())) {
       OrderStatus status = new OrderStatus(order.getBroker(), order.getId());
       brokerProxyService.sendMessage(order.getBroker(), status);
@@ -224,7 +232,7 @@ public class AuctionService
       Collections.sort(list);
     }
     log.debug("activate: asks in " + sortedAsks.size() + " timeslots, bids in " +
-              sortedBids.size() + " timeslots");
+        sortedBids.size() + " timeslots");
     
     // Iterate through the timeslots that were enabled at the end of the last
     // timeslot, and clear each one individually
@@ -254,7 +262,7 @@ public class AuctionService
       Double askPrice = 0.0;
       double totalMWh = 0.0;
       ArrayList<PendingTrade> pendingTrades = new ArrayList<PendingTrade>();
-      while (bids != null && !bids.isEmpty() && 
+      while (bids != null && !bids.isEmpty() &&
              asks != null && !asks.isEmpty() &&
              (bids.get(0).isMarketOrder() ||
                  asks.get(0).isMarketOrder() ||
