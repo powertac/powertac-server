@@ -721,8 +721,7 @@ public class AuctionServiceTests
     Order buy2 = new Order(b2, ts2, 0.35, -50.0);
     Order buy3 = new Order(b2, ts2, 8.728125, null);
     Order buy4 = new Order(b2, ts2, 0.0075, -37.0);
-    //Order buy5 = new Order(b2, ts2, 7.875, -35.0);
-    Order buy5 = new Order(b2, ts2, Double.NaN, -35.0);
+    Order buy5 = new Order(b2, ts2, 7.875, -35.0);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(sell3);
