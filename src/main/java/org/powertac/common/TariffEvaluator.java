@@ -110,6 +110,22 @@ public class TariffEvaluator
     this.interruptibilityFactor = interruptibilityFactor;
   }
 
+  /**
+   * Initializes the per-timeslot regulation-capacity estimates.
+   * All three represent per-timeslot estimates of exercised regulation
+   * capacity, and are applicable only for tariffs with regulation rates.
+   * Note that the expectedDischarge parameter only applies to
+   * storage devices that can be discharged (batteries, pumped storage).
+   * Default value for each of these factors is zero.
+   */
+  public void initializeRegulationFactors (double expectedCurtailment,
+                                           double expectedDischarge,
+                                           double expectedDownRegulation)
+  {
+    helper.initializeRegulationFactors(expectedCurtailment, expectedDischarge,
+                                       expectedDownRegulation);
+  }
+
   // parameter settings
   /**
    * Sets the target size of allocation chunks. Default is 1. Actual
