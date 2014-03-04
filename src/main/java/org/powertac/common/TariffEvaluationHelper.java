@@ -66,7 +66,12 @@ public class TariffEvaluationHelper
   private double wtMax = 0.4;
   private double wtRealized = 0.8;
   private double soldThreshold = 10000.0;
-  
+
+  // Expected regulation quantities in kWh / timeslot
+  private double expCurtail = 0.0;
+  private double expDischarge = 0.0;
+  private double expDown = 0.0;
+
   // normalized weights
   private double normWtExpected = 0.0;
   private double normWtMax = 0.0;
@@ -119,7 +124,7 @@ public class TariffEvaluationHelper
   }
   
   /**
-   * Initializes cost factors and normalize
+   * Initializes cost factors and normalizes
    */
   public void
   initializeCostFactors (double wtExpected, double wtMax,
@@ -127,7 +132,22 @@ public class TariffEvaluationHelper
   {
     this.init(wtExpected, wtMax, wtRealized, soldThreshold);
   }
-  
+
+  /**
+   * Initializes regulation factors. Applicable only for tariffs with
+   * @link{RegulationRate}s. See Section 4.1.1 of the 2014 spec for
+   * details. If this method is not called, default values are zero
+   * for all factors.
+   */
+  public void initializeRegulationFactors (double expectedCurtailment,
+                                           double expectedDischarge,
+                                           double expectedDownReg)
+ {
+    this.expCurtail = expectedCurtailment;
+    this.expDischarge = expectedDischarge;
+    this.expDown = expectedDownReg;
+  }
+
   /**
    * Estimate the total cost of buying the given amounts of power
    * from the given tariff, starting in the following timeslot.
@@ -251,30 +271,30 @@ public class TariffEvaluationHelper
     wtExpected = wt;
     normalizeWeights();
   }
-  
+
   // max
   public double getWtMax ()
   {
     return wtMax;
   }
-  
+
   public double getNormWtMax ()
   {
     return normWtMax;
   }
-  
+
   public void setWtMax (double wt)
   {
     wtMax = wt;
     normalizeWeights();
   }
-  
+
   // wr
   public double getWtRealized ()
   {
     return wtRealized;
   }
-  
+
   public void setWtRealized (double wt)
   {
     if (wt < 0.0 || wt > 1.0) {
@@ -283,18 +303,41 @@ public class TariffEvaluationHelper
     }
     wtRealized = wt;
   }
-  
+
   // st
   public double getSoldThreshold ()
   {
     return soldThreshold;
   }
-  
+
   public void setSoldThreshold (double st)
   {
     soldThreshold = st;
   }
-  
+
+  /**
+   * Returns the expected-curtailment-per-timeslot quantity
+   */
+  public double getExpectedCurtailment ()
+  {
+    return expCurtail;
+  }
+
+  /**
+   * Returns the expected-discharge-per-timeslot quantity
+   */
+  public double getExpectedDischarge ()
+  {
+    return expDischarge;
+  }
+
+  /**
+   * Returns the expected-down-regulation-per-timeslot quantity
+   */
+  public double getExpectedDownRegulation ()
+  {
+    return expDown;
+  }
   // normalizes the weights for expected and max so they add to 1
   private void normalizeWeights ()
   {

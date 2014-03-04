@@ -387,17 +387,45 @@ public class Tariff
       log.error("uninitialized tariff " + getId());
       return 0.0;
     }
-    else if (tiers.size() == 1) {
-      Rate rate = findRate(0, di);
-      result = kwh * rate.getValue(when, helper);
-    }
     else {
-      List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
-      for (RateKwh rk : rkList) {
-        result += rk.kwh * rk.rate.getValue(when, helper);
+      // Find the regulation adjustment, if any
+      if (tiers.size() == 1) {
+        Rate rate = findRate(0, di);
+        double perKWh =
+          applyRegulationAdjustment(rate.getValue(when, helper), kwh, helper);
+        result = kwh * perKWh;
+      }
+      else {
+        List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
+        for (RateKwh rk: rkList) {
+          double perKWh =
+            applyRegulationAdjustment(rk.rate.getValue(when, helper), kwh,
+                                      helper);
+          result += rk.kwh * perKWh;
+        }
       }
     }
     return sign * result;
+  }
+
+  // Adjust hourly rate for estimated regulation payments
+  private double applyRegulationAdjustment (double value, double kwh,
+                                            TariffEvaluationHelper helper)
+  {
+    if (null == helper || !this.hasRegulationRate())
+      return value;
+    double result = value;
+    double p1 =
+      getRegulationCharge(helper.getExpectedCurtailment() / kwh, 0.0, false);
+    double p2 =
+      getRegulationCharge(helper.getExpectedDischarge() / kwh, 0.0, false);
+    double p3 =
+      getRegulationCharge(helper.getExpectedDownRegulation() / kwh, 0.0, false);
+    result =
+      (value * (1.0 - helper.getExpectedDischarge() / kwh
+               + helper.getExpectedDownRegulation() / kwh)
+       - p1 - p2 + p3);
+    return result;
   }
 
   private int getTimeIndex (Instant when)

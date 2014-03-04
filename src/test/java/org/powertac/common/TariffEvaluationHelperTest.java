@@ -322,4 +322,51 @@ public class TariffEvaluationHelperTest
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", expected, result, 1e-6);
   }
+
+  // thermal storage example, no estimates
+  @Test
+  public void testEstimateCostSimpleRateStorage1 ()
+  {
+    Rate r = new Rate().withFixed(true).withValue(-.1);
+    tariffSpec.addRate(r);
+    RegulationRate rr =
+      new RegulationRate().withUpRegulationPayment(0.2)
+          .withDownRegulationPayment(0.05);
+    tariffSpec.addRate(rr);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+    tariff.getUsageCharge(10000.0, 0.0, true);
+
+    teh.init(.6, .4, .5, 10000.0);
+    double[] usage = {100.0, 200.0};
+    double result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", -30.0, result, 1e-6);
+  }
+
+  // thermal storage example, estimates {2, 0, 1}
+  @Test
+  public void testEstimateCostSimpleRateStorage2 ()
+  {
+    Rate r = new Rate().withFixed(true).withValue(-.1);
+    tariffSpec.addRate(r);
+    RegulationRate rr =
+      new RegulationRate().withUpRegulationPayment(0.2)
+          .withDownRegulationPayment(0.04);
+    tariffSpec.addRate(rr);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+    tariff.getUsageCharge(10000.0, 0.0, true);
+
+    teh.init(.6, .4, .5, 10000.0);
+    teh.initializeRegulationFactors(2.0, 0.0, -1.0);
+    double[] usage = {100.0, 200.0};
+    double result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", -30 + 4 * 0.2 + 2 * 0.06, result, 1e-6);
+  }
 }

@@ -84,6 +84,10 @@ public class Competition //implements Serializable
   @XStreamAsAttribute
   private int deactivateTimeslotsAhead = 1;
 
+  /** Minimum order quantity */
+  @XStreamAsAttribute
+  private double minimumOrderQuantity = 0.01; // MWh
+
   /** the start time of the simulation scenario, in sim time. */
   @XStreamAsAttribute
   private Instant simulationBaseTime = new DateTime(2010, 6, 21, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -293,7 +297,7 @@ public class Competition //implements Serializable
 
   /**
    * Fluent setter for number of timeslots, starting with the current timeslot,
-   * that are closed for trading.Default value is 1. 
+   * that are closed for trading. Default value is 1. 
    */
   @ConfigurableValue(valueType = "Integer",
       description = "expected number of timeslots in simulation run")
@@ -301,6 +305,26 @@ public class Competition //implements Serializable
   public Competition withDeactivateTimeslotsAhead (int deactivateTimeslotsAhead)
   {
     this.deactivateTimeslotsAhead = deactivateTimeslotsAhead;
+    return this;
+  }
+
+  /**
+   * Minimum order quantity in MWh.
+   */
+  public double getMinimumOrderQuantity ()
+  {
+    return minimumOrderQuantity;
+  }
+
+  /**
+   * Fluent setter for minimum order quantity. Default is 0.01 MWh.
+   */
+  @ConfigurableValue(valueType = "Double",
+      description = "Minimum order quantity in MWh")
+  @StateChange
+  public Competition withMinimumOrderQuantity (double minOrderQty)
+  {
+    this.minimumOrderQuantity = minOrderQty;
     return this;
   }
 
