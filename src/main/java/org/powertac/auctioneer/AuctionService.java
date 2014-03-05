@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011 - 2013 by the original author or authors.
+ * Copyright (c) 2011 - 2014 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -176,6 +176,14 @@ public class AuctionService
         order.getMWh().equals(Double.NEGATIVE_INFINITY)) {
       log.warn("Order from " + order.getBroker().getUsername()
           + " with invalid quantity " + order.getMWh());
+      return false;
+    }
+    
+    double minQuantity = Competition.currentCompetition().getMinimumOrderQuantity();
+    if (Math.abs(order.getMWh()) < minQuantity) {
+      log.warn("Order from " + order.getBroker().getUsername()
+               + " with quantity " + order.getMWh()
+               + " < minimum quantity " + minQuantity);
       return false;
     }
 

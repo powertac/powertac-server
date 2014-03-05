@@ -233,6 +233,7 @@ public class AuctionServiceTests
       }
     }).when(mockProxy).sendMessage(eq(b1), anyObject());
 
+    competition.withMinimumOrderQuantity(0.1);
     Order good = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
     assertTrue("ts1 enabled", timeslotRepo.isTimeslotEnabled(ts1));
     assertTrue("next timeslot valid", svc.validateOrder(good));
@@ -245,6 +246,11 @@ public class AuctionServiceTests
     assertNotNull("status got sent", status);
     assertEquals("correct broker", b1, status.getBroker());
     assertEquals("correct order", bogus.getId(), status.getOrderId());
+    
+    Order smallSell = new Order(b1, ts1.getSerialNumber(), 0.09, -22.0);
+    assertFalse("too small buy", svc.validateOrder(smallSell));
+    Order smallBuy = new Order(b1, ts1.getSerialNumber(), -0.08, 22.0);
+    assertFalse("too small buy", svc.validateOrder(smallBuy));
   }
 
   // one ask, one bid, equal qty, tradeable
@@ -547,7 +553,7 @@ public class AuctionServiceTests
     svc.handleMessage(sell2);
     svc.handleMessage(buy1);
     svc.handleMessage(buy2);
-    assertEquals("four orders received", 4, svc.getIncoming().size());
+    assertEquals("four orders received", 3, svc.getIncoming().size());
     svc.activate(timeService.getCurrentTime(), 2);
     assertEquals("accounting: 2 calls", 2, accountingArgs.size());
     // first tx should be ask, second bid
@@ -714,6 +720,7 @@ public class AuctionServiceTests
   @Test
   public void testNumericRange ()
   {
+    competition.withMinimumOrderQuantity(0.001);
     Order sell1 = new Order(s1, ts2, -0.036040484378997206, 20.0);
     Order sell2 = new Order(s2, ts2, -0.3961457798682808, 21.8);
     Order sell3 = new Order(s2, ts2, -26.185209758164312, 35.0);
@@ -836,7 +843,7 @@ public class AuctionServiceTests
   @Test
   public void testQuantitytValidity ()
   {
-    Order buy1 = new Order(b2, ts2.getSerialNumber(), 0.0075, -37.0);
+    Order buy1 = new Order(b2, ts2.getSerialNumber(), 0.75, -37.0);
     Order buy2 = new Order(b2, ts2.getSerialNumber(), Double.NaN, -35.0);
     Order buy3 = new Order(b2, ts2.getSerialNumber(), Double.POSITIVE_INFINITY, -35.0);
     Order buy4 = new Order(b2, ts2.getSerialNumber(), Double.NEGATIVE_INFINITY, -35.0);
