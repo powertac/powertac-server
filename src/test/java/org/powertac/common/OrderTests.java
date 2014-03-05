@@ -75,11 +75,23 @@ public class OrderTests
   @Test
   public void testOrderNull ()
   {
-    Order mo = new Order(broker, timeslot, 0.5, null);
+    Order mo = new Order(broker, timeslot.getSerialNumber(), 0.5, null);
     assertNotNull("created something", mo);
     assertEquals("correct broker", broker, mo.getBroker());
     assertEquals("correct timeslot", timeslot, mo.getTimeslot());
     assertEquals("correct quantity", 0.5, mo.getMWh(), 1e-6);
+    assertNull("null price", mo.getLimitPrice());
+  }
+  
+  @Test
+  public void testOrderMin ()
+  {
+    Competition.currentCompetition().withMinimumOrderQuantity(0.01);
+    Order mo = new Order(broker, timeslot.getSerialNumber(), 0.005, null);
+    assertNotNull("created something", mo);
+    assertEquals("correct broker", broker, mo.getBroker());
+    assertEquals("correct timeslot", timeslot, mo.getTimeslot());
+    assertEquals("correct quantity", 0.005, mo.getMWh(), 1e-6);
     assertNull("null price", mo.getLimitPrice());
   }
 

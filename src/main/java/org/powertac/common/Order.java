@@ -16,13 +16,13 @@
 
 package org.powertac.common;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
-//import org.powertac.common.xml.TimeslotConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -53,6 +53,8 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 @XStreamAlias("order")
 public class Order extends XStreamStateLoggable
 {  
+  static private Logger log = Logger.getLogger(Order.class);
+
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -97,6 +99,13 @@ public class Order extends XStreamStateLoggable
     this.timeslot = timeslot;
     this.mWh = mWh;
     this.limitPrice = limitPrice;
+    // check for minimum order qty - should we adjust?
+    double min = Competition.currentCompetition().getMinimumOrderQuantity();
+    if (Math.abs(mWh) < min) {
+      log.warn("Order quantity " + mWh + " < minimum order quantity " + min);
+               //+ ": adjusting");
+      //this.mWh = min;
+    }
   }
 
   /**
