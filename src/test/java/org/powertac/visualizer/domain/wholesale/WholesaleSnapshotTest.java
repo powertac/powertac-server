@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.common.Competition;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.domain.wholesale.WholesaleSnapshot;
@@ -23,6 +24,7 @@ public class WholesaleSnapshotTest {
   @Test
   public void test() {
 
+    Competition.newInstance("VizTest");
     wholesaleSnapshot.addOrder(new Order(null,timeslot, -1.0, null));
     wholesaleSnapshot.addOrder(new Order(null, timeslot, -2.0, 2.0));
     wholesaleSnapshot.addOrder(new Order(null, timeslot, -3.0, 3.0));
