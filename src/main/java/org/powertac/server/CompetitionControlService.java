@@ -567,14 +567,20 @@ public class CompetitionControlService
   // Computes a random game length as outlined in the game specification
   private int computeGameLength (int minLength, int expLength)
   {
-    double roll = randomGen.nextDouble();
-    // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
-    double k = (Math.log(1.0 - roll) /
-                Math.log(1.0 - 1.0 /
-                         (expLength - minLength + 1)));
-    int length = minLength + (int) Math.floor(k);
-    log.info("game-length " + length + "(k=" + k + ", roll=" + roll + ")");
-    return length;
+    if (expLength == minLength) {
+      log.info("game-length fixed: " + minLength);
+      return minLength;
+    }
+    else {
+      double roll = randomGen.nextDouble();
+      // compute k = ln(1-roll)/ln(1-p) where p = 1/(exp-min)
+      double k =
+        (Math.log(1.0 - roll) / Math
+            .log(1.0 - 1.0 / (expLength - minLength + 1)));
+      int length = minLength + (int) Math.floor(k);
+      log.info("game-length " + length + "(k=" + k + ", roll=" + roll + ")");
+      return length;
+    }
   }
 
   // Runs the initialization protocol on each plugin, supports precedence
@@ -671,7 +677,7 @@ public class CompetitionControlService
     buf.append(" ]");
     log.info(buf.toString());
   }
-  
+
   // Posts broker stats to TS as a string of the form
   // username:balance,...
   private void postBrokerStats ()
@@ -746,7 +752,6 @@ public class CompetitionControlService
     if (!bootstrapMode) {
       tournamentSchedulerService.heartbeat(ts, composeBrokerStats());
     }
-       
     Date ended = new Date();
     log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
     if (--timeslotCount <= 0) {
@@ -754,7 +759,7 @@ public class CompetitionControlService
       stop();
     }
   }
-  
+
   private void detectAndKillHangingQueues() {
     Set<String> badQueues = jmsManagementService.processQueues();
     if (badQueues != null && badQueues.size() > 0) {
@@ -770,7 +775,7 @@ public class CompetitionControlService
       }
     }
   }
-  
+
   private boolean checkAbort ()
   {
     File abortFile = new File(abortFileName);
@@ -848,7 +853,7 @@ public class CompetitionControlService
 //      // go again, just in case...
 //      next = timeslotRepo.currentTimeslot();
     }
-    
+
     return currentTimeslot;
   }
 
@@ -861,7 +866,7 @@ public class CompetitionControlService
   {
     return simRunning;
   }
-  
+
   /**
    * Signals the simulation thread to stop after processing is completed in
    * the current timeslot.
@@ -922,7 +927,7 @@ public class CompetitionControlService
   {
     return bootstrapMode;
   }
-  
+
   // ------- pause-mode broker communication -------
   /**
    * Signals that the clock is paused due to server overrun. The pause
@@ -935,7 +940,7 @@ public class CompetitionControlService
     SimPause msg = new SimPause();
     brokerProxyService.broadcastMessage(msg);
   }
-  
+
   /**
    * Signals that the clock is resumed. Brokers must be informed of the new
    * start time in order to sync their own clocks.
@@ -947,9 +952,9 @@ public class CompetitionControlService
     SimResume msg = new SimResume(new Instant(newStart));
     brokerProxyService.broadcastMessage(msg);
   }
-  
+
   String pauseRequester;
-  
+
   /**
    * Allows a broker to request a pause. It may or may not be allowed.
    * If allowed, then the pause will take effect when the current simulation
@@ -972,7 +977,7 @@ public class CompetitionControlService
     log.info("Pause request by " + msg.getBroker().getUsername());
     clock.requestPause();
   }
-  
+
   /**
    * Releases a broker-initiated pause. After the clock is re-started, the
    * resume() method will be called to communicate a new start time.
@@ -993,7 +998,7 @@ public class CompetitionControlService
     clock.releasePause();
     pauseRequester = null;
   }
-  
+
   /**
    * Authenticate Broker.
    */
@@ -1002,7 +1007,7 @@ public class CompetitionControlService
              + ", time offset = " + (msg.getBrokerTime() - new Date().getTime()));
     loginBroker(msg.getUsername());
   }
-  
+
   /**
    * Allows Spring to set the boostrap timeslot length
    */
@@ -1010,12 +1015,12 @@ public class CompetitionControlService
   {
     bootstrapTimeslotMillis = length;
   }
-  
+
   long getBootstrapTimeslotMillis ()
   {
     return bootstrapTimeslotMillis;
   }
-  
+
   /**
    * This is the simulation thread. It sets up the clock, waits for ticks,
    * and runs the processing steps. The thread can be stopped in an orderly
@@ -1025,13 +1030,13 @@ public class CompetitionControlService
   {
     CompetitionControlService parent;
     int maxSequentialExceptions = 4;
-    
+
     public SimRunner (CompetitionControlService instance)
     {
       super();
       parent = instance;
     }
-    
+
     @Override
     public void run ()
     {
