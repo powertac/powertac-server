@@ -262,14 +262,13 @@ public class Genco
         // posn.overallBalance is negative if we have sold power in this slot
         availableCapacity += posn.getOverallBalance();
       }
-      if (availableCapacity > 0.0) {
+      if (availableCapacity > Competition.currentCompetition()
+          .getMinimumOrderQuantity()) {
         // make an offer to sell
-        Order offer =
-            new Order(this, slot,
-                      -availableCapacity, cost);
-	log.debug(getUsername() + " offers " + availableCapacity +
-	          " in " + slot.getSerialNumber() + " for " + cost);
-	brokerProxyService.routeMessage(offer);
+        Order offer = new Order(this, slot, -availableCapacity, cost);
+        log.debug(getUsername() + " offers " + availableCapacity + " in "
+                  + slot.getSerialNumber() + " for " + cost);
+        brokerProxyService.routeMessage(offer);
       }
     }
   }

@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.Competition;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
@@ -39,7 +40,7 @@ public class Buyer extends Genco
 
   private double priceBeta = 10.0;
   private double mwh = 100.0;
-  
+
   public Buyer (String username)
   {
     super(username);
@@ -56,6 +57,9 @@ public class Buyer extends Genco
     for (Timeslot slot : openSlots) {
       double price = - priceBeta * Math.log(1.0 - seed.nextDouble());
       double qty = mwh / price;
+      if (Math.abs(qty) < Competition.currentCompetition()
+          .getMinimumOrderQuantity())
+        return;
       Order offer = new Order(this, slot, qty, -price);
       log.debug(getUsername() + " wants " + qty +
                   " in " + slot.getSerialNumber() + " for " + price);
