@@ -34,6 +34,7 @@
     <module>server-interface</module>
     <module>accounting</module>
     <module>auctioneer</module>
+    <module>balancing-market</module>
     <module>default-broker</module>
     <module>distribution-utility</module>
     <module>factored-customer</module>
