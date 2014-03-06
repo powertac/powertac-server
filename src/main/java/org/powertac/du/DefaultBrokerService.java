@@ -78,6 +78,7 @@ public class DefaultBrokerService
   private ServerConfiguration serverPropertiesService;
 
   private DefaultBroker face;
+  private Competition competition;
   
   /** parameters */
   // keep in mind that brokers need to deal with two viewpoints. Tariffs
@@ -142,6 +143,9 @@ public class DefaultBrokerService
       return null;
     }
 
+    // keep track of competition
+    this.competition = competition;
+    
     // log in to ccs
     competitionControlService.loginBroker(face.getUsername());
     
@@ -287,7 +291,11 @@ public class DefaultBrokerService
   private void submitOrder (double neededKWh, Timeslot timeslot)
   {
     double neededMWh = neededKWh / 1000.0;
-    
+    if (Math.abs(neededMWh) < competition.getMinimumOrderQuantity()) {
+      // don't bother
+      return;
+    }
+
     Double limitPrice;
     MarketPosition posn = face.findMarketPositionByTimeslot(timeslot.getSerialNumber());
     if (posn != null)
