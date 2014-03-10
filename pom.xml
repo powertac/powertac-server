@@ -1,74 +1,38 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>powertac</groupId>
-  <artifactId>generic-customer</artifactId>
-  <name>PowerTAC</name>
-  <version>0.0.1-SNAPSHOT</version>
+  
+  <parent>
+    <groupId>org.powertac</groupId>
+    <artifactId>server-master</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+    <relativePath />
+  </parent>
+  
+  <artifactId>customer-models</artifactId>
+  <name>PowerTAC customer models</name>
+  <version>1.1.0-SNAPSHOT</version>
+  <description></description>
+  
   <dependencies>
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.9</version>
-    </dependency>
-    <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>3.0.6.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-      <version>3.0.6.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>3.0.6.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-      <version>3.0.6.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.RELEASE</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.mockito</groupId>
-    	<artifactId>mockito-all</artifactId>
-    	<version>1.9.0-rc1</version>
-    	<type>jar</type>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>powertac</groupId>
-    	<artifactId>common</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>powertac</groupId>
-    	<artifactId>server-interface</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<scope>compile</scope>
-    </dependency>
-    <dependency>
-    	<groupId>powertac</groupId>
-    	<artifactId>accounting</artifactId>
-    	<version>0.0.1-SNAPSHOT</version>
-    	<scope>compile</scope>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-interface</artifactId>
+      <version>1.1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
+  
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+  
+  <scm>
+    <connection>scm:git:git//github.com/powertac/genco.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/genco.git</developerConnection>
+    <url>https://github.com/powertac/genco</url>
+  </scm>
+
 </project>
