@@ -835,7 +835,7 @@ public class CompetitionControlService
     }
 
     Timeslot next = timeslotRepo.currentTimeslot();
-    while (next.getSerialNumber() > expectedIndex) {
+    if (next.getSerialNumber() > expectedIndex) {
       // time has disappeared somewhere - may need to re-sync clocks
       // unfortunately, this does not work, so we need to abort the game
       // -- see issue #729
