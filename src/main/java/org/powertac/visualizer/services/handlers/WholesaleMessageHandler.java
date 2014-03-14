@@ -67,23 +67,32 @@ public class WholesaleMessageHandler implements Initializable
       WholesaleCategory wc = broker.getWholesaleCategory();
 
       int tsIndex = msg.getTimeslot().getSerialNumber();
-      wc.update(tsIndex, msg.getMWh(), msg.getPrice() * msg.getMWh());
+     // important: price and MWh have different signs
+      wc.update(tsIndex, msg.getMWh(), msg.getPrice() * Math.abs(msg.getMWh()));
 
       wc.getMarketTxs().putIfAbsent(msg.getTimeslot().getSerialNumber(),
                                     new ArrayList<MarketTransaction>(24));
       wc.getMarketTxs().get(msg.getTimeslot().getSerialNumber()).add(msg);
       if (msg.getMWh() > 0){
-        wc.addEnergyBought(msg.getMWh());
-        wc.addCostFromBuying(msg.getPrice()* msg.getMWh());
+       // positive value:
+    	  wc.addEnergyBought(msg.getMWh());
+    	  // negative value:
+        wc.addCostFromBuying(-1.0f*Math.abs(msg.getPrice()* msg.getMWh()));
+        // positive value:
         gradingBean.addBoughtEnergyWholesaleMarket(msg.getMWh());
-        gradingBean.addMoneyFromBuyingWholesaleMarket(msg.getPrice()* msg.getMWh());
+        // negative value
+        gradingBean.addMoneyFromBuyingWholesaleMarket(-1.0f*Math.abs(msg.getPrice()* msg.getMWh()));
       }
     
       else{
-        wc.addEnergySold(msg.getMWh());
-        wc.addRevenueFromSelling(msg.getPrice() * msg.getMWh());
+       //negative value:
+    	  wc.addEnergySold(msg.getMWh());
+        // positive value:
+        wc.addRevenueFromSelling(Math.abs(msg.getPrice() * msg.getMWh()));
+       //negative value
         gradingBean.addSoldEnergyWholesaleMarket(msg.getMWh());
-        gradingBean.addMoneyFromSellingWholesaleMarket(msg.getPrice() * msg.getMWh());
+        //positive value:
+        gradingBean.addMoneyFromSellingWholesaleMarket(Math.abs(msg.getPrice() * msg.getMWh()));
       }
     }
   }
