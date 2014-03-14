@@ -22,6 +22,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -33,7 +34,7 @@ import org.powertac.common.repo.WeatherReportRepo;
  * @author John Collins
  */
 @ConfigurableInstance
-public abstract class AbstractCustomer
+public abstract class AbstractCustomer implements CustomerModelAccessor
 {
   protected String name = "dummy";
   protected CustomerInfo customerInfo;
@@ -114,6 +115,7 @@ public abstract class AbstractCustomer
    * Returns the CustomerInfo associated with this instance. It is up to
    * individual models to fill out the fields.
    */
+  @Override
   public CustomerInfo getCustomerInfo ()
   {
     return customerInfo;

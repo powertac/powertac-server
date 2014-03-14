@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.powertac.customer.model;
+package org.powertac.customer.coldstorage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.ConfigurableInstance;
@@ -78,13 +79,17 @@ public class ColdStorage extends AbstractCustomer
   private double unitSize = 50.0; // tons
 
   // model state
-  private RandomSeed seed;
+  private RandomSeed opSeed;
+  private RandomSeed evalSeed;
   private Double currentTemp = null;
   //private Double lastTemp = null;
   //private double coolingEnergyUsed = 0.0;
   private double totalEnergyUsed = 0.0;
   private double currentNcUsage;
   private double coolingLossPerK = 0.0; // kWh/K -- lazy computation
+
+  private TariffEvaluator tariffEvaluator;
+  private int profileSize = 14; // two weeks of weather data
 
   /**
    * Default constructor, requires manual setting of name
@@ -112,20 +117,30 @@ public class ColdStorage extends AbstractCustomer
         .withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
         .withUpRegulationKW(unitSize / cop)
         .withDownRegulationKW(unitSize / cop); // optimistic, perhaps
-    ensureSeed();
+    ensureSeeds();
     // randomize current temp
-    setCurrentTemp(minTemp + (maxTemp - minTemp) * seed.nextDouble());
+    setCurrentTemp(minTemp + (maxTemp - minTemp) * opSeed.nextDouble());
     currentNcUsage = nonCoolingUsage;
+    // set up the tariff evaluator. We are wide-open to variable pricing.
+    tariffEvaluator = new TariffEvaluator(this);
+    tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
+    tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
+    tariffEvaluator.initializeRegulationFactors(unitSize * TON_CONVERSION * 0.1,
+                                                0.0,
+                                                unitSize * TON_CONVERSION * 0.1);
   }
 
-  // Gets a new random-number seed just in case we don't already have one.
+  // Gets a new random-number opSeed just in case we don't already have one.
   // Useful for mock-based testing.
-  private void ensureSeed ()
+  private void ensureSeeds ()
   {
-    if (null == seed) {
-      seed =
+    if (null == opSeed) {
+      opSeed =
         randomSeedRepo.getRandomSeed(ColdStorage.class.getName() + "-" + name,
                                      0, "model");
+      evalSeed =
+        randomSeedRepo.getRandomSeed(ColdStorage.class.getName() + "-" + name,
+                                     0, "eval");
     }
   }
 
@@ -153,21 +168,7 @@ public class ColdStorage extends AbstractCustomer
     // use cooling energy to maintain and adjust current temp
     WeatherReport weather = weatherReportRepo.currentWeatherReport();
     double outsideTemp = weather.getTemperature();
-    double coolingLoss = computeCoolingLoss(outsideTemp);
-    // at this point, coolingLoss is the energy needed to maintain current temp
-    double adjustmentCooling = 0.0;
-    if (getCurrentTemp() < (getNominalTemp() - 1.0)) {
-      // let it warm up 0.1 degree
-      adjustmentCooling = -stockCapacity * CP_ICE * 0.1;
-      currentTemp += 0.1;
-    }
-    else if (getCurrentTemp() > (getNominalTemp() + 1.0)) {
-      // cool it down 0.1 degree
-      adjustmentCooling = stockCapacity * CP_ICE * 0.1;
-      currentTemp -= 0.1;
-    }
-    log.debug(": adjustmentCooling = " + adjustmentCooling);
-    double energyNeeded = coolingLoss + adjustmentCooling;
+    double energyNeeded = computeCoolingEnergy(outsideTemp);
 
     // Now we need to record available regulation capacity. Note that only
     // the cooling portion is available for regulation.
@@ -185,13 +186,34 @@ public class ColdStorage extends AbstractCustomer
     currentSubscription.usePower(totalEnergyUsed);
   }
 
+  // separated out to help create profiles
+  double computeCoolingEnergy (double outsideTemp)
+  {
+    double coolingLoss = computeCoolingLoss(outsideTemp);
+    // at this point, coolingLoss is the energy needed to maintain current temp
+    double adjustmentCooling = 0.0;
+    if (getCurrentTemp() < (getNominalTemp() - 1.0)) {
+      // let it warm up 0.1 degree
+      adjustmentCooling = -stockCapacity * CP_ICE * 0.1;
+      currentTemp += 0.1;
+    }
+    else if (getCurrentTemp() > (getNominalTemp() + 1.0)) {
+      // cool it down 0.1 degree
+      adjustmentCooling = stockCapacity * CP_ICE * 0.1;
+      currentTemp -= 0.1;
+    }
+    log.debug(": adjustmentCooling = " + adjustmentCooling);
+    double energyNeeded = coolingLoss + adjustmentCooling;
+    return energyNeeded;
+  }
+
   void updateNcUsage() // pkg visibility for testing
   {
     if (ncUsageVariability == 0)
       return;
     currentNcUsage = currentNcUsage
         + (nonCoolingUsage
-            * (ncUsageVariability * (seed.nextDouble() * 2.0 - 1.0)))
+            * (ncUsageVariability * (opSeed.nextDouble() * 2.0 - 1.0)))
             + ncMeanReversion * (nonCoolingUsage - currentNcUsage);
     log.info("non-cooling usage = " + currentNcUsage);
   }
@@ -205,7 +227,7 @@ public class ColdStorage extends AbstractCustomer
           * (GROUND_TEMP - currentTemp);
     // assume new stock comes in at 0 C
     double newStock =
-      turnoverRatio * stockCapacity * seed.nextDouble() * 2 / 24; // daily-hourly
+      turnoverRatio * stockCapacity * opSeed.nextDouble() * 2 / 24; // daily-hourly
     double stockLoss = newStock * CP_ICE * (newStockTemp - currentTemp);
     log.info(getName() + ": heat loss walls & roof: " + upperLoss
              + ", floor: " + floorLoss
@@ -221,7 +243,7 @@ public class ColdStorage extends AbstractCustomer
       double roofLoss = R_CONVERSION / getRoofRValue() * getRoofArea();
       double wallLoss = R_CONVERSION / getWallRValue() * getWallArea();
       double infiltrationLoss = getInfiltrationRatio() * (roofLoss + wallLoss);
-      log.debug(getName() + ": Heat loss per K -- roof: " + roofLoss
+      log.debug(": Heat loss per K -- roof: " + roofLoss
                 + ", walls: " + wallLoss
                 + ", infiltration: " + infiltrationLoss);
       coolingLossPerK = roofLoss + wallLoss + infiltrationLoss;
@@ -233,8 +255,42 @@ public class ColdStorage extends AbstractCustomer
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
-    // TODO Auto-generated method stub
-    
+    tariffEvaluator.evaluateTariffs();
+  }
+
+  // ------------- CustomerModelAccessor methods -----------------
+  @Override
+  public double[] getCapacityProfile (Tariff tariff)
+  {
+    List<WeatherReport> weather = weatherReportRepo.allWeatherReports();
+    double[] result = new double[profileSize];
+    for (int i = 0; i < profileSize; i++) {
+      int wi = i + weather.size() - profileSize;
+      double cooling = computeCoolingEnergy(weather.get(wi).getTemperature());
+      result[i] = cooling / cop + nonCoolingUsage;
+    }
+    return result;
+  }
+
+  @Override
+  public double getBrokerSwitchFactor (boolean isSuperseding)
+  {
+    if (isSuperseding)
+      return 0;
+    else
+      return 0.02;
+  }
+
+  @Override
+  public double getTariffChoiceSample ()
+  {
+    return evalSeed.nextDouble();
+  }
+
+  @Override
+  public double getInertiaSample ()
+  {
+    return evalSeed.nextDouble();
   }
 
   // --------------- State and state change -------------

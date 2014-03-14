@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.powertac.customer.model;
+package org.powertac.customer.coldstorage;
 
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+
+import java.util.TreeMap;
+
+//import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -42,7 +47,7 @@ import org.powertac.common.TimeService;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.Accounting;
+//import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -63,7 +68,7 @@ public class ColdStorageTest
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo tariffSubscriptionRepo;
   private TimeService timeService;
-  private Accounting mockAccounting;
+  //private Accounting mockAccounting;
 
   private ServerConfiguration serverConfig;
   private Configurator config;
@@ -123,7 +128,7 @@ public class ColdStorageTest
       }
     }).when(serverConfig).configureMe(anyObject());
 
-    mockAccounting = mock(Accounting.class);
+    //mockAccounting = mock(Accounting.class);
     uut = new ColdStorage("test");
   }
 
@@ -151,6 +156,20 @@ public class ColdStorageTest
     assertEquals("correct max temp", -10.0, uut.getMaxTemp(), 1e-6);
     assertEquals("correct current temp", -22.5, uut.getCurrentTemp(), 1e-6);
     assertEquals("correct nc usage", 15.0, uut.getCurrentNcUsage(), 1e-6);
+  }
+
+  // configuration
+  @Test
+  public void testConfig ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("coldstorage.coldStorage.minTemp", "-30");
+    map.put("coldstorage.coldStorage.maxTemp", "-5");
+    Configuration mapConfig = new MapConfiguration(map);
+    config.setConfiguration(mapConfig);
+    serverConfig.configureMe(uut);
+    assertEquals("correct min temp", -30.0, uut.getMinTemp(), 1e-6);
+    assertEquals("correct max temp", -5.0, uut.getMaxTemp(), 1e-6);
   }
 
   // loss rate
