@@ -16,7 +16,9 @@
 package org.powertac.customer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
@@ -27,8 +29,12 @@ import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,18 +50,30 @@ implements InitializationService, NewTariffListener
 
   @Autowired
   private TimeService timeService;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
+  @Autowired
+  private CustomerRepo customerRepo;
+
   @Autowired
   private ServerConfiguration serverConfig;
 
   @Autowired
+  private WeatherReportRepo weatherReportRepo;
+
+  @Autowired
   private RandomSeedRepo randomSeedRepo;
 
+  @Autowired
+  private TariffRepo tariffRepo;
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
+
   // Customer model collection
-  private ArrayList<String> modelTypes;
+  //private ArrayList<Class<AbstractCustomer>> modelTypes;
   private ArrayList<AbstractCustomer> models;
 
   @Override
@@ -69,11 +87,31 @@ implements InitializationService, NewTariffListener
     initialize (Competition competition, List<String> completedInits)
   {
     super.init();
-    modelTypes = new ArrayList<String>();
+    //modelTypes = new ArrayList<Class<AbstractCustomer>>();
     models = new ArrayList<AbstractCustomer>();
-    
-    // populate the models list
-    // initialize individual customers
+    // extract the model types
+    ServiceLoader<AbstractCustomer> loader =
+      ServiceLoader.load(AbstractCustomer.class);
+    // Populate and initialize the models.
+    // Note that the instances loaded by the service loader are discarded --
+    // the real instances are created by serverConfig.
+    Iterator<AbstractCustomer> modelIterator = loader.iterator();
+    while (modelIterator.hasNext()) {
+      AbstractCustomer modelEx = modelIterator.next();
+      for (Object modelObj:
+           serverConfig.configureInstances(modelEx.getClass())) {
+        AbstractCustomer model = (AbstractCustomer) modelObj;
+        models.add(model);
+        model.setServices(randomSeedRepo, weatherReportRepo,
+                          tariffRepo, tariffSubscriptionRepo);
+        model.initialize();
+        // set default tariff here to make models testable outside Spring.
+        model.setCurrentSubscription(tariffSubscriptionRepo
+            .getSubscription(model.getCustomerInfo(), tariffRepo
+                .getDefaultTariff(model.getCustomerInfo().getPowerType())));
+        customerRepo.add(model.getCustomerInfo());
+      }
+    }
     return "Customer";
   }
 
@@ -96,4 +134,9 @@ implements InitializationService, NewTariffListener
     }
   }
 
+  // test support methods
+  List<AbstractCustomer> getModelList ()
+  {
+    return models;
+  }
 }
