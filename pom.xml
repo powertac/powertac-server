@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.0.1</version>
+    <version>1.1.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
@@ -35,6 +35,7 @@
     <module>accounting</module>
     <module>auctioneer</module>
     <module>balancing-market</module>
+    <module>customer-models</module>
     <module>default-broker</module>
     <module>distribution-utility</module>
     <module>factored-customer</module>
