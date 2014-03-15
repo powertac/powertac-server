@@ -44,11 +44,11 @@ import org.springframework.stereotype.Service;
  * @author John Collins
  */
 @Service
-public class CustomerService
+public class CustomerModelService
 extends TimeslotPhaseProcessor
 implements InitializationService, NewTariffListener
 {
-  static private Logger log = Logger.getLogger(CustomerService.class.getName());
+  static private Logger log = Logger.getLogger(CustomerModelService.class.getName());
 
   @Autowired
   private TimeService timeService;
