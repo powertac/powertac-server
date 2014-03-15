@@ -66,6 +66,11 @@
     <property name="timeslotPhase" value="2" />
   </bean>
 
+  <bean id="customerModelService"
+        class="org.powertac.customer.CustomerModelService">
+    <property name="timeslotPhase" value="2" />
+  </bean>
+
   <bean id="balancingMarketService"
         class="org.powertac.balancemkt.BalancingMarketService">
     <property name="timeslotPhase" value="3" />
