@@ -196,14 +196,14 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 42.7534, pwr.getValue(), 1e-4);
+    assertEquals("correct usage", 52.6998, pwr.getValue(), 1e-4);
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 27.1534,
+    assertEquals("correct up-regulation", 37.0998,
                  rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -89.6466,
+    assertEquals("correct down-regulationCapacity", -56.3402,
                  rc.getDownRegulationCapacity(), 1e-4);
   }
 
@@ -219,12 +219,12 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 133.6, pwr.getValue(), 1e-4);
+    assertEquals("correct usage", 110.24, pwr.getValue(), 1e-4);
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 116.8,
+    assertEquals("correct up-regulation", 93.44,
                  rc.getUpRegulationCapacity(), 1e-4);
     assertEquals("correct down-regulationCapacity", 0.0,
                  rc.getDownRegulationCapacity(), 1e-4);
@@ -249,7 +249,7 @@ public class ColdStorageTest
     RegulationCapacity rc = rcap.getValue();
     assertEquals("correct up-regulation", 0.0,
                  rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -116.8,
+    assertEquals("correct down-regulationCapacity", -93.44,
                  rc.getDownRegulationCapacity(), 1e-4);
   }
 

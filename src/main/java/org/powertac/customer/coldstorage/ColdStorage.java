@@ -75,8 +75,9 @@ public class ColdStorage extends AbstractCustomer
   private double newStockTemp = -5.0; // temperature of incoming stock
   private double nonCoolingUsage = 15.0; // kW nominal
   private double ncUsageVariability = 0.2; // for m-r random walk
-  private double ncMeanReversion = 0.05;
-  private double unitSize = 50.0; // tons
+  private double ncMeanReversion = 0.06;
+  private double unitSize = 40.0; // tons
+  private double hysteresis = 0.04; // control range
 
   // model state
   private RandomSeed opSeed;
@@ -208,14 +209,14 @@ public class ColdStorage extends AbstractCustomer
     double coolingLoss = computeCoolingLoss(outsideTemp);
     // at this point, coolingLoss is the energy needed to maintain current temp
     double adjustmentCooling = 0.0;
-    if (getCurrentTemp() < (getNominalTemp() - 0.2)) {
+    if (getCurrentTemp() < (getNominalTemp() - hysteresis / 2.0)) {
       // go to nominal as quickly as possible
       double maxWarming = coolingLoss;
       double neededWarming =
           currentStock * CP_ICE * (getNominalTemp() - getCurrentTemp());
       adjustmentCooling = -Math.min(maxWarming, neededWarming);
     }
-    else if (getCurrentTemp() > (getNominalTemp() + 0.2)) {
+    else if (getCurrentTemp() > (getNominalTemp() + hysteresis / 2.0)) {
       double maxCooling = maxAvail - coolingLoss;
       double neededCooling =
           currentStock * CP_ICE * (getCurrentTemp() - getNominalTemp());
@@ -259,6 +260,7 @@ public class ColdStorage extends AbstractCustomer
         + (nonCoolingUsage
             * (ncUsageVariability * (opSeed.nextDouble() * 2.0 - 1.0)))
             + ncMeanReversion * (nonCoolingUsage - currentNcUsage);
+    currentNcUsage = Math.max(0.0, currentNcUsage);
     log.info(getName() + ": Non-cooling usage = " + currentNcUsage);
   }
 
@@ -569,6 +571,24 @@ public class ColdStorage extends AbstractCustomer
                 + " cannot be negative");
     else
       cop = value;
+    return this;
+  }
+
+  public double getHysteresis ()
+  {
+    return hysteresis;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Control range for refrigeration unit")
+  @StateChange
+  public ColdStorage withHysteresis (double value)
+  {
+    if (value < 0.0)
+      log.error(getName() + ": Hysteresis " + value
+                + " cannot be negative");
+    else
+      hysteresis = value;
     return this;
   }
 
