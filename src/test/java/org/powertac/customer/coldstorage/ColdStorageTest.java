@@ -20,6 +20,8 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 //import static org.mockito.Matchers.eq;
@@ -66,7 +68,7 @@ public class ColdStorageTest
   private WeatherReportRepo mockWeatherRepo;
   private WeatherReport weather;
   private TariffRepo tariffRepo;
-  private TariffSubscriptionRepo tariffSubscriptionRepo;
+  private TariffSubscriptionRepo mockSubscriptionRepo;
   private TimeService timeService;
   //private Accounting mockAccounting;
 
@@ -92,9 +94,7 @@ public class ColdStorageTest
 
     // tariff setup
     tariffRepo = new TariffRepo();
-    tariffSubscriptionRepo = new TariffSubscriptionRepo();
-    ReflectionTestUtils.setField(tariffSubscriptionRepo, "tariffRepo",
-                                 tariffRepo);
+    mockSubscriptionRepo = mock(TariffSubscriptionRepo.class);
     broker = new Broker("Sam");
     spec =
       new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
@@ -135,14 +135,13 @@ public class ColdStorageTest
   private void init ()
   {
     uut.setServices(mockSeedRepo, mockWeatherRepo,
-                    tariffRepo, tariffSubscriptionRepo);
+                    tariffRepo, mockSubscriptionRepo);
     uut.initialize();
     subscription = mock(TariffSubscription.class);
-//      tariffSubscriptionRepo.getSubscription(uut.getCustomerInfo(), tariff);
-//    ReflectionTestUtils.setField(subscription, "timeService", timeService);
-//    ReflectionTestUtils.setField(subscription, "accountingService",
-//                                 mockAccounting);
-    uut.setCurrentSubscription(subscription);
+    List<TariffSubscription> subs = new ArrayList<TariffSubscription>();
+    subs.add(subscription);
+    when(mockSubscriptionRepo.findActiveSubscriptionsForCustomer(uut
+             .getCustomerInfo())).thenReturn(subs);
   }
 
   // initialization
@@ -163,8 +162,8 @@ public class ColdStorageTest
   public void testConfig ()
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("coldstorage.coldStorage.minTemp", "-30");
-    map.put("coldstorage.coldStorage.maxTemp", "-5");
+    map.put("customer.coldstorage.coldStorage.minTemp", "-30");
+    map.put("customer.coldstorage.coldStorage.maxTemp", "-5");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
     serverConfig.configureMe(uut);
@@ -182,7 +181,7 @@ public class ColdStorageTest
     assertEquals("correct current temp", -20.0, uut.getCurrentTemp(), 1e-6);
     assertEquals("correct loss per K", 0.416179, uut.getCoolingLossPerK(), 1e-5);
     double coolingLoss = uut.computeCoolingLoss(30.0);
-    assertEquals("correct total loss", 61.312156, coolingLoss, 1e-5);
+    assertEquals("correct total loss", 40.16216, coolingLoss, 1e-5);
   }
 
   // step at setpoint, no regulation
@@ -197,14 +196,14 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 56.8748, pwr.getValue(), 1e-4);
+    assertEquals("correct usage", 42.7534, pwr.getValue(), 1e-4);
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 41.2748,
+    assertEquals("correct up-regulation", 27.1534,
                  rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -75.52523,
+    assertEquals("correct down-regulationCapacity", -89.6466,
                  rc.getDownRegulationCapacity(), 1e-4);
   }
 
@@ -220,14 +219,37 @@ public class ColdStorageTest
     uut.step();
     ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
     verify(subscription).usePower(pwr.capture());
-    assertEquals("correct usage", 74.0899, pwr.getValue(), 1e-4);
+    assertEquals("correct usage", 133.6, pwr.getValue(), 1e-4);
     ArgumentCaptor<RegulationCapacity> rcap =
       ArgumentCaptor.forClass(RegulationCapacity.class);
     verify(subscription).setRegulationCapacity(rcap.capture());
     RegulationCapacity rc = rcap.getValue();
-    assertEquals("correct up-regulation", 57.2899,
+    assertEquals("correct up-regulation", 116.8,
                  rc.getUpRegulationCapacity(), 1e-4);
-    assertEquals("correct down-regulationCapacity", -59.5101,
+    assertEquals("correct down-regulationCapacity", 0.0,
+                 rc.getDownRegulationCapacity(), 1e-4);
+  }
+
+  // step 5K above setpoint, no regulation
+  @Test
+  public void testStepBelow ()
+  {
+    when(seed.nextDouble()).thenReturn(10.0/25.0);
+    weather = new WeatherReport(0, 30, 0, 0, 0);
+    when(mockWeatherRepo.currentWeatherReport()).thenReturn(weather);
+    init();
+    when(subscription.getRegulation()).thenReturn(0.0);
+    uut.step();
+    ArgumentCaptor<Double> pwr = ArgumentCaptor.forClass(Double.class);
+    verify(subscription).usePower(pwr.capture());
+    assertEquals("correct usage", 14.4, pwr.getValue(), 1e-4);
+    ArgumentCaptor<RegulationCapacity> rcap =
+      ArgumentCaptor.forClass(RegulationCapacity.class);
+    verify(subscription).setRegulationCapacity(rcap.capture());
+    RegulationCapacity rc = rcap.getValue();
+    assertEquals("correct up-regulation", 0.0,
+                 rc.getUpRegulationCapacity(), 1e-4);
+    assertEquals("correct down-regulationCapacity", -116.8,
                  rc.getDownRegulationCapacity(), 1e-4);
   }
 

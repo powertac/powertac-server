@@ -46,7 +46,7 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
   protected TariffSubscriptionRepo tariffSubscriptionRepo;
 
   // current tariff subscription
-  protected TariffSubscription currentSubscription;
+  //protected TariffSubscription currentSubscription;
 
   public AbstractCustomer ()
   {
@@ -66,8 +66,6 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
 
   /**
    * Populates the instance with service pointers to avoid Spring dependency.
-   * @param tariffSubscriptionRepo 
-   * @param tariffRepo 
    */
   public void setServices (RandomSeedRepo randomSeedRepo,
                            WeatherReportRepo weatherReportRepo,
@@ -129,20 +127,12 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
   }
 
   /**
-   * Sets the current subscription for this model.
-   * Note that this won't work for multi-contracting models.
+   * Returns the current tariff subscriptions for this model
    */
-  public void setCurrentSubscription (TariffSubscription subscription)
+  public List<TariffSubscription> getCurrentSubscriptions ()
   {
-    currentSubscription = subscription;
-  }
-
-  /**
-   * Returns the current tariff subscription for this model
-   */
-  public TariffSubscription getCurrentSubscription ()
-  {
-    return currentSubscription;
+    return tariffSubscriptionRepo
+        .findActiveSubscriptionsForCustomer(getCustomerInfo());
   }
 }
 

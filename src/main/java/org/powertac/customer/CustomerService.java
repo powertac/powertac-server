@@ -23,11 +23,13 @@ import java.util.ServiceLoader;
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -72,6 +74,9 @@ implements InitializationService, NewTariffListener
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
 
+  @Autowired
+  private TariffMarket tariffMarketService;
+
   // Customer model collection
   //private ArrayList<Class<AbstractCustomer>> modelTypes;
   private ArrayList<AbstractCustomer> models;
@@ -106,9 +111,9 @@ implements InitializationService, NewTariffListener
                           tariffRepo, tariffSubscriptionRepo);
         model.initialize();
         // set default tariff here to make models testable outside Spring.
-        model.setCurrentSubscription(tariffSubscriptionRepo
-            .getSubscription(model.getCustomerInfo(), tariffRepo
-                .getDefaultTariff(model.getCustomerInfo().getPowerType())));
+        CustomerInfo cust = model.getCustomerInfo();
+        tariffMarketService.subscribeToTariff(tariffMarketService
+            .getDefaultTariff(cust.getPowerType()), cust, cust.getPopulation());
         customerRepo.add(model.getCustomerInfo());
       }
     }
