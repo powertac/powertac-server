@@ -20,7 +20,7 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.TariffMarket;
+//import org.powertac.common.interfaces.TariffMarket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -35,8 +35,8 @@ public class TariffSubscriptionRepoTests
   @Autowired
   private TimeService timeService;
   
-  @Autowired
-  private TariffMarket mockTariffMarket;
+  //@Autowired
+  //private TariffMarket mockTariffMarket;
   
   @Autowired
   private TariffRepo mockTariffRepo;
