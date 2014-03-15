@@ -54,9 +54,9 @@ public class TariffSubscriptionRepoTests
   public void setUp () throws Exception
   {
     reset(mockTariffRepo);
-    reset(mockTariffMarket);
+    //reset(mockTariffMarket);
     repo = new TariffSubscriptionRepo();
-    ReflectionTestUtils.setField(repo, "tariffMarketService", mockTariffMarket);
+    //ReflectionTestUtils.setField(repo, "tariffMarketService", mockTariffMarket);
     ReflectionTestUtils.setField(repo, "tariffRepo", mockTariffRepo);
     baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(baseTime);

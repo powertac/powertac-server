@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffSubscriptionRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
+  //static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
 
   private HashMap<Tariff, List<TariffSubscription>> tariffMap;
   private HashMap<CustomerInfo, List<TariffSubscription>> customerMap;
@@ -47,8 +47,8 @@ public class TariffSubscriptionRepo implements DomainRepo
   @Autowired
   private TariffRepo tariffRepo;
 
-  @Autowired
-  private TariffMarket tariffMarketService;
+  //@Autowired
+  //private TariffMarket tariffMarketService;
 
   public TariffSubscriptionRepo ()
   {
