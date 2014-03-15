@@ -47,14 +47,10 @@ import org.springframework.test.util.ReflectionTestUtils;
  * Tests for the Genco broker type
  * @author John Collins
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations = {"classpath:test-config.xml"})
 public class GencoTests
 {
-  //@Autowired
   private BrokerProxy mockProxy;
-  
-  //@Autowired
+
   private TimeslotRepo timeslotRepo;
 
   private Genco genco;

@@ -51,24 +51,24 @@ public class SimpleGencoService
 
   @Autowired
   private TimeService timeService;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
   @Autowired
   private ServerConfiguration serverConfig;
-  
+
   @Autowired
   private BrokerRepo brokerRepo;
-  
+
   @Autowired
   private BrokerProxy brokerProxyService;
-  
+
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
   private List<Genco> gencos;
-  
+
   /**
    * Default constructor
    */
