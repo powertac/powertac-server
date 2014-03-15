@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import com.google.gson.Gson;
 
 @Service
-public class CustomerModelService
+public class CustomerInfoService
 {
   @Autowired
   VisualizerHelperService helper;

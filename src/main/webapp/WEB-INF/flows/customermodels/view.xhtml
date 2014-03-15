@@ -15,11 +15,11 @@
 			$(document).ready(
 				function() {
 					var appending = new Array();
-					customerModels = customerModelsChart('customerModels',#{customerModelService.wholesaleDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"), appending);
+					customerModels = customerModelsChart('customerModels',#{customerInfoService.wholesaleDynDataOneTimeslot},'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"), appending);
 				});
 			
 			function handleTabChange(event, index) {
-				var data = #{customerModelService.wholesaleDynDataOneTimeslot};
+				var data = #{customerInfoService.wholesaleDynDataOneTimeslot};
 				customerModels = customerModelsChart('customerModels', data ,'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
 				customerModels.redraw();
 				
@@ -32,10 +32,10 @@
 
 	<ui:define name="maincontent">
 		<p:tabView id="tabView" var="customer"
-			value="#{customerModelService.customerService.customerList}"
+			value="#{customerInfoService.customerService.customerList}"
 			onTabChange="handleTabChange(event, index)">
 
-			<p:ajax event="tabChange" listener="#{customerModelService.onChange}"
+			<p:ajax event="tabChange" listener="#{customerInfoService.onChange}"
 				update=":formB:mustRefresh" />
 
 			<p:tab id="customerTab" title="#{customer.customerInfo.name}">
@@ -64,7 +64,7 @@
 		</p:tabView>
 		<h:form id="formB">
 			<p:panel id="mustRefresh">
-				<script>var data = #{customerModelService.wholesaleDynDataOneTimeslot};
+				<script>var data = #{customerInfoService.wholesaleDynDataOneTimeslot};
 					customerModels = customerModelsChart('customerModels', data ,'',getBaseDynYAxisData("Price (&euro;)","Traded energy (MWh)"));
 					customerModels.redraw();</script>
 			</p:panel>
