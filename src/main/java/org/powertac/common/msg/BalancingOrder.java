@@ -57,10 +57,10 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class BalancingOrder extends TariffUpdate
 {
   // maximum ratio of curtailable usage on this tariff that can be curtailed
-  // for balancing purposes. 
+  // for up-regulation. 
   @XStreamAsAttribute
   private double exerciseRatio = 0.0;
-  
+
   // price/kwh for exercising this order. Positive values represent
   // credits to the broker.
   @XStreamAsAttribute

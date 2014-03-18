@@ -272,6 +272,7 @@ public class Tariff
   public double getMaxUpRegulation (double kwh, double cumulativeUsage)
   {
     // first, make sure this is an interruptible power type
+    // TODO - what about storage types?
     if (! tariffSpec.getPowerType().isInterruptible())
       return 0.0;
     
@@ -327,19 +328,19 @@ public class Tariff
    * Regulation usage does not contribute to cumulative usage, since it's
    * assumed to balance out over time.
    * Note that
-   * positive values for kwh represent up-regulation, while negative values
+   * negative values for kwh represent up-regulation, while positive values
    * represent down-regulation.
    */
   public double getRegulationCharge (double kwh, double cumulativeUsage,
                                      boolean recordUsage)
   {
     if (null == regulationRate) {
-      return getUsageCharge(kwh, cumulativeUsage, recordUsage);
+      return getUsageCharge(-kwh, cumulativeUsage, recordUsage);
     }
     else {
-      if (kwh > 0.0) {
+      if (kwh < 0.0) {
         // up-regulation
-        return -kwh * regulationRate.getUpRegulationPayment();
+        return kwh * regulationRate.getUpRegulationPayment();
       }
       else {
         // down-regulation
@@ -380,6 +381,7 @@ public class Tariff
     // Consumption is kwh>0 and rate<0. If we multiply them, we get the same
     // sign. So this is the adjustment:
     double sign = (tariffSpec.getPowerType().isProduction()) ? -1.0 : 1.0;
+    //double sign = Math.signum(kwh);
 
     // Then work out the tier index. Keep in mind that the kwh value could
     // cross a tier boundary
@@ -408,23 +410,27 @@ public class Tariff
     return sign * result;
   }
 
-  // Adjust hourly rate for estimated regulation payments
+  // Adjusts hourly rate for estimated regulation payments.
   private double applyRegulationAdjustment (double value, double kwh,
                                             TariffEvaluationHelper helper)
   {
     if (null == helper || !this.hasRegulationRate())
       return value;
-    double result = value;
     double p1 =
       getRegulationCharge(helper.getExpectedCurtailment() / kwh, 0.0, false);
     double p2 =
       getRegulationCharge(helper.getExpectedDischarge() / kwh, 0.0, false);
     double p3 =
       getRegulationCharge(helper.getExpectedDownRegulation() / kwh, 0.0, false);
-    result =
-      (value * (1.0 - helper.getExpectedDischarge() / kwh
-               + helper.getExpectedDownRegulation() / kwh)
-       - p1 - p2 + p3);
+    double result =
+      (value * (1.0 - (helper.getExpectedDischarge()
+                       + helper.getExpectedDownRegulation()) / kwh)
+       - p1 + p2 + p3);
+//    log.info("tariff " + getId() + " regulation adj (v,r,dis,dwn,p1,p2,p3): ("
+//             + value + "," + result
+//             + "," + helper.getExpectedDischarge() / kwh
+//             + "," + helper.getExpectedDownRegulation() / kwh
+//             + "," + p1 + "," + p2 + "," + p3 + ")");
     return result;
   }
 

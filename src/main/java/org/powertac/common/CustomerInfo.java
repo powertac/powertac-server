@@ -16,6 +16,7 @@
 
 package org.powertac.common;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -35,6 +36,8 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("cust-info")
 public class CustomerInfo //implements Serializable 
 {
+  static private Logger log = Logger.getLogger(CustomerInfo.class.getName());
+
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -204,12 +207,16 @@ public class CustomerInfo //implements Serializable
 
   /**
    * Fluent setter for controllable kWh. Intended to be called only by the
-   * customer model itself.
+   * customer model itself. Must be non-positive.
    */
   @StateChange
   public CustomerInfo withControllableKW (double value)
   {
-    controllableKW = value;
+    if (value > 0.0)
+      log.error(getName() + ": controllableKW " + value
+                + " must be non-positive");
+    else
+      controllableKW = value;
     return this;
   }
 
@@ -227,12 +234,16 @@ public class CustomerInfo //implements Serializable
 
   /**
    * Fluent setter for up-regulation kW. Intended to be called only by the
-   * customer model itself.
+   * customer model itself. Must be non-positive.
    */
   @StateChange
   public CustomerInfo withUpRegulationKW (double value)
   {
-    upRegulationKW = value;
+    if (value > 0.0)
+      log.error(getName() + ": upRegulationKW " + value
+                + " must be non-positive");
+    else
+      upRegulationKW = value;
     return this;
   }
 
@@ -250,12 +261,16 @@ public class CustomerInfo //implements Serializable
 
   /**
    * Fluent setter for down-regulation kW. Intended to be called only by the
-   * customer model itself.
+   * customer model itself. Must be non-negative.
    */
   @StateChange
   public CustomerInfo withDownRegulationKW (double value)
   {
-    downRegulationKW = value;
+    if (value < 0.0)
+      log.error(getName() + ": downRegulationKW " + value
+                + " must be non-negative");
+    else
+      downRegulationKW = value;
     return this;
   }
 
@@ -271,12 +286,16 @@ public class CustomerInfo //implements Serializable
 
   /**
    * Fluent setter for storage capacity. Intended to be called only by the
-   * customer model itself.
+   * customer model itself. Value must be non-negative.
    */
   @StateChange
   public CustomerInfo withStorageCapacity (double value)
   {
-    storageCapacity = value;
+    if (value < 0.0)
+      log.error(getName() + ": storageCapacity " + value
+                + " must be non-negative");
+    else
+      storageCapacity = value;
     return this;
   }
 

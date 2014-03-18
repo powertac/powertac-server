@@ -48,7 +48,7 @@ public class TariffRepo implements DomainRepo
   private HashMap<PowerType, Tariff> defaultTariffs;
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
-  private HashMap<Long, BalancingOrder> balancingOrders;
+  private HashMap<Long, BoPair> balancingOrders;
   private HashMap<Long, LinkedList<Tariff>> brokerTariffs;
   
   public TariffRepo ()
@@ -60,7 +60,7 @@ public class TariffRepo implements DomainRepo
     tariffs = new HashMap<Long, Tariff>();
     brokerTariffs = new HashMap<Long, LinkedList<Tariff>>();
     rates = new HashMap<Long, Rate>();
-    balancingOrders = new HashMap<Long, BalancingOrder>();
+    balancingOrders = new HashMap<Long, BoPair>();
   }
   
   /**
@@ -267,8 +267,14 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized void addBalancingOrder (BalancingOrder order)
   {
-    if (null != specs.get(order.getTariffId())) {
-      balancingOrders.put(order.getTariffId(), order);
+    long tariffId = order.getTariffId();
+    if (null != specs.get(tariffId)) {
+      BoPair pair = balancingOrders.get(tariffId);
+      if (null == pair) {
+        pair = new BoPair();
+        balancingOrders.put(tariffId, pair);
+      }
+      pair.add(order);
     }
   }
   
@@ -277,7 +283,13 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized Collection<BalancingOrder> getBalancingOrders ()
   {
-    return balancingOrders.values();
+    ArrayList<BalancingOrder> result = new ArrayList<BalancingOrder>();
+    for (BoPair pair : balancingOrders.values()) {
+      for (BalancingOrder item : pair.getOrders()) {
+        result.add(item);
+      }
+    }
+    return result;
   }
   
   @Override
@@ -290,5 +302,57 @@ public class TariffRepo implements DomainRepo
     rates.clear();
     balancingOrders.clear();
     brokerTariffs.clear();
+  }
+
+  // Balancing orders come in pairs
+  class BoPair
+  {
+    private BalancingOrder upOrder;
+    private BalancingOrder downOrder;
+
+    BoPair ()
+    {
+      super();
+    }
+
+    BalancingOrder getUpOrder ()
+    {
+      return upOrder;
+    }
+
+    void setUpOrder (BalancingOrder order)
+    {
+      upOrder = order;
+    }
+
+    BalancingOrder getDownOrder ()
+    {
+      return downOrder;
+    }
+
+    void setDownOrder (BalancingOrder order)
+    {
+      downOrder = order;
+    }
+
+    // adds a new order of either gender
+    void add (BalancingOrder order)
+    {
+      if (order.getExerciseRatio() >= 0.0)
+        upOrder = order;
+      else
+        downOrder = order;
+    }
+
+    // returns contents as a list
+    List<BalancingOrder> getOrders ()
+    {
+      List <BalancingOrder> result = new ArrayList<BalancingOrder>();
+      if (null != upOrder)
+        result.add(upOrder);
+      if (null != downOrder)
+        result.add(downOrder);
+      return result;
+    }
   }
 }

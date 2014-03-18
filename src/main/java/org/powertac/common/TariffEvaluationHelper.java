@@ -338,6 +338,7 @@ public class TariffEvaluationHelper
   {
     return expDown;
   }
+
   // normalizes the weights for expected and max so they add to 1
   private void normalizeWeights ()
   {
