@@ -91,6 +91,9 @@ implements InitializationService, NewTariffListener
   public String
     initialize (Competition competition, List<String> completedInits)
   {
+    if (!completedInits.contains("DefaultBroker")
+        || !completedInits.contains("TariffMarket"))
+      return null;
     super.init();
     tariffMarketService.registerNewTariffListener(this);
     //modelTypes = new ArrayList<Class<AbstractCustomer>>();
