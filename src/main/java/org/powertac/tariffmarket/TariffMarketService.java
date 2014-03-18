@@ -736,7 +736,7 @@ public class TariffMarketService
                                                      pending.tariff);
       if (pending.count > 0)
         sub.subscribe(pending.count);
-      else
+      else if (pending.count < 0)
         sub.deferredUnsubscribe(-pending.count);
     }
     pendingSubscriptionEvents.clear();
