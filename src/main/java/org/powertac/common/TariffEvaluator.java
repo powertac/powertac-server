@@ -85,6 +85,12 @@ public class TariffEvaluator
     allocations = new HashMap<Tariff, Integer>();
   }
 
+  // convenience method for logging support
+  private String getName()
+  {
+    return customerInfo.getName();
+  }
+
   /**
    * Delegates profile cost factors to helper.
    */
@@ -116,14 +122,34 @@ public class TariffEvaluator
    * capacity, and are applicable only for tariffs with regulation rates.
    * Note that the expectedDischarge parameter only applies to
    * storage devices that can be discharged (batteries, pumped storage).
+   * Values are from the customer's viewpoint, so curtailment and discharge
+   * are negative (less energy for the customer) and down-regulation
+   * is positive.
    * Default value for each of these factors is zero.
    */
   public void initializeRegulationFactors (double expectedCurtailment,
                                            double expectedDischarge,
                                            double expectedDownRegulation)
   {
-    helper.initializeRegulationFactors(expectedCurtailment, expectedDischarge,
-                                       expectedDownRegulation);
+    double expCurtail = expectedCurtailment;
+    if (expCurtail > 0.0) {
+      log.error(getName() + ": expectedCurtailment " + expCurtail
+                + " must be non-positive");
+      expCurtail = 0.0;
+    }
+    double expDis = expectedDischarge;
+    if (expDis > 0.0) {
+      log.error(getName() + ": expectedDischarge " + expDis
+                + " must be non-positive");
+      expDis = 0.0;
+    }
+    double expDown = expectedDownRegulation;
+    if (expDown < 0.0) {
+      log.error(getName() + ": expectedDownRegulation " + expDown
+                + " must be non-negative");
+      expDown = 0.0;
+    }
+    helper.initializeRegulationFactors(expCurtail, expDis, expDown);
   }
 
   // parameter settings

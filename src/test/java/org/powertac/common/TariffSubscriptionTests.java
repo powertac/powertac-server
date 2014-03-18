@@ -322,13 +322,13 @@ public class TariffSubscriptionTests
         .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
                               10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    sub.usePower(100.0);
+    sub.usePower(100.0); // customer uses energy
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
                               eq(customer), eq(10), eq(-100.0),
                               chargeArg.capture());
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
-    sub.postBalancingControl(30.0);
+    sub.postBalancingControl(30.0); // balancing takes some back
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
                               eq(customer), eq(10), eq(30.0),

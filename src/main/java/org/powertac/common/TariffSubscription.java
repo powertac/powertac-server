@@ -186,9 +186,11 @@ public class TariffSubscription
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
-    regulationCapacity = new RegulationCapacity(0.0, 0.0);
+    //regulationCapacity = new RegulationCapacity(0.0, 0.0);
     // first, make customerCount no larger than the subscription count
     customerCount = Math.min(customerCount, customersCommitted);
+//    adjustRegulationCapacity((double)(customersCommitted - customerCount)
+//                             / customersCommitted);
     // find the number of customers who can withdraw without penalty
     int freeAgentCount = getExpiredCustomerCount();
     int penaltyCount = Math.max (customerCount - freeAgentCount, 0);
@@ -213,7 +215,15 @@ public class TariffSubscription
           penaltyCount * -tariff.getEarlyWithdrawPayment());
     //}
   }
-  
+
+//  private void adjustRegulationCapacity (double ratio)
+//  {
+//    regulationCapacity.setUpRegulationCapacity(regulationCapacity
+//        .getUpRegulationCapacity() * ratio);
+//    regulationCapacity.setDownRegulationCapacity(regulationCapacity
+//        .getDownRegulationCapacity() * ratio);
+//  }
+
   /**
    * Handles the subscription switch in case the underlying Tariff has been
    * revoked. The actual processing of tariff revocations, including switching
@@ -454,7 +464,7 @@ public class TariffSubscription
   /**
    * Posts a BalancingControlEvent to the subscription and generate the correct
    * TariffTransaction. This updates
-   * the regulation for the current timeslot by the amout of the control.
+   * the regulation for the current timeslot by the amount of the control.
    * A positive value for kwh represents up-regulation, or an
    * increase in production - in other words, a net gain for the broker's
    * energy account balance. The kwh value is a population value, not a
@@ -469,7 +479,7 @@ public class TariffSubscription
     getAccounting().addTariffTransaction(txType, tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
-          tariff.getRegulationCharge(kwh / customersCommitted, 
+          tariff.getRegulationCharge(-kwh / customersCommitted, 
                                      totalUsage, true));
     double kWhPerMember = kwh / customersCommitted; 
     addRegulation(kWhPerMember);
@@ -502,13 +512,17 @@ public class TariffSubscription
     double down =
       regulationCapacity.getDownRegulationCapacity() * customersCommitted;
     if (0 == pendingUnsubscribeCount) {
+      log.info("regulation capacity for " + getCustomer().getName()
+               + " (" + up + ", " + down + ")");
       return new RegulationCapacity(up, down);
     }
     else {
       // we have some unsubscribes - need to adjust 
       double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
                               / customersCommitted;
-      log.info("remaining regulation capacity reduced by " + ratio);
+      log.info("remaining regulation capacity for "
+               + getCustomer().getName() + " reduced by " + ratio
+               + " to (" + up * ratio + ", " + down * ratio + ")");
       return new RegulationCapacity(up * ratio, down * ratio);
     }
   }
