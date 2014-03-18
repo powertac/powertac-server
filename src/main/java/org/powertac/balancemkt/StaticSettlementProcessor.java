@@ -86,6 +86,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
     for (BOWrapper bo: candidates) {
       RegulationCapacity cap =
         capacityControlService.getRegulationCapacity(bo.balancingOrder);
+      log.info("tariff " + bo.balancingOrder.getTariffId()
+               + ": up=" + cap.getUpRegulationCapacity()
+               + ", down=" + cap.getDownRegulationCapacity());
       if (sgn < 0.0) {
         // up-regulation
         bo.availableCapacity = cap.getUpRegulationCapacity();
@@ -180,7 +183,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     for (ChargeInfo info : brokerData) {
       List<BalancingOrder> balancingOrders = info.getBalancingOrders(); 
       if (null != balancingOrders && balancingOrders.size() > 0) {
-        for (BalancingOrder bo : info.getBalancingOrders()) {
+        for (BalancingOrder bo : balancingOrders) {
           if (tester.apply(bo)) {
             BOWrapper bow = new BOWrapper(info, bo);
             orders.add(bow);
@@ -380,7 +383,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         if (sign < 0.0)
           info.setBalanceChargeP1(penaltyPlus * info.getNetLoadKWh());
         else
-          info.setBalanceChargeP1(penaltyMinus * info.getNetLoadKWh());
+          info.setBalanceChargeP1(-penaltyMinus * info.getNetLoadKWh());
       }
       return;
     }

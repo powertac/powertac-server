@@ -70,7 +70,7 @@ public class StaticSettlementProcessorTest
     b4 = new Broker("A4");
     brokerData = new ArrayList<ChargeInfo>();
     pplus = 0.06;
-    pminus = 0.015;
+    pminus = -0.015;
     spec1 = new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
     Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
     spec1.addRate(rate);
@@ -104,7 +104,7 @@ public class StaticSettlementProcessorTest
     pplus = 3.0;
     pplusPrime = 1.0;
     pminus = -1.0;
-    pminusPrime = 1.0;
+    pminusPrime = -1.0;
     uut.settle(context, brokerData);
     assertEquals("b1 pays 9", -9.0, ci1.getBalanceCharge(), 1e-6);
     assertEquals("b2 pays 9", -9.0, ci2.getBalanceCharge(), 1e-6);
@@ -120,11 +120,11 @@ public class StaticSettlementProcessorTest
     brokerData.add(ci2);
     pplus = 3.0;
     pplusPrime = 1.0;
-    pminus = 1.0;
-    pminusPrime = 1.0;
+    pminus = -1.0;
+    pminusPrime = -1.0;
     uut.settle(context, brokerData);
-    assertEquals("b1 pays 3", -3.0, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("b2 pays 3", -3.0, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("b1 pays 3", 3.0, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("b2 pays 3", 3.0, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Example 1 spec, slope = 0, imbalance = -18
@@ -294,7 +294,7 @@ public class StaticSettlementProcessorTest
     //    + "," + ci3.getCurtailment()
     //    + "," + ci4.getCurtailment()
     //    + ")");
-    assertEquals("b1.p2 = -0.2046",   -0.2046, ci1.getBalanceChargeP2(), 1e-6);
+    assertEquals("b1.p2 = -0.2046", -0.2046, ci1.getBalanceChargeP2(), 1e-6);
     assertEquals("b2.p2 = -0.2818", -0.2818, ci2.getBalanceChargeP2(), 1e-6);
     assertEquals("b3.p2 = -0.138", -0.138, ci3.getBalanceChargeP2(), 1e-6);
     assertEquals("b4.p2 = 0",         0.0, ci4.getBalanceChargeP2(), 1e-6);
@@ -388,7 +388,7 @@ public class StaticSettlementProcessorTest
 
     pplus = 0.01;
     pplusPrime = 0.001;
-    pminus = 1.0;
+    pminus = -1.0;
     pminusPrime = 0.0;
     uut.settle(context, brokerData);
 
@@ -453,7 +453,7 @@ public class StaticSettlementProcessorTest
   public void testSettleNoNetA ()
   {
     pplusPrime = 0.01;
-    pminusPrime = 0.01;
+    pminusPrime = -0.01;
     ChargeInfo ci1 = new ChargeInfo(b1, -10.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
@@ -483,7 +483,7 @@ public class StaticSettlementProcessorTest
   public void testSettleNetNeg ()
   {
     pplusPrime = 0.00005;
-    pminusPrime = 0.00005;
+    pminusPrime = -0.00005;
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
@@ -502,8 +502,8 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 20.0);
     brokerData.add(ci2);
     uut.settle(context, brokerData);
-    assertEquals("-.15 for b1", -0.15, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("0.3 for b2", 0.3, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("-.15 for b1", 0.15, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("0.3 for b2", -0.3, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, positive net imbalance, non-zero slope
@@ -511,22 +511,22 @@ public class StaticSettlementProcessorTest
   public void testSettleNetPosSlope ()
   {
     pplusPrime = 0.0001;
-    pminusPrime = 0.0001;
+    pminusPrime = -0.0001;
     ChargeInfo ci1 = new ChargeInfo(b1, -10.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 20.0);
     brokerData.add(ci2);
     uut.settle(context, brokerData);
-    assertEquals("-.14 for b1", -0.14, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("0.28 for b2", 0.28, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("-.14 for b1", 0.14, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("0.28 for b2", -0.28, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, large positive net imbalance, non-zero slope
   @Test
   public void testSettleHiNetPosSlope ()
   {
-    pminus = 0.010;
-    pminusPrime = 0.0001;
+    pminus = -0.010;
+    pminusPrime = -0.0001;
     ChargeInfo ci1 = new ChargeInfo(b1, -10.0);
     brokerData.add(ci1);
     ChargeInfo ci2 = new ChargeInfo(b2, 2000.0);
@@ -535,8 +535,8 @@ public class StaticSettlementProcessorTest
     // balancing cost = price * qty = 0.189 * -1990 = 376.11
     // b1.p1 = cost * -10 / -1990 = 1.89
     // b2.p1 = cost * 2000 / -1990 = -378
-    assertEquals("1.89 for b1", 1.89, ci1.getBalanceCharge(), 1e-6);
-    assertEquals("-378 for b2", -378.0, ci2.getBalanceCharge(), 1e-6);
+    assertEquals("1.89 for b1", -1.89, ci1.getBalanceCharge(), 1e-6);
+    assertEquals("-378 for b2", 378.0, ci2.getBalanceCharge(), 1e-6);
   }
 
   // Simple balancing, net imbalance, single balancing order for b1
@@ -544,7 +544,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO ()
   {
     pplusPrime = 0.00005;
-    pminusPrime = 0.00005;
+    pminusPrime = -0.00005;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.05);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -568,7 +568,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_NoExercise ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = 0.00001;
+    pminusPrime = -0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.061);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -590,7 +590,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_splitDummy ()
   {
     pplusPrime = 0.001;
-    pminusPrime = 0.001;
+    pminusPrime = -0.001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.061);
     tariffRepo.addBalancingOrder(bo1);
     ChargeInfo ci1 = new ChargeInfo(b1, -20.0);
@@ -612,7 +612,7 @@ public class StaticSettlementProcessorTest
   public void testSingleBO_HighCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = 0.00001;
+    pminusPrime = -0.00001;
     TariffSpecification spec =
             new TariffSpecification(b1, PowerType.INTERRUPTIBLE_CONSUMPTION);
     Rate rate = new Rate().withFixed(true).withValue(0.11).withMaxCurtailment(0.5);
@@ -639,7 +639,7 @@ public class StaticSettlementProcessorTest
   public void test2BO_LowCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = 0.00001;
+    pminusPrime = -0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
@@ -672,7 +672,7 @@ public class StaticSettlementProcessorTest
   public void test2BO_HighCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = 0.00001;
+    pminusPrime = -0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     BalancingOrder bo2 = new BalancingOrder(b2, spec2, 0.6, 0.05);
@@ -703,7 +703,7 @@ public class StaticSettlementProcessorTest
   public void test3BO_LowCapacity ()
   {
     pplusPrime = 0.00001;
-    pminusPrime = 0.00001;
+    pminusPrime = -0.00001;
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.04);
     tariffRepo.addBalancingOrder(bo1);
     

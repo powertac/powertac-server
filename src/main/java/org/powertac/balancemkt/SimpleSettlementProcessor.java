@@ -48,7 +48,7 @@ public class SimpleSettlementProcessor extends SettlementProcessor
     int numOfBrokers = brokerData.size();
     
     double pMax = service.getPPlus();
-    double pMin = service.getPMinus();
+    double pMin = -service.getPMinus();
     log.debug("pMax=" + pMax + ", pMin=" + pMin);
     
     double c0 = -service.getBalancingCost(); // cost per kwh for energy sourced by DU

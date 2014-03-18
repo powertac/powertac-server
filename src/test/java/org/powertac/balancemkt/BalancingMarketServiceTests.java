@@ -282,7 +282,7 @@ public class BalancingMarketServiceTests
     // make sure we can retrieve current spot price
     assertEquals("correct spot price", 0.0201,
                  balancingMarketService.getSpotPrice(), 1e-6);
-    assertEquals("correct pMinus", 0.0198,
+    assertEquals("correct pMinus", -0.0198,
                  balancingMarketService.getPMinus(), 1e-6);
     assertEquals("correct pPlus", 0.0212,
                  balancingMarketService.getPPlus(), 1e-6);

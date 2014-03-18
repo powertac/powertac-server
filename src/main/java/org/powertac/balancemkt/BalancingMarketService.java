@@ -307,7 +307,7 @@ implements BalancingMarket, SettlementContext, InitializationService
       if (min != null)
         result = min;
     }
-    return result / 1000.0;
+    return -result / 1000.0;
   }
 
   @Override
