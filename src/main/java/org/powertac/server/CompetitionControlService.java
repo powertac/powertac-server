@@ -28,6 +28,7 @@ import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,9 @@ public class CompetitionControlService
 
   @Autowired
   private TimeslotRepo timeslotRepo;
+  
+  @Autowired
+  private WeatherReportRepo weatherReportRepo;
   
   @Autowired
   private ServerPropertiesService configService;
@@ -392,6 +396,12 @@ public class CompetitionControlService
     brokerProxyService.broadcastMessage(configService.getPublishedConfiguration());
     if (!bootstrapMode) {
       brokerProxyService.broadcastMessages(bootstrapDataset);
+      // pull out the weather reports and stick them in their repo
+      for (Object msg : bootstrapDataset) {
+        if (msg instanceof WeatherReport) {
+          weatherReportRepo.add((WeatherReport) msg);
+        }
+      }
     }
     brokerProxyService.broadcastDeferredMessages();
 
