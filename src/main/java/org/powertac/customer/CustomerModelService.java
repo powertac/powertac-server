@@ -92,6 +92,7 @@ implements InitializationService, NewTariffListener
     initialize (Competition competition, List<String> completedInits)
   {
     super.init();
+    tariffMarketService.registerNewTariffListener(this);
     //modelTypes = new ArrayList<Class<AbstractCustomer>>();
     models = new ArrayList<AbstractCustomer>();
     // extract the model types

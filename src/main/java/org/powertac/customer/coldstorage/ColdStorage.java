@@ -116,9 +116,9 @@ public class ColdStorage extends AbstractCustomer
     log.info("Initialize " + name);
     // fill out CustomerInfo
     getCustomerInfo().withPowerType(PowerType.THERMAL_STORAGE_CONSUMPTION)
-        .withControllableKW(unitSize / cop)
+        .withControllableKW(-unitSize / cop)
         .withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
-        .withUpRegulationKW(unitSize / cop)
+        .withUpRegulationKW(-unitSize / cop)
         .withDownRegulationKW(unitSize / cop); // optimistic, perhaps
     ensureSeeds();
     // randomize current temp
@@ -129,9 +129,9 @@ public class ColdStorage extends AbstractCustomer
     tariffEvaluator = new TariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(unitSize * TON_CONVERSION * 0.1,
+    tariffEvaluator.initializeRegulationFactors(-unitSize * TON_CONVERSION * 0.05,
                                                 0.0,
-                                                unitSize * TON_CONVERSION * 0.1);
+                                                unitSize * TON_CONVERSION * 0.04);
   }
 
   // Gets a new random-number opSeed just in case we don't already have one.
@@ -182,9 +182,17 @@ public class ColdStorage extends AbstractCustomer
 
     // Now we need to record available regulation capacity. Note that only
     // the cooling portion is available for regulation.
+    // Note also that we have to stay within the min-max temp range
+    double availableUp = energyNeeded / cop;
+    if (currentTemp >= maxTemp)
+      // can't regulate up above max temp
+      availableUp = 0.0;
+    double availableDown = -(unitSize * TON_CONVERSION - energyNeeded) / cop;
+    if (currentTemp <= minTemp)
+      // and can't regulate down below min
+      availableDown = 0.0;
     RegulationCapacity capacity =
-      new RegulationCapacity(energyNeeded / cop,
-                             -(unitSize * TON_CONVERSION - energyNeeded) / cop);
+      new RegulationCapacity(availableUp, availableDown);
     getSubscription().setRegulationCapacity(capacity);
     log.info(getName()
              + ": regulation capacity (" + capacity.getUpRegulationCapacity()
@@ -197,10 +205,14 @@ public class ColdStorage extends AbstractCustomer
   }
 
   // digs out the current subscription for this thing. Since the population is
-  // always one, there should only every be one of them
+  // always one, there should only ever be one of them
   private TariffSubscription getSubscription ()
   {
-    return getCurrentSubscriptions().get(0);
+    List<TariffSubscription> subs = getCurrentSubscriptions();
+    if (subs.size() > 1) {
+      log.warn("Multiple subscriptions " + subs.size() + " for " + getName());
+    }
+    return subs.get(0);
   }
 
   // separated out to help create profiles
@@ -296,6 +308,7 @@ public class ColdStorage extends AbstractCustomer
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
+    log.info(getName() + ": evaluate tariffs");
     tariffEvaluator.evaluateTariffs();
   }
 
@@ -304,12 +317,18 @@ public class ColdStorage extends AbstractCustomer
   public double[] getCapacityProfile (Tariff tariff)
   {
     List<WeatherReport> weather = weatherReportRepo.allWeatherReports();
+    int offset = 
+        (weather.size() >= profileSize)? (weather.size() - profileSize): 0;
     double[] result = new double[profileSize];
     for (int i = 0; i < profileSize; i++) {
-      int wi = i + weather.size() - profileSize;
+      int wi = i + offset;
+      double temperature;
+      if (weather.size() > wi)
+        temperature = weather.get(wi).getTemperature();
+      else
+        temperature = 18.0; // default temp
       double cooling =
-        computeCoolingEnergy(weather.get(wi).getTemperature(),
-                             unitSize * TON_CONVERSION);
+        computeCoolingEnergy(temperature, unitSize * TON_CONVERSION);
       result[i] = cooling / cop + nonCoolingUsage;
     }
     return result;
