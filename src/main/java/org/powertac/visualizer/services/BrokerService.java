@@ -13,6 +13,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.beans.VisualizerBean;
@@ -63,6 +64,8 @@ public class BrokerService
   private VisualizerHelperService helper;
   @Autowired
   GradingService gradingBean;
+  
+  private static Logger log = Logger.getLogger(BrokerService.class);
 
   private final int TIMESLOTS_TO_DISPLAY = 48;
 
@@ -153,6 +156,11 @@ public class BrokerService
       SortedSet<Integer> mtxSortedSet =
         new TreeSet<Integer>(wc.getMarketTxs().keySet()).headSet(safetyTxIndex,
                                                                  true);
+      
+      if(safetyTxIndex<0){
+    	  return;
+      }
+      
       SortedSet<Integer> mtxSortedSetSubset =
         mtxSortedSet
                 .subSet(((safetyTxIndex - TIMESLOTS_TO_DISPLAY) < 0)? 0
