@@ -22,6 +22,9 @@ import org.powertac.evcustomer.beans.ActivityDetail;
 import org.powertac.evcustomer.beans.Car;
 import org.powertac.evcustomer.beans.SocialGroup;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -34,12 +37,19 @@ public class EvCustomer
 {
   static protected Logger log = Logger.getLogger(EvCustomer.class.getName());
 
-  // TODO Just use a percentage? Make dynamic?
-  private static enum RiskAttitude
+  public enum RiskAttitude
   {
-    risk_averse,  // charge when below 100%
-    risk_neutral, // charge when below 50%
-    risk_eager    // charge when below 20%
+    eager  (0.1, 0.4),
+    neutral(0.2, 0.6),
+    averse (0.4, 0.8);
+
+    private double distanceFactor;
+    private double preferredMinimumCapacity;
+
+    RiskAttitude (double distanceFactor, double preferredMinimumCapacity) {
+      this.distanceFactor = distanceFactor;
+      this.preferredMinimumCapacity = preferredMinimumCapacity;
+    }
   }
 
   private String gender;
@@ -49,12 +59,17 @@ public class EvCustomer
   private Map<Integer, Activity> activities;
   private Map<Integer, ActivityDetail> activityDetails;
 
-  private double[] nomalizingFactors;
-
   private Random generator;
+
+  // ignore quantities less than epsilon
+  private double epsilon = 1e-6;
 
   // We are driving this timeslot, so we can't charge
   private boolean driving;
+
+  private final int dataMapSize = 48;
+  private Map<Integer, TimeslotData> timeslotDataMap =
+      new HashMap<Integer, TimeslotData>(dataMapSize);
 
   public void initialize (SocialGroup socialGroup,
                           String gender,
@@ -72,166 +87,275 @@ public class EvCustomer
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
-
-    calculateNomalizingFactors();
   }
 
   /*
-   * Depending on the given probabilities (per activity, weighted by day-type),
-   * try to perform said activity. If doing activities, we can't charge.
+   * We always have data for at least 24h in advance.
    */
+  public void makeDayPlanning (int day)
+  {
+    // First time
+    if (timeslotDataMap.size() != dataMapSize) {
+      timeslotDataMap = new HashMap<Integer, TimeslotData>(dataMapSize);
+      for (int i = 0; i < dataMapSize; i++) {
+        timeslotDataMap.put(i, new TimeslotData(0.0));
+      }
+      planTomorrow(day);
+    }
+
+    // Tomorrow is now today, move data
+    for (int i = 0; i < 24; i++) {
+      timeslotDataMap.put(i, timeslotDataMap.get(i + 24));
+    }
+
+    // Let's see what we want to do tomorrow
+    planTomorrow(day + 1);
+
+    // Update driving info
+    updateChargingHours();
+  }
+
+  private void planTomorrow (int nextDay)
+  {
+    // TODO Need hour- and day-weights
+    // TODO We need to check (+ unit testing) that intended is always >= 0
+
+    // Only do activities between waking up and going to bed
+    int wakeupSlot = 6 + generator.nextInt(3);
+    int sleepSlot = 21 + generator.nextInt(4);
+
+    // Randomly pick activities we're going to do today
+    // For now : if we do activity, we do all kms in picked time slot
+    // Otherwise we get too many slots without charging
+    Map<Integer, Double> intended = new HashMap<Integer, Double>();
+    for (int activityId = 0; activityId < activities.size(); activityId++) {
+      ActivityDetail activityDetail = activityDetails.get(activityId);
+      double probability = activityDetail.getProbability(gender);
+      double dailyDistance = activityDetail.getDailyKm(gender);
+
+      // TODO
+      if (probability < 1.0) {
+        probability = Math.sqrt(probability);
+      }
+      dailyDistance *= 5;
+
+      // Probs > 1.0 will always happen, hence the distance factoring == 1
+      if (100 * probability > generator.nextInt(100)) {
+        int pickedTS = pickSlotForEvent(wakeupSlot, sleepSlot, intended);
+        double distance = dailyDistance / Math.min(1.0, probability);
+        intended.put(pickedTS, distance);
+      }
+    }
+
+    for (int i = 0; i < 24; i++) {
+      Double intendedDistance = intended.get(i) != null ? intended.get(i) : 0.0;
+      timeslotDataMap.put(i + 24, new TimeslotData(intendedDistance));
+    }
+  }
+
+  private int pickSlotForEvent (int wakeupSlot, int sleepSlot,
+                                Map<Integer, Double> intended)
+  {
+    // Make a list of all avalable spots
+    List<Integer> available = new ArrayList<Integer>();
+    for (int i = wakeupSlot; i < sleepSlot; i++) {
+      if (intended.get(i) == null) {
+        available.add(i);
+      }
+    }
+    // No spots available, just ignore
+    if (available.size() == 0) {
+      return -1;
+    }
+    // Spots available, just pick one
+    return available.get(generator.nextInt(available.size()));
+  }
+
+  private void updateChargingHours ()
+  {
+    int chargingHours = 0;
+    for (int i = dataMapSize - 1; i >= 0; i--) {
+      TimeslotData pointer = timeslotDataMap.get(i);
+      if (pointer.getIntendedDistance() > epsilon) {
+        chargingHours = 0;
+      }
+      else {
+        chargingHours += 1;
+        pointer.setHoursTillNextDrive(chargingHours);
+      }
+    }
+  }
+
   public void doActivities (int day, int hour)
   {
-    driving = false;
+    TimeslotData timeslotData = timeslotDataMap.get(hour);
+    double intendedDistance = timeslotData.getIntendedDistance();
+    double neededCapacity = car.getNeededCapacity(intendedDistance);
 
-    for (int activityId = 0; activityId < activities.size(); activityId++) {
-      Activity activity = activities.get(activityId);
-      ActivityDetail activityDetail = activityDetails.get(activityId);
-      double normalizingFactor = nomalizingFactors[activityId];
-
-      // Get probability (based on gender) and distance for activity
-      double dailyDistance;
-      double probability;
-      if (gender.equals("male")) {
-        probability = activityDetail.getMaleProbability();
-        dailyDistance = activityDetails.get(activityId).getMaleDailyKm();
-      }
-      else {
-        probability = activityDetail.getFemaleProbability();
-        dailyDistance = activityDetails.get(activityId).getFemaleDailyKm();
-      }
-
-      // Adjust by day weight
-      probability *= activity.getDayWeight(day);
-
-      // Adjust by hour weight
-      probability *= activity.getHourWeight(hour, generator.nextDouble());
-
-      if (100 * probability > generator.nextInt(100)) {
-        driveIfPossible(dailyDistance * normalizingFactor);
-      }
-    }
-  }
-
-  private void driveIfPossible (double distance)
-  {
-    // Check if we have enough capacity for this activity
-    double neededCapacity = car.getNeededCapacity(distance);
-    if (neededCapacity > car.getCurrentCapacity()) {
+    if (intendedDistance < epsilon || neededCapacity > car.getCurrentCapacity()) {
       return;
     }
 
-    // We can make it! Drain the battery with needed capacity
     try {
       car.discharge(neededCapacity);
+      driving = true;
     }
     catch (Car.ChargeException ce) {
       log.error(ce);
-      return;
-    }
-
-    // We're driving, so we can't charge
-    driving = true;
-  }
-
-  public double charge (int day, int hour)
-  {
-    if (driving) {
-      return 0.0;
-    }
-
-    if (riskAttitude == RiskAttitude.risk_averse) {
-      // Always charge when not full
-      if (car.getCurrentCapacity() >= car.getMaxCapacity()) {
-        return 0.0;
-      }
-    }
-    else if (riskAttitude == RiskAttitude.risk_neutral) {
-      // Only charge when below 50%
-      if (car.getCurrentCapacity() >= 0.5 * car.getMaxCapacity()) {
-        return 0.0;
-      }
-    }
-    else if (riskAttitude == RiskAttitude.risk_eager) {
-      // Only charge when below 20%
-      if (car.getCurrentCapacity() >= 0.2 * car.getMaxCapacity()) {
-        return 0.0;
-      }
-    }
-
-    // TODO Weight with hour probalities?
-    // Get charge type depending on time (and on day?)
-    double maxCharging = car.getAwayCharging();
-    double needed = car.getMaxCapacity() - car.getCurrentCapacity();
-
-    // Only charge what we need or can
-    double charge = Math.min(maxCharging, needed);
-
-    try {
-      car.charge(charge);
-    }
-    catch (Car.ChargeException ce) {
-      log.error(ce);
-      ce.printStackTrace();
-      return 0.0;
-    }
-    return charge;
-  }
-
-  public void calculateNomalizingFactors ()
-  {
-    nomalizingFactors = new double[activities.size()];
-
-    for (int activityId = 0; activityId < activities.size(); activityId++) {
-      Activity activity = activities.get(activityId);
-      ActivityDetail activityDetail = activityDetails.get(activityId);
-
-      double factor = 0.0;
-
-      for (int day = 1; day <= 7; day++) {  // Simulating Joda dayOfWeek
-        for (int hour = 0; hour < 24; hour++) {
-          double probability;
-          if (gender.equals("male")) {
-            probability = activityDetail.getMaleProbability();
-          }
-          else {
-            probability = activityDetail.getFemaleProbability();
-          }
-          probability *= activity.getDayWeight(day);
-          probability *= activity.getHourWeight(hour, 0);
-          factor += probability;
-        }
-      }
-
-      if (Math.abs(factor) > 1E-06) {
-        factor = 7 / factor;
-      }
-      else {
-        factor = 1;
-      }
-
-      nomalizingFactors[activityId] = factor;
+      driving = false;
     }
   }
 
   /*
    * This gives an estimation of the daily load.
-   * TODO This should be hour (and day?) specific?
    */
   public double getDominantLoad ()
   {
+    // TODO This needs day-weights?
+
     // Aggregate daily kms
     double dailyKm = 0.0;
     for (Map.Entry<Integer, ActivityDetail> entry : activityDetails.entrySet()) {
-      if (gender.equals("male")) {
-        dailyKm += entry.getValue().getMaleDailyKm();
-      }
-      else {
-        dailyKm += entry.getValue().getFemaleDailyKm();
-      }
+      dailyKm += entry.getValue().getDailyKm(gender);
     }
 
     return car.getNeededCapacity(dailyKm);
+  }
+
+  /*
+   * loads[0] = consumptionLoad
+   * loads[1] = evLoad
+   * loads[2] = upRegulation
+   * loads[0] = downRegulation
+   * TODO More documentation
+   */
+  public double[] getLoads (int day, int hour)
+  {
+    double[] loads = new double[4];
+
+    double currentCapacity = car.getCurrentCapacity();
+
+    // This the amount we need to have at the next TS
+    double minCapacity = getLongTermNeeded(hour + 1);
+    // This is the amount we would like to have at the end of this TS
+    int hoursOfCharge = timeslotDataMap.get(hour).getHoursTillNextDrive();
+    double nomCapacity = Math.max(getShortTermNeeded(hour + hoursOfCharge),
+        car.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
+
+    // This is the amount we need to charge, CONSUMPTION can't be regulated
+    loads[0] = Math.max(0, minCapacity - currentCapacity);
+    loads[0] = Math.min(loads[0], car.getChargingCapacity());
+
+    // This is the amount we would like to charge, minus CONSUMPTION
+    loads[1] = Math.max(0, (nomCapacity - currentCapacity) - loads[0]);
+    loads[1] = Math.min(loads[1], car.getChargingCapacity());
+
+    // This is the amount we could discharge (up regulate)
+    loads[2] = Math.max(0, currentCapacity - minCapacity);
+    loads[2] = -1 * Math.min(car.getDischargingCapacity(), loads[2]);
+
+    // This is the amount we could charge extra (down regulate)
+    loads[3] = -1 * (car.getChargingCapacity() - (loads[0] + loads[1]));
+
+    try {
+      car.charge(loads[0] + loads[1]);
+    }
+    catch (Car.ChargeException ce) {
+      log.error(ce.getMessage());
+    }
+
+    // We need the available regulations in the next timeslot
+    timeslotDataMap.get(hour).setUpRegulation(loads[1] + loads[2]);
+    timeslotDataMap.get(hour).setDownRegulation(loads[3]);
+
+    return loads;
+  }
+
+  /*
+   * Calculate how much capacity we need for the next block of driving
+   */
+  private double getShortTermNeeded (int pointer)
+  {
+    double neededCapacity = 0.0;
+    while (pointer < dataMapSize) {
+      double tsDistance = timeslotDataMap.get(pointer++).getIntendedDistance();
+      if (tsDistance < epsilon) {
+        break;
+      }
+      else {
+        neededCapacity += car.getNeededCapacity(tsDistance);
+      }
+    }
+
+    return neededCapacity * riskAttitude.distanceFactor;
+  }
+
+  /*
+   * Calculate how much capacity we need for driving until the end ot planning
+   * This is the amount we absolutly need, hence CONSUMPTION
+   */
+  private double getLongTermNeeded (int hour)
+  {
+    double neededCapacity = 0.0;
+    int pointer = dataMapSize;
+    while (--pointer >= hour) {
+      double tsDistance = timeslotDataMap.get(pointer).getIntendedDistance();
+
+      if (tsDistance > epsilon) {
+        // Nnot driving, charge as much as needed and possible
+        // TODO Add home / away detection
+        neededCapacity -= Math.min(neededCapacity, car.getHomeCharging());
+      }
+      else {
+        // Driving in this TS, increase needed capacity
+        neededCapacity += car.getNeededCapacity(tsDistance);
+        // But not more than possible
+        neededCapacity = Math.min(neededCapacity, car.getMaxCapacity());
+      }
+    }
+
+    return neededCapacity;
+  }
+
+  /*
+   * We divide the amount we need to regulate evenly over the ev customers that
+   * allowed regulation. But we need to
+   * TODO Need more doc
+   */
+  public void regulate (int hour, double regulationFactor)
+  {
+    TimeslotData tsData = timeslotDataMap.get(hour - 1);
+
+    // At the beginning no regulation set
+    if (tsData == null) {
+      return;
+    }
+
+    // Up regulation means we lost capacity
+    double regulation;
+    if (regulationFactor > epsilon && tsData.getUpRegulation() > epsilon) {
+      regulation = -1 * regulationFactor * tsData.getUpRegulation();
+    }
+    else if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon) {
+      regulation = regulationFactor * tsData.getDownRegulation();
+    }
+    else {
+      return;
+    }
+
+    try {
+      if (regulation > epsilon) {
+        regulation = Math.min(regulation, car.getChargingCapacity());
+        car.charge(regulation);
+      }
+      else if (regulation < epsilon) {
+        regulation = Math.max(regulation, -car.getDischargingCapacity());
+        car.discharge(-1 * regulation);
+      }
+    }
+    catch (Car.ChargeException ce) {
+      log.error(ce);
+    }
   }
 
   /*
@@ -290,9 +414,57 @@ public class EvCustomer
   {
     return driving;
   }
+}
 
-  public void setNomalizingFactors (double[] nomalizingFactors)
+class TimeslotData
+{
+  private double intendedDistance = 0.0;
+  private double upRegulation = 0.0;
+  private double downRegulation = 0.0;
+  private int hoursTillNextDrive = 0;
+
+  public TimeslotData (double distance)
   {
-    this.nomalizingFactors = nomalizingFactors;
+    intendedDistance = distance;
+  }
+
+  public double getIntendedDistance ()
+  {
+    return intendedDistance;
+  }
+
+  public void setIntendedDistance (double intendedDistance)
+  {
+    this.intendedDistance = intendedDistance;
+  }
+
+  public double getUpRegulation ()
+  {
+    return upRegulation;
+  }
+
+  public void setUpRegulation (double upRegulation)
+  {
+    this.upRegulation = upRegulation;
+  }
+
+  public double getDownRegulation ()
+  {
+    return downRegulation;
+  }
+
+  public void setDownRegulation (double downRegulation)
+  {
+    this.downRegulation = downRegulation;
+  }
+
+  public int getHoursTillNextDrive ()
+  {
+    return hoursTillNextDrive;
+  }
+
+  public void setHoursTillNextDrive (int hoursTillNextDrive)
+  {
+    this.hoursTillNextDrive = hoursTillNextDrive;
   }
 }

@@ -34,33 +34,35 @@ public class Car
   {
     this.name = name;
     this.maxCapacity = batteryCapacity;
-    // Let's start with a full battery
-    this.currentCapacity = this.maxCapacity;
+    // Let's start with a half full battery
+    this.currentCapacity = 0.5 * this.maxCapacity;
     this.range = range;
     this.homeCharging = homeCharging;
     this.awayCharging = awayCharging;
   }
 
-  // TODO Set min charge to 20%
-  public void discharge (double charge) throws ChargeException
+  // TODO Set min charge to 20%?
+  public void discharge (double kwh) throws ChargeException
   {
-    if (currentCapacity >= charge) {
-      currentCapacity -= charge;
+    if (currentCapacity >= kwh) {
+      currentCapacity -= kwh;
     }
     else {
-      throw new ChargeException(
-          "Not possible to discharge " + name + " : " + charge);
+      throw new ChargeException("Not possible to discharge " + name + " : "
+          + kwh + " from " + currentCapacity);
     }
   }
 
-  public void charge (double charge) throws ChargeException
+  public void charge (double kwh) throws ChargeException
   {
-    if ((currentCapacity + charge) <= maxCapacity) {
-      currentCapacity += charge;
+    // TODO Check if partially charging would suffice
+
+    if ((currentCapacity + kwh) <= maxCapacity) {
+      currentCapacity += kwh;
     }
     else {
-      throw new ChargeException(
-          "Not possible to discharge " + name + " : " + charge);
+      throw new ChargeException("Not possible to charge " + name + " : "
+          + kwh + " from " + currentCapacity + " to " + maxCapacity);
     }
   }
 
@@ -69,6 +71,18 @@ public class Car
     // For now assume a linear relation
     double fuelEconomy = range / maxCapacity;
     return distance / fuelEconomy;
+  }
+
+  public double getChargingCapacity ()
+  {
+    // TODO Get home / away detection
+    return Math.min(homeCharging, maxCapacity - currentCapacity);
+  }
+
+  public double getDischargingCapacity ()
+  {
+    // TODO Get home / away detection
+    return Math.min(homeCharging, currentCapacity);
   }
 
   public String getName ()

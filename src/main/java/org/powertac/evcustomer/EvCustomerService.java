@@ -94,7 +94,6 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       return null;
     }
 
-    // TODO Check if needed
     serverPropertiesService.configureMe(this);
     tariffMarketService.registerNewTariffListener(this);
     super.init();
@@ -122,250 +121,24 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       int populationCount = classDetail.getMinCount() +
           rs1.nextInt(classDetail.getMaxCount() - classDetail.getMinCount());
 
-      String base = "EV " + classDetail.getName();
-      EvSocialClass evSocialClass = new EvSocialClass(base, timeService);
-      evSocialClass.addCustomerInfo(new CustomerInfo(
-          EvSocialClass.createInfoName(base, PowerType.CONSUMPTION),
-          populationCount).withPowerType(PowerType.CONSUMPTION));
-      evSocialClass.addCustomerInfo(new CustomerInfo(
-          EvSocialClass.createInfoName(base, PowerType.ELECTRIC_VEHICLE),
-          populationCount).withPowerType(PowerType.ELECTRIC_VEHICLE));
+      String name = "EV " + classDetail.getName();
+      EvSocialClass socialClass = new EvSocialClass(name, timeService);
+      socialClass.addCustomer(populationCount, PowerType.CONSUMPTION);
+      socialClass.addCustomer(populationCount, PowerType.ELECTRIC_VEHICLE);
 
-      evSocialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
+      socialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
           activities, allActivityDetails, cars, populationCount, seed++);
-      evSocialClassList.add(evSocialClass);
-      evSocialClass.subscribeDefault();
+      evSocialClassList.add(socialClass);
+      socialClass.subscribeDefault();
     }
 
     return evSocialClassList;
   }
 
-  public static List<Car> loadCarTypes ()
-  {
-    List<Car> cars = new ArrayList<Car>();
-
-    log.info("Attempting to load CarTypes from : " + carTypesXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(carTypesXml);
-
-      DocumentBuilderFactory docBuilderFactory =
-          DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList carNodes = doc.getElementsByTagName("car");
-      log.info("Loading " + carNodes.getLength() + " CarTypes");
-
-      for (int i = 0; i < carNodes.getLength(); i++) {
-        Element element = (Element) carNodes.item(i);
-        String name = element.getAttribute("name");
-        double kwh = Double.parseDouble(element.getElementsByTagName("kwh")
-            .item(0).getFirstChild().getNodeValue());
-        double range = Double.parseDouble(element.getElementsByTagName("range")
-            .item(0).getFirstChild().getNodeValue());
-        double home = Double.parseDouble(element.getElementsByTagName("home_charging")
-            .item(0).getFirstChild().getNodeValue());
-        double away = Double.parseDouble(element.getElementsByTagName("away_charging")
-            .item(0).getFirstChild().getNodeValue());
-
-        cars.add(new Car(name, kwh, range, home, away));
-      }
-
-      log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
-    }
-    catch (Exception e) {
-      log.error("Error loading CarTypes from : " + carTypesXml);
-      log.error(e.toString());
-    }
-
-    return cars;
-  }
-
-  public static Map<String, SocialClassDetail> loadSocialClassesDetails ()
-  {
-    Map<String, SocialClassDetail> socialClassDetails =
-        new HashMap<String, SocialClassDetail>();
-
-    log.info("Attempting to load SocialGroups from : " + socialClassesXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(socialClassesXml);
-
-      DocumentBuilderFactory docBuilderFactory =
-          DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList classNodes = doc.getElementsByTagName("class");
-      log.info("Loading " + classNodes.getLength() + " SocialClass");
-
-      for (int i = 0; i < classNodes.getLength(); i++) {
-        Element classElement = (Element) classNodes.item(i);
-        String className = classElement.getAttribute("name");
-        int temp1 = Integer.parseInt(classElement.getAttribute("minCount"));
-        int temp2 = Integer.parseInt(classElement.getAttribute("maxCount"));
-        int minCount = Math.min(temp1, temp2);
-        int maxCount = Math.max(temp1, temp2);
-
-        Map<Integer, SocialGroupDetail> groupDetails =
-            new HashMap<Integer, SocialGroupDetail>();
-        NodeList groupNodes = classElement.getElementsByTagName("group");
-        for (int j = 0; j < groupNodes.getLength(); j++) {
-          Element element = (Element) groupNodes.item(j);
-          int groupId = Integer.parseInt(element.getAttribute("id"));
-          double probability =
-              Double.parseDouble(element.getAttribute("probability"));
-          double maleProbability =
-              Double.parseDouble(element.getAttribute("male_probability"));
-          groupDetails.put(groupId,
-              new SocialGroupDetail(groupId, probability, maleProbability));
-        }
-
-        socialClassDetails.put(className,
-            new SocialClassDetail(className, minCount, maxCount, groupDetails));
-      }
-
-      log.info("Successfully loaded " + classNodes.getLength() + " SocialClasses");
-    }
-    catch (Exception e) {
-      log.error("Error loading SocialClasses from : " + socialClassesXml);
-      log.error(e.toString());
-    }
-
-    return socialClassDetails;
-  }
-
-  public static Map<Integer, SocialGroup> loadSocialGroups ()
-  {
-    Map<Integer, SocialGroup> socialGroups = new HashMap<Integer, SocialGroup>();
-
-    log.info("Attempting to load SocialGroups from : " + socialGroupsXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(socialGroupsXml);
-
-      DocumentBuilderFactory docBuilderFactory =
-          DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList groupNodes = doc.getElementsByTagName("group");
-      log.info("Loading " + groupNodes.getLength() + " SocialGroups");
-
-      for (int i = 0; i < groupNodes.getLength(); i++) {
-        Element groupElement = (Element) groupNodes.item(i);
-        String groupName = groupElement.getAttribute("name");
-        int id = Integer.parseInt(groupElement.getAttribute("id"));
-        socialGroups.put(id, new SocialGroup(id, groupName));
-      }
-
-      log.info("Successfully loaded " + groupNodes.getLength() + " SocialGroups");
-    }
-    catch (Exception e) {
-      log.error("Error loading SocialGroups from : " + socialGroupsXml);
-      log.error(e.toString());
-    }
-
-    return socialGroups;
-  }
-
-  public static Map<Integer, Activity> loadActivities ()
-  {
-    Map<Integer, Activity> activities = new HashMap<Integer, Activity>();
-
-    log.info("Attempting to load SocialGroups from : " + activitiesXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(activitiesXml);
-
-      DocumentBuilderFactory docBuilderFactory =
-          DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList activityNodes = doc.getElementsByTagName("activity");
-      log.info("Loading " + activityNodes.getLength() + " Activities");
-
-      for (int i = 0; i < activityNodes.getLength(); i++) {
-        Element element = (Element) activityNodes.item(i);
-        String name = element.getAttribute("name");
-        int id = Integer.parseInt(element.getAttribute("id"));
-        double weekdayWeight = Double.parseDouble(
-            element.getAttribute("weekday_weight"));
-        double weekendWeight = Double.parseDouble(
-            element.getAttribute("weekend_weight"));
-
-        activities.put(id,
-            new Activity(id, name, weekdayWeight, weekendWeight));
-      }
-
-      log.info("Successfully loaded " + activityNodes.getLength() + " Activities");
-    }
-    catch (Exception e) {
-      log.error("Error loading Activities from : " + activitiesXml);
-      log.error(e.toString());
-    }
-
-    return activities;
-  }
-
-  public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails ()
-  {
-    Map<Integer, Map<Integer, ActivityDetail>> activityDetails =
-        new HashMap<Integer, Map<Integer, ActivityDetail>>();
-
-    log.info("Attempting to load Details from : " + activityDetailsXml);
-    try {
-      InputStream configStream = Thread.currentThread().getContextClassLoader()
-          .getResourceAsStream(activityDetailsXml);
-
-      DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-      Document doc = docBuilder.parse(configStream);
-
-      NodeList detailNodes = doc.getElementsByTagName("detail");
-      log.info("Loading details for" + detailNodes.getLength() + " groups");
-
-      for (int i = 0; i < detailNodes.getLength(); i++) {
-        Element detailElement = (Element) detailNodes.item(i);
-        int groupId = Integer.parseInt(detailElement.getAttribute("group_id"));
-
-        Map<Integer, ActivityDetail> details =
-            new HashMap<Integer, ActivityDetail>();
-
-        NodeList activityNodes = detailElement.getElementsByTagName("activity");
-        for (int j = 0; j < activityNodes.getLength(); j++) {
-          Element element = (Element) activityNodes.item(j);
-          int id = Integer.parseInt(element.getAttribute("id"));
-
-          double maleKm = Double.parseDouble(
-              element.getAttribute("male_daily_km"));
-          double femaleKm = Double.parseDouble(
-              element.getAttribute("female_daily_km"));
-          double activityProbability = Double.parseDouble(
-              element.getAttribute("prob"));
-
-          // For now probabilities are equal for male and female
-          details.put(id, new ActivityDetail(id, maleKm, femaleKm,
-              activityProbability, activityProbability));
-        }
-        activityDetails.put(groupId, details);
-      }
-
-      log.info("Successfully loaded factored customer structures");
-    }
-    catch (Exception e) {
-      log.error("Error loading SocialClasses from : " + activityDetailsXml);
-      log.error(e.toString());
-    }
-
-    return activityDetails;
-  }
-
   /**
    * @Override @code{NewTariffListener}
    */
+  @Override
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     log.info("PublishNewTariffs");
@@ -378,6 +151,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   /**
    * @Override @code{TimeslotPhaseProcessor}
    */
+  @Override
   public void activate (Instant time, int phaseNumber)
   {
     log.info("Activate");
@@ -392,5 +166,195 @@ public class EvCustomerService extends TimeslotPhaseProcessor
    */
   public void setDefaults ()
   {
+  }
+
+  public static List<Car> loadCarTypes ()
+  {
+    List<Car> cars = new ArrayList<Car>();
+
+    log.info("Attempting to load CarTypes from : " + carTypesXml);
+    NodeList carNodes = getNodeList(carTypesXml, "car");
+
+    if (carNodes != null && carNodes.getLength() > 0) {
+      log.info("Loading " + carNodes.getLength() + " CarTypes");
+
+      for (int i = 0; i < carNodes.getLength(); i++) {
+        Element element = (Element) carNodes.item(i);
+        String name = element.getAttribute("name");
+        double kwh = getElementDouble(element, "kwh");
+        double range = getElementDouble(element, "range");
+        double home = getElementDouble(element, "home_charging");
+        double away = getElementDouble(element, "away_charging");
+        cars.add(new Car(name, kwh, range, home, away));
+      }
+
+      log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
+    }
+
+    return cars;
+  }
+
+  public static Map<String, SocialClassDetail> loadSocialClassesDetails ()
+  {
+    Map<String, SocialClassDetail> socialClassDetails =
+        new HashMap<String, SocialClassDetail>();
+
+    log.info("Attempting to load SocialGroups from : " + socialClassesXml);
+    NodeList classNodes = getNodeList(socialClassesXml, "class");
+
+    if (classNodes != null && classNodes.getLength() > 0) {
+      log.info("Loading " + classNodes.getLength() + " SocialClass");
+
+      for (int i = 0; i < classNodes.getLength(); i++) {
+        Element classElement = (Element) classNodes.item(i);
+        String className = classElement.getAttribute("name");
+        int temp1 = getElementInt(classElement, "minCount");
+        int temp2 = getElementInt(classElement, "maxCount");
+        int minCount = Math.min(temp1, temp2);
+        int maxCount = Math.max(temp1, temp2);
+
+        Map<Integer, SocialGroupDetail> groupDetails =
+            new HashMap<Integer, SocialGroupDetail>();
+        NodeList groupNodes = classElement.getElementsByTagName("group");
+        for (int j = 0; j < groupNodes.getLength(); j++) {
+          Element element = (Element) groupNodes.item(j);
+          int groupId = getElementInt(element, "id");
+          double probability = getElementDoubleSimple(element, "prob");
+          double maleProbability = getElementDoubleSimple(element, "male_prob");
+          groupDetails.put(groupId,
+              new SocialGroupDetail(groupId, probability, maleProbability));
+        }
+
+        socialClassDetails.put(className,
+            new SocialClassDetail(className, minCount, maxCount, groupDetails));
+      }
+
+      log.info("Successfully loaded "+ classNodes.getLength() +" SocialClasses");
+    }
+
+    return socialClassDetails;
+  }
+
+  public static Map<Integer, SocialGroup> loadSocialGroups ()
+  {
+    Map<Integer, SocialGroup> socialGroups = new HashMap<Integer, SocialGroup>();
+
+    log.info("Attempting to load SocialGroups from : " + socialGroupsXml);
+    NodeList groupNodes = getNodeList(socialGroupsXml, "group");
+
+    if (groupNodes != null && groupNodes.getLength() > 0) {
+      log.info("Loading " + groupNodes.getLength() + " SocialGroups");
+
+      for (int i = 0; i < groupNodes.getLength(); i++) {
+        Element groupElement = (Element) groupNodes.item(i);
+        String groupName = groupElement.getAttribute("name");
+        int id = getElementInt(groupElement, "id");
+        socialGroups.put(id, new SocialGroup(id, groupName));
+      }
+
+      log.info("Successfully loaded "+ groupNodes.getLength() +" SocialGroups");
+    }
+
+    return socialGroups;
+  }
+
+  public static Map<Integer, Activity> loadActivities ()
+  {
+    Map<Integer, Activity> activities = new HashMap<Integer, Activity>();
+
+    log.info("Attempting to load SocialGroups from : " + activitiesXml);
+    NodeList activityNodes = getNodeList(activitiesXml, "activity");
+
+    if (activityNodes != null && activityNodes.getLength() > 0) {
+      log.info("Loading " + activityNodes.getLength() + " Activities");
+
+      for (int i = 0; i < activityNodes.getLength(); i++) {
+        Element element = (Element) activityNodes.item(i);
+        String name = element.getAttribute("name");
+        int id = getElementInt(element, "id");
+        double weekday_weight = getElementDoubleSimple(element, "weekday_weight");
+        double weekend_weight = getElementDoubleSimple(element, "weekend_weight");
+
+        activities.put(id, new Activity(id, name, weekday_weight, weekend_weight));
+      }
+
+      log.info("Successfully loaded " + activityNodes.getLength() + " Activities");
+    }
+
+    return activities;
+  }
+
+  public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails ()
+  {
+    Map<Integer, Map<Integer, ActivityDetail>> activityDetails =
+        new HashMap<Integer, Map<Integer, ActivityDetail>>();
+
+    log.info("Attempting to load Details from : " + activityDetailsXml);
+    NodeList detailNodes = getNodeList(activityDetailsXml, "detail");
+
+    if (detailNodes != null && detailNodes.getLength() > 0) {
+      log.info("Loading details for" + detailNodes.getLength() + " groups");
+
+      for (int i = 0; i < detailNodes.getLength(); i++) {
+        Element detailElement = (Element) detailNodes.item(i);
+        int groupId = Integer.parseInt(detailElement.getAttribute("group_id"));
+
+        Map<Integer, ActivityDetail> details =
+            new HashMap<Integer, ActivityDetail>();
+
+        NodeList activityNodes = detailElement.getElementsByTagName("activity");
+        for (int j = 0; j < activityNodes.getLength(); j++) {
+          Element element = (Element) activityNodes.item(j);
+          int id = getElementInt(element, "id");
+          double maleKm = getElementDoubleSimple(element, "male_daily_km");
+          double femaleKm = getElementDoubleSimple(element, "female_daily_km");
+          double maleProb = getElementDoubleSimple(element, "male_prob");
+          double femaleProb = getElementDoubleSimple(element, "female_prob");
+
+          details.put(id,
+              new ActivityDetail(id, maleKm, femaleKm, maleProb, femaleProb));
+        }
+        activityDetails.put(groupId, details);
+      }
+
+      log.info("Successfully loaded Activity Details");
+    }
+
+    return activityDetails;
+  }
+
+  private static NodeList getNodeList (String fileName, String nodeName)
+  {
+    try {
+      InputStream configStream = Thread.currentThread().getContextClassLoader()
+          .getResourceAsStream(fileName);
+
+      DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+      Document doc = docBuilder.parse(configStream);
+
+      return doc.getElementsByTagName(nodeName);
+    }
+    catch (Exception e) {
+      log.error("Error loading from : " + fileName);
+      log.error(e.toString());
+      return null;
+    }
+  }
+
+  private static int getElementInt (Element element, String tagName)
+  {
+    return Integer.parseInt(element.getAttribute(tagName));
+  }
+
+  private static double getElementDoubleSimple (Element element, String tagName)
+  {
+    return Double.parseDouble(element.getAttribute(tagName));
+  }
+
+  private static double getElementDouble (Element element, String tagName)
+  {
+    return Double.parseDouble(element.getElementsByTagName(tagName)
+        .item(0).getFirstChild().getNodeValue());
   }
 }

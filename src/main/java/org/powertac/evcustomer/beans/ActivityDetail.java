@@ -18,7 +18,6 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.5, Date: 2013.11.08
  */
 public class ActivityDetail
 {
@@ -39,28 +38,23 @@ public class ActivityDetail
     this.femaleProbability = femaleProbability;
   }
 
-  public int getActivityId ()
+  public double getDailyKm (String gender)
   {
-    return activityId;
+    if (gender.equals("male")) {
+      return maleDailyKm;
+    }
+    else {
+      return femaleDailyKm;
+    }
   }
 
-  public double getMaleDailyKm ()
+  public double getProbability (String gender)
   {
-    return maleDailyKm;
-  }
-
-  public double getFemaleDailyKm ()
-  {
-    return femaleDailyKm;
-  }
-
-  public double getMaleProbability ()
-  {
-    return maleProbability;
-  }
-
-  public double getFemaleProbability ()
-  {
-    return femaleProbability;
+    if (gender.equals("male")) {
+      return maleProbability;
+    }
+    else {
+      return femaleProbability;
+    }
   }
 }

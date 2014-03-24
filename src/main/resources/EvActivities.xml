@@ -1,21 +1,15 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- TODO We need proper day- and hour-weights -->
+<!-- For now, they aren't even used ... -->
+
 <activities>
-  <activity name="commuting"        id="0"
-            weekday_weight="0.80" weekend_weight="0.05" />
-  <activity name="business_trip"    id="1"
-            weekday_weight="0.80" weekend_weight="0.05" />
-  <activity name="personal_care"    id="2"
-            weekday_weight="0.80" weekend_weight="0.90" />
-  <activity name="shopping"         id="3"
-            weekday_weight="0.85" weekend_weight="0.15" />
-  <activity name="education"        id="4"
-            weekday_weight="0.75" weekend_weight="0.15" />
-  <activity name="visit"            id="5"
-            weekday_weight="0.10" weekend_weight="0.80" />
-  <activity name="sports"           id="6"
-            weekday_weight="0.05" weekend_weight="0.85" />
-  <activity name="touring"          id="7"
-            weekday_weight="0.05" weekend_weight="0.85" />
-  <activity name="other"            id="8"
-            weekday_weight="0.05" weekend_weight="0.50" />
+  <activity id="0" name="commuting"     weekday_weight="1" weekend_weight="1" />
+  <activity id="1" name="business_trip" weekday_weight="1" weekend_weight="1" />
+  <activity id="2" name="personal_care" weekday_weight="1" weekend_weight="1" />
+  <activity id="3" name="shopping"      weekday_weight="1" weekend_weight="1" />
+  <activity id="4" name="education"     weekday_weight="1" weekend_weight="1" />
+  <activity id="5" name="visit"         weekday_weight="1" weekend_weight="1" />
+  <activity id="6" name="sports"        weekday_weight="1" weekend_weight="1" />
+  <activity id="7" name="touring"       weekday_weight="1" weekend_weight="1" />
+  <activity id="8" name="other"         weekday_weight="1" weekend_weight="1" />
 </activities>
