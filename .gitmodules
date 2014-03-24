@@ -36,4 +36,4 @@
 	url = git://github.com/powertac/balancing-market.git
 [submodule "customer-models"]
 	path = customer-models
-	url = git@github.com:powertac/customer-models.git
+	url = git://github.com/powertac/customer-models.git
