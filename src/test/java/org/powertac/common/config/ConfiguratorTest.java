@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2014 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.powertac.common.config;
 
 import static org.junit.Assert.*;
 
+import java.util.List;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
@@ -111,5 +112,29 @@ public class ConfiguratorTest
     assertEquals("new value", -4, dummy.getIntProperty());
     assertEquals("original value", -0.06, dummy.getFixedPerKwh(), 1e-6);
     assertEquals("new string", "new string", dummy.stringProperty);
+  }
+
+  @Test
+  public void testListConfig ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("pt.configTestDummy.listProperty", "1.0, 2.1, 3.2");
+    map.put("pt.configTestDummy.secondList", "0.1, 1.2, 2.3");
+    Configuration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    assertNull("original value", dummy.getListProperty());
+    assertNull("2nd original", dummy.getSecondList());
+    uut.configureSingleton(dummy);
+    assertNotNull("not null", dummy.getListProperty());
+    List<String> val = dummy.getListProperty();
+    assertEquals("correct length", 3, val.size());
+    assertEquals("correct 1st", "1.0", val.get(0));
+    assertEquals("correct last", "3.2", val.get(2));
+    assertNotNull("2nd not null", dummy.getSecondList());
+    val = dummy.getSecondList();
+    assertEquals("correct 2nd length", 3, val.size());
+    assertEquals("correct 2nd 1st", "0.1", val.get(0));
   }
 }

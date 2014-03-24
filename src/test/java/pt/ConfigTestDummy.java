@@ -15,6 +15,8 @@
  */
 package pt;
 
+import java.util.List;
+
 import org.powertac.common.config.ConfigurableValue;
 
 /**
@@ -35,6 +37,12 @@ public class ConfigTestDummy
           description = "Fixed cost/kWh")
   private double fixedPerKwh = -0.06;
 
+  @ConfigurableValue(valueType = "List",
+      description = "list type")
+  private List<String> listProperty;
+
+  private List<String> secondList;
+
   public ConfigTestDummy ()
   {
     super();
@@ -48,5 +56,21 @@ public class ConfigTestDummy
   public double getFixedPerKwh ()
   {
     return fixedPerKwh;
+  }
+
+  public List<String> getListProperty ()
+  {
+    return listProperty;
+  }
+
+  public List<String> getSecondList ()
+  {
+    return secondList;
+  }
+
+  @ConfigurableValue(valueType = "List", description = "list setter")
+  public void setSecondList (List<String> list)
+  {
+    secondList = list;
   }
 }

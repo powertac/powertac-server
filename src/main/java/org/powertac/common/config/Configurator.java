@@ -162,7 +162,7 @@ public class Configurator
     // names, and a set of clauses for each item
     List<?> names = subset.getList("instances");
     if (names.size() == 0) {
-      log.error("No instance names specified for class " + classname);
+      log.warn("No instance names specified for class " + classname);
       return null;
     }
     // for each name, create an instance, add it to the result, and
@@ -340,10 +340,22 @@ public class Configurator
     throws ClassNotFoundException, NoSuchMethodException,
     IllegalArgumentException, IllegalAccessException, InvocationTargetException
   {
-    Class<?> clazz = Class.forName("java.lang." + type);
+    Class<?> clazz = findNamedClass(type);
     String extractorName = "get" + type;
     Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
     return extractor.invoke(conf, key, defaultValue);
+  }
+
+  private Class<?> findNamedClass (String type) throws ClassNotFoundException
+  {
+    Class<?> clazz;
+    if (type.equals("List")) {
+      clazz = Class.forName("java.util.List");
+    }
+    else {
+      clazz = Class.forName("java.lang." + type);
+    }
+    return clazz;
   }
   
   /**
@@ -401,7 +413,7 @@ public class Configurator
               getter = clazz.getMethod(getterName);
               if (getter != null) {
                 // check for type compatibility
-                Class<?> valueClass = Class.forName("java.lang." + cv.valueType());
+                Class<?> valueClass = findNamedClass(cv.valueType());
                 if (!getter.getReturnType().isPrimitive() &&
                     !valueClass.isAssignableFrom(getter.getReturnType())) {
                   log.warn("Type mismatch: cannot use default value (" +  
