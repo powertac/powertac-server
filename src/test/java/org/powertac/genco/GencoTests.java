@@ -99,7 +99,7 @@ public class GencoTests
     assertNotNull("created something", genco);
     assertEquals("correct name", "Test", genco.getUsername());
   }
-  
+
   @Test
   public void testInit()
   {

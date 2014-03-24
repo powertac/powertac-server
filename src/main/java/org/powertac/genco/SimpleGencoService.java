@@ -67,7 +67,8 @@ public class SimpleGencoService
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
-  private List<Genco> gencos;
+  private List<Genco> gencos; // old-style gencos, including buyer
+  private CpGenco cpGenco; // only one of these
 
   /**
    * Default constructor
@@ -93,11 +94,14 @@ public class SimpleGencoService
     int seedId = 0;
     // create the genco list
     gencos = new ArrayList<Genco>();
-    for (Object gencoObj : serverConfig.configureInstances(Genco.class)) {
-      Genco genco = (Genco)gencoObj;
-      brokerRepo.add(genco);
-      genco.init(brokerProxyService, seedId++, randomSeedRepo);
-      gencos.add(genco);
+    Collection<?> gencoColl = serverConfig.configureInstances(Genco.class);
+    if (null != gencoColl) {
+      for (Object gencoObj: gencoColl) {
+        Genco genco = (Genco) gencoObj;
+        brokerRepo.add(genco);
+        genco.init(brokerProxyService, seedId++, randomSeedRepo);
+        gencos.add(genco);
+      }
     }
     // configure the buyer
     Buyer buyer = new Buyer("buyer");
@@ -105,6 +109,10 @@ public class SimpleGencoService
     brokerRepo.add(buyer);
     gencos.add(buyer);
     buyer.init(brokerProxyService, seedId++, randomSeedRepo);
+    cpGenco = new CpGenco("lmp");
+    cpGenco.init(brokerProxyService, seedId, randomSeedRepo);
+    serverConfig.configureMe(cpGenco);
+    brokerRepo.add(cpGenco);
     return "Genco";
   }
 
@@ -129,6 +137,9 @@ public class SimpleGencoService
     for (Genco genco : gencos) {
       genco.updateModel(when);
       genco.generateOrders(when, openSlots);
+    }
+    if (null != cpGenco) {
+      cpGenco.generateOrders(when, openSlots);
     }
   }
 }
