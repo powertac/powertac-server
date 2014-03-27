@@ -57,4 +57,31 @@ public class ActivityDetail
       return femaleProbability;
     }
   }
+
+  // ===== USED FOR TESTING ===== //
+
+  public int getActivityId ()
+  {
+    return activityId;
+  }
+
+  public double getMaleDailyKm ()
+  {
+    return maleDailyKm;
+  }
+
+  public double getFemaleDailyKm ()
+  {
+    return femaleDailyKm;
+  }
+
+  public double getMaleProbability ()
+  {
+    return maleProbability;
+  }
+
+  public double getFemaleProbability ()
+  {
+    return femaleProbability;
+  }
 }

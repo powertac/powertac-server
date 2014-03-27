@@ -18,7 +18,6 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.5, Date: 2013.11.08
  */
 public class Activity
 {

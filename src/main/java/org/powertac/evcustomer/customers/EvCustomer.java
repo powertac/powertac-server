@@ -35,13 +35,13 @@ import java.util.Random;
  */
 public class EvCustomer
 {
-  static protected Logger log = Logger.getLogger(EvCustomer.class.getName());
+  static private Logger log = Logger.getLogger(EvCustomer.class.getName());
 
   public enum RiskAttitude
   {
-    eager  (0.1, 0.4),
+    averse (0.4, 0.8),
     neutral(0.2, 0.6),
-    averse (0.4, 0.8);
+    eager  (0.1, 0.4);
 
     private double distanceFactor;
     private double preferredMinimumCapacity;
@@ -252,7 +252,7 @@ public class EvCustomer
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
-    loads[2] = -1 * Math.min(car.getDischargingCapacity(), loads[2]);
+    loads[2] = Math.min(car.getDischargingCapacity(), loads[2]);
 
     // This is the amount we could charge extra (down regulate)
     loads[3] = -1 * (car.getChargingCapacity() - (loads[0] + loads[1]));
@@ -265,7 +265,8 @@ public class EvCustomer
     }
 
     // We need the available regulations in the next timeslot
-    timeslotDataMap.get(hour).setUpRegulation(loads[1] + loads[2]);
+    timeslotDataMap.get(hour).setUpRegulationCharge(loads[1]);
+    timeslotDataMap.get(hour).setUpRegulation(loads[2]);
     timeslotDataMap.get(hour).setDownRegulation(loads[3]);
 
     return loads;
@@ -331,26 +332,24 @@ public class EvCustomer
       return;
     }
 
-    // Up regulation means we lost capacity
-    double regulation;
-    if (regulationFactor > epsilon && tsData.getUpRegulation() > epsilon) {
-      regulation = -1 * regulationFactor * tsData.getUpRegulation();
-    }
-    else if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon) {
-      regulation = regulationFactor * tsData.getDownRegulation();
-    }
-    else {
-      return;
-    }
-
     try {
-      if (regulation > epsilon) {
-        regulation = Math.min(regulation, car.getChargingCapacity());
+      if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon){
+        double regulation = regulationFactor * tsData.getDownRegulation();
         car.charge(regulation);
       }
-      else if (regulation < epsilon) {
-        regulation = Math.max(regulation, -car.getDischargingCapacity());
-        car.discharge(-1 * regulation);
+      else if (regulationFactor > epsilon) {
+        if (tsData.getUpRegulationCharge() > epsilon) {
+          // This is the part we thought we we're charging, but we didn't get
+          // due to regulation. Just subtract from the current capacity
+          double cap = -1 * regulationFactor * tsData.getUpRegulationCharge();
+          car.setCurrentCapacity(car.getCurrentCapacity() - cap);
+        }
+
+        if (tsData.getUpRegulation() > epsilon) {
+          // This is the part that's regulated via actual discharge
+          double discharge = -1 * regulationFactor * tsData.getUpRegulation();
+          car.discharge(-1 * discharge);
+        }
       }
     }
     catch (Car.ChargeException ce) {
@@ -358,9 +357,8 @@ public class EvCustomer
     }
   }
 
-  /*
-   * Used for testing
-   */
+  // ===== USED FOR TESTING ===== //
+
   public Car getCar ()
   {
     return car;
@@ -420,6 +418,7 @@ class TimeslotData
 {
   private double intendedDistance = 0.0;
   private double upRegulation = 0.0;
+  private double upRegulationCharge = 0.0;
   private double downRegulation = 0.0;
   private int hoursTillNextDrive = 0;
 
@@ -446,6 +445,16 @@ class TimeslotData
   public void setUpRegulation (double upRegulation)
   {
     this.upRegulation = upRegulation;
+  }
+
+  public double getUpRegulationCharge ()
+  {
+    return upRegulationCharge;
+  }
+
+  public void setUpRegulationCharge (double upRegulationCharge)
+  {
+    this.upRegulationCharge = upRegulationCharge;
   }
 
   public double getDownRegulation ()

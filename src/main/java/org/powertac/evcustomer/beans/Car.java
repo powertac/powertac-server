@@ -18,7 +18,6 @@ package org.powertac.evcustomer.beans;
 
 /**
  * @author Govert Buijs
- * @version 0.5, Date: 2013.11.08
  */
 public class Car
 {
@@ -62,7 +61,7 @@ public class Car
     }
     else {
       throw new ChargeException("Not possible to charge " + name + " : "
-          + kwh + " from " + currentCapacity + " to " + maxCapacity);
+          + kwh + " at " + currentCapacity + " (maxCap " + maxCapacity +")");
     }
   }
 
@@ -98,6 +97,11 @@ public class Car
   public double getCurrentCapacity ()
   {
     return currentCapacity;
+  }
+
+  public void setCurrentCapacity (double currentCapacity)
+  {
+    this.currentCapacity = currentCapacity;
   }
 
   public double getRange ()

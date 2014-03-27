@@ -35,11 +35,11 @@ public class EvSocialClass extends AbstractCustomer
 
   private TimeService timeService;
 
-  protected RandomSeed generator;
+  private RandomSeed generator;
 
-  protected Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
+  private Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
 
-  protected Vector<EvCustomer> evCustomers;
+  private Vector<EvCustomer> evCustomers;
 
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;
@@ -128,7 +128,8 @@ public class EvSocialClass extends AbstractCustomer
   protected TariffEvaluator createTariffEvaluator (CustomerInfo customerInfo,
                                                    double weight, double weeks)
   {
-    TariffEvaluationWrapper wrapper = new TariffEvaluationWrapper(customerInfo);
+    TariffEvaluationWrapper wrapper =
+        new TariffEvaluationWrapper(customerInfo, evCustomers, generator);
     TariffEvaluator te = new TariffEvaluator(wrapper);
     te.initializeInconvenienceFactors(Config.TOU_FACTOR,
         Config.TIERED_RATE_FACTOR,
@@ -218,6 +219,7 @@ public class EvSocialClass extends AbstractCustomer
   public void evaluateNewTariffs ()
   {
     for (CustomerInfo customer : customerInfos) {
+      log.info(name + ": evaluate tariffs for " + customer.getName());
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
       evaluator.evaluateTariffs();
     }
@@ -274,6 +276,8 @@ public class EvSocialClass extends AbstractCustomer
         double actualRegulation =
             subs.get(0).getRegulation() * customer.getPopulation();
 
+        log.info(name + " regulate : " + actualRegulation);
+
         double regulationFactor;
         if (actualRegulation > epsilon && upRegulation > epsilon) {
           regulationFactor = actualRegulation / upRegulation;
@@ -306,11 +310,15 @@ public class EvSocialClass extends AbstractCustomer
             upRegulation / customer.getPopulation(),
             downRegulation / customer.getPopulation());
         subs.get(0).setRegulationCapacity(regulationCapacity);
+
+        log.info(name + " setting regulation for " +
+            subs.get(0).getCustomer().getName() + " up : " + upRegulation +
+            " ; down : " + downRegulation);
       }
     }
   }
 
-  private void getLoads (int day, int hour)
+  protected void getLoads (int day, int hour)
   {
     consumptionLoad = 0.0;
     evLoad = 0.0;
@@ -325,6 +333,10 @@ public class EvSocialClass extends AbstractCustomer
       upRegulation += loads[2];
       downRegulation += loads[3];
     }
+
+    log.info(String.format("%s : consumption = % 7.2f ; electric vehicule = " +
+        "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
+        name, consumptionLoad, evLoad, upRegulation, downRegulation));
   }
 
   public void addCustomer (int populationCount, PowerType powerType)
@@ -372,56 +384,74 @@ public class EvSocialClass extends AbstractCustomer
     return subs;
   }
 
-  public class TariffEvaluationWrapper implements CustomerModelAccessor
+  // ===== USED FOR TESTING ===== //
+
+  public Vector<EvCustomer> getEvCustomers ()
   {
-    private CustomerInfo customerInfo;
+    return evCustomers;
+  }
 
-    public TariffEvaluationWrapper (CustomerInfo customerInfo)
-    {
-      this.customerInfo = customerInfo;
-    }
+  public Random getGenerator ()
+  {
+    return generator;
+  }
+}
 
-    @Override
-    public CustomerInfo getCustomerInfo ()
-    {
-      return customerInfo;
-    }
+class TariffEvaluationWrapper implements CustomerModelAccessor
+{
+  private CustomerInfo customerInfo;
+  private Vector<EvCustomer> evCustomers;
+  private Random generator;
 
-    @Override
-    public double[] getCapacityProfile (Tariff tariff)
-    {
-      double[] result = new double[Config.HOURS_OF_DAY];
+  public TariffEvaluationWrapper (CustomerInfo customerInfo,
+                                  Vector<EvCustomer> evCustomers,
+                                  Random generator)
+  {
+    this.customerInfo = customerInfo;
+    this.evCustomers = evCustomers;
+    this.generator = generator;
+  }
 
-      for (int i = 0; i < Config.HOURS_OF_DAY; i++) {
-        for (EvCustomer evCustomer : evCustomers) {
-          result[i] += evCustomer.getDominantLoad() / Config.HOURS_OF_DAY;
-        }
-        result[i] /= evCustomers.size();
+  @Override
+  public CustomerInfo getCustomerInfo ()
+  {
+    return customerInfo;
+  }
+
+  @Override
+  public double[] getCapacityProfile (Tariff tariff)
+  {
+    double[] result = new double[Config.HOURS_OF_DAY];
+
+    for (int i = 0; i < Config.HOURS_OF_DAY; i++) {
+      for (EvCustomer evCustomer : evCustomers) {
+        result[i] += evCustomer.getDominantLoad() / Config.HOURS_OF_DAY;
       }
-
-      return result;
+      result[i] /= evCustomers.size();
     }
 
-    @Override
-    public double getBrokerSwitchFactor (boolean isSuperseding)
-    {
-      double result = Config.BROKER_SWITCH_FACTOR;
-      if (isSuperseding) {
-        return result * 5.0;
-      }
-      return result;
-    }
+    return result;
+  }
 
-    @Override
-    public double getTariffChoiceSample ()
-    {
-      return generator.nextDouble();
+  @Override
+  public double getBrokerSwitchFactor (boolean isSuperseding)
+  {
+    double result = Config.BROKER_SWITCH_FACTOR;
+    if (isSuperseding) {
+      return result * 5.0;
     }
+    return result;
+  }
 
-    @Override
-    public double getInertiaSample ()
-    {
-      return generator.nextDouble();
-    }
+  @Override
+  public double getTariffChoiceSample ()
+  {
+    return generator.nextDouble();
+  }
+
+  @Override
+  public double getInertiaSample ()
+  {
+    return generator.nextDouble();
   }
 }
