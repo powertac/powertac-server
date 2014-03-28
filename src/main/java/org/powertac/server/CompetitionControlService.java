@@ -759,11 +759,12 @@ public class CompetitionControlService
     }
     TimeslotComplete msg = new TimeslotComplete(ts);
     brokerProxyService.broadcastMessage(msg);
-    if (!bootstrapMode) {
-      tournamentSchedulerService.heartbeat(ts, composeBrokerStats());
-    }
     Date ended = new Date();
-    log.info("Elapsed time: " + (ended.getTime() - started.getTime()));
+    long elapsed = ended.getTime() - started.getTime();
+    if (!bootstrapMode) {
+      tournamentSchedulerService.heartbeat(ts, composeBrokerStats(), elapsed);
+    }
+    log.info("Elapsed time: " + elapsed);
     if (--timeslotCount <= 0) {
       log.info("Stopping simulation");
       stop();

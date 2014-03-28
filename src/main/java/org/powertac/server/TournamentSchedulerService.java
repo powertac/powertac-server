@@ -1,26 +1,20 @@
 package org.powertac.server;
 
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.util.List;
 
-import org.apache.log4j.Logger;
-import org.powertac.common.Competition;
-import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.interfaces.InitializationService;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class TournamentSchedulerService
 {
-  static private Logger log = 
+  static private Logger log =
       Logger.getLogger(TournamentSchedulerService.class.getName());
 
   private String tournamentSchedulerUrl = "";
@@ -29,39 +23,38 @@ public class TournamentSchedulerService
   // These cannot be set by initialization, because they are need to get
   // initialization data.
   private String interfaceUrl = "faces/serverInterface.jsp";
-  
+
   private String propertiesUrl = "faces/properties.jsp";
 
   private int gameId = 0;
 
-
-  public int getGameId()
+  public int getGameId ()
   {
     return gameId;
   }
 
-  public void setGameId(int gameId)
+  public void setGameId (int gameId)
   {
     this.gameId = gameId;
   }
 
-  public String getTournamentSchedulerUrl()
+  public String getTournamentSchedulerUrl ()
   {
     return tournamentSchedulerUrl;
   }
 
-  public void setTournamentSchedulerUrl(String tournamentSchedulerUrl)
+  public void setTournamentSchedulerUrl (String tournamentSchedulerUrl)
   {
     this.tournamentSchedulerUrl = tournamentSchedulerUrl;
   }
-  
+
   public URL getBootUrl ()
   {
     URL result = null;
     String urlString = tournamentSchedulerUrl
-            + interfaceUrl
-            + "?action=boot"
-            + "&gameId=" + gameId;
+        + interfaceUrl
+        + "?action=boot"
+        + "&gameId=" + gameId;
     try {
       result = new URL(urlString);
     }
@@ -71,28 +64,29 @@ public class TournamentSchedulerService
     }
     return result;
   }
-  
+
   public URL getConfigUrl ()
   {
     URL result = null;
     String urlString = tournamentSchedulerUrl
-            + propertiesUrl
-            + "?gameId=" + gameId;
+        + propertiesUrl
+        + "?gameId=" + gameId;
     try {
       result = new URL(urlString);
     }
     catch (MalformedURLException e) {
       log.error("Bad URL: " + urlString);
       e.printStackTrace();
-    }    
+    }
     return result;
   }
 
-  public void ready()
+  public void ready ()
   {
-    if (tournamentSchedulerUrl.isEmpty())
+    if (tournamentSchedulerUrl.isEmpty()) {
       return;
-    String finalUrl = tournamentSchedulerUrl + interfaceUrl 
+    }
+    String finalUrl = tournamentSchedulerUrl + interfaceUrl
         + "?action=status"
         + "&gameId=" + gameId
         + "&status=game_ready";
@@ -103,17 +97,19 @@ public class TournamentSchedulerService
       URLConnection conn = url.openConnection();
       // Get the response
       InputStream input = conn.getInputStream();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       System.out.println("Jenkins failure");
     }
   }
 
-  public void inProgress(int gameLength)
+  public void inProgress (int gameLength)
   {
-    if (tournamentSchedulerUrl.isEmpty())
+    if (tournamentSchedulerUrl.isEmpty()) {
       return;
-    String finalUrl = tournamentSchedulerUrl + interfaceUrl 
+    }
+    String finalUrl = tournamentSchedulerUrl + interfaceUrl
         + "?action=status"
         + "&gameId=" + gameId
         + "&status=game_in_progress"
@@ -125,38 +121,43 @@ public class TournamentSchedulerService
       URLConnection conn = url.openConnection();
       // Get the response
       InputStream input = conn.getInputStream();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       System.out.println("Jenkins failure");
     }
   }
-  
-  public void heartbeat (int timeslotIndex, String standings)
+
+  public void heartbeat (int timeslotIndex, String standings, long elapsed)
   {
-    if (tournamentSchedulerUrl.isEmpty())
+    if (tournamentSchedulerUrl.isEmpty()) {
       return;
+    }
 
     try {
-			String finalUrl = tournamentSchedulerUrl + interfaceUrl 
-					+ "?action=heartbeat"
+      String finalUrl = tournamentSchedulerUrl + interfaceUrl
+          + "?action=heartbeat"
           + "&gameId=" + gameId
           + "&message=" + timeslotIndex
-          + "&standings=" + URLEncoder.encode(standings, "UTF-8");
+          + "&standings=" + URLEncoder.encode(standings, "UTF-8")
+          + "&elapsedTime=" + elapsed;
 
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       // Get the response
       InputStream input = conn.getInputStream();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       System.out.println("heartbeat failure");
     }
   }
-  
+
   public void sendResults (String results)
   {
-    if (tournamentSchedulerUrl.isEmpty())
+    if (tournamentSchedulerUrl.isEmpty()) {
       return;
+    }
 
     try {
       String finalUrl = tournamentSchedulerUrl + interfaceUrl;
@@ -172,7 +173,8 @@ public class TournamentSchedulerService
       wr.flush();
       // Get the response
       InputStream input = conn.getInputStream();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       e.printStackTrace();
       System.out.println("heartbeat failure");
     }
