@@ -45,14 +45,25 @@ import org.w3c.dom.Node;
 
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.jms.*;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageListener;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -421,8 +432,12 @@ public class VisualizerServiceTournament
       putEvent(Event.noTm);
       return;
     }
+
+    OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
+    double load = mxBean.getSystemLoadAverage();
+
     String urlString = tournamentUrl + visualizerLoginContext +
-        "?machineName=" + machineName;
+        "?machineName=" + machineName + "&machineLoad=" + load;
     log.info("tourney url=" + urlString);
     URL url;
     try {
