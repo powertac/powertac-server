@@ -355,8 +355,9 @@ public class Configurator
       // the list type does not always work for some reason,
       // and type-checking is getting really annoying here
       List<String> def = new ArrayList<String>();
-      for (Object thing : (List<?>)defaultValue)
-        def.add((String)thing);
+      if (null != defaultValue)
+        for (Object thing : (List<?>)defaultValue)
+          def.add((String)thing);
       return conf.getList(key, def);
     }
     else {
