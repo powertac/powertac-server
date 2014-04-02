@@ -19,6 +19,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -320,30 +321,53 @@ public class Configurator
           log.error("Class " + type + " not found");
         }
         catch (IllegalArgumentException e) {
-          log.error("cannot configure " + key + ": " + e.toString());
+          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
         }
         catch (IllegalAccessException e) {
-          log.error("cannot configure " + key + ": " + e.toString());
+          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
         }
         catch (InvocationTargetException e) {
-          log.error("cannot configure " + key + ": " + e.toString());
+          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
         }
         catch (NoSuchMethodException e) {
-          log.error("cannot configure " + key + ": " + e.toString());
+          log.error("cannot configure " + key + ": " + getExceptionDetails(e));
         }
       }
     }
   }
-  
+
+  private String getExceptionDetails (Exception e)
+  {
+    StringBuffer sb = new StringBuffer();
+    sb.append(e.toString()).append("\n");
+    for (int i = 0; i < 5; i++) {
+      sb.append("...").append(e.getStackTrace()[i].toString()).append("\n");
+    }
+    return sb.toString();
+  }
+
   private Object extractConfigValue (Configuration conf, String key,
                                      String type, Object defaultValue)
     throws ClassNotFoundException, NoSuchMethodException,
     IllegalArgumentException, IllegalAccessException, InvocationTargetException
   {
+    if (type.equals("List")) {
+      // the list type does not always work for some reason,
+      // and type-checking is getting really annoying here
+      List<String> def = new ArrayList<String>();
+      for (Object thing : (List<?>)defaultValue)
+        def.add((String)thing);
+      return conf.getList(key, def);
+    }
+    else {
+      // do it by reflection
     Class<?> clazz = findNamedClass(type);
     String extractorName = "get" + type;
     Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
+    log.info("Extract " + conf.getClass().getName() + "." + extractorName
+             + "(" + clazz.getName() + ")");
     return extractor.invoke(conf, key, defaultValue);
+    }
   }
 
   private Class<?> findNamedClass (String type) throws ClassNotFoundException
