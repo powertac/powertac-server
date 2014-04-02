@@ -110,8 +110,8 @@ public class SimpleGencoService
     gencos.add(buyer);
     buyer.init(brokerProxyService, seedId++, randomSeedRepo);
     cpGenco = new CpGenco("lmp");
-    cpGenco.init(brokerProxyService, seedId, randomSeedRepo);
     serverConfig.configureMe(cpGenco);
+    cpGenco.init(brokerProxyService, seedId, randomSeedRepo);
     brokerRepo.add(cpGenco);
     return "Genco";
   }

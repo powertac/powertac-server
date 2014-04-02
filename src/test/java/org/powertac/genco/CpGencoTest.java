@@ -74,6 +74,7 @@ public class CpGencoTest
   {
     Competition comp = Competition.newInstance("Genco test").withTimeslotsOpen(4);
     Competition.setCurrent(comp);
+    comp.withTimeslotsOpen(4);
     mockProxy = mock(BrokerProxy.class);
     mockSeedRepo = mock(RandomSeedRepo.class);
     seed = mock(RandomSeed.class);
@@ -131,6 +132,8 @@ public class CpGencoTest
     init();
     List<String> coefficients = Arrays.asList("1.0", "1.1", "1.2");
     genco.withCoefficients(coefficients);
+    assertEquals("3-element list", 3, genco.getCoefficients().size());
+    assertEquals("first element", "1.0", genco.getCoefficients().get(0));
     double[] ca = genco.getCoefficientArray();
     assertEquals("3 elements", 3, ca.length);
     assertEquals("correct 1st coeff", 1.0, ca[0], 1e-6);
@@ -173,7 +176,7 @@ public class CpGencoTest
   public void testWithPSigma ()
   {
     init();
-    assertEquals("correct initial", 0.05, genco.getPSigma(), 1e-6);
+    assertEquals("correct initial", 0.1, genco.getPSigma(), 1e-6);
     genco.withPSigma(0.01);
     assertEquals("correct post", 0.01, genco.getPSigma(), 1e-6);
   }
@@ -220,6 +223,7 @@ public class CpGencoTest
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("genco.cpGenco.coefficients", "1.0, 2.0, 3.0");
+    map.put("genco.cpGenco.pSigma", "0.22");
     init();
     Configuration conf = new MapConfiguration(map);
     Configurator configurator = new Configurator();
@@ -228,6 +232,7 @@ public class CpGencoTest
     assertEquals("3-element list", 3, genco.getCoefficients().size());
     assertEquals("correct 1st", "1.0", genco.getCoefficients().get(0));
     assertEquals("correct last", "3.0", genco.getCoefficients().get(2));
+    assertEquals("correct pSigma", 0.22, genco.getPSigma(), 1e-6);
   }
 
   /**
@@ -293,6 +298,6 @@ public class CpGencoTest
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("31 orders", 31, orderList.size());
+    assertEquals("32 orders", 32, orderList.size());
   }
 }
