@@ -240,12 +240,23 @@ public class TariffRepo implements DomainRepo
   }
 
   /**
-   * Removes a tariff and its specification from the repo
+   * Removes a tariff and its specification from the repo. remembers that tariff
+   * has been removed, prevents re-adding.
    */
   public synchronized void removeTariff (Tariff tariff)
   {
     tariffs.remove(tariff.getId());
     deletedTariffs.add(tariff.getId());
+    removeSpecification(tariff.getId());
+  }
+
+  /**
+   * Deletes a tariff and its specification from the repo, without tracking.
+   * Should not be used in the server.
+   */
+  public synchronized void deleteTariff (Tariff tariff)
+  {
+    tariffs.remove(tariff.getId());
     removeSpecification(tariff.getId());
   }
 

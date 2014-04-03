@@ -109,6 +109,33 @@ public class TariffRepoTest
     assertEquals("no specs", 0, specs.size());
   }
 
+  // remove and re-add specification
+  @Test
+  public void removeReaddSpec ()
+  {
+    repo.addSpecification(spec);
+    List<TariffSpecification> specs = repo.findAllTariffSpecifications();
+    assertEquals("one spec", 1, specs.size());
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("two specs", 2, specs.size());
+    assertTrue("contains first", specs.contains(spec));
+    assertTrue("contains second", specs.contains(spec2));
+    repo.removeSpecification(spec.getId());
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("one spec", 1, specs.size());
+    assertTrue("contains only second", specs.contains(spec2));
+    repo.addSpecification(spec);
+    specs = repo.findAllTariffSpecifications();
+    assertEquals("back to 2 specs", 2, specs.size());
+    specs = repo.findAllTariffSpecifications();
+    assertTrue("still contains second", specs.contains(spec2));
+    assertTrue("now contains first", specs.contains(spec));
+  }
+
   @Test
   public void testAddDuplicateSpecification ()
   {
@@ -555,6 +582,26 @@ public class TariffRepoTest
     assertEquals("2 specs", 2, repo.findAllTariffSpecifications().size());
     assertFalse("t3 not deleted", repo.isRemoved(t3.getId()));
     assertTrue("t2 is deleted", repo.isRemoved(t2.getId()));
+  }
+
+  // tariff deletion without keeping a copy around
+  @Test
+  public void testDeleteTariff ()
+  {
+    repo.addSpecification(spec);
+    Tariff t1 = new Tariff(spec);
+    repo.addTariff(t1);
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.PRODUCTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    Tariff t2 = new Tariff(spec2);
+    repo.addTariff(t2);
+    assertEquals("2 tariffs", 2, repo.findAllTariffs().size());
+    repo.deleteTariff(t1);
+    assertEquals("1 tariff", 1, repo.findAllTariffs().size());
+    repo.addTariff(t1);
+    assertEquals("2 tariffs again", 2, repo.findAllTariffs().size());
   }
 
   /**
