@@ -340,7 +340,8 @@ implements BalancingMarket, SettlementContext, InitializationService
     return balancingCost;
   }
 
-  double getDefaultSpotPrice ()
+  @Override
+  public double getDefaultSpotPrice ()
   {
     return defaultSpotPrice;
   }

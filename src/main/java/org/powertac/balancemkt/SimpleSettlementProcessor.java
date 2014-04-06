@@ -17,7 +17,7 @@ package org.powertac.balancemkt;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+//import org.apache.log4j.Logger;
 import org.ojalgo.matrix.BasicMatrix;
 import org.ojalgo.matrix.BigMatrix;
 import org.ojalgo.optimisation.quadratic.QuadraticSolver;

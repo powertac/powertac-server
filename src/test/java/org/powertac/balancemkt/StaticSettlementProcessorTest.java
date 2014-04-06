@@ -774,15 +774,31 @@ public class StaticSettlementProcessorTest
     @Override
     public double getPPlusPrime ()
     {
-      // TODO Auto-generated method stub
       return pplusPrime;
     }
 
     @Override
     public double getPMinusPrime ()
     {
-      // TODO Auto-generated method stub
       return pminusPrime;
+    }
+
+    @Override
+    public double getMarketBalance (Broker broker)
+    {
+      return 0.0;
+    }
+
+    @Override
+    public double getRegulation (Broker broker)
+    {
+      return 0.0;
+    }
+
+    @Override
+    public double getDefaultSpotPrice ()
+    {
+      return 0.0;
     }    
   }
 }
