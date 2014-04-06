@@ -4,6 +4,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -134,7 +135,7 @@ public class DistributionUtilityServiceTests
     map.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
-    distributionUtilityService.initialize(comp, new ArrayList<String>());
+    distributionUtilityService.initialize(comp, Arrays.asList("BalancingMarket"));
   }
 
   @Test

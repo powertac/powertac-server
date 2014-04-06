@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,13 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * Implementation of the Distribution Utility function. Levies a per-timeslot
+ * charge based on the total energy transferred to and from customers in each
+ * broker's portfolio.
+ * 
+ * @author John Collins
+ */
 @Service
 public class DistributionUtilityService
 extends TimeslotPhaseProcessor
@@ -96,6 +103,11 @@ implements InitializationService
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
+    int index = completedInits.indexOf("BalancingMarket");
+    if (index == -1) {
+      return null;
+    }
+
     super.init();
     distributionFee = null;
 
@@ -152,19 +164,8 @@ implements InitializationService
     }
   }
 
-  // ---------- Getters and setters for settlement processsors ---------
-//  @Override
-//  public CapacityControl getCapacityControlService ()
-//  {
-//    return capacityControlService;
-//  }
-//  
-//  @Override
-//  public TariffRepo getTariffRepo ()
-//  {
-//    return tariffRepo;
-//  }
-  
+  // ---------- parameter getters ---------
+
   double getDistributionFeeMin ()
   {
     return distributionFeeMin;
@@ -178,5 +179,64 @@ implements InitializationService
   Double getDistributionFee ()
   {
     return distributionFee;
+  }
+
+  // -------- Delegation methods for backward compatibility -------
+  // The only purpose of these methods is to produce configuration data for
+  // older brokers. Should not be called by server code.
+
+  /**
+   * @deprecated
+   * For backward-compatibility only - should not be called.
+   */
+  @ConfigurableValue(valueType = "Double",
+      name = "balancingCost",
+      publish = true,
+      description = "Low end of distribution fee range")
+  public double getBalancingCost ()
+  {
+    return balancingMarket.getBalancingCost();
+  }
+
+
+  /**
+   * @deprecated
+   * For backward-compatibility only - should not be called.
+   */
+  @ConfigurableValue(valueType = "Double",
+      name = "pPlusPrime",
+      publish = true,
+      description = "Slope of up-regulation cost function")
+  public double getPPlusPrime ()
+  {
+    return balancingMarket.getPPlusPrime();
+  }
+
+
+  /**
+   * @deprecated
+   * For backward-compatibility only - should not be called.
+   */
+  @ConfigurableValue(valueType = "Double",
+      name = "pMinusPrime",
+      publish = true,
+      description = "slope of down-regulation cost function")
+  public double getPMinusPrime()
+  {
+    return balancingMarket.getPMinusPrime();
+  }
+
+
+  /**
+   * @deprecated
+   * For backward-compatibility only - should not be called.
+   */
+  @ConfigurableValue(valueType = "Double",
+      name = "defaultSpotPrice",
+      publish = true,
+      description = "value used for spot price/MWh if unavailable from market")
+  public double getDefaultSpotPrice()
+  {
+    return balancingMarket.getDefaultSpotPrice();
   }
 }
