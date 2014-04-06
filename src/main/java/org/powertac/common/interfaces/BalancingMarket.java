@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,4 +36,29 @@ public interface BalancingMarket
    * negative for down-regulation) for a given broker.
    */
   public double getRegulation (Broker broker);
+
+  /**
+   * Returns the slope of cost curve for up-regulation. Total cost for
+   * up-regulation by x kwh is pPlus + x * pPlusPrime. Note that x is
+   * positive for up-regulation.
+   */
+  public double getPPlusPrime();
+
+  /**
+   * Returns the slope of cost curve for down-regulation. Total cost for
+   * down-regulation by x kwh is pMinus + x * pMinusPrime. Note that x is
+   * negative for down-regulation.
+   */
+  public double getPMinusPrime();
+
+  /**
+   * Returns the per-timeslot charge for running the balancing market
+   */
+  public Double getBalancingCost ();
+
+  /**
+   * Returns the value used for spot price per MWh if unavailable from 
+   * wholesale market. 
+   */
+  public double getDefaultSpotPrice ();
 }
