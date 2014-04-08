@@ -278,9 +278,9 @@ public class StaticSettlementProcessorTest
 
     //  (broker, imbalance, p_1,        p_2
     //    1:       0:       0.0:       -0.2046
-    //    2:      -4:      -0.07476:   -0.2818
-    //    3:       8:      -0.00258:   -0.138
-    //    4:      14:       0.261644:   0.0
+    //    2:      -4:       0.116:     -0.2818
+    //    3:       8:      -0.232:     -0.138
+    //    4:      14:      -0.406:      0.0
 
     //System.out.println("P2 values (b1,b2,b3,b4): ("
     //    + ci1.getBalanceChargeP2()
@@ -311,9 +311,89 @@ public class StaticSettlementProcessorTest
     //                   + "," + ci4.getBalanceChargeP1()
     //                   + ")");
     assertEquals("b1.p1 = 0", 0.0, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals("b2.p1 = -0.074756", -0.074756, ci2.getBalanceChargeP1(), 1e-4);
-    assertEquals("b3.p1 = -0.0025778", -0.0025778, ci3.getBalanceChargeP1(), 1e-4);
-    assertEquals("b4.p1 = 0.2616444", 0.2616444, ci4.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1 = 0.116", 0.116, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b3.p1 = -0.232", -0.232, ci3.getBalanceChargeP1(), 1e-4);
+    assertEquals("b4.p1 = -0.406", -0.406, ci4.getBalanceChargeP1(), 1e-4);
+  }
+
+  // Example 1 spec, slope = 0, imbalance = +180
+  @Test
+  public void ex1_down2 ()
+  {
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, -0.6, -0.009);
+    tariffRepo.addBalancingOrder(bo1);
+    when(capacityControlService.getRegulationCapacity(bo1)).
+      thenReturn(new RegulationCapacity(1.2, -50.0));
+
+    BalancingOrder bo2 = new BalancingOrder(b2, spec2, -0.6, -0.008);
+    tariffRepo.addBalancingOrder(bo2);
+    when(capacityControlService.getRegulationCapacity(bo2)).
+      thenReturn(new RegulationCapacity(12.1, -30.0));
+
+    BalancingOrder bo3 = new BalancingOrder(b3, spec3, -0.6, -0.006);
+    tariffRepo.addBalancingOrder(bo3);
+    when(capacityControlService.getRegulationCapacity(bo3)).
+      thenReturn(new RegulationCapacity(6.2, -40.0));
+
+    ChargeInfo ci1 = new ChargeInfo(b1, 0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+
+    ChargeInfo ci2 = new ChargeInfo(b2, -40);
+    ci2.addBalancingOrder(bo2);
+    brokerData.add(ci2);
+
+    ChargeInfo ci3 = new ChargeInfo(b3, 80);
+    ci3.addBalancingOrder(bo3);
+    brokerData.add(ci3);
+
+    ChargeInfo ci4 = new ChargeInfo(b4, 140);
+    brokerData.add(ci4);
+
+    pplus = 0.1;
+    pplusPrime = 0.0;
+    pminus = -0.003;
+    pminusPrime = 0.0;
+    uut.settle(context, brokerData);
+
+    //  (broker, imbalance, p_1,        p_2
+    //    1:       0:       0.0:       -0.15 
+    //    2:     -40:       0.12:      -0.09
+    //    3:      80:      -0.24:      -0.12
+    //    4:     140:      -0.42:       0.0
+
+    System.out.println("P2 values (b1,b2,b3,b4): ("
+        + ci1.getBalanceChargeP2()
+        + "," + ci2.getBalanceChargeP2()
+        + "," + ci3.getBalanceChargeP2()
+        + "," + ci4.getBalanceChargeP2()
+        + ")");
+    System.out.println("Exercised (b1,b2,b3,b4): ("
+        + ci1.getCurtailment()
+        + "," + ci2.getCurtailment()
+        + "," + ci3.getCurtailment()
+        + "," + ci4.getCurtailment()
+        + ")");
+    assertEquals("b1.p2 = -0.15", -0.15, ci1.getBalanceChargeP2(), 1e-6);
+    assertEquals("b2.p2 = -0.09", -0.09, ci2.getBalanceChargeP2(), 1e-6);
+    assertEquals("b3.p2 = -0.12", -0.12, ci3.getBalanceChargeP2(), 1e-6);
+    assertEquals("b4.p2 = 0.0", 0.0, ci4.getBalanceChargeP2(), 1e-6);
+
+    assertEquals("b1.ex = -50", -50.0, ci1.getCurtailment(), 1e-6);
+    assertEquals("b2.ex = -30", -30.0, ci2.getCurtailment(), 1e-6);
+    assertEquals("b3.ex = -40", -40.0, ci3.getCurtailment(), 1e-6);
+    assertEquals("b4.ex = 0.0", 0.0, ci4.getCurtailment(), 1e-6);
+
+    System.out.println("P1 values (b1,b2,b3,b4): ("
+                       + ci1.getBalanceChargeP1()
+                       + "," + ci2.getBalanceChargeP1()
+                       + "," + ci3.getBalanceChargeP1()
+                       + "," + ci4.getBalanceChargeP1()
+                       + ")");
+    assertEquals("b1.p1 = 0.0", 0.0, ci1.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1 = 0.12", 0.12, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b3.p1 = -0.24", -0.24, ci3.getBalanceChargeP1(), 1e-4);
+    assertEquals("b4.p1 = -0.42", -0.42, ci4.getBalanceChargeP1(), 1e-4);
   }
 
   // problem 3 from https://docs.google.com/spreadsheet/ccc?key=0AnOwYcSnDi0ZdDVNWjN4Q1FRTGdUTHhSLW9WVmF5Snc

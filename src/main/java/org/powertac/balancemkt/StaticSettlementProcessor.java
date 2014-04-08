@@ -115,7 +115,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
                                                 candidates, nonExercised,
                                                 nonParticipants));
     }
-    
+
     // Determine imbalance payments (p_1) for each broker.
     computeImbalanceCharges(brokerData, totalImbalance, candidates);
     
@@ -133,7 +133,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         sb.append(info.getBalanceChargeP1()).append(")");
       }
       log.info(sb.toString());
-      
+
       // compute actual DU costs
       double rmCost = 0.0;
       for (BOWrapper bo: candidates) {
@@ -146,7 +146,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       for (ChargeInfo info : brokerData) {
         brokerCost += info.getBalanceChargeP1() + info.getBalanceChargeP2();
       }
-      
+
       // log budget balance
       log.info("DU budget: rm cost = " + rmCost + ", broker cost = "
                + brokerCost);
@@ -217,7 +217,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       splitDummyOrder(orders, orders.tailSet(dummy));
     }
   }
-  
+
   // Splits the dummy order around a higher-priced following order
   private void splitDummyOrder (SortedSet<BOWrapper> orders,
                                 SortedSet<BOWrapper> tail)
@@ -233,7 +233,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     BOWrapper dummy = bos.next();
     BOWrapper nextBO = bos.next();
     double capacity = (nextBO.price - dummy.price) / dummy.slope;
-    
+
     // there are now three possibilities:
     // - capacity has the opposite sign from remaining capacity, which is
     //   an error; or
@@ -425,7 +425,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         }
       }
       nonContributors.remove(broker);
-      broker.setBalanceChargeP1(imbalanceCost * broker.getNetLoadKWh()
+      broker.setBalanceChargeP1(-sgn * imbalanceCost * broker.getNetLoadKWh()
                                 / totalImbalance);
     }
 
@@ -451,16 +451,18 @@ public class StaticSettlementProcessor extends SettlementProcessor
         }
       }
       excludes.remove(info);
-      info.setBalanceChargeP1(imbalanceCost * info.getNetLoadKWh()
+      info.setBalanceChargeP1(-sgn * imbalanceCost * info.getNetLoadKWh()
                               / totalImbalance);
     }
   }
 
+  // gets the regulating cost across the dummy orders in remains
   private double findRpCost (SortedSet<BOWrapper> remains)
   {
     double rpCost = 0.0;
     //double rpQty = 0.0;
     for (BOWrapper bid : remains) {
+      // this code depends on encountering the dummy orders in order
       if (bid.isDummy())
         // cost is total dummy qty times final marginal price
         //rpQty += bid.exercisedCapacity;
@@ -592,8 +594,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
     double getTotalEPrice ()
     {
       double oldMPrice = getMarginalPrice(exercisedCapacity);
-      return oldMPrice * exercisedCapacity +  // cost for the already exercisedCapacity
-             startX * (oldMPrice - price);    // extra cost for any earlier dummy orders
+      double cost = oldMPrice * exercisedCapacity + // for exercisedCapacity
+            startX * (oldMPrice - price);    // extra cost for any earlier dummy orders
+      return Math.signum(exercisedCapacity) * cost;
     }
 
     @Override
