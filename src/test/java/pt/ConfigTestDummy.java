@@ -26,15 +26,19 @@ import org.powertac.common.config.ConfigurableValue;
 public class ConfigTestDummy
 {
   @ConfigurableValue(valueType = "Integer",
-          description = "int property")
+      bootstrapState = true,
+      description = "int property")
   private int intProperty = 0;
 
   @ConfigurableValue(valueType = "String",
-          description = "string property")
+      publish = true,
+      description = "string property")
   public String stringProperty = "dummy";
 
   @ConfigurableValue(valueType = "Double",
-          description = "Fixed cost/kWh")
+      publish = true,
+      bootstrapState = true,
+      description = "Fixed cost/kWh")
   private double fixedPerKwh = -0.06;
 
   @ConfigurableValue(valueType = "List",

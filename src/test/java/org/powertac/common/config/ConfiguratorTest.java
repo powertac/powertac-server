@@ -17,6 +17,8 @@ package org.powertac.common.config;
 
 import static org.junit.Assert.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 
@@ -137,4 +139,90 @@ public class ConfiguratorTest
     assertEquals("correct 2nd length", 3, val.size());
     assertEquals("correct 2nd 1st", "0.1", val.get(0));
   }
+
+  @Test
+  public void testPublishConfig ()
+  {
+    final TreeMap<String,Object> map = new TreeMap<String, Object>();
+    ConfigurationRecorder cr =
+        new ConfigurationRecorder () {
+          @Override
+          public void recordItem (String key, Object value) {
+            map.put(key, value);
+          }
+    };
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    Configurator uut = new Configurator();
+    uut.gatherPublishedConfiguration(dummy, cr);
+    assertEquals("two entries", 2, map.size());
+    assertEquals("correct String", "dummy",
+                 (String)map.get("pt.configTestDummy.stringProperty"));
+    assertEquals("correct double", -0.06,
+                 (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6);
+  }
+
+  @Test
+  public void testBootstrapState()
+  {
+    final TreeMap<String,Object> map = new TreeMap<String, Object>();
+    ConfigurationRecorder cr =
+        new ConfigurationRecorder () {
+          @Override
+          public void recordItem (String key, Object value) {
+            map.put(key, value);
+          }
+    };
+    ConfigTestDummy dummy = new ConfigTestDummy();
+    Configurator uut = new Configurator();
+    uut.gatherBootstrapState(dummy, cr);
+    assertEquals("two entries", 2, map.size());
+    assertEquals("correct int", 0,
+                 ((Integer)map.get("pt.configTestDummy.intProperty")).intValue());
+    assertEquals("correct double", -0.06,
+                 (Double)map.get("pt.configTestDummy.fixedPerKwh"), 1e-6);
+  }
+
+  @Test
+  public void testConfigInstance ()
+  {
+    TreeMap<String,String> map = new TreeMap<String, String>();
+    map.put("common.config.configInstance.instances", "x1, x2");
+    map.put("common.config.configInstance.x1.simpleProp", "42");
+    map.put("common.config.configInstance.x1.sequence", "1");
+    map.put("common.config.configInstance.x2.simpleProp", "32");
+    map.put("common.config.configInstance.x2.sequence", "2");
+    Configuration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+    Collection<?> result = uut.configureInstances(ConfigInstance.class);
+    assertEquals("two instances", 2, result.size());
+  }
+
+  @Test
+  public void testBootstrapInstance ()
+  {
+    final TreeMap<String,Object> map = new TreeMap<String, Object>();
+    ConfigurationRecorder cr =
+        new ConfigurationRecorder () {
+          @Override
+          public void recordItem (String key, Object value) {
+            map.put(key, value);
+          }
+    };
+    ConfigInstance ci1 = new ConfigInstance("a1");
+    ci1.sequence = 3;
+    ci1.simpleProp = 21;
+    ci1.stateProp = -3;
+    ConfigInstance ci2 = new ConfigInstance("b1");
+    ci2.sequence = 4;
+    ci2.simpleProp = 31;
+    ci2.stateProp = -13;
+    List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
+    Configurator uut = new Configurator();
+    uut.gatherBootstrapState(instances, cr);
+    assertEquals("four entries", 4, map.size());
+    assertEquals("a1.stateProp", -3,
+                 map.get("common.config.configInstance.a1.stateProp"));
+  }
+
 }

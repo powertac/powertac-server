@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
+import org.powertac.util.Predicate;
 
 /**
  * Fills in configured values from configuration source based on 
@@ -196,44 +197,125 @@ public class Configurator
   public void gatherPublishedConfiguration (Object thing,
                                             ConfigurationRecorder recorder)
   {
+    gatherConfiguration(thing, null, recorder,
+                        new Predicate<ConfigurableProperty>() {
+      @Override
+      public boolean apply (ConfigurableProperty prop) {
+        return prop.cv.publish();
+      }
+    });
+  }
+
+  /**
+   * Pulls the "bootstrapState" ConfigurableValues out of object thing, adds
+   * them to config.
+   */
+  public void gatherBootstrapState (Object thing,
+                                    ConfigurationRecorder recorder)
+  {
+    if (thing instanceof List) {
+      gatherBootstrapList((List<Object>)thing, recorder);
+    }
+    else {
+    gatherConfiguration(thing, null, recorder,
+                        new Predicate<ConfigurableProperty>() {
+      @Override
+      public boolean apply (ConfigurableProperty prop) {
+        return prop.cv.bootstrapState();
+      }
+    });
+    }
+  }
+
+  /**
+   * Pulls "bootstrapState" ConfigurationValues out of objects in the given
+   * list, adds them to config with their names. This requires that the
+   * instances in the list each have a getName() method that returns a String.
+   * Any instance lacking such a method will not be recorded, and an error
+   * message logged.
+   */
+  public void gatherBootstrapList(List<Object> things,
+                                  ConfigurationRecorder recorder)
+  {
+    for (Object thing : things) {
+      Class<?> thingClass = thing.getClass();
+      try {
+        Method getNameMethod = thingClass.getMethod("getName");
+        Object name = getNameMethod.invoke(thing);
+        if (null == name) {
+          log.error("Null name for " + thing.toString());
+        }
+        else {
+          gatherConfiguration(thing, (String)name, recorder,
+                              new Predicate<ConfigurableProperty>() {
+            @Override
+            public boolean apply (ConfigurableProperty prop) {
+              return prop.cv.bootstrapState();
+            }
+          });
+        }
+      }
+      catch (NoSuchMethodException e) {
+        log.error("Cannot extract bootstrap state from "
+                  + thing.toString() + ": no getName() method");
+      }
+      catch (SecurityException e) {
+        log.error("Cannot extract bootstrap state from "
+            + thing.toString() + ": security exception");
+      }
+      catch (Exception e) {
+        log.error(e.toString() + " calling thing.getName()");
+      }
+    }
+  }
+
+  private void gatherConfiguration (Object thing, String name,
+                                    ConfigurationRecorder recorder,
+                                    Predicate<ConfigurableProperty> p)
+  {
     String prefix =
-        extractClassnamePrefix(thing.getClass().getName().split("\\."));
+        extractClassnamePrefix(extractClassnamePath(thing));
     Map<String, ConfigurableProperty> analysis = getAnalysis(thing.getClass());
     for (Iterator<Entry<String, ConfigurableProperty>> props = analysis.entrySet().iterator();
         props.hasNext(); ) {
       Map.Entry<String, ConfigurableProperty> prop = props.next();
       ConfigurableProperty cp = prop.getValue();
-      if (!cp.cv.publish())
-        continue;
-      String key = prefix + "." + prop.getKey();
-      log.debug("Recording property " + key);
-      Object value = null;
-      try {
-        if (cp.field != null) {
-          // extract value from field
-          cp.field.setAccessible(true);
-          value = cp.field.get(thing);
+      if (p.apply(cp)) {
+        String key = prefix;
+        if (null != name) {
+          // handle named instances
+          key = key + "." + name;
         }
-        else if (cp.getter != null) {
-          value = cp.getter.invoke(thing);
+        key = key + "." + prop.getKey();
+        log.debug("Recording property " + key);
+        Object value = null;
+        try {
+          if (cp.field != null) {
+            // extract value from field
+            cp.field.setAccessible(true);
+            value = cp.field.get(thing);
+          }
+          else if (cp.getter != null) {
+            value = cp.getter.invoke(thing);
+          }
+          else {
+            // cannot do much
+            throw new Exception("field and getter both null");
+          }
+          recorder.recordItem(key, value);
         }
-        else {
-          // cannot do much
-          throw new Exception("field and getter both null");
+        catch (IllegalArgumentException e) {
+          log.error("cannot read published value: " + e.toString());
         }
-        recorder.recordItem(key, value);
-      }
-      catch (IllegalArgumentException e) {
-        log.error("cannot read published value: " + e.toString());
-      }
-      catch (IllegalAccessException e) {
-        log.error("cannot read published value: " + e.toString());
-      }
-      catch (InvocationTargetException e) {
-        log.error("cannot read published value: " + e.toString());
-      }
-      catch (Exception e) {
-        log.error("cannot read published value: " + e.toString());
+        catch (IllegalAccessException e) {
+          log.error("cannot read published value: " + e.toString());
+        }
+        catch (InvocationTargetException e) {
+          log.error("cannot read published value: " + e.toString());
+        }
+        catch (Exception e) {
+          log.error("cannot read published value: " + e.toString());
+        }
       }
     }
   }

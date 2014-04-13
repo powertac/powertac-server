@@ -34,21 +34,24 @@ public @interface ConfigurableValue
    *  name, by stripping off a prefix of 'set' or 'with' and decapitalizing the
    *  remaining substring. */
   String name() default "";
-  
+
   /** Name of method that retrieves the default value for this property. If
    * not given, then the property name is capitalized and prefixed with 'get' */
   String getter() default "";
-  
+
   /** User-oriented description */
   String description() default "undocumented";
-  
+
   /** Name of value type -
    *  must be one of String, Integer, Long, Double, or List */
   String valueType();
-  
+
   /** Constraint expression */
   String constraintExpression() default "";
-  
+
   /** True if value must be published to brokers */
   boolean publish() default false;
+
+  /** True if value must be saved in bootstrap record */
+  boolean bootstrapState() default false;
 }
