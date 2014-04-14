@@ -26,6 +26,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
+import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -41,14 +42,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Manages a set of customer models. Each must be configurable as
+ * ConfigurableInstances. Each gets supplied a set of service interfaces.
+ * In each timeslot, each model has its step() method called. When tariffs
+ * are published, each has its evaluateTariffs() method called. At the end
+ * of a boot session, each has its bootstrap state saved to the boot record.
+ * 
  * @author John Collins
  */
 @Service
 public class CustomerModelService
 extends TimeslotPhaseProcessor
-implements InitializationService, NewTariffListener
+implements InitializationService, BootstrapState, NewTariffListener
 {
-  static private Logger log = Logger.getLogger(CustomerModelService.class.getName());
+  static private Logger log =
+      Logger.getLogger(CustomerModelService.class.getName());
 
   @Autowired
   private TimeService timeService;
@@ -147,5 +155,11 @@ implements InitializationService, NewTariffListener
   List<AbstractCustomer> getModelList ()
   {
     return models;
+  }
+
+  @Override
+  public void saveBootstrapState ()
+  {
+    serverConfig.saveBootstrapState(models);
   }
 }

@@ -83,13 +83,21 @@ public class ColdStorage extends AbstractCustomer
   private RandomSeed opSeed;
   private NormalDistribution normal01;
   private RandomSeed evalSeed;
-  private Double currentTemp = null;
-  private double currentStock = 0.0;
-  //private Double lastTemp = null;
-  //private double coolingEnergyUsed = 0.0;
+
   private double totalEnergyUsed = 0.0;
   private double currentNcUsage;
   private double coolingLossPerK = 0.0; // kWh/K -- lazy computation
+
+  // bootstrap state elements
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true,
+      description = "current temperature")
+  private Double currentTemp = null;
+
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true,
+      description = "current thermal mass")
+  private double currentStock = 0.0;
 
   private TariffEvaluator tariffEvaluator;
   private int profileSize = 14; // two weeks of weather data
@@ -121,10 +129,12 @@ public class ColdStorage extends AbstractCustomer
         .withUpRegulationKW(-unitSize / cop)
         .withDownRegulationKW(unitSize / cop); // optimistic, perhaps
     ensureSeeds();
-    // randomize current temp
-    setCurrentTemp(minTemp + (maxTemp - minTemp) * opSeed.nextDouble());
+    // randomize current temp only if state not set
+    if (null == currentTemp) {
+      setCurrentTemp(minTemp + (maxTemp - minTemp) * opSeed.nextDouble());
+      currentStock = stockCapacity;
+    }
     currentNcUsage = nonCoolingUsage;
-    currentStock = stockCapacity;
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = new TariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
