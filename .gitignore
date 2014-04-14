@@ -3,6 +3,8 @@
 *.ipr
 *.iws
 .idea/
+.project
+.classpath
 
 # Deployment directories
 target/
@@ -18,6 +20,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.log
+*~
 
 # Compiled source
 *.class
