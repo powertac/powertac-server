@@ -447,8 +447,8 @@ public class Configurator
     Class<?> clazz = findNamedClass(type);
     String extractorName = "get" + type;
     Method extractor = conf.getClass().getMethod(extractorName, String.class, clazz);
-    log.info("Extract " + conf.getClass().getName() + "." + extractorName
-             + "(" + clazz.getName() + ")");
+    //log.info("Extract " + conf.getClass().getName() + "." + extractorName
+    //         + "(" + clazz.getName() + ")");
     return extractor.invoke(conf, key, defaultValue);
     }
   }
