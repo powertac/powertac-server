@@ -45,6 +45,7 @@ import org.powertac.common.Competition;
  */
 public interface InitializationService
 {
+  @Deprecated
   public void setDefaults();
   
   /**

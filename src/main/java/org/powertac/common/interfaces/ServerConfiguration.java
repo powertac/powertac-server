@@ -50,4 +50,14 @@ public interface ServerConfiguration
    * the initialize() method.
    */
   public void publishConfiguration (Object target);
+
+  /**
+   * Gathers state information at the end of a boot session to be restored
+   * in a subsequent sim session. Data is gathered from @ConfigurableValue
+   * properties with bootstrapState=true. Such properties can be fields, or
+   * may have "standard" getters and setters. This method is called at the
+   * end of a bootstrap session by a component that wishes to have its state
+   * saved in the boot record.
+   */
+  public void saveBootstrapState (Object thing);
 }
