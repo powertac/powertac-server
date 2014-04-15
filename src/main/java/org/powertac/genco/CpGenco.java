@@ -22,7 +22,9 @@ import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.BrokerProxy;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -77,6 +79,9 @@ public class CpGenco extends Broker
   protected BrokerProxy brokerProxyService;
   protected RandomSeed seed;
 
+  // needed for saving bootstrap state
+  private TimeslotRepo timeslotRepo;
+
   private NormalDistribution normal01;
   private QuadraticFunction function = new QuadraticFunction();
 
@@ -85,11 +90,13 @@ public class CpGenco extends Broker
     super(username, true, true);
   }
 
-  public void
-    init (BrokerProxy proxy, int seedId, RandomSeedRepo randomSeedRepo)
+  public void init (BrokerProxy proxy, int seedId,
+                    RandomSeedRepo randomSeedRepo,
+                    TimeslotRepo timeslotRepo)
   {
     log.info("init(" + seedId + ") " + getUsername());
     this.brokerProxyService = proxy;
+    this.timeslotRepo = timeslotRepo;
     // set up the random generator
     this.seed =
       randomSeedRepo.getRandomSeed(CpGenco.class.getName(), seedId, "bid");
@@ -190,6 +197,23 @@ public class CpGenco extends Broker
     s1[2] = s0[2] + ran[1] * rwcSigma * coef[2] + (coef[2] - s0[2]) * rwcOffset;
   }
 
+  /**
+   * Saves coefficients for the current timeslot in the form needed for
+   * configuration at the start of the sim session, then adds them to the
+   * bootstrap state.
+   */
+  public void saveBootstrapState (ServerConfiguration serverConfig)
+  {
+    int horizon = timeslotCoefficients.length;
+    int index = (timeslotRepo.currentSerialNumber() - ringOffset) % horizon;
+    ArrayList<String> newCoeff = new ArrayList<String>();
+    for (Double coeff : timeslotCoefficients[index]) {
+      newCoeff.add(coeff.toString());
+    }
+    coefficients = newCoeff;
+    serverConfig.saveBootstrapState(this);
+  }
+
   // ------------ getters & setters -----------------
   /**
    * Returns function coefficients as an array of Strings
@@ -217,6 +241,7 @@ public class CpGenco extends Broker
    * Fluent setter for coefficient array
    */
   @ConfigurableValue(valueType = "List",
+      bootstrapState = true,
       description = "Coefficients for the specified function type")
   @StateChange
   public CpGenco withCoefficients (List<String> coeff)

@@ -92,7 +92,7 @@ public class CpGencoTest
   private void init ()
   {
     when(seed.nextLong()).thenReturn(1l);
-    genco.init(mockProxy, 0, mockSeedRepo);
+    genco.init(mockProxy, 0, mockSeedRepo, timeslotRepo);
   }
 
   /**

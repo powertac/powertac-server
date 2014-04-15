@@ -27,6 +27,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
+import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class SimpleGencoService
   extends TimeslotPhaseProcessor
-  implements InitializationService
+  implements InitializationService, BootstrapState
 {
   static private Logger log = Logger.getLogger(SimpleGencoService.class.getName());
 
@@ -111,7 +112,7 @@ public class SimpleGencoService
     buyer.init(brokerProxyService, seedId++, randomSeedRepo);
     cpGenco = new CpGenco("lmp");
     serverConfig.configureMe(cpGenco);
-    cpGenco.init(brokerProxyService, seedId, randomSeedRepo);
+    cpGenco.init(brokerProxyService, seedId, randomSeedRepo, timeslotRepo);
     brokerRepo.add(cpGenco);
     return "Genco";
   }
@@ -141,5 +142,12 @@ public class SimpleGencoService
     if (null != cpGenco) {
       cpGenco.generateOrders(when, openSlots);
     }
+  }
+
+  @Override
+  public void saveBootstrapState ()
+  {
+    cpGenco.saveBootstrapState(serverConfig);
+//    serverConfig.saveBootstrapState(cpGenco);
   }
 }
