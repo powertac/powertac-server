@@ -19,11 +19,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.MapConfiguration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.log4j.Logger;
@@ -51,6 +53,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   private CompositeConfiguration config;
   private Configurator configurator;
   private ConfigurationPublisher publisher;
+  private ConfigurationPublisher bootstrapStateRecorder = null;
   
   private boolean initialized = false;
   
@@ -74,6 +77,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     config = new CompositeConfiguration();
     configurator = new Configurator();
     publisher = new ConfigurationPublisher();
+    bootstrapStateRecorder = null;
     initialized = false;
   }
   
@@ -141,7 +145,6 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
           throws ConfigurationException, IOException
   {
     // then load the user-specified config
-    
     PropertiesConfiguration pconfig = new PropertiesConfiguration();
     pconfig.load(userConfigURL.openStream());
     config.addConfiguration(pconfig);
@@ -149,11 +152,32 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     lazyInit();
   }
 
+  /**
+   * Adds the properties in props to the current configuration. Note that
+   * it's not enough to just add the props as an additional configuration,
+   * because configurations are handled in FIFO order with respect to individual
+   * properties. Therefore, it's necessary to iterate through the properties
+   * and set them individually.
+   */
+  public void addProperties (Properties props)
+  {
+    lazyInit();
+    for (Object key : props.keySet()) {
+      Object value = props.get(key);
+      if (value instanceof String && ((String) value).startsWith("[")) {
+        // clean up list format
+        String str = (String)value;
+        value = str.substring(1, str.length() - 2);
+      }
+      config.setProperty((String)key, value);
+    }
+  }
+
   @Override
   public void configureMe (Object target)
   {
     lazyInit();
-    configurator.configureSingleton(target);    
+    configurator.configureSingleton(target);
   }
 
   @Override
@@ -166,17 +190,33 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   @Override
   public void publishConfiguration (Object target)
   {
-    lazyInit();
+    //lazyInit();
     configurator.gatherPublishedConfiguration(target, publisher);
   }
 
   /**
-   * Returns the published configuration as a string
+   * Returns the published configuration as a Properties instance
    */
   public Properties getPublishedConfiguration ()
   {
     log.debug("published config: " + publisher.getConfig());
     return publisher.getConfig();
+  }
+
+  @Override
+  public void saveBootstrapState (Object thing)
+  {
+    if (null == bootstrapStateRecorder)
+      bootstrapStateRecorder = new ConfigurationPublisher();
+    configurator.gatherBootstrapState(thing, bootstrapStateRecorder);
+  }
+
+  public Properties getBootstrapState ()
+  {
+    if (null == bootstrapStateRecorder)
+      return new Properties();
+    else 
+      return bootstrapStateRecorder.getConfig();
   }
 
   /* (non-Javadoc)

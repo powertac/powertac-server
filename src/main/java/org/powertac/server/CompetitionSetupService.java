@@ -26,6 +26,7 @@ import org.powertac.common.IdGenerator;
 import org.powertac.common.TimeService;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
+import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CompetitionSetup;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.DomainRepo;
@@ -54,6 +55,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Manages command-line and file processing for pre-game simulation setup. 
@@ -102,7 +104,7 @@ public class CompetitionSetupService
   private URL controllerURL;
   private String seedSource = null;
   private Thread session = null;
-  
+
   /**
    * Standard constructor
    */
@@ -110,7 +112,7 @@ public class CompetitionSetupService
   {
     super();
   }
-  
+
   /**
    * Processes command-line arguments, which means looking for the specified 
    * script file and processing that
@@ -124,7 +126,7 @@ public class CompetitionSetupService
       waitForSession();
     }
   }
-  
+
   private void waitForSession ()
   {
     if (session != null)
@@ -135,7 +137,7 @@ public class CompetitionSetupService
         System.out.println("Error waiting for session completion: " + e.toString());
       }
   }
-  
+
   // handles the server CLI as described at
   // https://github.com/powertac/powertac-server/wiki/Server-configuration
   private void processCli (String[] args)
@@ -165,10 +167,10 @@ public class CompetitionSetupService
         parser.accepts("input-queue").withRequiredArg().ofType(String.class);
     OptionSpec<String> brokerList =
         parser.accepts("brokers").withRequiredArg().withValuesSeparatedBy(',');
-    
+
     // do the parse
     OptionSet options = parser.parse(args);
-    
+
     try {
       // process common options
       seedSource = null;
@@ -229,7 +231,7 @@ public class CompetitionSetupService
       logSuffix = defaultSuffix;
     serverProps.setProperty("server.logfileSuffix", logSuffix);
   }
-  
+
   // ---------- top-level boot and sim session control ----------
   @Override
   public String bootSession (String bootFilename, String config,
@@ -320,13 +322,13 @@ public class CompetitionSetupService
 
       // set the logfile suffix
       setLogSuffix(logfileSuffix, "sim-" + gameId);
-    
+
       // jms setup overrides config
       if (jmsUrl != null) {
         serverProps.setProperty("server.jmsManagementService.jmsBrokerUrl",
                                 jmsUrl);
       }
-      
+
       // boot data access
       URL bootUrl = null;
       if (controllerURL != null) {
@@ -593,7 +595,9 @@ public class CompetitionSetupService
     }
     // Init random seeds after clearing repos and before initializing services
     loadSeedsMaybe();
-    // Now init services
+    // Now init services --
+    // NOTE that this is now obsolete, and should be removed. Services now
+    // initialize themselves through the ServerPropertiesService.
     List<InitializationService> initializers =
       SpringApplicationContext.listBeansOfType(InitializationService.class);
     log.debug("found " + initializers.size() + " initializers");
@@ -601,7 +605,7 @@ public class CompetitionSetupService
       init.setDefaults();
     }
   }
-  
+
   // configures a Competition from server.properties
   private void configureCompetition (Competition competition)
   {
@@ -616,7 +620,7 @@ public class CompetitionSetupService
     log.info("preGame(File) - start");
     // run the basic pre-game setup
     preGame();
-    
+
     // read the config info from the bootReader - We need to find a Competition
     Competition bootstrapCompetition = null;
     XPathFactory factory = XPathFactory.newInstance();
@@ -629,6 +633,14 @@ public class CompetitionSetupService
                                      XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
       bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
+
+      // next, grab the bootstrap-state and add it to the config
+      exp = xPath.compile("/powertac-bootstrap-data/bootstrap-state/properties");
+      nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
+                                     XPathConstants.NODESET);
+      xml = nodeToString(nodes.item(0));
+      Properties bootState = (Properties)messageConverter.fromXML(xml);
+      serverProps.addProperties(bootState);
     }
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading boot dataset: " + xee.toString());
@@ -666,6 +678,13 @@ public class CompetitionSetupService
       output.newLine();
       output.write("</config>");
       output.newLine();
+      // bootstrap state
+      output.write("<bootstrap-state>");
+      output.newLine();
+      output.write(gatherBootstrapState());
+      output.newLine();
+      output.write("</bootstrap-state>");
+      output.newLine();
       // finally the bootstrap data
       output.write("<bootstrap>");
       output.newLine();
@@ -682,6 +701,18 @@ public class CompetitionSetupService
     catch (IOException ioe) {
       log.error("Error writing bootstrap file: " + ioe.toString());
     }
+  }
+
+  private String gatherBootstrapState ()
+  {
+    List<BootstrapState> collectors =
+        SpringApplicationContext.listBeansOfType(BootstrapState.class);
+    for (BootstrapState collector : collectors) {
+      collector.saveBootstrapState();
+    }
+    Properties result = serverProps.getBootstrapState();
+    String output = messageConverter.toXML(result);
+    return output;
   }
 
   // Extracts a bootstrap dataset from its file

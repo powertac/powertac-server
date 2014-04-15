@@ -289,7 +289,7 @@ public class CompetitionControlService
     }
 
     init();
-    
+
     // enable remote broker login here
     if (!bootstrapMode) {
       tournamentSchedulerService.ready();
@@ -302,8 +302,8 @@ public class CompetitionControlService
 
     // run the simulation, wait for completion
     runSimulation((long) (competition.getTimeslotLength() * TimeService.MINUTE /
-		  competition.getSimulationRate()));
-    
+        competition.getSimulationRate()));
+
     // log and post broker stats
     logBrokerStats();
     postBrokerStats();
@@ -322,9 +322,9 @@ public class CompetitionControlService
     randomGen = randomSeedRepo.getRandomSeed("CompetitionControlService",
                                              competition.getId(),
                                              "game-setup");
-    
+
     configService.configureMe(this);
-    
+
     if (!bootstrapMode) {
       // Create the timeslots from the bootstrap period - they will be needed to 
       // instantiate weather reports. All are disabled.
