@@ -189,13 +189,32 @@ public class ConfiguratorTest
     map.put("common.config.configInstance.instances", "x1, x2");
     map.put("common.config.configInstance.x1.simpleProp", "42");
     map.put("common.config.configInstance.x1.sequence", "1");
+    map.put("common.config.configInstance.x1.coefficients", "0.2, 4.2");
     map.put("common.config.configInstance.x2.simpleProp", "32");
     map.put("common.config.configInstance.x2.sequence", "2");
+    map.put("common.config.configInstance.x2.coefficients", "4.2, 3.2");
     Configuration conf = new MapConfiguration(map);
     Configurator uut = new Configurator();
     uut.setConfiguration(conf);
     Collection<?> result = uut.configureInstances(ConfigInstance.class);
     assertEquals("two instances", 2, result.size());
+    Object[] instances = result.toArray();
+    ConfigInstance x1, x2;
+    if (((ConfigInstance)instances[0]).getName().equals("x1")) {
+      x1 = (ConfigInstance)instances[0];
+      x2 = (ConfigInstance)instances[1];
+    }
+    else {
+      x1 = (ConfigInstance)instances[1];
+      x2 = (ConfigInstance)instances[0];
+    }
+    assertEquals("name x1", "x1", x1.getName());
+    assertEquals("name x2", "x2", x2.getName());
+    assertEquals("simpleProp", 42, x1.simpleProp);
+    assertEquals("sequence", 2, x2.sequence);
+    assertEquals("2 coefficients", 2, x1.coefficients.size());
+    assertEquals("1st coefficient", "4.2", x2.coefficients.get(0));
+    assertEquals("2nd coefficient", "4.2", x1.coefficients.get(1));
   }
 
   @Test
@@ -220,7 +239,7 @@ public class ConfiguratorTest
     List<ConfigInstance> instances = Arrays.asList(ci1, ci2);
     Configurator uut = new Configurator();
     uut.gatherBootstrapState(instances, cr);
-    assertEquals("four entries", 4, map.size());
+    assertEquals("four entries", 6, map.size());
     assertEquals("a1.stateProp", -3,
                  map.get("common.config.configInstance.a1.stateProp"));
   }

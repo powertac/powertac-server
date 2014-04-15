@@ -15,6 +15,9 @@
  */
 package org.powertac.common.config;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Example configurable-instance class for configurator test
  * @author John Collins
@@ -31,6 +34,9 @@ public class ConfigInstance
 
   @ConfigurableValue(valueType = "Integer", bootstrapState = true)
   int sequence = 0;
+
+  @ConfigurableValue(valueType = "List", bootstrapState = true)
+  List<String> coefficients = Arrays.asList(".1", "2.1");
 
   public ConfigInstance (String name)
   {
@@ -51,5 +57,10 @@ public class ConfigInstance
   public void setSequence (int value)
   {
     sequence = value;
+  }
+
+  public List<String> getCoefficients ()
+  {
+    return coefficients;
   }
 }
