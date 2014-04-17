@@ -638,9 +638,12 @@ public class CompetitionSetupService
       exp = xPath.compile("/powertac-bootstrap-data/bootstrap-state/properties");
       nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
                                      XPathConstants.NODESET);
-      xml = nodeToString(nodes.item(0));
-      Properties bootState = (Properties)messageConverter.fromXML(xml);
-      serverProps.addProperties(bootState);
+      if (null != nodes && nodes.getLength() > 0) {
+        // handle the case where there is no bootstrap-state clause
+        xml = nodeToString(nodes.item(0));
+        Properties bootState = (Properties)messageConverter.fromXML(xml);
+        serverProps.addProperties(bootState);
+      }
     }
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading boot dataset: " + xee.toString());
