@@ -18,6 +18,9 @@ package org.powertac.tariffmarket;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -26,6 +29,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.powertac.common.Broker;
+import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -35,6 +39,7 @@ import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
+import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -67,9 +72,13 @@ public class TariffSubscriptionTests
   @Before
   public void setUp()
   {
+    Competition comp = Competition.newInstance("tariff-sub-test");
     broker = new Broker("Joe");
     now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(now);
+    List<String> inits = new ArrayList<String>();
+    inits.add("AccountingService");
+    tariffMarketService.initialize(comp, inits);
     Instant exp = now.plus(TimeService.WEEK * 10);
     TariffSpecification tariffSpec =
         new TariffSpecification(broker, PowerType.CONSUMPTION)
@@ -121,7 +130,7 @@ public class TariffSubscriptionTests
                                                 tariff, customer,
                                                 5, 0.0, -33.2 * 5);
   }
-  
+
   // subscription withdrawal without and with penalty
   @Test
   public void testEarlyWithdraw ()
@@ -179,7 +188,43 @@ public class TariffSubscriptionTests
     //assertEquals("correct charge", 42.1, ttx.charge)
     assertEquals("six customers committed", 6, tsub1.getCustomersCommitted());
   }
-  
+
+  // subscription withdrawal for revoked tariff
+  @Test
+  public void testEarlyWithdrawRevoke ()
+  {
+    Instant exp = now.plus(TimeService.WEEK * 10);
+    TariffSpecification tariffSpec =
+        new TariffSpecification(broker, PowerType.CONSUMPTION)
+            .withExpiration(exp)
+            .withMinDuration(TimeService.WEEK * 4)
+            .withSignupPayment(33.2)
+            .withEarlyWithdrawPayment(-42.1)
+            .addRate(new Rate().withValue(-0.121));
+    tariff = new Tariff(tariffSpec);
+    tariff.init();
+    tariffMarketService.subscribeToTariff(tariff, customer, 5);
+    tariffMarketService.activate(now, 4);
+    TariffSubscription tsub =
+            tariffSubscriptionRepo.findSubscriptionForTariffAndCustomer(tariff, customer);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                tariff, customer,
+                                                5, 0.0, -33.2*5);
+
+    // move time forward 2 weeks, revoke tariff, withdraw 2 customers
+    Instant wk2 = now.plus(TimeService.WEEK * 2);
+    timeService.setCurrentTime(wk2);
+    TariffRevoke tex = new TariffRevoke(tariffSpec.getBroker(), tariffSpec);
+    tariffMarketService.handleMessage(tex);
+    tariffMarketService.activate(wk2, 4);
+    assertTrue("tariff revoked", tariff.isRevoked());
+    tsub.unsubscribe(2);
+    tariffMarketService.activate(wk2, 4);
+    verify(mockAccounting, never()).addTariffTransaction(eq(TariffTransaction.Type.WITHDRAW),
+                                                eq(tariff), eq(customer),
+                                                anyInt(), anyDouble(), anyDouble());
+  }
+
   // Check consumption transactions
   @Test
   public void testConsumption ()

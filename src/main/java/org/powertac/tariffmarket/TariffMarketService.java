@@ -194,7 +194,7 @@ public class TariffMarketService
     pendingVrus.clear();
     disabledBrokers.clear();
     revokedTariffs = null;
-    lastRevokeProcess = new Instant(0);
+    lastRevokeProcess = new Instant(0l);
 
     serverProps.configureMe(this);
 
