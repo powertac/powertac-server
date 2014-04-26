@@ -210,6 +210,7 @@ public class TariffSubscription
     customersCommitted -= customerCount;
     // Post withdrawal and possible penalties
     //if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
+    if (!tariff.isRevoked())
       getAccounting().addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer, customerCount, 0.0,
           penaltyCount * -tariff.getEarlyWithdrawPayment());
