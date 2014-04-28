@@ -1960,7 +1960,8 @@ public class Village extends AbstractCustomer
       double[] result = new double[VillageConstants.HOURS_OF_DAY];
 
       if (type.equalsIgnoreCase("NS"))
-        result = getDominantLoad(type);
+        result =
+          Arrays.copyOf(getDominantLoad(type), getDominantLoad(type).length);
 
       else {
         double[] nonDominantUsage = getNonDominantUsage(day, type);
