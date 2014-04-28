@@ -1278,6 +1278,8 @@ public class OfficeComplex extends AbstractCustomer
   {
     for (CustomerInfo customer: customerInfos) {
 
+	  log.info("Customer " + customerInfo.toString() + " is evaluating tariffs for timeslot " + timeslotRepo.	
+ 	  
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
 
       evaluator.evaluateTariffs();
@@ -1572,7 +1574,8 @@ public class OfficeComplex extends AbstractCustomer
       double[] result = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
       if (type.equalsIgnoreCase("NS"))
-        result = getDominantLoad(type);
+        result =
+          Arrays.copyOf(getDominantLoad(type), getDominantLoad(type).length);
 
       else {
         double[] nonDominantUsage = getNonDominantUsage(day, type);
@@ -1582,11 +1585,11 @@ public class OfficeComplex extends AbstractCustomer
 
       log.debug(Arrays.toString(result));
 
-      for (int i = 0; i < result.length;i++)
-    	  result[i] /= (OfficeComplexConstants.THOUSAND * getPopulation());
-      
-      log.debug(Arrays.toString(result));
-      
+      for (int i = 0; i < result.length; i++)
+        result[i] /= (OfficeComplexConstants.THOUSAND * getPopulation());
+
+      log.info("Usage:" + Arrays.toString(result));
+
       return result;
     }
 
