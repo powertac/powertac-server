@@ -1641,6 +1641,10 @@ public class Village extends AbstractCustomer
   {
     for (CustomerInfo customer: customerInfos) {
 
+      log.info("Customer " + customer.toString()
+               + " evaluating tariffs for timeslot "
+               + timeslotRepo.currentTimeslot().getId());
+
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
 
       evaluator.evaluateTariffs();
@@ -1966,11 +1970,11 @@ public class Village extends AbstractCustomer
 
       log.debug(Arrays.toString(result));
 
-      for (int i = 0; i < result.length;i++)
-    	  result[i] /= (VillageConstants.THOUSAND * getPopulation());
-      
-      log.debug(Arrays.toString(result));
-      
+      for (int i = 0; i < result.length; i++)
+        result[i] /= (VillageConstants.THOUSAND * getPopulation());
+
+      log.info("Usage: " + Arrays.toString(result));
+
       return result;
     }
 
