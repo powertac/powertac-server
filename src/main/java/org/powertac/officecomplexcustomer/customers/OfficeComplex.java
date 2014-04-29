@@ -1277,13 +1277,11 @@ public class OfficeComplex extends AbstractCustomer
   public void evaluateNewTariffs ()
   {
     for (CustomerInfo customer: customerInfos) {
-
-	  log.info("Customer " + customerInfo.toString() + " is evaluating tariffs for timeslot " + timeslotRepo.	
- 	  
+      log.info("Customer " + customer.toString()
+               + " is evaluating tariffs for timeslot "
+               + timeslotRepo.currentSerialNumber());
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
-
       evaluator.evaluateTariffs();
-
     }
   }
 
