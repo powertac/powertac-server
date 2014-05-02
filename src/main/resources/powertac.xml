@@ -17,7 +17,7 @@
 
   <!-- A connection to ActiveMQ -->
   <bean id="amqConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"
-        p:brokerURL="tcp://localhost:61616" />
+        p:brokerURL="tcp://localhost:61616" p:useAsyncSend="true" />
 
   <!-- A cached connection to wrap the ActiveMQ connection -->
   <bean id="jmsFactory" class="org.springframework.jms.connection.CachingConnectionFactory"
