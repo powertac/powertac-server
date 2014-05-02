@@ -54,6 +54,9 @@ public class TariffEvaluator
   private double variablePricingFactor = 0.5;
   private double interruptibilityFactor = 0.2;
 
+  // amortization period for negative signup payments
+  private int signupFeePeriod = 6;
+
   // profile cost analyzer
   private TariffEvaluationHelper helper;
 
@@ -382,6 +385,14 @@ public class TariffEvaluator
         if (tariff.getBroker() != currentTariff.getBroker()) {
           inconvenience +=
                   accessor.getBrokerSwitchFactor(revoked);
+        }
+        if (tariff.getSignupPayment() < 0.0) {
+          // discount negative signup fees
+          cost += tariff.getSignupPayment() *
+              preferredDuration * 24.0 / signupFeePeriod;
+        }
+        else {
+          cost += tariff.getSignupPayment();
         }
         cost += tariff.getSignupPayment();
         cost += withdraw0;
