@@ -335,15 +335,34 @@ public class EvSocialClass extends AbstractCustomer
     }
 
     log.info(String.format("%s : consumption = % 7.2f ; electric vehicule = " +
-        "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
-        name, consumptionLoad, evLoad, upRegulation, downRegulation));
+            "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
+        name, consumptionLoad, evLoad, upRegulation, downRegulation
+    ));
   }
 
-  public void addCustomer (int populationCount, PowerType powerType)
+  public void addCustomer (int populationCount, List<Car> cars,
+                           PowerType powerType)
   {
     String infoName = createInfoName(powerType);
-    addCustomerInfo(new CustomerInfo(infoName, populationCount)
-        .withPowerType(powerType));
+    CustomerInfo customerInfo =
+        new CustomerInfo(infoName, populationCount).withPowerType(powerType);
+
+    if (powerType == PowerType.ELECTRIC_VEHICLE) {
+      double storageCapacity = 0;
+      double chargingCapacity = 0;
+
+      for (Car car : cars) {
+        storageCapacity = Math.max(storageCapacity, car.getMaxCapacity());
+        chargingCapacity = Math.max(chargingCapacity, car.getHomeCharging());
+      }
+
+      customerInfo = customerInfo.withControllableKW(-chargingCapacity);
+      customerInfo = customerInfo.withUpRegulationKW(-chargingCapacity);
+      customerInfo = customerInfo.withDownRegulationKW(chargingCapacity);
+      customerInfo = customerInfo.withStorageCapacity(storageCapacity);
+    }
+
+    addCustomerInfo(customerInfo);
   }
 
   public String createInfoName (PowerType type)

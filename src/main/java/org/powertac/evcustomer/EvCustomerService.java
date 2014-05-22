@@ -123,8 +123,8 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
       String name = "EV " + classDetail.getName();
       EvSocialClass socialClass = new EvSocialClass(name, timeService);
-      socialClass.addCustomer(populationCount, PowerType.CONSUMPTION);
-      socialClass.addCustomer(populationCount, PowerType.ELECTRIC_VEHICLE);
+      socialClass.addCustomer(populationCount, cars, PowerType.CONSUMPTION);
+      socialClass.addCustomer(populationCount, cars, PowerType.ELECTRIC_VEHICLE);
 
       socialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
           activities, allActivityDetails, cars, populationCount, seed++);
