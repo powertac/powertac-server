@@ -302,8 +302,8 @@ public class EvCustomer
     while (--pointer >= hour) {
       double tsDistance = timeslotDataMap.get(pointer).getIntendedDistance();
 
-      if (tsDistance > epsilon) {
-        // Nnot driving, charge as much as needed and possible
+      if (tsDistance < epsilon) {
+        // Not driving, charge as much as needed and possible
         // TODO Add home / away detection
         neededCapacity -= Math.min(neededCapacity, car.getHomeCharging());
       }
