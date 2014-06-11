@@ -299,8 +299,8 @@ public class OfficeComplex extends AbstractCustomer
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
                                                      * OfficeComplexConstants.DAYS_OF_WEEK)
-              .withRationality(Double.parseDouble(conf.getProperty(type
-                                                                   + "Lamda")))
+              .withRationality(Double.parseDouble(conf
+                                       .getProperty(type + "Rationality")))
               .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
               .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
 
@@ -321,8 +321,8 @@ public class OfficeComplex extends AbstractCustomer
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
                                                      * OfficeComplexConstants.DAYS_OF_WEEK)
-              .withRationality(Double.parseDouble(conf.getProperty(type
-                                                                   + "Lamda")))
+              .withRationality(Double.parseDouble(conf
+                                       .getProperty(type + "Rationality")))
               .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
               .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
 
