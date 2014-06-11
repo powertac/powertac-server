@@ -214,7 +214,7 @@ public class OfficeComplexConstants
 
     int bias = Math.abs(base.toDate().getDay() - DAYS_OF_WEEK) % DAYS_OF_WEEK;
 
-    MONDAY = (bias) % DAYS_OF_WEEK;
+    MONDAY = (MONDAY + bias) % DAYS_OF_WEEK;
     TUESDAY = (TUESDAY + bias) % DAYS_OF_WEEK;
     WEDNESDAY = (WEDNESDAY + bias) % DAYS_OF_WEEK;
     THURSDAY = (THURSDAY + bias) % DAYS_OF_WEEK;
