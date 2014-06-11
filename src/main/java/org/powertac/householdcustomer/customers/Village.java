@@ -360,7 +360,8 @@ public class Village extends AbstractCustomer
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
                                                      * VillageConstants.DAYS_OF_WEEK)
-              .withRationality(VillageConstants.RATIONALITY_FACTOR)
+              .withRationality(Double.parseDouble(conf.getProperty(type
+                                                                   + "Lamda")))
               .withTariffEvalDepth(VillageConstants.TARIFF_COUNT)
               .withTariffSwitchFactor(VillageConstants.BROKER_SWITCH_FACTOR);
 
@@ -381,7 +382,8 @@ public class Village extends AbstractCustomer
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
                                                      * VillageConstants.DAYS_OF_WEEK)
-              .withRationality(VillageConstants.RATIONALITY_FACTOR)
+              .withRationality(Double.parseDouble(conf.getProperty(type
+                                                                   + "Lamda")))
               .withTariffEvalDepth(VillageConstants.TARIFF_COUNT)
               .withTariffSwitchFactor(VillageConstants.BROKER_SWITCH_FACTOR);
 
