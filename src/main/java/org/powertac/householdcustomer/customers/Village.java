@@ -363,7 +363,7 @@ public class Village extends AbstractCustomer
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(VillageConstants.TARIFF_COUNT)
-              .withTariffSwitchFactor(VillageConstants.BROKER_SWITCH_FACTOR);
+              .withTariffSwitchFactor(VillageConstants.TARIFF_SWITCH_FACTOR);
 
       tariffEvaluators.put(customer.get(0), te);
 
@@ -385,7 +385,7 @@ public class Village extends AbstractCustomer
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(VillageConstants.TARIFF_COUNT)
-              .withTariffSwitchFactor(VillageConstants.BROKER_SWITCH_FACTOR);
+              .withTariffSwitchFactor(VillageConstants.TARIFF_SWITCH_FACTOR);
 
       tariffEvaluators.put(customer.get(0), te);
 
