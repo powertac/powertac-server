@@ -302,7 +302,7 @@ public class OfficeComplex extends AbstractCustomer
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
-              .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
+              .withTariffSwitchFactor(OfficeComplexConstants.TARIFF_SWITCH_FACTOR);
 
       tariffEvaluators.put(customer.get(0), te);
 
@@ -324,7 +324,7 @@ public class OfficeComplex extends AbstractCustomer
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
-              .withTariffSwitchFactor(OfficeComplexConstants.BROKER_SWITCH_FACTOR);
+              .withTariffSwitchFactor(OfficeComplexConstants.TARIFF_SWITCH_FACTOR);
 
       tariffEvaluators.put(customer.get(0), te);
 
