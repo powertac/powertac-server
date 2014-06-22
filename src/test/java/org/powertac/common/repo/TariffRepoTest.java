@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2013 by the original author
+ * Copyright (c) 2012-2014 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -598,10 +598,13 @@ public class TariffRepoTest
     Tariff t2 = new Tariff(spec2);
     repo.addTariff(t2);
     assertEquals("2 tariffs", 2, repo.findAllTariffs().size());
+    assertEquals("2 tariffs for broker", 2, repo.findTariffsByBroker(broker).size());
     repo.deleteTariff(t1);
     assertEquals("1 tariff", 1, repo.findAllTariffs().size());
+    assertEquals("1 tariff for broker", 1, repo.findTariffsByBroker(broker).size());
     repo.addTariff(t1);
     assertEquals("2 tariffs again", 2, repo.findAllTariffs().size());
+    assertEquals("2 tariffs for broker", 2, repo.findTariffsByBroker(broker).size());
   }
 
   /**
