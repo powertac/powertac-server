@@ -301,8 +301,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_no ()
   {
-    Order sell = new Order(s1, ts1, -1.0, 23.0);
-    Order buy = new Order(b1, ts1, 1.0, -22.0);
+    Order sell = new Order(s1, ts1.getSerialNumber(), -1.0, 23.0);
+    Order buy = new Order(b1, ts1.getSerialNumber(), 1.0, -22.0);
     svc.handleMessage(sell);
     svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
@@ -336,8 +336,8 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_ts ()
   {
-    Order sell = new Order(s1, ts1, -1.0, 23.0);
-    Order buy = new Order(b1, ts2, 1.0, -22.0);
+    Order sell = new Order(s1, ts1.getSerialNumber(), -1.0, 23.0);
+    Order buy = new Order(b1, ts2.getSerialNumber(), 1.0, -22.0);
     svc.handleMessage(sell);
     svc.handleMessage(buy);
     assertEquals("two orders received", 2, svc.getIncoming().size());
@@ -503,6 +503,111 @@ public class AuctionServiceTests
     assertEquals("correct timeslot", ts2, ct.getTimeslot());
     assertEquals("correct mWh", 1.9, ct.getExecutionMWh(), 1e-6);
     assertEquals("correct price", 20.5, ct.getExecutionPrice(), 1e-6);
+  }
+
+  // three asks, two bids, all tradeable
+  @Test
+  public void testActivate3_eq_tradeable ()
+  {
+    Order sell1 = new Order(s1, ts2.getSerialNumber(), -0.9, 18.0);
+    Order sell2 = new Order(s2, ts2.getSerialNumber(), -1.0, 20.0);
+    Order sell3 = new Order(s2, ts2.getSerialNumber(), -1.0, 21.0);
+    Order buy1 = new Order(b1, ts2.getSerialNumber(), 0.8, -21.0);
+    Order buy1a = new Order(b1, ts2.getSerialNumber(), 0.2, -21.0);
+    Order buy1b = new Order(b1, ts2.getSerialNumber(), 0.2, -21.0);
+    Order buy1c = new Order(b1, ts2.getSerialNumber(), 0.2, -21.0);
+    Order buy2 = new Order(b2, ts2.getSerialNumber(), 0.6, -22.0);
+    svc.handleMessage(sell1);
+    svc.handleMessage(sell2);
+    svc.handleMessage(sell3);
+    svc.handleMessage(buy1);
+    svc.handleMessage(buy1a);
+    svc.handleMessage(buy1b);
+    svc.handleMessage(buy1c);
+    svc.handleMessage(buy2);
+    assertEquals("eight orders received", 8, svc.getIncoming().size());
+    svc.activate(timeService.getCurrentTime(), 2);
+    assertEquals("accounting: 14 calls", 14, accountingArgs.size());
+    // first tx should be ask, second bid
+    Object[] args = accountingArgs.get(0);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", -0.6, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(1);
+    assertEquals("b2", b2, args[0]); // b2 had the higher bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", 0.6, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(2);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", -0.3, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(3);
+    assertEquals("b1", b1, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", 0.3, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(4);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", -0.5, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(5);
+    assertEquals("b1", b1, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", 0.5, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(6);
+    assertEquals("s2", s2, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", -0.2, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(7);
+    assertEquals("b1", b1, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", 0.2, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(8);
+    assertEquals("s2", s2, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", -0.2, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(9);
+    assertEquals("b1", b1, args[0]); // b1 had the lower bid price
+    assertEquals("ts2", ts2, args[1]);
+    assertEquals("mWh", 0.2, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    // two broker messages
+    assertEquals("2 messages", 2, brokerMsgs.size());
+    assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
+    Orderbook ob = (Orderbook) brokerMsgs.get(0);
+    assertEquals("correct timeslot", ts2, ob.getTimeslot());
+    assertEquals("correct clearing", 21.0, ob.getClearingPrice(), 1e-6);
+    assertEquals("one uncleared ask", 1, ob.getAsks().size());
+    assertEquals("correct qty", -0.9,
+        ob.getAsks().first().getMWh(), 1e-6);
+    assertEquals("correct price", 21.0,
+        ob.getAsks().first().getLimitPrice(), 1e-6);
+    assertEquals("no uncleared bids", 0, ob.getBids().size());
+
+    assertTrue("second is clearedTrade",
+        brokerMsgs.get(1) instanceof ClearedTrade);
+    ClearedTrade ct = (ClearedTrade) brokerMsgs.get(1);
+    assertEquals("correct timeslot", ts2, ct.getTimeslot());
+    assertEquals("correct mWh", 2.0, ct.getExecutionMWh(), 1e-6);
+    assertEquals("correct price", 21.0, ct.getExecutionPrice(), 1e-6);
   }
 
   // two asks, two bids, market order on one ask

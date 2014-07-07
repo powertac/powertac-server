@@ -485,15 +485,27 @@ public class AuctionService
       OrderWrapper other = (OrderWrapper) o;
       if (this.isMarketOrder())
         if (other.isMarketOrder())
-          return 0;
+          return ((Double) Math.abs(this.getMWh()))
+              .compareTo((Double) Math.abs(other.getMWh()));
         else
           return -1;
       else if (other.isMarketOrder())
         return 1;
       else
-        return (this.getLimitPrice() == 
-                (other.getLimitPrice()) ? 0 :
-                  (this.getLimitPrice() < other.getLimitPrice() ? -1 : 1));
+        if (this.getLimitPrice() == other.getLimitPrice()) {
+          return ((Double) Math.abs(this.getMWh()))
+              .compareTo((Double) Math.abs(other.getMWh()));
+        }
+        else {
+          return (this.getLimitPrice() > other.getLimitPrice() ? 1 : -1);
+        }
+    }
+
+    public boolean equals (OrderWrapper other) {
+      if (this.isMarketOrder())
+        return (other.isMarketOrder());
+      return (this.getLimitPrice() == other.getLimitPrice()
+          && (this.getMWh() == other.getMWh()));
     }
   }
 
