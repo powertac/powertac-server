@@ -16,6 +16,8 @@
 package org.powertac.common;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 /**
  * Represents available regulation capacity for a given TariffSubscription.
@@ -25,9 +27,12 @@ import org.apache.log4j.Logger;
  * 
  * @author John Collins
  */
+@Domain
 public class RegulationCapacity
 {
   protected static Logger log = Logger.getLogger(RegulationCapacity.class.getName());
+
+  long id = IdGenerator.createId();
 
   // ignore small numbers
   private static double epsilon = 1e-4;
@@ -60,6 +65,11 @@ public class RegulationCapacity
     this.downRegulationCapacity = downRegulationCapacity;
   }
 
+  public long getId ()
+  {
+    return id;
+  }
+
   /**
    * Returns the available up-regulation capacity in kWh.
    * Value is non-negative.
@@ -73,6 +83,7 @@ public class RegulationCapacity
    * Sets the up-regulation value.
    * Argument must be non-negative.
    */
+  @StateChange
   public void setUpRegulationCapacity (double value)
   {
     double filteredValue = filterValue(value);
@@ -97,6 +108,7 @@ public class RegulationCapacity
    * Sets the down-regulation value.
    * Argument must be non-negative.
    */
+  @StateChange
   public void setDownRegulationCapacity (double value)
   {
     double filteredValue = filterValue(value);
@@ -113,8 +125,8 @@ public class RegulationCapacity
    */
   public void add (RegulationCapacity rc)
   {
-    upRegulationCapacity += rc.upRegulationCapacity;
-    downRegulationCapacity += rc.downRegulationCapacity;
+    setUpRegulationCapacity(upRegulationCapacity + rc.upRegulationCapacity);
+    setDownRegulationCapacity(downRegulationCapacity + rc.downRegulationCapacity);
   }
 
   /**
@@ -127,7 +139,7 @@ public class RegulationCapacity
       log.warn("Attempt to add negative up-regulation capacity " + amount);
       return;
     }
-    upRegulationCapacity += amount;
+    setUpRegulationCapacity(upRegulationCapacity + amount);
   }
 
   /**
@@ -140,7 +152,7 @@ public class RegulationCapacity
       log.warn("Attempt to add positive down-regulation capacity " + amount);
       return;
     }
-    downRegulationCapacity += amount;
+    setDownRegulationCapacity(downRegulationCapacity + amount);
   }
 
   // filter out small values
