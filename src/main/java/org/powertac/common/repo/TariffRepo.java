@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011-2013 by John Collins.
+* Copyright (c) 2011-2014 by John Collins.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -257,6 +257,8 @@ public class TariffRepo implements DomainRepo
   public synchronized void deleteTariff (Tariff tariff)
   {
     tariffs.remove(tariff.getId());
+    List<Tariff> bt = brokerTariffs.get(tariff.getBroker().getId());
+    bt.remove(tariff);
     removeSpecification(tariff.getId());
   }
 
