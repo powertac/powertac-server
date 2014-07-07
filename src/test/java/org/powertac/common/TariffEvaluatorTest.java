@@ -785,6 +785,7 @@ public class TariffEvaluatorTest
     assertEquals("two calls", 2, calls.size());
     assertEquals("-5000 for jim",
                  new Integer(-5000), calls.get(jimTariff));
+    assertEquals("none for default", null, calls.get(defaultConsumption));
     assertEquals("+5000 for bob",
                  new Integer(5000), calls.get(bobTariff));
   }
@@ -849,11 +850,13 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     evaluator.evaluateTariffs();
-    assertEquals("two calls", 2, calls.size());
+    assertEquals("three calls", 3, calls.size());
     assertEquals("-5000 for jim",
                  new Integer(-5000), calls.get(jimTariff));
-    assertEquals("+5000 for jimSuper",
-                 new Integer(5000), calls.get(jimSuper));
+    assertEquals("+2500 for jimSuper",
+                 new Integer(2500), calls.get(jimSuper));
+    assertEquals("+2500 for bob",
+                 new Integer(2500), calls.get(bobTariff));
   }
 
   // Revoke to superseding tariff
@@ -961,7 +964,7 @@ public class TariffEvaluatorTest
     @Override
     public double getBrokerSwitchFactor (boolean isSuperseding)
     {
-      double multiplier = isSuperseding? 5.0: 1.0;
+      double multiplier = isSuperseding? 0.0: 1.0;
       return multiplier * brokerSwitchFactor;
     }
 

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.CustomerModelAccessor;
@@ -347,10 +348,11 @@ public class TariffEvaluator
                                            int population,
                                            Tariff defaultTariff,
                                            EvalData defaultEval,
-                                           HashSet<Tariff> tariffs)
+                                           Set<Tariff> initialTariffs)
   {
     // Associate each alternate tariff with its utility value
     PriorityQueue<TariffUtility> evals = new PriorityQueue<TariffUtility>();
+    HashSet<Tariff> tariffs = new HashSet<Tariff>(initialTariffs);
     tariffs.add(defaultTariff);
 
     // Check whether the current tariff is revoked, add it if not
