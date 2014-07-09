@@ -511,7 +511,7 @@ public class AuctionService
           return (this.getMWh() == other.getMWh());
         else
           return false;
-      return (this.getLimitPrice() == other.getLimitPrice()
+      return ((Math.abs(this.getLimitPrice() - other.getLimitPrice()) < epsilon)
           && (this.getMWh() == other.getMWh()));
     }
   }
