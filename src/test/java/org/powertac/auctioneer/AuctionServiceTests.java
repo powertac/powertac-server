@@ -430,11 +430,11 @@ public class AuctionServiceTests
   @Test
   public void testActivate2_2_tradeable ()
   {
-    Order sell1 = new Order(s1, ts2, -0.9, 18.0);
-    Order sell2 = new Order(s2, ts2, -1.0, 20.0);
-    Order sell3 = new Order(s2, ts2, -1.0, 21.5);
-    Order buy1 = new Order(b1, ts2, 1.4, -21.0);
-    Order buy2 = new Order(b2, ts2, 0.6, -22.0);
+    Order sell1 = new Order(s1, ts2.getSerialNumber(), -0.9, 18.0);
+    Order sell2 = new Order(s2, ts2.getSerialNumber(), -1.0, 20.0);
+    Order sell3 = new Order(s2, ts2.getSerialNumber(), -1.0, 21.5);
+    Order buy1 = new Order(b1, ts2.getSerialNumber(), 1.4, -21.0);
+    Order buy2 = new Order(b2, ts2.getSerialNumber(), 0.6, -22.0);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(sell3);

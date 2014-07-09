@@ -483,27 +483,34 @@ public class AuctionService
     @Override
     public int compareTo(OrderWrapper o) {
       OrderWrapper other = (OrderWrapper) o;
+      // negative qty is ask
+      double sign = Math.signum(this.getMWh());
+      Double thisQty = sign * this.getMWh();
+      Double otherQty = sign * other.getMWh();
       if (this.isMarketOrder())
         if (other.isMarketOrder())
-          return ((Double) Math.abs(this.getMWh()))
-              .compareTo((Double) Math.abs(other.getMWh()));
+          return -thisQty.compareTo(otherQty);
         else
           return -1;
       else if (other.isMarketOrder())
         return 1;
       else
-        if (this.getLimitPrice() == other.getLimitPrice()) {
-          return ((Double) Math.abs(this.getMWh()))
-              .compareTo((Double) Math.abs(other.getMWh()));
+        if (Math.abs(this.getLimitPrice() - other.getLimitPrice()) < epsilon) {
+          // qty is ascending for negative values, descending for positive values
+          return -thisQty.compareTo(otherQty);
         }
         else {
+          // price is always ascending
           return (this.getLimitPrice() > other.getLimitPrice() ? 1 : -1);
         }
     }
 
     public boolean equals (OrderWrapper other) {
       if (this.isMarketOrder())
-        return (other.isMarketOrder());
+        if (other.isMarketOrder())
+          return (this.getMWh() == other.getMWh());
+        else
+          return false;
       return (this.getLimitPrice() == other.getLimitPrice()
           && (this.getMWh() == other.getMWh()));
     }
