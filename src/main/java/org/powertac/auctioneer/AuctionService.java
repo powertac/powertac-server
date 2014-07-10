@@ -489,15 +489,15 @@ public class AuctionService
       Double otherQty = sign * other.getMWh();
       if (this.isMarketOrder())
         if (other.isMarketOrder())
-          return -thisQty.compareTo(otherQty);
+          return compareQty(thisQty, otherQty);
         else
           return -1;
       else if (other.isMarketOrder())
         return 1;
       else
-        if (Math.abs(this.getLimitPrice() - other.getLimitPrice()) < epsilon) {
+        if (this.getLimitPrice().equals(other.getLimitPrice())) {
           // qty is ascending for negative values, descending for positive values
-          return -thisQty.compareTo(otherQty);
+          return compareQty(thisQty, otherQty);
         }
         else {
           // price is always ascending
@@ -511,9 +511,14 @@ public class AuctionService
           return (this.getMWh() == other.getMWh());
         else
           return false;
-      return ((Math.abs(this.getLimitPrice() - other.getLimitPrice()) < epsilon)
-          && (this.getMWh() == other.getMWh()));
+      return (this.getLimitPrice().equals(other.getLimitPrice())
+              && (this.getMWh() == other.getMWh()));
     }
+  }
+
+  private int compareQty (Double thisQty, Double otherQty)
+  {
+    return -thisQty.compareTo(otherQty);
   }
 
   @Override
