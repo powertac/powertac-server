@@ -10,7 +10,7 @@
   
   <artifactId>customer-models</artifactId>
   <name>PowerTAC customer models</name>
-  <version>1.1.0</version>
+  <version>1.1.0-SNAPSHOT</version>
   <description />
   
   <dependencies>
@@ -35,9 +35,9 @@
   </repositories>
   
   <scm>
-    <connection>scm:git:git//github.com/powertac/genco.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/genco.git</developerConnection>
-    <url>https://github.com/powertac/genco</url>
+    <connection>scm:git:git//github.com/powertac/customer-models.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/customer-models.git</developerConnection>
+    <url>https://github.com/powertac/customer-models</url>
   </scm>
 
 </project>
