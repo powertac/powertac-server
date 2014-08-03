@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.powertac</groupId>
   <artifactId>server-master</artifactId>
-  <version>1.1.0</version>
+  <version>1.2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Power TAC server master</name>
   <description>Dependencies and structure for all powertac server modules</description>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
-      <version>1.1.0</version>
+      <version>1.2.0-SNAPSHOT</version>
     </dependency>
     
     <!-- Test dependencies - not inherited from common -->
