@@ -461,6 +461,7 @@ public class TariffMarketServiceTests
     assertNotNull("non-null status", status);
     assertEquals("correct status ID", ts2.getId(), status.getUpdateId());
     assertEquals("invalid", TariffStatus.Status.invalidTariff, status.getStatus());
+    assertEquals("only one message received", 1, msgs.size());
   }
 
   // TOU rate without gap should be valid

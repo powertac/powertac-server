@@ -372,6 +372,7 @@ public class TariffMarketService
       send(new TariffStatus(spec.getBroker(), spec.getId(), spec.getId(),
                             TariffStatus.Status.invalidTariff)
           .withMessage("incomplete coverage in multi-rate tariff"));
+      return;
     }
     log.info("new tariff " + spec.getId());
     accountingService.addTariffTransaction(TariffTransaction.Type.PUBLISH,
