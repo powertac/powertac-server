@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2011 - 2013 by the original author
+* Copyright (c) 2011 - 2014 by John Collins
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -139,6 +139,7 @@ public class TimeService
   {
     currentTime = new Instant(start.getMillis() - modulo);
     currentDateTime = new DateTime(currentTime, DateTimeZone.UTC);
+    DateTimeZone.setDefault(DateTimeZone.UTC);
   }
   
   /**

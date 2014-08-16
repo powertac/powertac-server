@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2014 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,11 @@ import org.powertac.common.spring.SpringApplicationContext;
  * and re-initialize it for each tariff. Therefore, only a default
  * constructor is provided, along with an init() method that clears out
  * state and optionally sets parameter values.
+ * 
+ * Evalution of time-of-use rates depends on being able to compute the hour
+ * of the day for some arbitrary offset. This functionality depends on the
+ * Joda Time "default time zone" being set to DateTimeZone.UTC. This normally
+ * happens in the TimeService, but may also need to be done in test code.
  * 
  * @author John Collins
  */
@@ -175,7 +180,7 @@ public class TariffEvaluationHelper
       result += tariff.getUsageCharge(time, usage[index], dailyUsage, this);
       if (includePeriodicCharge)
         result += tariff.getPeriodicPayment() / 24.0;
-      if (timeService.getHourOfDay() == 0) {
+      if (time.toDateTime().getHourOfDay() == 0) {
         //reset the daily usage counter
         dailyUsage = 0.0;
       }

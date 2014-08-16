@@ -47,7 +47,7 @@ public class TariffEvaluationHelperTest
     tariffRepo = new TariffRepo();
     ReflectionTestUtils.setField(teh, "timeService", timeService);
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
-    timeService.setCurrentTime(start);
+    timeService.init(start.plus(TimeService.HOUR)); // init subtracts one hour
     broker = new Broker ("testBroker");
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION);
   }
@@ -140,6 +140,7 @@ public class TariffEvaluationHelperTest
     tariff.addHourlyCharge(hc, r.getId());
     tariff.getUsageCharge(10000.0, 0.0, true);
 
+    // alpha = 0.75
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = new double[1];
     usage[0] = 0.0;
@@ -182,6 +183,29 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage);
     assertEquals("correct result", -30.0, result, 1e-6);
+  }
+
+  @Test
+  public void testEstimatedCostTOU ()
+  {
+    Rate r1 = new Rate().withFixed(true)
+        .withValue(-.1).withDailyBegin(12).withDailyEnd(16);
+    Rate r2 = new Rate().withFixed(true)
+        .withValue(-.2).withDailyBegin(17).withDailyEnd(11);
+    tariffSpec.addRate(r1);
+    tariffSpec.addRate(r2);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r1, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+
+    teh.init(.6, .4, .5, 10000.0);
+    double[] usage = {100.0, 100.0, 200.0, 200.0, 200.0, 300.0};
+    double expected = 600.0 * -.1 + 500.0 * -.2;
+    double result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", expected, result, 1e-6);
+
   }
 
   @Test
