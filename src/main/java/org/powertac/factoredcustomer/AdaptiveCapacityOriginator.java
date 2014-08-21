@@ -17,8 +17,12 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import org.apache.log4j.Logger;
 import org.powertac.common.TariffSubscription;
@@ -43,9 +47,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     private final ProfileOptimizerStructure optimizerStructure;
 
     private final Random recommendationHandler;
-    
-    
-    
+
     AdaptiveCapacityOriginator(FactoredCustomerService service,
                                CapacityStructure capacityStructure,
                                DefaultCapacityBundle bundle) 
@@ -110,16 +112,26 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
                 bestUtility = entry.getValue();
                 bestProfile = entry.getKey();
             }
-        }        
-        if (bestProfile == null) throw new Error("Best profile in recommendation is null!");
+        }
+        if (bestProfile == null)
+          throw new Error("Best profile in recommendation is null!");
         return bestProfile;
     }
     
     private CapacityProfile drawProfileFromRecommendation(ProfileRecommendation rec) 
     {
-        double draw = recommendationHandler.nextFloat();        
+        double draw = recommendationHandler.nextFloat();
+        // sort map entries, for reproducability
+        ArrayList<Map.Entry<CapacityProfile, Double>> l =
+            new ArrayList<Entry<CapacityProfile, Double>>(rec.getProbabilities().entrySet());
+        Collections.sort(l, new Comparator<Map.Entry<CapacityProfile, Double>>(){
+          @Override
+          public int compare(Map.Entry<CapacityProfile, Double> o1, Map.Entry<CapacityProfile, Double> o2) {
+             return o1.getValue().compareTo(o2.getValue());
+         }});
+        // use the sorted map and the draw to sample an entry 
         double sumProb = 0.0;
-        for (AbstractMap.Entry<CapacityProfile, Double> entry: rec.getProbabilities().entrySet()) {
+        for (AbstractMap.Entry<CapacityProfile, Double> entry: l) {
             sumProb += entry.getValue();
             if (draw < sumProb) {
                 return entry.getKey();
