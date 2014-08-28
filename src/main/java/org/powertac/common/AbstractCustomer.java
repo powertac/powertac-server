@@ -226,6 +226,9 @@ public class AbstractCustomer
   /**
    * Function utilized at the beginning in order to subscribe to the default
    * tariff
+   * NOTE: This requires access to tariffMarketService, and is used only
+   * during initialization (when the customerService could do the job) and
+   * in test code. I recommend removal -- JEC.
    */
   public void subscribeDefault ()
   {
