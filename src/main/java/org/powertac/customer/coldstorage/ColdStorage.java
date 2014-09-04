@@ -21,6 +21,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.log4j.Logger;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
@@ -30,6 +31,7 @@ import org.powertac.common.WeatherReport;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
@@ -46,7 +48,9 @@ import org.powertac.customer.AbstractCustomer;
  */
 @Domain
 @ConfigurableInstance
-public class ColdStorage extends AbstractCustomer
+public class ColdStorage
+extends AbstractCustomer
+implements CustomerModelAccessor
 {
   static private Logger log = Logger.getLogger(ColdStorage.class.getName());
 
@@ -80,6 +84,7 @@ public class ColdStorage extends AbstractCustomer
   private double hysteresis = 0.04; // control range
 
   // model state
+  private PowerType powerType;
   private RandomSeed opSeed;
   private NormalDistribution normal01;
   private RandomSeed evalSeed;
@@ -123,11 +128,14 @@ public class ColdStorage extends AbstractCustomer
   {
     log.info("Initialize " + name);
     // fill out CustomerInfo
-    getCustomerInfo().withPowerType(PowerType.THERMAL_STORAGE_CONSUMPTION)
+    powerType = PowerType.THERMAL_STORAGE_CONSUMPTION;
+    CustomerInfo info = new CustomerInfo(name, 1);
+    info.withPowerType(powerType)
         .withControllableKW(-unitSize / cop)
         .withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
         .withUpRegulationKW(-unitSize / cop)
         .withDownRegulationKW(unitSize / cop); // optimistic, perhaps
+    addCustomerInfo(info);
     ensureSeeds();
     // randomize current temp only if state not set
     if (null == currentTemp) {
@@ -158,6 +166,11 @@ public class ColdStorage extends AbstractCustomer
       normal01 = new NormalDistribution(0.0, 1.0);
       normal01.reseedRandomGenerator(opSeed.nextLong());
     }
+  }
+
+  public CustomerInfo getCustomerInfo ()
+  {
+    return getCustomerInfo(powerType);
   }
 
   // ----------------------- Run the model ------------------------
@@ -218,7 +231,7 @@ public class ColdStorage extends AbstractCustomer
   // always one, there should only ever be one of them
   private TariffSubscription getSubscription ()
   {
-    List<TariffSubscription> subs = getCurrentSubscriptions();
+    List<TariffSubscription> subs = getCurrentSubscriptions(powerType);
     if (subs.size() > 1) {
       log.warn("Multiple subscriptions " + subs.size() + " for " + getName());
     }

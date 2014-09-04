@@ -123,10 +123,11 @@ implements InitializationService, BootstrapState, NewTariffListener
                           tariffRepo, tariffSubscriptionRepo);
         model.initialize();
         // set default tariff here to make models testable outside Spring.
-        CustomerInfo cust = model.getCustomerInfo();
-        tariffMarketService.subscribeToTariff(tariffMarketService
-            .getDefaultTariff(cust.getPowerType()), cust, cust.getPopulation());
-        customerRepo.add(model.getCustomerInfo());
+        for (CustomerInfo cust: model.getCustomerInfos()) {
+          tariffMarketService.subscribeToTariff(tariffMarketService
+                                                .getDefaultTariff(cust.getPowerType()), cust, cust.getPopulation());
+          customerRepo.add(cust);
+        }
       }
     }
     return "Customer";

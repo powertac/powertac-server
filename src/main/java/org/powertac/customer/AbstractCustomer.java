@@ -15,15 +15,21 @@
  */
 package org.powertac.customer;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+//import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.interfaces.CustomerModelAccessor;
-import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.enumerations.PowerType;
+//import org.powertac.common.interfaces.CustomerModelAccessor;
+//import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
@@ -34,10 +40,13 @@ import org.powertac.common.repo.WeatherReportRepo;
  * @author John Collins
  */
 @ConfigurableInstance
-public abstract class AbstractCustomer implements CustomerModelAccessor
+public abstract class AbstractCustomer //implements CustomerModelAccessor
 {
+  static protected Logger log = Logger.getLogger(AbstractCustomer.class
+                                                 .getName());
+
   protected String name = "dummy";
-  protected CustomerInfo customerInfo;
+  protected HashMap<PowerType, CustomerInfo> customerInfos;
 
   // Services available to subclasses, populated by setServices()
   protected WeatherReportRepo weatherReportRepo;
@@ -61,7 +70,7 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
   {
     super();
     this.name = name;
-    this.customerInfo = new CustomerInfo(name, 1);
+    this.customerInfos = new HashMap<PowerType, CustomerInfo>();
   }
 
   /**
@@ -81,11 +90,36 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
   /**
    * Initializes the instance. Called after configuration, and after
    * a call to setServices().
-   * Subclasses must call this method to get the CustomerInfo registered.
-   * @param randomSeedRepo 
    */
-  public void initialize ()
+  public abstract void initialize ();
+
+  /**
+   * Adds an additional CustomerInfo to the list
+   */
+  public void addCustomerInfo (CustomerInfo info)
   {
+    if (null != customerInfos.get(info.getPowerType())) {
+      log.error("PowerType " + info.getPowerType().toString()
+                + " already specified");
+    }
+  }
+
+  /**
+   * Returns the CustomerInfo associated with this instance. It is up to
+   * individual models to fill out the fields.
+   */
+  public CustomerInfo getCustomerInfo (PowerType pt)
+  {
+    return customerInfos.get(pt);
+  }
+
+  /**
+   * Returns the list of CustomerInfo records associated with this customer
+   * model.
+   */
+  public Collection<CustomerInfo> getCustomerInfos ()
+  {
+    return customerInfos.values();
   }
 
   /**
@@ -109,16 +143,6 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
     return name;
   }
 
-  /**
-   * Returns the CustomerInfo associated with this instance. It is up to
-   * individual models to fill out the fields.
-   */
-  @Override
-  public CustomerInfo getCustomerInfo ()
-  {
-    return customerInfo;
-  }
-
   @ConfigurableValue(valueType = "String",
       description = "instance name - required")
   public void setName (String name)
@@ -129,10 +153,10 @@ public abstract class AbstractCustomer implements CustomerModelAccessor
   /**
    * Returns the current tariff subscriptions for this model
    */
-  public List<TariffSubscription> getCurrentSubscriptions ()
+  public List<TariffSubscription> getCurrentSubscriptions (PowerType powerType)
   {
     return tariffSubscriptionRepo
-        .findActiveSubscriptionsForCustomer(getCustomerInfo());
+        .findActiveSubscriptionsForCustomer(getCustomerInfo(powerType));
   }
 }
 
