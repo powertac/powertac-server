@@ -118,7 +118,6 @@ public class TimeslotRepoTests
     assertEquals("11 entries", 11, repo.count());
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots0 ()
   {
@@ -131,7 +130,6 @@ public class TimeslotRepoTests
     assertEquals("first is ts1", ts1, enabled.get(0));
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots1 ()
   {
@@ -144,7 +142,17 @@ public class TimeslotRepoTests
     assertEquals("first is ts1", ts1, enabled.get(0));
   }
 
-  @SuppressWarnings("unused")
+  @Test
+  public void testTimeForIndex ()
+  {
+    Timeslot ts0 = repo.makeTimeslot(baseTime);
+    Timeslot ts1 = repo.makeTimeslot(new Instant(baseTime.getMillis() + TimeService.HOUR));
+    long tsDuration = Competition.currentCompetition().getTimeslotDuration();
+    assertEquals("correct base index", 0, ts0.getSerialNumber());
+    assertEquals("correct offset", baseTime.plus(tsDuration * 3),
+                 repo.getTimeForIndex(3));
+  }
+
   @Test
   public void testRecycle ()
   {
