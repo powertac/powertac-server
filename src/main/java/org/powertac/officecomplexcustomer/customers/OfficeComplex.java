@@ -1535,7 +1535,7 @@ public class OfficeComplex extends AbstractCustomer
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       double[] result = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
