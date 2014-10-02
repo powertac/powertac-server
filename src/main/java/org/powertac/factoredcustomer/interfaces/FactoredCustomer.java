@@ -30,6 +30,8 @@ public interface FactoredCustomer
     void evaluateTariffs();        
     
     void handleNewTimeslot();
+
+    void updatedSubscriptionRepo();
 }
 
 

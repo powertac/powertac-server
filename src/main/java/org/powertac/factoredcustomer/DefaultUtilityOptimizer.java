@@ -222,9 +222,19 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   // /////////////// TIMESLOT ACTIVITY //////////////////////
 
+  /**
+   * used by LearningUtilityOptimizer to execute actions
+   * that need updated repo (currently shifting computations)
+   */
+  @Override
+  public void updatedSubscriptionRepo() {
+    
+  }
+
   @Override
   public void handleNewTimeslot (Timeslot timeslot)
   {
+    //log.info("Daniel handleNewTimeslot()");
     //checkRevokedSubscriptions();
     usePower(timeslot);
   }
@@ -244,6 +254,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   private void usePower (Timeslot timeslot)
   {
+    //log.info("Daniel usePower()");
     for (CapacityBundle bundle: capacityBundles) {
       List<TariffSubscription> subscriptions =
         getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(bundle
@@ -262,6 +273,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           totalUsageCharge += charge;
         }
         subscription.usePower(currCapacity);
+        //log.info("Daniel currCapaticy=" + currCapacity);
         totalCapacity += currCapacity;
       }
       log.info(bundle.getName() + ": Total " + bundle.getPowerType()
@@ -276,9 +288,11 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   public double useCapacity (TariffSubscription subscription,
                              CapacityBundle bundle)
   {
+    //log.info("Daniel useCapacity()");
     double capacity = 0;
     for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
       capacity += capacityOriginator.useCapacity(subscription);
+      //log.info("Daniel: updated capacity " + capacity );
     }
     return capacity;
   }
@@ -319,7 +333,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
       double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
@@ -328,6 +342,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
           double hourlyUsage = usageSign * forecast.getCapacity(i);
           usageForecast[i] += hourlyUsage / bundle.getPopulation();
+          //log.info("Daniel forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
         }
       }
       return usageForecast;

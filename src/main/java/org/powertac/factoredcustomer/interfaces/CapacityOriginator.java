@@ -28,6 +28,8 @@ public interface CapacityOriginator
 
     CapacityProfile getForecastForNextTimeslot();
 
+    CapacityProfile getCurrentForecastPerSub(TariffSubscription sub);
+
     double useCapacity(TariffSubscription subscription);
 
     double adjustCapacityForSubscription(int timeslot, double totalCapacity, TariffSubscription subscription);
@@ -35,6 +37,7 @@ public interface CapacityOriginator
     String getCapacityName();
 
     CapacityBundle getParentBundle();
+
 }
 
 

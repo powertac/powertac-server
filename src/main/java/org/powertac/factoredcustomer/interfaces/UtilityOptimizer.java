@@ -29,6 +29,8 @@ public interface UtilityOptimizer
     void evaluateTariffs ();
     
     void handleNewTimeslot(Timeslot timeslot);
+
+    void updatedSubscriptionRepo();
 }
 
 

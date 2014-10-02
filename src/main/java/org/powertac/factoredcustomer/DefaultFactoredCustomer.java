@@ -101,6 +101,11 @@ class DefaultFactoredCustomer implements FactoredCustomer
         utilityOptimizer.evaluateTariffs();
     }
 	    
+    @Override
+    public void updatedSubscriptionRepo() {
+      utilityOptimizer.updatedSubscriptionRepo();
+    }
+
     @Override 
     public void handleNewTimeslot()
     {

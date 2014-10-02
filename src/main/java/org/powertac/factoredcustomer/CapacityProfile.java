@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.apache.log4j.Logger;
 import org.powertac.common.state.Domain;
 
 /**
@@ -31,6 +32,8 @@ import org.powertac.common.state.Domain;
 @Domain
 public final class CapacityProfile
 {
+    static private Logger log = Logger.getLogger(CapacityProfile.class);
+
     enum PermutationRule { TEMPORAL_SHIFTS, BALANCING_SHIFTS, ALL_SHIFTS }
     
     static final int NUM_TIMESLOTS = 24;
@@ -38,7 +41,7 @@ public final class CapacityProfile
     private static final int MAX_BALANCING_SHIFTS = 24;
     private static final double BALANCING_SHIFTS_EPSILON = 0.1;  // range as percent of max
     
-    private List<Double> values;
+    public List<Double> values;
     
     
     CapacityProfile(Double uniformValue)
@@ -94,7 +97,9 @@ public final class CapacityProfile
         case ALL_SHIFTS:
             perms = new ArrayList<CapacityProfile>();
             perms.addAll(getTimeShiftedPermutations());
+            //log.info("Daniel timeshifted permutations.size " + perms.size());
             perms.addAll(getPeakShiftedPermutations());
+            //log.info("Daniel allpermutations.size " + perms.size());
             break;
         default:
             throw new Error("Unexpected value for permutation rule: " + rule);

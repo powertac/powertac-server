@@ -130,6 +130,12 @@ class DefaultCapacityOriginator implements CapacityOriginator
     }
     return new CapacityProfile(values);
   }
+  
+  @Override
+  public CapacityProfile getCurrentForecastPerSub(TariffSubscription sub) {
+    // DefaultCapacityOriginator doesn't track subscriptions, so:
+    return getCurrentForecast();
+  }
 
   protected double getForecastCapacity (int timeslot)
   {
@@ -141,6 +147,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
 
   private double computeForecastCapacity (int future)
   {
+    //log.info("Daniel computeForecastCapacity()");
     int now = service.getTimeslotRepo().currentSerialNumber();
     int timeToFuture = future - now;
     Weather weather = null;
@@ -161,7 +168,10 @@ class DefaultCapacityOriginator implements CapacityOriginator
     if (weather == null)
       throw new Error("Could not find weather forecast for timeslot " + future);
 
+    //log.info("Daniel wind speed =" + weather.getWindSpeed());
+    
     double baseCapacity = getBaseCapacity(future);
+    //log.info("Daniel baseCapacity" + baseCapacity);
     if (Double.isNaN(baseCapacity))
       throw new Error("Base capacity is NaN!");
 
@@ -172,15 +182,18 @@ class DefaultCapacityOriginator implements CapacityOriginator
                                     service.getTimeslotRepo()
                                     .getDateTimeForIndex(future),
                                     false);
+    //log.info("Daniel forecastCapacity after periodic skew: " + forecastCapacity);
     forecastCapacity =
       adjustCapacityForWeather(forecastCapacity, weather, false);
+    //log.info("Daniel forecastCapacity after weather skew: " + forecastCapacity);
     if (Double.isNaN(forecastCapacity))
       throw new Error("Adjusted capacity is NaN for base capacity = "
                       + baseCapacity);
 
     forecastCapacity = truncateTo2Decimals(forecastCapacity);
+    //log.info("Daniel forecastCapacity after truncation do decimals: " + forecastCapacity);
     forecastCapacities.put(future, forecastCapacity);
-    log.debug(logIdentifier + ": Forecast capacity for timeslot " + future
+    log.debug(logIdentifier + ": Daniel Forecast capacity for timeslot " + future
               + " = " + forecastCapacity);
     return forecastCapacity;
   }
@@ -238,6 +251,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
   @Override
   public double useCapacity (TariffSubscription subscription)
   {
+    //log.info("Daniel useCapacity()");
     int timeslot = service.getTimeslotRepo().currentSerialNumber();
 
     double baseCapacity = getBaseCapacity(timeslot);
@@ -335,6 +349,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
       int temperature = (int) Math.round(weather.getTemperature());
       weatherFactor =
         weatherFactor * capacityStructure.temperatureMap.get(temperature);
+      //log.info("weatherFactor after temperatureInfluence.DIRECT: " + weatherFactor);
     }
     else if (capacityStructure.temperatureInfluence == InfluenceKind.DEVIATION) {
       int curr = (int) Math.round(weather.getTemperature());
@@ -351,16 +366,19 @@ class DefaultCapacityOriginator implements CapacityOriginator
         }
       }
       weatherFactor = weatherFactor * deviationFactor;
+      //log.info("weatherFactor after temperatureInfluence.DEVIATION: " + weatherFactor);
     }
     if (capacityStructure.windSpeedInfluence == InfluenceKind.DIRECT) {
       int windSpeed = (int) Math.round(weather.getWindSpeed());
       weatherFactor =
         weatherFactor * capacityStructure.windSpeedMap.get(windSpeed);
+      //log.info("weatherFactor after windSpeedInfluence.DIRECT: " + weatherFactor);
       if (windSpeed > 0.0
           && capacityStructure.windDirectionInfluence == InfluenceKind.DIRECT) {
         int windDirection = (int) Math.round(weather.getWindDirection());
         weatherFactor =
           weatherFactor * capacityStructure.windDirectionMap.get(windDirection);
+        //log.info("weatherFactor after windDirectionInfluence.DIRECT: " + weatherFactor);
       }
     }
     if (capacityStructure.cloudCoverInfluence == InfluenceKind.DIRECT) {
@@ -369,9 +387,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
                                                                         // ##%
       weatherFactor =
         weatherFactor * capacityStructure.cloudCoverMap.get(cloudCover);
+      //log.info("weatherFactor after cloudCoverInfluence.DIRECT: " + weatherFactor);
     }
     if (verbose)
       logCapacityDetails(logIdentifier + ": weather factor = " + weatherFactor);
+    //log.info("adjusted capacity " + capacity * weatherFactor);
     return capacity * weatherFactor;
   }
 
@@ -380,8 +400,12 @@ class DefaultCapacityOriginator implements CapacityOriginator
                                                double totalCapacity,
                                                TariffSubscription subscription)
   {
+    //log.info("adjustCapacityForSubscription()");
+    //log.info("totalCapacity=" + totalCapacity);
     double subCapacity =
       adjustCapacityForPopulationRatio(totalCapacity, subscription);
+    //log.info("subCapacity=" + subCapacity);
+    //log.info("adjustCapacityForTariffRates()=" + adjustCapacityForTariffRates(timeslot, subCapacity, subscription));
     return adjustCapacityForTariffRates(timeslot, subCapacity, subscription);
   }
 
@@ -389,6 +413,9 @@ class DefaultCapacityOriginator implements CapacityOriginator
     adjustCapacityForPopulationRatio (double capacity,
                                       TariffSubscription subscription)
   {
+    //log.info("adjustCapacityForPopulationRatio()");
+    //log.info("subscription.getCustomersCommitted()=" + subscription.getCustomersCommitted());
+    //log.info("parentBundle.getPopulation()=" + parentBundle.getPopulation());
     double popRatio =
       getPopulationRatio(subscription.getCustomersCommitted(),
                          parentBundle.getPopulation());

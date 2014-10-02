@@ -32,6 +32,7 @@ import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.interfaces.SubscriptionRepoListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.CustomerRepo;
@@ -56,7 +57,7 @@ import org.springframework.stereotype.Service;
  */
 @Service  // allow autowiring
 public class FactoredCustomerService extends TimeslotPhaseProcessor
-    implements InitializationService, NewTariffListener
+    implements InitializationService, NewTariffListener, SubscriptionRepoListener
 {
     private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
@@ -137,6 +138,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
         serverConfig.configureMe(this);
 
         tariffMarketService.registerNewTariffListener(this);
+        tariffMarketService.registerNewSubscriptionRepoListener(this);
     
         registerAvailableCustomerCreators();
     
@@ -271,6 +273,14 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     // Find the subset of tariffs to evaluate
     for (FactoredCustomer customer : customers) {
       customer.evaluateTariffs();
+    }
+  }
+
+  @Override
+  public void updatedSubscriptionRepo() {
+    // Find the subset of tariffs to evaluate
+    for (FactoredCustomer customer : customers) {
+      customer.updatedSubscriptionRepo();
     }
   }
 
