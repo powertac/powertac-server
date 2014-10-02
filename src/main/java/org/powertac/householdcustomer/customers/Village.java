@@ -1924,7 +1924,7 @@ public class Village extends AbstractCustomer
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       double[] result = new double[VillageConstants.HOURS_OF_DAY];
 
