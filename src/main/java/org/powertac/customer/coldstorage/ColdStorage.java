@@ -367,7 +367,7 @@ implements CustomerModelAccessor
   private Map<Tariff, TariffInfo> profiles = null;
   double nominalHourlyConsumption = 0.0;
   @Override
-  public double[] getCapacityProfile (Tariff tariff)
+  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
   {
     // lazy creation of profile table
     if (null == profiles) {
