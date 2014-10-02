@@ -24,6 +24,7 @@ import java.util.HashMap;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
@@ -135,6 +136,12 @@ class DefaultCapacityOriginator implements CapacityOriginator
   public CapacityProfile getCurrentForecastPerSub(TariffSubscription sub) {
     // DefaultCapacityOriginator doesn't track subscriptions, so:
     return getCurrentForecast();
+  }
+
+  @Override
+  public CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
+      TariffSubscription subscription) {
+    return getForecastForTimeslot(startingTimeslot);
   }
 
   protected double getForecastCapacity (int timeslot)

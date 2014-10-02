@@ -17,11 +17,13 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.math.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
+import org.powertac.common.ConfigServerBroker;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
@@ -93,16 +95,16 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     // Ignore cross-bundle optimization for now. For example, we could
     // produce more locally when we have higher local demand, but we don't
     // currently support net-metering in PowerTAC, so it won't do anything.
-
     for (CapacityBundle bundle: capacityBundles) {
     	 //log.info("Daniel receiveRecommendations " + bundle.getOptimizerStructure().receiveRecommendations );
+      List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
       if (bundle.getOptimizerStructure().receiveRecommendations == true) {
-        recommendProfilesToBundle(bundle);
+        recommendProfilesToBundle(bundle, subscriptions);
       }
     }
   }
 
-  private void recommendProfilesToBundle (CapacityBundle bundle)
+  private void recommendProfilesToBundle (CapacityBundle bundle, List<TariffSubscription> subscriptions)
   {
     /**
      * find all subscriptions
@@ -121,7 +123,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
      * + monitor deviation of actual from forecast and also from recommended
      **/
 
-    List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
+    //List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
 
     Map<CapacityOriginator, ForecastRecord> forecasts =
       new HashMap<CapacityOriginator, ForecastRecord>();
@@ -230,6 +232,56 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     sub2rec.put(sub, profileRecommendation);
   }
 
+  /**
+   * Predict how record will be shifted. Computed for one customer. 
+   * Sent to TariffEvaluationHelper as a part of evaluateTariffs().
+   * @param usageForecast
+   * @return
+   */
+  @Override
+  public double[] adjustForecastPerTariff(HashMap<CapacityOriginator,double[]> originator2usage, TariffSubscription dummySubscription, CapacityBundle bundle) {
+    //log.info("Daniel newway LearningUtilityOptimizer.adjustForecastPerTariff()");
+    // create a dummy subscription for the 'tariff' parameter
+    List<TariffSubscription> subscriptions = new ArrayList<TariffSubscription>();
+    subscriptions.add(dummySubscription);
+    recommendProfilesToBundle(bundle, subscriptions);
+
+    
+    int nextTimeslot = service.getTimeslotRepo().currentSerialNumber() + 1;
+
+    
+    HashMap<CapacityOriginator, double[]> originator2shiftedUsage = new HashMap<CapacityOriginator, double[]>();
+    //double[] result = new double[originator2usage.values().iterator().next().length];
+    for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+      if (capacityOriginator instanceof ProfileRecommendation.Listener) {
+        
+        // Daniel: here I changed the code that used to call handleProfileRecommendations
+        for (TariffSubscription sub : subscriptions) { // THERE SHOULD ONLY BE 1 (dummy) subscription
+          
+          CapacityProfile chosenProfile = capacityOriginator.getForecastPerSubStartingAt(nextTimeslot, sub);
+          
+          // converting profile to array
+          double[] usage = new double[CapacityProfile.NUM_TIMESLOTS];
+          for (int i=0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+            usage[i] = chosenProfile.getCapacity(i);
+          }
+          
+          originator2shiftedUsage.put(capacityOriginator, usage);
+          //// add usage profile to total bundle usage
+          //for (int i=0; i < result.length; ++i) {
+          //  result[i] += chosenProfile.getCapacity(i);
+          //}
+          
+          
+          // RESTORE: MUST REMOVE TO AVOID MEMORY LEAK
+          //forecastPerSub.remove(sub)
+        }
+      }
+    }
+    return super.adjustForecastPerTariff(originator2shiftedUsage, dummySubscription, bundle);
+  }
+
+
   private List<TariffSubscription>
     getBundleSubscriptions (CapacityBundle bundle)
   {
@@ -296,9 +348,9 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
           usageCharge; 
           //computeProfileUsageChargePerSub(perm, sub, capacityOriginator);
         opinion.profileChange = forecastRecord.capacityProfile.distanceTo(perm);
-        logRecommendationDetails("getProfileRecommendationPerSub(" + sub.getCustomer().getName() + ", " +
-          sub.getTariff().getId() + ") Permutation " + perm + " usage charge = " +
-          usageCharge + " distanceTo=" + opinion.profileChange);
+        //logRecommendationDetails("getProfileRecommendationPerSub(" + sub.getCustomer().getName() + ", " +
+        //  sub.getTariff().getId() + ") Permutation " + perm + " usage charge = " +
+        //  usageCharge + " distanceTo=" + opinion.profileChange);
         rec.setOpinion(perm, opinion);
       }
     }

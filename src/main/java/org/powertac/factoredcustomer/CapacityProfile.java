@@ -41,7 +41,7 @@ public final class CapacityProfile
     private static final int MAX_BALANCING_SHIFTS = 24;
     private static final double BALANCING_SHIFTS_EPSILON = 0.1;  // range as percent of max
     
-    public List<Double> values;
+    private List<Double> values;
     
     
     CapacityProfile(Double uniformValue)

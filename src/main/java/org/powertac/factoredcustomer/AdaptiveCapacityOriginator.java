@@ -170,8 +170,9 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
                 bestUtility = entry.getValue();
                 bestProfile = entry.getKey();
             }
-        }        
-        if (bestProfile == null) throw new Error("Best profile in recommendation is null!");
+        }
+        if (bestProfile == null)
+          throw new Error("Best profile in recommendation is null!");
         //log.info("selectBestProfileInRecommendation() " + Arrays.toString(bestProfile.values.toArray()));
         return bestProfile;
     }
@@ -179,6 +180,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     private CapacityProfile drawProfileFromRecommendation(ProfileRecommendation rec) 
     {
         double draw = recommendationHandler.nextFloat();
+        //log.info("drawProfileFromRecommendation(): " + draw);
         // sort map entries, for reproducability
         ArrayList<Map.Entry<CapacityProfile, Double>> l =
             new ArrayList<Entry<CapacityProfile, Double>>(rec.getProbabilities().entrySet());
@@ -270,20 +272,16 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         log.info(logIdentifier + ": Adjusted capacity for tariff " + subscription.getTariff().getId() + " = " + adjustedCapacity);        
         return adjustedCapacity;
     }
-
-
-
-
-
-
-
+    
+    // Daniel: some needed additions
     @Override
     public CapacityProfile getCurrentForecastPerSub(TariffSubscription sub) {
       int timeslot = service.getTimeslotRepo().currentSerialNumber();
       return getForecastPerSubStartingAt(timeslot, sub);
     }
 
-    private CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
+    @Override
+    public CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
         TariffSubscription subscription) {
       int timeslot = startingTimeslot;
       List<Double> values = new ArrayList<Double>();

@@ -38,6 +38,9 @@ public interface CapacityOriginator
 
     CapacityBundle getParentBundle();
 
+    CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
+        TariffSubscription subscription);
+
 }
 
 
