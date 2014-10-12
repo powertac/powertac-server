@@ -15,7 +15,6 @@
  */
 package org.powertac.customer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +39,9 @@ import org.powertac.common.repo.WeatherReportRepo;
  * @author John Collins
  */
 @ConfigurableInstance
-public abstract class AbstractCustomer //implements CustomerModelAccessor
+public abstract class AbstractCustomerDeprecated
 {
-  static protected Logger log = Logger.getLogger(AbstractCustomer.class
+  static protected Logger log = Logger.getLogger(AbstractCustomerDeprecated.class
                                                  .getName());
 
   protected String name = "dummy";
@@ -57,7 +56,7 @@ public abstract class AbstractCustomer //implements CustomerModelAccessor
   // current tariff subscription
   //protected TariffSubscription currentSubscription;
 
-  public AbstractCustomer ()
+  public AbstractCustomerDeprecated ()
   {
     super();
   }
@@ -66,7 +65,7 @@ public abstract class AbstractCustomer //implements CustomerModelAccessor
    * Sets up basic attributes. Population is 1 unless individual models
    * change it.
    */
-  public AbstractCustomer (String name)
+  public AbstractCustomerDeprecated (String name)
   {
     super();
     this.name = name;
@@ -102,11 +101,14 @@ public abstract class AbstractCustomer //implements CustomerModelAccessor
       log.error("PowerType " + info.getPowerType().toString()
                 + " already specified");
     }
+    else {
+      customerInfos.put(info.getPowerType(), info);
+    }
   }
 
   /**
-   * Returns the CustomerInfo associated with this instance. It is up to
-   * individual models to fill out the fields.
+   * Returns the CustomerInfo associated with this instance and PowerType. 
+   * It is up to individual models to fill out the fields.
    */
   public CustomerInfo getCustomerInfo (PowerType pt)
   {

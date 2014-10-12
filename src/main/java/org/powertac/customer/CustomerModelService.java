@@ -22,6 +22,7 @@ import java.util.ServiceLoader;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.AbstractCustomer;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
@@ -55,8 +56,8 @@ public class CustomerModelService
 extends TimeslotPhaseProcessor
 implements InitializationService, BootstrapState, NewTariffListener
 {
-  static private Logger log =
-      Logger.getLogger(CustomerModelService.class.getName());
+  //static private Logger log =
+  //    Logger.getLogger(CustomerModelService.class.getName());
 
   @Autowired
   private TimeService timeService;
@@ -86,7 +87,7 @@ implements InitializationService, BootstrapState, NewTariffListener
   private TariffMarket tariffMarketService;
 
   // Customer model collection
-  //private ArrayList<Class<AbstractCustomer>> modelTypes;
+  //private ArrayList<Class<AbstractCustomerDeprecated>> modelTypes;
   private ArrayList<AbstractCustomer> models;
 
   @Override
@@ -104,7 +105,7 @@ implements InitializationService, BootstrapState, NewTariffListener
       return null;
     super.init();
     tariffMarketService.registerNewTariffListener(this);
-    //modelTypes = new ArrayList<Class<AbstractCustomer>>();
+    //modelTypes = new ArrayList<Class<AbstractCustomerDeprecated>>();
     models = new ArrayList<AbstractCustomer>();
     // extract the model types
     ServiceLoader<AbstractCustomer> loader =
