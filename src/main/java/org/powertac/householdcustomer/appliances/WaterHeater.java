@@ -189,29 +189,30 @@ public class WaterHeater extends FullyShiftingAppliance
     return possibilityDailyOperation;
   }
 
-  @Override
-  public void showStatus ()
-  {
-    // Printing basic variables
-    log.debug("Name = " + name);
-    log.debug("Saturation = " + saturation);
-    log.debug("Power = " + power);
-    log.debug("Heater Type = " + type);
-    log.debug("Cycle Duration = " + cycleDuration);
-
-    // Printing Weekly Operation Vector and Load Vector
-    log.debug("Weekly Operation Vector and Load = ");
-
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-      log.debug("Day " + i);
-      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
-                  + iter4.next());
-    }
-  }
+  // dead code
+//  @Override
+//  public void showStatus ()
+//  {
+//    // Printing basic variables
+//    log.debug("Name = " + name);
+//    log.debug("Saturation = " + saturation);
+//    log.debug("Power = " + power);
+//    log.debug("Heater Type = " + type);
+//    log.debug("Cycle Duration = " + cycleDuration);
+//
+//    // Printing Weekly Operation Vector and Load Vector
+//    log.debug("Weekly Operation Vector and Load = ");
+//
+//    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+//                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+//      log.debug("Day " + i);
+//      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
+//      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
+//      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
+//        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+//                  + iter4.next());
+//    }
+//  }
 
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,

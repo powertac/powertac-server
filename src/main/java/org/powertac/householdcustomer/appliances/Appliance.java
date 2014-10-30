@@ -301,29 +301,32 @@ public class Appliance
    * This is the function utilized to show the information regarding the
    * appliance in question, its variables values etc.
    * 
+   * JEC - it's not clear how this is useful, because it depends on
+   * the unreliable value DAYS_OF_COMPETITION.
+   * 
    * @return
    */
-  public void showStatus ()
-  {
-    // Printing base variables
-    log.debug("Name = " + name);
-    log.debug("Member Of = " + applianceOf.toString());
-    log.debug("Saturation = " + saturation);
-    log.debug("Power = " + power);
-    log.debug("Cycle Duration = " + cycleDuration);
-
-    // Printing Weekly Function Vector and Load
-    log.debug("Weekly Operation Vector and Load = ");
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-      log.debug("Day " + i);
-      ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
-      ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter.next() + "   Load = "
-                  + iter2.next());
-    }
-  }
+//  public void showStatus ()
+//  {
+//    // Printing base variables
+//    log.debug("Name = " + name);
+//    log.debug("Member Of = " + applianceOf.toString());
+//    log.debug("Saturation = " + saturation);
+//    log.debug("Power = " + power);
+//    log.debug("Cycle Duration = " + cycleDuration);
+//
+//    // Printing Weekly Function Vector and Load
+//    log.debug("Weekly Operation Vector and Load = ");
+//    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+//                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+//      log.debug("Day " + i);
+//      ListIterator<Boolean> iter = weeklyOperation.get(i).listIterator();
+//      ListIterator<Integer> iter2 = weeklyLoadVector.get(i).listIterator();
+//      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
+//        log.debug("Quarter " + j + " = " + iter.next() + "   Load = "
+//                  + iter2.next());
+//    }
+//  }
 
   /** This function fills out the daily function of an appliance for the day. */
   public void weatherDailyOperation (int day, int hour, double temp)

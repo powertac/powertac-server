@@ -153,11 +153,6 @@ public class HouseholdControllableCapacitiesTests
     timeService.setCurrentTime(now);
     timeService.setBase(now.getMillis());
     exp = now.plus(TimeService.WEEK * 10);
-    //
-    // defaultTariffSpec =
-    // new TariffSpecification(broker1, PowerType.CONSUMPTION)
-    // .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-    // .addRate(new Rate().withValue(-0.222));
 
     defaultTariffSpec =
       new TariffSpecification(broker1, PowerType.CONSUMPTION)
@@ -255,12 +250,13 @@ public class HouseholdControllableCapacitiesTests
   {
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     householdCustomerService.initialize(comp, inits);
     assertEquals("correct first configuration file", "VillageType1.properties",
                  householdCustomerService.getConfigFile1());
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                  / VillageConstants.HOURS_OF_DAY);
+//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                  / VillageConstants.HOURS_OF_DAY);
     assertTrue(householdCustomerService.getVillageList().size() == 2);
   }
 
@@ -281,13 +277,14 @@ public class HouseholdControllableCapacitiesTests
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
     assertEquals("correct configuration file", "VillageDefault.properties",
                  householdCustomerService.getConfigFile1());
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                  / VillageConstants.HOURS_OF_DAY);
+//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                  / VillageConstants.HOURS_OF_DAY);
     assertTrue(householdCustomerService.getVillageList().size() == 2);
   }
 
@@ -299,6 +296,7 @@ public class HouseholdControllableCapacitiesTests
     String result = householdCustomerService.initialize(comp, inits);
     assertNull("return null value", result);
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
   }
 
   // @Repeat(20)
@@ -311,7 +309,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -328,9 +326,9 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         assertEquals("one subscription for each customerInfo",
                      1,
@@ -354,7 +352,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -371,14 +369,14 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (Village customer: householdCustomerService.getVillageList())
-      for (CustomerInfo customerInfo: customer.getCustomerInfo())
+      for (CustomerInfo customerInfo: customer.getCustomerInfos())
         assertFalse("Household consumed power for each customerInfo",
                     tariffSubscriptionRepo
                             .findActiveSubscriptionsForCustomer(customerInfo) == null
@@ -402,7 +400,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -419,7 +417,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -488,7 +486,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -505,7 +503,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -568,7 +566,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -585,7 +583,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -701,7 +699,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -718,7 +716,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -754,7 +752,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -771,7 +769,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     timeService.setBase(now.getMillis());
@@ -813,7 +811,7 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -830,7 +828,7 @@ public class HouseholdControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+//      customer.subscribeDefault();
     }
 
     Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
@@ -848,12 +846,13 @@ public class HouseholdControllableCapacitiesTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription sub2 =
           tariffSubscriptionRepo.getSubscription(customerInfo, tariff1);
         sub2.subscribe(customerInfo.getPopulation());
 
+        customer.setTariffMarket(mockTariffMarket);
         customer.changeSubscription(mockTariffMarket
                                             .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
                                     tariff1, customerInfo);

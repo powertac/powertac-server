@@ -536,47 +536,47 @@ public class AirCondition extends WeatherSensitiveAppliance
     return possibilityDailyOperation;
   }
 
-  @Override
-  public void showStatus ()
-  {
-    // Printing basic variables
-    log.debug("Name = " + name);
-    log.debug("Saturation = " + saturation);
-    log.debug("Air Condition Type = " + type);
-    log.debug("Air Condition Power Class = " + acPowerClass);
-    log.debug("Air Condition BTU = " + BTU);
-    log.debug("Air Condition Class = " + acClass);
-    log.debug("Air Condition Class EER = " + acClassEER);
-    log.debug("Air Condition Class COP = " + acClassCOP);
-    log.debug("Air Condition Operation = " + acOperation);
-
-    log.debug("Power Start Heating = " + powerStartHeating);
-    log.debug("Power Start Cooling = " + powerStartCooling);
-    log.debug("Power Heating = " + powerHeating);
-    log.debug("Power Cooling = " + powerCooling);
-    log.debug("Power Off Heating = " + powerOffHeating);
-    log.debug("Power Off Cooling = " + powerOffCooling);
-
-    log.debug("Cycle Duration On = " + cycleOn);
-    log.debug("Cycle Duration Off = " + cycleOff);
-    log.debug("Cycle Duration = " + cycleDuration);
-
-    log.debug("Lower Limit = " + lowerLimit);
-    log.debug("Upper Limit = " + upperLimit);
-
-    // Printing Weekly Operation Vector and Load Vector
-    log.debug("Weekly Operation Vector and Load = ");
-
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-      log.debug("Day " + i);
-      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
-                  + iter4.next());
-    }
-  }
+//  @Override
+//  public void showStatus ()
+//  {
+//    // Printing basic variables
+//    log.debug("Name = " + name);
+//    log.debug("Saturation = " + saturation);
+//    log.debug("Air Condition Type = " + type);
+//    log.debug("Air Condition Power Class = " + acPowerClass);
+//    log.debug("Air Condition BTU = " + BTU);
+//    log.debug("Air Condition Class = " + acClass);
+//    log.debug("Air Condition Class EER = " + acClassEER);
+//    log.debug("Air Condition Class COP = " + acClassCOP);
+//    log.debug("Air Condition Operation = " + acOperation);
+//
+//    log.debug("Power Start Heating = " + powerStartHeating);
+//    log.debug("Power Start Cooling = " + powerStartCooling);
+//    log.debug("Power Heating = " + powerHeating);
+//    log.debug("Power Cooling = " + powerCooling);
+//    log.debug("Power Off Heating = " + powerOffHeating);
+//    log.debug("Power Off Cooling = " + powerOffCooling);
+//
+//    log.debug("Cycle Duration On = " + cycleOn);
+//    log.debug("Cycle Duration Off = " + cycleOff);
+//    log.debug("Cycle Duration = " + cycleDuration);
+//
+//    log.debug("Lower Limit = " + lowerLimit);
+//    log.debug("Upper Limit = " + upperLimit);
+//
+//    // Printing Weekly Operation Vector and Load Vector
+//    log.debug("Weekly Operation Vector and Load = ");
+//
+//    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+//                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+//      log.debug("Day " + i);
+//      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
+//      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
+//      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
+//        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+//                  + iter4.next());
+//    }
+//  }
 
   @Override
   public void refresh ()

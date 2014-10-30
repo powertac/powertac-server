@@ -1063,6 +1063,7 @@ public class Household
    * This function is checking the current weather conditions and the existence
    * of weather sensitive appliances and if the temperature is over/under a
    * certain threshold, the appliances begin or stop their operation.
+   * TODO - JEC - this code should be in the individual appliances.
    */
   public void weatherCheck (int day, int hour, Instant now, double temperature)
   {

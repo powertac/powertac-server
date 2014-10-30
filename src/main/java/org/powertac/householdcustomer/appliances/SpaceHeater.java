@@ -141,13 +141,14 @@ public class SpaceHeater extends WeatherSensitiveAppliance
     return possibilityDailyOperation;
   }
 
-  @Override
-  public void showStatus ()
-  {
-    super.showStatus();
-    log.debug("Percentage: " + operationPercentage);
-    log.debug("Temperature Threshold: " + temperatureThreshold);
-  }
+  // dead code
+//  @Override
+//  public void showStatus ()
+//  {
+//    super.showStatus();
+//    log.debug("Percentage: " + operationPercentage);
+//    log.debug("Temperature Threshold: " + temperatureThreshold);
+//  }
 
   @Override
   public void refresh ()

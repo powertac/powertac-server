@@ -302,34 +302,35 @@ public class WashingMachine extends SemiShiftingAppliance
 
   }
 
-  @Override
-  public void showStatus ()
-  {
-    // Printing basic variables
-    log.debug("Name = " + name);
-    log.debug("Saturation = " + saturation);
-    log.debug("Power = " + power);
-    log.debug("Cycle Duration = " + cycleDuration);
-
-    // Printing Function Day Vector
-    ListIterator<Integer> iter = days.listIterator();
-    log.debug("Days Vector = ");
-    while (iter.hasNext())
-      log.debug("Day  " + iter.next());
-
-    // Printing Weekly Operation Vector and Load Vector
-    log.debug("Weekly Operation Vector and Load = ");
-
-    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
-                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
-      log.debug("Day " + i);
-      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
-      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
-      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
-        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
-                  + iter4.next());
-    }
-  }
+  // dead code
+//  @Override
+//  public void showStatus ()
+//  {
+//    // Printing basic variables
+//    log.debug("Name = " + name);
+//    log.debug("Saturation = " + saturation);
+//    log.debug("Power = " + power);
+//    log.debug("Cycle Duration = " + cycleDuration);
+//
+//    // Printing Function Day Vector
+//    ListIterator<Integer> iter = days.listIterator();
+//    log.debug("Days Vector = ");
+//    while (iter.hasNext())
+//      log.debug("Day  " + iter.next());
+//
+//    // Printing Weekly Operation Vector and Load Vector
+//    log.debug("Weekly Operation Vector and Load = ");
+//
+//    for (int i = 0; i < VillageConstants.DAYS_OF_COMPETITION
+//                        + VillageConstants.DAYS_OF_BOOTSTRAP; i++) {
+//      log.debug("Day " + i);
+//      ListIterator<Boolean> iter3 = weeklyOperation.get(i).listIterator();
+//      ListIterator<Integer> iter4 = weeklyLoadVector.get(i).listIterator();
+//      for (int j = 0; j < VillageConstants.QUARTERS_OF_DAY; j++)
+//        log.debug("Quarter " + j + " = " + iter3.next() + "   Load = "
+//                  + iter4.next());
+//    }
+//  }
 
   public void calculateOverallPower ()
   {

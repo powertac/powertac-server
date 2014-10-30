@@ -242,13 +242,14 @@ public class HouseholdCustomerServiceTests
   {
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     householdCustomerService.initialize(comp, inits);
     assertEquals("correct first configuration file", "VillageType1.properties",
                  householdCustomerService.getConfigFile1());
-
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                  / VillageConstants.HOURS_OF_DAY);
+// deprecated...
+//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -269,14 +270,15 @@ public class HouseholdCustomerServiceTests
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     String result = householdCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "HouseholdCustomer", result);
     assertEquals("correct configuration file", "VillageDefault.properties",
                  householdCustomerService.getConfigFile1());
-
-    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                  / VillageConstants.HOURS_OF_DAY);
+// deprecated
+//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -299,7 +301,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -308,9 +310,10 @@ public class HouseholdCustomerServiceTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      // What is this supposed to do?
+      //customer.subscribeDefault();
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         assertEquals("one subscription for CONSUMPTION customerInfo",
                      1,
@@ -334,7 +337,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -344,7 +347,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -352,7 +355,7 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (Village customer: householdCustomerService.getVillageList())
-      for (CustomerInfo customerInfo: customer.getCustomerInfo())
+      for (CustomerInfo customerInfo: customer.getCustomerInfos())
         assertFalse("Household consumed power for each customerInfo",
                     tariffSubscriptionRepo
                             .findActiveSubscriptionsForCustomer(customerInfo) == null
@@ -376,7 +379,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -386,7 +389,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -448,7 +451,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -458,7 +461,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -518,7 +521,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -528,7 +531,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -579,7 +582,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -589,7 +592,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -683,7 +686,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -693,7 +696,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -810,7 +813,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -820,7 +823,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
@@ -857,7 +860,7 @@ public class HouseholdCustomerServiceTests
 
     for (Village customer: householdCustomerService.getVillageList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
@@ -867,7 +870,7 @@ public class HouseholdCustomerServiceTests
 
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
     }
 
