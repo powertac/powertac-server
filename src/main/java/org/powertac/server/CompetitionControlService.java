@@ -138,20 +138,24 @@ public class CompetitionControlService
   private int loginTimeout = 0;
   
   @ConfigurableValue(valueType = "Boolean",
-          description = "If true, then brokers can send PauseRequest messages")
+      description = "If true, then brokers can send PauseRequest messages")
   private boolean brokerPauseAllowed = false;
 
   private ArrayList<String> pendingLogins; // external logins expected
   private int loginCount = 0; // number of external brokers logged in so far
 
   @ConfigurableValue(valueType = "Long",
-          description = "Milliseconds/timeslot in boot mode. Should be > 300.")
+      description = "Milliseconds/timeslot in boot mode. Should be > 300.")
   private long bootstrapTimeslotMillis = 2000;
   
   @ConfigurableValue(valueType = "String",
-          description = "Name of abort file")
+      description = "Name of abort file")
   private String abortFileName = "abort";
-  
+
+  @ConfigurableValue(valueType="Integer",
+      description = "depth of stack trace on exception")
+  private int stackTraceDepth = 5;
+
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
   private List<Object> bootstrapDataset = null;
@@ -1092,7 +1096,7 @@ public class CompetitionControlService
             StackTraceElement[] trace = e.getStackTrace();
             StringBuffer sb = new StringBuffer();
             sb.append(e.toString());
-            int depth = Math.min(5, trace.length);
+            int depth = Math.min(stackTraceDepth, trace.length);
             for (int index = 0; index < depth; index++) {
               sb.append("\n.. " + trace[index].toString());
             }
