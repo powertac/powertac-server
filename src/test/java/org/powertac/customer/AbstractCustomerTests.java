@@ -1,4 +1,4 @@
-/* Copyright (c) 2011 by the original author or authors.
+/* Copyright (c) 2011-2014 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.powertac.common;
+package org.powertac.customer;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -30,13 +29,20 @@ import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
+import org.powertac.common.Broker;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.customer.AbstractCustomer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -505,11 +511,11 @@ public class AbstractCustomerTests
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
 
-    TariffRevoke tex = new TariffRevoke(tsc2.broker, tsc2);
+    TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff2.isRevoked());
 
-    TariffRevoke tex2 = new TariffRevoke(tsc3.broker, tsc3);
+    TariffRevoke tex2 = new TariffRevoke(tsc3.getBroker(), tsc3);
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 

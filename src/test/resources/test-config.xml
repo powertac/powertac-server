@@ -15,6 +15,14 @@
         <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
   </bean>      
 
+  <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
+  </bean>   
+
+  <bean id="serverPropertiesService" name="mockServerProperties" class="org.mockito.Mockito" factory-method="mock">
+   <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+  </bean>
+
   <context:annotation-config />
   <context:component-scan base-package="org.powertac" />
 

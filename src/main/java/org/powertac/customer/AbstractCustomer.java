@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
-package org.powertac.common;
+package org.powertac.customer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,6 +21,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.IdGenerator;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
@@ -64,29 +69,23 @@ public abstract class AbstractCustomer
   protected RandomSeed rs1;
 
   /**
-   * Abstract Customer constructor. It takes the customerInfo as an input. It
-   * creates the autowiring required using the Spring Application Context, it
-   * creates the new Abstract Customer based on the customerInfo given, creates
-   * a new random number generator and adds the newly created customer in the
-   * CustomerRepo.
+   * Default constructor, requires explicit setting of name
+   */
+  public AbstractCustomer ()
+  {
+    super();
+    custId = IdGenerator.createId();
+    customerInfos = new HashMap<PowerType, List<CustomerInfo>>();
+    allCustomerInfos = new ArrayList<CustomerInfo>();
+  }
+
+  /**
+   * Abstract Customer constructor with explicit name.
    */
   public AbstractCustomer (String name)
   {
-    super();
-//    randomSeedRepo =
-//      (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
-//    customerRepo =
-//      (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
-//    tariffMarketService =
-//      (TariffMarket) SpringApplicationContext.getBean("tariffMarketService");
-//    tariffSubscriptionRepo =
-//      (TariffSubscriptionRepo) SpringApplicationContext
-//              .getBean("tariffSubscriptionRepo");
-
-    custId = IdGenerator.createId();
+    this();
     this.name = name;
-    customerInfos = new HashMap<PowerType, List<CustomerInfo>>();
-    allCustomerInfos = new ArrayList<CustomerInfo>();
   }
 
   /**
@@ -151,6 +150,27 @@ public abstract class AbstractCustomer
     return new ArrayList<CustomerInfo>(allCustomerInfos);
   }
 
+  /**
+   * Returns the current tariff subscriptions for the first CustomerInfo.
+   * Useful for customer models with a single CustomerInfo.
+   */
+  public List<TariffSubscription> getCurrentSubscriptions ()
+  {
+    return tariffSubscriptionRepo.
+        findActiveSubscriptionsForCustomer(allCustomerInfos.get(0));
+  }
+
+  /**
+   * Returns the current tariff subscriptions for the first CustomerInfo
+   * with the given PowerType. Useful for customer models with a single
+   * CustomerInfo per PowerType.
+   */
+  public List<TariffSubscription> getCurrentSubscriptions (PowerType type)
+  {
+    return tariffSubscriptionRepo.
+        findActiveSubscriptionsForCustomer(customerInfos.get(type).get(0));
+  }
+
   @Override
   public String toString ()
   {
@@ -160,8 +180,6 @@ public abstract class AbstractCustomer
   public int getPopulation (CustomerInfo customer)
   {
     return customer.getPopulation();
-    // JEC - what was this for??
-    // return customerInfos.get(customerInfos.indexOf(customer)).getPopulation();
   }
 
   public long getCustId ()
@@ -175,36 +193,17 @@ public abstract class AbstractCustomer
     return custId;
   }
 
+  /** Sets the name for this model **/
+  public void setName (String name)
+  {
+    this.name = name;
+  }
+
+  /** Returns the name of this model **/
   public String getName ()
   {
     return name;
   }
-
-  /**
-   * Function utilized at the beginning in order to subscribe to the default
-   * tariff
-   * NOTE: This requires access to tariffMarketService, and is used only
-   * during initialization (when the customerService could do the job) and
-   * in test code. I recommend removal -- JEC.
-   */
-//  public void subscribeDefault ()
-//  {
-//    for (CustomerInfo customer: customerInfos) {
-//
-//      PowerType type = customer.getPowerType();
-//      if (tariffMarketService.getDefaultTariff(type) == null) {
-//        log.info("No default Subscription for type " + type.toString() + " of "
-//                 + this.toString() + " to subscribe to.");
-//      }
-//      else {
-//        tariffMarketService.subscribeToTariff(tariffMarketService
-//                .getDefaultTariff(type), customer, customer.getPopulation());
-//        log.info("CustomerInfo of type " + type.toString() + " of "
-//                 + this.toString()
-//                 + " was subscribed to the default broker successfully.");
-//      }
-//    }
-//  }
 
   /**
    * Called to run the model forward one step.
@@ -245,7 +244,7 @@ public abstract class AbstractCustomer
   }
 
   /** Subscribing a certain population amount to a certain subscription */
-  public void subscribe (Tariff tariff,
+  void subscribe (Tariff tariff,
                          int customerCount,
                          CustomerInfo customer)
   {
@@ -256,7 +255,7 @@ public abstract class AbstractCustomer
   }
 
   /** Unsubscribing a certain population amount from a certain subscription */
-  public void unsubscribe (TariffSubscription subscription, int customerCount)
+  void unsubscribe (TariffSubscription subscription, int customerCount)
   {
 
     subscription.unsubscribe(customerCount);
