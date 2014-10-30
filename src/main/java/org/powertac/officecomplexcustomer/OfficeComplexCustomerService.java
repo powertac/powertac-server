@@ -37,8 +37,12 @@ import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.OfficeComplex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +74,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   private TariffMarket tariffMarketService;
 
   @Autowired
+  private CustomerRepo customerRepo;
+
+  @Autowired
   private ServerConfiguration serverPropertiesService;
 
   @Autowired
@@ -78,14 +85,23 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   @Autowired
   private TimeslotRepo timeslotRepo;
 
+  @Autowired
+  private WeatherReportRepo weatherReportRepo;
+
+  @Autowired
+  private TariffRepo tariffRepo;
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
+
   /** Random Number Generator */
-  private RandomSeed rs1;
+//  private RandomSeed rs1;
 
   int seedId = 1;
 
   // read this from configurator
   private String configFile1 = null;
-  private int daysOfCompetition = 0;
+  //private int daysOfCompetition = 0;
 
   /**
    * This is the configuration file that will be utilized to pass the parameters
@@ -112,40 +128,40 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
    * Consumers that will be running in the game.
    */
   @Override
-  public String
-    initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition,
+                            List<String> completedInits)
   {
-    int index = completedInits.indexOf("DefaultBroker");
-    if (index == -1) {
+    if (!completedInits.contains("DefaultBroker")
+        || !completedInits.contains("TariffMarket"))
       return null;
-    }
+    super.init();
+    tariffMarketService.registerNewTariffListener(this);
 
     serverPropertiesService.configureMe(this);
 
     officeComplexList.clear();
 
     tariffMarketService.registerNewTariffListener(this);
-    rs1 =
-      randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
-                                   "Office Complex Customer Models");
+//    rs1 =
+//      randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
+//                                   "Office Complex Customer Models");
 
     if (configFile1 == null) {
       log.info("No Config File for OfficeComplexType1 Taken");
       configFile1 = "OfficeComplexDefault.properties";
     }
 
-    super.init();
-    daysOfCompetition =
-      Competition.currentCompetition().getExpectedTimeslotCount()
-              / OfficeComplexConstants.HOURS_OF_DAY;
-    OfficeComplexConstants.setDaysOfWeek();
-    OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
-    daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
-
-    if (daysOfCompetition == 0) {
-      log.info("No Days Of Competition Taken");
-      daysOfCompetition = 63;
-    }
+//    daysOfCompetition =
+//      Competition.currentCompetition().getExpectedTimeslotCount()
+//              / OfficeComplexConstants.HOURS_OF_DAY;
+//    OfficeComplexConstants.setDaysOfWeek();
+//    OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
+//    daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
+//
+//    if (daysOfCompetition == 0) {
+//      log.info("No Days Of Competition Taken");
+//      daysOfCompetition = 63;
+//    }
 
     addOfficeComplexes(configFile1, "1");
 
@@ -167,8 +183,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
       cfgFile.close();
     }
     catch (IOException e) {
-
+      log.error("failed to open configuration file");
       e.printStackTrace();
+      return;
     }
 
     String[] types = { "NS", "SS" };
@@ -209,13 +226,17 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
           map.put(officeComplexInfo, officeType + " " + shifting);
           officeComplex.addCustomerInfo(officeComplexInfo);
+          customerRepo.add(officeComplexInfo);
         }
 
       }
 
+      officeComplex.setServices(randomSeedRepo, weatherReportRepo,
+                                tariffRepo, tariffSubscriptionRepo);
+      officeComplex.setRepos(timeslotRepo, customerRepo);
       officeComplex.initialize(configuration, seedId++, map);
       officeComplexList.add(officeComplex);
-      officeComplex.subscribeDefault();
+      officeComplex.subscribeDefault(tariffMarketService);
 
     }
   }
@@ -231,19 +252,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   }
 
   // ----------------- Data access -------------------------
-
-  /** Getter method for the days of competition */
-  public int getDaysOfCompetition ()
-  {
-    return daysOfCompetition;
-  }
-
-  @ConfigurableValue(valueType = "Integer", description = "The competition duration in days")
-  public
-    void setDaysOfCompetition (int days)
-  {
-    daysOfCompetition = days;
-  }
 
   /** Getter method for the first configuration file */
   public String getConfigFile1 ()
@@ -286,7 +294,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   {
     ArrayList<CustomerInfo> result = new ArrayList<CustomerInfo>();
     for (OfficeComplex officeComplex: officeComplexList) {
-      for (CustomerInfo customer: officeComplex.getCustomerInfo())
+      for (CustomerInfo customer: officeComplex.getCustomerInfos())
         result.add(customer);
     }
     return result;

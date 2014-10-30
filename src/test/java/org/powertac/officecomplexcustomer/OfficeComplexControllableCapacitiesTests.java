@@ -225,13 +225,14 @@ public class OfficeComplexControllableCapacitiesTests
   {
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     officeComplexCustomerService.initialize(comp, inits);
     assertEquals("correct first configuration file",
                  "OfficeComplexType1.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
+//    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -240,14 +241,14 @@ public class OfficeComplexControllableCapacitiesTests
   {
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     String result = officeComplexCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "OfficeComplexCustomer", result);
     assertEquals("correct configuration file", "OfficeComplexType1.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
-
+//    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -261,14 +262,15 @@ public class OfficeComplexControllableCapacitiesTests
     config.setConfiguration(mapConfig);
     List<String> inits = new ArrayList<String>();
     inits.add("DefaultBroker");
+    inits.add("TariffMarket");
     String result = officeComplexCustomerService.initialize(comp, inits);
     assertEquals("correct return value", "OfficeComplexCustomer", result);
     assertEquals("correct configuration file",
                  "OfficeComplexDefault.properties",
                  officeComplexCustomerService.getConfigFile1());
-    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
-            .currentCompetition().getExpectedTimeslotCount()
-                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
+//    assertTrue(officeComplexCustomerService.getDaysOfCompetition() >= Competition
+//            .currentCompetition().getExpectedTimeslotCount()
+//                                                                      / OfficeComplexConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -292,7 +294,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -309,9 +311,9 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         assertEquals("one subscription for each customerInfo",
                      1,
@@ -336,7 +338,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -353,7 +355,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
@@ -361,7 +363,7 @@ public class OfficeComplexControllableCapacitiesTests
 
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList())
-      for (CustomerInfo customerInfo: customer.getCustomerInfo())
+      for (CustomerInfo customerInfo: customer.getCustomerInfos())
         assertFalse("Household consumed power for each customerInfo",
                     tariffSubscriptionRepo
                             .findActiveSubscriptionsForCustomer(customerInfo) == null
@@ -387,7 +389,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -404,7 +406,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -474,7 +476,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -491,7 +493,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -554,7 +556,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -571,7 +573,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -687,7 +689,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -704,7 +706,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -741,7 +743,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -758,7 +760,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     timeService.setBase(now.getMillis());
@@ -801,7 +803,7 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         if (customerInfo.getPowerType() == PowerType.CONSUMPTION) {
 
@@ -818,7 +820,7 @@ public class OfficeComplexControllableCapacitiesTests
       }
       // Doing it again in order to check the correct configuration of the
       // SubscriptionMapping //
-      customer.subscribeDefault();
+      //customer.subscribeDefault();
     }
 
     Rate r3 = new Rate().withValue(-0.08).withMaxCurtailment(0.1);
@@ -837,12 +839,13 @@ public class OfficeComplexControllableCapacitiesTests
     for (OfficeComplex customer: officeComplexCustomerService
             .getOfficeComplexList()) {
 
-      for (CustomerInfo customerInfo: customer.getCustomerInfo()) {
+      for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
 
         TariffSubscription sub2 =
           tariffSubscriptionRepo.getSubscription(customerInfo, tariff1);
         sub2.subscribe(customerInfo.getPopulation());
 
+        customer.setTariffMarket(mockTariffMarket);
         customer.changeSubscription(mockTariffMarket
                                             .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION),
                                     tariff1, customerInfo);

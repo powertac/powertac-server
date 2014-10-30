@@ -39,6 +39,8 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
@@ -64,17 +66,9 @@ public class OfficeComplex extends AbstractCustomer
    */
   static protected Logger log = Logger.getLogger(OfficeComplex.class.getName());
 
-  @Autowired
-  TimeService timeService;
-
-  @Autowired
+  // Additional service references
+  CustomerRepo customerRepo;
   TimeslotRepo timeslotRepo;
-
-  @Autowired
-  WeatherReportRepo weatherReportRepo;
-
-  @Autowired
-  TariffRepo tariffRepo;
 
   int seedId = 1;
 
@@ -204,13 +198,6 @@ public class OfficeComplex extends AbstractCustomer
   {
     super(name);
 
-    timeslotRepo =
-      (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-    timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-    weatherReportRepo =
-      (WeatherReportRepo) SpringApplicationContext.getBean("weatherReportRepo");
-    tariffRepo = (TariffRepo) SpringApplicationContext.getBean("tariffRepo");
-
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
     typeList.add("SS");
@@ -228,17 +215,27 @@ public class OfficeComplex extends AbstractCustomer
     }
   }
 
+  @Override
+  public void initialize ()
+  {
+    super.initialize();
+  }
+
+  public void setRepos (TimeslotRepo tsRepo, CustomerRepo custRepo)
+  {
+    timeslotRepo = tsRepo;
+    customerRepo = custRepo;
+  }
+
   /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the office complex with its offices and then
    * fill them with persons and appliances.
-   * 
-   * @param conf
-   * @param gen
    */
   public void initialize (Properties conf, int seed,
                           Map<CustomerInfo, String> mapping)
   {
+    this.initialize();
     // Initializing variables
     officeMapping = mapping;
 
@@ -249,8 +246,8 @@ public class OfficeComplex extends AbstractCustomer
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
     gen =
-      randomSeedRepo.getRandomSeed(toString(), seed, "OfficeComplex Model"
-                                                     + seed);
+      randomSeedRepo.getRandomSeed(toString(), seed,
+                                   "OfficeComplex Model" + seed);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -332,38 +329,19 @@ public class OfficeComplex extends AbstractCustomer
 
   }
 
-  public void addCustomerInfo (CustomerInfo customer)
-  {
-    customerInfos.add(customer);
-    customerRepo.add(customer);
-  }
-
   // =====SUBSCRIPTION FUNCTIONS===== //
 
-  @Override
-  public void subscribeDefault ()
+  //@Override
+  public void subscribeDefault (TariffMarket tariffMarketService)
   {
-
-    super.subscribeDefault();
-
-    for (CustomerInfo customer: customerInfos) {
-
-      if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
-          && tariffMarketService
-                  .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION) == null) {
-
-        log.debug("No Default Tariff for INTERRUPTIBLE_CONSUMPTION so the customer "
-                  + customer.toString()
-                  + " subscribe to CONSUMPTION Default Tariff instead");
-        tariffMarketService.subscribeToTariff(tariffMarketService
-                .getDefaultTariff(PowerType.CONSUMPTION), customer, customer
-                .getPopulation());
-        log.info("CustomerInfo of type INTERRUPTIBLE_CONSUMPTION of "
-                 + toString()
-                 + " was subscribed to the default CONSUMPTION tariff successfully.");
-
+    for (CustomerInfo customer: getCustomerInfos()) {
+      Tariff candidate =
+          tariffMarketService.getDefaultTariff(customer.getPowerType());
+      if (null == candidate) {
+        log.error("No default tariff for " + customer.getPowerType().toString());
       }
-
+      tariffMarketService.subscribeToTariff(candidate, customer,
+                                            customer.getPopulation());
     }
   }
 
@@ -899,13 +877,13 @@ public class OfficeComplex extends AbstractCustomer
 
   // =====CONSUMPTION FUNCTIONS===== //
 
-  @Override
+  //@Override
   public void consumePower ()
   {
     Timeslot ts = timeslotRepo.currentTimeslot();
     int serial;
 
-    for (CustomerInfo customer: customerInfos) {
+    for (CustomerInfo customer: getCustomerInfos()) {
 
       List<TariffSubscription> subscriptions =
         tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
@@ -917,10 +895,8 @@ public class OfficeComplex extends AbstractCustomer
       boolean controllable = temp.contains("Controllable");
 
       if (ts == null) {
-        log.debug("Current timeslot is null");
-        serial =
-          (int) ((timeService.getCurrentTime().getMillis() - timeService
-                  .getBase()) / TimeService.HOUR);
+        log.error("Current timeslot is null");
+        serial = 0;
       }
       else {
         log.debug("Timeslot Serial: " + ts.getSerialNumber());
@@ -1278,7 +1254,7 @@ public class OfficeComplex extends AbstractCustomer
    */
   public void evaluateNewTariffs ()
   {
-    for (CustomerInfo customer: customerInfos) {
+    for (CustomerInfo customer: getCustomerInfos()) {
       log.info("Customer " + customer.toString()
                + " is evaluating tariffs for timeslot "
                + timeslotRepo.currentSerialNumber());
@@ -1376,11 +1352,12 @@ public class OfficeComplex extends AbstractCustomer
   @Override
   public void step ()
   {
-    int serial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial = timeslotRepo.currentSerialNumber();
+    Timeslot ts = timeslotRepo.currentTimeslot();
+    // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
-    int hour = timeService.getHourOfDay();
-    Instant now = new Instant(timeService.getCurrentTime().getMillis());
+    int hour = ts.getStartTime().getHourOfDay();
+    Instant now = ts.getStartInstant();
 
     weatherCheck(day, hour, now);
 
@@ -1443,9 +1420,7 @@ public class OfficeComplex extends AbstractCustomer
    */
   void checkCurtailment (int serial, int day, int hour)
   {
-
-    int nextSerial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR) + 1;
+    int nextSerial = timeslotRepo.currentSerialNumber() + 1;
     int nextDay = (int) (nextSerial / OfficeComplexConstants.HOURS_OF_DAY);
     int nextHour = (int) (nextSerial % OfficeComplexConstants.HOURS_OF_DAY);
 
@@ -1456,7 +1431,7 @@ public class OfficeComplex extends AbstractCustomer
       nextDay
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
-    for (CustomerInfo customer: customerInfos) {
+    for (CustomerInfo customer: getCustomerInfos()) {
 
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
 
@@ -1492,13 +1467,11 @@ public class OfficeComplex extends AbstractCustomer
    */
   void rescheduleNextDay (String type)
   {
-    int serial =
-      (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial = timeslotRepo.currentSerialNumber();
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
 
     int dayTemp =
-      day
-              % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
+      day % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
 
     double[] nonDominantUsage = getNonDominantUsage(dayTemp, type);
 
@@ -1615,6 +1588,13 @@ public class OfficeComplex extends AbstractCustomer
       return gen.nextDouble();
     }
 
+  }
+
+  @Override
+  public void evaluateTariffs (List<Tariff> tariffs)
+  {
+    // TODO Auto-generated method stub
+    
   }
 
 }
