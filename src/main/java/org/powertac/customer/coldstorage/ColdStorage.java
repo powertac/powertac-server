@@ -34,7 +34,7 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.customer.AbstractCustomerDeprecated;
+import org.powertac.customer.AbstractCustomer;
 
 /**
  * Model of a cold-storage warehouse with multiple refrigeration units.
@@ -49,7 +49,7 @@ import org.powertac.customer.AbstractCustomerDeprecated;
 @Domain
 @ConfigurableInstance
 public class ColdStorage
-extends AbstractCustomerDeprecated
+extends AbstractCustomer
 implements CustomerModelAccessor
 {
   static private Logger log = Logger.getLogger(ColdStorage.class.getName());
