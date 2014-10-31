@@ -37,11 +37,15 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.customer.AbstractCustomer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,6 +78,8 @@ public class AbstractCustomerTests
   @Resource
   TariffMarket mockTariffMarket;
 
+  CustomerServiceAccessor serviceAccessor;
+
   Instant exp;
   // Instant start;
   Broker broker1;
@@ -91,6 +97,7 @@ public class AbstractCustomerTests
     customerRepo.recycle();
     tariffSubscriptionRepo.recycle();
     tariffRepo.recycle();
+    serviceAccessor = new ServiceAccessor();
     broker1 = new Broker("Joe");
     broker1 = new Broker("Anna");
 
@@ -340,7 +347,7 @@ public class AbstractCustomerTests
     defaultControllableSub.subscribe(customer.getCustomerInfos().get(1)
             .getPopulation());
 
-    customer.setServices(null, null, tariffRepo, tariffSubscriptionRepo);
+    customer.setServiceAccessor(serviceAccessor);
     customer.setTariffMarket(mockTariffMarket);
     customer.changeSubscription(lastTariff,
                                 mockTariffMarket.getDefaultTariff(customer
@@ -519,6 +526,47 @@ public class AbstractCustomerTests
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return customerRepo;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return tariffRepo;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return tariffSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
+    
   }
 
   class DummyCustomer extends AbstractCustomer

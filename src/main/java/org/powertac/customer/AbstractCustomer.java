@@ -27,6 +27,7 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -49,15 +50,16 @@ public abstract class AbstractCustomer
   protected HashMap<PowerType, List<CustomerInfo>> customerInfos;
   protected List<CustomerInfo> allCustomerInfos;
 
-//  protected TariffMarket tariffMarketService;
-
+  // Service accessor
+  protected CustomerServiceAccessor service;
+  
 //  protected CustomerRepo customerRepo;
 
-  // Services available to subclasses, populated by setServices()
-  protected WeatherReportRepo weatherReportRepo;
-  protected RandomSeedRepo randomSeedRepo;
-  protected TariffRepo tariffRepo;
-  protected TariffSubscriptionRepo tariffSubscriptionRepo;
+//  // Services available to subclasses, populated by setServices()
+//  protected WeatherReportRepo weatherReportRepo;
+//  protected RandomSeedRepo randomSeedRepo;
+//  protected TariffRepo tariffRepo;
+//  protected TariffSubscriptionRepo tariffSubscriptionRepo;
 
   /** The id of the Abstract Customer */
   protected long custId;
@@ -89,17 +91,12 @@ public abstract class AbstractCustomer
   }
 
   /**
-   * Populates the instance with service pointers to avoid Spring dependency.
+   * Provides a reference to the service accessor, through which we can get
+   * at sim services
    */
-  public void setServices (RandomSeedRepo randomSeedRepo,
-                           WeatherReportRepo weatherReportRepo,
-                           TariffRepo tariffRepo,
-                           TariffSubscriptionRepo tariffSubscriptionRepo)
+  public void setServiceAccessor (CustomerServiceAccessor csa)
   {
-    this.randomSeedRepo = randomSeedRepo;
-    this.weatherReportRepo = weatherReportRepo;
-    this.tariffRepo = tariffRepo;
-    this.tariffSubscriptionRepo = tariffSubscriptionRepo;
+    this.service = csa;
   }
 
   /**
@@ -108,7 +105,7 @@ public abstract class AbstractCustomer
    */
   public void initialize ()
   {
-    rs1 = randomSeedRepo.getRandomSeed(name, 0, "TariffChooser");
+    rs1 = service.getRandomSeedRepo().getRandomSeed(name, 0, "TariffChooser");
   }
 
   /**
@@ -156,7 +153,7 @@ public abstract class AbstractCustomer
    */
   public List<TariffSubscription> getCurrentSubscriptions ()
   {
-    return tariffSubscriptionRepo.
+    return service.getTariffSubscriptionRepo().
         findActiveSubscriptionsForCustomer(allCustomerInfos.get(0));
   }
 
@@ -167,7 +164,7 @@ public abstract class AbstractCustomer
    */
   public List<TariffSubscription> getCurrentSubscriptions (PowerType type)
   {
-    return tariffSubscriptionRepo.
+    return service.getTariffSubscriptionRepo().
         findActiveSubscriptionsForCustomer(customerInfos.get(type).get(0));
   }
 
@@ -237,7 +234,7 @@ public abstract class AbstractCustomer
                                   CustomerInfo customer)
   {
     TariffSubscription ts =
-      tariffSubscriptionRepo.getSubscription(customer, tariff);
+      service.getTariffSubscriptionRepo().getSubscription(customer, tariff);
     int populationCount = ts.getCustomersCommitted();
     unsubscribe(ts, populationCount);
     subscribe(newTariff, populationCount, customer);

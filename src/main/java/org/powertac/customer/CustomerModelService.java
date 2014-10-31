@@ -27,6 +27,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.BootstrapState;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -53,7 +54,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomerModelService
 extends TimeslotPhaseProcessor
-implements InitializationService, BootstrapState, NewTariffListener
+implements InitializationService, BootstrapState, NewTariffListener,
+  CustomerServiceAccessor
 {
   //static private Logger log =
   //    Logger.getLogger(CustomerModelService.class.getName());
@@ -119,8 +121,7 @@ implements InitializationService, BootstrapState, NewTariffListener
            serverConfig.configureInstances(modelEx.getClass())) {
         AbstractCustomer model = (AbstractCustomer) modelObj;
         models.add(model);
-        model.setServices(randomSeedRepo, weatherReportRepo,
-                          tariffRepo, tariffSubscriptionRepo);
+        model.setServiceAccessor(this);
         model.initialize();
         // set default tariff here to make models testable outside Spring.
         for (CustomerInfo cust: model.getCustomerInfos()) {
@@ -162,5 +163,45 @@ implements InitializationService, BootstrapState, NewTariffListener
   public void saveBootstrapState ()
   {
     serverConfig.saveBootstrapState(models);
+  }
+
+  // ==============================
+  // CustomerServiceAccessor API
+  // ==============================
+
+  @Override
+  public CustomerRepo getCustomerRepo ()
+  {
+    return customerRepo;
+  }
+
+  @Override
+  public RandomSeedRepo getRandomSeedRepo ()
+  {
+    return randomSeedRepo;
+  }
+
+  @Override
+  public TariffRepo getTariffRepo ()
+  {
+    return tariffRepo;
+  }
+
+  @Override
+  public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    return tariffSubscriptionRepo;
+  }
+
+  @Override
+  public TimeslotRepo getTimeslotRepo ()
+  {
+    return timeslotRepo;
+  }
+
+  @Override
+  public WeatherReportRepo getWeatherReportRepo ()
+  {
+    return weatherReportRepo;
   }
 }
