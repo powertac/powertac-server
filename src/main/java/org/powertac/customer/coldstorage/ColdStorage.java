@@ -32,6 +32,7 @@ import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
@@ -157,17 +158,18 @@ implements CustomerModelAccessor
   private void ensureSeeds ()
   {
     if (null == opSeed) {
-      opSeed =
-        randomSeedRepo.getRandomSeed(ColdStorage.class.getName() + "-" + name,
-                                     0, "model");
-      evalSeed =
-        randomSeedRepo.getRandomSeed(ColdStorage.class.getName() + "-" + name,
-                                     0, "eval");
+      opSeed = service.getRandomSeedRepo()
+          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+                         0, "model");
+      evalSeed = service.getRandomSeedRepo()
+          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+                         0, "eval");
       normal01 = new NormalDistribution(0.0, 1.0);
       normal01.reseedRandomGenerator(opSeed.nextLong());
     }
   }
 
+  @Override
   public CustomerInfo getCustomerInfo ()
   {
     return getCustomerInfo(powerType);
@@ -198,7 +200,8 @@ implements CustomerModelAccessor
     useEnergy(currentNcUsage);
 
     // use cooling energy to maintain and adjust current temp
-    WeatherReport weather = weatherReportRepo.currentWeatherReport();
+    WeatherReport weather = 
+        service.getWeatherReportRepo().currentWeatherReport();
     double outsideTemp = weather.getTemperature();
     double energyNeeded =
         computeCoolingEnergy(outsideTemp, unitSize * TON_CONVERSION);
@@ -339,7 +342,8 @@ implements CustomerModelAccessor
   @Override
   public double[] getCapacityProfile (Tariff tariff)
   {
-    List<WeatherReport> weather = weatherReportRepo.allWeatherReports();
+    List<WeatherReport> weather = 
+        service.getWeatherReportRepo().allWeatherReports();
     int offset = 
         (weather.size() >= profileSize)? (weather.size() - profileSize): 0;
     double[] result = new double[profileSize];

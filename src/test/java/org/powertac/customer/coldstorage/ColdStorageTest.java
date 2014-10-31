@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
+
 //import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -49,11 +50,14 @@ import org.powertac.common.TimeService;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 //import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -70,7 +74,7 @@ public class ColdStorageTest
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo mockSubscriptionRepo;
   private TimeService timeService;
-  //private Accounting mockAccounting;
+  private CustomerServiceAccessor serviceAccessor;
 
   private ServerConfiguration serverConfig;
   private Configurator config;
@@ -103,7 +107,6 @@ public class ColdStorageTest
     ReflectionTestUtils.setField(tariff, "timeService", timeService);
     ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
     tariff.init();
-    //tariffRepo.setDefaultTariff(spec);
 
     // set up randomSeed mock
     mockSeedRepo = mock(RandomSeedRepo.class);
@@ -128,14 +131,13 @@ public class ColdStorageTest
       }
     }).when(serverConfig).configureMe(anyObject());
 
-    //mockAccounting = mock(Accounting.class);
+    serviceAccessor = new ServiceAccessor();
     uut = new ColdStorage("test");
   }
 
   private void init ()
   {
-    uut.setServices(mockSeedRepo, mockWeatherRepo,
-                    tariffRepo, mockSubscriptionRepo);
+    uut.setServiceAccessor(serviceAccessor);
     uut.initialize();
     subscription = mock(TariffSubscription.class);
     List<TariffSubscription> subs = new ArrayList<TariffSubscription>();
@@ -260,5 +262,45 @@ public class ColdStorageTest
   public void testEvaluateTariffs ()
   {
     //fail("Not yet implemented");
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return mockSeedRepo;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return tariffRepo;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return mockSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return mockWeatherRepo;
+    }
   }
 }
