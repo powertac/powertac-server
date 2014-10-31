@@ -27,7 +27,6 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
@@ -39,12 +38,14 @@ import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.customer.AbstractCustomer;
 import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,11 +66,6 @@ public class Village extends AbstractCustomer
    * debugging.
    */
   static protected Logger log = Logger.getLogger(Village.class.getName());
-
-  // Additional ervice references
-  CustomerRepo customerRepo;
-  //TimeService timeService;
-  TimeslotRepo timeslotRepo;
 
   int seedId = 1;
 
@@ -237,10 +233,6 @@ public class Village extends AbstractCustomer
   {
     super(name);
 
-    //timeslotRepo =
-    //  (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
-    //timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-
     ArrayList<String> typeList = new ArrayList<String>();
     typeList.add("NS");
     typeList.add("RaS");
@@ -273,12 +265,6 @@ public class Village extends AbstractCustomer
     
   }
 
-  public void setRepos (TimeslotRepo tsRepo, CustomerRepo custRepo)
-  {
-    timeslotRepo = tsRepo;
-    customerRepo = custRepo;
-  }
-
   /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the village with its households and then fill
@@ -304,8 +290,8 @@ public class Village extends AbstractCustomer
             .getProperty("SmartShiftingCustomers")));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
-    gen =
-      randomSeedRepo.getRandomSeed(toString(), seed, "Village Model" + seed);
+    gen = service.getRandomSeedRepo()
+        .getRandomSeed(toString(), seed, "Village Model" + seed);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -356,7 +342,7 @@ public class Village extends AbstractCustomer
                 + VillageConstants.MIN_DEFAULT_DURATION;
 
       List<CustomerInfo> customer =
-        customerRepo.findByName(name + " " + type + " Base");
+        service.getCustomerRepo().findByName(name + " " + type + " Base");
 
       TariffEvaluationWrapper wrapper =
         new TariffEvaluationWrapper(type, customer.get(0));
@@ -379,7 +365,8 @@ public class Village extends AbstractCustomer
 
       tariffEvaluators.put(customer.get(0), te);
 
-      customer = customerRepo.findByName(name + " " + type + " Controllable");
+      customer = service.getCustomerRepo()
+          .findByName(name + " " + type + " Controllable");
 
       wrapper = new TariffEvaluationWrapper(type, customer.get(0));
 
@@ -405,45 +392,20 @@ public class Village extends AbstractCustomer
 
   }
 
-  // this is redundant - it's already in AbstractCustomer
-//  public void addCustomerInfo (CustomerInfo customer)
-//  {
-//    customerInfos.add(customer);
-//    customerRepo.add(customer);
-//  }
-
   // =====SUBSCRIPTION FUNCTIONS===== //
 
   // TODO - this should be moved to the service level initialization
   //@Override
   public void subscribeDefault (TariffMarket tariffMarketService)
   {
-    //super.subscribeDefault();
-
     for (CustomerInfo customer: getCustomerInfos()) {
-      Tariff candidate = tariffMarketService.
-          getDefaultTariff(customer.getPowerType());
+      Tariff candidate =
+          tariffMarketService.getDefaultTariff(customer.getPowerType());
       if (null == candidate) {
         log.error("No default tariff for " + customer.getPowerType().toString());
       }
       tariffMarketService.subscribeToTariff(candidate, customer,
                                             customer.getPopulation());
-      // not sure why this is needed...
-//      if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION
-//          && tariffMarketService
-//          .getDefaultTariff(PowerType.INTERRUPTIBLE_CONSUMPTION) == null) {
-//
-//        log.debug("No Default Tariff for INTERRUPTIBLE_CONSUMPTION so the customer "
-//            + customer.toString()
-//            + " subscribe to CONSUMPTION Default Tariff instead");
-//        tariffMarketService.subscribeToTariff(tariffMarketService
-//                                              .getDefaultTariff(PowerType.CONSUMPTION), customer, customer
-//                                              .getPopulation());
-//        log.info("CustomerInfo of type INTERRUPTIBLE_CONSUMPTION of "
-//            + toString()
-//            + " was subscribed to the default CONSUMPTION tariff successfully.");
-//      }
-
     }
   }
 
@@ -1241,13 +1203,14 @@ public class Village extends AbstractCustomer
 
   public void consumePower ()
   {
-    Timeslot ts = timeslotRepo.currentTimeslot();
+    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     int serial;
 
     for (CustomerInfo customer: getCustomerInfos()) {
 
       List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
+        service.getTariffSubscriptionRepo()
+        .findActiveSubscriptionsForCustomer(customer);
 
       String temp = houseMapping.get(customer);
 
@@ -1258,8 +1221,6 @@ public class Village extends AbstractCustomer
       if (ts == null) {
         log.error("Current timeslot is null");
         serial = 0;
-        //  (int) ((timeService.getCurrentTime().getMillis() - timeService
-        //          .getBase()) / TimeService.HOUR);
       }
       else {
         log.debug("Timeslot Serial: " + ts.getSerialNumber());
@@ -1664,7 +1625,7 @@ public class Village extends AbstractCustomer
 
       log.info("Customer " + customer.toString()
                + " evaluating tariffs for timeslot "
-               + timeslotRepo.currentTimeslot().getId());
+               + service.getTimeslotRepo().currentTimeslot().getId());
 
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
 
@@ -1769,15 +1730,12 @@ public class Village extends AbstractCustomer
   @Override
   public void step ()
   {
-    int serial = timeslotRepo.currentSerialNumber();
-    Timeslot ts = timeslotRepo.currentTimeslot();
-      //(int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial = service.getTimeslotRepo().currentSerialNumber();
+    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY);
     int hour = ts.getStartTime().getHourOfDay();
-        //timeService.getHourOfDay();
     Instant now = ts.getStartInstant();
-        //new Instant(timeService.getCurrentTime().getMillis());
 
     weatherCheck(day, hour, now);
 
@@ -1815,7 +1773,7 @@ public class Village extends AbstractCustomer
               % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     WeatherReport wr = null;
-    wr = weatherReportRepo.currentWeatherReport();
+    wr = service.getWeatherReportRepo().currentWeatherReport();
 
     if (wr != null) {
       double temperature = wr.getTemperature();
@@ -1844,8 +1802,7 @@ public class Village extends AbstractCustomer
    */
   void checkCurtailment (int serial, int day, int hour)
   {
-
-    int nextSerial = timeslotRepo.currentSerialNumber() + 1;
+    int nextSerial = service.getTimeslotRepo().currentSerialNumber() + 1;
       // (int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR) + 1;
     int nextDay = (int) (nextSerial / VillageConstants.HOURS_OF_DAY);
     int nextHour = (int) (nextSerial % VillageConstants.HOURS_OF_DAY);
@@ -1862,7 +1819,8 @@ public class Village extends AbstractCustomer
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
 
         List<TariffSubscription> subs =
-          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
+          service.getTariffSubscriptionRepo()
+          .findActiveSubscriptionsForCustomer(customer);
 
         long curt =
           (long) subs.get(0).getCurtailment() * VillageConstants.THOUSAND;
@@ -1893,26 +1851,22 @@ public class Village extends AbstractCustomer
    */
   void rescheduleNextDay (String type)
   {
-
-    int serial = timeslotRepo.currentSerialNumber();
-      //(int) ((timeService.getCurrentTime().getMillis() - timeService.getBase()) / TimeService.HOUR);
+    int serial = service.getTimeslotRepo().currentSerialNumber();
     int day = (int) (serial / VillageConstants.HOURS_OF_DAY) + 1;
 
     int dayTemp =
-      day
-              % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
+      day % (VillageConstants.DAYS_OF_BOOTSTRAP + VillageConstants.DAYS_OF_COMPETITION);
 
     double[] nonDominantUsage = getNonDominantUsage(dayTemp, type);
 
     Vector<Long> controllableVector = new Vector<Long>();
 
-    CustomerInfo customer =
-      customerRepo.findByNameAndPowerType(name + " " + type + " Controllable",
-                                          PowerType.INTERRUPTIBLE_CONSUMPTION);
+    CustomerInfo customer = service.getCustomerRepo()
+        .findByNameAndPowerType(name + " " + type + " Controllable",
+                                PowerType.INTERRUPTIBLE_CONSUMPTION);
 
-    TariffSubscription sub =
-      tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer)
-              .get(0);
+    TariffSubscription sub = service.getTariffSubscriptionRepo()
+        .findActiveSubscriptionsForCustomer(customer).get(0);
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());

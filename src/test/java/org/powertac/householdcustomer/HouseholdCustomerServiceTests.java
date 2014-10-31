@@ -246,10 +246,6 @@ public class HouseholdCustomerServiceTests
     householdCustomerService.initialize(comp, inits);
     assertEquals("correct first configuration file", "VillageType1.properties",
                  householdCustomerService.getConfigFile1());
-// deprecated...
-//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-//            .currentCompetition().getExpectedTimeslotCount()
-//                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -275,10 +271,6 @@ public class HouseholdCustomerServiceTests
     assertEquals("correct return value", "HouseholdCustomer", result);
     assertEquals("correct configuration file", "VillageDefault.properties",
                  householdCustomerService.getConfigFile1());
-// deprecated
-//    assertTrue(householdCustomerService.getDaysOfCompetition() >= Competition
-//            .currentCompetition().getExpectedTimeslotCount()
-//                                                                  / VillageConstants.HOURS_OF_DAY);
   }
 
   // @Repeat(20)
@@ -306,15 +298,9 @@ public class HouseholdCustomerServiceTests
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      // What is this supposed to do?
-      //customer.subscribeDefault();
 
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         assertEquals("one subscription for CONSUMPTION customerInfo",
                      1,
                      tariffSubscriptionRepo
@@ -336,19 +322,11 @@ public class HouseholdCustomerServiceTests
     initializeService();
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     timeService.setCurrentTime(now.plus(18 * TimeService.HOUR));
@@ -365,7 +343,6 @@ public class HouseholdCustomerServiceTests
 
     assertEquals("Tariff Transactions Created", 16 * householdCustomerService
             .getVillageList().size(), accountingArgs.size());
-
   }
 
   // @Repeat(20)
@@ -378,19 +355,11 @@ public class HouseholdCustomerServiceTests
       ArgumentCaptor.forClass(PowerType.class);
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -437,7 +406,6 @@ public class HouseholdCustomerServiceTests
 
     // Test the function with different inputs, in order to get the same
     householdCustomerService.publishNewTariffs(tclist1);
-
   }
 
   // @Repeat(20)
@@ -450,19 +418,11 @@ public class HouseholdCustomerServiceTests
       ArgumentCaptor.forClass(PowerType.class);
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     double rateValue = -500;
@@ -507,7 +467,6 @@ public class HouseholdCustomerServiceTests
 
     // Test the function with different inputs, in order to get the same
     householdCustomerService.publishNewTariffs(tclist1);
-
   }
 
   // @Repeat(20)
@@ -520,19 +479,11 @@ public class HouseholdCustomerServiceTests
       ArgumentCaptor.forClass(PowerType.class);
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     Rate r1 =
@@ -568,7 +519,6 @@ public class HouseholdCustomerServiceTests
 
     // Test the function with different inputs, in order to get the same
     householdCustomerService.publishNewTariffs(tclist1);
-
   }
 
   // @Repeat(20)
@@ -581,19 +531,11 @@ public class HouseholdCustomerServiceTests
       ArgumentCaptor.forClass(PowerType.class);
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     Rate r2 = new Rate().withValue(-0.222);
@@ -685,22 +627,12 @@ public class HouseholdCustomerServiceTests
       ArgumentCaptor.forClass(PowerType.class);
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
-
-    // for (int i = 0; i < 10; i++) {
 
     Rate r0 =
       new Rate().withValue(-Math.random()).withDailyBegin(0).withDailyEnd(0);
@@ -798,7 +730,6 @@ public class HouseholdCustomerServiceTests
 
     householdCustomerService.publishNewTariffs(tclist1);
 
-    // }
     timeService.setBase(now.getMillis());
     timeService.setCurrentTime(timeService.getCurrentTime()
             .plus(TimeService.HOUR * 23));
@@ -812,19 +743,11 @@ public class HouseholdCustomerServiceTests
     initializeService();
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     // for (int i = 0; i < 10; i++) {
@@ -850,7 +773,6 @@ public class HouseholdCustomerServiceTests
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
-
   }
 
   @Test
@@ -859,19 +781,11 @@ public class HouseholdCustomerServiceTests
     initializeService();
 
     for (Village customer: householdCustomerService.getVillageList()) {
-
       for (CustomerInfo customerInfo: customer.getCustomerInfos()) {
-
         TariffSubscription defaultSub =
           tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
-
       }
-
-      // Doing it again in order to check the correct configuration of the
-      // SubscriptionMapping //
-      //customer.subscribeDefault();
-
     }
 
     timeService.setBase(now.getMillis());
@@ -900,8 +814,6 @@ public class HouseholdCustomerServiceTests
       wr = new WeatherReport(ts1, temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
-
     }
-
   }
 }

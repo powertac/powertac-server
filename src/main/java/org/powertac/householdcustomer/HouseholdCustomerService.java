@@ -32,6 +32,7 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -60,7 +61,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class HouseholdCustomerService extends TimeslotPhaseProcessor
-  implements NewTariffListener, InitializationService
+  implements NewTariffListener, InitializationService, CustomerServiceAccessor
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -93,12 +94,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
-  /** Random Number Generator */
-//  private RandomSeed rs1;
 
   // read this from configurator
   private String configFile1 = null;
-  //private int daysOfCompetition = 0;
 
   /**
    * This is the configuration file that will be utilized to pass the parameters
@@ -126,8 +124,8 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
    * Consumers that will be running in the game.
    */
   @Override
-  public String
-    initialize (Competition competition, List<String> completedInits)
+  public String initialize (Competition competition,
+                            List<String> completedInits)
   {
     if (!completedInits.contains("DefaultBroker")
         || !completedInits.contains("TariffMarket"))
@@ -139,28 +137,10 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
     serverPropertiesService.configureMe(this);
 
-//    rs1 =
-//      randomSeedRepo.getRandomSeed("HouseholdCustomerService", seedId++,
-//                                   "Household Customer Models");
-
     if (configFile1 == null) {
       log.info("No Config File for VillageType1 Taken");
       configFile1 = "VillageDefault.properties";
     }
-
-    // TODO - why is this needed? It cannot be accurate, because the length of
-    //   a game is a random value.
-//    daysOfCompetition =
-//      Competition.currentCompetition().getExpectedTimeslotCount()
-//              / VillageConstants.HOURS_OF_DAY;
-//    VillageConstants.setDaysOfCompetition(daysOfCompetition);
-//    VillageConstants.setDaysOfWeek();
-//    daysOfCompetition = VillageConstants.DAYS_OF_COMPETITION;
-//
-//    if (daysOfCompetition == 0) {
-//      log.info("No Days Of Competition Taken");
-//      daysOfCompetition = 63;
-//    }
 
     addVillages(configFile1, "1");
 
@@ -177,6 +157,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
       cfgFile.close();
     }
     catch (IOException e) {
+      log.error("failed to open configuration file");
       e.printStackTrace();
       return;
     }
@@ -212,7 +193,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
       for (String houseType: types) {
         for (String shifting: shifts) {
-
           CustomerInfo villageInfo =
             new CustomerInfo("Village " + i + " " + houseType + " " + shifting,
                              houses.get(houseType));
@@ -225,11 +205,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
           village.addCustomerInfo(villageInfo);
           customerRepo.add(villageInfo);
         }
-
       }
 
-      village.setServices(randomSeedRepo, weatherReportRepo, tariffRepo, tariffSubscriptionRepo);
-      village.setRepos(timeslotRepo, customerRepo);
+      village.setServiceAccessor(this);
       village.initialize(configuration, seedId++, map);
       villageList.add(village);
       village.subscribeDefault(tariffMarketService);
@@ -247,19 +225,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   }
 
   // ----------------- Data access -------------------------
-
-//  /** Getter method for the days of competition */
-//  public int getDaysOfCompetition ()
-//  {
-//    return daysOfCompetition;
-//  }
-//
-//  @ConfigurableValue(valueType = "Integer", description = "The competition duration in days")
-//  public
-//    void setDaysOfCompetition (int days)
-//  {
-//    daysOfCompetition = days;
-//  }
 
   /** Getter method for the first configuration file */
   public String getConfigFile1 ()
@@ -298,15 +263,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
    * 
    * @return List<CustomerInfo>
    */
-//  public List<CustomerInfo> generateCustomerInfoList ()
-//  {
-//    ArrayList<CustomerInfo> result = new ArrayList<CustomerInfo>();
-//    for (Village village: villageList) {
-//      for (CustomerInfo customer: village.getCustomerInfo())
-//        result.add(customer);
-//    }
-//    return result;
-//  }
 
   @Override
   public void activate (Instant time, int phaseNumber)
@@ -324,4 +280,41 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   {
   }
 
+  // ========= CustomerServiceAccessor API ===========
+
+  @Override
+  public CustomerRepo getCustomerRepo ()
+  {
+    return customerRepo;
+  }
+
+  @Override
+  public RandomSeedRepo getRandomSeedRepo ()
+  {
+    return randomSeedRepo;
+  }
+
+  @Override
+  public TariffRepo getTariffRepo ()
+  {
+    return tariffRepo;
+  }
+
+  @Override
+  public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    return tariffSubscriptionRepo;
+  }
+
+  @Override
+  public TimeslotRepo getTimeslotRepo ()
+  {
+    return timeslotRepo;
+  }
+
+  @Override
+  public WeatherReportRepo getWeatherReportRepo ()
+  {
+    return weatherReportRepo;
+  }
 }
