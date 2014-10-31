@@ -32,6 +32,7 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -60,7 +61,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
-  implements NewTariffListener, InitializationService
+  implements NewTariffListener, InitializationService, CustomerServiceAccessor
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -142,26 +143,11 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     officeComplexList.clear();
 
     tariffMarketService.registerNewTariffListener(this);
-//    rs1 =
-//      randomSeedRepo.getRandomSeed("OfficeComplexCustomerService", 1,
-//                                   "Office Complex Customer Models");
 
     if (configFile1 == null) {
       log.info("No Config File for OfficeComplexType1 Taken");
       configFile1 = "OfficeComplexDefault.properties";
     }
-
-//    daysOfCompetition =
-//      Competition.currentCompetition().getExpectedTimeslotCount()
-//              / OfficeComplexConstants.HOURS_OF_DAY;
-//    OfficeComplexConstants.setDaysOfWeek();
-//    OfficeComplexConstants.setDaysOfCompetition(daysOfCompetition);
-//    daysOfCompetition = OfficeComplexConstants.DAYS_OF_COMPETITION;
-//
-//    if (daysOfCompetition == 0) {
-//      log.info("No Days Of Competition Taken");
-//      daysOfCompetition = 63;
-//    }
 
     addOfficeComplexes(configFile1, "1");
 
@@ -231,9 +217,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
       }
 
-      officeComplex.setServices(randomSeedRepo, weatherReportRepo,
-                                tariffRepo, tariffSubscriptionRepo);
-      officeComplex.setRepos(timeslotRepo, customerRepo);
+      officeComplex.setServiceAccessor(this);
       officeComplex.initialize(configuration, seedId++, map);
       officeComplexList.add(officeComplex);
       officeComplex.subscribeDefault(tariffMarketService);
@@ -316,4 +300,40 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   {
   }
 
+  // ============== CustomerServiceAccessor API
+  @Override
+  public CustomerRepo getCustomerRepo ()
+  {
+    return customerRepo;
+  }
+
+  @Override
+  public RandomSeedRepo getRandomSeedRepo ()
+  {
+    return randomSeedRepo;
+  }
+
+  @Override
+  public TariffRepo getTariffRepo ()
+  {
+    return tariffRepo;
+  }
+
+  @Override
+  public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    return tariffSubscriptionRepo;
+  }
+
+  @Override
+  public TimeslotRepo getTimeslotRepo ()
+  {
+    return timeslotRepo;
+  }
+
+  @Override
+  public WeatherReportRepo getWeatherReportRepo ()
+  {
+    return weatherReportRepo;
+  }
 }

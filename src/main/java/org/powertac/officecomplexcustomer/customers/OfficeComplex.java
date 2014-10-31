@@ -27,7 +27,6 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
-import org.powertac.common.AbstractCustomer;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
@@ -45,6 +44,7 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.customer.AbstractCustomer;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,10 +65,6 @@ public class OfficeComplex extends AbstractCustomer
    * debugging.
    */
   static protected Logger log = Logger.getLogger(OfficeComplex.class.getName());
-
-  // Additional service references
-  CustomerRepo customerRepo;
-  TimeslotRepo timeslotRepo;
 
   int seedId = 1;
 
@@ -221,12 +217,6 @@ public class OfficeComplex extends AbstractCustomer
     super.initialize();
   }
 
-  public void setRepos (TimeslotRepo tsRepo, CustomerRepo custRepo)
-  {
-    timeslotRepo = tsRepo;
-    customerRepo = custRepo;
-  }
-
   /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the office complex with its offices and then
@@ -245,9 +235,8 @@ public class OfficeComplex extends AbstractCustomer
             .getProperty("SmartShiftingCustomers")));
     int days = Integer.parseInt(conf.getProperty("PublicVacationDuration"));
 
-    gen =
-      randomSeedRepo.getRandomSeed(toString(), seed,
-                                   "OfficeComplex Model" + seed);
+    gen = service.getRandomSeedRepo()
+        .getRandomSeed(toString(), seed, "OfficeComplex Model" + seed);
 
     Vector<Integer> publicVacationVector = createPublicVacationVector(days);
 
@@ -280,7 +269,7 @@ public class OfficeComplex extends AbstractCustomer
                 + OfficeComplexConstants.MIN_DEFAULT_DURATION;
 
       List<CustomerInfo> customer =
-        customerRepo.findByName(name + " " + type + " Base");
+        service.getCustomerRepo().findByName(name + " " + type + " Base");
 
       TariffEvaluationWrapper wrapper =
         new TariffEvaluationWrapper(type, customer.get(0));
@@ -303,7 +292,8 @@ public class OfficeComplex extends AbstractCustomer
 
       tariffEvaluators.put(customer.get(0), te);
 
-      customer = customerRepo.findByName(name + " " + type + " Controllable");
+      customer = service.getCustomerRepo()
+          .findByName(name + " " + type + " Controllable");
 
       wrapper = new TariffEvaluationWrapper(type, customer.get(0));
 
@@ -880,13 +870,14 @@ public class OfficeComplex extends AbstractCustomer
   //@Override
   public void consumePower ()
   {
-    Timeslot ts = timeslotRepo.currentTimeslot();
+    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     int serial;
 
     for (CustomerInfo customer: getCustomerInfos()) {
 
       List<TariffSubscription> subscriptions =
-        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
+        service.getTariffSubscriptionRepo()
+        .findActiveSubscriptionsForCustomer(customer);
 
       String temp = officeMapping.get(customer);
 
@@ -1257,7 +1248,7 @@ public class OfficeComplex extends AbstractCustomer
     for (CustomerInfo customer: getCustomerInfos()) {
       log.info("Customer " + customer.toString()
                + " is evaluating tariffs for timeslot "
-               + timeslotRepo.currentSerialNumber());
+               + service.getTimeslotRepo().currentSerialNumber());
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
       evaluator.evaluateTariffs();
     }
@@ -1352,8 +1343,8 @@ public class OfficeComplex extends AbstractCustomer
   @Override
   public void step ()
   {
-    int serial = timeslotRepo.currentSerialNumber();
-    Timeslot ts = timeslotRepo.currentTimeslot();
+    int serial = service.getTimeslotRepo().currentSerialNumber();
+    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
     // TODO - this code assumes that games start at midnight. Bad assumption.
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY);
     int hour = ts.getStartTime().getHourOfDay();
@@ -1393,7 +1384,8 @@ public class OfficeComplex extends AbstractCustomer
     int dayTemp =
       day
               % (OfficeComplexConstants.DAYS_OF_BOOTSTRAP + OfficeComplexConstants.DAYS_OF_COMPETITION);
-    WeatherReport wr = weatherReportRepo.currentWeatherReport();
+    WeatherReport wr = 
+        service.getWeatherReportRepo().currentWeatherReport();
     if (wr != null) {
       double temperature = wr.getTemperature();
       // log.debug("Temperature: " + temperature);
@@ -1420,7 +1412,8 @@ public class OfficeComplex extends AbstractCustomer
    */
   void checkCurtailment (int serial, int day, int hour)
   {
-    int nextSerial = timeslotRepo.currentSerialNumber() + 1;
+    int nextSerial = 
+        service.getTimeslotRepo().currentSerialNumber() + 1;
     int nextDay = (int) (nextSerial / OfficeComplexConstants.HOURS_OF_DAY);
     int nextHour = (int) (nextSerial % OfficeComplexConstants.HOURS_OF_DAY);
 
@@ -1436,7 +1429,8 @@ public class OfficeComplex extends AbstractCustomer
       if (customer.getPowerType() == PowerType.INTERRUPTIBLE_CONSUMPTION) {
 
         List<TariffSubscription> subs =
-          tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer);
+          service.getTariffSubscriptionRepo()
+          .findActiveSubscriptionsForCustomer(customer);
 
         long curt =
           (long) subs.get(0).getCurtailment() * OfficeComplexConstants.THOUSAND;
@@ -1452,12 +1446,9 @@ public class OfficeComplex extends AbstractCustomer
           curtailControllableConsumption(dayTemp, hour, type, -(long) (curt));
           curtailControllableConsumption(nextDayTemp, nextHour, type,
                                          (long) (curt));
-
         }
       }
-
     }
-
   }
 
   /**
@@ -1467,7 +1458,7 @@ public class OfficeComplex extends AbstractCustomer
    */
   void rescheduleNextDay (String type)
   {
-    int serial = timeslotRepo.currentSerialNumber();
+    int serial = service.getTimeslotRepo().currentSerialNumber();
     int day = (int) (serial / OfficeComplexConstants.HOURS_OF_DAY) + 1;
 
     int dayTemp =
@@ -1478,12 +1469,13 @@ public class OfficeComplex extends AbstractCustomer
     Vector<Long> controllableVector = new Vector<Long>();
 
     CustomerInfo customer =
-      customerRepo.findByNameAndPowerType(name + " " + type + " Controllable",
-                                          PowerType.INTERRUPTIBLE_CONSUMPTION);
+      service.getCustomerRepo()
+      .findByNameAndPowerType(name + " " + type + " Controllable",
+                              PowerType.INTERRUPTIBLE_CONSUMPTION);
 
     TariffSubscription sub =
-      tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(customer)
-              .get(0);
+      service.getTariffSubscriptionRepo()
+      .findActiveSubscriptionsForCustomer(customer).get(0);
 
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
