@@ -102,6 +102,7 @@ public abstract class AbstractCustomer
   /**
    * Initializes the instance. Called after configuration, and after
    * a call to setServices().
+   * TODO -- do we really want this here?
    */
   public void initialize ()
   {
