@@ -258,13 +258,6 @@ public class Village extends AbstractCustomer
     super.initialize();
   }
 
-  @Override
-  public void evaluateTariffs (List<Tariff> tariffs)
-  {
-    // TODO Auto-generated method stub
-    
-  }
-
   /**
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the village with its households and then fill
@@ -387,14 +380,11 @@ public class Village extends AbstractCustomer
               .withTariffSwitchFactor(VillageConstants.TARIFF_SWITCH_FACTOR);
 
       tariffEvaluators.put(customer.get(0), te);
-
     }
-
   }
 
   // =====SUBSCRIPTION FUNCTIONS===== //
 
-  // TODO - this should be moved to the service level initialization
   //@Override
   public void subscribeDefault (TariffMarket tariffMarketService)
   {
@@ -403,6 +393,10 @@ public class Village extends AbstractCustomer
           tariffMarketService.getDefaultTariff(customer.getPowerType());
       if (null == candidate) {
         log.error("No default tariff for " + customer.getPowerType().toString());
+      }
+      else {
+        log.info("Subscribe " + customer.getName()
+                 + " to " + candidate.getPowerType().toString());
       }
       tariffMarketService.subscribeToTariff(candidate, customer,
                                             customer.getPopulation());
@@ -1619,18 +1613,15 @@ public class Village extends AbstractCustomer
    * have
    * more chances to be chosen.
    */
-  public void evaluateNewTariffs ()
+  @Override
+  public void evaluateTariffs (List<Tariff> tariffs)
   {
     for (CustomerInfo customer: getCustomerInfos()) {
-
       log.info("Customer " + customer.toString()
                + " evaluating tariffs for timeslot "
                + service.getTimeslotRepo().currentTimeslot().getId());
-
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
-
       evaluator.evaluateTariffs();
-
     }
   }
 

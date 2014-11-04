@@ -220,8 +220,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   {
     // For each village of the server //
     for (Village village: villageList)
-      village.evaluateNewTariffs();
-
+      village.evaluateTariffs(tariffs);
   }
 
   // ----------------- Data access -------------------------
