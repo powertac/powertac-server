@@ -21,7 +21,12 @@ import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.*;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.beans.*;
 import org.powertac.evcustomer.customers.EvSocialClass;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,7 +51,7 @@ import java.util.Map;
  */
 @Service
 public class EvCustomerService extends TimeslotPhaseProcessor
-    implements InitializationService, NewTariffListener
+    implements InitializationService, NewTariffListener, CustomerServiceAccessor
 {
   /**
    * logger for trace logging -- use log.info(), log.warn(), and log.error()
@@ -60,6 +66,12 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TimeService timeService;
+
+  @Autowired
+  private CustomerRepo customerRepo;
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
@@ -123,13 +135,16 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
       String name = "EV " + classDetail.getName();
       EvSocialClass socialClass = new EvSocialClass(name, timeService);
-      socialClass.addCustomer(populationCount, cars, PowerType.CONSUMPTION);
-      socialClass.addCustomer(populationCount, cars, PowerType.ELECTRIC_VEHICLE);
+      socialClass.setServiceAccessor(this);
+      socialClass.addCustomer(populationCount, cars,
+                              PowerType.CONSUMPTION);
+      socialClass.addCustomer(populationCount, cars,
+                              PowerType.ELECTRIC_VEHICLE);
 
       socialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
           activities, allActivityDetails, cars, populationCount, seed++);
       evSocialClassList.add(socialClass);
-      socialClass.subscribeDefault();
+      socialClass.subscribeDefault(tariffMarketService);
     }
 
     return evSocialClassList;
@@ -144,7 +159,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     log.info("PublishNewTariffs");
 
     for (EvSocialClass evSocialClass : evSocialClassList) {
-      evSocialClass.evaluateNewTariffs();
+      evSocialClass.evaluateTariffs(tariffs);
     }
   }
 
@@ -356,5 +371,46 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   {
     return Double.parseDouble(element.getElementsByTagName(tagName)
         .item(0).getFirstChild().getNodeValue());
+  }
+
+  // ===================== CustomerModelAccessor API =========================
+  @Override
+  public CustomerRepo getCustomerRepo ()
+  {
+    return customerRepo;
+  }
+
+  @Override
+  public RandomSeedRepo getRandomSeedRepo ()
+  {
+    return randomSeedRepo;
+  }
+
+  @Override
+  public TariffRepo getTariffRepo ()
+  {
+    // not used
+    return null;
+  }
+
+  @Override
+  public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+  {
+    // not used
+    return tariffSubscriptionRepo;
+  }
+
+  @Override
+  public TimeslotRepo getTimeslotRepo ()
+  {
+    // not used
+    return null;
+  }
+
+  @Override
+  public WeatherReportRepo getWeatherReportRepo ()
+  {
+    // not used
+    return null;
   }
 }

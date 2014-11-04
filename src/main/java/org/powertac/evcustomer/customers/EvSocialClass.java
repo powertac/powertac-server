@@ -20,11 +20,12 @@ import org.apache.log4j.Logger;
 import org.powertac.common.*;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
 
 import java.util.*;
-
 
 /**
  * @author Konstantina Valogianni, Govert Buijs
@@ -73,15 +74,17 @@ public class EvSocialClass extends AbstractCustomer
                           int populationCount,
                           int seed)
   {
-    this.generator = randomSeedRepo.
+    this.generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass", seed, "initialize");
 
     evCustomers = new Vector<EvCustomer>();
 
-    List<CustomerInfo> customerInfos1 = customerRepo.findByName(
-        createInfoName(PowerType.CONSUMPTION));
-    List<CustomerInfo> customerInfos2 = customerRepo.findByName(
-        createInfoName(PowerType.ELECTRIC_VEHICLE));
+    List<CustomerInfo> customerInfos1 = 
+        service.getCustomerRepo()
+        .findByName(createInfoName(PowerType.CONSUMPTION));
+    List<CustomerInfo> customerInfos2 = 
+        service.getCustomerRepo()
+        .findByName(createInfoName(PowerType.ELECTRIC_VEHICLE));
 
     for (int i = 0; i < populationCount; i++) {
       int randomGroupId = getRandomGroupId(groupDetails, generator);
@@ -160,35 +163,27 @@ public class EvSocialClass extends AbstractCustomer
 
   // =====SUBSCRIPTION FUNCTIONS===== //
 
-  @Override
-  public void subscribeDefault ()
+  public void subscribeDefault (TariffMarket tariffMarketService)
   {
-    super.subscribeDefault();
-
-    for (CustomerInfo customer : customerInfos) {
-      if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE &&
-          tariffMarketService
-              .getDefaultTariff(PowerType.ELECTRIC_VEHICLE) == null) {
-
-        log.debug("No Default Tariff for ELECTRIC_VEHICLE so the customer "
-            + customer.toString()
-            + " subscribe to CONSUMPTION Default Tariff instead");
-
-        tariffMarketService.subscribeToTariff(
-            tariffMarketService.getDefaultTariff(PowerType.CONSUMPTION),
-            customer, customer.getPopulation());
-
-        log.info("CustomerInfo of type ELECTRIC_VEHICLE of " + toString()
-            + " was subscribed to the default CONSUMPTION tariff successfully.");
+    for (CustomerInfo customer : getCustomerInfos()) {
+      Tariff candidate =
+          tariffMarketService.getDefaultTariff(customer.getPowerType());
+      if (null == candidate) {
+        log.error("No default tariff for " + customer.getPowerType().toString());
       }
+      else {
+        log.info("Subscribe " + customer.getName()
+                 + " to " + candidate.getPowerType().toString());
+      }
+      tariffMarketService.subscribeToTariff(candidate, customer,
+                                            customer.getPopulation());
     }
   }
 
   // =====CONSUMPTION FUNCTIONS===== //
-  @Override
   public void consumePower ()
   {
-    for (CustomerInfo customer : customerInfos) {
+    for (CustomerInfo customer : getCustomerInfos()) {
       List<TariffSubscription> subs = getCurrentSubscriptions(customer);
 
       if (subs != null && subs.size() > 0) {
@@ -216,9 +211,10 @@ public class EvSocialClass extends AbstractCustomer
    * is picked up randomly by using a possibility pattern. The better tariffs
    * have more chances to be chosen.
    */
-  public void evaluateNewTariffs ()
+  @Override
+  public void evaluateTariffs (List<Tariff> tariffs)
   {
-    for (CustomerInfo customer : customerInfos) {
+    for (CustomerInfo customer : getCustomerInfos()) {
       log.info(name + ": evaluate tariffs for " + customer.getName());
       TariffEvaluator evaluator = tariffEvaluators.get(customer);
       evaluator.evaluateTariffs();
@@ -266,7 +262,7 @@ public class EvSocialClass extends AbstractCustomer
    */
   private void handleRegulations (int day, int hour)
   {
-    for (CustomerInfo customer : customerInfos) {
+    for (CustomerInfo customer : getCustomerInfos()) {
       if (customer.getPowerType() != PowerType.ELECTRIC_VEHICLE) {
         continue;
       }
@@ -299,7 +295,7 @@ public class EvSocialClass extends AbstractCustomer
 
   private void setRegulations ()
   {
-    for (CustomerInfo customer : customerInfos) {
+    for (CustomerInfo customer : getCustomerInfos()) {
       if (customer.getPowerType() != PowerType.ELECTRIC_VEHICLE) {
         continue;
       }
@@ -363,6 +359,7 @@ public class EvSocialClass extends AbstractCustomer
     }
 
     addCustomerInfo(customerInfo);
+    service.getCustomerRepo().add(customerInfo);
   }
 
   public String createInfoName (PowerType type)
@@ -396,7 +393,8 @@ public class EvSocialClass extends AbstractCustomer
   public List<TariffSubscription> getCurrentSubscriptions (CustomerInfo cust)
   {
     List<TariffSubscription> subs =
-        tariffSubscriptionRepo.findActiveSubscriptionsForCustomer(cust);
+        service.getTariffSubscriptionRepo()
+        .findActiveSubscriptionsForCustomer(cust);
     if (subs.size() > 1) {
       log.warn("Multiple subscriptions " + subs.size() + " for " + name);
     }

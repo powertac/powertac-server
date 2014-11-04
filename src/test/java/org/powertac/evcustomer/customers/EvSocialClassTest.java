@@ -34,10 +34,14 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
@@ -87,6 +91,9 @@ public class EvSocialClassTest
   private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
+  private RandomSeedRepo randomSeedRepo;
+
+  @Autowired
   private TariffMarket mockTariffMarket;
 
   private EvSocialClass evSocialClass;
@@ -115,6 +122,7 @@ public class EvSocialClassTest
   private Instant now;
 
   private int seedId = 1;
+  private ServiceAccessor service;
 
   @Before
   public void setUp ()
@@ -131,6 +139,7 @@ public class EvSocialClassTest
     customerRepo.recycle();
     tariffSubscriptionRepo.recycle();
     tariffRepo.recycle();
+    service = new ServiceAccessor();
     Broker broker1 = new Broker("Joe");
 
     now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
@@ -162,7 +171,7 @@ public class EvSocialClassTest
   @After
   public void tearDown ()
   {
-    tariffRepo = null;
+    //tariffRepo = null;
 
     defaultTariff = null;
     defaultTariffEV = null;
@@ -182,6 +191,7 @@ public class EvSocialClassTest
 
   private void initializeClass ()
   {
+    evSocialClass.setServiceAccessor(service);
     info = new CustomerInfo(
         evSocialClass.createInfoName(PowerType.CONSUMPTION), 1)
         .withPowerType(PowerType.CONSUMPTION);
@@ -201,7 +211,9 @@ public class EvSocialClassTest
     cars.add(car);
 
     evSocialClass.addCustomerInfo(info);
+    customerRepo.add(info);
     evSocialClass.addCustomerInfo(info2);
+    customerRepo.add(info2);
 
     groupDetails = new HashMap<Integer, SocialGroupDetail>();
     groupDetails.put(groupId,
@@ -217,7 +229,7 @@ public class EvSocialClassTest
     initializeClass();
 
     assertEquals(evSocialClass.getName(), className);
-    assertEquals(evSocialClass.getCustomerInfo(),
+    assertEquals(evSocialClass.getCustomerInfos(),
         new ArrayList<CustomerInfo>()
         {{
             add(info);
@@ -240,17 +252,17 @@ public class EvSocialClassTest
   {
     initializeClass();
 
-    evSocialClass.addCustomerInfo(info);
-    evSocialClass.addCustomerInfo(info2);
+    //evSocialClass.addCustomerInfo(info);
+    //evSocialClass.addCustomerInfo(info2);
 
     assertNotNull("not null", evSocialClass);
     assertEquals("correct customerInfo size", 2,
-        evSocialClass.getCustomerInfo().size());
+        evSocialClass.getCustomerInfos().size());
     assertEquals("correct powerType for first", PowerType.CONSUMPTION,
-        evSocialClass.getCustomerInfo().get(0).getPowerType());
+        evSocialClass.getCustomerInfos().get(0).getPowerType());
     assertEquals("correct powerType for second",
         PowerType.ELECTRIC_VEHICLE,
-        evSocialClass.getCustomerInfo().get(1).getPowerType());
+        evSocialClass.getCustomerInfos().get(1).getPowerType());
     assertEquals("two customers on repo", 2, customerRepo.list().size());
   }
 
@@ -270,10 +282,10 @@ public class EvSocialClassTest
   {
     initializeClass();
 
-    evSocialClass.addCustomerInfo(info);
-    evSocialClass.addCustomerInfo(info2);
+    //evSocialClass.addCustomerInfo(info);
+    //evSocialClass.addCustomerInfo(info2);
 
-    evSocialClass.subscribeDefault();
+    evSocialClass.subscribeDefault(mockTariffMarket);
 
     verify(mockTariffMarket).subscribeToTariff(defaultTariff, info, 1);
     verify(mockTariffMarket).subscribeToTariff(defaultTariffEV, info2, 1);
@@ -304,20 +316,20 @@ public class EvSocialClassTest
         .thenReturn(null);
 
     subscriptions.clear();
-    evSocialClass.subscribeDefault();
+    evSocialClass.subscribeDefault(mockTariffMarket);
     assertEquals(subscriptions.size(), 0);
 
     when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
         .thenReturn(defaultTariff);
     subscriptions.clear();
-    evSocialClass.subscribeDefault();
+    evSocialClass.subscribeDefault(mockTariffMarket);
     assertEquals(subscriptions.size(), 1);
-    assertEquals(subscriptions.get(defaultTariff), info2);
+    assertEquals(subscriptions.get(defaultTariff), info);
 
     when(mockTariffMarket.getDefaultTariff(PowerType.ELECTRIC_VEHICLE))
         .thenReturn(defaultTariffEV);
     subscriptions.clear();
-    evSocialClass.subscribeDefault();
+    evSocialClass.subscribeDefault(mockTariffMarket);
     assertEquals(subscriptions.size(), 2);
     assertEquals(subscriptions.get(defaultTariff), info);
     assertEquals(subscriptions.get(defaultTariffEV), info2);
@@ -370,7 +382,7 @@ public class EvSocialClassTest
     evSocialClass.getLoads(0, 8);
     assertEquals(80, car2.getCurrentCapacity(), 1E-6);
 
-    for (CustomerInfo customerInfo : evSocialClass.getCustomerInfo()) {
+    for (CustomerInfo customerInfo : evSocialClass.getCustomerInfos()) {
       List<TariffSubscription> subs = tariffSubscriptionRepo
           .findActiveSubscriptionsForCustomer(customerInfo);
 
@@ -425,5 +437,45 @@ public class EvSocialClassTest
       assertEquals(profile1[i], load, 1E-6);
     }
     assertEquals(profile0.length, 24);
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return customerRepo;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return randomSeedRepo;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return tariffRepo;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return tariffSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
   }
 }

@@ -38,6 +38,7 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -110,6 +111,9 @@ public class EvCustomerServiceTest
 
   @Autowired
   private WeatherReportRepo weatherReportRepo;
+
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
 
   private Configurator config;
   private Instant exp;
@@ -191,9 +195,9 @@ public class EvCustomerServiceTest
     broker1 = null;
     now = null;
     exp = null;
-    customerRepo = null;
-    tariffRepo = null;
-    tariffSubscriptionRepo = null;
+    //customerRepo = null;
+    //tariffRepo = null;
+    //tariffSubscriptionRepo = null;
     defaultTariffSpec = null;
     defaultTariff = null;
     accountingArgs = null;
@@ -211,7 +215,7 @@ public class EvCustomerServiceTest
   private void subscribeDefault ()
   {
     for (EvSocialClass socialClass : evCustomerService.evSocialClassList) {
-      for (CustomerInfo customerInfo : socialClass.getCustomerInfo()) {
+      for (CustomerInfo customerInfo : socialClass.getCustomerInfos()) {
         TariffSubscription defaultSub =
             tariffSubscriptionRepo.getSubscription(customerInfo, defaultTariff);
         defaultSub.subscribe(customerInfo.getPopulation());
@@ -254,7 +258,7 @@ public class EvCustomerServiceTest
     subscribeDefault();
 
     for (EvSocialClass socialClass : evCustomerService.evSocialClassList) {
-      for (CustomerInfo customerInfo : socialClass.getCustomerInfo()) {
+      for (CustomerInfo customerInfo : socialClass.getCustomerInfos()) {
         assertEquals("one subscription for CONSUMPTION customerInfo", 1,
             tariffSubscriptionRepo
                 .findSubscriptionsForCustomer(customerInfo).size());
@@ -447,7 +451,7 @@ public class EvCustomerServiceTest
     evCustomerService.activate(timeService.getCurrentTime(), 1);
 
     for (EvSocialClass socialClass : evCustomerService.evSocialClassList) {
-      for (CustomerInfo customerInfo : socialClass.getCustomerInfo()) {
+      for (CustomerInfo customerInfo : socialClass.getCustomerInfos()) {
         List<TariffSubscription> subscriptions = tariffSubscriptionRepo
             .findActiveSubscriptionsForCustomer(customerInfo);
 
