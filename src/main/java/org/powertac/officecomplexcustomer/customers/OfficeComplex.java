@@ -1243,7 +1243,8 @@ public class OfficeComplex extends AbstractCustomer
    * have
    * more chances to be chosen.
    */
-  public void evaluateNewTariffs ()
+  @Override
+  public void evaluateTariffs (List<Tariff> newTariffs)
   {
     for (CustomerInfo customer: getCustomerInfos()) {
       log.info("Customer " + customer.toString()
@@ -1576,17 +1577,7 @@ public class OfficeComplex extends AbstractCustomer
     @Override
     public double getInertiaSample ()
     {
-
       return gen.nextDouble();
     }
-
   }
-
-  @Override
-  public void evaluateTariffs (List<Tariff> tariffs)
-  {
-    // TODO Auto-generated method stub
-    
-  }
-
 }

@@ -231,7 +231,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
     // For each village of the server //
     for (OfficeComplex officeComplex: officeComplexList)
-      officeComplex.evaluateNewTariffs();
+      officeComplex.evaluateTariffs(tariffs);
 
   }
 
