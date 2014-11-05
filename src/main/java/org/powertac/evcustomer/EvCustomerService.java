@@ -65,7 +65,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   private TariffMarket tariffMarketService;
 
   @Autowired
-  private TimeService timeService;
+  private TimeslotRepo timeslotRepo;
 
   @Autowired
   private CustomerRepo customerRepo;
@@ -134,7 +134,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
           rs1.nextInt(classDetail.getMaxCount() - classDetail.getMinCount());
 
       String name = "EV " + classDetail.getName();
-      EvSocialClass socialClass = new EvSocialClass(name, timeService);
+      EvSocialClass socialClass = new EvSocialClass(name);
       socialClass.setServiceAccessor(this);
       socialClass.addCustomer(populationCount, cars,
                               PowerType.CONSUMPTION);
@@ -403,8 +403,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   @Override
   public TimeslotRepo getTimeslotRepo ()
   {
-    // not used
-    return null;
+    return timeslotRepo;
   }
 
   @Override

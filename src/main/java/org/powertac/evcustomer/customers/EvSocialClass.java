@@ -34,8 +34,6 @@ public class EvSocialClass extends AbstractCustomer
 {
   private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
 
-  private TimeService timeService;
-
   private RandomSeed generator;
 
   private Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
@@ -50,11 +48,9 @@ public class EvSocialClass extends AbstractCustomer
   private double upRegulation = 0.0;
   private double downRegulation = 0.0;
 
-  public EvSocialClass (String name, TimeService timeService)
+  public EvSocialClass (String name)
   {
     super(name);
-
-    this.timeService = timeService;
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>()
     {
@@ -226,8 +222,9 @@ public class EvSocialClass extends AbstractCustomer
   @Override
   public void step ()
   {
-    int hour = timeService.getHourOfDay();
-    int day = timeService.getCurrentDateTime().getDayOfWeek();
+    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
+    int hour = ts.getStartTime().getHourOfDay();
+    int day = ts.getStartTime().getDayOfWeek();
 
     // Always do handleRegulations first
     handleRegulations(day, hour);

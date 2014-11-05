@@ -82,6 +82,9 @@ public class EvSocialClassTest
   private TimeService timeService;
 
   @Autowired
+  private TimeslotRepo timeslotRepo;
+
+  @Autowired
   private CustomerRepo customerRepo;
 
   @Autowired
@@ -127,7 +130,7 @@ public class EvSocialClassTest
   @Before
   public void setUp ()
   {
-    evSocialClass = new EvSocialClass(className, timeService);
+    evSocialClass = new EvSocialClass(className);
     socialGroup = new SocialGroup(groupId, groupName);
     socialGroups = new HashMap<Integer, SocialGroup>();
     activities = new HashMap<Integer, Activity>();
@@ -469,7 +472,7 @@ public class EvSocialClassTest
     @Override
     public TimeslotRepo getTimeslotRepo ()
     {
-      return null;
+      return timeslotRepo;
     }
 
     @Override
