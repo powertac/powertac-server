@@ -73,14 +73,14 @@ public class Configurator
   // property names represented by the configurable setter methods 
   // (those having a prefix of "set" or "with") and their 
   // ConfigurableValue annotations.
-  @SuppressWarnings("rawtypes")
-  private HashMap<Class, HashMap<String, ConfigurableProperty>> annotationMap;
+  //@SuppressWarnings("rawtypes")
+  private HashMap<Class<?>, HashMap<String, ConfigurableProperty>> annotationMap;
   
-  @SuppressWarnings("rawtypes")
+  //@SuppressWarnings("rawtypes")
   public Configurator ()
   {
     super();
-    annotationMap = new HashMap<Class, HashMap<String, ConfigurableProperty>>();
+    annotationMap = new HashMap<Class<?>, HashMap<String, ConfigurableProperty>>();
   }
   
   /**
@@ -160,7 +160,7 @@ public class Configurator
     //  return null;
     //}
     Configuration subset = extractConfigForClass(classnamePath);
-    // we should have a class with the key "instances" giving the item
+    // we should have a clause with the key "instances" giving the item
     // names, and a set of clauses for each item
     List<?> names = subset.getList("instances");
     if (names.size() == 0) {
@@ -210,6 +210,7 @@ public class Configurator
    * Pulls the "bootstrapState" ConfigurableValues out of object thing, adds
    * them to config.
    */
+  @SuppressWarnings("unchecked")
   public void gatherBootstrapState (Object thing,
                                     ConfigurationRecorder recorder)
   {
@@ -353,7 +354,7 @@ public class Configurator
     boolean result = true;
     for (Iterator<?> keys = conf.getKeys(); keys.hasNext() && result; ) {
       String key = (String)keys.next();
-      if (key.contains("."))
+      if (key.contains("instances"))
         result = false;
     }
     return result;
