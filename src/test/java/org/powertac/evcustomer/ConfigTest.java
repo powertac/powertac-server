@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright (c) 2014 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -8,53 +8,131 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an
- * "AS IS" BASIS,  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied. See the License for the specific language
- * governing permissions and limitations under the License.
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.powertac.evcustomer;
 
+import static org.junit.Assert.*;
+
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.XMLConfiguration;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static org.junit.Assert.assertEquals;
-
+import org.powertac.common.config.Configurator;
+import org.powertac.common.interfaces.ServerConfiguration;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * @author Govert Buijs
+ * @author John Collins
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
-@DirtiesContext
 public class ConfigTest
 {
-  @Test
-  public void testStatic ()
+  private DummyConfig configSvc;
+  private CompositeConfiguration config;
+
+  // Unit under test
+  Config uut;
+
+  @Before
+  public void setUp () throws Exception
   {
-    assertEquals(2.7,   Config.EPSILON,                 1E-06);
-    assertEquals(20,    Config.LAMDA,                   1E-06);
-    assertEquals(100,   Config.PERCENTAGE,              1E-06);
-    assertEquals(7,     Config.MEAN_TARIFF_DURATION);
-    assertEquals(24,    Config.HOURS_OF_DAY);
-    assertEquals(7,     Config.DAYS_OF_WEEK);
-    assertEquals(14,    Config.DAYS_OF_BOOTSTRAP);
-    assertEquals(0.05,  Config.TOU_FACTOR,              1E-06);
-    assertEquals(0.5,   Config.INTERRUPTIBILITY_FACTOR, 1E-06);
-    assertEquals(0.7,   Config.VARIABLE_PRICING_FACTOR, 1E-06);
-    assertEquals(0.1,   Config.TIERED_RATE_FACTOR,      1E-06);
-    assertEquals(1,     Config.MIN_DEFAULT_DURATION);
-    assertEquals(3,     Config.MAX_DEFAULT_DURATION);
-    assertEquals(Config.MAX_DEFAULT_DURATION - Config.MIN_DEFAULT_DURATION,
-                 Config.DEFAULT_DURATION_WINDOW);
-    assertEquals(0.9,   Config.RATIONALITY_FACTOR,      1E-06);
-    assertEquals(5,     Config.TARIFF_COUNT);
-    assertEquals(0.02,  Config.BROKER_SWITCH_FACTOR,    1E-06);
-    assertEquals(1,     Config.WEIGHT_INCONVENIENCE,    1E-06);
-    assertEquals(0.9,   Config.NSInertia,               1E-06);
+    configSvc = new DummyConfig();
+    configSvc.initialize();
+    Config.recycle();
+  }
+
+  /**
+   * Test retrieval by key
+   */
+  @Test
+  public void configByKey ()
+  {
+    double result = config.getDouble("evcustomer.config.touFactor");
+    assertEquals("Correct value", 0.25, result, 1e-6);
+  }
+
+  /**
+   * Test method for {@link org.powertac.evcustomer.Config#getInstance()}.
+   */
+  @Test
+  public void testGetInstance ()
+  {
+    Config item = Config.getInstance();
+    assertNotNull("Config created", item);
+  }
+
+  /**
+   * Test property config
+   */
+  @Test
+  public void testPropertyConfig ()
+  {
+    Config item = Config.getInstance();
+    ReflectionTestUtils.setField(item, "serverConfiguration", configSvc);
+    item.configure();
+    assertEquals("ConfiguredValue", 0.25, item.touFactor, 1e-6);
+  }
+
+  class DummyConfig implements ServerConfiguration
+  {
+    private Configurator configurator;
+
+    DummyConfig ()
+    {
+      super();
+    }
+
+    void initialize ()
+    {
+      config = new CompositeConfiguration();
+      configurator = new Configurator();
+      InputStream stream =
+          ConfigTest.class.getResourceAsStream("/config/test-properties.xml");
+      XMLConfiguration xconfig = new XMLConfiguration();
+      try {
+        xconfig.load(stream);
+        config.addConfiguration(xconfig);
+        configurator.setConfiguration(config);
+      }
+      catch (ConfigurationException e) {
+        e.printStackTrace();
+        fail(e.toString());
+      }
+    }
+
+    @Override
+    public void configureMe (Object target)
+    {
+      configurator.configureSingleton(target);
+    }
+
+    @Override
+    public Collection<?> configureInstances (Class<?> target)
+    {
+      return configurator.configureInstances(target);
+    }
+
+    @Override
+    public void publishConfiguration (Object target)
+    {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public void saveBootstrapState (Object thing)
+    {
+      // TODO Auto-generated method stub
+      
+    }
+    
   }
 }

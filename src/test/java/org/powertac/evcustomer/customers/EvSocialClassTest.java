@@ -46,7 +46,7 @@ import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
+import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.powertac.evcustomer.beans.SocialGroupDetail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,8 +107,8 @@ public class EvSocialClassTest
   private Activity activity;
   private Map<Integer, ActivityDetail> activityDetails;
   private ActivityDetail activityDetail;
-  private List<Car> cars;
-  private Car car;
+  private List<CarType> carTypes;
+  private CarType carType;
 
   private String className = "Test SocialClass";
   private int groupId = 1;
@@ -137,7 +137,7 @@ public class EvSocialClassTest
     activity = new Activity(0, "Test Activity", 1.0, 1.0);
     activityDetails = new HashMap<Integer, ActivityDetail>();
     activityDetail = new ActivityDetail(0, 10, 10, 1.0, 1.0);
-    cars = new ArrayList<Car>();
+    carTypes = new ArrayList<CarType>();
 
     customerRepo.recycle();
     tariffSubscriptionRepo.recycle();
@@ -188,8 +188,8 @@ public class EvSocialClassTest
     activity = null;
     activityDetails = null;
     activityDetail = null;
-    cars = null;
-    car = null;
+    carTypes = null;
+    carType = null;
   }
 
   private void initializeClass ()
@@ -210,8 +210,9 @@ public class EvSocialClassTest
         new HashMap<Integer, Map<Integer, ActivityDetail>>();
     allActivityDetails.put(socialGroup.getId(), activityDetails);
 
-    car = new Car("TestCar", 100.0, 200.0, 20.0, 10.0);
-    cars.add(car);
+    carType = new CarType();
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
+    carTypes.add(carType);
 
     evSocialClass.addCustomerInfo(info);
     customerRepo.add(info);
@@ -223,7 +224,7 @@ public class EvSocialClassTest
         new SocialGroupDetail(groupId, probability, maleProbability));
 
     evSocialClass.initialize(socialGroups, groupDetails, activities,
-        allActivityDetails, cars, populationCount, seedId++);
+        allActivityDetails, carTypes, populationCount, seedId++);
   }
 
   @Test
@@ -247,7 +248,7 @@ public class EvSocialClassTest
     assertEquals(evCustomer.getSocialGroup(), socialGroup);
     assertEquals(evCustomer.getActivities(), activities);
     assertEquals(evCustomer.getActivityDetails(), activityDetails);
-    assertEquals(evCustomer.getCar(), car);
+    assertEquals(evCustomer.getCar(), carType);
   }
 
   @Test
@@ -350,9 +351,9 @@ public class EvSocialClassTest
     evCustomer.makeDayPlanning(0);
     evCustomer.setRiskAttitude(0);
 
-    assertEquals(50, car.getCurrentCapacity(), 1E-6);
+    assertEquals(50, carType.getCurrentCapacity(), 1E-6);
     evSocialClass.doActivities(0, 6);
-    assertEquals(25, car.getCurrentCapacity(), 1E-6);
+    assertEquals(25, carType.getCurrentCapacity(), 1E-6);
   }
 
   @Test
@@ -362,7 +363,7 @@ public class EvSocialClassTest
     testActivities();
 
     EvCustomer evCustomer = evSocialClass.getEvCustomers().get(0);
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
     // Normally isDriving would be set by doActivity
     evCustomer.setDriving(false);
@@ -403,7 +404,7 @@ public class EvSocialClassTest
     Random generator = new PredictableRandom(
         new double[]{0, 1, 0, 1}, new int[]{0});
     double weight = 0.5;
-    double weeks = Config.MAX_DEFAULT_DURATION;
+    double weeks = Config.maxDefaultDuration;
 
     TariffEvaluator tariffEvaluator =
         evSocialClass.createTariffEvaluator(info, weight, weeks);

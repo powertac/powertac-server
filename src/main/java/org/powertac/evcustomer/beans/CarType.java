@@ -16,24 +16,53 @@
 
 package org.powertac.evcustomer.beans;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.powertac.common.config.ConfigurableValue;
+
 /**
  * @author Govert Buijs
  */
-public class Car
+public class CarType
 {
-  private String name;
-  private double maxCapacity;     // kwh
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum battery capacity")
+  private Double maxCapacity;     // kwh
   private double currentCapacity; // kwh
-  private double range;           // Maximum range with a full battery, km
-  private double homeCharging;    // Charging speed at home, kwh / h == kw
-  private double awayCharging;    // Charging speed away from home
 
-  public Car (String name, double batteryCapacity, double range,
-              double homeCharging, double awayCharging)
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum range in km")
+  private Double range;           // Maximum range with a full battery, km
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum charge rate in kw, home station")
+  private Double homeCharging;    // Charging speed at home, kwh / h == kw
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum charge rate in kw, remote station")
+  private Double awayCharging;    // Charging speed away from home
+
+  private String name;
+
+  /**
+   * Creates an instance, adds it to the instance list. This is public, because
+   * it needs to be used by configuration.
+   */
+  public CarType (String name)
+  {
+    super();
+    this.name = name;
+  }
+
+  /**
+   * Configures an instance, needed for testing
+   */
+  public void configure (String name, double maxCapacity,
+                  double range, double homeCharging, double awayCharging)
   {
     this.name = name;
-    this.maxCapacity = batteryCapacity;
-    // Let's start with a half full battery
+    this.maxCapacity = maxCapacity;
     this.currentCapacity = 0.5 * this.maxCapacity;
     this.range = range;
     this.homeCharging = homeCharging;

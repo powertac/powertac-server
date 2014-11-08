@@ -45,7 +45,7 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
+import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialClassDetail;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.powertac.evcustomer.beans.SocialGroupDetail;
@@ -276,13 +276,13 @@ public class EvCustomerServiceTest
   {
     initializeService();
 
-    List<Car> cars1 = EvCustomerService.loadCarTypes();
+    List<CarType> cars1 = EvCustomerService.loadCarTypes();
 
-    assertEquals(cars1.size(), evCustomerService.cars.size());
+    assertEquals(cars1.size(), evCustomerService.carTypes.size());
 
     for (int i = 0; i < cars1.size(); i++) {
-      Car car1 = cars1.get(i);
-      Car car2 = evCustomerService.cars.get(i);
+      CarType car1 = cars1.get(i);
+      CarType car2 = evCustomerService.carTypes.get(i);
 
       assertEquals(car1.getName(), car2.getName());
       assertEquals(car1.getAwayCharging(), car2.getAwayCharging(), 1E-06);

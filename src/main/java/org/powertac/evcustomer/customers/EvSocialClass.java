@@ -18,18 +18,23 @@ package org.powertac.evcustomer.customers;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.*;
+import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @author Konstantina Valogianni, Govert Buijs
  */
+@Domain
+@ConfigurableInstance
 public class EvSocialClass extends AbstractCustomer
 {
   private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
@@ -38,7 +43,7 @@ public class EvSocialClass extends AbstractCustomer
 
   private Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
 
-  private Vector<EvCustomer> evCustomers;
+  private ArrayList<EvCustomer> evCustomers;
 
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;
@@ -54,6 +59,7 @@ public class EvSocialClass extends AbstractCustomer
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>()
     {
+      @Override
       public int compare (CustomerInfo customer1, CustomerInfo customer2)
       {
         return customer1.getName().compareToIgnoreCase(customer2.getName());
@@ -66,14 +72,14 @@ public class EvSocialClass extends AbstractCustomer
                           Map<Integer, SocialGroupDetail> groupDetails,
                           Map<Integer, Activity> activities,
                           Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
-                          List<Car> cars,
+                          List<CarType> carTypes,
                           int populationCount,
                           int seed)
   {
     this.generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass", seed, "initialize");
 
-    evCustomers = new Vector<EvCustomer>();
+    evCustomers = new ArrayList<EvCustomer>();
 
     List<CustomerInfo> customerInfos1 = 
         service.getCustomerRepo()
@@ -95,13 +101,13 @@ public class EvSocialClass extends AbstractCustomer
         gender = "male";
       }
 
-      // For now, all cars have equal probability
-      int randomCar = generator.nextInt(cars.size());
-      Car car = cars.get(randomCar);
+      // For now, all carTypes have equal probability
+      int randomCar = generator.nextInt(carTypes.size());
+      CarType carType = carTypes.get(randomCar);
 
       EvCustomer evCustomer = new EvCustomer();
       evCustomer.initialize(
-          group, gender, activities, activityDetails, car, generator);
+          group, gender, activities, activityDetails, carType, generator);
       evCustomers.add(evCustomer);
 
       if (customerInfos1.size() > 0) {
@@ -147,10 +153,10 @@ public class EvSocialClass extends AbstractCustomer
                                   Random gen)
   {
     double r = gen.nextDouble();
-    for (Map.Entry entry : groupDetails.entrySet()) {
-      r -= ((SocialGroupDetail) entry.getValue()).getProbability();
+    for (Entry<Integer, SocialGroupDetail> entry : groupDetails.entrySet()) {
+      r -= entry.getValue().getProbability();
       if (r < 0) {
-        return (Integer) entry.getKey();
+        return entry.getKey();
       }
     }
 
@@ -333,7 +339,7 @@ public class EvSocialClass extends AbstractCustomer
     ));
   }
 
-  public void addCustomer (int populationCount, List<Car> cars,
+  public void addCustomer (int populationCount, List<CarType> carTypes,
                            PowerType powerType)
   {
     String infoName = createInfoName(powerType);
@@ -344,9 +350,9 @@ public class EvSocialClass extends AbstractCustomer
       double storageCapacity = 0;
       double chargingCapacity = 0;
 
-      for (Car car : cars) {
-        storageCapacity = Math.max(storageCapacity, car.getMaxCapacity());
-        chargingCapacity = Math.max(chargingCapacity, car.getHomeCharging());
+      for (CarType carType : carTypes) {
+        storageCapacity = Math.max(storageCapacity, carType.getMaxCapacity());
+        chargingCapacity = Math.max(chargingCapacity, carType.getHomeCharging());
       }
 
       customerInfo = customerInfo.withControllableKW(-chargingCapacity);
@@ -400,7 +406,7 @@ public class EvSocialClass extends AbstractCustomer
 
   // ===== USED FOR TESTING ===== //
 
-  public Vector<EvCustomer> getEvCustomers ()
+  public ArrayList<EvCustomer> getEvCustomers ()
   {
     return evCustomers;
   }
@@ -414,11 +420,11 @@ public class EvSocialClass extends AbstractCustomer
 class TariffEvaluationWrapper implements CustomerModelAccessor
 {
   private CustomerInfo customerInfo;
-  private Vector<EvCustomer> evCustomers;
+  private ArrayList<EvCustomer> evCustomers;
   private Random generator;
 
   public TariffEvaluationWrapper (CustomerInfo customerInfo,
-                                  Vector<EvCustomer> evCustomers,
+                                  ArrayList<EvCustomer> evCustomers,
                                   Random generator)
   {
     this.customerInfo = customerInfo;

@@ -80,7 +80,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   private ServerConfiguration serverPropertiesService;
 
   protected List<EvSocialClass> evSocialClassList;
-  protected List<Car> cars;
+  protected List<CarType> carTypes;
   protected Map<Integer, SocialGroup> socialGroups;
   protected Map<Integer, Activity> activities;
   protected Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails;
@@ -112,7 +112,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     serverPropertiesService.publishConfiguration(this);
 
     // Shared by all customers
-    cars = loadCarTypes();
+    //carTypes = loadCarTypes();
     socialGroups = loadSocialGroups();
     activities = loadActivities();
     allActivityDetails = loadActivityDetails();
@@ -136,13 +136,13 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       String name = "EV " + classDetail.getName();
       EvSocialClass socialClass = new EvSocialClass(name);
       socialClass.setServiceAccessor(this);
-      socialClass.addCustomer(populationCount, cars,
+      socialClass.addCustomer(populationCount, carTypes,
                               PowerType.CONSUMPTION);
-      socialClass.addCustomer(populationCount, cars,
+      socialClass.addCustomer(populationCount, carTypes,
                               PowerType.ELECTRIC_VEHICLE);
 
       socialClass.initialize(socialGroups, classDetail.getSocialGroupDetails(),
-          activities, allActivityDetails, cars, populationCount, seed++);
+          activities, allActivityDetails, carTypes, populationCount, seed++);
       evSocialClassList.add(socialClass);
       socialClass.subscribeDefault(tariffMarketService);
     }
@@ -179,36 +179,42 @@ public class EvCustomerService extends TimeslotPhaseProcessor
   /**
    * @Override @code{InitializationService}
    */
+  @Override
   public void setDefaults ()
   {
   }
 
-  public static List<Car> loadCarTypes ()
-  {
-    List<Car> cars = new ArrayList<Car>();
+////  public static List<CarType> loadCarTypes ()
+////  {
+////    List<CarType> carTypes = new ArrayList<CarType>();
+////
+////    log.info("Attempting to load CarTypes from : " + carTypesXml);
+////    NodeList carNodes = getNodeList(carTypesXml, "car");
+////
+////    if (carNodes != null && carNodes.getLength() > 0) {
+////      log.info("Loading " + carNodes.getLength() + " CarTypes");
+////
+////      for (int i = 0; i < carNodes.getLength(); i++) {
+////        Element element = (Element) carNodes.item(i);
+////        String name = element.getAttribute("name");
+////        double kwh = getElementDouble(element, "kwh");
+////        double range = getElementDouble(element, "range");
+////        double home = getElementDouble(element, "home_charging");
+////        double away = getElementDouble(element, "away_charging");
+////        carTypes.add(new CarType(name, kwh, range, home, away));
+////      }
+////
+////      log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
+////    }
+//
+//    return carTypes;
+//  }
 
-    log.info("Attempting to load CarTypes from : " + carTypesXml);
-    NodeList carNodes = getNodeList(carTypesXml, "car");
-
-    if (carNodes != null && carNodes.getLength() > 0) {
-      log.info("Loading " + carNodes.getLength() + " CarTypes");
-
-      for (int i = 0; i < carNodes.getLength(); i++) {
-        Element element = (Element) carNodes.item(i);
-        String name = element.getAttribute("name");
-        double kwh = getElementDouble(element, "kwh");
-        double range = getElementDouble(element, "range");
-        double home = getElementDouble(element, "home_charging");
-        double away = getElementDouble(element, "away_charging");
-        cars.add(new Car(name, kwh, range, home, away));
-      }
-
-      log.info("Successfully loaded " + carNodes.getLength() + " CarTypes");
-    }
-
-    return cars;
-  }
-
+  /**
+   * Populates the socialClassDetails map with info about the class, and a
+   * SocialGroupDetail instance for each group specified in the xml
+   * structure.
+   */
   public static Map<String, SocialClassDetail> loadSocialClassesDetails ()
   {
     Map<String, SocialClassDetail> socialClassDetails =

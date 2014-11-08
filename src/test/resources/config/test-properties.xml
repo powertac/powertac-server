@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<root>
+  <evcustomer>
+
+    <beans>
+      <socialGroup>
+	<!-- this is how we create multiple instances -->
+	<instances>under15,parttime,fulltime</instances>
+	<under15>
+	  <id>0</id>
+	</under15>
+	<parttime>
+	  <id>1</id>
+	</parttime>
+	<fulltime>
+	  <id>2</id>
+	</fulltime>
+      </socialGroup>
+
+      <!-- Join table socialGroup:socialClass -->
+      <!-- Every group in SocialGroups has to be in every SocialClass -->
+      <socialGroupDetail>
+	<instances>HI_1.0,HI_1.1,HI_1.2,HI_2.0,hi_2.1,HI_2.2,LI_2.0,LI_2.1,LI_2.2,LI_3.0,LI_3.1,LI_3.2</instances>
+	<HI_1.0>
+	  <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_1.0>
+	<HI_1.1>
+	  <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_1.1>
+	<HI_1.2>
+	  <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_1.2>
+
+	<HI_2.0>
+	  <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_2.0>
+	<HI_2.1>
+	  <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_2.1>
+	<HI_2.2>
+	  <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</HI_2.2>
+
+	<LI_2.0>
+	  <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_2.0>
+	<LI_2.1>
+	  <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_2.1>
+	<LI_2.2>
+	  <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_2.2>
+
+	<LI_3.0>
+	  <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_3.0>
+	<LI_3.1>
+	  <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_3.1>
+	<LI_3.2>
+	  <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</LI_3.2>
+      </socialGroupDetail>
+
+      <carType>
+	<instances>Tesla_40_kWh,Nissan_Leaf_24_kWh</instances>
+	<Tesla_40_kWh>
+	  <maxCapacity>40</maxCapacity>
+	  <range>257.6</range>
+	  <homeCharging>3.3</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Tesla_40_kWh>
+	<Nissan_Leaf_24_kWh>
+	  <maxCapacity>24</maxCapacity>
+	  <range>222.2</range>
+	  <homeCharging>6.6</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Nissan_Leaf_24_kWh>
+      </carType>
+
+      <activity>
+	<instances>commuting,business_trip</instances>
+	<commuting>
+	  <id>0</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</commuting>
+	<business_trip>
+	  <id>1</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</business_trip>
+      </activity>
+
+      <!-- Join table group:activity -->
+      <activityDetail>
+	<instances>ad0.0,ad0.1,ad1.0,ad1.1,ad2.0,ad2.1</instances>
+	<ad0.0>
+	  <groupId>0</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>0.09</maleDailyKm>
+	  <maleProbability>0.01</maleProbability>
+	  <femaleDailyKm>0.19</femaleDailyKm>
+	  <femaleProbability>0.01</femaleProbability>
+	</ad0.0>
+	<ad0.1>
+	  <groupId>0</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ad0.1>
+
+	<ad1.0>
+	  <groupId>1</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>10.62</maleDailyKm>
+	  <maleProbability>0.74</maleProbability>
+	  <femaleDailyKm>8.28</femaleDailyKm>
+	  <femaleProbability>0.78</femaleProbability>
+	</ad1.0>
+	<ad1.1>
+	  <groupId>1</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0.82</maleDailyKm>
+	  <maleProbability>0.05</maleProbability>
+	  <femaleDailyKm>0.69</femaleDailyKm>
+	  <femaleProbability>0.03</femaleProbability>
+	</ad1.1>
+
+	<ad2.0>
+	  <groupId>2</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>23.31</maleDailyKm>
+	  <maleProbability>1.04</maleProbability>
+	  <femaleDailyKm>15.58</femaleDailyKm>
+	  <femaleProbability>0.99</femaleProbability>
+	</ad2.0>
+	<ad2.1>
+	  <groupId>2</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>4.99</maleDailyKm>
+	  <maleProbability>0.13</maleProbability>
+	  <femaleDailyKm>2.18</femaleDailyKm>
+	  <femaleProbability>0.08</femaleProbability>
+	</ad2.1>
+      </activityDetail>
+
+    </beans>
+
+    <customers>
+
+      <!-- These are the actual customer instances -->
+      <evSocialClass>
+	<instances>HighIncome_1,HighIncome_2,LowIncome_2,LowIncome_3</instances>
+
+	<!-- TODO Get the probabilities of the groups per class -->
+
+	<HighIncome_1>
+	  <minCount>15</minCount>
+	  <maxCount>25</maxCount>
+	</HighIncome_1>
+
+	<HighIncome_2>
+	  <minCount>15</minCount>
+	  <maxCount>25</maxCount>
+	</HighIncome_2>
+
+	<LowIncome_2>
+	  <minCount>10</minCount>
+	  <maxCount>20</maxCount>
+	</LowIncome_2>
+
+	<LowIncome_3>
+	  <minCount>10</minCount>
+	  <maxCount>20</maxCount>
+	</LowIncome_3>
+      </evSocialClass>
+    </customers>
+
+    <!-- This is the singleton common configuration stuff -->
+    <config>
+      <touFactor>0.25</touFactor>
+      <interruptibilityFactor>0.01</interruptibilityFactor>
+    </config>
+
+    <!-- TODO We need proper day- and hour-weights -->
+    <!-- For now, they aren't even used ... -->
+  </evcustomer>
+</root>

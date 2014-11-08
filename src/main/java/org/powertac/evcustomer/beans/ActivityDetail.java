@@ -16,26 +16,63 @@
 
 package org.powertac.evcustomer.beans;
 
+import org.powertac.common.config.ConfigurableValue;
+
 /**
+ * Join table between SocialGroup and Activity
  * @author Govert Buijs
  */
 public class ActivityDetail
 {
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "Foreign key: id of associated SocialGroup")
+  private int groupId;
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "Foreign key: id of associated Activity")
   private int activityId;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Daily km for males in this group/activity")
   private double maleDailyKm;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Daily km for females in this group/activity")
   private double femaleDailyKm;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Probability for males in this group/activity")
   private double maleProbability;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Probability for females in this group/activity")
   private double femaleProbability;
 
-  public ActivityDetail (int activityId,
-                         double maleDailyKm, double femaleDailyKm,
-                         double maleProbability, double femaleProbability)
+  public ActivityDetail ()
+  {
+    super();
+  }
+
+  public void initialize (int activityId,
+                          double maleDailyKm, double femaleDailyKm,
+                          double maleProbability, double femaleProbability)
   {
     this.activityId = activityId;
     this.maleDailyKm = maleDailyKm;
     this.femaleDailyKm = femaleDailyKm;
     this.maleProbability = maleProbability;
     this.femaleProbability = femaleProbability;
+  }
+
+  public int getGroupId ()
+  {
+    return groupId;
+  }
+
+  public int getActivityId ()
+  {
+    return activityId;
   }
 
   public double getDailyKm (String gender)
@@ -59,11 +96,6 @@ public class ActivityDetail
   }
 
   // ===== USED FOR TESTING ===== //
-
-  public int getActivityId ()
-  {
-    return activityId;
-  }
 
   public double getMaleDailyKm ()
   {

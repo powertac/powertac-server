@@ -16,26 +16,51 @@
 
 package org.powertac.evcustomer.beans;
 
+import org.powertac.common.config.ConfigurableValue;
+
 /**
+ * Join table between EvSocialClass and SocialGroup
  * @author Govert Buijs
  * @version 0.5, Date: 2013.11.08
  */
 public class SocialGroupDetail
 {
-  private int id;
+  @ConfigurableValue(valueType = "String",
+      description = "Foreign key: name of associated EvSocialClass")
+  private String socialClassName;
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "Foreign key: id of associated SocialGroup")
+  private int groupId;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Probability of this association")
   private double probability;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Probability of actor being male")
   private double maleProbability;
 
-  public SocialGroupDetail (int id, double probability, double maleProbability)
+  public SocialGroupDetail ()
   {
-    this.id = id;
+    super();
+  }
+  
+  public void initialize (int id, double probability, double maleProbability)
+  {
+    this.groupId = id;
     this.probability = probability;
     this.maleProbability = maleProbability;
   }
 
-  public int getId ()
+  public String getSocialClassName ()
   {
-    return id;
+    return socialClassName;
+  }
+
+  public int getGroupId ()
+  {
+    return groupId;
   }
 
   public double getProbability ()

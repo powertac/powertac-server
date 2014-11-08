@@ -38,7 +38,7 @@ import static org.junit.Assert.*;
 @DirtiesContext
 public class EvCustomerResourcesTest
 {
-  private List<Car> cars;
+  private List<CarType> carTypes;
   private Map<Integer, SocialGroup> socialGroups;
   private Map<Integer, Activity> activities;
   private Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails;
@@ -47,7 +47,7 @@ public class EvCustomerResourcesTest
   @After
   public void tearDown ()
   {
-    cars = null;
+    carTypes = null;
     socialGroups = null;
     activities = null;
     allActivityDetails = null;
@@ -57,17 +57,17 @@ public class EvCustomerResourcesTest
   @Test
   public void testCarTypes ()
   {
-    cars = EvCustomerService.loadCarTypes();
+    carTypes = EvCustomerService.loadCarTypes();
 
     // If anything fails during loading, an empty list is returned
-    assertTrue(cars.size() > 0);
+    assertTrue(carTypes.size() > 0);
 
-    for (Car car : cars) {
-      assertFalse(car.getName().equals(""));
-      assertTrue(car.getCurrentCapacity() >= 0);
-      assertTrue(car.getRange() > 0);
-      assertTrue(car.getHomeCharging() > 0);
-      assertTrue(car.getAwayCharging() > 0);
+    for (CarType carType : carTypes) {
+      assertFalse(carType.getName().equals(""));
+      assertTrue(carType.getCurrentCapacity() >= 0);
+      assertTrue(carType.getRange() > 0);
+      assertTrue(carType.getHomeCharging() > 0);
+      assertTrue(carType.getAwayCharging() > 0);
     }
   }
 
@@ -131,7 +131,7 @@ public class EvCustomerResourcesTest
   @Test
   public void testSocialClasses ()
   {
-    cars = EvCustomerService.loadCarTypes();
+    carTypes = EvCustomerService.loadCarTypes();
     socialGroups = EvCustomerService.loadSocialGroups();
     activities = EvCustomerService.loadActivities();
     allActivityDetails = EvCustomerService.loadActivityDetails();

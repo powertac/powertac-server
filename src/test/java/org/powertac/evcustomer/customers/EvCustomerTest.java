@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
+import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,7 +49,7 @@ public class EvCustomerTest
   private Activity activity;
   private Map<Integer, ActivityDetail> details;
   private ActivityDetail detail;
-  private Car car;
+  private CarType carType;
 
   private double maleDailyKm = 10;
   private double femaleDailyKm = 10;
@@ -64,7 +64,8 @@ public class EvCustomerTest
     socialGroup = new SocialGroup(groupId, "Group " + groupId);
     activity = new Activity(0, "TestActivity", 1, 1);
     detail = new ActivityDetail(0, maleDailyKm, femaleDailyKm, 1, 1);
-    car = new Car("TestCar", 100.0, 200.0, 10.0, 10.0);
+    carType = new CarType();
+    carType.configure("TestCar", 100.0, 200.0, 10.0, 10.0);
 
     gen = new PredictableRandom(new double[]{0.4},
         new int[]{0, 51, 52, 53, 54, 55});
@@ -87,23 +88,23 @@ public class EvCustomerTest
       details = new HashMap<Integer, ActivityDetail>();
       details.put(detail.getActivityId(), detail);
     }
-    evCustomer.initialize(socialGroup, gender, activities, details, car, gen);
+    evCustomer.initialize(socialGroup, gender, activities, details, carType, gen);
   }
 
   @Test
   public void checkCarInitialization ()
   {
-    // Car model isn't dependent on gender
+    // CarType model isn't dependent on gender
     initialize("male");
 
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
-    assertEquals(car2.getName(),            car.getName());
-    assertEquals(car2.getMaxCapacity(),     car.getMaxCapacity(),     1E-06);
-    assertEquals(car2.getCurrentCapacity(), car.getCurrentCapacity(), 1E-06);
-    assertEquals(car2.getRange(),           car.getRange(),           1E-06);
-    assertEquals(car2.getHomeCharging(),    car.getHomeCharging(),    1E-06);
-    assertEquals(car2.getAwayCharging(), car.getAwayCharging(), 1E-06);
+    assertEquals(car2.getName(),            carType.getName());
+    assertEquals(car2.getMaxCapacity(),     carType.getMaxCapacity(),     1E-06);
+    assertEquals(car2.getCurrentCapacity(), carType.getCurrentCapacity(), 1E-06);
+    assertEquals(car2.getRange(),           carType.getRange(),           1E-06);
+    assertEquals(car2.getHomeCharging(),    carType.getHomeCharging(),    1E-06);
+    assertEquals(car2.getAwayCharging(), carType.getAwayCharging(), 1E-06);
   }
 
   @Test
@@ -181,14 +182,15 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskAverse ()
   {
-    car = new Car("TestCar", 100.0, 200.0, 20.0, 10.0);
+    carType = new CarType();
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
     gen.setIntSeed(new int[]{0, 100});
     gen.setDoubleSeed(new double[]{0});
     initialize("male");
     evCustomer.makeDayPlanning(0);
 
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
     assertEquals("averse", evCustomer.getRiskAttitude());
 
@@ -211,14 +213,15 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskNeutral ()
   {
-    car = new Car("TestCar", 100.0, 200.0, 20.0, 10.0);
+    carType = new CarType();
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
     gen.setIntSeed(new int[]{1, 100});
     gen.setDoubleSeed(new double[]{0});
     initialize("male");
     evCustomer.makeDayPlanning(0);
 
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
     assertEquals("neutral", evCustomer.getRiskAttitude());
 
@@ -236,14 +239,15 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskEager ()
   {
-    car = new Car("TestCar", 100.0, 200.0, 20.0, 10.0);
+    carType = new CarType();
+    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
     gen.setIntSeed(new int[]{2, 100});
     gen.setDoubleSeed(new double[]{0});
     initialize("male");
     evCustomer.makeDayPlanning(0);
 
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
     assertEquals("eager", evCustomer.getRiskAttitude());
 
@@ -292,7 +296,7 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0);
 
-    Car car2 = evCustomer.getCar();
+    CarType car2 = evCustomer.getCar();
 
     assertEquals(50, car2.getCurrentCapacity(), 1E-06);
 

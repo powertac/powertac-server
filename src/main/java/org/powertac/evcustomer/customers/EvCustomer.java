@@ -19,7 +19,7 @@ package org.powertac.evcustomer.customers;
 import org.apache.log4j.Logger;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ActivityDetail;
-import org.powertac.evcustomer.beans.Car;
+import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class EvCustomer
 
   private String gender;
   private RiskAttitude riskAttitude;
-  private Car car;
+  private CarType carType;
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
   private Map<Integer, ActivityDetail> activityDetails;
@@ -75,7 +75,7 @@ public class EvCustomer
                           String gender,
                           Map<Integer, Activity> activities,
                           Map<Integer, ActivityDetail> activityDetails,
-                          Car car,
+                          CarType carType,
                           Random generator)
   {
     this.generator = generator;
@@ -83,7 +83,7 @@ public class EvCustomer
     this.activities = activities;
     this.activityDetails = activityDetails;
     this.gender = gender;
-    this.car = car;
+    this.carType = carType;
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
@@ -190,17 +190,17 @@ public class EvCustomer
   {
     TimeslotData timeslotData = timeslotDataMap.get(hour);
     double intendedDistance = timeslotData.getIntendedDistance();
-    double neededCapacity = car.getNeededCapacity(intendedDistance);
+    double neededCapacity = carType.getNeededCapacity(intendedDistance);
 
-    if (intendedDistance < epsilon || neededCapacity > car.getCurrentCapacity()) {
+    if (intendedDistance < epsilon || neededCapacity > carType.getCurrentCapacity()) {
       return;
     }
 
     try {
-      car.discharge(neededCapacity);
+      carType.discharge(neededCapacity);
       driving = true;
     }
-    catch (Car.ChargeException ce) {
+    catch (CarType.ChargeException ce) {
       log.error(ce);
       driving = false;
     }
@@ -219,7 +219,7 @@ public class EvCustomer
       dailyKm += entry.getValue().getDailyKm(gender);
     }
 
-    return car.getNeededCapacity(dailyKm);
+    return carType.getNeededCapacity(dailyKm);
   }
 
   /*
@@ -233,34 +233,34 @@ public class EvCustomer
   {
     double[] loads = new double[4];
 
-    double currentCapacity = car.getCurrentCapacity();
+    double currentCapacity = carType.getCurrentCapacity();
 
     // This the amount we need to have at the next TS
     double minCapacity = getLongTermNeeded(hour + 1);
     // This is the amount we would like to have at the end of this TS
     int hoursOfCharge = timeslotDataMap.get(hour).getHoursTillNextDrive();
     double nomCapacity = Math.max(getShortTermNeeded(hour + hoursOfCharge),
-        car.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
+        carType.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
 
     // This is the amount we need to charge, CONSUMPTION can't be regulated
     loads[0] = Math.max(0, minCapacity - currentCapacity);
-    loads[0] = Math.min(loads[0], car.getChargingCapacity());
+    loads[0] = Math.min(loads[0], carType.getChargingCapacity());
 
     // This is the amount we would like to charge, minus CONSUMPTION
     loads[1] = Math.max(0, (nomCapacity - currentCapacity) - loads[0]);
-    loads[1] = Math.min(loads[1], car.getChargingCapacity());
+    loads[1] = Math.min(loads[1], carType.getChargingCapacity());
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
-    loads[2] = Math.min(car.getDischargingCapacity(), loads[2]);
+    loads[2] = Math.min(carType.getDischargingCapacity(), loads[2]);
 
     // This is the amount we could charge extra (down regulate)
-    loads[3] = -1 * (car.getChargingCapacity() - (loads[0] + loads[1]));
+    loads[3] = -1 * (carType.getChargingCapacity() - (loads[0] + loads[1]));
 
     try {
-      car.charge(loads[0] + loads[1]);
+      carType.charge(loads[0] + loads[1]);
     }
-    catch (Car.ChargeException ce) {
+    catch (CarType.ChargeException ce) {
       log.error(ce.getMessage());
     }
 
@@ -284,7 +284,7 @@ public class EvCustomer
         break;
       }
       else {
-        neededCapacity += car.getNeededCapacity(tsDistance);
+        neededCapacity += carType.getNeededCapacity(tsDistance);
       }
     }
 
@@ -305,13 +305,13 @@ public class EvCustomer
       if (tsDistance < epsilon) {
         // Not driving, charge as much as needed and possible
         // TODO Add home / away detection
-        neededCapacity -= Math.min(neededCapacity, car.getHomeCharging());
+        neededCapacity -= Math.min(neededCapacity, carType.getHomeCharging());
       }
       else {
         // Driving in this TS, increase needed capacity
-        neededCapacity += car.getNeededCapacity(tsDistance);
+        neededCapacity += carType.getNeededCapacity(tsDistance);
         // But not more than possible
-        neededCapacity = Math.min(neededCapacity, car.getMaxCapacity());
+        neededCapacity = Math.min(neededCapacity, carType.getMaxCapacity());
       }
     }
 
@@ -335,33 +335,33 @@ public class EvCustomer
     try {
       if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon){
         double regulation = regulationFactor * tsData.getDownRegulation();
-        car.charge(regulation);
+        carType.charge(regulation);
       }
       else if (regulationFactor > epsilon) {
         if (tsData.getUpRegulationCharge() > epsilon) {
           // This is the part we thought we we're charging, but we didn't get
           // due to regulation. Just subtract from the current capacity
           double cap = -1 * regulationFactor * tsData.getUpRegulationCharge();
-          car.setCurrentCapacity(car.getCurrentCapacity() - cap);
+          carType.setCurrentCapacity(carType.getCurrentCapacity() - cap);
         }
 
         if (tsData.getUpRegulation() > epsilon) {
           // This is the part that's regulated via actual discharge
           double discharge = -1 * regulationFactor * tsData.getUpRegulation();
-          car.discharge(-1 * discharge);
+          carType.discharge(-1 * discharge);
         }
       }
     }
-    catch (Car.ChargeException ce) {
+    catch (CarType.ChargeException ce) {
       log.error(ce);
     }
   }
 
   // ===== USED FOR TESTING ===== //
 
-  public Car getCar ()
+  public CarType getCar ()
   {
-    return car;
+    return carType;
   }
 
   public SocialGroup getSocialGroup ()
