@@ -113,9 +113,9 @@ public class EvCustomerService extends TimeslotPhaseProcessor
 
     // Shared by all customers
     //carTypes = loadCarTypes();
-    socialGroups = loadSocialGroups();
-    activities = loadActivities();
-    allActivityDetails = loadActivityDetails();
+    socialGroups = loadSocialGroups(); // map <groupId, group>
+    activities = loadActivities(); //map <activity-id, activity>
+    allActivityDetails = loadActivityDetails(); // map<groupId, map<detailId, detail>>
     socialClassDetails = loadSocialClassesDetails();
     evSocialClassList = initializeSocialClasses(seedId++);
 
@@ -136,8 +136,9 @@ public class EvCustomerService extends TimeslotPhaseProcessor
       String name = "EV " + classDetail.getName();
       EvSocialClass socialClass = new EvSocialClass(name);
       socialClass.setServiceAccessor(this);
-      socialClass.addCustomer(populationCount, carTypes,
-                              PowerType.CONSUMPTION);
+      // TODO - why do we need the CONSUMPTION info?
+      //socialClass.addCustomer(populationCount, carTypes,
+      //                        PowerType.CONSUMPTION);
       socialClass.addCustomer(populationCount, carTypes,
                               PowerType.ELECTRIC_VEHICLE);
 
@@ -214,6 +215,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
    * Populates the socialClassDetails map with info about the class, and a
    * SocialGroupDetail instance for each group specified in the xml
    * structure.
+   * Result: map<class-name, >
    */
   public static Map<String, SocialClassDetail> loadSocialClassesDetails ()
   {
@@ -279,11 +281,12 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     return socialGroups;
   }
 
+  // Result is map <activity-id, activity>
   public static Map<Integer, Activity> loadActivities ()
   {
     Map<Integer, Activity> activities = new HashMap<Integer, Activity>();
 
-    log.info("Attempting to load SocialGroups from : " + activitiesXml);
+    log.info("Attempting to load Activities from : " + activitiesXml);
     NodeList activityNodes = getNodeList(activitiesXml, "activity");
 
     if (activityNodes != null && activityNodes.getLength() > 0) {
@@ -293,10 +296,13 @@ public class EvCustomerService extends TimeslotPhaseProcessor
         Element element = (Element) activityNodes.item(i);
         String name = element.getAttribute("name");
         int id = getElementInt(element, "id");
-        double weekday_weight = getElementDoubleSimple(element, "weekday_weight");
-        double weekend_weight = getElementDoubleSimple(element, "weekend_weight");
+        double weekday_weight =
+                getElementDoubleSimple(element, "weekday_weight");
+        double weekend_weight =
+                getElementDoubleSimple(element, "weekend_weight");
 
-        activities.put(id, new Activity(id, name, weekday_weight, weekend_weight));
+        activities.put(id, new Activity(id, name,
+                                        weekday_weight, weekend_weight));
       }
 
       log.info("Successfully loaded " + activityNodes.getLength() + " Activities");
@@ -305,6 +311,7 @@ public class EvCustomerService extends TimeslotPhaseProcessor
     return activities;
   }
 
+  // Result: map<groupId, map<detailId, detail>>
   public static Map<Integer, Map<Integer, ActivityDetail>> loadActivityDetails ()
   {
     Map<Integer, Map<Integer, ActivityDetail>> activityDetails =

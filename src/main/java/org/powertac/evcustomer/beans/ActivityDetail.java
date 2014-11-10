@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013, 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ package org.powertac.evcustomer.beans;
 import org.powertac.common.config.ConfigurableValue;
 
 /**
- * Join table between SocialGroup and Activity
- * @author Govert Buijs
+ * Join table between SocialGroup and Activity.
+ * Intended to be created and populated by auto-configuration
+ * @author Govert Buijs, John Collins
  */
 public class ActivityDetail
 {
+  private String name;
 
   @ConfigurableValue(valueType = "Integer",
       description = "Foreign key: id of associated SocialGroup")
@@ -49,11 +51,18 @@ public class ActivityDetail
       description = "Probability for females in this group/activity")
   private double femaleProbability;
 
-  public ActivityDetail ()
+  /**
+   * Auto-configure constructor
+   */
+  public ActivityDetail (String name)
   {
     super();
+    this.name = name;
   }
 
+  /**
+   * Fills in fields for testing
+   */
   public void initialize (int activityId,
                           double maleDailyKm, double femaleDailyKm,
                           double maleProbability, double femaleProbability)

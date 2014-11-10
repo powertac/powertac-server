@@ -25,6 +25,8 @@ import org.powertac.common.config.ConfigurableValue;
  */
 public class SocialGroupDetail
 {
+  private String name;
+  
   @ConfigurableValue(valueType = "String",
       description = "Foreign key: name of associated EvSocialClass")
   private String socialClassName;
@@ -41,9 +43,13 @@ public class SocialGroupDetail
       description = "Probability of actor being male")
   private double maleProbability;
 
-  public SocialGroupDetail ()
+  /***
+   * Constructor for auto-configuration
+   */
+  public SocialGroupDetail (String name)
   {
     super();
+    this.name = name;
   }
   
   public void initialize (int id, double probability, double maleProbability)

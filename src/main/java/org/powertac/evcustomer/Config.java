@@ -46,67 +46,58 @@ public final class Config
   // TODO These were originally copied from household-customer
   private double epsilon = 2.7;
   private double lambda = 20;
-  //public double PERCENTAGE = 100;
-  //public long MEAN_TARIFF_DURATION = 7;
-  //public int HOURS_OF_DAY = 24;
-  //public int DAYS_OF_WEEK = 7;
-  //public int DAYS_OF_BOOTSTRAP = 14;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to TOU tariff")
-  public double touFactor = 0.05;
+  private double touFactor = 0.05;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to tariffs involving curtailment")
-  public double interruptibilityFactor = 0.5;
+  private double interruptibilityFactor = 0.5;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to variable-price tariffs")
-  public double variablePricingFactor = 0.7;
+  private double variablePricingFactor = 0.7;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to tiered rates")
-  public double tieredRateFactor = 0.1;
-  //public int MIN_DEFAULT_DURATION = 1;
-  //public int MAX_DEFAULT_DURATION = 3;
-  //public int DEFAULT_DURATION_WINDOW = MAX_DEFAULT_DURATION -
-  //    MIN_DEFAULT_DURATION;
+  private double tieredRateFactor = 0.1;
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "Minimum expected duration of subscription in days")
+  private int minDefaultDuration = 7;
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "Maximum expected duration of subscription in days")
+  private int maxDefaultDuration = 21;
 
   @ConfigurableValue(valueType = "Double",
       description = "Rationality of these customers")
-  public double rationalityFactor = 0.9;
-  //public int TARIFF_COUNT = 5;
+  private double rationalityFactor = 0.9;
+
+  @ConfigurableValue(valueType = "Integer",
+          description = "Number of tariffs/broker to consider")
+  private int tariffCount = 5;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to switching brokers")
-  public double brokerSwitchFactor = 0.02;
+  private double brokerSwitchFactor = 0.02;
 
   @ConfigurableValue(valueType = "Double",
       description = "Importance of inconvenience factors")
-  public double weightInconvenience = 1.0;
+  private double weightInconvenience = 1.0;
 
   @ConfigurableValue(valueType = "Double",
       description = "Tariff evaluation inertia")
-  public double nsInertia = 0.9;
+  private double nsInertia = 0.9;
+
+  @ConfigurableValue(valueType = "Integer",
+          description = "Length in timeslots of evaluation profile")
+  private int profileLength = 48;
 
   private static String[] beanTypes =
-    {"SocialGroup", "CarType", "Activity", "ActivityDetail"};
-//
-//  @ConfigurableValue(valueType = "List",
-//      description = "List of social groups")
-//  public List<?> socialGroups;
-//
-//  @ConfigurableValue(valueType = "Configuration",
-//      description = "Vehicle type information")
-//  public Configuration carTypes;
-//
-//  @ConfigurableValue(valueType = "List",
-//      description = "List of activity types")
-//  public List<?> activities;
-//
-//  @ConfigurableValue(valueType = "Configuration",
-//      description = "Activity details by group")
-//  public Configuration activityDetails;
+    {"SocialGroup", "SocialGroupDetail", "SocialClassDetail",
+	  "CarType", "Activity", "ActivityDetail"};
 
   private Map<String, Collection<?>> beans;
 
@@ -116,6 +107,78 @@ public final class Config
     super();
   }
 
+  // =================== Accessors ====================
+  public double getEpsilon ()
+  {
+    return epsilon;
+  }
+  
+  public double getLambda ()
+  {
+    return lambda;
+  }
+  
+  public double getTouFactor ()
+  {
+    return touFactor;
+  }
+  
+  public double getInterruptibilityFactor ()
+  {
+    return interruptibilityFactor;
+  }
+  
+  public double getVariablePricingFactor ()
+  {
+    return variablePricingFactor;
+  }
+  
+  public double getTieredRateFactor ()
+  {
+    return tieredRateFactor;
+  }
+
+  public int getMinDefaultDuration ()
+  {
+    return minDefaultDuration;
+  }
+
+  public int getMaxDefaultDuration ()
+  {
+    return maxDefaultDuration;
+  }
+
+  public double getRationalityFactor ()
+  {
+    return rationalityFactor;
+  }
+
+  public double getNsInertia ()
+  {
+    return nsInertia;
+  }
+
+  public double getBrokerSwitchFactor ()
+  {
+    return brokerSwitchFactor;
+  }
+
+  public double getWeightInconvenience ()
+  {
+    return weightInconvenience;
+  }
+
+  public int getTariffCount ()
+  {
+    return tariffCount;
+  }
+
+  public int getProfileLength ()
+  {
+    return profileLength;
+  }
+
+  // =================== Configuration ================
   /**
    * Configures this singleton when it's needed. Not called during instance
    * creation to allow testing without a full Spring setup.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013, 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,38 @@
 
 package org.powertac.evcustomer.beans;
 
+import org.powertac.common.config.ConfigurableValue;
+
 /**
- * @author Govert Buijs
+ * @author Govert Buijs, John Collins
  */
 public class Activity
 {
-  private int id;
   private String name;
+
+  @ConfigurableValue(valueType = "Integer",
+          description = "Group ID")
+  private int id;
+
+  @ConfigurableValue(valueType = "Double",
+          description = "Weekday value")
   private double weekdayWeight;
+
+  @ConfigurableValue(valueType = "Double",
+          description = "Weekend value")
   private double weekendWeight;
 
+  /**
+   * Normal constructor, usable by auto-config
+   */
+  public Activity (String name)
+  {
+    this.name = name;
+  }
+  
+  /**
+   * Test constructor
+   */
   public Activity (int id, String name,
                    double weekdayWeight, double weekendWeight)
   {

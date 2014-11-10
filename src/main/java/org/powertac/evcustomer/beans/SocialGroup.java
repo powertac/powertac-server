@@ -16,15 +16,26 @@
 
 package org.powertac.evcustomer.beans;
 
+import org.powertac.common.config.ConfigurableValue;
+
 /**
  * @author Govert Buijs
  * @version 0.5, Date: 2013.11.08
  */
 public class SocialGroup
 {
-  private int id;
   private String name;
 
+  @ConfigurableValue(valueType = "Integer",
+          description = "Group ID")
+  private int id;
+
+  public SocialGroup (String name)
+  {
+    super();
+    this.name = name;
+  }
+  
   public SocialGroup (int id, String name)
   {
     this.id = id;

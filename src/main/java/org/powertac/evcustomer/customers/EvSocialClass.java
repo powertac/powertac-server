@@ -40,6 +40,8 @@ public class EvSocialClass extends AbstractCustomer
   private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
 
   private RandomSeed generator;
+  
+  private Config config;
 
   private Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
 
@@ -78,9 +80,12 @@ public class EvSocialClass extends AbstractCustomer
   {
     this.generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass", seed, "initialize");
+    
+    config = Config.getInstance();
 
     evCustomers = new ArrayList<EvCustomer>();
 
+    // TODO - why do we have to look them up?
     List<CustomerInfo> customerInfos1 = 
         service.getCustomerRepo()
         .findByName(createInfoName(PowerType.CONSUMPTION));
@@ -112,40 +117,44 @@ public class EvSocialClass extends AbstractCustomer
 
       if (customerInfos1.size() > 0) {
         CustomerInfo customer = customerInfos1.get(0);
-        double weight = generator.nextDouble() * Config.WEIGHT_INCONVENIENCE;
-        double weeks = Config.MIN_DEFAULT_DURATION +
-            generator.nextInt(Config.MAX_DEFAULT_DURATION - Config.MIN_DEFAULT_DURATION);
+        double weight = generator.nextDouble() * config.getWeightInconvenience();
+        double weeks = config.getMinDefaultDuration() +
+            generator.nextInt(config.getMaxDefaultDuration() -
+                              config.getMinDefaultDuration());
         tariffEvaluators.put(customer,
             createTariffEvaluator(customer, weight, weeks));
       }
 
       if (customerInfos2.size() > 0) {
         CustomerInfo customer = customerInfos2.get(0);
-        double weight = generator.nextDouble() * Config.WEIGHT_INCONVENIENCE;
-        double weeks = Config.MIN_DEFAULT_DURATION +
-            generator.nextInt(Config.DEFAULT_DURATION_WINDOW);
+        double weight = generator.nextDouble() * config.getWeightInconvenience();
+        double expDuration = config.getMinDefaultDuration() +
+            generator.nextInt(config.getMaxDefaultDuration() -
+                              config.getMinDefaultDuration());
         tariffEvaluators.put(customer,
-            createTariffEvaluator(customer, weight, weeks));
+            createTariffEvaluator(customer, weight, expDuration));
       }
     }
   }
 
   protected TariffEvaluator createTariffEvaluator (CustomerInfo customerInfo,
-                                                   double weight, double weeks)
+                                                   double weight,
+                                                   double expDuration)
   {
     TariffEvaluationWrapper wrapper =
-        new TariffEvaluationWrapper(customerInfo, evCustomers, generator);
+        new TariffEvaluationWrapper(customerInfo, evCustomers,
+                                    generator, config);
     TariffEvaluator te = new TariffEvaluator(wrapper);
-    te.initializeInconvenienceFactors(Config.TOU_FACTOR,
-        Config.TIERED_RATE_FACTOR,
-        Config.VARIABLE_PRICING_FACTOR,
-        Config.INTERRUPTIBILITY_FACTOR);
+    te.initializeInconvenienceFactors(config.getTouFactor(),
+        config.getTieredRateFactor(),
+        config.getVariablePricingFactor(),
+        config.getInterruptibilityFactor());
     te.withInconvenienceWeight(weight)
-        .withInertia(Config.NSInertia)
-        .withPreferredContractDuration(weeks * Config.DAYS_OF_WEEK)
-        .withRationality(Config.RATIONALITY_FACTOR)
-        .withTariffEvalDepth(Config.TARIFF_COUNT)
-        .withTariffSwitchFactor(Config.BROKER_SWITCH_FACTOR);
+        .withInertia(config.getNsInertia())
+        .withPreferredContractDuration(expDuration)
+        .withRationality(config.getRationalityFactor())
+        .withTariffEvalDepth(config.getTariffCount())
+        .withTariffSwitchFactor(config.getBrokerSwitchFactor());
     return te;
   }
 
@@ -355,10 +364,12 @@ public class EvSocialClass extends AbstractCustomer
         chargingCapacity = Math.max(chargingCapacity, carType.getHomeCharging());
       }
 
-      customerInfo = customerInfo.withControllableKW(-chargingCapacity);
-      customerInfo = customerInfo.withUpRegulationKW(-chargingCapacity);
-      customerInfo = customerInfo.withDownRegulationKW(chargingCapacity);
-      customerInfo = customerInfo.withStorageCapacity(storageCapacity);
+      customerInfo = customerInfo
+              .withControllableKW(-chargingCapacity)
+              .withUpRegulationKW(-chargingCapacity)
+              .withDownRegulationKW(chargingCapacity)
+              .withStorageCapacity(storageCapacity)
+              .withMultiContracting(true);
     }
 
     addCustomerInfo(customerInfo);
@@ -422,14 +433,19 @@ class TariffEvaluationWrapper implements CustomerModelAccessor
   private CustomerInfo customerInfo;
   private ArrayList<EvCustomer> evCustomers;
   private Random generator;
+  private Config config;
+  
+  private final static int hrsPerDay = 24;
 
   public TariffEvaluationWrapper (CustomerInfo customerInfo,
                                   ArrayList<EvCustomer> evCustomers,
-                                  Random generator)
+                                  Random generator,
+                                  Config config)
   {
     this.customerInfo = customerInfo;
     this.evCustomers = evCustomers;
     this.generator = generator;
+    this.config = config;
   }
 
   @Override
@@ -438,14 +454,17 @@ class TariffEvaluationWrapper implements CustomerModelAccessor
     return customerInfo;
   }
 
+  /**
+   * TODO: this does not appear to be a reasonable profile
+   */
   @Override
   public double[] getCapacityProfile (Tariff tariff)
   {
-    double[] result = new double[Config.HOURS_OF_DAY];
+    double[] result = new double[config.getProfileLength()];
 
-    for (int i = 0; i < Config.HOURS_OF_DAY; i++) {
+    for (int i = 0; i < hrsPerDay; i++) {
       for (EvCustomer evCustomer : evCustomers) {
-        result[i] += evCustomer.getDominantLoad() / Config.HOURS_OF_DAY;
+        result[i] += evCustomer.getDominantLoad() / hrsPerDay;
       }
       result[i] /= evCustomers.size();
     }
@@ -456,7 +475,7 @@ class TariffEvaluationWrapper implements CustomerModelAccessor
   @Override
   public double getBrokerSwitchFactor (boolean isSuperseding)
   {
-    double result = Config.BROKER_SWITCH_FACTOR;
+    double result = config.getBrokerSwitchFactor();
     if (isSuperseding) {
       return result * 5.0;
     }

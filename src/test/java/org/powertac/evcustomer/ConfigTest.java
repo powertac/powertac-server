@@ -18,8 +18,10 @@ package org.powertac.evcustomer;
 import static org.junit.Assert.*;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -28,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.evcustomer.beans.Activity;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -78,7 +81,28 @@ public class ConfigTest
     Config item = Config.getInstance();
     ReflectionTestUtils.setField(item, "serverConfiguration", configSvc);
     item.configure();
-    assertEquals("ConfiguredValue", 0.25, item.touFactor, 1e-6);
+    assertEquals("ConfiguredValue", 0.25, item.getTouFactor(), 1e-6);
+  }
+  
+  @Test
+  public void testBeanConfig ()
+  {
+    Config item = Config.getInstance();
+    ReflectionTestUtils.setField(item, "serverConfiguration", configSvc);
+    item.configure();
+    Map<String, Collection<?>> result = item.getBeans();
+
+    Collection<?> coll = result.get("SocialGroup");
+    assertEquals("3 groups", 3, coll.size());
+    
+    ArrayList<?> list = new ArrayList(result.get("Activity"));
+    assertEquals("2 activities", 2, list.size());
+    assertTrue("one of them is commuting",
+               ((Activity)list.get(0)).getName().equals("commuting")
+               || ((Activity)list.get(1)).getName().equals("commuting"));
+    assertTrue("one of them is business_trip",
+               ((Activity)list.get(0)).getName().equals("business_trip")
+               || ((Activity)list.get(1)).getName().equals("business_trip"));
   }
 
   class DummyConfig implements ServerConfiguration
