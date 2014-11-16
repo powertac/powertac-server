@@ -23,7 +23,7 @@ import org.powertac.common.config.ConfigurableValue;
  * Intended to be created and populated by auto-configuration
  * @author Govert Buijs, John Collins
  */
-public class ActivityDetail
+public class GroupActivity
 {
   private String name;
 
@@ -54,7 +54,7 @@ public class ActivityDetail
   /**
    * Auto-configure constructor
    */
-  public ActivityDetail (String name)
+  public GroupActivity (String name)
   {
     super();
     this.name = name;

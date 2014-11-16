@@ -33,12 +33,14 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
-public class SocialGroupDetailTest
+public class GroupActivityTest
 {
-  private SocialGroupDetail socialGroupDetail;
-  private int id = 1;
-  private double probability = 0.5;
-  private double maleProbability = 0.5;
+  private GroupActivity detail;
+  private int activityId = 1;
+  private double maleDailyKm = 50.0;
+  private double femaleDailyKm = 50.0;
+  private double maleProbability = 1.0;
+  private double femaleProbability = 1.0;
 
   @Before
   public void setUp ()
@@ -49,19 +51,24 @@ public class SocialGroupDetailTest
   @After
   public void tearDown ()
   {
-    socialGroupDetail = null;
+    detail = null;
   }
 
   private void initialize ()
   {
-    socialGroupDetail = new SocialGroupDetail(id, probability, maleProbability);
+    detail = new GroupActivity("dummy");
+    detail.initialize(activityId,
+        maleDailyKm, femaleDailyKm,
+        maleProbability, femaleProbability);
   }
 
   @Test
   public void testInitialization ()
   {
-    assertEquals(id,              socialGroupDetail.getId(), id);
-    assertEquals(probability,     socialGroupDetail.getProbability(), 1E-06);
-    assertEquals(maleProbability, socialGroupDetail.getMaleProbability(), 1E-06);
+    assertEquals(activityId,        detail.getActivityId());
+    assertEquals(maleDailyKm,       detail.getMaleDailyKm(),        1E-06);
+    assertEquals(femaleDailyKm,     detail.getFemaleDailyKm(),      1E-06);
+    assertEquals(maleProbability,   detail.getMaleProbability(),    1E-06);
+    assertEquals(femaleProbability, detail.getFemaleProbability(),  1E-06);
   }
 }

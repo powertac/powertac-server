@@ -46,8 +46,8 @@ public class SocialClassDetailTest
   private int detailId = 1;
   private double probability = 0.5;
   private double maleProbability = 0.5;
-  private Map<Integer, SocialGroupDetail> socialGroupDetails =
-      new HashMap<Integer, SocialGroupDetail>();
+  private Map<Integer, ClassGroup> classGroups =
+      new HashMap<Integer, ClassGroup>();
 
   @Before
   public void setUp ()
@@ -59,17 +59,18 @@ public class SocialClassDetailTest
   public void tearDown ()
   {
     socialClassDetail = null;
-    socialGroupDetails = null;
+    classGroups = null;
   }
 
   private void initialize ()
   {
-    socialGroupDetails = new HashMap<Integer, SocialGroupDetail>();
-    socialGroupDetails.put(1,
-        new SocialGroupDetail(detailId, probability, maleProbability));
+    classGroups = new HashMap<Integer, ClassGroup>();
+    ClassGroup sgd = new ClassGroup("uut");
+    sgd.initialize(detailId, probability, maleProbability);
+    classGroups.put(1, sgd);
 
     socialClassDetail =
-        new SocialClassDetail(name, minCount, maxCount, socialGroupDetails);
+        new SocialClassDetail(name, minCount, maxCount, classGroups);
   }
 
   @Test
@@ -78,6 +79,6 @@ public class SocialClassDetailTest
     assertEquals(name,                socialClassDetail.getName());
     assertEquals(minCount,            socialClassDetail.getMinCount());
     assertEquals(maxCount,            socialClassDetail.getMaxCount());
-    assertEquals(socialGroupDetails,  socialClassDetail.getSocialGroupDetails());
+    assertEquals(classGroups,  socialClassDetail.getSocialGroupDetails());
   }
 }

@@ -23,21 +23,22 @@ import java.util.Map;
 /**
  * @author Govert Buijs, John Collins
  */
+@Deprecated // this class is not needed
 public class SocialClassDetail
 {
   private String name;
   private int minCount;
   private int maxCount;
-  private Map<Integer, SocialGroupDetail> socialGroupDetails =
-      new HashMap<Integer, SocialGroupDetail>();
+  private Map<Integer, ClassGroup> classGroups =
+      new HashMap<Integer, ClassGroup>();
 
   public SocialClassDetail (String name, int minCount, int maxCount,
-                            Map<Integer, SocialGroupDetail> socialGroupDetails)
+                            Map<Integer, ClassGroup> classGroups)
   {
     this.name = name;
     this.minCount = minCount;
     this.maxCount = maxCount;
-    this.socialGroupDetails = socialGroupDetails;
+    this.classGroups = classGroups;
   }
 
   public String getName ()
@@ -55,8 +56,8 @@ public class SocialClassDetail
     return maxCount;
   }
 
-  public Map<Integer, SocialGroupDetail> getSocialGroupDetails ()
+  public Map<Integer, ClassGroup> getSocialGroupDetails ()
   {
-    return socialGroupDetails;
+    return classGroups;
   }
 }

@@ -16,19 +16,15 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
-import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.interfaces.CustomerModelAccessor;
-import org.powertac.common.interfaces.TariffMarket;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * @author Konstantina Valogianni, Govert Buijs
@@ -37,181 +33,175 @@ import java.util.Map.Entry;
 @ConfigurableInstance
 public class EvSocialClass extends AbstractCustomer
 {
-  private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
+  //private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
 
   private RandomSeed generator;
-  
+
   private Config config;
 
-  private Map<CustomerInfo, TariffEvaluator> tariffEvaluators;
+  @ConfigurableValue(valueType = "Integer", description = "minimum population")
+  private int minCount;
+
+  @ConfigurableValue(valueType = "Integer", description = "maximum population")
+  private int maxCount;
+
+  private int population = 0;
 
   private ArrayList<EvCustomer> evCustomers;
 
-  // ignore quantities less than epsilon
-  private double epsilon = 1e-6;
+  // indexed bean lists
+  private Map<Integer, SocialGroup> groups;
+  private Map<String, CarType> carTypes;
+  private Map<Integer, Activity> activities;
+  private Map<Integer, ClassGroup> classGroups;
+  private Map<String, ClassCar> classCars;
 
-  private double consumptionLoad = 0.0;
-  private double evLoad = 0.0;
-  private double upRegulation = 0.0;
-  private double downRegulation = 0.0;
+  // ignore quantities less than epsilon
+  //private double epsilon = 1e-6;
 
   public EvSocialClass (String name)
   {
     super(name);
-
-    Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>()
-    {
-      @Override
-      public int compare (CustomerInfo customer1, CustomerInfo customer2)
-      {
-        return customer1.getName().compareToIgnoreCase(customer2.getName());
-      }
-    };
-    tariffEvaluators = new TreeMap<CustomerInfo, TariffEvaluator>(comp);
   }
 
-  public void initialize (Map<Integer, SocialGroup> groups,
-                          Map<Integer, SocialGroupDetail> groupDetails,
-                          Map<Integer, Activity> activities,
-                          Map<Integer, Map<Integer, ActivityDetail>> allActivityDetails,
-                          List<CarType> carTypes,
-                          int populationCount,
-                          int seed)
+  /**
+   * Hooks up data structures, creates CustomerInfo instances
+   */
+  @Override
+  public void initialize()
   {
+    Map<String, Collection<?>> beans = new HashMap<String, Collection<?>>();
     this.generator = service.getRandomSeedRepo().
-        getRandomSeed("EvSocialClass", seed, "initialize");
-    
+        getRandomSeed("EvSocialClass-" + name, 1, "initialize");
     config = Config.getInstance();
 
+    population = minCount + generator.nextInt(Math.abs(maxCount - minCount));
+
+    beans = config.getBeans();
+    unpackBeans(beans);
+
+    // Prepare for the joins
+    ArrayList<SocialGroup> groupList =
+        new ArrayList<SocialGroup>(groups.values());
+    double cgProbability = 0.0;
+    for (SocialGroup group : groupList) {
+      cgProbability += classGroups.get(group.getId()).getProbability();
+    }
+    ArrayList<CarType> carList = new ArrayList<CarType>(carTypes.values());
+    double ccProbability = 0.0;
+    for (CarType car : carList) {
+      ccProbability += classCars.get(car.getName()).getProbability();
+    }
+
+    // Create and set up the customer instances
     evCustomers = new ArrayList<EvCustomer>();
-
-    // TODO - why do we have to look them up?
-    List<CustomerInfo> customerInfos1 = 
-        service.getCustomerRepo()
-        .findByName(createInfoName(PowerType.CONSUMPTION));
-    List<CustomerInfo> customerInfos2 = 
-        service.getCustomerRepo()
-        .findByName(createInfoName(PowerType.ELECTRIC_VEHICLE));
-
-    for (int i = 0; i < populationCount; i++) {
-      int randomGroupId = getRandomGroupId(groupDetails, generator);
-
-      SocialGroup group = groups.get(randomGroupId);
-      SocialGroupDetail groupDetail = groupDetails.get(randomGroupId);
-      Map<Integer, ActivityDetail> activityDetails =
-          allActivityDetails.get(randomGroupId);
-
+    for (int i = 0; i < population; i++) {
+      // pick a random social group
+      SocialGroup thisGroup = pickGroup(groupList, cgProbability);
+      ClassGroup groupDetails = classGroups.get(thisGroup.getId());
+      // pick a gender
       String gender = "female";
-      if (generator.nextDouble() < groupDetail.getMaleProbability()) {
+      if (generator.nextDouble() < groupDetails.getMaleProbability()) {
         gender = "male";
       }
+      // pick a random car
+      CarType car = pickCar(carList, ccProbability);
+      //ClassCar carDetails = classCars.get(car.getName());
+      String customerName = this.name + "." + i;
+      EvCustomer customer = new EvCustomer(customerName);
+      evCustomers.add(customer);
+      CustomerInfo info =
+          customer.initialize(thisGroup, gender, activities,
+                              getGroupActivities(beans, thisGroup),
+                              car, service);
+      addCustomerInfo(info);
+      service.getCustomerRepo().add(info);
+    }
+  }
 
-      // For now, all carTypes have equal probability
-      int randomCar = generator.nextInt(carTypes.size());
-      CarType carType = carTypes.get(randomCar);
+  private SocialGroup pickGroup (ArrayList<SocialGroup> groupList,
+                                 double scale)
+  {
+    double picker = generator.nextDouble() * scale;
+    for (SocialGroup group : groupList) {
+      picker -= classGroups.get(group.getId()).getProbability();
+      if (picker <= 0.0) return group;
+    }
+    return groupList.get(groupList.size() - 1);
+  }
 
-      EvCustomer evCustomer = new EvCustomer();
-      evCustomer.initialize(
-          group, gender, activities, activityDetails, carType, generator);
-      evCustomers.add(evCustomer);
+  private CarType pickCar (ArrayList<CarType> carList, double scale)
+  {
+    double picker = generator.nextDouble() * scale;
+    for (CarType car : carList) {
+      picker -= classCars.get(car.getName()).getProbability();
+      if (picker <= 0.0) return car;
+    }
+    return carList.get(carList.size() - 1);
 
-      if (customerInfos1.size() > 0) {
-        CustomerInfo customer = customerInfos1.get(0);
-        double weight = generator.nextDouble() * config.getWeightInconvenience();
-        double weeks = config.getMinDefaultDuration() +
-            generator.nextInt(config.getMaxDefaultDuration() -
-                              config.getMinDefaultDuration());
-        tariffEvaluators.put(customer,
-            createTariffEvaluator(customer, weight, weeks));
+  }
+
+  // creates indexed lists of the various bean types
+  void unpackBeans (Map<String, Collection<?>> beans)
+  {
+    // groups
+    groups = new HashMap<Integer, SocialGroup>();
+    for (Object thing : beans.get("SocialGroup")) {
+      SocialGroup group = (SocialGroup) thing;
+      groups.put(group.getId(), group);
+    }
+
+    // car types
+    carTypes = new HashMap<String, CarType>();
+    for (Object thing : beans.get("CarType")) {
+      CarType car = (CarType) thing;
+      carTypes.put(car.getName(), car);
+    }
+
+    // activities
+    activities = new HashMap<Integer, Activity>();
+    for (Object thing : beans.get("Activity")) {
+      Activity activity = (Activity) thing;
+      activities.put(activity.getId(), activity);
+    }
+
+    // classGroups, indexed by group ID
+    classGroups = new HashMap<Integer, ClassGroup>();
+    for (Object thing : beans.get("ClassGroup")) {
+      ClassGroup classGroup = (ClassGroup) thing;
+      if (classGroup.getSocialClassName().equals(getName())) {
+        // one of ours
+        classGroups.put(classGroup.getGroupId(), classGroup);
       }
+    }
 
-      if (customerInfos2.size() > 0) {
-        CustomerInfo customer = customerInfos2.get(0);
-        double weight = generator.nextDouble() * config.getWeightInconvenience();
-        double expDuration = config.getMinDefaultDuration() +
-            generator.nextInt(config.getMaxDefaultDuration() -
-                              config.getMinDefaultDuration());
-        tariffEvaluators.put(customer,
-            createTariffEvaluator(customer, weight, expDuration));
+    // classCars, indexed by CarType name
+    classCars = new HashMap<String, ClassCar>();
+    for (Object thing : beans.get("ClassCar")) {
+      ClassCar classCar = (ClassCar) thing;
+      if (classCar.getSocialClassName().equals(getName())) {
+        // one of ours
+        classCars.put(classCar.getCarName(), classCar);
       }
     }
   }
 
-  protected TariffEvaluator createTariffEvaluator (CustomerInfo customerInfo,
-                                                   double weight,
-                                                   double expDuration)
+  /**
+   * Extracts the GroupActivity instances associated with the given group
+   */
+  private HashMap<Integer, GroupActivity>
+  getGroupActivities (Map<String, Collection<?>> beans, SocialGroup group)
   {
-    TariffEvaluationWrapper wrapper =
-        new TariffEvaluationWrapper(customerInfo, evCustomers,
-                                    generator, config);
-    TariffEvaluator te = new TariffEvaluator(wrapper);
-    te.initializeInconvenienceFactors(config.getTouFactor(),
-        config.getTieredRateFactor(),
-        config.getVariablePricingFactor(),
-        config.getInterruptibilityFactor());
-    te.withInconvenienceWeight(weight)
-        .withInertia(config.getNsInertia())
-        .withPreferredContractDuration(expDuration)
-        .withRationality(config.getRationalityFactor())
-        .withTariffEvalDepth(config.getTariffCount())
-        .withTariffSwitchFactor(config.getBrokerSwitchFactor());
-    return te;
-  }
-
-  protected int getRandomGroupId (Map<Integer, SocialGroupDetail> groupDetails,
-                                  Random gen)
-  {
-    double r = gen.nextDouble();
-    for (Entry<Integer, SocialGroupDetail> entry : groupDetails.entrySet()) {
-      r -= entry.getValue().getProbability();
-      if (r < 0) {
-        return entry.getKey();
+    HashMap<Integer, GroupActivity> result =
+        new HashMap<Integer, GroupActivity>();
+    for (Object thing: beans.get("GroupActivity")) {
+      GroupActivity ga = (GroupActivity) thing;
+      if (ga.getGroupId() == group.getId()) {
+        // one of ours
+        result.put(ga.getActivityId(), ga);
       }
     }
-
-    return 1;
-  }
-
-  // =====SUBSCRIPTION FUNCTIONS===== //
-
-  public void subscribeDefault (TariffMarket tariffMarketService)
-  {
-    for (CustomerInfo customer : getCustomerInfos()) {
-      Tariff candidate =
-          tariffMarketService.getDefaultTariff(customer.getPowerType());
-      if (null == candidate) {
-        log.error("No default tariff for " + customer.getPowerType().toString());
-      }
-      else {
-        log.info("Subscribe " + customer.getName()
-                 + " to " + candidate.getPowerType().toString());
-      }
-      tariffMarketService.subscribeToTariff(candidate, customer,
-                                            customer.getPopulation());
-    }
-  }
-
-  // =====CONSUMPTION FUNCTIONS===== //
-  public void consumePower ()
-  {
-    for (CustomerInfo customer : getCustomerInfos()) {
-      List<TariffSubscription> subs = getCurrentSubscriptions(customer);
-
-      if (subs != null && subs.size() > 0) {
-        TariffSubscription sub = subs.get(0);
-
-        if (customer.getPowerType() == PowerType.CONSUMPTION) {
-          sub.usePower(consumptionLoad);
-          log.debug("Consumption Load for Customer " + customer.toString()
-              + ": " + consumptionLoad + " for subscriptions " + sub.toString());
-        }
-        else if (customer.getPowerType() == PowerType.ELECTRIC_VEHICLE) {
-          sub.usePower(evLoad);
-          log.debug("Electric Vehicule Load for Customer " + customer.toString()
-              + ": " + evLoad + " for subscriptions " + sub.toString());
-        }
-      }
-    }
+    return result;
   }
 
   // =====EVALUATION FUNCTIONS===== //
@@ -225,10 +215,8 @@ public class EvSocialClass extends AbstractCustomer
   @Override
   public void evaluateTariffs (List<Tariff> tariffs)
   {
-    for (CustomerInfo customer : getCustomerInfos()) {
-      log.info(name + ": evaluate tariffs for " + customer.getName());
-      TariffEvaluator evaluator = tariffEvaluators.get(customer);
-      evaluator.evaluateTariffs();
+    for (EvCustomer customer : evCustomers) {
+      customer.evaluateTariffs(tariffs);
     }
   }
 
@@ -237,163 +225,32 @@ public class EvSocialClass extends AbstractCustomer
   @Override
   public void step ()
   {
-    Timeslot ts = service.getTimeslotRepo().currentTimeslot();
-    int hour = ts.getStartTime().getHourOfDay();
-    int day = ts.getStartTime().getDayOfWeek();
-
-    // Always do handleRegulations first
-    handleRegulations(day, hour);
-    makeDayPlanning(hour, day);
-    doActivities(day, hour);
-    getLoads(day, hour);
-    setRegulations();
-    consumePower();
-  }
-
-  protected void doActivities (int day, int hour)
-  {
-    for (EvCustomer evCustomer : evCustomers) {
-      evCustomer.doActivities(day, hour);
+    for (EvCustomer customer : evCustomers) {
+      customer.step(service.getTimeslotRepo().currentTimeslot());
     }
   }
-
-  private void makeDayPlanning (int hour, int day)
-  {
-    if (hour != 0) {
-      return;
-    }
-
-    for (EvCustomer evCustomer : evCustomers) {
-      evCustomer.makeDayPlanning(day);
-    }
-  }
-
-  /*
-   * When getting the load for consumePower, the batteries are charged according
-   * to the desired capacity. But in reality the capacity might be regulated.
-   */
-  private void handleRegulations (int day, int hour)
-  {
-    for (CustomerInfo customer : getCustomerInfos()) {
-      if (customer.getPowerType() != PowerType.ELECTRIC_VEHICLE) {
-        continue;
-      }
-
-      List<TariffSubscription> subs = getCurrentSubscriptions(customer);
-      if (subs != null && subs.size() > 0) {
-        double actualRegulation =
-            subs.get(0).getRegulation() * customer.getPopulation();
-
-        log.info(name + " regulate : " + actualRegulation);
-
-        double regulationFactor;
-        if (actualRegulation > epsilon && upRegulation > epsilon) {
-          regulationFactor = actualRegulation / upRegulation;
-        }
-        else if (actualRegulation < -epsilon && downRegulation < -epsilon) {
-          regulationFactor = -1 * actualRegulation / downRegulation;
-        }
-        else {
-          return;
-        }
-
-        // Communicate percentage up- and down-regulation to the ev customers
-        for (EvCustomer evCustomer : evCustomers) {
-          evCustomer.regulate(hour, regulationFactor);
-        }
-      }
-    }
-  }
-
-  private void setRegulations ()
-  {
-    for (CustomerInfo customer : getCustomerInfos()) {
-      if (customer.getPowerType() != PowerType.ELECTRIC_VEHICLE) {
-        continue;
-      }
-
-      List<TariffSubscription> subs = getCurrentSubscriptions(customer);
-      if (subs != null && subs.size() > 0) {
-        RegulationCapacity regulationCapacity = new RegulationCapacity(
-            upRegulation / customer.getPopulation(),
-            downRegulation / customer.getPopulation());
-        subs.get(0).setRegulationCapacity(regulationCapacity);
-
-        log.info(name + " setting regulation for " +
-            subs.get(0).getCustomer().getName() + " up : " + upRegulation +
-            " ; down : " + downRegulation);
-      }
-    }
-  }
-
-  protected void getLoads (int day, int hour)
-  {
-    consumptionLoad = 0.0;
-    evLoad = 0.0;
-    upRegulation = 0.0;
-    downRegulation = 0.0;
-
-    for (EvCustomer evCustomer : evCustomers) {
-      double[] loads = evCustomer.getLoads(day, hour);
-
-      consumptionLoad += loads[0];
-      evLoad += loads[1];
-      upRegulation += loads[2];
-      downRegulation += loads[3];
-    }
-
-    log.info(String.format("%s : consumption = % 7.2f ; electric vehicule = " +
-            "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
-        name, consumptionLoad, evLoad, upRegulation, downRegulation
-    ));
-  }
-
-  public void addCustomer (int populationCount, List<CarType> carTypes,
-                           PowerType powerType)
-  {
-    String infoName = createInfoName(powerType);
-    CustomerInfo customerInfo =
-        new CustomerInfo(infoName, populationCount).withPowerType(powerType);
-
-    if (powerType == PowerType.ELECTRIC_VEHICLE) {
-      double storageCapacity = 0;
-      double chargingCapacity = 0;
-
-      for (CarType carType : carTypes) {
-        storageCapacity = Math.max(storageCapacity, carType.getMaxCapacity());
-        chargingCapacity = Math.max(chargingCapacity, carType.getHomeCharging());
-      }
-
-      customerInfo = customerInfo
-              .withControllableKW(-chargingCapacity)
-              .withUpRegulationKW(-chargingCapacity)
-              .withDownRegulationKW(chargingCapacity)
-              .withStorageCapacity(storageCapacity)
-              .withMultiContracting(true);
-    }
-
-    addCustomerInfo(customerInfo);
-    service.getCustomerRepo().add(customerInfo);
-  }
-
-  public String createInfoName (PowerType type)
-  {
-    String s = type.toString().replace("_", " ");
-
-    final StringBuilder result = new StringBuilder(name.length() + s.length() + 1);
-    result.append(name).append(" ");
-
-    String[] words = s.split("\\s");
-    for (int i = 0, l = words.length; i < l; ++i) {
-      if (i > 0) {
-        result.append(" ");
-      }
-      result.append(Character.toUpperCase(words[i].charAt(0)))
-          .append(words[i].substring(1).toLowerCase());
-    }
-
-    return result.toString();
-  }
+//
+//  protected void getLoads (int day, int hour)
+//  {
+//    consumptionLoad = 0.0;
+//    evLoad = 0.0;
+//    upRegulation = 0.0;
+//    downRegulation = 0.0;
+//
+//    for (EvCustomer evCustomer : evCustomers) {
+//      double[] loads = evCustomer.getLoads(day, hour);
+//
+//      consumptionLoad += loads[0];
+//      evLoad += loads[1];
+//      upRegulation += loads[2];
+//      downRegulation += loads[3];
+//    }
+//
+//    log.info(String.format("%s : consumption = % 7.2f ; electric vehicule = " +
+//            "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
+//        name, consumptionLoad, evLoad, upRegulation, downRegulation
+//    ));
+//  }
 
   @Override
   public String toString ()
@@ -401,96 +258,60 @@ public class EvSocialClass extends AbstractCustomer
     return name;
   }
 
-  /**
-   * Returns the current tariff subscriptions for this customerInfo
-   */
-  public List<TariffSubscription> getCurrentSubscriptions (CustomerInfo cust)
-  {
-    List<TariffSubscription> subs =
-        service.getTariffSubscriptionRepo()
-        .findActiveSubscriptionsForCustomer(cust);
-    if (subs.size() > 1) {
-      log.warn("Multiple subscriptions " + subs.size() + " for " + name);
-    }
-    return subs;
-  }
-
   // ===== USED FOR TESTING ===== //
 
-  public ArrayList<EvCustomer> getEvCustomers ()
+  ArrayList<EvCustomer> getEvCustomers ()
   {
     return evCustomers;
   }
 
-  public Random getGenerator ()
+  Random getGenerator ()
   {
     return generator;
   }
-}
 
-class TariffEvaluationWrapper implements CustomerModelAccessor
-{
-  private CustomerInfo customerInfo;
-  private ArrayList<EvCustomer> evCustomers;
-  private Random generator;
-  private Config config;
+  void setMinCount (int count)
+  {
+    minCount = count;
+  }
   
-  private final static int hrsPerDay = 24;
-
-  public TariffEvaluationWrapper (CustomerInfo customerInfo,
-                                  ArrayList<EvCustomer> evCustomers,
-                                  Random generator,
-                                  Config config)
+  int getMinCount ()
   {
-    this.customerInfo = customerInfo;
-    this.evCustomers = evCustomers;
-    this.generator = generator;
-    this.config = config;
+    return minCount;
   }
 
-  @Override
-  public CustomerInfo getCustomerInfo ()
+  void setMaxCount (int count)
   {
-    return customerInfo;
+    maxCount = count;
   }
 
-  /**
-   * TODO: this does not appear to be a reasonable profile
-   */
-  @Override
-  public double[] getCapacityProfile (Tariff tariff)
+  int getMaxCount ()
   {
-    double[] result = new double[config.getProfileLength()];
-
-    for (int i = 0; i < hrsPerDay; i++) {
-      for (EvCustomer evCustomer : evCustomers) {
-        result[i] += evCustomer.getDominantLoad() / hrsPerDay;
-      }
-      result[i] /= evCustomers.size();
-    }
-
-    return result;
+    return maxCount;
   }
 
-  @Override
-  public double getBrokerSwitchFactor (boolean isSuperseding)
+  Map<Integer, SocialGroup> getGroups ()
   {
-    double result = config.getBrokerSwitchFactor();
-    if (isSuperseding) {
-      return result * 5.0;
-    }
-    return result;
+    return groups;
   }
 
-  @Override
-  public double getTariffChoiceSample ()
+  Map<String, CarType> getCarTypes ()
   {
-    return generator.nextDouble();
+    return carTypes;
   }
 
-  @Override
-  public double getInertiaSample ()
+  Map<Integer, Activity> getActivities ()
   {
-    return generator.nextDouble();
+    return activities;
+  }
+
+  Map<Integer, ClassGroup> getClassGroups ()
+  {
+    return classGroups;
+  }
+
+  Map<String, ClassCar> getClassCars ()
+  {
+    return classCars;
   }
 }

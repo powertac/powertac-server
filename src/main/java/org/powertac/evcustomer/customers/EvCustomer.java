@@ -17,8 +17,19 @@
 package org.powertac.evcustomer.customers;
 
 import org.apache.log4j.Logger;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.RegulationCapacity;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
+import org.powertac.common.TariffSubscription;
+import org.powertac.common.Timeslot;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.ActivityDetail;
+import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 
@@ -37,6 +48,8 @@ public class EvCustomer
 {
   static private Logger log = Logger.getLogger(EvCustomer.class.getName());
 
+  private String name;
+
   public enum RiskAttitude
   {
     averse (0.4, 0.8),
@@ -52,14 +65,19 @@ public class EvCustomer
     }
   }
 
+  private CustomerInfo customerInfo;
+  private TariffEvaluator evaluator;
+
+  private Config config;
   private String gender;
   private RiskAttitude riskAttitude;
-  private CarType carType;
+  private CarType car;
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
-  private Map<Integer, ActivityDetail> activityDetails;
+  private Map<Integer, GroupActivity> groupActivities;
 
-  private Random generator;
+  private CustomerServiceAccessor service;
+  private RandomSeed generator;
 
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;
@@ -67,33 +85,171 @@ public class EvCustomer
   // We are driving this timeslot, so we can't charge
   private boolean driving;
 
+  // state
+  private double evLoad = 0.0;
+  private double upRegulation = 0.0;
+  private double downRegulation = 0.0;
+
   private final int dataMapSize = 48;
   private Map<Integer, TimeslotData> timeslotDataMap =
       new HashMap<Integer, TimeslotData>(dataMapSize);
 
-  public void initialize (SocialGroup socialGroup,
-                          String gender,
-                          Map<Integer, Activity> activities,
-                          Map<Integer, ActivityDetail> activityDetails,
-                          CarType carType,
-                          Random generator)
+  public EvCustomer (String name)
   {
-    this.generator = generator;
+    super();
+    this.name = name;
+  }
+  
+  public String getName ()
+  {
+    return name;
+  }
+
+  // ========== initialization =============
+  public CustomerInfo initialize (SocialGroup socialGroup,
+                                  String gender,
+                                  Map<Integer, Activity> activities,
+                                  Map<Integer, GroupActivity> groupActivities,
+                                  CarType car,
+                                  CustomerServiceAccessor service)
+  {
+    config = Config.getInstance();
     this.socialGroup = socialGroup;
     this.activities = activities;
-    this.activityDetails = activityDetails;
+    this.groupActivities = groupActivities;
     this.gender = gender;
-    this.carType = carType;
+    this.car = car;
+    this.service = service;
+    this.generator =
+        service.getRandomSeedRepo().getRandomSeed(name, 1, "model");
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
+
+    customerInfo = new CustomerInfo(name, 1).
+        withPowerType(PowerType.ELECTRIC_VEHICLE).
+        withControllableKW(-car.getHomeCharging()).
+        withUpRegulationKW(-car.getHomeCharging()).
+        withDownRegulationKW(car.getHomeCharging()).
+        withStorageCapacity(car.getMaxCapacity());
+
+    // set up tariff evaluation
+    evaluator = createTariffEvaluator();
+    return customerInfo;
+  }
+
+  // ================ Tariff evaluation ===============
+  private TariffEvaluator createTariffEvaluator ()
+  {
+    TariffEvaluationWrapper wrapper =
+        new TariffEvaluationWrapper();
+    TariffEvaluator te = new TariffEvaluator(wrapper);
+    te.initializeInconvenienceFactors(config.getTouFactor(),
+        config.getTieredRateFactor(),
+        config.getVariablePricingFactor(),
+        config.getInterruptibilityFactor());
+
+    double weight = generator.nextDouble() * config.getWeightInconvenience();
+    double expDuration = config.getMinDefaultDuration() +
+        generator.nextInt(config.getMaxDefaultDuration() -
+                          config.getMinDefaultDuration());
+
+    te.withInconvenienceWeight(weight)
+        .withInertia(config.getNsInertia())
+        .withPreferredContractDuration(expDuration)
+        .withRationality(config.getRationalityFactor())
+        .withTariffEvalDepth(config.getTariffCount())
+        .withTariffSwitchFactor(config.getBrokerSwitchFactor());
+    return te;
+  }
+
+  public void evaluateTariffs (List<Tariff> tariffs)
+  {
+    evaluator.evaluateTariffs();
+  }
+
+  // ================ model operation ================
+  /**
+   * Runs the model forward one step
+   */
+  public void step (Timeslot timeslot)
+  {
+    int day = timeslot.getStartTime().getDayOfWeek();
+    int hour = timeslot.getStartTime().getHourOfDay();
+
+    // find the current active subscription
+    TariffSubscription sub = null;
+    List<TariffSubscription> subs =
+        service.getTariffSubscriptionRepo().
+        findActiveSubscriptionsForCustomer(customerInfo);
+    if (null == subs || subs.size() == 0) {
+      log.error("No subscriptions found for " + name);
+      return;
+    }
+    else {
+      sub = subs.get(0);
+    }
+
+    // Always do handleRegulations first, setRegulation last
+    handleRegulation(day, hour, sub);
+    makeDayPlanning(hour, day);
+    doActivities(day, hour);
+    double[] loads = getLoads(day, hour);
+    consumePower(loads, sub);
+    setRegulation(loads[2], loads[3], sub);
   }
 
   /*
+   * When getting the load for consumePower, the batteries are charged according
+   * to the desired capacity. But in reality the capacity might be regulated.
+   */
+  private void handleRegulation (int day, int hour, TariffSubscription sub)
+  {
+    if (null == sub)
+      return;
+    // check for non-zero regulation request
+    double actualRegulation =
+        sub.getRegulation() * customerInfo.getPopulation();
+    if (actualRegulation == 0.0) {
+      return;
+    }
+
+    // compute the regulation factor and do the regulation
+    log.info(name + " regulate : " + actualRegulation);
+    double regulationFactor;
+    if (actualRegulation > epsilon && upRegulation > epsilon) {
+      regulationFactor = actualRegulation / upRegulation;
+    }
+    else if (actualRegulation < -epsilon && downRegulation < -epsilon) {
+      regulationFactor = -1 * actualRegulation / downRegulation;
+    }
+    else {
+      return;
+    }
+    // do the regulation
+    regulate(hour, regulationFactor);
+  }
+
+  private void setRegulation (double up, double down, TariffSubscription sub)
+  {
+    if (null == sub) 
+      return;
+    RegulationCapacity regulationCapacity =
+        new RegulationCapacity(up, down);
+    sub.setRegulationCapacity(regulationCapacity);
+    log.info(getName() + " setting regulation, up: "
+             + up + "; down: " + down);
+  }
+
+
+  /**
    * We always have data for at least 24h in advance.
    */
-  public void makeDayPlanning (int day)
+  public void makeDayPlanning (int hour, int day)
   {
+    if (hour != 0)
+      return; // only runs once/day
+
     // First time
     if (timeslotDataMap.size() != dataMapSize) {
       timeslotDataMap = new HashMap<Integer, TimeslotData>(dataMapSize);
@@ -129,20 +285,21 @@ public class EvCustomer
     // Otherwise we get too many slots without charging
     Map<Integer, Double> intended = new HashMap<Integer, Double>();
     for (int activityId = 0; activityId < activities.size(); activityId++) {
-      ActivityDetail activityDetail = activityDetails.get(activityId);
-      double probability = activityDetail.getProbability(gender);
-      double dailyDistance = activityDetail.getDailyKm(gender);
+      GroupActivity groupActivity = groupActivities.get(activityId);
+      double probability = groupActivity.getProbability(gender);
+      double dailyDistance = groupActivity.getDailyKm(gender);
 
-      // TODO
-      if (probability < 1.0) {
-        probability = Math.sqrt(probability);
-      }
-      dailyDistance *= 5;
+      // TODO What is this for???
+//      if (probability < 1.0) {
+//        probability = Math.sqrt(probability);
+//      }
+//      dailyDistance *= 5;
 
-      // Probs > 1.0 will always happen, hence the distance factoring == 1
-      if (100 * probability > generator.nextInt(100)) {
+      // Probs > 1.0 will always happen (why),
+      // hence the distance factoring == 1
+      if (probability >= generator.nextDouble()) {
         int pickedTS = pickSlotForEvent(wakeupSlot, sleepSlot, intended);
-        double distance = dailyDistance / Math.min(1.0, probability);
+        double distance = dailyDistance * 2.0 * generator.nextDouble();
         intended.put(pickedTS, distance);
       }
     }
@@ -171,6 +328,7 @@ public class EvCustomer
     return available.get(generator.nextInt(available.size()));
   }
 
+  // runs through datamap backwards to find charging intervals.
   private void updateChargingHours ()
   {
     int chargingHours = 0;
@@ -190,20 +348,26 @@ public class EvCustomer
   {
     TimeslotData timeslotData = timeslotDataMap.get(hour);
     double intendedDistance = timeslotData.getIntendedDistance();
-    double neededCapacity = carType.getNeededCapacity(intendedDistance);
+    double neededCapacity = car.getNeededCapacity(intendedDistance);
 
-    if (intendedDistance < epsilon || neededCapacity > carType.getCurrentCapacity()) {
+    if (intendedDistance < epsilon || neededCapacity > car.getCurrentCapacity()) {
       return;
     }
 
     try {
-      carType.discharge(neededCapacity);
+      car.discharge(neededCapacity);
       driving = true;
     }
     catch (CarType.ChargeException ce) {
       log.error(ce);
       driving = false;
     }
+  }
+
+  // consumes power
+  private void consumePower (double[] loads, TariffSubscription sub)
+  {
+    sub.usePower(loads[0] + loads[1]);
   }
 
   /*
@@ -215,11 +379,11 @@ public class EvCustomer
 
     // Aggregate daily kms
     double dailyKm = 0.0;
-    for (Map.Entry<Integer, ActivityDetail> entry : activityDetails.entrySet()) {
+    for (Map.Entry<Integer, GroupActivity> entry : groupActivities.entrySet()) {
       dailyKm += entry.getValue().getDailyKm(gender);
     }
 
-    return carType.getNeededCapacity(dailyKm);
+    return car.getNeededCapacity(dailyKm);
   }
 
   /*
@@ -233,32 +397,32 @@ public class EvCustomer
   {
     double[] loads = new double[4];
 
-    double currentCapacity = carType.getCurrentCapacity();
+    double currentCapacity = car.getCurrentCapacity();
 
     // This the amount we need to have at the next TS
     double minCapacity = getLongTermNeeded(hour + 1);
     // This is the amount we would like to have at the end of this TS
     int hoursOfCharge = timeslotDataMap.get(hour).getHoursTillNextDrive();
     double nomCapacity = Math.max(getShortTermNeeded(hour + hoursOfCharge),
-        carType.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
+        car.getMaxCapacity() * riskAttitude.preferredMinimumCapacity);
 
     // This is the amount we need to charge, CONSUMPTION can't be regulated
     loads[0] = Math.max(0, minCapacity - currentCapacity);
-    loads[0] = Math.min(loads[0], carType.getChargingCapacity());
+    loads[0] = Math.min(loads[0], car.getChargingCapacity());
 
     // This is the amount we would like to charge, minus CONSUMPTION
     loads[1] = Math.max(0, (nomCapacity - currentCapacity) - loads[0]);
-    loads[1] = Math.min(loads[1], carType.getChargingCapacity());
+    loads[1] = Math.min(loads[1], car.getChargingCapacity());
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
-    loads[2] = Math.min(carType.getDischargingCapacity(), loads[2]);
+    loads[2] = Math.min(car.getDischargingCapacity(), loads[2]);
 
     // This is the amount we could charge extra (down regulate)
-    loads[3] = -1 * (carType.getChargingCapacity() - (loads[0] + loads[1]));
+    loads[3] = -1 * (car.getChargingCapacity() - (loads[0] + loads[1]));
 
     try {
-      carType.charge(loads[0] + loads[1]);
+      car.charge(loads[0] + loads[1]);
     }
     catch (CarType.ChargeException ce) {
       log.error(ce.getMessage());
@@ -284,7 +448,7 @@ public class EvCustomer
         break;
       }
       else {
-        neededCapacity += carType.getNeededCapacity(tsDistance);
+        neededCapacity += car.getNeededCapacity(tsDistance);
       }
     }
 
@@ -305,13 +469,13 @@ public class EvCustomer
       if (tsDistance < epsilon) {
         // Not driving, charge as much as needed and possible
         // TODO Add home / away detection
-        neededCapacity -= Math.min(neededCapacity, carType.getHomeCharging());
+        neededCapacity -= Math.min(neededCapacity, car.getHomeCharging());
       }
       else {
         // Driving in this TS, increase needed capacity
-        neededCapacity += carType.getNeededCapacity(tsDistance);
+        neededCapacity += car.getNeededCapacity(tsDistance);
         // But not more than possible
-        neededCapacity = Math.min(neededCapacity, carType.getMaxCapacity());
+        neededCapacity = Math.min(neededCapacity, car.getMaxCapacity());
       }
     }
 
@@ -335,20 +499,20 @@ public class EvCustomer
     try {
       if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon){
         double regulation = regulationFactor * tsData.getDownRegulation();
-        carType.charge(regulation);
+        car.charge(regulation);
       }
       else if (regulationFactor > epsilon) {
         if (tsData.getUpRegulationCharge() > epsilon) {
           // This is the part we thought we we're charging, but we didn't get
           // due to regulation. Just subtract from the current capacity
           double cap = -1 * regulationFactor * tsData.getUpRegulationCharge();
-          carType.setCurrentCapacity(carType.getCurrentCapacity() - cap);
+          car.setCurrentCapacity(car.getCurrentCapacity() - cap);
         }
 
         if (tsData.getUpRegulation() > epsilon) {
           // This is the part that's regulated via actual discharge
           double discharge = -1 * regulationFactor * tsData.getUpRegulation();
-          carType.discharge(-1 * discharge);
+          car.discharge(-1 * discharge);
         }
       }
     }
@@ -359,9 +523,14 @@ public class EvCustomer
 
   // ===== USED FOR TESTING ===== //
 
+  public CustomerInfo getCustomerInfo ()
+  {
+    return customerInfo;
+  }
+
   public CarType getCar ()
   {
-    return carType;
+    return car;
   }
 
   public SocialGroup getSocialGroup ()
@@ -374,9 +543,9 @@ public class EvCustomer
     return activities;
   }
 
-  public Map<Integer, ActivityDetail> getActivityDetails ()
+  public Map<Integer, GroupActivity> getActivityDetails ()
   {
-    return activityDetails;
+    return groupActivities;
   }
 
   public String getGender ()
@@ -398,7 +567,7 @@ public class EvCustomer
     }
   }
 
-  public void setGenerator (Random generator)
+  public void setGenerator (RandomSeed generator)
   {
     this.generator = generator;
   }
@@ -412,68 +581,120 @@ public class EvCustomer
   {
     return driving;
   }
-}
 
-class TimeslotData
-{
-  private double intendedDistance = 0.0;
-  private double upRegulation = 0.0;
-  private double upRegulationCharge = 0.0;
-  private double downRegulation = 0.0;
-  private int hoursTillNextDrive = 0;
-
-  public TimeslotData (double distance)
+  class TimeslotData
   {
-    intendedDistance = distance;
+    private double intendedDistance = 0.0;
+    private double upRegulation = 0.0;
+    private double upRegulationCharge = 0.0;
+    private double downRegulation = 0.0;
+    private int hoursTillNextDrive = 0;
+
+    public TimeslotData (double distance)
+    {
+      intendedDistance = distance;
+    }
+
+    public double getIntendedDistance ()
+    {
+      return intendedDistance;
+    }
+
+    public void setIntendedDistance (double intendedDistance)
+    {
+      this.intendedDistance = intendedDistance;
+    }
+
+    public double getUpRegulation ()
+    {
+      return upRegulation;
+    }
+
+    public void setUpRegulation (double upRegulation)
+    {
+      this.upRegulation = upRegulation;
+    }
+
+    public double getUpRegulationCharge ()
+    {
+      return upRegulationCharge;
+    }
+
+    public void setUpRegulationCharge (double upRegulationCharge)
+    {
+      this.upRegulationCharge = upRegulationCharge;
+    }
+
+    public double getDownRegulation ()
+    {
+      return downRegulation;
+    }
+
+    public void setDownRegulation (double downRegulation)
+    {
+      this.downRegulation = downRegulation;
+    }
+
+    public int getHoursTillNextDrive ()
+    {
+      return hoursTillNextDrive;
+    }
+
+    public void setHoursTillNextDrive (int hoursTillNextDrive)
+    {
+      this.hoursTillNextDrive = hoursTillNextDrive;
+    }
   }
 
-  public double getIntendedDistance ()
+  class TariffEvaluationWrapper implements CustomerModelAccessor
   {
-    return intendedDistance;
-  }
+    private final static int hrsPerDay = 24;
 
-  public void setIntendedDistance (double intendedDistance)
-  {
-    this.intendedDistance = intendedDistance;
-  }
+    public TariffEvaluationWrapper ()
+    {
+      super();
+    }
 
-  public double getUpRegulation ()
-  {
-    return upRegulation;
-  }
+    @Override
+    public CustomerInfo getCustomerInfo ()
+    {
+      return customerInfo;
+    }
 
-  public void setUpRegulation (double upRegulation)
-  {
-    this.upRegulation = upRegulation;
-  }
+    /**
+     * TODO: this does not appear to be a reasonable profile
+     */
+    @Override
+    public double[] getCapacityProfile (Tariff tariff)
+    {
+      double[] result = new double[config.getProfileLength()];
 
-  public double getUpRegulationCharge ()
-  {
-    return upRegulationCharge;
-  }
+      for (int i = 0; i < hrsPerDay; i++) {
+        result[i] = getDominantLoad() / hrsPerDay;
+      }
+      return result;
+    }
 
-  public void setUpRegulationCharge (double upRegulationCharge)
-  {
-    this.upRegulationCharge = upRegulationCharge;
-  }
+    @Override
+    public double getBrokerSwitchFactor (boolean isSuperseding)
+    {
+      double result = config.getBrokerSwitchFactor();
+      if (isSuperseding) {
+        return result * 5.0;
+      }
+      return result;
+    }
 
-  public double getDownRegulation ()
-  {
-    return downRegulation;
-  }
+    @Override
+    public double getTariffChoiceSample ()
+    {
+      return generator.nextDouble();
+    }
 
-  public void setDownRegulation (double downRegulation)
-  {
-    this.downRegulation = downRegulation;
-  }
-
-  public int getHoursTillNextDrive ()
-  {
-    return hoursTillNextDrive;
-  }
-
-  public void setHoursTillNextDrive (int hoursTillNextDrive)
-  {
-    this.hoursTillNextDrive = hoursTillNextDrive;
+    @Override
+    public double getInertiaSample ()
+    {
+      return generator.nextDouble();
+    }
   }
 }

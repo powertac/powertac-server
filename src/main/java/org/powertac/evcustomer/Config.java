@@ -96,8 +96,8 @@ public final class Config
   private int profileLength = 48;
 
   private static String[] beanTypes =
-    {"SocialGroup", "SocialGroupDetail", "SocialClassDetail",
-	  "CarType", "Activity", "ActivityDetail"};
+    {"SocialGroup", "ClassGroup",
+	  "CarType", "ClassCar", "Activity", "GroupActivity"};
 
   private Map<String, Collection<?>> beans;
 

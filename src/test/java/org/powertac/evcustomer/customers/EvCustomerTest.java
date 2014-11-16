@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.ActivityDetail;
+import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,8 +47,8 @@ public class EvCustomerTest
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
   private Activity activity;
-  private Map<Integer, ActivityDetail> details;
-  private ActivityDetail detail;
+  private Map<Integer, GroupActivity> details;
+  private GroupActivity detail;
   private CarType carType;
 
   private double maleDailyKm = 10;
@@ -63,7 +63,7 @@ public class EvCustomerTest
     evCustomer = new EvCustomer();
     socialGroup = new SocialGroup(groupId, "Group " + groupId);
     activity = new Activity(0, "TestActivity", 1, 1);
-    detail = new ActivityDetail(0, maleDailyKm, femaleDailyKm, 1, 1);
+    detail = new GroupActivity(0, maleDailyKm, femaleDailyKm, 1, 1);
     carType = new CarType();
     carType.configure("TestCar", 100.0, 200.0, 10.0, 10.0);
 
@@ -85,7 +85,7 @@ public class EvCustomerTest
       activities.put(activity.getId(), activity);
     }
     if (details == null) {
-      details = new HashMap<Integer, ActivityDetail>();
+      details = new HashMap<Integer, GroupActivity>();
       details.put(detail.getActivityId(), detail);
     }
     evCustomer.initialize(socialGroup, gender, activities, details, carType, gen);
@@ -139,8 +139,8 @@ public class EvCustomerTest
     // ActivityDetails aren't dependent on gender
     initialize("male");
 
-    Map<Integer, ActivityDetail> activityDetails = evCustomer.getActivityDetails();
-    ActivityDetail activityDetail2 = activityDetails.get(activity.getId());
+    Map<Integer, GroupActivity> groupActivities = evCustomer.getActivityDetails();
+    GroupActivity activityDetail2 = groupActivities.get(activity.getId());
 
     assertEquals(activityDetail2.getActivityId(),         detail.getActivityId());
     assertEquals(activityDetail2.getMaleDailyKm(),        detail.getMaleDailyKm(),        1E-06);
@@ -268,7 +268,7 @@ public class EvCustomerTest
     initialize("male");
 
     double totalKms = 0.0;
-    for (Map.Entry<Integer, ActivityDetail> entry :
+    for (Map.Entry<Integer, GroupActivity> entry :
         evCustomer.getActivityDetails().entrySet()) {
       totalKms += entry.getValue().getMaleDailyKm();
     }
@@ -280,7 +280,7 @@ public class EvCustomerTest
     initialize("female");
 
     totalKms = 0.0;
-    for (Map.Entry<Integer, ActivityDetail> entry :
+    for (Map.Entry<Integer, GroupActivity> entry :
         evCustomer.getActivityDetails().entrySet()) {
       totalKms += entry.getValue().getMaleDailyKm();
     }

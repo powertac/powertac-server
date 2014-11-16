@@ -23,21 +23,21 @@ import org.powertac.common.config.ConfigurableValue;
  * @author Govert Buijs
  * @version 0.5, Date: 2013.11.08
  */
-public class SocialGroupDetail
+public class ClassGroup
 {
-  private String name;
-  
+  protected String name;
+
   @ConfigurableValue(valueType = "String",
-      description = "Foreign key: name of associated EvSocialClass")
-  private String socialClassName;
+      description = "Social class name")
+  protected String socialClassName;
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Probability of a member of the class owning the car")
+  protected double probability;
 
   @ConfigurableValue(valueType = "Integer",
       description = "Foreign key: id of associated SocialGroup")
   private int groupId;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Probability of this association")
-  private double probability;
 
   @ConfigurableValue(valueType = "Double",
       description = "Probability of actor being male")
@@ -46,12 +46,13 @@ public class SocialGroupDetail
   /***
    * Constructor for auto-configuration
    */
-  public SocialGroupDetail (String name)
+  public ClassGroup (String name)
   {
     super();
     this.name = name;
   }
-  
+
+  @Deprecated
   public void initialize (int id, double probability, double maleProbability)
   {
     this.groupId = id;
@@ -59,23 +60,28 @@ public class SocialGroupDetail
     this.maleProbability = maleProbability;
   }
 
-  public String getSocialClassName ()
-  {
-    return socialClassName;
-  }
-
   public int getGroupId ()
   {
     return groupId;
   }
 
-  public double getProbability ()
-  {
-    return probability;
-  }
-
   public double getMaleProbability ()
   {
     return maleProbability;
+  }
+
+  public String getName ()
+  {
+    return name;
+  }
+
+  public String getSocialClassName ()
+  {
+    return socialClassName;
+  }
+
+  public double getProbability ()
+  {
+    return probability;
   }
 }

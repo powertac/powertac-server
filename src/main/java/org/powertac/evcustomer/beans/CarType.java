@@ -16,9 +16,6 @@
 
 package org.powertac.evcustomer.beans;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.powertac.common.config.ConfigurableValue;
 
 /**
