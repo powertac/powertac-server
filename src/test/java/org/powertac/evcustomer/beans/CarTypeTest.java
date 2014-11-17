@@ -18,21 +18,14 @@ package org.powertac.evcustomer.beans;
 
 import java.io.InputStream;
 import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import static org.junit.Assert.*;
 
 

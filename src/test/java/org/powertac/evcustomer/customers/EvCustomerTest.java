@@ -16,10 +16,8 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.repo.CustomerRepo;
@@ -33,11 +31,6 @@ import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
-import org.powertac.evcustomer.customers.EvSocialClassTest.ServiceAccessor;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import java.util.HashMap;
 import java.util.Map;
 

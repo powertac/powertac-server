@@ -19,32 +19,14 @@ package org.powertac.evcustomer.customers;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static org.mockito.Mockito.*;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.powertac.common.Broker;
-import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
-import org.powertac.common.Rate;
-import org.powertac.common.Tariff;
-import org.powertac.common.TariffEvaluator;
-import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.config.Configurator;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -53,45 +35,21 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.ConfigTest;
-import org.powertac.evcustomer.PredictableRandom;
-import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.GroupActivity;
-import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.powertac.evcustomer.beans.ClassGroup;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 /**
  * @author Govert Buijs
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations = {"classpath:test-config.xml"})
-//@DirtiesContext
 public class EvSocialClassTest
 {
   //private TimeService timeService;
@@ -105,16 +63,12 @@ public class EvSocialClassTest
   private RandomSeedRepo mockSeedRepo;
   private RandomSeed mockSeed;
 
-  private TariffMarket mockTariffMarket;
+  //private TariffMarket mockTariffMarket;
 
   private DummyConfig serverConfiguration;
   private ServiceAccessor service;
 
   private String className = "HighIncome_2";
-
-  private Instant now;
-
-  private int seedId = 1;
 
   private EvSocialClass evSocialClass;
 

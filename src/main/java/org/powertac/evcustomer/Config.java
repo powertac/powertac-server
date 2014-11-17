@@ -16,13 +16,10 @@
 
 package org.powertac.evcustomer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.Configuration;
 import org.apache.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;

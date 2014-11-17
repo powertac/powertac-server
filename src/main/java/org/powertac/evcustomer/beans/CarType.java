@@ -148,6 +148,8 @@ public class CarType
 
   public class ChargeException extends Exception
   {
+    private static final long serialVersionUID = 1L;
+
     public ChargeException (String message)
     {
       super(message);

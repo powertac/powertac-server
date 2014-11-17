@@ -52,14 +52,6 @@ public class ClassGroup
     this.name = name;
   }
 
-  @Deprecated
-  public void initialize (int id, double probability, double maleProbability)
-  {
-    this.groupId = id;
-    this.probability = probability;
-    this.maleProbability = maleProbability;
-  }
-
   public int getGroupId ()
   {
     return groupId;
@@ -83,5 +75,14 @@ public class ClassGroup
   public double getProbability ()
   {
     return probability;
+  }
+
+  // test support
+
+  void initialize (int id, double probability, double maleProbability)
+  {
+    this.groupId = id;
+    this.probability = probability;
+    this.maleProbability = maleProbability;
   }
 }

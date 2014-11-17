@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 
 /**
@@ -86,7 +85,7 @@ public class EvCustomer
   private boolean driving;
 
   // state
-  private double evLoad = 0.0;
+  //private double evLoad = 0.0;
   private double upRegulation = 0.0;
   private double downRegulation = 0.0;
 

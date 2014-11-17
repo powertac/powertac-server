@@ -21,7 +21,6 @@ import static org.powertac.util.ListTools.*;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -33,7 +32,6 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.ClassCar;
-import org.powertac.util.ListTools;
 import org.powertac.util.Predicate;
 import org.springframework.test.util.ReflectionTestUtils;
 

@@ -9,6 +9,7 @@ import java.util.Random;
  */
 public class PredictableRandom extends Random
 {
+  private static final long serialVersionUID = 1L;
   private int doubleCounter = 0;
   private double[] doubleSeed = new double[]{0};
 

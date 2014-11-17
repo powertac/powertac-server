@@ -74,6 +74,11 @@ public class GroupActivity
     this.femaleProbability = femaleProbability;
   }
 
+  public String getName ()
+  {
+    return name;
+  }
+
   public int getGroupId ()
   {
     return groupId;
