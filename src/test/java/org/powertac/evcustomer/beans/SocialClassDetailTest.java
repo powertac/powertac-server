@@ -33,9 +33,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Govert Buijs
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
-@DirtiesContext
 public class SocialClassDetailTest
 {
   private SocialClassDetail socialClassDetail;

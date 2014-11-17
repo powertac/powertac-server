@@ -179,31 +179,9 @@ public class EvSocialClassTest
   private void initializeClass ()
   {
     evSocialClass.setServiceAccessor(service);
-    evSocialClass.initialize();
     evSocialClass.setMinCount(2);
     evSocialClass.setMaxCount(4);
-
-
-//    groupActivities.put(groupActivity.getActivityId(), groupActivity);
-//    Map<Integer, Map<Integer, GroupActivity>> allActivityDetails =
-//        new HashMap<Integer, Map<Integer, GroupActivity>>();
-//    allActivityDetails.put(socialGroup.getId(), groupActivities);
-//
-//    carType = new CarType();
-//    carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
-//    carTypes.add(carType);
-//
-//    evSocialClass.addCustomerInfo(info);
-//    customerRepo.add(info);
-//    evSocialClass.addCustomerInfo(info2);
-//    customerRepo.add(info2);
-//
-//    groupDetails = new HashMap<Integer, ClassGroup>();
-//    groupDetails.put(groupId,
-//        new ClassGroup(groupId, probability, maleProbability));
-//
-//    evSocialClass.initialize(socialGroups, groupDetails, activities,
-//        allActivityDetails, carTypes, populationCount, seedId++);
+    evSocialClass.initialize();
   }
 
   @Test
@@ -213,7 +191,7 @@ public class EvSocialClassTest
 
     assertEquals("Correct name", className, evSocialClass.getName());
 
-    serverConfiguration.configureMe(evSocialClass);
+    //serverConfiguration.configureMe(evSocialClass);
     assertEquals("correct min count", 2, evSocialClass.getMinCount());
   }
 
@@ -224,8 +202,27 @@ public class EvSocialClassTest
     Map<Integer, SocialGroup> groups = evSocialClass.getGroups();
     assertEquals("3 groups", 3, groups.size());
     assertEquals("includes parttime", "parttime", groups.get(1).getName());
+
+    Map<Integer, ClassGroup> classGroups = evSocialClass.getClassGroups();
+    assertEquals("twelve class-groups", 3, classGroups.size());
+    ClassGroup hi2_1 = classGroups.get(1);
+    assertEquals("correct socialClassName",
+                 "HighIncome_2", hi2_1.getSocialClassName());
+    assertEquals("correct probability", 0.125, hi2_1.getProbability(), 1e-6);
   }
-////
+
+  @Test
+  public void testEvCustomers ()
+  {
+    initializeClass();
+    assertEquals("correct min count", 2, evSocialClass.getMinCount());
+    assertEquals("correct max count", 4, evSocialClass.getMaxCount());
+    ArrayList<EvCustomer> customers = evSocialClass.getEvCustomers();
+    assertEquals("correct number of customers", 2, customers.size());
+    assertEquals("correct number of infos", 2,
+                 evSocialClass.getCustomerInfos().size());
+  }
+
 ////  @Test
 ////  public void testActivities ()
 ////  {

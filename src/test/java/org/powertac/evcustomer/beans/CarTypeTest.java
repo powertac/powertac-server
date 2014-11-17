@@ -39,9 +39,6 @@ import static org.junit.Assert.*;
 /**
  * @author Govert Buijs
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
-@DirtiesContext
 public class CarTypeTest
 {
   private CarType carType;

@@ -15,28 +15,34 @@ public class PredictableRandom extends Random
   private int intCounter = 0;
   private int[] intSeed = new int[]{0};
 
+  public PredictableRandom ()
+  {
+    super();
+  }
+
   public PredictableRandom (double[] doubleSeed, int[] intSeed)
   {
+    super();
     this.doubleSeed = doubleSeed;
     this.intSeed = intSeed;
   }
 
+  @Override
   public double nextDouble ()
   {
     // Keep repeating the last value
     if (doubleCounter >= doubleSeed.length - 1) {
       return doubleSeed[doubleSeed.length - 1];
     }
-
     return doubleSeed[doubleCounter++];
   }
 
+  @Override
   public int nextInt (int ignored)
   {
     if (intCounter >= intSeed.length - 1) {
       return intSeed[intSeed.length - 1];
     }
-
     return intSeed[intCounter++];
   }
 

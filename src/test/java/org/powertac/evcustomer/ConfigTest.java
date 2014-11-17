@@ -16,6 +16,7 @@
 package org.powertac.evcustomer;
 
 import static org.junit.Assert.*;
+import static org.powertac.util.ListTools.*;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -31,6 +32,9 @@ import org.junit.Test;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.evcustomer.beans.Activity;
+import org.powertac.evcustomer.beans.ClassCar;
+import org.powertac.util.ListTools;
+import org.powertac.util.Predicate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -83,7 +87,7 @@ public class ConfigTest
     item.configure();
     assertEquals("ConfiguredValue", 0.25, item.getTouFactor(), 1e-6);
   }
-  
+
   @Test
   public void testBeanConfig ()
   {
@@ -92,10 +96,12 @@ public class ConfigTest
     item.configure();
     Map<String, Collection<?>> result = item.getBeans();
 
+    // Social groups
     Collection<?> coll = result.get("SocialGroup");
     assertEquals("3 groups", 3, coll.size());
-    
-    ArrayList<?> list = new ArrayList(result.get("Activity"));
+
+    // Activities
+    ArrayList<Object> list = new ArrayList<Object>(result.get("Activity"));
     assertEquals("2 activities", 2, list.size());
     assertTrue("one of them is commuting",
                ((Activity)list.get(0)).getName().equals("commuting")
@@ -103,6 +109,40 @@ public class ConfigTest
     assertTrue("one of them is business_trip",
                ((Activity)list.get(0)).getName().equals("business_trip")
                || ((Activity)list.get(1)).getName().equals("business_trip"));
+    int index = 0;
+    if (((Activity)list.get(1)).getName().equals("commuting"))
+      index = 1;
+    Activity commuting = (Activity)list.get(index);
+    assertEquals("correct id", 0, commuting.getId());
+    assertEquals("correct weekday weight", 0.99,
+                 commuting.getWeekdayWeight(), 1e-6);
+  }
+
+  @Test
+  public void testClassCarConfig ()
+  {
+    Config item = Config.getInstance();
+    ReflectionTestUtils.setField(item, "serverConfiguration", configSvc);
+    item.configure();
+    Map<String, Collection<?>> result = item.getBeans();
+
+    @SuppressWarnings("unchecked")
+    Collection<Object> list = (Collection<Object>) result.get("ClassCar");
+    assertEquals("8 instances", 8, list.size());
+
+    Object thing = findFirst(list, new Predicate<Object>() {
+      @Override
+      public boolean apply (Object thing)
+      {
+        return ((thing instanceof ClassCar) &&
+            ((ClassCar)thing).getName().equals("HI_2_T40"));
+      }
+    });
+    assertNotNull("found HI_2_T40", thing);
+    ClassCar cc = (ClassCar)thing;
+    assertEquals("correct class", "HighIncome_2", cc.getSocialClassName());
+    assertEquals("correct car", "Tesla_40_kWh", cc.getCarName());
+    assertEquals("correct probability", 0.7, cc.getProbability(), 1e-6);
   }
 
   class DummyConfig implements ServerConfiguration

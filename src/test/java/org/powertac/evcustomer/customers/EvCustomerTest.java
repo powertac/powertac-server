@@ -20,11 +20,20 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
+import org.powertac.evcustomer.customers.EvSocialClassTest.ServiceAccessor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -33,17 +42,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
  * @author Govert Buijs
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:test-config.xml"})
-@DirtiesContext
 public class EvCustomerTest
 {
+  private TariffSubscriptionRepo mockSubscriptionRepo;
+  private RandomSeedRepo mockSeedRepo;
+  private MockRandomSeed mockSeed;
+  private ServiceAccessor service;
+
   private EvCustomer evCustomer;
+  private String cName = "Joe";
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
   private Activity activity;
@@ -55,27 +71,26 @@ public class EvCustomerTest
   private double femaleDailyKm = 10;
   private int groupId = 2;
 
-  private PredictableRandom gen;
-
   @Before
   public void setUp ()
   {
-    evCustomer = new EvCustomer();
+    evCustomer = new EvCustomer(cName);
+    mockSeedRepo = mock(RandomSeedRepo.class);
+    mockSeed = new MockRandomSeed("Test", groupId, cName);
+    when(mockSeedRepo.getRandomSeed(anyString(),
+                                    anyInt(),
+                                    anyString())).thenReturn(mockSeed);
+
+    service = new ServiceAccessor();
+
     socialGroup = new SocialGroup(groupId, "Group " + groupId);
     activity = new Activity(0, "TestActivity", 1, 1);
-    detail = new GroupActivity(0, maleDailyKm, femaleDailyKm, 1, 1);
-    carType = new CarType();
+    detail = new GroupActivity("test-ga");
+    detail.initialize(0, maleDailyKm, femaleDailyKm, 1, 1);
+    carType = new CarType("TestCar");
     carType.configure("TestCar", 100.0, 200.0, 10.0, 10.0);
-
-    gen = new PredictableRandom(new double[]{0.4},
-        new int[]{0, 51, 52, 53, 54, 55});
-  }
-
-  @After
-  public void tearDown ()
-  {
-    evCustomer = null;
-    gen = null;
+    mockSeed.setDoubleSeed(new double[]{0.4});
+    mockSeed.setIntSeed(new int[]{0, 51, 52, 53, 54, 55});
   }
 
   public void initialize (String gender)
@@ -88,7 +103,8 @@ public class EvCustomerTest
       details = new HashMap<Integer, GroupActivity>();
       details.put(detail.getActivityId(), detail);
     }
-    evCustomer.initialize(socialGroup, gender, activities, details, carType, gen);
+    evCustomer.initialize(socialGroup, gender,
+                          activities, details, carType, service);
   }
 
   @Test
@@ -152,7 +168,7 @@ public class EvCustomerTest
   @Test
   public void testGender ()
   {
-    gen.setIntSeed(new int[]{0});
+    mockSeed.setIntSeed(new int[]{0});
 
     initialize("male");
     assertEquals("male",    evCustomer.getGender());
@@ -168,13 +184,13 @@ public class EvCustomerTest
     initialize("male");
     assertEquals("averse",   evCustomer.getRiskAttitude());
 
-    gen.setIntSeed(new int[]{1});
-    gen.resetCounters();
+    mockSeed.setIntSeed(new int[]{1});
+    mockSeed.resetCounters();
     initialize("male");
     assertEquals("neutral", evCustomer.getRiskAttitude());
 
-    gen.setIntSeed(new int[]{2});
-    gen.resetCounters();
+    mockSeed.setIntSeed(new int[]{2});
+    mockSeed.resetCounters();
     initialize("male");
     assertEquals("eager",  evCustomer.getRiskAttitude());
   }
@@ -182,13 +198,13 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskAverse ()
   {
-    carType = new CarType();
+    carType = new CarType("Test1");
     carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
-    gen.setIntSeed(new int[]{0, 100});
-    gen.setDoubleSeed(new double[]{0});
+    mockSeed.setIntSeed(new int[]{0, 1});
+    mockSeed.setDoubleSeed(new double[]{0});
     initialize("male");
-    evCustomer.makeDayPlanning(0);
+    evCustomer.makeDayPlanning(0, 0);
 
     CarType car2 = evCustomer.getCar();
 
@@ -213,13 +229,13 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskNeutral ()
   {
-    carType = new CarType();
+    carType = new CarType("Test2");
     carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
-    gen.setIntSeed(new int[]{1, 100});
-    gen.setDoubleSeed(new double[]{0});
+    mockSeed.setIntSeed(new int[]{1, 1});
+    mockSeed.setDoubleSeed(new double[]{0});
     initialize("male");
-    evCustomer.makeDayPlanning(0);
+    evCustomer.makeDayPlanning(0, 0);
 
     CarType car2 = evCustomer.getCar();
 
@@ -239,13 +255,13 @@ public class EvCustomerTest
   @Test
   public void testConsumePowerRiskEager ()
   {
-    carType = new CarType();
+    carType = new CarType("Test3");
     carType.configure("TestCar", 100.0, 200.0, 20.0, 10.0);
 
-    gen.setIntSeed(new int[]{2, 100});
-    gen.setDoubleSeed(new double[]{0});
+    mockSeed.setIntSeed(new int[]{2, 1});
+    mockSeed.setDoubleSeed(new double[]{0.0});
     initialize("male");
-    evCustomer.makeDayPlanning(0);
+    evCustomer.makeDayPlanning(0, 0);
 
     CarType car2 = evCustomer.getCar();
 
@@ -292,9 +308,9 @@ public class EvCustomerTest
   @Test
   public void testDoActivities ()
   {
-    gen.setIntSeed(new int[]{0, 0, 100, 0});
+    mockSeed.setIntSeed(new int[]{0, 0});
     initialize("male");
-    evCustomer.makeDayPlanning(0);
+    evCustomer.makeDayPlanning(0, 1);
 
     CarType car2 = evCustomer.getCar();
 
@@ -302,6 +318,92 @@ public class EvCustomerTest
 
     evCustomer.doActivities(0, 6);
     assertEquals(evCustomer.isDriving(), true);
-    assertEquals(25, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(46, car2.getCurrentCapacity(), 1E-06);
+  }
+
+  // =============== helper classes =================
+  @SuppressWarnings("serial")
+  class MockRandomSeed extends RandomSeed
+  {
+    private PredictableRandom delegate;
+
+    public MockRandomSeed (String classname, long requesterId, String purpose)
+    {
+      super(classname, requesterId, purpose);
+      delegate = new PredictableRandom();
+    }
+
+    // ======= passthrough methods =======
+    @Override
+    public double nextDouble ()
+    {
+      return delegate.nextDouble();
+    }
+
+    void setDoubleSeed (double[] seed)
+    {
+      delegate.setDoubleSeed(seed);
+    }
+
+    @Override
+    public int nextInt ()
+    {
+      return delegate.nextInt(1);
+    }
+
+    @Override
+    public int nextInt (int n)
+    {
+      return delegate.nextInt(n);
+    }
+
+    void setIntSeed (int[] seed)
+    {
+      delegate.setIntSeed(seed);
+    }
+
+    void resetCounters ()
+    {
+      delegate.resetCounters();
+    }
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return mockSeedRepo;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return mockSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
   }
 }
