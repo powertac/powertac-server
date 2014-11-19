@@ -1,292 +1,1419 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<evcustomer>
-<customers>
+<root>
+  <evcustomer>
 
-<!-- These are the actual customer instances -->
-<evSocialClass>
-  <instances>HighIncome-1,HighIncome-2,HighIncome-3,
-  MiddleIncome-1,MiddleIncome-2,MiddleIncome-3,
-  LowIncome-1,LowIncome-2,LowIncome-3</instances>
+    <!-- This is the singleton common configuration stuff -->
+    <config>
+      <touFactor>0.25</touFactor>
+      <interruptibilityFactor>0.01</interruptibilityFactor>
+    </config>
 
-  <!-- Every group in SocialGroups has to be in every SocialClass -->
-  <!-- TODO Get the probabilities of the groups per class -->
 
-  <HighIncome-1>
-    <minCount>15</minCount>
-    <maxCount>25</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </HighIncome-1>
+    <!-- These are the actual customer instances -->
+    <customers>
+      <evSocialClass>
+	<instances>HighIncome-1,HighIncome-2,HighIncome-3,
+	MiddleIncome-1,MiddleIncome-2,MiddleIncome-3,
+	LowIncome-1,LowIncome-2,LowIncome-3</instances>
 
-  <HighIncome-2>
-    <minCount>15</minCount>
-    <maxCount>25</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </HighIncome-2>
+	<!-- Every group in SocialGroups has to be in every SocialClass -->
+	<!-- TODO Get the probabilities of the groups per class -->
 
-  <HighIncome-3>
-    <minCount>15</minCount>
-    <maxCount>25</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </HighIncome-3>
+	<HighIncome-1>
+	  <minCount>15</minCount>
+	  <maxCount>25</maxCount>
+	</HighIncome-1>
 
-  <MiddleIncome-1>
-    <minCount>20</minCount>
-    <maxCount>30</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </MiddleIncome-1>
+	<HighIncome-2>
+	  <minCount>15</minCount>
+	  <maxCount>25</maxCount>
+	</HighIncome-2>
 
-  <MiddleIncome-2>
-    <minCount>20</minCount>
-    <maxCount>30</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </MiddleIncome-2>
+	<HighIncome-3>
+	  <minCount>15</minCount>
+	  <maxCount>25</maxCount>
+	</HighIncome-3>
 
-  <MiddleIncome-3>
-    <minCount>20</minCount>
-    <maxCount>30</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </MiddleIncome-3>
+	<MiddleIncome-1>
+	  <minCount>20</minCount>
+	  <maxCount>30</maxCount>
+	</MiddleIncome-1>
 
-  <LowIncome-1>
-    <minCount>10</minCount>
-    <maxCount>20</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </LowIncome-1>
+	<MiddleIncome-2>
+	  <minCount>20</minCount>
+	  <maxCount>30</maxCount>
+	</MiddleIncome-2>
 
-  <LowIncome-2>
-    <minCount>10</minCount>
-    <maxCount>20</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </LowIncome-2>
+	<MiddleIncome-3>
+	  <minCount>20</minCount>
+	  <maxCount>30</maxCount>
+	</MiddleIncome-3>
 
-  <LowIncome-3>
-    <minCount>10</minCount>
-    <maxCount>20</maxCount>
-    <group id="0" prob="0.125" male_prob="0.50" />
-    <group id="1" prob="0.125" male_prob="0.50" />
-    <group id="2" prob="0.125" male_prob="0.50" />
-    <group id="3" prob="0.125" male_prob="0.50" />
-    <group id="4" prob="0.125" male_prob="0.50" />
-    <group id="5" prob="0.125" male_prob="0.50" />
-    <group id="6" prob="0.125" male_prob="0.50" />
-    <group id="7" prob="0.125" male_prob="0.50" />
-  </LowIncome-3>
-</evSocialClass>
-</customers>
+	<LowIncome-1>
+	  <minCount>10</minCount>
+	  <maxCount>20</maxCount>
+	</LowIncome-1>
 
-<!-- This is the singleton common configuration stuff -->
-<config>
-  <interruptibilityFactor>0.01</interruptibilityFactor>
-  <socialGroups>
-    <group name="under15"     id="0" />
-    <group name="parttime"    id="1" />
-    <group name="fulltime"    id="2" />
-    <group name="unemployed"  id="3" />
-    <group name="student"     id="4" />
-    <group name="other"       id="5" />
-    <group name="retired"     id="6" />
-    <group name="disabled"    id="7" />
-  </socialGroups>
+	<LowIncome-2>
+	  <minCount>10</minCount>
+	  <maxCount>20</maxCount>
+	</LowIncome-2>
 
-  <carTypes>
-    <!--
-	kwh is the maximum capacity of the battery
-	range is the maximum range of a full battery
-	charging is in kwh/h (== kw)
-    -->
-    <car name="Tesla 40KWh">
-      <kwh>40</kwh>
-      <range>257.6</range>
-      <home_charging>3.3</home_charging>
-      <away_charging>3.3</away_charging>
-    </car>
-    <car name="Tesla 60KWh">
-      <kwh>60</kwh>
-      <range>370.3</range>
-      <home_charging>3.3</home_charging>
-      <away_charging>3.3</away_charging>
-    </car>
-    <car name="Tesla 85KWh">
-      <kwh>85</kwh>
-      <range>563.5</range>
-      <home_charging>3.3</home_charging>
-      <away_charging>3.3</away_charging>
-    </car>
-    <car name="Nissan Leaf 24 KWh">
-      <kwh>24</kwh>
-      <range>222.2</range>
-      <home_charging>6.6</home_charging>
-      <away_charging>3.3</away_charging>
-    </car>
-  </carTypes>
+	<LowIncome-3>
+	  <minCount>10</minCount>
+	  <maxCount>20</maxCount>
+	</LowIncome-3>
+      </evSocialClass>
+    </customers>
 
-  <!-- TODO We need proper day- and hour-weights -->
-  <!-- For now, they aren't even used ... -->
+    <!-- This is the singleton common configuration stuff -->
+    <config>
+      <interruptibilityFactor>0.01</interruptibilityFactor>
+      <touFactor>0.01</touFactor>
+    </config>
 
-  <activities>
-    <activity id="0" name="commuting"     weekday_weight="1" weekend_weight="1" />
-    <activity id="1" name="business_trip" weekday_weight="1" weekend_weight="1" />
-    <activity id="2" name="personal_care" weekday_weight="1" weekend_weight="1" />
-    <activity id="3" name="shopping"      weekday_weight="1" weekend_weight="1" />
-    <activity id="4" name="education"     weekday_weight="1" weekend_weight="1" />
-    <activity id="5" name="visit"         weekday_weight="1" weekend_weight="1" />
-    <activity id="6" name="sports"        weekday_weight="1" weekend_weight="1" />
-    <activity id="7" name="touring"       weekday_weight="1" weekend_weight="1" />
-    <activity id="8" name="other"         weekday_weight="1" weekend_weight="1" />
-  </activities>
+    <beans>
+      <socialGroup>
+	<instances>under15,parttime,fulltime,unemployed,student,other,retired,disabled</instances>
+	<under15>
+	  <id>0</id>
+	</under15>
+	<parttime>
+	  <id>1</id>
+	</parttime>
+	<fulltime>
+	  <id>2</id>
+	</fulltime>
+	<unemployed>
+	  <id>3</id>
+	</unemployed>
+	<student>
+	  <id>4</id>
+	</student>
+	<other>
+	  <id>5</id>
+	</other>
+	<retired>
+	  <id>6</id>
+	</retired>
+	<disabled>
+	  <id>7</id>
+	</disabled>
+      </socialGroup>
 
-  <activityDetails>
-    <detail group_id="0">
-      <activity id="0"  male_daily_km="0.09"    male_prob="0.01"  female_daily_km="0.19"  female_prob="0.01"  />
-      <activity id="1"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="0.48"    male_prob="0.07"  female_daily_km="0.38"  female_prob="0.07"  />
-      <activity id="3"  male_daily_km="1.4"     male_prob="0.31"  female_daily_km="1.71"  female_prob="0.37"  />
-      <activity id="4"  male_daily_km="3.25"    male_prob="1.11"  female_daily_km="2.98"  female_prob="1.09"  />
-      <activity id="5"  male_daily_km="3.85"    male_prob="0.36"  female_daily_km="4.05"  female_prob="0.4"   />
-      <activity id="6"  male_daily_km="3.93"    male_prob="0.66"  female_daily_km="4.27"  female_prob="0.61"  />
-      <activity id="7"  male_daily_km="0.51"    male_prob="0.1"   female_daily_km="0.45"  female_prob="0.1"   />
-      <activity id="8"  male_daily_km="1.25"    male_prob="0.16"  female_daily_km="1.1"   female_prob="0.18"  />
-    </detail>
+      <!-- Every group in SocialGroups has to be in every SocialClass -->
+      <classGroup>
+        <instances>h1g0,h1g1,h1g2,h1g3,h1g4,h1g5,h1g6,h1g7,h2g0,h2g1,h2g2,h2g3,h2g4,h2g5,h2g6,h2g7,h3g0,h3g1,h3g2,h3g3,h3g4,h3g5,h3g6,h3g7,m1g0,m1g1,m1g2,m1g3,m1g4,m1g5,m1g6,m1g7,m2g0,m2g1,m2g2,m2g3,m2g4,m2g5,m2g6,m2g7,m3g0,m3g1,m3g2,m3g3,m3g4,m3g5,m3g6,m3g7,l1g0,l1g1,l1g2,l1g3,l1g4,l1g5,l1g6,l1g7,l2g0,l2g1,l2g2,l2g3,l2g4,l2g5,l2g6,l2g7,h1g0,l3g1,l3g2,l3g3,l3g4,l3g5,l3g6,l3g7</instances>
 
-    <detail group_id="1">
-      <activity id="0"  male_daily_km="10.62"   male_prob="0.74"  female_daily_km="8.28"  female_prob="0.78"  />
-      <activity id="1"  male_daily_km="0.82"    male_prob="0.05"  female_daily_km="0.69"  female_prob="0.03"  />
-      <activity id="2"  male_daily_km="0.88"    male_prob="0.08"  female_daily_km="0.9"   female_prob="0.12"  />
-      <activity id="3"  male_daily_km="2.02"    male_prob="0.53"  female_daily_km="3.69"  female_prob="0.82"  />
-      <activity id="4"  male_daily_km="1.91"    male_prob="0.15"  female_daily_km="0.96"  female_prob="0.14"  />
-      <activity id="5"  male_daily_km="4.31"    male_prob="0.33"  female_daily_km="5.11"  female_prob="0.39"  />
-      <activity id="6"  male_daily_km="4"       male_prob="0.48"  female_daily_km="5.15"  female_prob="0.43"  />
-      <activity id="7"  male_daily_km="1.03"    male_prob="0.14"  female_daily_km="0.82"  female_prob="0.21"  />
-      <activity id="8"  male_daily_km="4.26"    male_prob="0.37"  female_daily_km="3.51"  female_prob="0.52"  />
-    </detail>
+	<h1g0>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g0>
+	<h1g1>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g1>
+	<h1g2>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g2>
+	<h1g3>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g3>
+	<h1g4>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g4>
+	<h1g5>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g5>
+	<h1g6>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g6>
+	<h1g7>
+          <socialClassName>HighIncome_1</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h1g7>
 
-    <detail group_id="2">
-      <activity id="0"  male_daily_km="23.31"   male_prob="1.04"  female_daily_km="15.58" female_prob="0.99"  />
-      <activity id="1"  male_daily_km="4.99"    male_prob="0.13"  female_daily_km="2.18"  female_prob="0.08"  />
-      <activity id="2"  male_daily_km="0.85"    male_prob="0.08"  female_daily_km="0.88"  female_prob="0.08"  />
-      <activity id="3"  male_daily_km="2.43"    male_prob="0.41"  female_daily_km="3.51"  female_prob="0.09"  />
-      <activity id="4"  male_daily_km="0.58"    male_prob="0.03"  female_daily_km="0.99"  female_prob="0.06"  />
-      <activity id="5"  male_daily_km="4.38"    male_prob="0.25"  female_daily_km="5.21"  female_prob="0.33"  />
-      <activity id="6"  male_daily_km="6.06"    male_prob="0.43"  female_daily_km="5.11"  female_prob="0.43"  />
-      <activity id="7"  male_daily_km="1.13"    male_prob="0.14"  female_daily_km="1.02"  female_prob="0.15"  />
-      <activity id="8"  male_daily_km="3.5"     male_prob="0.24"  female_daily_km="2.88"  female_prob="0.29"  />
-    </detail>
+	<h2g0>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g0>
+	<h2g1>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g1>
+	<h2g2>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g2>
+	<h2g3>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g3>
+	<h2g4>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g4>
+	<h2g5>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g5>
+	<h2g6>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g6>
+	<h2g7>
+          <socialClassName>HighIncome_2</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h2g7>
 
-    <detail group_id="3">
-      <activity id="0"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="1"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="1.6"     male_prob="0.17"  female_daily_km="2.54"  female_prob="0.19"  />
-      <activity id="3"  male_daily_km="2.89"    male_prob="0.77"  female_daily_km="3.88"  female_prob="0.9"   />
-      <activity id="4"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="5"  male_daily_km="5.45"    male_prob="0.47"  female_daily_km="5.94"  female_prob="0.42"  />
-      <activity id="6"  male_daily_km="4.64"    male_prob="0.44"  female_daily_km="4.43"  female_prob="0.41"  />
-      <activity id="7"  male_daily_km="0.84"    male_prob="0.19"  female_daily_km="0.66"  female_prob="0.16"  />
-      <activity id="8"  male_daily_km="3.28"    male_prob="0.31"  female_daily_km="2.06"  female_prob="0.34"  />
-    </detail>
+	<h3g0>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g0>
+	<h3g1>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g1>
+	<h3g2>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g2>
+	<h3g3>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g3>
+	<h3g4>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g4>
+	<h3g5>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g5>
+	<h3g6>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g6>
+	<h3g7>
+          <socialClassName>HighIncome_3</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</h3g7>
 
-    <detail group_id="4">
-      <activity id="0"  male_daily_km="3.02"    male_prob="0.3"   female_daily_km="3.49"  female_prob="0.35"  />
-      <activity id="1"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="0.25"    male_prob="0.06"  female_daily_km="0.49"  female_prob="0.06"  />
-      <activity id="3"  male_daily_km="1.38"    male_prob="0.32"  female_daily_km="2.5"   female_prob="0.48"  />
-      <activity id="4"  male_daily_km="10.53"   male_prob="0.71"  female_daily_km="9.43"  female_prob="0.77"  />
-      <activity id="5"  male_daily_km="4.34"    male_prob="0.35"  female_daily_km="4.64"  female_prob="0.41"  />
-      <activity id="6"  male_daily_km="5.71"    male_prob="0.58"  female_daily_km="5.21"  female_prob="0.49"  />
-      <activity id="7"  male_daily_km="0.28"    male_prob="0.06"  female_daily_km="0.31"  female_prob="0.08"  />
-      <activity id="8"  male_daily_km="2.71"    male_prob="0.16"  female_daily_km="2.75"  female_prob="0.2"   />
-    </detail>
+	<m1g0>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g0>
+	<m1g1>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g1>
+	<m1g2>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g2>
+	<m1g3>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g3>
+	<m1g4>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g4>
+	<m1g5>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g5>
+	<m1g6>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g6>
+	<m1g7>
+          <socialClassName>MiddleIncome_1</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m1g7>
 
-    <detail group_id="5">
-      <activity id="0"  male_daily_km="10.98"   male_prob="0.51"  female_daily_km="4.94"  female_prob="0.43"  />
-      <activity id="1"  male_daily_km="5.92"    male_prob="0.14"  female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="0"       male_prob="0"     female_daily_km="0.69"  female_prob="0.13"  />
-      <activity id="3"  male_daily_km="2.97"    male_prob="0.45"  female_daily_km="2.93"  female_prob="0.79"  />
-      <activity id="4"  male_daily_km="0"       male_prob="0"     female_daily_km="0.47"  female_prob="0.12"  />
-      <activity id="5"  male_daily_km="5.77"    male_prob="0.2"   female_daily_km="5.18"  female_prob="0.37"  />
-      <activity id="6"  male_daily_km="5.64"    male_prob="0.33"  female_daily_km="4.99"  female_prob="0.43"  />
-      <activity id="7"  male_daily_km="1.81"    male_prob="0.16"  female_daily_km="1.79"  female_prob="0.32"  />
-      <activity id="8"  male_daily_km="1.83"    male_prob="0.17"  female_daily_km="4.75"  female_prob="0.4"   />
-    </detail>
+	<m2g0>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g0>
+	<m2g1>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g1>
+	<m2g2>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g2>
+	<m2g3>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g3>
+	<m2g4>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g4>
+	<m2g5>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g5>
+	<m2g6>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g6>
+	<m2g7>
+          <socialClassName>MiddleIncome_2</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m2g7>
 
-    <detail group_id="6">
-      <activity id="0"  male_daily_km="0.99"    male_prob="0.07"  female_daily_km="0.26"  female_prob="0.03"  />
-      <activity id="1"  male_daily_km="0.43"    male_prob="0.02"  female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="1.33"    male_prob="0.16"  female_daily_km="0.96"  female_prob="0.16"  />
-      <activity id="3"  male_daily_km="3.7"     male_prob="0.77"  female_daily_km="2.91"  female_prob="0.75"  />
-      <activity id="4"  male_daily_km="0.12"    male_prob="0.01"  female_daily_km="0.13"  female_prob="0.01"  />
-      <activity id="5"  male_daily_km="6.06"    male_prob="0.33"  female_daily_km="3.81"  female_prob="0.32"  />
-      <activity id="6"  male_daily_km="4.85"    male_prob="0.43"  female_daily_km="3.22"  female_prob="0.31"  />
-      <activity id="7"  male_daily_km="1.76"    male_prob="0.22"  female_daily_km="1.3"   female_prob="0.14"  />
-      <activity id="8"  male_daily_km="2.66"    male_prob="0.18"  female_daily_km="1.11"  female_prob="0.1"   />
-    </detail>
+	<m3g0>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g0>
+	<m3g1>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g1>
+	<m3g2>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g2>
+	<m3g3>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g3>
+	<m3g4>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g4>
+	<m3g5>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g5>
+	<m3g6>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g6>
+	<m3g7>
+          <socialClassName>MiddleIncome_3</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</m3g7>
 
-    <detail group_id="7">
-      <activity id="0"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="1"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="2"  male_daily_km="1.98"    male_prob="0.23"  female_daily_km="2.21"  female_prob="0.27"  />
-      <activity id="3"  male_daily_km="2.25"    male_prob="0.65"  female_daily_km="4.8"   female_prob="0.81"  />
-      <activity id="4"  male_daily_km="0"       male_prob="0"     female_daily_km="0"     female_prob="0"     />
-      <activity id="5"  male_daily_km="3.13"    male_prob="0.3"   female_daily_km="5.26"  female_prob="0.36"  />
-      <activity id="6"  male_daily_km="2.79"    male_prob="0.32"  female_daily_km="2.64"  female_prob="0.36"  />
-      <activity id="7"  male_daily_km="2.31"    male_prob="0.22"  female_daily_km="0.75"  female_prob="0.21"  />
-      <activity id="8"  male_daily_km="1.49"    male_prob="0.2"   female_daily_km="2.23"  female_prob="0.35"  />
-    </detail>
-  </activityDetails>
-</config>
-</evcustomer>
+	<l1g0>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g0>
+	<l1g1>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g1>
+	<l1g2>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g2>
+	<l1g3>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g3>
+	<l1g4>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g4>
+	<l1g5>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g5>
+	<l1g6>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g6>
+	<l1g7>
+          <socialClassName>LowIncome_1</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l1g7>
+
+	<l2g0>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g0>
+	<l2g1>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g1>
+	<l2g2>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g2>
+	<l2g3>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g3>
+	<l2g4>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g4>
+	<l2g5>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g5>
+	<l2g6>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g6>
+	<l2g7>
+          <socialClassName>LowIncome_2</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l2g7>
+
+	<l3g0>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>0</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g0>
+	<l3g1>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>1</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g1>
+	<l3g2>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>2</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g2>
+	<l3g3>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>3</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g3>
+	<l3g4>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>4</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g4>
+	<l3g5>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>5</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g5>
+	<l3g6>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>6</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g6>
+	<l3g7>
+          <socialClassName>LowIncome_3</socialClassName>
+	  <groupId>7</groupId>
+	  <probability>0.125</probability>
+	  <maleProbability>0.50</maleProbability>
+	</l3g7>
+      </classGroup>
+
+      <carType>
+	<instances>Tesla40,Tesla60,Tesla85,Leaf24</instances>
+	<!--
+	    kwh is the maximum capacity of the battery
+	    range is the maximum range of a full battery
+	    charging is in kwh/h (== kw)
+	-->
+	<Tesla40>
+	  <maxCapacity>40</maxCapacity>
+	  <range>257.6</range>
+	  <homeCharging>3.3</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Tesla40>
+	<Tesla60>
+	  <maxCapacity>60</maxCapacity>
+	  <range>370.3</range>
+	  <homeCharging>3.3</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Tesla60>
+	<Tesla85>
+	  <maxCapacity>85</maxCapacity>
+	  <range>563.5</range>
+	  <homeCharging>3.3</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Tesla85>
+	<Leaf24>
+	  <maxCapacity>24</maxCapacity>
+	  <range>222.2</range>
+	  <homeCharging>6.6</homeCharging>
+	  <awayCharging>3.3</awayCharging>
+	</Leaf24>
+      </carType>
+
+      <!-- Join table socialClass : carType -->
+      <classCar>
+        <instances>h1t40,h1t60,h1t85,h1l24,h2t40,h2t60,h2t85,h2l24,h3t40,h3t60,h3t85,h3l24,m1t40,m1t60,m1t85,m1l24,m2t40,m2t60,m2t85,m2l24,m3t40,m3t60,m3t85,m3l24,l1t40,l1t60,l1t85,l1l24,l2t40,l2t60,l2t85,l2l24,l3t40,l3t60,l3t85,l3l24</instances>
+
+	<h1t40>
+          <socialClass>HighIncome_1</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</h1t40>
+	<h1t60>
+          <socialClass>HighIncome_1</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</h1t60>
+	<h1t85>
+          <socialClass>HighIncome_1</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</h1t85>
+	<h1l24>
+          <socialClass>HighIncome_1</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</h1l24>
+
+	<h2t40>
+          <socialClass>HighIncome_2</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</h2t40>
+	<h2t60>
+          <socialClass>HighIncome_2</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</h2t60>
+	<h2t85>
+          <socialClass>HighIncome_2</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</h2t85>
+	<h2l24>
+          <socialClass>HighIncome_2</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</h2l24>
+
+	<h3t40>
+          <socialClass>HighIncome_3</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</h3t40>
+	<h3t60>
+          <socialClass>HighIncome_3</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</h3t60>
+	<h3t85>
+          <socialClass>HighIncome_3</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</h3t85>
+	<h3l24>
+          <socialClass>HighIncome_3</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</h3l24>
+
+	<m1t40>
+          <socialClass>MiddleIncome_1</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</m1t40>
+	<m1t60>
+          <socialClass>MiddleIncome_1</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</m1t60>
+	<m1t85>
+          <socialClass>MiddleIncome_1</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</m1t85>
+	<m1l24>
+          <socialClass>MiddleIncome_1</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</m1l24>
+
+	<m2t40>
+          <socialClass>MiddleIncome_2</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</m2t40>
+	<m2t60>
+          <socialClass>MiddleIncome_2</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</m2t60>
+	<m2t85>
+          <socialClass>MiddleIncome_2</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</m2t85>
+	<m2l24>
+          <socialClass>MiddleIncome_2</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</m2l24>
+
+	<m3t40>
+          <socialClass>MiddleIncome_3</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</m3t40>
+	<m3t60>
+          <socialClass>MiddleIncome_3</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</m3t60>
+	<m3t85>
+          <socialClass>MiddleIncome_3</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</m3t85>
+	<m3l24>
+          <socialClass>MiddleIncome_3</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</m3l24>
+
+	<l1t40>
+          <socialClass>LowIncome_1</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</l1t40>
+	<l1t60>
+          <socialClass>LowIncome_1</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</l1t60>
+	<l1t85>
+          <socialClass>LowIncome_1</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</l1t85>
+	<l1l24>
+          <socialClass>LowIncome_1</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</l1l24>
+
+	<l2t40>
+          <socialClass>LowIncome_2</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</l2t40>
+	<l2t60>
+          <socialClass>LowIncome_2</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</l2t60>
+	<l2t85>
+          <socialClass>LowIncome_2</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</l2t85>
+	<l2l24>
+          <socialClass>LowIncome_2</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</l2l24>
+
+	<l3t40>
+          <socialClass>LowIncome_3</socialClass>
+          <car>Tesla40</car>
+          <probability>0.8</probability>
+	</l3t40>
+	<l3t60>
+          <socialClass>LowIncome_1</socialClass>
+          <car>Tesla60</car>
+          <probability>0.8</probability>
+	</l3t60>
+	<l3t85>
+          <socialClass>LowIncome_3</socialClass>
+          <car>Tesla85</car>
+          <probability>0.8</probability>
+	</l3t85>
+	<l3l24>
+          <socialClass>LowIncome_3</socialClass>
+          <car>Leaf24</car>
+          <probability>0.8</probability>
+	</l3l24>
+      </classCar>
+
+      <!-- TODO We need proper day- and hour-weights -->
+      <!-- For now, they aren't even used ... -->
+
+      <activity>
+	<instances>commuting,business_trip,personal_care,shopping,education,visit,sports,touring,other</instances>
+	<commuting>
+	  <id>0</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</commuting>
+	<business_trip>
+	  <id>1</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</business_trip>
+	<personal_care>
+	  <id>2</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</personal_care>
+	<shopping>
+	  <id>3</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</shopping>
+	<education>
+	  <id>4</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</education>
+	<visit>
+	  <id>5</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</visit>
+	<sports>
+	  <id>6</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</sports>
+	<touring>
+	  <id>7</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</touring>
+	<other>
+	  <id>8</id>
+	  <weekdayWeight>1</weekdayWeight>
+	  <weekendWeight>1</weekendWeight>
+	</other>
+      </activity>
+
+      <!-- Join table group:activity -->
+      <groupActivity>
+	<instances>ga0_0,ga0_1,ga0_2,ga0_3,ga0_4,ga0_5,ga0_6,ga0_7,ga0_8,ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,ga3_0,ga3_1,ga3_2,ga3_3,ga3_4,ga3_5,ga3_6,ga3_7,ga3_8,ga4_0,ga4_1,ga4_2,ga4_3,ga4_4,ga4_5,ga4_6,ga4_7,ga4_8,ga5_0,ga5_1,ga5_2,ga5_3,ga5_4,ga5_5,ga5_6,ga5_7,ga5_8,ga6_0,ga6_1,ga6_2,ga6_3,ga6_4,ga6_5,ga6_6,ga6_7,ga6_8,ga7_0,ga7_1,ga7_2,ga7_3,ga7_4,ga7_5,ga7_6,ga7_7.ga7_8</instances>
+
+	<ga0_0>
+	  <groupId>0</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>0.09</maleDailyKm>
+	  <maleProbability>0.01</maleProbability>
+	  <femaleDailyKm>0.19</femaleDailyKm>
+	  <femaleProbability>0.01</femaleProbability>
+	</ga0_0>
+	<ga0_1>
+	  <groupId>0</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga0_1>
+	<ga0_2>
+	  <groupId>0</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>0.48</maleDailyKm>
+	  <maleProbability>0.07</maleProbability>
+	  <femaleDailyKm>0.38</femaleDailyKm>
+	  <femaleProbability>0.07</femaleProbability>
+	</ga0_2>
+	<ga0_3>
+	  <groupId>0</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>1.4</maleDailyKm>
+	  <maleProbability>0.31</maleProbability>
+	  <femaleDailyKm>1.71</femaleDailyKm>
+	  <femaleProbability>0.37</femaleProbability>
+	</ga0_3>
+	<ga0_4>
+	  <groupId>0</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>3.25</maleDailyKm>
+	  <maleProbability>1.11</maleProbability>
+	  <femaleDailyKm>2.98</femaleDailyKm>
+	  <femaleProbability>1.09</femaleProbability>
+	</ga0_4>
+	<ga0_5>
+	  <groupId>0</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>3.85</maleDailyKm>
+	  <maleProbability>0.36</maleProbability>
+	  <femaleDailyKm>4.05</femaleDailyKm>
+	  <femaleProbability>0.4</femaleProbability>
+	</ga0_5>
+	<ga0_6>
+	  <groupId>0</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>3.93</maleDailyKm>
+	  <maleProbability>0.66</maleProbability>
+	  <femaleDailyKm>4.27</femaleDailyKm>
+	  <femaleProbability>0.61</femaleProbability>
+	</ga0_6>
+	<ga0_7>
+	  <groupId>0</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>0.51</maleDailyKm>
+	  <maleProbability>0.1</maleProbability>
+	  <femaleDailyKm>0.45</femaleDailyKm>
+	  <femaleProbability>0.1</femaleProbability>
+	</ga0_7>
+	<ga0_8>
+	  <groupId>0</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>1.25</maleDailyKm>
+	  <maleProbability>0.16</maleProbability>
+	  <femaleDailyKm>1.1</femaleDailyKm>
+	  <femaleProbability>0.18</femaleProbability>
+	</ga0_8>
+
+	<ga1_0>
+	  <groupId>1</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>10.62</maleDailyKm>
+	  <maleProbability>0.74</maleProbability>
+	  <femaleDailyKm>8.28</femaleDailyKm>
+	  <femaleProbability>0.78</femaleProbability>
+	</ga1_0>
+	<ga1_1>
+	  <groupId>1</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0.82</maleDailyKm>
+	  <maleProbability>0.05</maleProbability>
+	  <femaleDailyKm>0.69</femaleDailyKm>
+	  <femaleProbability>0.03</femaleProbability>
+	</ga1_1>
+	<ga1_2>
+	  <groupId>1</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>0.88</maleDailyKm>
+	  <maleProbability>0.08</maleProbability>
+	  <femaleDailyKm>0.9</femaleDailyKm>
+	  <femaleProbability>0.12</femaleProbability>
+	</ga1_2>
+	<ga1_3>
+	  <groupId>1</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>2.02</maleDailyKm>
+	  <maleProbability>0.53</maleProbability>
+	  <femaleDailyKm>3.69</femaleDailyKm>
+	  <femaleProbability>0.82</femaleProbability>
+	</ga1_3>
+	<ga1_4>
+	  <groupId>1</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>1.91</maleDailyKm>
+	  <maleProbability>0.15</maleProbability>
+	  <femaleDailyKm>0.96</femaleDailyKm>
+	  <femaleProbability>0.14</femaleProbability>
+	</ga1_4>
+	<ga1_5>
+	  <groupId>1</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>4.31</maleDailyKm>
+	  <maleProbability>0.33</maleProbability>
+	  <femaleDailyKm>5.11</femaleDailyKm>
+	  <femaleProbability>0.39</femaleProbability>
+	</ga1_5>
+	<ga1_6>
+	  <groupId>1</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>4</maleDailyKm>
+	  <maleProbability>0.48</maleProbability>
+	  <femaleDailyKm>5.15</femaleDailyKm>
+	  <femaleProbability>0.43</femaleProbability>
+	</ga1_6>
+	<ga1_7>
+	  <groupId>1</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>1.03</maleDailyKm>
+	  <maleProbability>0.14</maleProbability>
+	  <femaleDailyKm>0.82</femaleDailyKm>
+	  <femaleProbability>0.21</femaleProbability>
+	</ga1_7>
+	<ga1_8>
+	  <groupId>1</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>4.26</maleDailyKm>
+	  <maleProbability>0.37</maleProbability>
+	  <femaleDailyKm>3.51</femaleDailyKm>
+	  <femaleProbability>0.52</femaleProbability>
+	</ga1_8>
+
+	<ga2_0>
+	  <groupId>2</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>23.31</maleDailyKm>
+	  <maleProbability>1.04</maleProbability>
+	  <femaleDailyKm>15.58</femaleDailyKm>
+	  <femaleProbability>0.99</femaleProbability>
+	</ga2_0>
+	<ga2_1>
+	  <groupId>2</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>4.99</maleDailyKm>
+	  <maleProbability>0.13</maleProbability>
+	  <femaleDailyKm>2.18</femaleDailyKm>
+	  <femaleProbability>0.08</femaleProbability>
+	</ga2_1>
+	<ga2_2>
+	  <groupId>2</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>0.85</maleDailyKm>
+	  <maleProbability>0.08</maleProbability>
+	  <femaleDailyKm>0.88</femaleDailyKm>
+	  <femaleProbability>0.08</femaleProbability>
+	</ga2_2>
+	<ga2_3>
+	  <groupId>2</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>2.43</maleDailyKm>
+	  <maleProbability>0.41</maleProbability>
+	  <femaleDailyKm>3.51</femaleDailyKm>
+	  <femaleProbability>0.09</femaleProbability>
+	</ga2_3>
+	<ga2_4>
+	  <groupId>2</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>0.58</maleDailyKm>
+	  <maleProbability>0.03</maleProbability>
+	  <femaleDailyKm>0.99</femaleDailyKm>
+	  <femaleProbability>0.06</femaleProbability>
+	</ga2_4>
+	<ga2_5>
+	  <groupId>2</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>4.38</maleDailyKm>
+	  <maleProbability>0.25</maleProbability>
+	  <femaleDailyKm>5.21</femaleDailyKm>
+	  <femaleProbability>0.33</femaleProbability>
+	</ga2_5>
+	<ga2_6>
+	  <groupId>2</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>6.06</maleDailyKm>
+	  <maleProbability>0.43</maleProbability>
+	  <femaleDailyKm>5.11</femaleDailyKm>
+	  <femaleProbability>0.43</femaleProbability>
+	</ga2_6>
+	<ga2_7>
+	  <groupId>2</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>1.13</maleDailyKm>
+	  <maleProbability>0.14</maleProbability>
+	  <femaleDailyKm>1.02</femaleDailyKm>
+	  <femaleProbability>0.15</femaleProbability>
+	</ga2_7>
+	<ga2_8>
+	  <groupId>2</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>3.5</maleDailyKm>
+	  <maleProbability>0.24</maleProbability>
+	  <femaleDailyKm>2.88</femaleDailyKm>
+	  <femaleProbability>0.29</femaleProbability>
+	</ga2_8>
+
+	<ga3_0>
+	  <groupId>3</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga3_0>
+	<ga3_1>
+	  <groupId>3</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga3_1>
+	<ga3_2>
+	  <groupId>3</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>1.6</maleDailyKm>
+	  <maleProbability>0.17</maleProbability>
+	  <femaleDailyKm>2.54</femaleDailyKm>
+	  <femaleProbability>0.19</femaleProbability>
+	</ga3_2>
+	<ga3_3>
+	  <groupId>3</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>2.89</maleDailyKm>
+	  <maleProbability>0.77</maleProbability>
+	  <femaleDailyKm>3.88</femaleDailyKm>
+	  <femaleProbability>0.9</femaleProbability>
+	</ga3_3>
+	<ga3_4>
+	  <groupId>3</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga3_4>
+	<ga3_5>
+	  <groupId>3</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>5.45</maleDailyKm>
+	  <maleProbability>0.47</maleProbability>
+	  <femaleDailyKm>5.94</femaleDailyKm>
+	  <femaleProbability>0.42</femaleProbability>
+	</ga3_5>
+	<ga3_6>
+	  <groupId>3</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>4.64</maleDailyKm>
+	  <maleProbability>0.44</maleProbability>
+	  <femaleDailyKm>4.43</femaleDailyKm>
+	  <femaleProbability>0.41</femaleProbability>
+	</ga3_6>
+	<ga3_7>
+	  <groupId>3</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>0.84</maleDailyKm>
+	  <maleProbability>0.19</maleProbability>
+	  <femaleDailyKm>0.66</femaleDailyKm>
+	  <femaleProbability>0.16</femaleProbability>
+	</ga3_7>
+	<ga3_8>
+	  <groupId>3</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>3.28</maleDailyKm>
+	  <maleProbability>0.31</maleProbability>
+	  <femaleDailyKm>2.06</femaleDailyKm>
+	  <femaleProbability>0.34</femaleProbability>
+	</ga3_8>
+
+	<ga4_0>
+	  <groupId>4</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>3.02</maleDailyKm>
+	  <maleProbability>0.3</maleProbability>
+	  <femaleDailyKm>3.49</femaleDailyKm>
+	  <femaleProbability>0.35</femaleProbability>
+	</ga4_0>
+	<ga4_1>
+	  <groupId>4</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga4_1>
+	<ga4_2>
+	  <groupId>4</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>0.25</maleDailyKm>
+	  <maleProbability>0.06</maleProbability>
+	  <femaleDailyKm>0.49</femaleDailyKm>
+	  <femaleProbability>0.06</femaleProbability>
+	</ga4_2>
+	<ga4_3>
+	  <groupId>4</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>1.38</maleDailyKm>
+	  <maleProbability>0.32</maleProbability>
+	  <femaleDailyKm>2.5</femaleDailyKm>
+	  <femaleProbability>0.48</femaleProbability>
+	</ga4_3>
+	<ga4_4>
+	  <groupId>4</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>10.53</maleDailyKm>
+	  <maleProbability>0.71</maleProbability>
+	  <femaleDailyKm>9.43</femaleDailyKm>
+	  <femaleProbability>0.77</femaleProbability>
+	</ga4_4>
+	<ga4_5>
+	  <groupId>4</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>4.34</maleDailyKm>
+	  <maleProbability>0.35</maleProbability>
+	  <femaleDailyKm>4.64</femaleDailyKm>
+	  <femaleProbability>0.41</femaleProbability>
+	</ga4_5>
+	<ga4_6>
+	  <groupId>4</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>5.71</maleDailyKm>
+	  <maleProbability>0.58</maleProbability>
+	  <femaleDailyKm>5.21</femaleDailyKm>
+	  <femaleProbability>0.49</femaleProbability>
+	</ga4_6>
+	<ga4_7>
+	  <groupId>4</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>0.28</maleDailyKm>
+	  <maleProbability>0.06</maleProbability>
+	  <femaleDailyKm>0.31</femaleDailyKm>
+	  <femaleProbability>0.08</femaleProbability>
+	</ga4_7>
+	<ga4_8>
+	  <groupId>4</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>2.71</maleDailyKm>
+	  <maleProbability>0.16</maleProbability>
+	  <femaleDailyKm>2.75</femaleDailyKm>
+	  <femaleProbability>0.2</femaleProbability>
+	</ga4_8>
+
+	<ga5_0>
+	  <groupId>5</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>10.98</maleDailyKm>
+	  <maleProbability>0.51</maleProbability>
+	  <femaleDailyKm>4.94</femaleDailyKm>
+	  <femaleProbability>0.43</femaleProbability>
+	</ga5_0>
+	<ga5_1>
+	  <groupId>5</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>5.92</maleDailyKm>
+	  <maleProbability>0.14</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga5_1>
+	<ga5_2>
+	  <groupId>5</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0.69</femaleDailyKm>
+	  <femaleProbability>0.13</femaleProbability>
+	</ga5_2>
+	<ga5_3>
+	  <groupId>5</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>2.97</maleDailyKm>
+	  <maleProbability>0.45</maleProbability>
+	  <femaleDailyKm>2.93</femaleDailyKm>
+	  <femaleProbability>0.79</femaleProbability>
+	</ga5_3>
+	<ga5_4>
+	  <groupId>5</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0.47</femaleDailyKm>
+	  <femaleProbability>0.12</femaleProbability>
+	</ga5_4>
+	<ga5_5>
+	  <groupId>5</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>5.77</maleDailyKm>
+	  <maleProbability>0.2</maleProbability>
+	  <femaleDailyKm>5.18</femaleDailyKm>
+	  <femaleProbability>0.37</femaleProbability>
+	</ga5_5>
+	<ga5_6>
+	  <groupId>5</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>5.64</maleDailyKm>
+	  <maleProbability>0.33</maleProbability>
+	  <femaleDailyKm>4.99</femaleDailyKm>
+	  <femaleProbability>0.43</femaleProbability>
+	</ga5_6>
+	<ga5_7>
+	  <groupId>5</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>1.81</maleDailyKm>
+	  <maleProbability>0.16</maleProbability>
+	  <femaleDailyKm>1.79</femaleDailyKm>
+	  <femaleProbability>0.32</femaleProbability>
+	</ga5_7>
+	<ga5_8>
+	  <groupId>5</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>1.83</maleDailyKm>
+	  <maleProbability>0.17</maleProbability>
+	  <femaleDailyKm>4.75</femaleDailyKm>
+	  <femaleProbability>0.4</femaleProbability>
+	</ga5_8>
+
+	<ga6_0>
+	  <groupId>6</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>0.99</maleDailyKm>
+	  <maleProbability>0.07</maleProbability>
+	  <femaleDailyKm>0.26</femaleDailyKm>
+	  <femaleProbability>0.03</femaleProbability>
+	</ga6_0>
+	<ga6_1>
+	  <groupId>6</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0.43</maleDailyKm>
+	  <maleProbability>0.02</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga6_1>
+	<ga6_2>
+	  <groupId>6</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>1.33</maleDailyKm>
+	  <maleProbability>0.16</maleProbability>
+	  <femaleDailyKm>0.96</femaleDailyKm>
+	  <femaleProbability>0.16</femaleProbability>
+	</ga6_2>
+	<ga6_3>
+	  <groupId>6</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>3.7</maleDailyKm>
+	  <maleProbability>0.77</maleProbability>
+	  <femaleDailyKm>2.91</femaleDailyKm>
+	  <femaleProbability>0.75</femaleProbability>
+	</ga6_3>
+	<ga6_4>
+	  <groupId>6</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>0.12</maleDailyKm>
+	  <maleProbability>0.01</maleProbability>
+	  <femaleDailyKm>0.13</femaleDailyKm>
+	  <femaleProbability>0.01</femaleProbability>
+	</ga6_4>
+	<ga6_5>
+	  <groupId>6</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>6.06</maleDailyKm>
+	  <maleProbability>0.33</maleProbability>
+	  <femaleDailyKm>3.81</femaleDailyKm>
+	  <femaleProbability>0.32</femaleProbability>
+	</ga6_5>
+	<ga6_6>
+	  <groupId>6</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>4.85</maleDailyKm>
+	  <maleProbability>0.43</maleProbability>
+	  <femaleDailyKm>3.22</femaleDailyKm>
+	  <femaleProbability>0.31</femaleProbability>
+	</ga6_6>
+	<ga6_7>
+	  <groupId>6</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>1.76</maleDailyKm>
+	  <maleProbability>0.22</maleProbability>
+	  <femaleDailyKm>1.3</femaleDailyKm>
+	  <femaleProbability>0.14</femaleProbability>
+	</ga6_7>
+	<ga6_8>
+	  <groupId>6</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>2.66</maleDailyKm>
+	  <maleProbability>0.18</maleProbability>
+	  <femaleDailyKm>1.11</femaleDailyKm>
+	  <femaleProbability>0.1</femaleProbability>
+	</ga6_8>
+
+	<ga7_0>
+	  <groupId>7</groupId>
+	  <activityId>0</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga7_0>
+	<ga7_1>
+	  <groupId>7</groupId>
+	  <activityId>1</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga7_1>
+	<ga7_2>
+	  <groupId>7</groupId>
+	  <activityId>2</activityId>
+	  <maleDailyKm>1.98</maleDailyKm>
+	  <maleProbability>0.23</maleProbability>
+	  <femaleDailyKm>2.21</femaleDailyKm>
+	  <femaleProbability>0.27</femaleProbability>
+	</ga7_2>
+	<ga7_3>
+	  <groupId>7</groupId>
+	  <activityId>3</activityId>
+	  <maleDailyKm>2.25</maleDailyKm>
+	  <maleProbability>0.65</maleProbability>
+	  <femaleDailyKm>4.8</femaleDailyKm>
+	  <femaleProbability>0.81</femaleProbability>
+	</ga7_3>
+	<ga7_4>
+	  <groupId>7</groupId>
+	  <activityId>4</activityId>
+	  <maleDailyKm>0</maleDailyKm>
+	  <maleProbability>0</maleProbability>
+	  <femaleDailyKm>0</femaleDailyKm>
+	  <femaleProbability>0</femaleProbability>
+	</ga7_4>
+	<ga7_5>
+	  <groupId>7</groupId>
+	  <activityId>5</activityId>
+	  <maleDailyKm>3.13</maleDailyKm>
+	  <maleProbability>0.3</maleProbability>
+	  <femaleDailyKm>5.26</femaleDailyKm>
+	  <femaleProbability>0.36</femaleProbability>
+	</ga7_5>
+	<ga7_6>
+	  <groupId>7</groupId>
+	  <activityId>6</activityId>
+	  <maleDailyKm>2.79</maleDailyKm>
+	  <maleProbability>0.32</maleProbability>
+	  <femaleDailyKm>2.64</femaleDailyKm>
+	  <femaleProbability>0.36</femaleProbability>
+	</ga7_6>
+	<ga7_7>
+	  <groupId>7</groupId>
+	  <activityId>7</activityId>
+	  <maleDailyKm>2.31</maleDailyKm>
+	  <maleProbability>0.22</maleProbability>
+	  <femaleDailyKm>0.75</femaleDailyKm>
+	  <femaleProbability>0.21</femaleProbability>
+	</ga7_7>
+	<ga7_8>
+	  <groupId>7</groupId>
+	  <activityId>8</activityId>
+	  <maleDailyKm>1.49</maleDailyKm>
+	  <maleProbability>0.2</maleProbability>
+	  <femaleDailyKm>2.23</femaleDailyKm>
+	  <femaleProbability>0.35</femaleProbability>
+	</ga7_8>
+      </groupActivity>
+    </beans>
+  </evcustomer>
+</root>
