@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<root>
+<evcustomer-root>
   <evcustomer>
 
     <!-- This is the singleton common configuration stuff -->
@@ -66,12 +66,6 @@
       </evSocialClass>
     </customers>
 
-    <!-- This is the singleton common configuration stuff -->
-    <config>
-      <interruptibilityFactor>0.01</interruptibilityFactor>
-      <touFactor>0.01</touFactor>
-    </config>
-
     <beans>
       <socialGroup>
 	<instances>under15,parttime,fulltime,unemployed,student,other,retired,disabled</instances>
@@ -103,444 +97,444 @@
 
       <!-- Every group in SocialGroups has to be in every SocialClass -->
       <classGroup>
-        <instances>h1g0,h1g1,h1g2,h1g3,h1g4,h1g5,h1g6,h1g7,h2g0,h2g1,h2g2,h2g3,h2g4,h2g5,h2g6,h2g7,h3g0,h3g1,h3g2,h3g3,h3g4,h3g5,h3g6,h3g7,m1g0,m1g1,m1g2,m1g3,m1g4,m1g5,m1g6,m1g7,m2g0,m2g1,m2g2,m2g3,m2g4,m2g5,m2g6,m2g7,m3g0,m3g1,m3g2,m3g3,m3g4,m3g5,m3g6,m3g7,l1g0,l1g1,l1g2,l1g3,l1g4,l1g5,l1g6,l1g7,l2g0,l2g1,l2g2,l2g3,l2g4,l2g5,l2g6,l2g7,h1g0,l3g1,l3g2,l3g3,l3g4,l3g5,l3g6,l3g7</instances>
+        <instances>h1g0,h1g1,h1g2,h1g3,h1g4,h1g5,h1g6,h1g7,h2g0,h2g1,h2g2,h2g3,h2g4,h2g5,h2g6,h2g7,h3g0,h3g1,h3g2,h3g3,h3g4,h3g5,h3g6,h3g7,m1g0,m1g1,m1g2,m1g3,m1g4,m1g5,m1g6,m1g7,m2g0,m2g1,m2g2,m2g3,m2g4,m2g5,m2g6,m2g7,m3g0,m3g1,m3g2,m3g3,m3g4,m3g5,m3g6,m3g7,l1g0,l1g1,l1g2,l1g3,l1g4,l1g5,l1g6,l1g7,l2g0,l2g1,l2g2,l2g3,l2g4,l2g5,l2g6,l2g7,l3g0,l3g1,l3g2,l3g3,l3g4,l3g5,l3g6,l3g7</instances>
 
 	<h1g0>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g0>
 	<h1g1>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g1>
 	<h1g2>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g2>
 	<h1g3>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g3>
 	<h1g4>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g4>
 	<h1g5>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g5>
 	<h1g6>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g6>
 	<h1g7>
-          <socialClassName>HighIncome_1</socialClassName>
+          <socialClassName>HighIncome-1</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h1g7>
 
 	<h2g0>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g0>
 	<h2g1>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g1>
 	<h2g2>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g2>
 	<h2g3>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g3>
 	<h2g4>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g4>
 	<h2g5>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g5>
 	<h2g6>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g6>
 	<h2g7>
-          <socialClassName>HighIncome_2</socialClassName>
+          <socialClassName>HighIncome-2</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h2g7>
 
 	<h3g0>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g0>
 	<h3g1>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g1>
 	<h3g2>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g2>
 	<h3g3>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g3>
 	<h3g4>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g4>
 	<h3g5>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g5>
 	<h3g6>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g6>
 	<h3g7>
-          <socialClassName>HighIncome_3</socialClassName>
+          <socialClassName>HighIncome-3</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</h3g7>
 
 	<m1g0>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g0>
 	<m1g1>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g1>
 	<m1g2>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g2>
 	<m1g3>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g3>
 	<m1g4>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g4>
 	<m1g5>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g5>
 	<m1g6>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g6>
 	<m1g7>
-          <socialClassName>MiddleIncome_1</socialClassName>
+          <socialClassName>MiddleIncome-1</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m1g7>
 
 	<m2g0>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g0>
 	<m2g1>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g1>
 	<m2g2>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g2>
 	<m2g3>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g3>
 	<m2g4>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g4>
 	<m2g5>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g5>
 	<m2g6>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g6>
 	<m2g7>
-          <socialClassName>MiddleIncome_2</socialClassName>
+          <socialClassName>MiddleIncome-2</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m2g7>
 
 	<m3g0>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g0>
 	<m3g1>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g1>
 	<m3g2>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g2>
 	<m3g3>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g3>
 	<m3g4>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g4>
 	<m3g5>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g5>
 	<m3g6>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g6>
 	<m3g7>
-          <socialClassName>MiddleIncome_3</socialClassName>
+          <socialClassName>MiddleIncome-3</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</m3g7>
 
 	<l1g0>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g0>
 	<l1g1>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g1>
 	<l1g2>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g2>
 	<l1g3>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g3>
 	<l1g4>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g4>
 	<l1g5>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g5>
 	<l1g6>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g6>
 	<l1g7>
-          <socialClassName>LowIncome_1</socialClassName>
+          <socialClassName>LowIncome-1</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l1g7>
 
 	<l2g0>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g0>
 	<l2g1>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g1>
 	<l2g2>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g2>
 	<l2g3>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g3>
 	<l2g4>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g4>
 	<l2g5>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g5>
 	<l2g6>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g6>
 	<l2g7>
-          <socialClassName>LowIncome_2</socialClassName>
+          <socialClassName>LowIncome-2</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l2g7>
 
 	<l3g0>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>0</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g0>
 	<l3g1>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>1</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g1>
 	<l3g2>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>2</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g2>
 	<l3g3>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>3</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g3>
 	<l3g4>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>4</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g4>
 	<l3g5>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>5</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g5>
 	<l3g6>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>6</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
 	</l3g6>
 	<l3g7>
-          <socialClassName>LowIncome_3</socialClassName>
+          <socialClassName>LowIncome-3</socialClassName>
 	  <groupId>7</groupId>
 	  <probability>0.125</probability>
 	  <maleProbability>0.50</maleProbability>
@@ -585,190 +579,190 @@
         <instances>h1t40,h1t60,h1t85,h1l24,h2t40,h2t60,h2t85,h2l24,h3t40,h3t60,h3t85,h3l24,m1t40,m1t60,m1t85,m1l24,m2t40,m2t60,m2t85,m2l24,m3t40,m3t60,m3t85,m3l24,l1t40,l1t60,l1t85,l1l24,l2t40,l2t60,l2t85,l2l24,l3t40,l3t60,l3t85,l3l24</instances>
 
 	<h1t40>
-          <socialClass>HighIncome_1</socialClass>
+          <socialClass>HighIncome-1</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</h1t40>
 	<h1t60>
-          <socialClass>HighIncome_1</socialClass>
+          <socialClass>HighIncome-1</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</h1t60>
 	<h1t85>
-          <socialClass>HighIncome_1</socialClass>
+          <socialClass>HighIncome-1</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</h1t85>
 	<h1l24>
-          <socialClass>HighIncome_1</socialClass>
+          <socialClass>HighIncome-1</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</h1l24>
 
 	<h2t40>
-          <socialClass>HighIncome_2</socialClass>
+          <socialClass>HighIncome-2</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</h2t40>
 	<h2t60>
-          <socialClass>HighIncome_2</socialClass>
+          <socialClass>HighIncome-2</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</h2t60>
 	<h2t85>
-          <socialClass>HighIncome_2</socialClass>
+          <socialClass>HighIncome-2</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</h2t85>
 	<h2l24>
-          <socialClass>HighIncome_2</socialClass>
+          <socialClass>HighIncome-2</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</h2l24>
 
 	<h3t40>
-          <socialClass>HighIncome_3</socialClass>
+          <socialClass>HighIncome-3</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</h3t40>
 	<h3t60>
-          <socialClass>HighIncome_3</socialClass>
+          <socialClass>HighIncome-3</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</h3t60>
 	<h3t85>
-          <socialClass>HighIncome_3</socialClass>
+          <socialClass>HighIncome-3</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</h3t85>
 	<h3l24>
-          <socialClass>HighIncome_3</socialClass>
+          <socialClass>HighIncome-3</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</h3l24>
 
 	<m1t40>
-          <socialClass>MiddleIncome_1</socialClass>
+          <socialClass>MiddleIncome-1</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</m1t40>
 	<m1t60>
-          <socialClass>MiddleIncome_1</socialClass>
+          <socialClass>MiddleIncome-1</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</m1t60>
 	<m1t85>
-          <socialClass>MiddleIncome_1</socialClass>
+          <socialClass>MiddleIncome-1</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</m1t85>
 	<m1l24>
-          <socialClass>MiddleIncome_1</socialClass>
+          <socialClass>MiddleIncome-1</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</m1l24>
 
 	<m2t40>
-          <socialClass>MiddleIncome_2</socialClass>
+          <socialClass>MiddleIncome-2</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</m2t40>
 	<m2t60>
-          <socialClass>MiddleIncome_2</socialClass>
+          <socialClass>MiddleIncome-2</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</m2t60>
 	<m2t85>
-          <socialClass>MiddleIncome_2</socialClass>
+          <socialClass>MiddleIncome-2</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</m2t85>
 	<m2l24>
-          <socialClass>MiddleIncome_2</socialClass>
+          <socialClass>MiddleIncome-2</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</m2l24>
 
 	<m3t40>
-          <socialClass>MiddleIncome_3</socialClass>
+          <socialClass>MiddleIncome-3</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</m3t40>
 	<m3t60>
-          <socialClass>MiddleIncome_3</socialClass>
+          <socialClass>MiddleIncome-3</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</m3t60>
 	<m3t85>
-          <socialClass>MiddleIncome_3</socialClass>
+          <socialClass>MiddleIncome-3</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</m3t85>
 	<m3l24>
-          <socialClass>MiddleIncome_3</socialClass>
+          <socialClass>MiddleIncome-3</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</m3l24>
 
 	<l1t40>
-          <socialClass>LowIncome_1</socialClass>
+          <socialClass>LowIncome-1</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</l1t40>
 	<l1t60>
-          <socialClass>LowIncome_1</socialClass>
+          <socialClass>LowIncome-1</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</l1t60>
 	<l1t85>
-          <socialClass>LowIncome_1</socialClass>
+          <socialClass>LowIncome-1</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</l1t85>
 	<l1l24>
-          <socialClass>LowIncome_1</socialClass>
+          <socialClass>LowIncome-1</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</l1l24>
 
 	<l2t40>
-          <socialClass>LowIncome_2</socialClass>
+          <socialClass>LowIncome-2</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</l2t40>
 	<l2t60>
-          <socialClass>LowIncome_2</socialClass>
+          <socialClass>LowIncome-2</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</l2t60>
 	<l2t85>
-          <socialClass>LowIncome_2</socialClass>
+          <socialClass>LowIncome-2</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</l2t85>
 	<l2l24>
-          <socialClass>LowIncome_2</socialClass>
+          <socialClass>LowIncome-2</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</l2l24>
 
 	<l3t40>
-          <socialClass>LowIncome_3</socialClass>
+          <socialClass>LowIncome-3</socialClass>
           <car>Tesla40</car>
           <probability>0.8</probability>
 	</l3t40>
 	<l3t60>
-          <socialClass>LowIncome_1</socialClass>
+          <socialClass>LowIncome-3</socialClass>
           <car>Tesla60</car>
           <probability>0.8</probability>
 	</l3t60>
 	<l3t85>
-          <socialClass>LowIncome_3</socialClass>
+          <socialClass>LowIncome-3</socialClass>
           <car>Tesla85</car>
           <probability>0.8</probability>
 	</l3t85>
 	<l3l24>
-          <socialClass>LowIncome_3</socialClass>
+          <socialClass>LowIncome-3</socialClass>
           <car>Leaf24</car>
           <probability>0.8</probability>
 	</l3l24>
@@ -1416,4 +1410,4 @@
       </groupActivity>
     </beans>
   </evcustomer>
-</root>
+</evcustomer-root>

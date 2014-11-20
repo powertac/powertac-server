@@ -56,8 +56,13 @@ public class EvSocialClass extends AbstractCustomer
   private Map<Integer, ClassGroup> classGroups;
   private Map<String, ClassCar> classCars;
 
-  // ignore quantities less than epsilon
-  //private double epsilon = 1e-6;
+  /**
+   * Default constructor, requires manual setting of name
+   */
+  public EvSocialClass ()
+  {
+    super();
+  }
 
   public EvSocialClass (String name)
   {
@@ -70,6 +75,8 @@ public class EvSocialClass extends AbstractCustomer
   @Override
   public void initialize()
   {
+    super.initialize();
+    log.info("Initialize " + name);
     Map<String, Collection<?>> beans = new HashMap<String, Collection<?>>();
     this.generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass-" + name, 1, "initialize");

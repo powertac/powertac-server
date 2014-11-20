@@ -346,6 +346,9 @@ public class EvCustomer
   public void doActivities (int day, int hour)
   {
     TimeslotData timeslotData = timeslotDataMap.get(hour);
+    if (null == timeslotData) {
+      log.error("Null timeslotData");
+    }
     double intendedDistance = timeslotData.getIntendedDistance();
     double neededCapacity = car.getNeededCapacity(intendedDistance);
 
