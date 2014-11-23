@@ -86,6 +86,7 @@ public class EvCustomerTest
     mockSeed.setIntSeed(new int[]{0, 51, 52, 53, 54, 55});
   }
 
+  // first random seed gets eaten up here...
   public void initialize (String gender)
   {
     if (activities == null) {
@@ -186,6 +187,28 @@ public class EvCustomerTest
     mockSeed.resetCounters();
     initialize("male");
     assertEquals("eager",  evCustomer.getRiskAttitude());
+  }
+
+  @Test
+  public void testDayPlanning ()
+  {
+    initialize("female");
+    mockSeed.setIntSeed(new int[]{1, 2});
+    mockSeed.setDoubleSeed(new double[]{0.5});
+    mockSeed.resetCounters();
+    evCustomer.makeDayPlanning(0,  0);
+    Map<Integer, EvCustomer.TimeslotData> data =
+        evCustomer.getTimeslotDataMap();
+    assertEquals("correct map size", 48, data.size());
+    // first trip should be 10 km in hour 9
+    assertEquals("9 hours away", 9, data.get(0).getHoursTillNextDrive());
+    assertEquals("no driving in 0 hour", 0.0,
+                 data.get(0).getIntendedDistance(), 1e-6);
+    assertEquals("1 hr from 8", 1, data.get(8).getHoursTillNextDrive());
+    assertEquals("no driving in 8 hour", 0.0,
+                 data.get(8).getIntendedDistance(), 1e-6);
+    assertEquals("10 km in hr 9", 10.0,
+                 data.get(9).getIntendedDistance(), 1e-6);
   }
 
   @Test

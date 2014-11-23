@@ -208,6 +208,10 @@ public class EvSocialClass extends AbstractCustomer
         result.put(ga.getActivityId(), ga);
       }
     }
+    if (result.size() != activities.size())
+      log.error("found " + result.size()
+                + " group-activities for group " + group.getId()
+                + ", should be " + activities.size());
     return result;
   }
 

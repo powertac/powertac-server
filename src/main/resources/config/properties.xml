@@ -822,7 +822,7 @@
 
       <!-- Join table group:activity -->
       <groupActivity>
-	<instances>ga0_0,ga0_1,ga0_2,ga0_3,ga0_4,ga0_5,ga0_6,ga0_7,ga0_8,ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,ga3_0,ga3_1,ga3_2,ga3_3,ga3_4,ga3_5,ga3_6,ga3_7,ga3_8,ga4_0,ga4_1,ga4_2,ga4_3,ga4_4,ga4_5,ga4_6,ga4_7,ga4_8,ga5_0,ga5_1,ga5_2,ga5_3,ga5_4,ga5_5,ga5_6,ga5_7,ga5_8,ga6_0,ga6_1,ga6_2,ga6_3,ga6_4,ga6_5,ga6_6,ga6_7,ga6_8,ga7_0,ga7_1,ga7_2,ga7_3,ga7_4,ga7_5,ga7_6,ga7_7.ga7_8</instances>
+	<instances>ga0_0,ga0_1,ga0_2,ga0_3,ga0_4,ga0_5,ga0_6,ga0_7,ga0_8,ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,ga3_0,ga3_1,ga3_2,ga3_3,ga3_4,ga3_5,ga3_6,ga3_7,ga3_8,ga4_0,ga4_1,ga4_2,ga4_3,ga4_4,ga4_5,ga4_6,ga4_7,ga4_8,ga5_0,ga5_1,ga5_2,ga5_3,ga5_4,ga5_5,ga5_6,ga5_7,ga5_8,ga6_0,ga6_1,ga6_2,ga6_3,ga6_4,ga6_5,ga6_6,ga6_7,ga6_8,ga7_0,ga7_1,ga7_2,ga7_3,ga7_4,ga7_5,ga7_6,ga7_7,ga7_8</instances>
 
 	<ga0_0>
 	  <groupId>0</groupId>

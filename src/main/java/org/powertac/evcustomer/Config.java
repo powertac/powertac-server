@@ -211,6 +211,7 @@ public final class Config
         clazz = Class.forName("org.powertac.evcustomer.beans." + classname);
         Collection<?> list = serverConfiguration.configureInstances(clazz);
         beans.put(classname, list);
+        log.info("Loaded " + list.size() + " instances of " + classname);
       }
       catch (ClassNotFoundException e) {
         log.error("Cannot find class " + classname);

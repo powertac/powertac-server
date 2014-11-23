@@ -244,7 +244,7 @@ public class EvCustomer
   /**
    * We always have data for at least 24h in advance.
    */
-  public void makeDayPlanning (int hour, int day)
+  void makeDayPlanning (int hour, int day)
   {
     if (hour != 0)
       return; // only runs once/day
@@ -285,6 +285,9 @@ public class EvCustomer
     Map<Integer, Double> intended = new HashMap<Integer, Double>();
     for (int activityId = 0; activityId < activities.size(); activityId++) {
       GroupActivity groupActivity = groupActivities.get(activityId);
+      if (null == groupActivity) {
+        log.error("Null groupActivity for aid " + activityId);
+      }
       double probability = groupActivity.getProbability(gender);
       double dailyDistance = groupActivity.getDailyKm(gender);
 
@@ -346,9 +349,6 @@ public class EvCustomer
   public void doActivities (int day, int hour)
   {
     TimeslotData timeslotData = timeslotDataMap.get(hour);
-    if (null == timeslotData) {
-      log.error("Null timeslotData");
-    }
     double intendedDistance = timeslotData.getIntendedDistance();
     double neededCapacity = car.getNeededCapacity(intendedDistance);
 
@@ -524,43 +524,44 @@ public class EvCustomer
   }
 
   // ===== USED FOR TESTING ===== //
+  // hence the package visibility
 
-  public CustomerInfo getCustomerInfo ()
+  CustomerInfo getCustomerInfo ()
   {
     return customerInfo;
   }
 
-  public CarType getCar ()
+  CarType getCar ()
   {
     return car;
   }
 
-  public SocialGroup getSocialGroup ()
+  SocialGroup getSocialGroup ()
   {
     return socialGroup;
   }
 
-  public Map<Integer, Activity> getActivities ()
+  Map<Integer, Activity> getActivities ()
   {
     return activities;
   }
 
-  public Map<Integer, GroupActivity> getActivityDetails ()
+  Map<Integer, GroupActivity> getActivityDetails ()
   {
     return groupActivities;
   }
 
-  public String getGender ()
+  String getGender ()
   {
     return gender;
   }
 
-  public String getRiskAttitude ()
+  String getRiskAttitude ()
   {
     return riskAttitude.toString();
   }
 
-  public void setRiskAttitude (int riskNr)
+  void setRiskAttitude (int riskNr)
   {
     try {
       riskAttitude = RiskAttitude.values()[riskNr];
@@ -569,21 +570,27 @@ public class EvCustomer
     }
   }
 
-  public void setGenerator (RandomSeed generator)
+  void setGenerator (RandomSeed generator)
   {
     this.generator = generator;
   }
 
-  public void setDriving (boolean driving)
+  void setDriving (boolean driving)
   {
     this.driving = driving;
   }
 
-  public boolean isDriving ()
+  boolean isDriving ()
   {
     return driving;
   }
 
+  Map<Integer, TimeslotData> getTimeslotDataMap ()
+  {
+    return timeslotDataMap;
+  }
+  
+  // =========== helper classes ==================
   class TimeslotData
   {
     private double intendedDistance = 0.0;
