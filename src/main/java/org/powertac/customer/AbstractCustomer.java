@@ -52,20 +52,9 @@ public abstract class AbstractCustomer
 
   // Service accessor
   protected CustomerServiceAccessor service;
-  
-//  protected CustomerRepo customerRepo;
-
-//  // Services available to subclasses, populated by setServices()
-//  protected WeatherReportRepo weatherReportRepo;
-//  protected RandomSeedRepo randomSeedRepo;
-//  protected TariffRepo tariffRepo;
-//  protected TariffSubscriptionRepo tariffSubscriptionRepo;
 
   /** The id of the Abstract Customer */
   protected long custId;
-
-  /** The Customer specifications */
-//  protected ArrayList<CustomerInfo> customerInfos;
 
   /** Random Number Generator */
   protected RandomSeed rs1;
