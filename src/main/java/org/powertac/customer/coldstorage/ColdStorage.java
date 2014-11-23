@@ -127,6 +127,7 @@ implements CustomerModelAccessor
   @Override
   public void initialize ()
   {
+    super.initialize();
     log.info("Initialize " + name);
     // fill out CustomerInfo
     powerType = PowerType.THERMAL_STORAGE_CONSUMPTION;

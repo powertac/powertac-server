@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!--  Default properties setup for multiple cold-storage warehouses -->
 
-<customer>
+<customer-model-root><customer>
   <coldstorage>
     <coldStorage>
       <instances>seafood-1,seafood-2,freezeco-1,freezeco-2,freezeco-3</instances>
@@ -22,7 +22,7 @@
 	<maxTemp>-10</maxTemp>
 	<nominalTemp>-20</nominalTemp>
 	<minTemp>-30</minTemp>
-	<newStockTemp>-2" /</newStockTemp>
+	<newStockTemp>-2</newStockTemp>
 	<roofArea>1600</roofArea>
 	<wallArea>1920</wallArea>
 	<stockCapacity>900</stockCapacity>
@@ -72,4 +72,4 @@
       </freezeco-3>
     </coldStorage>
   </coldstorage>
-</customer>
+</customer></customer-model-root>
