@@ -372,6 +372,8 @@ public class EvCustomer
 
     try {
       discharge(neededCapacity);
+      log.info("driving " + intendedDistance
+               + ", using " + neededCapacity + "kWh");
       driving = true;
     }
     catch (ChargeException ce) {
