@@ -102,6 +102,8 @@ public class EvSocialClass extends AbstractCustomer
 
     // Create and set up the customer instances
     evCustomers = new ArrayList<EvCustomer>();
+    log.info("Configuring customers for class " + this.getName()
+             + ", population = " + population);
     for (int i = 0; i < population; i++) {
       // pick a random social group
       SocialGroup thisGroup = pickGroup(groupList, cgProbability);
@@ -116,6 +118,9 @@ public class EvSocialClass extends AbstractCustomer
       //ClassCar carDetails = classCars.get(car.getName());
       String customerName = this.name + "." + i;
       EvCustomer customer = new EvCustomer(customerName);
+      log.info("Adding EvCustomer "
+               + customerName + ", " + thisGroup.getName() + ", "
+               + gender + ", " + car.getName());
       evCustomers.add(customer);
       CustomerInfo info =
           customer.initialize(thisGroup, gender, activities,
@@ -209,7 +214,7 @@ public class EvSocialClass extends AbstractCustomer
       }
     }
     if (result.size() != activities.size())
-      log.error("found " + result.size()
+       log.error("found " + result.size()
                 + " group-activities for group " + group.getId()
                 + ", should be " + activities.size());
     return result;

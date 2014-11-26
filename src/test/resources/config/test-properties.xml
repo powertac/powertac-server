@@ -106,14 +106,14 @@
         <Tesla_40_kWh>
           <maxCapacity>40</maxCapacity>
           <range>257.6</range>
-          <homeCharging>3.3</homeCharging>
-          <awayCharging>3.3</awayCharging>
+          <homeChargeKW>3.3</homeChargeKW>
+          <awayChargeKW>3.3</awayChargeKW>
         </Tesla_40_kWh>
         <Nissan_Leaf_24_kWh>
           <maxCapacity>24</maxCapacity>
           <range>222.2</range>
-          <homeCharging>6.6</homeCharging>
-          <awayCharging>3.3</awayCharging>
+          <homeChargeKW>6.6</homeChargeKW>
+          <awayChargeKW>3.3</awayChargeKW>
         </Nissan_Leaf_24_kWh>
       </carType>
 

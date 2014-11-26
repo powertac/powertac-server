@@ -109,12 +109,77 @@ public class EvCustomerTest
 
     CarType car2 = evCustomer.getCar();
 
-    assertEquals(car2.getName(),            carType.getName());
-    assertEquals(car2.getMaxCapacity(),     carType.getMaxCapacity(),     1E-06);
-    assertEquals(car2.getCurrentCapacity(), carType.getCurrentCapacity(), 1E-06);
-    assertEquals(car2.getRange(),           carType.getRange(),           1E-06);
-    assertEquals(car2.getHomeCharging(),    carType.getHomeCharging(),    1E-06);
-    assertEquals(car2.getAwayCharging(), carType.getAwayCharging(), 1E-06);
+    assertEquals(car2.getName(), carType.getName());
+    assertEquals(car2.getMaxCapacity(), carType.getMaxCapacity(), 1E-06);
+    assertEquals(car2.getRange(), carType.getRange(), 1E-06);
+    assertEquals(car2.getHomeChargeKW(), carType.getHomeChargeKW(), 1E-06);
+    assertEquals(car2.getAwayChargeKW(), carType.getAwayChargeKW(), 1E-06);
+  }
+
+  @Test
+  public void testCurrentCapacity ()
+  {
+    initialize("male");
+    assertEquals("current capacity initialized", 
+                 0.5 * evCustomer.getCar().getMaxCapacity(),
+                 evCustomer.getCurrentCapacity(),
+                 1E-06);
+  }
+
+  @Test
+  public void testDischargeValid () throws EvCustomer.ChargeException
+  {
+    carType.setMaxCapacity(100.0);
+    initialize("female");
+    assertEquals("initial capacity", 50.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+    evCustomer.discharge(25.0);
+    assertEquals("reduced capacity", 25.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+  }
+
+  @Test(expected = EvCustomer.ChargeException.class)
+  public void testDischargeInvalid () throws EvCustomer.ChargeException
+  {
+    carType.setMaxCapacity(100.0);
+    initialize("female");
+    evCustomer.discharge(51.0);
+    assertEquals("should not get here", 0.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+  }
+
+  @Test
+  public void testChargeValid () throws EvCustomer.ChargeException
+  {
+    carType.setMaxCapacity(100.0);
+    initialize("female");
+    assertEquals("initial capacity", 50.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+    evCustomer.discharge(50);
+    evCustomer.charge(25);
+    assertEquals("25 remains", 25.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+  }
+
+  @Test(expected = EvCustomer.ChargeException.class)
+  public void testChargeInvalid () throws EvCustomer.ChargeException
+  {
+    carType.setMaxCapacity(100.0);
+    initialize("female");
+    assertEquals("initial capacity", 50.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+    evCustomer.charge(51.0);
+    assertEquals("should not get here", 0.0,
+                 evCustomer.getCurrentCapacity(), 1E-06);
+  }
+
+  @Test
+  public void testNeededCapacity ()
+  {
+    carType.setMaxCapacity(100.0);
+    initialize("female");
+    assertEquals("correct range calc", 100.0,
+                 evCustomer.getNeededCapacity(200.0), 1E-06);
   }
 
   @Test
@@ -222,22 +287,20 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    CarType car2 = evCustomer.getCar();
-
     assertEquals("averse", evCustomer.getRiskAttitude());
 
     // Risk averse always charges when under 80%
-    assertEquals(50, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
     double[] loads = evCustomer.getLoads(0, 0);
     assertEquals(20.0, loads[1], 1E-06);
 
-    car2.setCurrentCapacity(70);
-    assertEquals(70, car2.getCurrentCapacity(), 1E-06);
+    evCustomer.setCurrentCapacity(70);
+    assertEquals(70, evCustomer.getCurrentCapacity(), 1E-06);
     loads = evCustomer.getLoads(0, 0);
     assertEquals(10.0, loads[1], 1E-06);
 
-    car2.setCurrentCapacity(90);
-    assertEquals(90, car2.getCurrentCapacity(), 1E-06);
+    evCustomer.setCurrentCapacity(90);
+    assertEquals(90, evCustomer.getCurrentCapacity(), 1E-06);
     loads = evCustomer.getLoads(0, 0);
     assertEquals(0.0, loads[1], 1E-06);
   }
@@ -253,17 +316,15 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    CarType car2 = evCustomer.getCar();
-
     assertEquals("neutral", evCustomer.getRiskAttitude());
 
     // Risk neutral always charges when under 60 %
-    assertEquals(50, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
     double[] loads = evCustomer.getLoads(0, 0);
     assertEquals(10.0, loads[1], 1E-06);
 
-    car2.setCurrentCapacity(70);
-    assertEquals(70, car2.getCurrentCapacity(), 1E-06);
+    evCustomer.setCurrentCapacity(70);
+    assertEquals(70, evCustomer.getCurrentCapacity(), 1E-06);
     loads = evCustomer.getLoads(0, 0);
     assertEquals(0.0, loads[1], 1E-06);
   }
@@ -279,17 +340,15 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 0);
 
-    CarType car2 = evCustomer.getCar();
-
     assertEquals("eager", evCustomer.getRiskAttitude());
 
     // Risk eager always charges when under 40 %
-    assertEquals(50, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
     double[] loads = evCustomer.getLoads(0, 0);
     assertEquals(0.0, loads[1], 1E-06);
 
-    car2.setCurrentCapacity(30);
-    assertEquals(30, car2.getCurrentCapacity(), 1E-06);
+    evCustomer.setCurrentCapacity(30);
+    assertEquals(30, evCustomer.getCurrentCapacity(), 1E-06);
     loads = evCustomer.getLoads(0, 0);
     assertEquals(10.0, loads[1], 1E-06);
   }
@@ -304,7 +363,7 @@ public class EvCustomerTest
         evCustomer.getActivityDetails().entrySet()) {
       totalKms += entry.getValue().getMaleDailyKm();
     }
-    double totalKwh = evCustomer.getCar().getNeededCapacity(totalKms);
+    double totalKwh = evCustomer.getNeededCapacity(totalKms);
 
     assertEquals(totalKwh, evCustomer.getDominantLoad(), 1E-06);
 
@@ -316,7 +375,7 @@ public class EvCustomerTest
         evCustomer.getActivityDetails().entrySet()) {
       totalKms += entry.getValue().getMaleDailyKm();
     }
-    totalKwh = evCustomer.getCar().getNeededCapacity(totalKms);
+    totalKwh = evCustomer.getNeededCapacity(totalKms);
 
     assertEquals(totalKwh, evCustomer.getDominantLoad(), 1E-06);
   }
@@ -328,13 +387,11 @@ public class EvCustomerTest
     initialize("male");
     evCustomer.makeDayPlanning(0, 1);
 
-    CarType car2 = evCustomer.getCar();
-
-    assertEquals(50, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(50, evCustomer.getCurrentCapacity(), 1E-06);
 
     evCustomer.doActivities(0, 6);
     assertEquals(evCustomer.isDriving(), true);
-    assertEquals(46, car2.getCurrentCapacity(), 1E-06);
+    assertEquals(46, evCustomer.getCurrentCapacity(), 1E-06);
   }
 
   // =============== helper classes =================

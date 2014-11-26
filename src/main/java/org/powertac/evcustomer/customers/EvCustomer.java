@@ -18,15 +18,19 @@ package org.powertac.evcustomer.customers;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
+import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.GroupActivity;
@@ -43,11 +47,14 @@ import java.util.Map;
  * @author Konstantina Valogianni, Govert Buijs, John Collins
  * @version 0.5, Date: 2013.11.25
  */
+@Domain
+@ConfigurableInstance
 public class EvCustomer
 {
   static private Logger log = Logger.getLogger(EvCustomer.class.getName());
 
   private String name;
+  private long id;
 
   public enum RiskAttitude
   {
@@ -70,7 +77,10 @@ public class EvCustomer
   private Config config;
   private String gender;
   private RiskAttitude riskAttitude;
+
   private CarType car;
+  private double currentCapacity; // kwh
+
   private SocialGroup socialGroup;
   private Map<Integer, Activity> activities;
   private Map<Integer, GroupActivity> groupActivities;
@@ -97,11 +107,17 @@ public class EvCustomer
   {
     super();
     this.name = name;
+    id = IdGenerator.createId();
   }
   
   public String getName ()
   {
     return name;
+  }
+
+  public long getId ()
+  {
+    return id;
   }
 
   // ========== initialization =============
@@ -121,15 +137,16 @@ public class EvCustomer
     this.service = service;
     this.generator =
         service.getRandomSeedRepo().getRandomSeed(name, 1, "model");
+    setCurrentCapacity(0.5 * car.getMaxCapacity());
 
     // For now all risk attitudes have same probability
     riskAttitude = RiskAttitude.values()[generator.nextInt(3)];
 
     customerInfo = new CustomerInfo(name, 1).
         withPowerType(PowerType.ELECTRIC_VEHICLE).
-        withControllableKW(-car.getHomeCharging()).
-        withUpRegulationKW(-car.getHomeCharging()).
-        withDownRegulationKW(car.getHomeCharging()).
+        withControllableKW(-car.getHomeChargeKW()).
+        withUpRegulationKW(-car.getHomeChargeKW()).
+        withDownRegulationKW(car.getHomeChargeKW()).
         withStorageCapacity(car.getMaxCapacity());
 
     // set up tariff evaluation
@@ -285,9 +302,6 @@ public class EvCustomer
     Map<Integer, Double> intended = new HashMap<Integer, Double>();
     for (int activityId = 0; activityId < activities.size(); activityId++) {
       GroupActivity groupActivity = groupActivities.get(activityId);
-      if (null == groupActivity) {
-        log.error("Null groupActivity for aid " + activityId);
-      }
       double probability = groupActivity.getProbability(gender);
       double dailyDistance = groupActivity.getDailyKm(gender);
 
@@ -350,17 +364,17 @@ public class EvCustomer
   {
     TimeslotData timeslotData = timeslotDataMap.get(hour);
     double intendedDistance = timeslotData.getIntendedDistance();
-    double neededCapacity = car.getNeededCapacity(intendedDistance);
+    double neededCapacity = getNeededCapacity(intendedDistance);
 
-    if (intendedDistance < epsilon || neededCapacity > car.getCurrentCapacity()) {
+    if (intendedDistance < epsilon || neededCapacity > getCurrentCapacity()) {
       return;
     }
 
     try {
-      car.discharge(neededCapacity);
+      discharge(neededCapacity);
       driving = true;
     }
-    catch (CarType.ChargeException ce) {
+    catch (ChargeException ce) {
       log.error(ce);
       driving = false;
     }
@@ -385,7 +399,7 @@ public class EvCustomer
       dailyKm += entry.getValue().getDailyKm(gender);
     }
 
-    return car.getNeededCapacity(dailyKm);
+    return getNeededCapacity(dailyKm);
   }
 
   /*
@@ -399,7 +413,7 @@ public class EvCustomer
   {
     double[] loads = new double[4];
 
-    double currentCapacity = car.getCurrentCapacity();
+    double currentCapacity = getCurrentCapacity();
 
     // This the amount we need to have at the next TS
     double minCapacity = getLongTermNeeded(hour + 1);
@@ -410,23 +424,23 @@ public class EvCustomer
 
     // This is the amount we need to charge, CONSUMPTION can't be regulated
     loads[0] = Math.max(0, minCapacity - currentCapacity);
-    loads[0] = Math.min(loads[0], car.getChargingCapacity());
+    loads[0] = Math.min(loads[0], getChargingCapacity());
 
     // This is the amount we would like to charge, minus CONSUMPTION
     loads[1] = Math.max(0, (nomCapacity - currentCapacity) - loads[0]);
-    loads[1] = Math.min(loads[1], car.getChargingCapacity());
+    loads[1] = Math.min(loads[1], getChargingCapacity());
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
-    loads[2] = Math.min(car.getDischargingCapacity(), loads[2]);
+    loads[2] = Math.min(getDischargingCapacity(), loads[2]);
 
     // This is the amount we could charge extra (down regulate)
-    loads[3] = -1 * (car.getChargingCapacity() - (loads[0] + loads[1]));
+    loads[3] = -1 * (getChargingCapacity() - (loads[0] + loads[1]));
 
     try {
-      car.charge(loads[0] + loads[1]);
+      charge(loads[0] + loads[1]);
     }
-    catch (CarType.ChargeException ce) {
+    catch (ChargeException ce) {
       log.error(ce.getMessage());
     }
 
@@ -450,7 +464,7 @@ public class EvCustomer
         break;
       }
       else {
-        neededCapacity += car.getNeededCapacity(tsDistance);
+        neededCapacity += getNeededCapacity(tsDistance);
       }
     }
 
@@ -471,11 +485,11 @@ public class EvCustomer
       if (tsDistance < epsilon) {
         // Not driving, charge as much as needed and possible
         // TODO Add home / away detection
-        neededCapacity -= Math.min(neededCapacity, car.getHomeCharging());
+        neededCapacity -= Math.min(neededCapacity, car.getHomeChargeKW());
       }
       else {
         // Driving in this TS, increase needed capacity
-        neededCapacity += car.getNeededCapacity(tsDistance);
+        neededCapacity += getNeededCapacity(tsDistance);
         // But not more than possible
         neededCapacity = Math.min(neededCapacity, car.getMaxCapacity());
       }
@@ -501,26 +515,83 @@ public class EvCustomer
     try {
       if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon){
         double regulation = regulationFactor * tsData.getDownRegulation();
-        car.charge(regulation);
+        charge(regulation);
       }
       else if (regulationFactor > epsilon) {
         if (tsData.getUpRegulationCharge() > epsilon) {
           // This is the part we thought we we're charging, but we didn't get
           // due to regulation. Just subtract from the current capacity
           double cap = -1 * regulationFactor * tsData.getUpRegulationCharge();
-          car.setCurrentCapacity(car.getCurrentCapacity() - cap);
+          setCurrentCapacity(getCurrentCapacity() - cap);
         }
 
         if (tsData.getUpRegulation() > epsilon) {
           // This is the part that's regulated via actual discharge
           double discharge = -1 * regulationFactor * tsData.getUpRegulation();
-          car.discharge(-1 * discharge);
+          discharge(-1 * discharge);
         }
       }
     }
-    catch (CarType.ChargeException ce) {
+    catch (ChargeException ce) {
       log.error(ce);
     }
+  }
+
+  // ============ Vehicle state ===============
+
+  public double getCurrentCapacity ()
+  {
+    return currentCapacity;
+  }
+
+  @StateChange
+  public void setCurrentCapacity (double currentCapacity)
+  {
+    this.currentCapacity = currentCapacity;
+  }
+
+  // TODO Set min charge to 20%?
+  public void discharge (double kwh) throws ChargeException
+  {
+    if (currentCapacity >= kwh) {
+      setCurrentCapacity(currentCapacity - kwh);
+    }
+    else {
+      throw new ChargeException("Not possible to discharge " + name + " : "
+          + kwh + " from " + currentCapacity);
+    }
+  }
+
+  public void charge (double kwh) throws ChargeException
+  {
+    // TODO Check if partially charging would suffice
+
+    if ((currentCapacity + kwh) <= car.getMaxCapacity()) {
+      setCurrentCapacity(currentCapacity + kwh);
+    }
+    else {
+      throw new ChargeException("Not possible to charge " + name + " : "
+          + kwh + " at " + currentCapacity + " (maxCap " + car.getMaxCapacity() +")");
+    }
+  }
+
+  public double getNeededCapacity (double distance)
+  {
+    // For now assume a linear relation
+    double fuelEconomy = car.getRange() / car.getMaxCapacity();
+    return distance / fuelEconomy;
+  }
+
+  public double getChargingCapacity ()
+  {
+    // TODO Get home / away detection
+    return Math.min(car.getHomeChargeKW(), car.getMaxCapacity() - currentCapacity);
+  }
+
+  public double getDischargingCapacity ()
+  {
+    // TODO Get home / away detection
+    return Math.min(car.getHomeChargeKW(), currentCapacity);
   }
 
   // ===== USED FOR TESTING ===== //
@@ -704,6 +775,16 @@ public class EvCustomer
     public double getInertiaSample ()
     {
       return generator.nextDouble();
+    }
+  }
+
+  public class ChargeException extends Exception
+  {
+    private static final long serialVersionUID = 1L;
+
+    public ChargeException (String message)
+    {
+      super(message);
     }
   }
 }

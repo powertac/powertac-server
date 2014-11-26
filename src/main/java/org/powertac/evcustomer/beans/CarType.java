@@ -16,30 +16,29 @@
 
 package org.powertac.evcustomer.beans;
 
+import org.powertac.common.IdGenerator;
+import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 
 /**
  * Represents a type of electric vehicle.
  * @author Govert Buijs, John Collins
  */
+@ConfigurableInstance
 public class CarType
 {
-  @ConfigurableValue(valueType = "Double",
-      description = "Maximum battery capacity")
-  private Double maxCapacity;     // kwh
-  private double currentCapacity; // kwh
+  private long id;
+  // configurable through setter
+  private double maxCapacity;     // kwh
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Maximum range in km")
-  private Double range;           // Maximum range with a full battery, km
+  // configurable through setter
+  private double range;           // Maximum range with a full battery, km
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Maximum charge rate in kw, home station")
-  private Double homeCharging;    // Charging speed at home, kwh / h == kw
+  // configurable through setter
+  private double homeChargeKW;    // Charging speed at home, kwh / h == kw
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Maximum charge rate in kw, remote station")
-  private Double awayCharging;    // Charging speed away from home
+  // configurable through setter
+  private double awayChargeKW;    // Charging speed away from home
 
   private String name;
 
@@ -51,64 +50,20 @@ public class CarType
   {
     super();
     this.name = name;
+    id = IdGenerator.createId();
   }
 
   /**
    * Configures an instance, needed for testing
    */
   public void configure (String name, double maxCapacity,
-                  double range, double homeCharging, double awayCharging)
+                  double range, double homeChargeKW, double awayChargeKW)
   {
     this.name = name;
-    this.maxCapacity = maxCapacity;
-    this.currentCapacity = 0.5 * this.maxCapacity;
-    this.range = range;
-    this.homeCharging = homeCharging;
-    this.awayCharging = awayCharging;
-  }
-
-  // TODO Set min charge to 20%?
-  public void discharge (double kwh) throws ChargeException
-  {
-    if (currentCapacity >= kwh) {
-      currentCapacity -= kwh;
-    }
-    else {
-      throw new ChargeException("Not possible to discharge " + name + " : "
-          + kwh + " from " + currentCapacity);
-    }
-  }
-
-  public void charge (double kwh) throws ChargeException
-  {
-    // TODO Check if partially charging would suffice
-
-    if ((currentCapacity + kwh) <= maxCapacity) {
-      currentCapacity += kwh;
-    }
-    else {
-      throw new ChargeException("Not possible to charge " + name + " : "
-          + kwh + " at " + currentCapacity + " (maxCap " + maxCapacity +")");
-    }
-  }
-
-  public double getNeededCapacity (double distance)
-  {
-    // For now assume a linear relation
-    double fuelEconomy = range / maxCapacity;
-    return distance / fuelEconomy;
-  }
-
-  public double getChargingCapacity ()
-  {
-    // TODO Get home / away detection
-    return Math.min(homeCharging, maxCapacity - currentCapacity);
-  }
-
-  public double getDischargingCapacity ()
-  {
-    // TODO Get home / away detection
-    return Math.min(homeCharging, currentCapacity);
+    setMaxCapacity(maxCapacity); // setters make setting show up in state log
+    setRange(range);
+    setHomeChargeKW(homeChargeKW);
+    setAwayChargeKW(awayChargeKW);
   }
 
   public String getName ()
@@ -116,19 +71,21 @@ public class CarType
     return name;
   }
 
+  public long getId ()
+  {
+    return id;
+  }
+
   public double getMaxCapacity ()
   {
     return maxCapacity;
   }
 
-  public double getCurrentCapacity ()
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum battery capacity")
+  public void setMaxCapacity (double capacity)
   {
-    return currentCapacity;
-  }
-
-  public void setCurrentCapacity (double currentCapacity)
-  {
-    this.currentCapacity = currentCapacity;
+    this.maxCapacity = capacity;
   }
 
   public double getRange ()
@@ -136,23 +93,34 @@ public class CarType
     return range;
   }
 
-  public double getHomeCharging ()
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum range in km")
+  public void setRange (double range)
   {
-    return homeCharging;
+    this.range = range;
   }
 
-  public double getAwayCharging ()
+  public double getHomeChargeKW ()
   {
-    return awayCharging;
+    return homeChargeKW;
   }
 
-  public class ChargeException extends Exception
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum charge rate in kw, home station")
+  public void setHomeChargeKW (double kw)
   {
-    private static final long serialVersionUID = 1L;
+    this.homeChargeKW = kw;
+  }
 
-    public ChargeException (String message)
-    {
-      super(message);
-    }
+  public double getAwayChargeKW ()
+  {
+    return awayChargeKW;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Maximum charge rate in kw, remote station")
+  public void setAwayChargeKW (double kw)
+  {
+    this.awayChargeKW = kw;
   }
 }

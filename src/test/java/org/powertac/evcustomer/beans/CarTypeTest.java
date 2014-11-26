@@ -70,60 +70,8 @@ public class CarTypeTest
     assertEquals(carName, carType.getName());
     assertEquals(carType.getMaxCapacity(), maxCapacity, 1E-06);
     assertEquals(carType.getRange(), range, 1E-06);
-    assertEquals(carType.getHomeCharging(), homeCharging, 1E-06);
-    assertEquals(carType.getAwayCharging(), awayCharging, 1E-06);
-  }
-
-  @Test
-  public void testCurrentCapacity ()
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    // We assume a new carType has a half full battery
-    assertEquals(0.5 * maxCapacity, carType.getCurrentCapacity(), 1E-06);
-  }
-
-  @Test
-  public void testDischargeValid () throws CarType.ChargeException
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    assertEquals(0.5 * maxCapacity, carType.getCurrentCapacity(), 1E-06);
-    carType.discharge(25);
-    assertEquals(0.5 * maxCapacity - 25, carType.getCurrentCapacity(), 1E-06);
-  }
-
-  @Test(expected = CarType.ChargeException.class)
-  public void testDischargeInvalid () throws CarType.ChargeException
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    assertEquals(0.5 * maxCapacity, carType.getCurrentCapacity(), 1E-06);
-    carType.discharge(300);
-    assertEquals(0.5 * maxCapacity - 300, carType.getCurrentCapacity(), 1E-06);
-  }
-
-  @Test
-  public void testChargeValid () throws CarType.ChargeException
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    assertEquals(0.5 * maxCapacity, carType.getCurrentCapacity(), 1E-06);
-    carType.discharge(50);
-    carType.charge(25);
-    assertEquals(0.5 * maxCapacity - 25, carType.getCurrentCapacity(), 1E-06);
-  }
-
-  @Test(expected = CarType.ChargeException.class)
-  public void testChargeInvalid () throws CarType.ChargeException
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    assertEquals(0.5 * maxCapacity, carType.getCurrentCapacity(), 1E-06);
-    carType.charge(300);
-    assertEquals(0.5 * maxCapacity + 300, carType.getCurrentCapacity(), 1E-06);
-  }
-
-  @Test
-  public void testNeededCapacity ()
-  {
-    carType.configure(carName, maxCapacity, range, homeCharging, awayCharging);
-    assertEquals(maxCapacity, carType.getNeededCapacity(range), 1E-06);
+    assertEquals(carType.getHomeChargeKW(), homeCharging, 1E-06);
+    assertEquals(carType.getAwayChargeKW(), awayCharging, 1E-06);
   }
 
   @Test
