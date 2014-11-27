@@ -29,6 +29,8 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
+import org.powertac.common.repo.TimeslotRepo;
+
 /**
  * Utility class that generates various time series patterns that can be 
  * used as base capacity series by implementations of @code{CapacityOriginator}.
@@ -219,8 +221,8 @@ final class TimeseriesGenerator
         }
         **/
 
-        DateTime now =
-                service.getTimeslotRepo().getDateTimeForIndex(timeslot);
+      TimeslotRepo tsRepo = service.getTimeslotRepo();
+        DateTime now = tsRepo.getDateTimeForIndex(timeslot);
         int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
         int hour = now.getHourOfDay();  // 0-23
  

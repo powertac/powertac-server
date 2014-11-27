@@ -170,7 +170,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     return tariffRepo;
   }
   
-  TimeslotRepo getTimeslotRepo ()
+  org.powertac.common.repo.TimeslotRepo getTimeslotRepo ()
   {
     return timeslotRepo;
   }
