@@ -19,12 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
-
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -170,7 +170,7 @@ public class TimeslotRepo implements DomainRepo
     }
     return result;
   }
-  
+
   /**
    * True just in case the specified timeslot is enabled.
    */
@@ -178,7 +178,7 @@ public class TimeslotRepo implements DomainRepo
   {
     return isTimeslotEnabled(ts.getSerialNumber());
   }
-  
+
   /**
    * True just in case the timeslot with the given index is enabled.
    */
@@ -189,7 +189,7 @@ public class TimeslotRepo implements DomainRepo
     int lastIndex = firstIndex + Competition.currentCompetition().getTimeslotsOpen();
     return (index >= firstIndex && index < lastIndex);
   }
-  
+
   /**
    * Returns the number of timeslots that have been successfully created.
    */
@@ -197,7 +197,7 @@ public class TimeslotRepo implements DomainRepo
   {
     return indexedTimeslots.size();
   }
-  
+
   /**
    * Adds a timeslot that already exists. Visibility is public to support
    * logfile analysis, should not be used in other contexts.
@@ -214,15 +214,26 @@ public class TimeslotRepo implements DomainRepo
     }
     indexedTimeslots.add(timeslot);
   }
-  
+
   /**
-   * Converts int timeslot index to time
+   * Converts int timeslot index to Instant
    */
   public Instant getTimeForIndex (int index)
   {
     Competition comp = Competition.currentCompetition();
     return new Instant(comp.getSimulationBaseTime().getMillis()
-                       + index * comp.getTimeslotDuration());    
+                       + index * comp.getTimeslotDuration());
+  }
+
+  /**
+   * Converts int timeslot index to DateTime in UTC timezone
+   */
+  public DateTime getDateTimeForIndex (int index)
+  {
+    Competition comp = Competition.currentCompetition();
+    return new DateTime(comp.getSimulationBaseTime().getMillis()
+                        + index * comp.getTimeslotDuration(),
+                        DateTimeZone.UTC);
   }
 
   @Override
