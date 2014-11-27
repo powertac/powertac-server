@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.Random;
+
 import org.joda.time.DateTime;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
@@ -203,7 +204,7 @@ final class TimeseriesGenerator
             genSeries.put(start + i, refSeries.get(i));
         }
     }
-    
+
     private double generateNextArima101x101(int timeslot)
     {
         /** R code
@@ -217,9 +218,9 @@ final class TimeseriesGenerator
             Zbf[t] = boostTimeSeries(Zf[t], lambda, t, N, Yh[H[t]], Yd[D[t]], gamma) #+ rnorm(1, 0, sigma^2)
         }
         **/
-      
+
         DateTime now =
-                service.getTimeslotRepo().getTimeForIndex(timeslot).toDateTime();
+                service.getTimeslotRepo().getDateTimeForIndex(timeslot);
         int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
         int hour = now.getHourOfDay();  // 0-23
  
@@ -235,7 +236,7 @@ final class TimeseriesGenerator
         if (Double.isNaN(next)) throw new Error("Generated NaN as next time series element!");
         return next;
     }
-    
+
     private double getLog(int timeslot)
     {
       Double val = genSeries.get(timeslot);
@@ -245,5 +246,4 @@ final class TimeseriesGenerator
       }
       return Math.log(val);
     }
-
 } // end class

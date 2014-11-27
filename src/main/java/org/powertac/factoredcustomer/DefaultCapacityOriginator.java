@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherForecastPrediction;
@@ -103,6 +105,18 @@ class DefaultCapacityOriginator implements CapacityOriginator
   public CapacityProfile getCurrentForecast ()
   {
     int timeslot = service.getTimeslotRepo().currentSerialNumber();
+    return getForecastForTimeslot(timeslot);
+  }
+
+  @Override
+  public CapacityProfile getForecastForNextTimeslot ()
+  {
+    int timeslot = service.getTimeslotRepo().currentSerialNumber();
+    return getForecastForTimeslot(timeslot + 1);
+  }
+
+  public CapacityProfile getForecastForTimeslot (int timeslot)
+  {
     List<Double> values = new ArrayList<Double>();
     for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
       Double forecastCapacity = forecastCapacities.get(timeslot);
@@ -154,8 +168,10 @@ class DefaultCapacityOriginator implements CapacityOriginator
     // Compute for full population ignoring current tariff rates
     double forecastCapacity = baseCapacity;
     forecastCapacity =
-      adjustCapacityForPeriodicSkew(forecastCapacity, service.getTimeslotRepo()
-              .getTimeForIndex(future).toDateTime(), false);
+      adjustCapacityForPeriodicSkew(forecastCapacity,
+                                    service.getTimeslotRepo()
+                                    .getDateTimeForIndex(future),
+                                    false);
     forecastCapacity =
       adjustCapacityForWeather(forecastCapacity, weather, false);
     if (Double.isNaN(forecastCapacity))
@@ -393,7 +409,8 @@ class DefaultCapacityOriginator implements CapacityOriginator
       return baseCapacity;
 
     double chargeForBase =
-      subscription.getTariff().getUsageCharge(service.getTimeslotRepo().getTimeForIndex(timeslot),
+      subscription.getTariff().getUsageCharge(service.getTimeslotRepo()
+                                              .getTimeForIndex(timeslot),
                                               baseCapacity,
                                               subscription.getTotalUsage());
     double rateForBase = chargeForBase / baseCapacity;

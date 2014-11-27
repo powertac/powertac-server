@@ -324,7 +324,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
       double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
       double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
       for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-        CapacityProfile forecast = capacityOriginator.getCurrentForecast();
+        CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
         for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
           double hourlyUsage = usageSign * forecast.getCapacity(i);
           usageForecast[i] += hourlyUsage / bundle.getPopulation();

@@ -25,13 +25,15 @@ import org.powertac.factoredcustomer.CapacityProfile;
 public interface CapacityOriginator
 {
     CapacityProfile getCurrentForecast();
-    
+
+    CapacityProfile getForecastForNextTimeslot();
+
     double useCapacity(TariffSubscription subscription);
-    
+
     double adjustCapacityForSubscription(int timeslot, double totalCapacity, TariffSubscription subscription);
-    
+
     String getCapacityName();
-    
+
     CapacityBundle getParentBundle();
 }
 
