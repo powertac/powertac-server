@@ -28,6 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * @author John Collins
  */
 @XStreamAlias("balance-report")
+@Domain
 public class BalanceReport
 {
   @XStreamAsAttribute
