@@ -26,6 +26,7 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
@@ -180,9 +181,12 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
     double marketBalance = -150.0; // Compute market balance
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
-        balancingMarketService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                   brokerList);
+        balancingMarketService.balanceTimeslot(current, brokerList, report);
+    assertEquals("correct balance report",
+                 marketBalance, report.getNetImbalance(), 1e-6);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList.values()) {
@@ -199,8 +203,12 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(50.0);    
     double marketBalance = 150.0; // Compute market balance
 
-    Map<Broker, ChargeInfo> theChargeInfoList = balancingMarketService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                                                    brokerList);
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    Map<Broker, ChargeInfo> theChargeInfoList =
+        balancingMarketService.balanceTimeslot(current, brokerList, report);
+    assertEquals("correct balance report",
+                 marketBalance, report.getNetImbalance(), 1e-6);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList.values()) {
@@ -216,17 +224,22 @@ public class BalancingMarketServiceTests
     double balance = 0.0;
 
     when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(-19599990.0);    
-    when(accountingService.getCurrentNetLoad(brokerList.get(1))).thenReturn(0.0);
-    when(accountingService.getCurrentNetLoad(brokerList.get(2))).thenReturn(8791119.0);    
+    when(accountingService.getCurrentNetLoad(brokerList.get(0))).
+      thenReturn(-19599990.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(1))).
+      thenReturn(0.0);
+    when(accountingService.getCurrentNetLoad(brokerList.get(2))).
+      thenReturn(8791119.0);    
 
     // Compute market balance
     for (Broker b : brokerList) {
       balance += balancingMarketService.getMarketBalance(b);
     }
 
-    Map<Broker, ChargeInfo> chargeInfos = balancingMarketService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                                                    brokerList);
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    Map<Broker, ChargeInfo> chargeInfos =
+        balancingMarketService.balanceTimeslot(current, brokerList, report);
 
     // ensure each broker was balanced correctly
     for (Broker broker : brokerList) {
@@ -254,9 +267,10 @@ public class BalancingMarketServiceTests
 
     // List solution =
     // balancingMarketService.computeNonControllableBalancingCharges(brokerList)
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
-        balancingMarketService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                   brokerList);
+        balancingMarketService.balanceTimeslot(current, brokerList, report);
 
     // Correct solution list is [-4, 14, 2] (but negated)
     ChargeInfo ci = chargeInfos.get(brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
@@ -338,9 +352,10 @@ public class BalancingMarketServiceTests
     assertEquals("correct number of bo", 3,
                  tariffRepo.getBalancingOrders().size());
 
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
-            balancingMarketService.balanceTimeslot(timeslotRepo.currentTimeslot(),
-                                                       brokerList);
+            balancingMarketService.balanceTimeslot(current, brokerList, report);
     assertEquals("correct count", 3, chargeInfos.size());
     
     ChargeInfo c1b1 = findFirst(chargeInfos.values(),

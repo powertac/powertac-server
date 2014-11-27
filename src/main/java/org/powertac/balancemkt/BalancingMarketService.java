@@ -28,6 +28,7 @@ import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.BalancingMarket;
+import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -37,6 +38,7 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
@@ -64,6 +66,9 @@ implements BalancingMarket, SettlementContext, InitializationService
   
   @Autowired
   private TariffRepo tariffRepo;
+
+  @Autowired
+  private BrokerProxy brokerProxyService;
 
   @Autowired
   private Accounting accountingService;
@@ -162,11 +167,18 @@ implements BalancingMarket, SettlementContext, InitializationService
       return;
     }
 
+    // create the BalanceReport to carry the total imbalance
+    Timeslot current = timeslotRepo.currentTimeslot();
+    BalanceReport report = new BalanceReport(current.getSerialNumber());
+
     // Run the balancing market
     // Transactions are posted to the Accounting Service and Brokers are
     // notified of balancing transactions
     balancingResults =
-            balanceTimeslot(timeslotRepo.currentTimeslot(), brokerList);
+            balanceTimeslot(current, brokerList, report);
+
+    // Send the balance report
+    brokerProxyService.broadcastMessage(report);
   }
 
   /**
@@ -177,13 +189,17 @@ implements BalancingMarket, SettlementContext, InitializationService
    * @return List of ChargeInfo instances
    */
   public HashMap<Broker, ChargeInfo>
-  balanceTimeslot (Timeslot currentTimeslot, List<Broker> brokerList)
+  balanceTimeslot (Timeslot currentTimeslot,
+                   List<Broker> brokerList,
+                   BalanceReport report)
   {
     HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
 
     // create the ChargeInfo instances for each broker
     for (Broker broker : brokerList) {
-      ChargeInfo info = new ChargeInfo(broker, getMarketBalance(broker));
+      double imbalance = getMarketBalance(broker);
+      ChargeInfo info = new ChargeInfo(broker, imbalance);
+      report.addImbalance(imbalance);
       chargeInfoMap.put(broker, info);
     }
     
@@ -217,7 +233,7 @@ implements BalancingMarket, SettlementContext, InitializationService
   /**
    * Returns the difference between a broker's current market position and its
    * net load. Note: market position is computed in MWh and net load is computed
-   * in kWh, conversion is needed to compute the difference.
+   * in kWh, conversion is needed to compute the difference in kWh.
    * 
    * @return a broker's current energy balance within its market. Pos for
    *         over-production, neg for under-production
