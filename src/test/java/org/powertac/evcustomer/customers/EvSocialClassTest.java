@@ -19,11 +19,14 @@ package org.powertac.evcustomer.customers;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.mockito.Mockito.*;
 
 import org.powertac.common.RandomSeed;
+import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -42,7 +45,10 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -130,6 +136,12 @@ public class EvSocialClassTest
 //        .thenReturn(defaultTariffEV);
   }
 
+  @After
+  public void shutDown ()
+  {
+    Config.recycle();
+  }
+
   private void initializeClass ()
   {
     evSocialClass.setServiceAccessor(service);
@@ -172,9 +184,62 @@ public class EvSocialClassTest
     assertEquals("correct min count", 2, evSocialClass.getMinCount());
     assertEquals("correct max count", 4, evSocialClass.getMaxCount());
     ArrayList<EvCustomer> customers = evSocialClass.getEvCustomers();
+    assertEquals("correct population", 2, evSocialClass.getPopulation());
     assertEquals("correct number of customers", 2, customers.size());
     assertEquals("correct number of infos", 2,
                  evSocialClass.getCustomerInfos().size());
+    assertEquals("correct name", "HighIncome_2.0.male.Tesla_40_kWh.0",
+                 customers.get(0).getName());
+    assertEquals("correct boot-config list 0",
+                 "HighIncome_2.0.male.Tesla_40_kWh.0",
+                 evSocialClass.getCustomerAttributeList().get(0));
+    assertEquals("correct boot-config list 1",
+                 "HighIncome_2.0.male.Tesla_40_kWh.1",
+                 evSocialClass.getCustomerAttributeList().get(1));
+  }
+
+  @Test
+  public void testBootConfig ()
+  {
+    initializeClass();
+    //ArrayList<EvCustomer> customers = evSocialClass.getEvCustomers();
+    Configurator testConfig = new Configurator();
+    ConfigurationPublisher pub = new ConfigurationPublisher();
+    testConfig.gatherBootstrapState(evSocialClass, pub);
+    //System.out.println(pub.getConfig().toString());
+    assertEquals("one property", 1, pub.getConfig().size());
+    Object pop =
+        pub.getConfig().get("evcustomer.customers.evSocialClass.customerAttributeList");
+    @SuppressWarnings("unchecked")
+    List<String> popList = (List<String>)pop;
+    assertEquals("2 items", 2, popList.size());
+    assertEquals("correct customer instance 0",
+                 "HighIncome_2.0.male.Tesla_40_kWh.0", popList.get(0));
+    assertEquals("correct customer instance 1",
+                 "HighIncome_2.0.male.Tesla_40_kWh.1", popList.get(1));
+  }
+
+  @Test
+  public void testBootRestore ()
+  {
+    ArrayList<String> gcList = new ArrayList<String>();
+    gcList.add("HighIncome_2.0.male.Tesla_40_kWh.0");
+    gcList.add("HighIncome_2.2.female.Nissan_Leaf_24_kWh.1");
+    gcList.add("HighIncome_2.1.female.Tesla_40_kWh.2");
+    ReflectionTestUtils.setField(evSocialClass, "customerAttributeList",
+                                 gcList);
+    initializeClass();
+    assertEquals("3 instances", 3, evSocialClass.getPopulation());
+    List<EvCustomer> customers = evSocialClass.getEvCustomers();
+    assertEquals("3 in list", 3, customers.size());
+    EvCustomer cust = customers.get(0);
+    assertEquals("correct group", 0, cust.getSocialGroup().getId());
+    assertEquals("correct gender", "male", cust.getGender());
+    assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
+    cust = customers.get(2);
+    assertEquals("correct group", 1, cust.getSocialGroup().getId());
+    assertEquals("correct gender", "female", cust.getGender());
+    assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
   }
 
 ////  @Test
@@ -331,6 +396,30 @@ public class EvSocialClassTest
     public void saveBootstrapState (Object thing)
     {
       
+    }
+  }
+
+  /**
+   * Configuration recorder for publishing config info to brokers
+   */
+  class ConfigurationPublisher implements ConfigurationRecorder
+  {
+    Properties publishedConfig;
+    
+    ConfigurationPublisher ()
+    {
+      publishedConfig = new Properties();
+    }
+
+    @Override
+    public void recordItem (String key, Object value)
+    {
+      publishedConfig.put(key, value);      
+    }
+    
+    Properties getConfig ()
+    {
+      return publishedConfig;
     }
   }
 

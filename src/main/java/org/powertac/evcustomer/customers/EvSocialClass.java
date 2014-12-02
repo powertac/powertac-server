@@ -27,6 +27,31 @@ import org.powertac.evcustomer.beans.*;
 import java.util.*;
 
 /**
+ * Instances represent identifiable "classes" of EV customers. 
+ * Each EvSocialClass aggregates a collection if EvCustomer instances, as
+ * determined by configuration. However, this class and not the EvCustomer
+ * class implements the AbstractCustomer interface, which means that
+ * each instance of EvSocialClass is specified in the configuration.
+ * This scheme allows dynamic configuration of the EvCustomer instances,
+ * each of which has a specific gender, social group, and car type, and
+ * the probabilities and other attributes of the various activities are
+ * a function of social class, as specified in the configuration.
+ * 
+ * The configuration setup is basically a set of tables: social class,
+ * social group, activity, and car type. Join tables add attributes
+ * between classes and groups, between classes and car types, and
+ * between groups and activities (for
+ * example, we expect the wealthier classes to be more likely to own a
+ * Tesla-80, and full-time workers are more likely to commute regularly).
+ * 
+ * Because of the dynamic configuration, it is necessary to preserve
+ * the configuration between a boot session and a sim session. This is done
+ * by recording the attributes of individual customers created by the initial
+ * configuration at the start of a boot session, recording those attributes
+ * in the boot record, and re-loading the configuration from the boot
+ * record at the start of a sim session. In other words, the dynamic
+ * configuration happens only at the start of a boot session.
+ * 
  * @author Konstantina Valogianni, Govert Buijs
  */
 @Domain
@@ -45,8 +70,6 @@ public class EvSocialClass extends AbstractCustomer
   @ConfigurableValue(valueType = "Integer", description = "maximum population")
   private int maxCount;
 
-  private int population = 0;
-
   private ArrayList<EvCustomer> evCustomers;
 
   // indexed bean lists
@@ -55,6 +78,16 @@ public class EvSocialClass extends AbstractCustomer
   private Map<Integer, Activity> activities;
   private Map<Integer, ClassGroup> classGroups;
   private Map<String, ClassCar> classCars;
+
+  // bootstrap state
+  private int population;
+
+  @ConfigurableValue(valueType = "List",
+      bootstrapState = true,
+      description = "List of customer attributes")
+  private ArrayList<String> customerAttributeList = null;
+  // true just in case we are restoring from a boot record
+  private boolean restoring = false;
 
   /**
    * Default constructor, requires manual setting of name
@@ -77,15 +110,31 @@ public class EvSocialClass extends AbstractCustomer
   {
     super.initialize();
     log.info("Initialize " + name);
-    Map<String, Collection<?>> beans = new HashMap<String, Collection<?>>();
+    Map<String, Collection<?>> beans; //= new HashMap<String, Collection<?>>();
     this.generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass-" + name, 1, "initialize");
     config = Config.getInstance();
 
-    population = minCount + generator.nextInt(Math.abs(maxCount - minCount));
-
     beans = config.getBeans();
     unpackBeans(beans);
+
+    // Create and set up the customer instances
+    evCustomers = new ArrayList<EvCustomer>();
+    if (null == customerAttributeList) {
+      configureForBoot(beans);
+    }
+    else {
+      configureForSim(beans);
+    }
+  }
+
+  private void configureForBoot (Map<String, Collection<?>> beans)
+  {
+    // setup at beginning of boot session
+    customerAttributeList = new ArrayList<String>();
+    population = minCount + generator.nextInt(Math.abs(maxCount - minCount));
+    log.info("Configuring " + population + " customers for class "
+        + this.getName());
 
     // Prepare for the joins
     ArrayList<SocialGroup> groupList =
@@ -100,10 +149,6 @@ public class EvSocialClass extends AbstractCustomer
       ccProbability += classCars.get(car.getName()).getProbability();
     }
 
-    // Create and set up the customer instances
-    evCustomers = new ArrayList<EvCustomer>();
-    log.info("Configuring customers for class " + this.getName()
-             + ", population = " + population);
     for (int i = 0; i < population; i++) {
       // pick a random social group
       SocialGroup thisGroup = pickGroup(groupList, cgProbability);
@@ -115,20 +160,40 @@ public class EvSocialClass extends AbstractCustomer
       }
       // pick a random car
       CarType car = pickCar(carList, ccProbability);
-      //ClassCar carDetails = classCars.get(car.getName());
-      String customerName = this.name + "." + i;
-      EvCustomer customer = new EvCustomer(customerName);
-      log.info("Adding EvCustomer "
-               + customerName + ", " + thisGroup.getName() + ", "
-               + gender + ", " + car.getName());
-      evCustomers.add(customer);
-      CustomerInfo info =
-          customer.initialize(thisGroup, gender, activities,
-                              getGroupActivities(beans, thisGroup),
-                              car, service);
-      addCustomerInfo(info);
-      service.getCustomerRepo().add(info);
+      // name format is class.groupId.gender.carName.index
+      String customerName =
+          this.name + "." + thisGroup.getId() + "." + gender
+          + "." + car.getName() + "." + i;
+      customerAttributeList.add(customerName);
+      instantiateCustomer(beans, thisGroup, gender, car, customerName);
     }
+  }
+
+  private void configureForSim (Map<String, Collection<?>> beans)
+  {
+    population = customerAttributeList.size();
+    for (String description : customerAttributeList) {
+      String[] attributes = description.split("\\.");
+      SocialGroup thisGroup = groups.get(Integer.parseInt(attributes[1]));
+      String gender = attributes[2];
+      CarType car = carTypes.get(attributes[3]);
+      instantiateCustomer(beans, thisGroup, gender, car, description);
+    }
+  }
+
+  private void instantiateCustomer (Map<String, Collection<?>> beans,
+                                    SocialGroup thisGroup, String gender,
+                                    CarType car, String customerName)
+  {
+    EvCustomer customer = new EvCustomer(customerName);
+    log.info("Adding EvCustomer " + customerName);
+    evCustomers.add(customer);
+    CustomerInfo info =
+        customer.initialize(thisGroup, gender, activities,
+                            getGroupActivities(beans, thisGroup),
+                            car, service);
+    addCustomerInfo(info);
+    service.getCustomerRepo().add(info);
   }
 
   private SocialGroup pickGroup (ArrayList<SocialGroup> groupList,
@@ -279,6 +344,16 @@ public class EvSocialClass extends AbstractCustomer
   ArrayList<EvCustomer> getEvCustomers ()
   {
     return evCustomers;
+  }
+
+  int getPopulation ()
+  {
+    return population;
+  }
+
+  List<String> getCustomerAttributeList ()
+  {
+    return customerAttributeList;
   }
 
   Random getGenerator ()

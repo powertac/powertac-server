@@ -16,9 +16,6 @@
 	MiddleIncome-1,MiddleIncome-2,MiddleIncome-3,
 	LowIncome-1</instances>
 
-	<!-- Every group in SocialGroups has to be in every SocialClass -->
-	<!-- TODO Get the probabilities of the groups per class -->
-
 	<HighIncome-1>
 	  <minCount>10</minCount>
 	  <maxCount>20</maxCount>
@@ -82,8 +79,14 @@
       </socialGroup>
 
       <!-- Every group in SocialGroups has to be in every SocialClass -->
+      <!-- TODO Get the probabilities of the groups per class -->
       <classGroup>
-        <instances>h1g1,h1g2,h1g3,h1g4,h1g5,h1g6,h1g7,h2g1,h2g2,h2g3,h2g4,h2g5,h2g6,h2g7,m1g1,m1g2,m1g3,m1g4,m1g5,m1g6,m1g7,m2g1,m2g2,m2g3,m2g4,m2g5,m2g6,m2g7,m3g1,m3g2,m3g3,m3g4,m3g5,m3g6,m3g7,l1g1,l1g2,l1g3,l1g4,l1g5,l1g6,l1g7</instances>
+        <instances>h1g1,h1g2,h1g3,h1g4,h1g5,h1g6,h1g7,
+        h2g1,h2g2,h2g3,h2g4,h2g5,h2g6,h2g7,
+        m1g1,m1g2,m1g3,m1g4,m1g5,m1g6,m1g7,
+        m2g1,m2g2,m2g3,m2g4,m2g5,m2g6,m2g7,
+        m3g1,m3g2,m3g3,m3g4,m3g5,m3g6,m3g7,
+        l1g1,l1g2,l1g3,l1g4,l1g5,l1g6,l1g7</instances>
 
 	<h1g1>
           <socialClassName>HighIncome-1</socialClassName>
@@ -379,7 +382,12 @@
 
       <!-- Join table socialClass : carType -->
       <classCar>
-        <instances>h1t40,h1t60,h1t85,h1l24,h2t40,h2t60,h2t85,h2l24,m1t40,m1t60,m1t85,m1l24,m2t40,m2t60,m2t85,m2l24,m3t40,m3t60,m3t85,m3l24,l1t40,l1t60,l1t85,l1l24</instances>
+        <instances>h1t40,h1t60,h1t85,h1l24,
+        h2t40,h2t60,h2t85,h2l24,
+        m1t40,m1t60,m1t85,m1l24,
+        m2t40,m2t60,m2t85,m2l24,
+        m3t40,m3t60,m3t85,m3l24,
+        l1t40,l1t60,l1t85,l1l24</instances>
 
 	<h1t40>
           <socialClass>HighIncome-1</socialClass>
@@ -562,7 +570,13 @@
 
       <!-- Join table group:activity -->
       <groupActivity>
-	<instances>ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,ga3_0,ga3_1,ga3_2,ga3_3,ga3_4,ga3_5,ga3_6,ga3_7,ga3_8,ga4_0,ga4_1,ga4_2,ga4_3,ga4_4,ga4_5,ga4_6,ga4_7,ga4_8,ga5_0,ga5_1,ga5_2,ga5_3,ga5_4,ga5_5,ga5_6,ga5_7,ga5_8,ga6_0,ga6_1,ga6_2,ga6_3,ga6_4,ga6_5,ga6_6,ga6_7,ga6_8,ga7_0,ga7_1,ga7_2,ga7_3,ga7_4,ga7_5,ga7_6,ga7_7,ga7_8</instances>
+	<instances>ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,
+        ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,
+        ga3_0,ga3_1,ga3_2,ga3_3,ga3_4,ga3_5,ga3_6,ga3_7,ga3_8,
+        ga4_0,ga4_1,ga4_2,ga4_3,ga4_4,ga4_5,ga4_6,ga4_7,ga4_8,
+        ga5_0,ga5_1,ga5_2,ga5_3,ga5_4,ga5_5,ga5_6,ga5_7,ga5_8,
+        ga6_0,ga6_1,ga6_2,ga6_3,ga6_4,ga6_5,ga6_6,ga6_7,ga6_8,
+        ga7_0,ga7_1,ga7_2,ga7_3,ga7_4,ga7_5,ga7_6,ga7_7,ga7_8</instances>
 
 	<ga1_0>
 	  <groupId>1</groupId>
