@@ -188,13 +188,13 @@ public class EvSocialClassTest
     assertEquals("correct number of customers", 2, customers.size());
     assertEquals("correct number of infos", 2,
                  evSocialClass.getCustomerInfos().size());
-    assertEquals("correct name", "HighIncome_2.0.male.Tesla_40_kWh.0",
+    assertEquals("correct name", "HighIncome_2.0",
                  customers.get(0).getName());
     assertEquals("correct boot-config list 0",
-                 "HighIncome_2.0.male.Tesla_40_kWh.0",
+                 "0.male.Tesla_40_kWh.x",
                  evSocialClass.getCustomerAttributeList().get(0));
     assertEquals("correct boot-config list 1",
-                 "HighIncome_2.0.male.Tesla_40_kWh.1",
+                 "0.male.Tesla_40_kWh.x",
                  evSocialClass.getCustomerAttributeList().get(1));
   }
 
@@ -214,18 +214,18 @@ public class EvSocialClassTest
     List<String> popList = (List<String>)pop;
     assertEquals("2 items", 2, popList.size());
     assertEquals("correct customer instance 0",
-                 "HighIncome_2.0.male.Tesla_40_kWh.0", popList.get(0));
+                 "0.male.Tesla_40_kWh.x", popList.get(0));
     assertEquals("correct customer instance 1",
-                 "HighIncome_2.0.male.Tesla_40_kWh.1", popList.get(1));
+                 "0.male.Tesla_40_kWh.x", popList.get(1));
   }
 
   @Test
   public void testBootRestore ()
   {
     ArrayList<String> gcList = new ArrayList<String>();
-    gcList.add("HighIncome_2.0.male.Tesla_40_kWh.0");
-    gcList.add("HighIncome_2.2.female.Nissan_Leaf_24_kWh.1");
-    gcList.add("HighIncome_2.1.female.Tesla_40_kWh.2");
+    gcList.add("0.male.Tesla_40_kWh.0");
+    gcList.add("2.female.Nissan_Leaf_24_kWh.1");
+    gcList.add("1.female.Tesla_40_kWh.2");
     ReflectionTestUtils.setField(evSocialClass, "customerAttributeList",
                                  gcList);
     initializeClass();

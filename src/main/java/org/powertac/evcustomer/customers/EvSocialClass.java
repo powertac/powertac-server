@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013, 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ import java.util.*;
  * record at the start of a sim session. In other words, the dynamic
  * configuration happens only at the start of a boot session.
  * 
- * @author Konstantina Valogianni, Govert Buijs
+ * @author Konstantina Valogianni, Govert Buijs, John Collins
  */
 @Domain
 @ConfigurableInstance
@@ -86,8 +86,6 @@ public class EvSocialClass extends AbstractCustomer
       bootstrapState = true,
       description = "List of customer attributes")
   private ArrayList<String> customerAttributeList = null;
-  // true just in case we are restoring from a boot record
-  private boolean restoring = false;
 
   /**
    * Default constructor, requires manual setting of name
@@ -161,10 +159,13 @@ public class EvSocialClass extends AbstractCustomer
       // pick a random car
       CarType car = pickCar(carList, ccProbability);
       // name format is class.groupId.gender.carName.index
-      String customerName =
-          this.name + "." + thisGroup.getId() + "." + gender
-          + "." + car.getName() + "." + i;
-      customerAttributeList.add(customerName);
+      String customerName = this.name + "." + i;
+      // The extra character at the end of the attribute string is padding,
+      // due to the fact that XStream seems to drop the last character
+      // of the last attribute.
+      String attributes = thisGroup.getId() + "." + gender
+                          + "." + car.getName() + ".x";
+      customerAttributeList.add(attributes);
       instantiateCustomer(beans, thisGroup, gender, car, customerName);
     }
   }
@@ -172,12 +173,14 @@ public class EvSocialClass extends AbstractCustomer
   private void configureForSim (Map<String, Collection<?>> beans)
   {
     population = customerAttributeList.size();
+    int index = 0;
     for (String description : customerAttributeList) {
       String[] attributes = description.split("\\.");
-      SocialGroup thisGroup = groups.get(Integer.parseInt(attributes[1]));
-      String gender = attributes[2];
-      CarType car = carTypes.get(attributes[3]);
-      instantiateCustomer(beans, thisGroup, gender, car, description);
+      SocialGroup thisGroup = groups.get(Integer.parseInt(attributes[0]));
+      String gender = attributes[1];
+      CarType car = carTypes.get(attributes[2]);
+      instantiateCustomer(beans, thisGroup, gender, car,
+                          this.name + "." + index++);
     }
   }
 

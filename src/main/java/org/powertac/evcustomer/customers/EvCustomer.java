@@ -751,7 +751,7 @@ public class EvCustomer
     {
       double[] result = new double[config.getProfileLength()];
 
-      for (int i = 0; i < hrsPerDay; i++) {
+      for (int i = 0; i < result.length; i++) {
         result[i] = getDominantLoad() / hrsPerDay;
       }
       return result;

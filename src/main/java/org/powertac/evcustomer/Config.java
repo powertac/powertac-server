@@ -50,11 +50,11 @@ public final class Config
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to tariffs involving curtailment")
-  private double interruptibilityFactor = 0.5;
+  private double interruptibilityFactor = 0.1;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to variable-price tariffs")
-  private double variablePricingFactor = 0.7;
+  private double variablePricingFactor = 0.1;
 
   @ConfigurableValue(valueType = "Double",
       description = "Aversion to tiered rates")
@@ -82,11 +82,11 @@ public final class Config
 
   @ConfigurableValue(valueType = "Double",
       description = "Importance of inconvenience factors")
-  private double weightInconvenience = 1.0;
+  private double weightInconvenience = 0.2;
 
   @ConfigurableValue(valueType = "Double",
       description = "Tariff evaluation inertia")
-  private double nsInertia = 0.9;
+  private double nsInertia = 0.8;
 
   @ConfigurableValue(valueType = "Integer",
           description = "Length in timeslots of evaluation profile")
