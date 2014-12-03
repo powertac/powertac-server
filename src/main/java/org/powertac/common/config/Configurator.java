@@ -247,6 +247,8 @@ public class Configurator
           log.error("Null name for " + thing.toString());
         }
         else {
+          //log.info("gathering bootstrap state for " + thingClass.getName()
+          //         + " " + name);
           gatherConfiguration(thing, (String)name, recorder,
                               new Predicate<ConfigurableProperty>() {
             @Override
@@ -285,6 +287,7 @@ public class Configurator
         String key = prefix;
         if (null != name) {
           // handle named instances
+          // TODO - this is probably a bad way to detect these...
           key = key + "." + name;
         }
         key = key + "." + prop.getKey();
