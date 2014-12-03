@@ -471,9 +471,6 @@ public class DefaultBrokerService
    */
   public void handleMessage (CustomerBootstrapData cbd)
   {
-    CustomerInfo customer =
-            customerRepo.findByNameAndPowerType(cbd.getCustomerName(),
-                                                cbd.getPowerType());
     TariffSpecification tariff = null;
     for (TariffSpecification spec : customerSubscriptions.keySet()) {
       if (cbd.getPowerType().canUse(spec.getPowerType())) {
@@ -485,19 +482,27 @@ public class DefaultBrokerService
       log.error("Failed to find tariff for powerType " + cbd.getPowerType());
     }
 
-    HashMap<CustomerInfo, CustomerRecord> customerMap = 
-      customerSubscriptions.get(tariff);
-    CustomerRecord record = customerMap.get(customer); // subscription exists
-    if (record == null) {
-      record = new CustomerRecord(customer, customer.getPopulation());
-      customerMap.put(customer, record);
+    CustomerInfo customer =
+        customerRepo.findByNameAndPowerType(cbd.getCustomerName(),
+                                            cbd.getPowerType());
+    if (null == customer) {
+      log.error("Failed to find customer " + cbd.getCustomerName());
     }
-    int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
-                  - cbd.getNetUsage().length);
-    //log.info("sn=" + timeslotRepo.currentTimeslot().getSerialNumber()
-    //         + ", offset=" + offset);
-    for (int i = 0; i < cbd.getNetUsage().length; i++) {
-      record.produceConsume(cbd.getNetUsage()[i], i + offset);
+    else {
+      HashMap<CustomerInfo, CustomerRecord> customerMap = 
+          customerSubscriptions.get(tariff);
+      CustomerRecord record = customerMap.get(customer); // subscription exists
+      if (record == null) {
+        record = new CustomerRecord(customer, customer.getPopulation());
+        customerMap.put(customer, record);
+      }
+      int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
+          - cbd.getNetUsage().length);
+      //log.info("sn=" + timeslotRepo.currentTimeslot().getSerialNumber()
+      //         + ", offset=" + offset);
+      for (int i = 0; i < cbd.getNetUsage().length; i++) {
+        record.produceConsume(cbd.getNetUsage()[i], i + offset);
+      }
     }
   }
 
