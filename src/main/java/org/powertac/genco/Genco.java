@@ -236,7 +236,7 @@ public class Genco
     updateCapacity(seed.nextDouble());
     updateInOperation(seed.nextDouble());
   }
-  
+
   /**
    * Generates Orders in the market to sell available capacity. No Orders
    * are submitted if the plant is not in operation.
@@ -272,7 +272,7 @@ public class Genco
       }
     }
   }
-  
+
   private void updateCapacity (double val)
   {
     if (variability > 0.0) {
@@ -283,18 +283,18 @@ public class Genco
                                                         currentCapacity));
     }
   }
-  
+
   @StateChange
   public void setCurrentCapacity (double val)
   {
     currentCapacity = val;
   }
-  
+
   private void updateInOperation (double val)
   {
     setInOperation(val <= reliability);
   }
-  
+
   @StateChange
   public void setInOperation (boolean op)
   {
