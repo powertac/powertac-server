@@ -170,8 +170,6 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         log.info(logIdentifier + ": Adjusted capacity for tariff " + subscription.getTariff().getId() + " = " + adjustedCapacity);        
         return adjustedCapacity;
     }
-    
 } // end class
-
 
 
