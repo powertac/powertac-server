@@ -402,12 +402,20 @@ public class TariffEvaluator
                          (double)tariff.getMinDuration()
                          / (preferredDuration * TimeService.DAY));
         cost += withdrawFactor * tariff.getEarlyWithdrawPayment();
+        if (Double.isNaN(cost)) {
+          log.error(getName() + ": cost is NaN for tariff "
+                    + tariff.getId());
+        }
       }
       // don't consider current tariff if it's revoked
       if (!revoked || tariff != currentTariff) {
         double utility = computeNormalizedDifference(cost,
                                                      defaultEval.costEstimate);
         utility -= inconvenienceWeight * inconvenience;
+        if (Double.isNaN(utility)) {
+          log.error(getName() + ": utility is NaN for tariff "
+                    + tariff.getId());
+        }
         evals.add(new TariffUtility(tariff, constrainUtility(utility)));
       }
     }
@@ -428,7 +436,7 @@ public class TariffEvaluator
               Math.exp(lambda * util.utility)
               / logitDenominator;
       if (Double.isNaN(util.probability)) {
-        log.error("Probability NAN, util=" + util.utility
+        log.error(getName() + ": Probability NAN, util=" + util.utility
                   + ", denom=" + logitDenominator
                   + ", tariff " + util.tariff);
         util.probability = 0.0;
@@ -464,7 +472,7 @@ public class TariffEvaluator
         }
       }
       if (!allocated) {
-        log.error("Failed to allocate: P=" + tariffSample);
+        log.error(getName() + ": Failed to allocate: P=" + tariffSample);
       }
     }
   }
@@ -518,7 +526,14 @@ public class TariffEvaluator
   {
     double[] profile = accessor.getCapacityProfile(tariff);
     double profileCost = helper.estimateCost(tariff, profile);
+    if (Double.isNaN(profileCost)) {
+      log.error(getName() + ": profile cost NaN for tariff "
+                + tariff.getId());
+    }
     double scale = preferredDuration * 24.0 / profile.length;
+    if (Double.isNaN(scale)) {
+      log.error(getName() + ": scale NaN for tariff " + tariff.getId());
+    }
     return profileCost * scale;
   }
 
