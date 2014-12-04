@@ -132,7 +132,7 @@ public class Configurator
     //}
     return classnamePath;
   }
-  
+
   /**
    * Creates and configures instances of the given class. In the configuration,
    * we expect to see a property of the form pkg.class.instances = a, b, c, ...
@@ -150,16 +150,11 @@ public class Configurator
       log.error("Cannot configure - no Configuration set");
       return null;
     }
-    
+
     // compute the key for the instance list
     String classname = type.getName();
     log.debug("configuring instances for type " + classname);
-    String[] classnamePath = classname.split("\\.");
-    //if (!classnamePath[0].equals("org") || !classnamePath[1].equals("powertac")) {
-    //  log.error("Cannot configure instances of type " + classname);
-    //  return null;
-    //}
-    Configuration subset = extractConfigForClass(classnamePath);
+    Configuration subset = extractSubsetForClassname(classname);
     // we should have a clause with the key "instances" giving the item
     // names, and a set of clauses for each item
     List<?> names = subset.getList("instances");
@@ -188,6 +183,61 @@ public class Configurator
       configureInstance(itemMap.get(name), subset.subset(name));
     }
     return itemMap.values();
+  }
+
+  /**
+   * Configures a set of instances of some class. In the configuration,
+   * we expect to see properties of the form
+   * pkg.class.name.property = value
+   * where name is the name of an instance in the list to be
+   * configured. These name must be accessible through a getName() method
+   * on each instance.
+   * It is an error if instances are not of the same class; in fact, the
+   * class of the first instance in the list is used to form the pkg.class.
+   * It also does not work for types that lack a getName() method returning
+   * a String, or if the name does not match the name in the properties.
+   * portion of the property names.
+   */
+  public Collection<?> configureNamedInstances (List<?> instances)
+  {
+    // If we don't have a configuration, we cannot do much.
+    if (config == null) {
+      log.error("Cannot configure - no Configuration set");
+      return null;
+    }
+
+    // We have to have a non-empty list of instances for this to work
+    if (null == instances || 0 == instances.size()) {
+      log.error("Cannot configure empty instance list");
+      return null;
+    }
+
+    // compute the key for the instance list from the first element of the list
+    String classname = instances.get(0).getClass().getName();
+    log.debug("configuring instances for type " + classname);
+    Configuration subset = extractSubsetForClassname(classname);
+
+    // for each given instance, get it's name and configure it
+    try {
+      Method getNameMethod = instances.get(0).getClass().getMethod("getName");
+      for (Object item : instances) {
+        Object result = getNameMethod.invoke(item);
+        String name = (String)result;
+        configureInstance(item, subset.subset(name));
+      }
+    }
+    catch (Exception e) {
+      log.error("Could not get name of item");
+      return null;
+    }
+    return instances;
+  }
+
+  private Configuration extractSubsetForClassname (String classname)
+  {
+    String[] classnamePath = classname.split("\\.");
+    Configuration subset = extractConfigForClass(classnamePath);
+    return subset;
   }
 
   /**

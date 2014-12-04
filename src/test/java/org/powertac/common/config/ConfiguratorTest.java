@@ -17,6 +17,7 @@ package org.powertac.common.config;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -215,6 +216,35 @@ public class ConfiguratorTest
     assertEquals("2 coefficients", 2, x1.coefficients.size());
     assertEquals("1st coefficient", "4.2", x2.coefficients.get(0));
     assertEquals("2nd coefficient", "4.2", x1.coefficients.get(1));
+  }
+
+  @Test
+  public void testConfigNamedInstance ()
+  {
+    TreeMap<String,String> map = new TreeMap<String, String>();
+    map.put("common.config.configInstance.x1.simpleProp", "42");
+    map.put("common.config.configInstance.x1.sequence", "1");
+    map.put("common.config.configInstance.x1.coefficients", "0.2, 4.2");
+    map.put("common.config.configInstance.x2.simpleProp", "32");
+    map.put("common.config.configInstance.x2.sequence", "2");
+    map.put("common.config.configInstance.x2.coefficients", "4.2, 3.2");
+    ArrayList<ConfigInstance> instanceList = new ArrayList<ConfigInstance>();
+    ConfigInstance ci1 = new ConfigInstance("x1");
+    instanceList.add(ci1);
+    ConfigInstance ci2 = new ConfigInstance("x2");
+    instanceList.add(ci2);
+    Configuration conf = new MapConfiguration(map);
+    Configurator uut = new Configurator();
+    uut.setConfiguration(conf);
+    Collection<?> result = uut.configureNamedInstances(instanceList);
+    assertEquals("two instances", 2, result.size());
+    assertEquals("name x1", "x1", ci1.getName());
+    assertEquals("name x2", "x2", ci2.getName());
+    assertEquals("simpleProp", 42, ci1.simpleProp);
+    assertEquals("sequence", 2, ci2.sequence);
+    assertEquals("2 coefficients", 2, ci1.coefficients.size());
+    assertEquals("1st coefficient", "4.2", ci2.coefficients.get(0));
+    assertEquals("2nd coefficient", "4.2", ci1.coefficients.get(1));
   }
 
   @Test
