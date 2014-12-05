@@ -302,5 +302,12 @@ public class ColdStorageTest
     {
       return mockWeatherRepo;
     }
+
+    @Override
+    public ServerConfiguration getServerConfig ()
+    {
+      // Auto-generated method stub
+      return null;
+    }
   }
 }
