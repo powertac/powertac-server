@@ -316,4 +316,11 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   {
     return weatherReportRepo;
   }
+
+  @Override
+  public ServerConfiguration getServerConfig ()
+  {
+    // Auto-generated method stub
+    return null;
+  }
 }
