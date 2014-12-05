@@ -37,7 +37,7 @@ import java.util.*;
  * the probabilities and other attributes of the various activities are
  * a function of social class, as specified in the configuration.
  * 
- * The configuration setup is basically a set of tables: social class,
+ * The configuration setup uses a set of tables: social class,
  * social group, activity, and car type. Join tables add attributes
  * between classes and groups, between classes and car types, and
  * between groups and activities (for
@@ -101,7 +101,8 @@ public class EvSocialClass extends AbstractCustomer
   }
 
   /**
-   * Hooks up data structures, creates CustomerInfo instances
+   * Hooks up data structures, creates EvCustomers and corresponding
+   * CustomerInfo instances.
    */
   @Override
   public void initialize()
@@ -119,9 +120,11 @@ public class EvSocialClass extends AbstractCustomer
     // Create and set up the customer instances
     evCustomers = new ArrayList<EvCustomer>();
     if (null == customerAttributeList) {
+      // boot session - dynamic configuration
       configureForBoot(beans);
     }
     else {
+      // sim session - restore from boot record
       configureForSim(beans);
     }
   }
@@ -159,7 +162,7 @@ public class EvSocialClass extends AbstractCustomer
       // pick a random car
       CarType car = pickCar(carList, ccProbability);
       // name format is class.groupId.gender.carName.index
-      String customerName = this.name + "." + i;
+      String customerName = this.name + "_" + i;
       // The extra character at the end of the attribute string is padding,
       // due to the fact that XStream seems to drop the last character
       // of the last attribute.
@@ -179,14 +182,16 @@ public class EvSocialClass extends AbstractCustomer
       SocialGroup thisGroup = groups.get(Integer.parseInt(attributes[0]));
       String gender = attributes[1];
       CarType car = carTypes.get(attributes[2]);
-      instantiateCustomer(beans, thisGroup, gender, car,
-                          this.name + "." + index++);
+      EvCustomer instance =
+          instantiateCustomer(beans, thisGroup, gender, car,
+                              this.name + "_" + index++);
     }
+    service.getServerConfig().configureNamedInstances(evCustomers);
   }
 
-  private void instantiateCustomer (Map<String, Collection<?>> beans,
-                                    SocialGroup thisGroup, String gender,
-                                    CarType car, String customerName)
+  private EvCustomer instantiateCustomer (Map<String, Collection<?>> beans,
+                                          SocialGroup thisGroup, String gender,
+                                          CarType car, String customerName)
   {
     EvCustomer customer = new EvCustomer(customerName);
     log.info("Adding EvCustomer " + customerName);
@@ -197,6 +202,16 @@ public class EvSocialClass extends AbstractCustomer
                             car, service);
     addCustomerInfo(info);
     service.getCustomerRepo().add(info);
+    return customer;
+  }
+
+  /**
+   * Saves state of EvCustomer instances
+   */
+  @Override
+  public void saveBootstrapState ()
+  {
+    service.getServerConfig().saveBootstrapState(evCustomers);
   }
 
   private SocialGroup pickGroup (ArrayList<SocialGroup> groupList,

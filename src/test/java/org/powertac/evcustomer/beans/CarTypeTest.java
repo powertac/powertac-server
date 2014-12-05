@@ -18,6 +18,8 @@ package org.powertac.evcustomer.beans;
 
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
+
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
@@ -26,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
+
 import static org.junit.Assert.*;
 
 
@@ -142,15 +145,19 @@ public class CarTypeTest
     @Override
     public void publishConfiguration (Object target)
     {
-      // TODO Auto-generated method stub
       
     }
 
     @Override
     public void saveBootstrapState (Object thing)
     {
-      // TODO Auto-generated method stub
       
+    }
+
+    @Override
+    public Collection<?> configureNamedInstances (List<?> instances)
+    {
+      return null;
     }
     
   }

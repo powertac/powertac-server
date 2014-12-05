@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -31,6 +32,7 @@ import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
 import org.powertac.evcustomer.beans.SocialGroup;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -475,6 +477,12 @@ public class EvCustomerTest
 
     @Override
     public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public ServerConfiguration getServerConfig ()
     {
       return null;
     }

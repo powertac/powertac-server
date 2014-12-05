@@ -18,6 +18,7 @@ package org.powertac.evcustomer.customers;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +39,7 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.ConfigTest;
+import org.powertac.evcustomer.beans.CarTypeTest;
 import org.powertac.evcustomer.beans.SocialGroup;
 import org.powertac.evcustomer.beans.ClassGroup;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -45,12 +47,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 
 /**
@@ -188,7 +190,7 @@ public class EvSocialClassTest
     assertEquals("correct number of customers", 2, customers.size());
     assertEquals("correct number of infos", 2,
                  evSocialClass.getCustomerInfos().size());
-    assertEquals("correct name", "HighIncome_2.0",
+    assertEquals("correct name", "HighIncome_2_0",
                  customers.get(0).getName());
     assertEquals("correct boot-config list 0",
                  "0.male.Tesla_40_kWh.x",
@@ -219,8 +221,9 @@ public class EvSocialClassTest
                  "0.male.Tesla_40_kWh.x", popList.get(1));
   }
 
+  // Boot-restore is triggered and creates the correct objects
   @Test
-  public void testBootRestore ()
+  public void testBootRestoreTrigger ()
   {
     ArrayList<String> gcList = new ArrayList<String>();
     gcList.add("0.male.Tesla_40_kWh.0");
@@ -233,13 +236,56 @@ public class EvSocialClassTest
     List<EvCustomer> customers = evSocialClass.getEvCustomers();
     assertEquals("3 in list", 3, customers.size());
     EvCustomer cust = customers.get(0);
+    assertEquals("correct name", className + "_0", cust.getName());
     assertEquals("correct group", 0, cust.getSocialGroup().getId());
     assertEquals("correct gender", "male", cust.getGender());
     assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
     cust = customers.get(2);
+    assertEquals("correct name", className + "_2", cust.getName());
     assertEquals("correct group", 1, cust.getSocialGroup().getId());
     assertEquals("correct gender", "female", cust.getGender());
     assertEquals("correct car", "Tesla_40_kWh", cust.getCar().getName());
+  }
+
+  // Boot-restore works from a Configuration instance
+  @Test
+  public void testBootRestoreConfig ()
+  {
+    // need to configure manually for test
+    serverConfiguration.addPropertiesConfiguration("ev-customers.properties");
+    //serverConfiguration.printKeys();
+    Collection<?> escs = 
+        serverConfiguration.configureInstances(EvSocialClass.class);
+    assertEquals("four classes", 4, escs.size());
+    EvSocialClass target = null;
+    Iterator<?> targets = escs.iterator();
+    while (targets.hasNext() && null == target) {
+      EvSocialClass candidate = (EvSocialClass)targets.next();
+      if (candidate.getName().equals("HighIncome_2")) {
+        target = candidate;
+      }
+    }
+    assertNotNull("found target", target);
+    //serverConfiguration.configureMe(evSocialClass);
+    assertNotNull("customer attribute list created",
+                  target.getCustomerAttributeList());
+    assertEquals("3 elements of customer attribute list", 3,
+                 target.getCustomerAttributeList().size());
+
+    target.setServiceAccessor(service);
+    target.initialize();
+    // make sure initialization does not mess it up
+    assertNotNull("customer attribute list created",
+                  target.getCustomerAttributeList());
+    assertEquals("3 elements of customer attribute list", 3,
+                 target.getCustomerAttributeList().size());
+
+    List<EvCustomer> customers = target.getEvCustomers();
+    assertEquals("3 customers", 3, customers.size());
+    //for (EvCustomer c : customers) {
+    //  System.out.println(c.getName() + ": " + c.isDriving());
+    //}
+    assertTrue("first customer is driving", customers.get(0).isDriving());
   }
 
 ////  @Test
@@ -374,6 +420,36 @@ public class EvSocialClassTest
       }
     }
 
+    void addXmlConfiguration (String filename)
+    {
+      InputStream stream =
+          ConfigTest.class.getResourceAsStream("/config/" + filename);
+      XMLConfiguration xconfig = new XMLConfiguration();
+      try {
+        xconfig.load(stream);
+        config.addConfiguration(xconfig);
+      }
+      catch (ConfigurationException e) {
+        e.printStackTrace();
+        fail(e.toString());
+      }
+    }
+
+    void addPropertiesConfiguration (String filename)
+    {
+      InputStream stream =
+          ConfigTest.class.getResourceAsStream("/config/" + filename);
+      PropertiesConfiguration xconfig = new PropertiesConfiguration();
+      try {
+        xconfig.load(stream);
+        config.addConfiguration(xconfig);
+      }
+      catch (ConfigurationException e) {
+        e.printStackTrace();
+        fail(e.toString());
+      }
+    }
+
     @Override
     public void configureMe (Object target)
     {
@@ -396,6 +472,21 @@ public class EvSocialClassTest
     public void saveBootstrapState (Object thing)
     {
       
+    }
+
+    @Override
+    public Collection<?> configureNamedInstances (List<?> instances)
+    {
+      return configurator.configureNamedInstances(instances);
+    }
+
+    void printKeys ()
+    {
+      Iterator<String> keys = config.getKeys();
+      while (keys.hasNext()) {
+        String key = keys.next();
+        System.out.println(key);
+      }
     }
   }
 
@@ -460,6 +551,12 @@ public class EvSocialClassTest
     public WeatherReportRepo getWeatherReportRepo ()
     {
       return null;
+    }
+
+    @Override
+    public ServerConfiguration getServerConfig ()
+    {
+      return serverConfiguration;
     }
   }
 }

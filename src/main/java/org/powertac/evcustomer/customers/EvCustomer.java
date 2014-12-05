@@ -26,6 +26,7 @@ import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableInstance;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -92,6 +93,9 @@ public class EvCustomer
   private double epsilon = 1e-6;
 
   // We are driving this timeslot, so we can't charge
+  @ConfigurableValue(valueType = "Boolean",
+      bootstrapState = true,
+      description = "True if the customer is driving and cannot charge")
   private boolean driving;
 
   // state

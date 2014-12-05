@@ -21,6 +21,7 @@ import static org.powertac.util.ListTools.*;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -194,6 +195,13 @@ public class ConfigTest
     {
       // TODO Auto-generated method stub
       
+    }
+
+    @Override
+    public Collection<?> configureNamedInstances (List<?> instances)
+    {
+      // Auto-generated method stub
+      return null;
     }
     
   }
