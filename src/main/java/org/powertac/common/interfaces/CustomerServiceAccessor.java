@@ -37,6 +37,11 @@ public interface CustomerServiceAccessor
   public CustomerRepo getCustomerRepo ();
 
   /**
+   * Returns a reference to a ServerConfiguration service
+   */
+  public ServerConfiguration getServerConfig ();
+
+  /**
    * Returns a reference to a RandomSeedRepo
    */
   public RandomSeedRepo getRandomSeedRepo ();

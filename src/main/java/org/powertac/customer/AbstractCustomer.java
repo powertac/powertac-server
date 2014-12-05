@@ -99,6 +99,15 @@ public abstract class AbstractCustomer
   }
 
   /**
+   * Saves model data to the bootstrap record. Default implementation does
+   * nothing; models may override if they aggregate objects that must save
+   * state.
+   */
+  public void saveBootstrapState ()
+  {
+  }
+
+  /**
    * Adds an additional CustomerInfo to the list
    */
   public void addCustomerInfo (CustomerInfo info)

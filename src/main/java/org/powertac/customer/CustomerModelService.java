@@ -163,6 +163,10 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public void saveBootstrapState ()
   {
     serverConfig.saveBootstrapState(models);
+    for (AbstractCustomer model : models) {
+      // some models have to save local state
+      model.saveBootstrapState();
+    }
   }
 
   // ==============================
@@ -203,5 +207,11 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public WeatherReportRepo getWeatherReportRepo ()
   {
     return weatherReportRepo;
+  }
+
+  @Override
+  public ServerConfiguration getServerConfig ()
+  {
+    return serverConfig;
   }
 }

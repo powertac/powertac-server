@@ -38,6 +38,7 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.repo.CustomerRepo;
@@ -563,6 +564,12 @@ public class AbstractCustomerTests
 
     @Override
     public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public ServerConfiguration getServerConfig ()
     {
       return null;
     }

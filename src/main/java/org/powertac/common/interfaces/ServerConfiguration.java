@@ -16,6 +16,7 @@
 package org.powertac.common.interfaces;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Support for annotation-driven configuration. Configurable services, including
@@ -34,14 +35,22 @@ public interface ServerConfiguration
    * called in the initialize() method.
    */
   public void configureMe (Object target);
-  
+
   /**
    * Creates and configures potentially multiple instances of a target class
    * annotated as @ConfigurableInstance. Returns the created instances in 
    * a list in no particular order.
    */
   public Collection<?> configureInstances (Class<?> target);
-  
+
+  /**
+   * Configures a set of named instances that have already been created.
+   * This is useful for restoring instances from a bootstrap record when
+   * those instances have already been created by, for example, a dynamically
+   * configured customer model.
+   */
+  public Collection<?> configureNamedInstances (List<?> instances);
+
   /**
    * Gathers public configuration data for publication to brokers. Data is gathered
    * from @ConfigurableValue properties with publish=true. Note that such properties
