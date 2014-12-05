@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -183,6 +184,13 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
   {
     lazyInit();
     return configurator.configureInstances(target);
+  }
+
+  @Override
+  public Collection<?> configureNamedInstances (List<?> instances)
+  {
+    lazyInit();
+    return configurator.configureNamedInstances(instances);
   }
 
   @Override
