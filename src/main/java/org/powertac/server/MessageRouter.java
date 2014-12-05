@@ -37,7 +37,8 @@ public class MessageRouter implements InitializationService
   static private Logger log = Logger.getLogger(MessageRouter.class);
 
   // Routing data
-  private HashMap<Class<?>, Set<Object>> registrations;
+  private HashMap<Class<?>, Set<Object>> registrations =
+      new HashMap<Class<?>, Set<Object>>();
 
   /**
    * returns the registrations for the given message
