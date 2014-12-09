@@ -190,11 +190,11 @@ implements CustomerModelAccessor
       double tempChange = regulation * cop / currentStock / CP_ICE;
       log.info(getName() + ": regulation = " + regulation
                + ", tempChange = " + tempChange);
-      currentTemp += tempChange;
+      setCurrentTemp(currentTemp + tempChange);
     }
 
     // add in temp change due to stock turnover
-    currentTemp += turnoverRise();
+    setCurrentTemp(currentTemp + turnoverRise());
 
     // start with the non-cooling load - this part is not subject to regulation
     updateNcUsage();
@@ -261,7 +261,7 @@ implements CustomerModelAccessor
           currentStock * CP_ICE * (getCurrentTemp() - getNominalTemp());
       adjustmentCooling = Math.min(neededCooling, maxCooling);
     }
-    currentTemp -= adjustmentCooling / (currentStock * CP_ICE);
+    setCurrentTemp(currentTemp - adjustmentCooling / (currentStock * CP_ICE));
     double energyNeeded = coolingLoss + adjustmentCooling;
     log.info(getName() + ": temp = " + currentTemp + ", adjustmentCooling = "
              + adjustmentCooling + ", total cooling energy = " + energyNeeded
@@ -389,6 +389,7 @@ implements CustomerModelAccessor
     return currentTemp;
   }
 
+  @StateChange
   void setCurrentTemp (double temp)
   {
     currentTemp = temp;

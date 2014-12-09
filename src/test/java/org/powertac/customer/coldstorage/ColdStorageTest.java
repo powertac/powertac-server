@@ -20,9 +20,21 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.TreeMap;
+
+
+
+
+
+
 
 
 //import static org.mockito.Matchers.eq;
@@ -253,6 +265,66 @@ public class ColdStorageTest
                  rc.getUpRegulationCapacity(), 1e-4);
     assertEquals("correct down-regulationCapacity", -93.44,
                  rc.getDownRegulationCapacity(), 1e-4);
+  }
+
+  @Test
+  public void testStateLog ()
+  {
+    // create a couple entries
+    init();
+    uut.setCurrentTemp(-10);
+
+    // read the state log, keeping the last few lines in a queue
+    Queue<String> items = new LinkedList<String>();
+    int linesNeeded = 3;
+    try {
+      BufferedReader input =
+          new BufferedReader(new FileReader("log/test.state"));
+      String test = input.readLine();
+      while (test != null) {
+        // looking for the last n lines from the ColdStorage instance
+        String[] segments = test.split("\\.");
+        if (segments[2].equals("customer")
+            && segments[3].equals("coldstorage")) {
+          items.add(test);
+          if (items.size() > linesNeeded)
+            items.remove();
+        }
+        test = input.readLine();
+      }
+    }
+    catch (FileNotFoundException e) {
+      fail("cannot find state file: " + e.toString());
+    }
+    catch (IOException e) {
+      fail(e.toString());
+    }
+
+    // first item is constructor, starting with msec and classname
+    String item = items.remove();
+    String[] segments = item.split("::");
+    String[] path = segments[0].split("\\.");
+    assertEquals("powertac", path[1]);
+    assertEquals("customer", path[2]);
+    assertEquals("coldstorage", path[3]);
+    assertEquals("ColdStorage", path[4]);
+    // next is id, followed by "new", "test"
+    assertEquals("new", segments[2]);
+    assertEquals("test", segments[3]);
+
+    // next is the setCurrentTemp in initialize()
+    item = items.remove();
+    segments = item.split("::");
+    // assume classname is OK, content should be setCurrentTemp with some value
+    assertEquals("setCurrentTemp", segments[2]);
+    assertEquals("-35.0", segments[3]);
+
+    // last is the setCurrentTemp we called at the start of this test
+    item = items.remove();
+    segments = item.split("::");
+    // assume classname is OK, content should be setCurrentTemp with some value
+    assertEquals("setCurrentTemp", segments[2]);
+    assertEquals("-10.0", segments[3]);
   }
 
   /**
