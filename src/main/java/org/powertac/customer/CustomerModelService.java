@@ -210,7 +210,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
   }
 
   @Override
-  public ServerConfiguration getServerConfig ()
+  public ServerConfiguration getServerConfiguration ()
   {
     return serverConfig;
   }

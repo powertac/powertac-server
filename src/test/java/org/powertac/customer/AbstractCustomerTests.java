@@ -569,7 +569,7 @@ public class AbstractCustomerTests
     }
 
     @Override
-    public ServerConfiguration getServerConfig ()
+    public ServerConfiguration getServerConfiguration ()
     {
       return null;
     }

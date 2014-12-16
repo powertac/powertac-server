@@ -39,7 +39,7 @@ public interface CustomerServiceAccessor
   /**
    * Returns a reference to a ServerConfiguration service
    */
-  public ServerConfiguration getServerConfig ();
+  public ServerConfiguration getServerConfiguration ();
 
   /**
    * Returns a reference to a RandomSeedRepo
