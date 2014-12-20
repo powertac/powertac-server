@@ -310,8 +310,9 @@ public class TimeService
   protected void setCurrentTime (AbstractDateTime time)
   {
     log.debug("ts" + id + " setCurrentTime to " + time.toString());
-    currentTime = new Instant(time);
-    currentDateTime = new DateTime(time, DateTimeZone.UTC);
+    setCurrentTime(new Instant(time));
+    //currentTime = new Instant(time);
+    //currentDateTime = new DateTime(time, DateTimeZone.UTC);
   }
 
   public void setCurrentTime ()
