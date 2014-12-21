@@ -376,7 +376,7 @@ public class ColdStorageTest
     }
 
     @Override
-    public ServerConfiguration getServerConfig ()
+    public ServerConfiguration getServerConfiguration ()
     {
       // Auto-generated method stub
       return null;
