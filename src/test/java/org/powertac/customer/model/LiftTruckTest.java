@@ -25,9 +25,12 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.config.Configurator;
+import org.powertac.customer.model.LiftTruck.BatteryState;
 
 /**
  * @author John Collins
@@ -63,16 +66,9 @@ public class LiftTruckTest
   {
     LiftTruck truck = new LiftTruck("Test");
     assertNotNull("constructed", truck);
-    assertEquals("10 trucks", 10, truck.getnTrucks());
+    //assertEquals("10 trucks", 10, truck.getnTrucks());
     assertEquals("1 trucks 2nd shift",
                  5.0, truck.getTrucksInUseWeekday().get(1), 1e-6);
-    assertEquals("3 shifts", 3, truck.getShifts().size());
-    assertEquals("first shift at midnight",
-                 0, truck.getShifts().get(0).getStart());
-    assertEquals("second shift duration",
-                 8, truck.getShifts().get(1).getDuration());
-    assertEquals("third shift start",
-                 16, truck.getShifts().get(2).getStart());
   }
 
   @Test
@@ -253,13 +249,148 @@ public class LiftTruckTest
                  3, truck.getTrucksInUseWeekend().size());
   }
 
+  // battery validation
+  @Test
+  public void testValidateBatteries ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "short,long");
+    map.put("customer.model.liftTruck.short.shifts",
+            "16, 8, 0, 8, 8, 8");
+    map.put("customer.model.liftTruck.short.trucksInUseWeekday",
+            "4.0, 4.0, 3.0");
+    map.put("customer.model.liftTruck.short.trucksInUseWeekend",
+            "2.0, 3.0, 4.0");
+    map.put("customer.model.liftTruck.short.stateOfCharge",
+        "40.0, 35.0, 30.0, 24.0, 31.0, 12.0");
+    map.put("customer.model.liftTruck.long.batteryCapacity", "24.0");
+    map.put("customer.model.liftTruck.long.shifts",
+            "6, 8, 14, 8, 22, 8");
+    map.put("customer.model.liftTruck.long.trucksInUseWeekday",
+            "5.0, 3.0, 7.0");
+    map.put("customer.model.liftTruck.long.trucksInUseWeekend",
+            "3.0, 2.0, 1.0");
+    map.put("customer.model.liftTruck.long.stateOfCharge",
+        "20.0, 15.0, 10.0, 24.0, 11.0, 12.0, 15.0, 16.0, 21.0, 22.0");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("two instances", 2, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck shortTruck = trucks.get("short");
+    shortTruck.validateShifts();
+    shortTruck.populateShifts();
+    assertEquals("short before validation", 6, shortTruck.getBatteryState().length);
+    shortTruck.validateBatteries();
+    assertEquals("short after validation", 8, shortTruck.getBatteryState().length);
+
+    LiftTruck longTruck = trucks.get("long");
+    longTruck.validateShifts();
+    longTruck.populateShifts();
+    assertEquals("long before validation", 10, longTruck.getBatteryState().length);
+    longTruck.validateBatteries();
+    assertEquals("long after validation", 16, longTruck.getBatteryState().length);
+  }
+
+  // battery validation
+  @Test
+  public void testValidateChargers ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "truck_kw, charge_kw, ncharge");
+    map.put("customer.model.liftTruck.truck_kw.truckKW", "10.0");
+    map.put("customer.model.liftTruck.charge_kw.maxChargeKW", "2.0");
+    map.put("customer.model.liftTruck.ncharge.nChargers", "3");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("three instances", 3, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck tkw = trucks.get("truck_kw");
+    tkw.ensureShifts();
+    tkw.validateShifts();
+    tkw.populateShifts();
+    assertEquals("8 chargers tkw", 8, tkw.getNChargers());
+    tkw.validateChargers();
+    assertEquals("9 after tkw validation", 9, tkw.getNChargers());
+
+    LiftTruck ckw = trucks.get("charge_kw");
+    ckw.ensureShifts();
+    ckw.validateShifts();
+    ckw.populateShifts();
+    assertEquals("8 chargers", 8, ckw.getNChargers());
+    ckw.validateChargers();
+    assertEquals("11 after validation", 11, ckw.getNChargers());
+
+    LiftTruck nc = trucks.get("ncharge");
+    nc.ensureShifts();
+    nc.validateShifts();
+    nc.populateShifts();
+    assertEquals("8 chargers", 3, nc.getNChargers());
+    nc.validateChargers();
+    assertEquals("11 after validation", 4, nc.getNChargers());
+  }
+
+  // initialize fills in unconfigured fields
+  @Test
+  public void testInitialize ()
+  {
+    LiftTruck truck = new LiftTruck("Test");
+    // initially, shift and battery state fields are empty
+    assertNull("no shifts", truck.getShifts());
+    assertNull("no battery state", truck.getDoubleStateOfCharge());
+    truck.initialize(null, null, null);
+    // now we should see default data
+    assertEquals("3 shifts", 3, truck.getShifts().size());
+    assertEquals("first shift at midnight",
+                 0, truck.getShifts().get(0).getStart());
+    assertEquals("second shift duration",
+                 8, truck.getShifts().get(1).getDuration());
+    assertEquals("third shift start",
+                 16, truck.getShifts().get(2).getStart());
+    List<Double> soc = truck.getDoubleStateOfCharge();
+    assertEquals("16 batteries", 16, soc.size());
+    assertEquals("first soc is 50.0", 50.0, soc.get(0), 1e-6);
+    assertEquals("fifth soc is 20.0", 20.0, soc.get(4), 1e-6);
+  }
+
+  // test sorting of battery state
+  @Test
+  public void sortBatteryState ()
+  {
+    LiftTruck truck = new LiftTruck("Test");
+    truck.initialize(null, null, null);
+    BatteryState[] initialState = truck.getBatteryState();
+    assertEquals("first element",
+                 50.0, initialState[0].getStateOfCharge(), 1e-6);
+    initialState[13].setInUse(0);
+    BatteryState[] sorted = truck.getSortedBatteryState();
+    assertEquals("first element 1.0",
+                 1.0, sorted[0].getStateOfCharge(), 1e-6);
+    assertEquals("2nd element",
+                 1.5, sorted[1].getStateOfCharge(), 1e-6);
+    assertEquals("3rd element skips inUse battery",
+                 4.0, sorted[2].getStateOfCharge(), 1e-6);
+    assertFalse("last unused", sorted[14].isInUse());
+    assertTrue("last element is inUse", sorted[15].isInUse());
+    assertEquals("last element",
+                 2.0, sorted[15].getStateOfCharge(), 1e-6);
+  }
+
   /**
    * Test method for {@link org.powertac.customer.model.LiftTruck#step(org.powertac.common.Timeslot)}.
    */
   @Test
   public void testStep ()
   {
-    
+    Instant now = new Instant();
+    System.out.println("hour: " + now.get(DateTimeFieldType.hourOfDay()));
+    System.out.println("day: " + now.get(DateTimeFieldType.dayOfWeek()));
   }
-
 }
