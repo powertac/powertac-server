@@ -17,6 +17,7 @@ package org.powertac.customer.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -32,7 +33,25 @@ import org.powertac.customer.AbstractCustomer;
 /**
  * Models the complement of lift trucks in a warehouse. There may be
  * multiple trucks, a number of battery packs, and a daily/weekly work
- * schedule. We assume that each truck needs one battery while it's running.
+ * schedule. We assume that each truck uses one battery pack while it
+ * is running. Since the lead-acid batteries in most lift trucks have
+ * a limited number of charge/discharge cycles, we do not assume the
+ * ability to discharge batteries into the grid to provide balancing
+ * capacity. However, the charging rate is variable, and balancing capacity
+ * can be provided by adjusting the rate.
+ * 
+ * Instances are created using the configureInstances() method. In addition
+ * to simple parameters, configuration can specify a shift schedule and
+ * the number and initial state-of-charge of battery packs.
+ * 
+ * The work schedule is specified with a list of strings called
+ * weeklySchedule that lays out
+ * blocks of shifts. Each block is of the form<br>
+ * "block", d1, d2, ..., "shift" start, duration, ntrucks, "shift", ...<br>
+ * where d1, d2, etc. are integers giving the days of the week covered by
+ * the block, with Sunday=0; start is an integer hour, duration is an
+ * integer number of hours, and ntrucks is the number of trucks that will
+ * be active during the shift.
  * 
  * @author John Collins
  */
@@ -42,9 +61,9 @@ public class LiftTruck
       Logger.getLogger(LiftTruck.class.getName());
 
   // ==== static constants ====
-  private static final int HOURS_DAY = 24;
-  private static final int DAYS_WEEK = 7;
-  private static final long HOUR = 360*1000;
+  static final int HOURS_DAY = 24;
+  static final int DAYS_WEEK = 7;
+  static final long HOUR = 3600*1000;
 
   // need a name so we can configure it
   private String name;
@@ -82,14 +101,11 @@ public class LiftTruck
   // The default value is set in the constructor to serialize the
   // construction-configuration process
   private List<String> defaultShiftData =
-      Arrays.asList("8", "8", "16", "8", "0", "8");
-  private List<Shift> shifts;
-
-  private List<Double> trucksInUseWeekday =
-      Arrays.asList(9.0, 5.0, 1.2);
-
-  private List<Double> trucksInUseWeekend =
-      Arrays.asList(4.0, 1.0, 0.5);
+      Arrays.asList("block", "2", "3", "4", "5", "6",
+                    "shift", "8", "8", "8",
+                    "shift", "16", "8", "6",
+                    "shift", "0", "8", "3");
+  private Shift[] shiftSchedule = new Shift[DAYS_WEEK * HOURS_DAY];
 
   private double[] defaultStateOfCharge =
     {50.0,48.0,25.0,22.0,20.0,18.0,16.0,
@@ -132,12 +148,6 @@ public class LiftTruck
     ensureShifts();
     ensureBatteryState();
 
-    // validate config data
-    validateShifts();
-    // At this point, we have the shifts and the correct numbers of trucks.
-    // Next we populate the shifts with truck usage data
-    populateShifts();
-
     // make sure we have enough batteries and chargers
     validateBatteries();
     validateChargers();
@@ -154,9 +164,12 @@ public class LiftTruck
   // use default data if unconfigured
   void ensureShifts ()
   {
-    if (null == shifts) {
-      setShiftData(defaultShiftData);
+    for (Shift s: shiftSchedule) {
+      if (!(null == s))
+        return; // there's at least one non-empty hour with data
     }
+    // we get here only if the schedule is empty
+    setShiftSchedule(defaultShiftData);
   }
 
   // use default data if unconfigured
@@ -164,57 +177,6 @@ public class LiftTruck
   {
     if (null == batteryState) {
       setDefaultStateOfCharge();
-    }
-  }
-
-  // ensure correspondence between shifts and trucksInuse,
-  // copy usage data into Shift instances
-  void validateShifts ()
-  {
-    int weekdayError = shifts.size() - trucksInUseWeekday.size();
-    if (weekdayError > 0) {
-      // not enough usage records
-      log.error("not enough weekday records for " + getName() + ", adding "
-               + weekdayError + " zeros");
-      while (weekdayError > 0) {
-        trucksInUseWeekday.add(0.0);
-        weekdayError -= 1;
-      }
-    }
-    else if (weekdayError < 0) {
-      log.error("Too many weekday records for " + getName() + ", removing "
-                + weekdayError + " records");
-      while (weekdayError < 0) {
-        trucksInUseWeekday.remove(trucksInUseWeekday.size() - 1);
-        weekdayError += 1;
-      }
-    }
-    int weekendError = shifts.size() - trucksInUseWeekend.size();
-    if (weekendError > 0) {
-      // not enough usage records
-      log.warn("not enough weekend records for " + getName() + ", adding "
-               + weekendError + " zeros");
-      while (weekendError > 0) {
-        trucksInUseWeekend.add(0.0);
-        weekendError -= 1;
-      }
-    }
-    else if (weekendError < 0) {
-      log.error("Too many weekend records for " + getName() + ", removing "
-                + weekendError + " records");
-      while (weekendError < 0) {
-        trucksInUseWeekend.remove(trucksInUseWeekend.size() - 1);
-        weekendError += 1;
-      }
-    }
-  }
-
-  void populateShifts ()
-  {
-    // Update the shift instances.
-    for (int i = 0; i < shifts.size(); i++) {
-      shifts.get(i).setWeekdayTrucks(trucksInUseWeekday.get(i));
-      shifts.get(i).setWeekendTrucks(trucksInUseWeekend.get(i));
     }
   }
 
@@ -226,25 +188,32 @@ public class LiftTruck
   void validateBatteries ()
   {
     int minBatteries = 0;
-    for (int i = 0; i < shifts.size(); i++) {
-      double n1 = shifts.get(i).getWeekdayTrucks();
-      int d1 = shifts.get(i).getDuration();
-      double n2 = shifts.get((i + 1) % shifts.size()).getWeekdayTrucks();
-      int d2 = shifts.get((i + 1) % shifts.size()).getDuration();
-      double neededBatteries =
-          (n1 * d1 + n2 * d2) * truckKW / getBatteryCapacity();
-      minBatteries =
-          (int)Math.max(minBatteries, Math.ceil(n1 + n2));
-      minBatteries =
-          (int)Math.max(minBatteries, Math.ceil(neededBatteries));
-      if ((n1 + n2) > getBatteryState().length) {
-        log.error("Not enough batteries for " + getName() +
-                  " (" + getBatteryState().length +
-                  ") for shift combination [" + n1 + ", " + n2 + "]");
+    Shift s1 = null;
+    Shift s2 = null;
+    for (int i = 0; i < shiftSchedule.length; i++) {
+      Shift s = shiftSchedule[i];
+      if (null == s) {
+        s1 = s2;
+      }
+      else if (s2 != s) {
+        s1 = s2;
+        s2 = s;
+        int n1 = s1.getTrucks();
+        int d1 = s1.getDuration();
+        int n2 = s2.getTrucks();
+        int d2 = s2.getDuration();
+        double neededBatteries =
+            (n1 * d1 + n2 * d2) * truckKW / getBatteryCapacity();
+        minBatteries =
+            (int)Math.max(minBatteries, (n1 + n2));
+        minBatteries =
+            (int)Math.max(minBatteries, Math.ceil(neededBatteries));
       }
     }
-    // Add discharged batteries to fill out battery complement
     if (minBatteries > getBatteryState().length) {
+      log.error("Not enough batteries (" + getBatteryState().length +
+                ") for " + getName());
+      // Add discharged batteries to fill out battery complement
       log.warn("Adding " + (minBatteries - getBatteryState().length) +
                " batteries for " + getName());
       List<Double> soc = getDoubleStateOfCharge();
@@ -263,44 +232,91 @@ public class LiftTruck
   // the shift schedule
   void validateChargers ()
   {
-    // A single charger should be able to charge a truck worth of batteries
-    // in a single shift
-    
+    // ToDo -- A single charger should be able to charge a truck worth
+    // of batteries in a single shift
 
     // The total output of the chargers should be at least enough
     // to power the trucks over a 24-hour period
-    double totalEnergy = 0;
-    for (Shift shift: shifts) {
-      totalEnergy += shift.getWeekdayTrucks() * shift.getDuration() * truckKW;
+    double maxNeeded = 0.0;
+    for (int i = 0; i < (shiftSchedule.length - HOURS_DAY); i++) {
+      double totalEnergy = 0.0;
+      Shift currentShift = shiftSchedule[i];
+      if (null != currentShift) {
+        totalEnergy +=
+            currentShift.getTrucks() * currentShift.getDuration() * truckKW;
+      }
+      for (int j = i + 1; j < (i + HOURS_DAY); j++) {
+        Shift newShift = shiftSchedule[j];
+        if (null != newShift && currentShift != newShift) {
+          totalEnergy +=
+              newShift.getTrucks() * newShift.getDuration() * truckKW;
+          currentShift = newShift;
+        }
+      }
+      maxNeeded = Math.max(maxNeeded, totalEnergy);
     }
+
     double chargeEnergy = nChargers * maxChargeKW * HOURS_DAY;
-    if (totalEnergy > chargeEnergy) {
-      double need = (totalEnergy - chargeEnergy) / (maxChargeKW * HOURS_DAY);
+    if (maxNeeded > chargeEnergy) {
+      double need = (maxNeeded - chargeEnergy) / (maxChargeKW * HOURS_DAY);
       int add = (int)Math.ceil(need);
       log.error("Insufficient charger capacity for " + getName() + ": have " +
-                chargeEnergy + ", need " + totalEnergy +
+                chargeEnergy + ", need " + maxNeeded +
                 ". Adding " + add + " chargers.");
       nChargers += add;
     }
   }
 
   // ======== per-timeslot activities ========
+  // deal with curtailment/regulation from previous timeslot.
+  // must be called in each timeslot before step().
+  public void regulate (double kWh)
+  {
+    
+  }
+
   public void step (Timeslot timeslot)
   {
     // check for end-of-shift
+//    Shift newShift = startOfShift(timeslot.getStartInstant());
+//    if (null != newShift) {
+//      Shift nextShift = shifts.get(newShift);
+//      // Put the strongest batteries in trucks for the next shift
+//      //truckCount 
+//    }
     
     // discharge batteries on active trucks
     
-    // deal with curtailment
+    // switch batteries on run-down trucks
     
     // use energy on chargers
     
+    // compute regulation capacity
+    
     // switch out charged batteries
     
-    // switch batteries on run-down trucks
   }
 
-  
+  // Returns the shift, if any, that is current at the given time.
+//  Integer indexOfShift (Instant time)
+//  {
+//    
+//  }
+
+  // If the given timeslot is the start of a new shift, then returns
+  // the shift that starts at the given time, otherwise returns null.
+//  Shift indexStartOfShift (Instant time)
+//  {
+//    Integer result = null;
+//    int hour = time.get(DateTimeFieldType.hourOfDay());
+//    for (int i = 0; i < shifts.size(); i++) {
+//      Shift shift = shifts.get(i);
+//      if (hour == shift.getStart()) {
+//        return (new Integer(i));
+//      }
+//    }
+//    return result;
+//  }
 
   // ================ getters and setters =====================
   // Note that list values must arrive and depart as List<String>,
@@ -331,65 +347,124 @@ public class LiftTruck
    * list represent pairs of (start, duration) values. 
    */
   @ConfigurableValue(valueType = "List",
-      name = "shifts",
       description = "shifts - [start, duration, start, duration, ...]")
-  public List<Shift> setShiftData (List<String> data)
+  public void setShiftSchedule (List<String> data)
   {
-    List<Integer> shiftData = new ArrayList<Integer>();
-    for (String item: data) {
-      shiftData.add(Integer.parseInt(item));
-    }
-    // make sure we have an even number of entries
-    if (shiftData.size() % 2 != 0) {
-      log.error("Odd number of entries in shift data - removing last entry");
-      shiftData.remove(shiftData.size() - 1);
-    }
-    // create and sort the shifts
-    Shift[] shiftArray = new Shift[shiftData.size() / 2];
-    for (int i = 0; i < shiftArray.length; i++) {
-      shiftArray[i] = new Shift(shiftData.remove(0), shiftData.remove(0));
-    }
-    Arrays.sort(shiftArray);
-    List<Shift> result = Arrays.asList(shiftArray);
-    shifts = result;
-    return result;
-  }
+    int blk = 0;
+    int shf = 1;
+    int state = shf;
 
-  List<Shift> getShifts ()
-  {
-    return shifts;
-  }
-
-  @ConfigurableValue(valueType = "List",
-      name = "trucksInUseWeekday",
-      description = "Number of trucks in use, by shift")
-  public void setWeekdayUsageData (List<String> data)
-  {
-    trucksInUseWeekday = new ArrayList<Double>();
-    for (String usage: data) {
-      trucksInUseWeekday.add(Double.parseDouble(usage));
-    }
-  }
-
-  List<Double> getTrucksInUseWeekday ()
-  {
-    return trucksInUseWeekday;
-  }
-
-  @ConfigurableValue(valueType = "List",
-      name = "trucksInUseWeekend",
-      description = "Number of trucks in use, by shift")
-  public void setWeekendUsageData (List<String> data)
-  {
-    trucksInUseWeekend = new ArrayList<Double>();
-    for (String usage: data) {
-      trucksInUseWeekend.add(Double.parseDouble(usage));
+    LinkedList<String> tokens = new LinkedList<String>(data);
+    ArrayList<Integer> blockData = new ArrayList<Integer>();
+    ArrayList<Integer> shiftData = new ArrayList<Integer>();
+    while (!(tokens.isEmpty())) {
+      String token = tokens.remove();
+      if (token.equals("block")) {
+        // finish shift, switch to block
+        if (!shiftData.isEmpty()) {
+          finishShift(blockData, shiftData);
+          shiftData.clear();
+        }
+        blockData.clear();
+        state = blk;
+      }
+      else if (token.equals("shift")) {
+        // finish block or previous shift, switch to shift
+        if (!shiftData.isEmpty()) {
+          finishShift(blockData, shiftData);
+          shiftData.clear();
+        }
+        state = shf;
+      }
+      else { // collect numbers into correct list
+        try {
+          if (state == shf) 
+            shiftData.add(Integer.parseInt(token));
+          else if (state == blk)
+            blockData.add(Integer.parseInt(token));
+        }
+        catch (NumberFormatException nfe) {
+          log.error("Config error for " + getName() +
+                    ": bad numeric token " + token);
+        }
+      }
     }
   }
 
-  List<Double> getTrucksInUseWeekend ()
+  private void finishShift (ArrayList<Integer> blockData,
+                            ArrayList<Integer> shiftData)
   {
-    return trucksInUseWeekend;
+    if (blockData.isEmpty()) {
+      log.error("Config error for " + getName() +
+                ": empty block for shift " + shiftData.toString());
+    }
+    else {
+      addShift(shiftData, blockData);
+    }
+  }
+
+  // Validates and creates a shift instance and populates the schedule
+  // with references to the new shift
+  void addShift (List<Integer> shiftData, List<Integer> blockData)
+  {
+    if (shiftData.size() < 3) {
+      // nothing to do here
+      log.error("Bad shift spec for " + getName() + 
+                ": " + shiftData.toString());
+      return;
+    }
+    if (!validBlock(blockData)) {
+      log.error("Bad block data for " + getName() +
+                ": " + blockData.toString());
+      return;
+    }
+    int start = shiftData.get(0);
+    if (start < 0 || start > 23) {
+      log.error("Bad shift start time " + start + " for " + getName());
+      return;
+    }
+    int duration = shiftData.get(1);
+    if (duration < 1 || duration > 24) {
+      log.error("Bad shift duration " + duration + " for " + getName());
+      return;
+    }
+    int trucks = shiftData.get(2);
+    if (trucks < 0) {
+      log.error("Negative shift truck count " + trucks + " for " + getName());
+      return;
+    }
+    Shift shift = new Shift(start, duration, trucks);
+
+    // populate the schedule, ignoring overlaps. Later shifts may overlap
+    // earlier ones. TODO; warn about overlaps
+    for (int day: blockData) {
+      for (int hour = shift.getStart();
+          hour < shift.getStart() + shift.getDuration();
+          hour++) {
+        // Remember that Sunday is 1, not 0
+        int index = hour + (day - 1) * HOURS_DAY;
+        shiftSchedule[index] = shift;
+      }
+    }
+  }
+
+  // a valid block has integers in the range [1..7]
+  boolean validBlock (List<Integer> data)
+  {
+    if (data.isEmpty()) {
+      return false;
+    }
+    for (Integer datum: data) {
+      if (datum < 1 || datum > 7) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Shift[] getShiftSchedule ()
+  {
+    return shiftSchedule;
   }
 
   double getBatteryCapacity ()
@@ -489,14 +564,14 @@ public class LiftTruck
   {
     private int start;
     private int duration;
-    private double weekdayTrucks = 0.0;
-    private double weekendTrucks = 0.0;
+    private int trucks = 0;
 
-    Shift (int start, int duration)
+    Shift (int start, int duration, int trucks)
     {
       super();
       this.start = start;
       this.duration = duration;
+      this.trucks = trucks;
     }
 
     int getStart ()
@@ -509,39 +584,26 @@ public class LiftTruck
       return duration;
     }
 
-    double getWeekdayTrucks ()
+    int getTrucks ()
     {
-      return weekdayTrucks;
+      return trucks;
     }
 
-    void setWeekdayTrucks (double weekdayTrucks)
+    void setTrucks (int count)
     {
-      this.weekdayTrucks = weekdayTrucks;
-    }
-
-    double getWeekendTrucks ()
-    {
-      return weekendTrucks;
-    }
-
-    void setWeekendTrucks (double weekendTrucks)
-    {
-      this.weekendTrucks = weekendTrucks;
-    }
-
-    double getTrucksFor (Instant date)
-    {
-      int day = date.get(DateTimeFieldType.dayOfWeek());
-      if (day > 0 && day <= 5) // Sunday is 0
-        return weekdayTrucks;
-      else
-        return weekendTrucks;
+      this.trucks = count;
     }
 
     @Override
     public int compareTo (Shift s)
     {
       return start - s.start;
+    }
+
+    @Override
+    public String toString()
+    {
+      return ("Shift(" + start + "," + duration + "," + trucks + ")");
     }
   }
 
@@ -682,77 +744,77 @@ public class LiftTruck
 
     void createFlatRatePlan ()
     {
-      // Run localChargers as soon as there are batteries that need them
-      int hour = start.get(DateTimeFieldType.hourOfDay());
-      int shiftIndex = 0;
-      int offset = 0;
-      while (shifts.get(shiftIndex).getStart() + offset < hour) {
-        shiftIndex += 1;
-        if (shiftIndex >= shifts.size()) {
-          // ran off the end
-          shiftIndex = 0;
-          offset += HOURS_DAY;
-        }
-      }
-      // Now run forward to the end
-      for (int ts = 0; ts < usage.length; ts++) {
-        int hr = ts % HOURS_DAY;
-        // if it's shift-change, then swap batteries
-        Shift shift = shifts.get(shiftIndex);
-        if (hr == shifts.get(shiftIndex).getStart()) {
-          shiftIndex = (shiftIndex + 1) % shifts.size();
-          // all the in-use batteries are no longer in-use
-          for (BatteryState battery : localBatteryState) {
-            if (battery.isInUse())
-              battery.setInUse(null);
-          }
-          // sort the batteries and put the strongest in use for the next shift
-          BatteryState[] sorted = getSortedBatteryState(localBatteryState);
-          for (int off = 1; off <= getTrucksRounded(shift, hr); off--) {
-            sorted[sorted.length - off].setInUse(off);
-          }
-          // put the weakest on the localChargers
-          for (int i = 0; i < localChargers.length; i++) {
-            if (!sorted[i].isInUse()) {
-              localChargers[i] = sorted[i];
-              sorted[i].setCharger(i);
-            }
-            else {
-              localChargers[i] = null;
-            }
-            // TODO - what happens if one gets full?
-          }
-        }
-        // all the in-use batteries run down some
-        for (int i = 0; i < localBatteryState.length; i++) {
-          BatteryState battery = localBatteryState[i];
-          if (battery.isInUse())
-            battery.discharge(truckKW);
-          // TODO - what do we do if battery is completely discharged?
-        }
-        // all the charging batteries run up some
-        for (int i = 0; i < localChargers.length; i++) {
-          BatteryState battery = localChargers[i];
-          double kWh = Math.min(maxChargeKW, batteryCapacity -
-                                battery.getStateOfCharge());
-          usage[ts] += kWh / chargeEfficiency;
-        }
-        // TODO - work out regulation capacity
-      }
-    }
-
-    // Returns the number of trucks likely to be on this shift.
-    // Used in the context of generating a tariff eval profile. 
-    int getTrucksRounded (Shift shift, int hour)
-    {
-      Instant when = start.plus(hour * HOUR);
-      int dow = when.get(DateTimeFieldType.dayOfWeek());
-      double trucks= 0.0;
-      if (dow <= 4)
-        trucks = shift.getWeekdayTrucks();
-      else
-        trucks = shift.getWeekendTrucks();
-      return (int)Math.round(trucks);
+//      // Run localChargers as soon as there are batteries that need them
+//      int hour = start.get(DateTimeFieldType.hourOfDay());
+//      int shiftIndex = 0;
+//      int offset = 0;
+//      while (shifts.get(shiftIndex).getStart() + offset < hour) {
+//        shiftIndex += 1;
+//        if (shiftIndex >= shifts.size()) {
+//          // ran off the end
+//          shiftIndex = 0;
+//          offset += HOURS_DAY;
+//        }
+//      }
+//      // Now run forward to the end
+//      for (int ts = 0; ts < usage.length; ts++) {
+//        int hr = ts % HOURS_DAY;
+//        // if it's shift-change, then swap batteries
+//        Shift shift = shifts.get(shiftIndex);
+//        if (hr == shifts.get(shiftIndex).getStart()) {
+//          shiftIndex = (shiftIndex + 1) % shifts.size();
+//          // all the in-use batteries are no longer in-use
+//          for (BatteryState battery : localBatteryState) {
+//            if (battery.isInUse())
+//              battery.setInUse(null);
+//          }
+//          // sort the batteries and put the strongest in use for the next shift
+//          BatteryState[] sorted = getSortedBatteryState(localBatteryState);
+//          for (int off = 1; off <= getTrucksRounded(shift, hr); off--) {
+//            sorted[sorted.length - off].setInUse(off);
+//          }
+//          // put the weakest on the localChargers
+//          for (int i = 0; i < localChargers.length; i++) {
+//            if (!sorted[i].isInUse()) {
+//              localChargers[i] = sorted[i];
+//              sorted[i].setCharger(i);
+//            }
+//            else {
+//              localChargers[i] = null;
+//            }
+//            // TODO - what happens if one gets full?
+//          }
+//        }
+//        // all the in-use batteries run down some
+//        for (int i = 0; i < localBatteryState.length; i++) {
+//          BatteryState battery = localBatteryState[i];
+//          if (battery.isInUse())
+//            battery.discharge(truckKW);
+//          // TODO - what do we do if battery is completely discharged?
+//        }
+//        // all the charging batteries run up some
+//        for (int i = 0; i < localChargers.length; i++) {
+//          BatteryState battery = localChargers[i];
+//          double kWh = Math.min(maxChargeKW, batteryCapacity -
+//                                battery.getStateOfCharge());
+//          usage[ts] += kWh / chargeEfficiency;
+//        }
+//        // TODO - work out regulation capacity
+//      }
+//    }
+//
+//    // Returns the number of trucks likely to be on this shift.
+//    // Used in the context of generating a tariff eval profile. 
+//    int getTrucksRounded (Shift shift, int hour)
+//    {
+//      Instant when = start.plus(hour * HOUR);
+//      int dow = when.get(DateTimeFieldType.dayOfWeek());
+//      double trucks= 0.0;
+//      if (dow <= 4)
+//        trucks = shift.getWeekdayTrucks();
+//      else
+//        trucks = shift.getWeekendTrucks();
+//      return (int)Math.round(trucks);
     }
   }
 }

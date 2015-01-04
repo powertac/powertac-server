@@ -25,7 +25,9 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -362,7 +364,7 @@ public class LiftTruckTest
 
   // test sorting of battery state
   @Test
-  public void sortBatteryState ()
+  public void testSortBatteryState ()
   {
     LiftTruck truck = new LiftTruck("Test");
     truck.initialize(null, null, null);
@@ -382,6 +384,25 @@ public class LiftTruckTest
     assertEquals("last element",
                  2.0, sorted[15].getStateOfCharge(), 1e-6);
   }
+
+  // check shift indexing, weekdays & weekends
+//  @Test
+//  public void testShiftIndex ()
+//  {
+//    LiftTruck truck = new LiftTruck("Test");
+//    truck.initialize(null, null, null);
+//    DateTime dt = new DateTime(2000, 3, 21, 0, 0, DateTimeZone.UTC);
+//    Instant time = new Instant(dt);
+//    assertEquals("0 is start of 1st shift",
+//                 new Integer(0), truck.indexStartOfShift(time));
+//    assertNull("1 is start of no shift",
+//               truck.indexStartOfShift(time.plus(LiftTruck.HOUR)));
+//    assertNull("7 is start of no shift",
+//               truck.indexStartOfShift(time.plus(LiftTruck.HOUR * 7)));
+//    assertEquals("8 is start of 2nd shift",
+//                 new Integer(1),
+//                 truck.indexStartOfShift(time.plus(LiftTruck.HOUR * 8)));
+//  }
 
   /**
    * Test method for {@link org.powertac.customer.model.LiftTruck#step(org.powertac.common.Timeslot)}.
