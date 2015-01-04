@@ -100,6 +100,7 @@ public class LiftTruck
   // These List values are configured through their setter methods.
   // The default value is set in the constructor to serialize the
   // construction-configuration process
+  private List<String> shiftData;
   private List<String> defaultShiftData =
       Arrays.asList("block", "2", "3", "4", "5", "6",
                     "shift", "8", "8", "8",
@@ -169,7 +170,7 @@ public class LiftTruck
         return; // there's at least one non-empty hour with data
     }
     // we get here only if the schedule is empty
-    setShiftSchedule(defaultShiftData);
+    setShiftData(defaultShiftData);
   }
 
   // use default data if unconfigured
@@ -348,7 +349,7 @@ public class LiftTruck
    */
   @ConfigurableValue(valueType = "List",
       description = "shifts - [start, duration, start, duration, ...]")
-  public void setShiftSchedule (List<String> data)
+  public void setShiftData (List<String> data)
   {
     int blk = 0;
     int shf = 1;
@@ -388,6 +389,10 @@ public class LiftTruck
                     ": bad numeric token " + token);
         }
       }
+    }
+    // finish up last shift
+    if (!shiftData.isEmpty()) {
+      finishShift(blockData, shiftData);
     }
   }
 
@@ -442,7 +447,7 @@ public class LiftTruck
           hour < shift.getStart() + shift.getDuration();
           hour++) {
         // Remember that Sunday is 1, not 0
-        int index = hour + (day - 1) * HOURS_DAY;
+        int index = (hour + (day - 1) * HOURS_DAY) % shiftSchedule.length;
         shiftSchedule[index] = shift;
       }
     }
@@ -462,7 +467,12 @@ public class LiftTruck
     return true;
   }
 
-  Shift[] getShiftSchedule ()
+  public List<String> getShiftData ()
+  {
+    return shiftData;
+  }
+
+  Shift[] getShiftSchedule()
   {
     return shiftSchedule;
   }
