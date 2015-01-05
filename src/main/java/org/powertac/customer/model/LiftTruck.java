@@ -102,7 +102,7 @@ public class LiftTruck
   // construction-configuration process
   private List<String> shiftData;
   private List<String> defaultShiftData =
-      Arrays.asList("block", "2", "3", "4", "5", "6",
+      Arrays.asList("block", "1", "2", "3", "4", "5",
                     "shift", "8", "8", "8",
                     "shift", "16", "8", "6",
                     "shift", "0", "8", "3");
@@ -199,16 +199,18 @@ public class LiftTruck
       else if (s2 != s) {
         s1 = s2;
         s2 = s;
-        int n1 = s1.getTrucks();
-        int d1 = s1.getDuration();
-        int n2 = s2.getTrucks();
-        int d2 = s2.getDuration();
-        double neededBatteries =
-            (n1 * d1 + n2 * d2) * truckKW / getBatteryCapacity();
-        minBatteries =
-            (int)Math.max(minBatteries, (n1 + n2));
-        minBatteries =
-            (int)Math.max(minBatteries, Math.ceil(neededBatteries));
+        if (null != s1) {
+          int n1 = s1.getTrucks();
+          int d1 = s1.getDuration();
+          int n2 = s2.getTrucks();
+          int d2 = s2.getDuration();
+          double neededBatteries =
+              (n1 * d1 + n2 * d2) * truckKW / getBatteryCapacity();
+          minBatteries =
+              (int)Math.max(minBatteries, (n1 + n2));
+          minBatteries =
+              (int)Math.max(minBatteries, Math.ceil(neededBatteries));
+        }
       }
     }
     if (minBatteries > getBatteryState().length) {

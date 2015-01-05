@@ -189,233 +189,175 @@ public class LiftTruckTest
     
   }
 
-//  @Test
-//  public void bogusShiftConfig ()
-//  {
-//    TreeMap<String, String> map = new TreeMap<String, String>();
-//    map.put("customer.model.liftTruck.instances",
-//            "short3Shift,long3Shift");
-//    map.put("customer.model.liftTruck.short3Shift.shifts",
-//            "16, 10, 6, 10, 4");
-//    map.put("customer.model.liftTruck.short3Shift.trucksInUseWeekday",
-//            "8.0, 6.0");
-//    map.put("customer.model.liftTruck.short3Shift.trucksInUseWeekend",
-//            "2.0, 1.0");
-//    map.put("customer.model.liftTruck.long3Shift.shifts",
-//            "14, 8, 22, 8, 6, 8, 7");
-//    map.put("customer.model.liftTruck.long3Shift.trucksInUseWeekday",
-//            "8.0, 6.0, 4.0");
-//    map.put("customer.model.liftTruck.long3Shift.trucksInUseWeekend",
-//            "3.0, 2.0, 1.0");
-//    config = new MapConfiguration(map);
-//    Configurator configurator = new Configurator();
-//    configurator.setConfiguration(config);
-//    Collection<?> instances =
-//        configurator.configureInstances(LiftTruck.class);
-//    assertEquals("two instances", 2, instances.size());
-//    Map<String, LiftTruck> trucks = mapNames(instances);
-//
-//    LiftTruck short3Shift = trucks.get("short3Shift");
-//    assertNotNull("found short3Shift", short3Shift);
-//    assertEquals("short3Shift spec size",
-//                 2, short3Shift.getShifts().size());
-//    assertEquals("short3Shift s1 start",
-//                 6, short3Shift.getShifts().get(0).getStart());
-//    assertEquals("short3Shift s2 duration",
-//                 10, short3Shift.getShifts().get(1).getDuration());
-//    List<Double> trucksInUse = short3Shift.getTrucksInUseWeekday();
-//    assertEquals("two entries", 2, trucksInUse.size());
-//    assertEquals("first entry", 8.0, trucksInUse.get(0), 1e-6);
-//    assertEquals("second entry", 6.0, trucksInUse.get(1), 1e-6);
-//    trucksInUse = short3Shift.getTrucksInUseWeekend();
-//    assertEquals("two entries", 2, trucksInUse.size());
-//    assertEquals("first entry", 2.0, trucksInUse.get(0), 1e-6);
-//    assertEquals("second entry", 1.0, trucksInUse.get(1), 1e-6);
-//
-//    LiftTruck long3Shift = trucks.get("long3Shift");
-//    assertNotNull("found long3Shift", long3Shift);
-//    assertEquals("long3Shift spec size",
-//                 3, long3Shift.getShifts().size());
-//    assertEquals("long3Shift s1 start",
-//                 6, long3Shift.getShifts().get(0).getStart());
-//    assertEquals("long3Shift s2 duration",
-//                 8, long3Shift.getShifts().get(1).getDuration());
-//    trucksInUse = long3Shift.getTrucksInUseWeekday();
-//    assertEquals("three entries", 3, trucksInUse.size());
-//    assertEquals("first entry", 8.0, trucksInUse.get(0), 1e-6);
-//    assertEquals("third entry", 4.0, trucksInUse.get(2), 1e-6);
-//    trucksInUse = long3Shift.getTrucksInUseWeekend();
-//    assertEquals("three entries", 3, trucksInUse.size());
-//    assertEquals("first entry", 3.0, trucksInUse.get(0), 1e-6);
-//    assertEquals("second entry", 2.0, trucksInUse.get(1), 1e-6);
-//  }
-//
-//  /**
-//   * Test method for {@link org.powertac.customer.model.LiftTruck#validateShifts()}.
-//   */
-//  @Test
-//  public void testValidateShifts ()
-//  {
-//    TreeMap<String, String> map = new TreeMap<String, String>();
-//    map.put("customer.model.liftTruck.instances",
-//            "shortShift,longShift");
-//    map.put("customer.model.liftTruck.shortShift.shifts",
-//            "16, 8, 0, 8, 8, 8");
-//    map.put("customer.model.liftTruck.shortShift.trucksInUseWeekday",
-//            "8.0, 6.0");
-//    map.put("customer.model.liftTruck.shortShift.trucksInUseWeekend",
-//            "2.0, 3.0, 4.0");
-//    map.put("customer.model.liftTruck.longShift.shifts",
-//            "6, 8, 14, 8, 22, 8");
-//    map.put("customer.model.liftTruck.longShift.trucksInUseWeekday",
-//            "8.0, 6.0, 4.0");
-//    map.put("customer.model.liftTruck.longShift.trucksInUseWeekend",
-//            "3.0, 2.0, 1.0, 5.0");
-//    config = new MapConfiguration(map);
-//    Configurator configurator = new Configurator();
-//    configurator.setConfiguration(config);
-//    Collection<?> instances =
-//        configurator.configureInstances(LiftTruck.class);
-//    assertEquals("two instances", 2, instances.size());
-//    Map<String, LiftTruck> trucks = mapNames(instances);
-//
-//    LiftTruck truck = trucks.get("shortShift");
-//    assertEquals("3 shifts",
-//                 3, truck.getShifts().size());
-//    assertEquals("2 weekday usage specs",
-//                 2, truck.getTrucksInUseWeekday().size());
-//    assertEquals("3 weekend usage specs",
-//                 3, truck.getTrucksInUseWeekend().size());
-//    truck.validateShifts();
-//    assertEquals("3 weekday usage specs",
-//                 3, truck.getTrucksInUseWeekday().size());
-//    assertEquals("3 weekend usage specs",
-//                 3, truck.getTrucksInUseWeekend().size());
-//
-//    truck = trucks.get("longShift");
-//    assertEquals("3 shifts",
-//                 3, truck.getShifts().size());
-//    assertEquals("3 weekday usage specs",
-//                 3, truck.getTrucksInUseWeekday().size());
-//    assertEquals("4 weekend usage specs",
-//                 4, truck.getTrucksInUseWeekend().size());
-//    truck.validateShifts();
-//    assertEquals("3 weekday usage specs",
-//                 3, truck.getTrucksInUseWeekday().size());
-//    assertEquals("3 weekend usage specs",
-//                 3, truck.getTrucksInUseWeekend().size());
-//  }
+  @Test
+  public void BogusShiftConfig ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "test1, test2, test3");
+    // no block
+    map.put("customer.model.liftTruck.test1.shiftData", "shift,8,10,8");
+    // no shift
+    map.put("customer.model.liftTruck.test3.shiftData", "block,1,2,3,4,5");
+    // missing shift info
+    map.put("customer.model.liftTruck.test3.shiftData",
+            "block,1,2,3,4,5, shift,6,8");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("three instances", 3, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
 
-//  // battery validation
-//  @Test
-//  public void testValidateBatteries ()
-//  {
-//    TreeMap<String, String> map = new TreeMap<String, String>();
-//    map.put("customer.model.liftTruck.instances",
-//            "short,long");
-//    map.put("customer.model.liftTruck.short.shifts",
-//            "16, 8, 0, 8, 8, 8");
-//    map.put("customer.model.liftTruck.short.trucksInUseWeekday",
-//            "4.0, 4.0, 3.0");
-//    map.put("customer.model.liftTruck.short.trucksInUseWeekend",
-//            "2.0, 3.0, 4.0");
-//    map.put("customer.model.liftTruck.short.stateOfCharge",
-//        "40.0, 35.0, 30.0, 24.0, 31.0, 12.0");
-//    map.put("customer.model.liftTruck.long.batteryCapacity", "24.0");
+    LiftTruck test1 = trucks.get("test1");
+    assertNotNull("found test1", test1);
+    Shift[] schedule = test1.getShiftSchedule();
+    for (Shift shift: schedule) {
+      if (null != shift)
+        fail("test1 non-null entry");
+    }
+
+    LiftTruck test2 = trucks.get("test2");
+    assertNotNull("found test2", test2);
+    schedule = test2.getShiftSchedule();
+    for (Shift shift: schedule) {
+      if (null != shift)
+        fail("test1 non-null entry");
+    }
+
+    LiftTruck test3 = trucks.get("test3");
+    assertNotNull("found test3", test3);
+    schedule = test3.getShiftSchedule();
+    for (Shift shift: schedule) {
+      if (null != shift)
+        fail("test1 non-null entry");
+    }
+  }
+
+  @Test
+  public void rolloverShiftConfig ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "test");
+    map.put("customer.model.liftTruck.test.shiftData",
+            "block,1,2,3,4,5, shift,8,10,8, shift,18,10,6,"
+            + "block,6, shift,8,10,3, block,7, shift,18,10,2");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("one instance", 1, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+
+    LiftTruck test = trucks.get("test");
+    assertNotNull("found uut", test);
+    Shift[] schedule = test.getShiftSchedule();
+    assertNotNull("schedule exists", schedule);
+    assertEquals("correct size", 168, schedule.length);
+    Shift s4 = schedule[0];
+    assertEquals("Mon 0:00 start", 18, s4.getStart());
+    assertEquals("Mon 0:00 dur", 10, s4.getDuration());
+    assertEquals("Mon 0:00 trucks", 2, s4.getTrucks());
+    assertEquals("Mon 3:00", s4, schedule[3]);
+    assertNull("idle Mon 4:00", schedule[4]);
+  }
+
+  // battery validation
+  @Test
+  public void testValidateBatteries ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "short,long");
+    map.put("customer.model.liftTruck.short.shiftData",
+            "block,1,2,3,4,5, shift,6,8,8, shift,14,8,6, shift,22,8,4,"
+            + "block,6,7, shift,6,8,3, shift,14,8,2");
+    map.put("customer.model.liftTruck.short.stateOfCharge",
+        "40.0, 35.0, 30.0, 24.0, 31.0, 12.0");
+    map.put("customer.model.liftTruck.long.batteryCapacity", "24.0");
+    map.put("customer.model.liftTruck.long.shiftData",
+            "block,1,2,3,4,5, shift,6,8,5, shift,14,8,3, shift,22,8,7,"
+            + "block,6,7, shift,6,8,3, shift,14,8,2");
 //    map.put("customer.model.liftTruck.long.shifts",
 //            "6, 8, 14, 8, 22, 8");
 //    map.put("customer.model.liftTruck.long.trucksInUseWeekday",
 //            "5.0, 3.0, 7.0");
 //    map.put("customer.model.liftTruck.long.trucksInUseWeekend",
 //            "3.0, 2.0, 1.0");
-//    map.put("customer.model.liftTruck.long.stateOfCharge",
-//        "20.0, 15.0, 10.0, 24.0, 11.0, 12.0, 15.0, 16.0, 21.0, 22.0");
-//    config = new MapConfiguration(map);
-//    Configurator configurator = new Configurator();
-//    configurator.setConfiguration(config);
-//    Collection<?> instances =
-//        configurator.configureInstances(LiftTruck.class);
-//    assertEquals("two instances", 2, instances.size());
-//    Map<String, LiftTruck> trucks = mapNames(instances);
-//    LiftTruck shortTruck = trucks.get("short");
-//    shortTruck.validateShifts();
-//    shortTruck.populateShifts();
-//    assertEquals("short before validation", 6, shortTruck.getBatteryState().length);
-//    shortTruck.validateBatteries();
-//    assertEquals("short after validation", 8, shortTruck.getBatteryState().length);
-//
-//    LiftTruck longTruck = trucks.get("long");
-//    longTruck.validateShifts();
-//    longTruck.populateShifts();
-//    assertEquals("long before validation", 10, longTruck.getBatteryState().length);
-//    longTruck.validateBatteries();
-//    assertEquals("long after validation", 16, longTruck.getBatteryState().length);
-//  }
+    map.put("customer.model.liftTruck.long.stateOfCharge",
+        "20.0, 15.0, 10.0, 24.0, 11.0, 12.0, 15.0, 16.0, 21.0, 22.0");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("two instances", 2, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
 
-//  // battery validation
-//  @Test
-//  public void testValidateChargers ()
-//  {
-//    TreeMap<String, String> map = new TreeMap<String, String>();
-//    map.put("customer.model.liftTruck.instances",
-//            "truck_kw, charge_kw, ncharge");
-//    map.put("customer.model.liftTruck.truck_kw.truckKW", "10.0");
-//    map.put("customer.model.liftTruck.charge_kw.maxChargeKW", "2.0");
-//    map.put("customer.model.liftTruck.ncharge.nChargers", "3");
-//    config = new MapConfiguration(map);
-//    Configurator configurator = new Configurator();
-//    configurator.setConfiguration(config);
-//    Collection<?> instances =
-//        configurator.configureInstances(LiftTruck.class);
-//    assertEquals("three instances", 3, instances.size());
-//    Map<String, LiftTruck> trucks = mapNames(instances);
-//    LiftTruck tkw = trucks.get("truck_kw");
-//    tkw.ensureShifts();
-//    tkw.validateShifts();
-//    tkw.populateShifts();
-//    assertEquals("8 chargers tkw", 8, tkw.getNChargers());
-//    tkw.validateChargers();
-//    assertEquals("9 after tkw validation", 9, tkw.getNChargers());
-//
-//    LiftTruck ckw = trucks.get("charge_kw");
-//    ckw.ensureShifts();
-//    ckw.validateShifts();
-//    ckw.populateShifts();
-//    assertEquals("8 chargers", 8, ckw.getNChargers());
-//    ckw.validateChargers();
-//    assertEquals("11 after validation", 11, ckw.getNChargers());
-//
-//    LiftTruck nc = trucks.get("ncharge");
-//    nc.ensureShifts();
-//    nc.validateShifts();
-//    nc.populateShifts();
-//    assertEquals("8 chargers", 3, nc.getNChargers());
-//    nc.validateChargers();
-//    assertEquals("11 after validation", 4, nc.getNChargers());
-//  }
+    LiftTruck shortTruck = trucks.get("short");
+    assertEquals("short before validation", 6, shortTruck.getBatteryState().length);
+    shortTruck.validateBatteries();
+    assertEquals("short after validation", 14, shortTruck.getBatteryState().length);
 
-//  // initialize fills in unconfigured fields
-//  @Test
-//  public void testInitialize ()
-//  {
-//    LiftTruck truck = new LiftTruck("Test");
-//    // initially, shift and battery state fields are empty
-//    assertNull("no shifts", truck.getShifts());
-//    assertNull("no battery state", truck.getDoubleStateOfCharge());
-//    truck.initialize(null, null, null);
-//    // now we should see default data
-//    assertEquals("3 shifts", 3, truck.getShifts().size());
-//    assertEquals("first shift at midnight",
-//                 0, truck.getShifts().get(0).getStart());
-//    assertEquals("second shift duration",
-//                 8, truck.getShifts().get(1).getDuration());
-//    assertEquals("third shift start",
-//                 16, truck.getShifts().get(2).getStart());
-//    List<Double> soc = truck.getDoubleStateOfCharge();
-//    assertEquals("16 batteries", 16, soc.size());
-//    assertEquals("first soc is 50.0", 50.0, soc.get(0), 1e-6);
-//    assertEquals("fifth soc is 20.0", 20.0, soc.get(4), 1e-6);
-//  }
+    LiftTruck longTruck = trucks.get("long");
+    assertEquals("long before validation", 10, longTruck.getBatteryState().length);
+    longTruck.validateBatteries();
+    assertEquals("long after validation", 16, longTruck.getBatteryState().length);
+  }
+
+  // charger validation
+  @Test
+  public void testValidateChargers ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "truck_kw, charge_kw, ncharge");
+    map.put("customer.model.liftTruck.truck_kw.truckKW", "10.0");
+    map.put("customer.model.liftTruck.charge_kw.maxChargeKW", "2.0");
+    map.put("customer.model.liftTruck.ncharge.nChargers", "3");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("three instances", 3, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck tkw = trucks.get("truck_kw");
+    tkw.ensureShifts();
+    assertEquals("8 chargers tkw", 8, tkw.getNChargers());
+    tkw.validateChargers();
+    assertEquals("14 after tkw validation", 14, tkw.getNChargers());
+
+    LiftTruck ckw = trucks.get("charge_kw");
+    ckw.ensureShifts();
+    assertEquals("8 chargers", 8, ckw.getNChargers());
+    ckw.validateChargers();
+    assertEquals("17 after validation", 17, ckw.getNChargers());
+
+    LiftTruck nc = trucks.get("ncharge");
+    nc.ensureShifts();
+    assertEquals("8 chargers", 3, nc.getNChargers());
+    nc.validateChargers();
+    assertEquals("6 after validation", 6, nc.getNChargers());
+  }
+
+  // initialize fills in unconfigured fields
+  @Test
+  public void testInitialize ()
+  {
+    LiftTruck truck = new LiftTruck("Test");
+    // initially, shift and battery state fields are empty
+    assertNull("no battery state", truck.getDoubleStateOfCharge());
+    truck.initialize(null, null, null);
+    // now we should see default data
+    List<Double> soc = truck.getDoubleStateOfCharge();
+    assertEquals("16 batteries", 16, soc.size());
+    assertEquals("first soc is 50.0", 50.0, soc.get(0), 1e-6);
+    assertEquals("fifth soc is 20.0", 20.0, soc.get(4), 1e-6);
+  }
 
   // test sorting of battery state
   @Test
@@ -446,8 +388,8 @@ public class LiftTruckTest
   @Test
   public void testStep ()
   {
-    Instant now = new Instant();
-    System.out.println("hour: " + now.get(DateTimeFieldType.hourOfDay()));
-    System.out.println("day: " + now.get(DateTimeFieldType.dayOfWeek()));
+//    Instant now = new Instant();
+//    System.out.println("hour: " + now.get(DateTimeFieldType.hourOfDay()));
+//    System.out.println("day: " + now.get(DateTimeFieldType.dayOfWeek()));
   }
 }
