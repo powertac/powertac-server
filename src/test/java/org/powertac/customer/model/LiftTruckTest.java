@@ -31,9 +31,13 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
+import org.powertac.customer.StepInfo;
 import org.powertac.customer.model.LiftTruck.BatteryState;
 import org.powertac.customer.model.LiftTruck.Shift;
+import org.powertac.customer.model.LiftTruck.ShiftEnergy;
 
 /**
  * @author John Collins
@@ -351,7 +355,7 @@ public class LiftTruckTest
     LiftTruck truck = new LiftTruck("Test");
     // initially, shift and battery state fields are empty
     assertNull("no battery state", truck.getDoubleStateOfCharge());
-    truck.initialize(null, null, null);
+    truck.initialize(null, null,  new RandomSeed("test", 0, "1"));
     // now we should see default data
     List<Double> soc = truck.getDoubleStateOfCharge();
     assertEquals("16 batteries", 16, soc.size());
@@ -364,11 +368,11 @@ public class LiftTruckTest
   public void testSortBatteryState ()
   {
     LiftTruck truck = new LiftTruck("Test");
-    truck.initialize(null, null, null);
+    truck.initialize(null, null,  new RandomSeed("test", 0, "1"));
     BatteryState[] initialState = truck.getBatteryState();
     assertEquals("first element",
                  50.0, initialState[0].getStateOfCharge(), 1e-6);
-    initialState[13].setInUse(0);
+    initialState[13].setInUse(true);
     BatteryState[] sorted = truck.getSortedBatteryState();
     assertEquals("first element 1.0",
                  1.0, sorted[0].getStateOfCharge(), 1e-6);
@@ -380,6 +384,54 @@ public class LiftTruckTest
     assertTrue("last element is inUse", sorted[15].isInUse());
     assertEquals("last element",
                  2.0, sorted[15].getStateOfCharge(), 1e-6);
+  }
+
+  @Test
+  public void testFutureEnergyNeedsDefault ()
+  {
+    LiftTruck truck = new LiftTruck("Test");
+    truck.initialize(null, null, new RandomSeed("test", 0, "1"));
+    DateTime now =
+        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    Timeslot ts = new Timeslot(2, now.toInstant());
+    StepInfo info = new StepInfo(ts, null);
+    ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
+    assertNotNull("needs not null", needs);
+    assertEquals("8 items", 8, needs.length);
+    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
+    assertEquals("[0] ends at 16", 16, needs[0].getNextShift().getStart());
+  }
+
+  @Test
+  public void testFutureEnergyNeedsIdle ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "idle");
+    map.put("customer.model.liftTruck.idle.shiftData",
+            "block,1,2,3,4,5, shift,8,8,8, shift,0,8,6,"
+            + "block,6,7, shift,8,8,4");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("one instance", 1, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck tk = trucks.get("idle");
+    assertNotNull("got configured", tk);
+    tk.initialize(null, null, new RandomSeed("test", 0, "2"));
+    DateTime now =
+        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    Timeslot ts = new Timeslot(2, now.toInstant());
+    StepInfo info = new StepInfo(ts, null);
+    ShiftEnergy[] needs = tk.ensureFutureEnergyNeeds(info);
+    assertNotNull("needs not null", needs);
+    assertEquals("8 items", 8, needs.length);
+    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
+    assertNull("[0] ends at idle", needs[0].getNextShift());
+    assertNotNull("[1] not null", needs[1].getNextShift());
+    assertEquals("[1] ends at midnight", 0, needs[1].getNextShift().getStart());
   }
 
   /**
