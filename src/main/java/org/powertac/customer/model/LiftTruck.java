@@ -359,36 +359,30 @@ public class LiftTruck
     if (tariff.isTimeOfUse()) {
       return useEnergyTOU(info);
     }
-    else {
-      return useEnergyFlat(info);
-    }
-  }
-
-  // use energy in a flat-rate tariff
-  double useEnergyFlat (StepInfo info)
-  {
-    if (info.getSubscription().getTariff().hasRegulationRate()) {
+    else if (info.getSubscription().getTariff().hasRegulationRate()) {
       return useEnergyStorage(info);
     }
     else {
-      return (useEnergyFirst(info));
+      double energyUsed = 0.0;
+      BatteryState[] batteries = batteryState;
+      for (int i = 0; i < batteries.length; i++) {
+        if (batteries[i].isCharging()) {
+          energyUsed += batteries[i].charge(maxChargeKW * currentChargeRate);
+          if (batteries[i].getStateOfCharge() >= batteryCapacity) {
+            stopCharging(batteries[i]);
+            chargeWeakestAvailableBattery();
+          }
+        }
+      }
+      return energyUsed;
     }
   }
 
-  // uses energy as soon as possible
-  double useEnergyFirst (StepInfo info)
+  // use energy in a time-of-use tariff
+  double useEnergyTOU (StepInfo info)
   {
-    BatteryState[] batteries = batteryState;
     double energyUsed = 0.0;
-    for (int i = 0; i < batteries.length; i++) {
-      if (batteries[i].isCharging()) {
-        energyUsed += batteries[i].charge(maxChargeKW * currentChargeRate);
-        if (batteries[i].getStateOfCharge() >= batteryCapacity) {
-          stopCharging(batteries[i]);
-          chargeWeakestAvailableBattery();
-        }
-      }
-    }
+    ShiftEnergy[] constraints = ensureFutureEnergyNeeds(info);
     return energyUsed;
   }
 
@@ -396,26 +390,13 @@ public class LiftTruck
   double useEnergyStorage (StepInfo info)
   {
     ShiftEnergy[] constraints = ensureFutureEnergyNeeds(info);
-    
+    ShiftEnergy constraint = constraints[0];
+    double needed = constraint.getEnergyNeeded();
+    double rate = needed / constraint.duration;
+    // split the rate among available chargers?
+    // or run as many as possible at full power?
+    constraint.tick();
     return 0.0;
-  }
-
-  // use energy in a time-of-use tariff
-  double useEnergyTOU (StepInfo info)
-  {
-    ShiftEnergy[] constraints = ensureFutureEnergyNeeds(info);
-    BatteryState[] batteries = batteryState;
-    double energyUsed = 0.0;
-    for (int i = 0; i < batteries.length; i++) {
-      if (batteries[i].isCharging()) {
-        energyUsed += batteries[i].charge(maxChargeKW * currentChargeRate);
-        if (batteries[i].getStateOfCharge() >= batteryCapacity) {
-          stopCharging(batteries[i]);
-          chargeWeakestAvailableBattery();
-        }
-      }
-    }
-    return energyUsed;
   }
 
   // returns the battery with highest SOC that is not in use, and either
