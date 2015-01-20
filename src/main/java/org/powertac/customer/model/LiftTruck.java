@@ -36,13 +36,15 @@ import org.powertac.customer.StepInfo;
 
 /**
  * Models the complement of lift trucks in a warehouse. There may be
- * multiple trucks, a number of battery packs, and a daily/weekly work
- * schedule. We assume that each truck uses one battery pack while it
- * is running. Since the lead-acid batteries in most lift trucks have
+ * multiple trucks, some number of battery packs, and a daily/weekly work
+ * schedule. Since the lead-acid batteries in most lift trucks have
  * a limited number of charge/discharge cycles, we do not assume the
  * ability to discharge batteries into the grid to provide balancing
  * capacity. However, the charging rate is variable, and balancing capacity
- * can be provided by adjusting the rate.
+ * can be provided by adjusting the rate. Batteries and battery chargers
+ * are not modeled directly;
+ * instead, we simply keep track of the overall battery capacity and how
+ * it changes when shifts start and end, and when chargers run.
  * 
  * Instances are created using the configureInstances() method. In addition
  * to simple parameters, configuration can specify a shift schedule and
@@ -80,21 +82,17 @@ public class LiftTruck
       description = "Std dev of truck power usage")
   private double truckStd = 0.8;
 
-//  @ConfigurableValue(valueType = "Integer",
-//      description = "number of trucks in facility")
-//  private int nTrucks = 10;
-
-  @ConfigurableValue(valueType = "Integer",
-      description = "number of battery localChargers")
-  private int nChargers = 8;
-
   @ConfigurableValue(valueType = "Double",
-      description = "battery capacity per truck")
+      description = "size of battery pack in kWh")
   private double batteryCapacity = 50.0;
 
-  @ConfigurableValue(valueType = "Double",
-      description = "Minimum charge level to remove battery from charger")
-  private double minChargedCapacity = 45.0;
+  @ConfigurableValue(valueType = "Integer",
+      description = "total number of battery packs")
+  private int nBatteries = 15;
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "number of battery chargers")
+  private int nChargers = 8;
 
   @ConfigurableValue(valueType = "Double",
       description = "maximum charge rate of one truck's battery pack")
@@ -121,14 +119,14 @@ public class LiftTruck
   private Shift[] shiftSchedule = new Shift[DAYS_WEEK * HOURS_DAY];
   private Shift currentShift = null;
 
-  private double[] defaultStateOfCharge =
-    {50.0,48.0,25.0,22.0,20.0,18.0,16.0,
-     14.0,12.0,10.0,8.0,6.0,4.0,2.0,1.5,1.0}; // one entry per battery
-
   // ==== Current state ====
-  private BatteryState[] batteryState;
-  private int availableChargers;
-  private double currentChargeRate = 1.0;
+//  private double currentChargeRate = 1.0;
+  private double stateOfCharge = 0.7;
+  private double capacityInUse = 0.0; // capacity in use during shift
+  private double socInUse = 0.0; // state-of-charge for in-use batteries
+  private double capacityCharging = 0.0;
+  private double socCharging = 0.0;
+
   private TariffSubscription currentSubscription;
   // constraint on current charging energy usage
   private ShiftEnergy[] futureEnergyNeeds = null;
@@ -167,20 +165,15 @@ public class LiftTruck
 
     // use default values when not configured
     ensureShifts();
-    ensureBatteryState();
+    //ensureBatteryState();
 
     // make sure we have enough batteries and availableChargers
     validateBatteries();
     validateChargers();
 
-    // put the weakest batteries on availableChargers
-    availableChargers = nChargers;
-    BatteryState[] sortedBatteries = getSortedBatteryState();
-    for (int i = 0; i < nChargers; i++) {
-      sortedBatteries[i].setCharging(true);
-      availableChargers -= 1;
-    }
-    //TariffSubscription sub = customer.getCurrentSubscriptions().get(0);
+    // all batteries are charging
+    socCharging = getStateOfCharge();
+    capacityCharging = batteryCapacity * nBatteries;
   }
 
   // use default data if unconfigured
@@ -192,14 +185,6 @@ public class LiftTruck
     }
     // we get here only if the schedule is empty
     setShiftData(defaultShiftData);
-  }
-
-  // use default data if unconfigured
-  void ensureBatteryState ()
-  {
-    if (null == batteryState) {
-      setDefaultStateOfCharge();
-    }
   }
 
   // We have to ensure that there are enough batteries to 
@@ -234,21 +219,16 @@ public class LiftTruck
         }
       }
     }
-    if (minBatteries > getBatteryState().length) {
-      log.error("Not enough batteries (" + getBatteryState().length +
+    int neededBatteries = minBatteries - nBatteries;
+    if (neededBatteries > 0) {
+      log.error("Not enough batteries (" + nBatteries +
                 ") for " + getName());
       // Add discharged batteries to fill out battery complement
-      log.warn("Adding " + (minBatteries - getBatteryState().length) +
-               " batteries for " + getName());
-      List<Double> soc = getDoubleStateOfCharge();
-      List<String> newSoc = new ArrayList<String>(minBatteries);
-      for (Double b: soc) {
-        newSoc.add(b.toString());
-      }
-      for (int i = 0; i < (minBatteries - getBatteryState().length); i++) {
-        newSoc.add("0.0");
-      }
-      setStateOfCharge(newSoc);
+      log.warn("Adding " + neededBatteries + " batteries for " + getName());
+      double totalCapacity = batteryCapacity * nBatteries;
+      double availableCapacity = stateOfCharge * totalCapacity;
+      nBatteries += neededBatteries;
+      setStateOfCharge(availableCapacity / (batteryCapacity * nBatteries));
     }
   }
 
@@ -307,46 +287,32 @@ public class LiftTruck
     if (newShift != currentShift) {
       // start of shift
       // Take all batteries out of service
-      for (BatteryState state: batteryState) {
-        state.clearInUse();
-      }
+      double totalCapacity = capacityInUse + capacityCharging;
+      
       // Put the strongest batteries in trucks for the next shift
       if (null != newShift) {
-        BatteryState[] bts = getSortedBatteryState();
-        for (int i = 0; i < newShift.getTrucks(); i++) {
-          bts[i].setInUse(true);
-        }
+        double truckCapacity = newShift.getTrucks() * batteryCapacity;
+        capacityInUse = Math.min(truckCapacity, totalCapacity);
+        capacityCharging = totalCapacity - capacityInUse;
       }
     }
 
     // discharge batteries on active trucks
-    BatteryState[] batteries = getSortedBatteryState();
-    for (int i = batteries.length - 1; batteries[i].isInUse(); i--) {
-      BatteryState bat = batteries[i];
-      double usage = Math.max(0.0, normal.sample() * truckStd + truckKW);
-      bat.discharge(usage);
-      // switch batteries on run-down trucks
-      if (bat.getStateOfCharge() < truckKW) {
-        // switch this one out
-        bat.clearInUse();
-        // find strongest replacement
-        useStrongestAvailableBattery();
-      }
+    double usage =
+        Math.max(0.0,
+                 normal.sample() * truckStd +
+                 truckKW * currentShift.getTrucks());
+    double deficit = usage - capacityInUse;
+    log.debug(getName() + ": trucks use " + usage + " kWh");
+    if (deficit > 0.0) {
+      log.warn(getName() + ": trucks run out of capacity by "
+               + deficit + " kWh");
+      capacityInUse += deficit;
+      capacityCharging -= deficit;
     }
+    capacityInUse -= usage;
 
-    // switch out charged batteries
-    batteries = getSortedBatteryState(); // sort again
-    for (int i = 0; i < batteries.length; i++) {
-      if (batteries[i].getStateOfCharge() < batteryCapacity) {
-        break;
-      }
-      if (batteries[i].isCharging()) {
-        stopCharging(batteries[i]);
-        chargeWeakestAvailableBattery();
-      }
-    }
-
-    // use energy on active chargers, swap out batteries that are fully charged
+    // use energy on chargers
     double energyUsed = useEnergy(info);
     info.addkWh(energyUsed);
 
@@ -363,19 +329,19 @@ public class LiftTruck
       return useEnergyStorage(info);
     }
     else {
-      double energyUsed = 0.0;
-      BatteryState[] batteries = batteryState;
-      for (int i = 0; i < batteries.length; i++) {
-        if (batteries[i].isCharging()) {
-          energyUsed += batteries[i].charge(maxChargeKW * currentChargeRate);
-          if (batteries[i].getStateOfCharge() >= batteryCapacity) {
-            stopCharging(batteries[i]);
-            chargeWeakestAvailableBattery();
-          }
-        }
-      }
-      return energyUsed;
+      return useEnergyEarly(info);
     }
+  }
+
+  double useEnergyEarly (StepInfo info)
+  {
+    double max = nChargers * maxChargeKW;
+    double avail =
+        (nBatteries - currentShift.getTrucks())
+        * batteryCapacity - capacityCharging;
+    double energyUsed = Math.min(max, avail) / chargeEfficiency;
+    log.debug(getName() + " useEarly " + energyUsed);
+    return energyUsed;
   }
 
   // use energy in a time-of-use tariff
@@ -397,58 +363,6 @@ public class LiftTruck
     // or run as many as possible at full power?
     constraint.tick();
     return 0.0;
-  }
-
-  // returns the battery with highest SOC that is not in use, and either
-  // not charging or already sufficiently charged. If we choose one that's
-  // charging, then we have to put another one on the charging we vacated.
-  void useStrongestAvailableBattery ()
-  {
-    BatteryState[] state = getSortedBatteryState();
-    for (BatteryState bat: state) {
-      if (bat.isCharging() && bat.getStateOfCharge() > minChargedCapacity) {
-        stopCharging(bat);
-        bat.setInUse(true);
-        chargeWeakestAvailableBattery();
-        return;
-      }
-      bat.setInUse(true);
-      return;
-    }
-  }
-
-  // ======== battery mgmt ========
-  // puts the weakest available battery on a charger
-  void chargeWeakestAvailableBattery ()
-  {
-    if (getAvailableChargers() <= 0) {
-      // no available availableChargers
-      return;
-    }
-    BatteryState[] state = getSortedBatteryState();
-    for (int i = state.length - 1; i >= 0; i--) {
-      if (!(state[i].isInUse() || state[i].isCharging())
-          && state[i].getStateOfCharge() < minChargedCapacity) {
-        startCharging(state[i]);
-        return;
-      }
-    }
-  }
-
-  // start charging a battery, updating its state and
-  // the number of chargers in use
-  private void startCharging (BatteryState bat)
-  {
-    bat.setCharging(true);
-    availableChargers -= 1;
-  }
-
-  // stop charging a battery, updating its state and
-  // the number of chargers in use
-  private void stopCharging (BatteryState bat)
-  {
-    bat.setCharging(false);
-    availableChargers += 1;
   }
 
   // Ensures that we know the minimum energy we need for the future
@@ -498,15 +412,15 @@ public class LiftTruck
       }
       // chargers is min of charger capacity and battery availability
       int chargers = getNChargers();
-      int availableBatteries = batteryState.length;
+      int availableBatteries = nBatteries;
       if (null != currentShift) {
         availableBatteries -= currentShift.getTrucks();
       }
       chargers = (int)Math.min(chargers, availableBatteries);
       double available =
           getMaxChargeKW() * result[i].getDuration() * chargers;
-      shortage = Math.max(0.0, (available - needed - shortage));
-      double surplus = Math.min(0.0, available - needed - shortage);
+      shortage = Math.max(0.0, -(available - needed - shortage));
+      double surplus = Math.max(0.0, available - needed - shortage);
       result[i].setEnergyNeeded(needed);
       result[i].setMaxSurplus(surplus);
     }
@@ -577,7 +491,7 @@ public class LiftTruck
    * list represent pairs of (start, duration) values. 
    */
   @ConfigurableValue(valueType = "List",
-      description = "shifts - [start, duration, start, duration, ...]")
+      description = "shift spec [block, shift, ..., block, shift, ...]")
   public void setShiftData (List<String> data)
   {
     int blk = 0;
@@ -711,14 +625,14 @@ public class LiftTruck
     return batteryCapacity;
   }
 
+  int getnBatteries ()
+  {
+    return nBatteries;
+  }
+
   int getNChargers ()
   {
     return nChargers;
-  }
-
-  int getAvailableChargers ()
-  {
-    return availableChargers;
   }
 
   double getMaxChargeKW ()
@@ -731,71 +645,18 @@ public class LiftTruck
     return chargeEfficiency;
   }
 
-  @ConfigurableValue(valueType = "List",
+  @ConfigurableValue(valueType = "Double",
       name = "stateOfCharge",
       bootstrapState = true,
-      description = "current state-of-charge per battery")
-  public void setStateOfCharge (List<String> data)
+      description = "current state-of-charge fraction of battery capacity")
+  public void setStateOfCharge (double value)
   {
-    batteryState = new BatteryState[data.size()];
-    int index = 0;
-    for (String value: data) {
-      batteryState[index] =
-          new BatteryState(index, Double.parseDouble(value));
-      index += 1;
-    }
+    stateOfCharge = value;
   }
 
-  // intended to be used only if soc not configured
-  void setDefaultStateOfCharge ()
+  public double getStateOfCharge()
   {
-    batteryState = new BatteryState[defaultStateOfCharge.length];
-    int index = 0;
-    for (double value: defaultStateOfCharge) {
-      batteryState[index] =
-          new BatteryState(index, value);
-      index += 1;
-    }
-  }
-
-  public List<String> getStateOfCharge ()
-  {
-    if (null == batteryState)
-      return null;
-    ArrayList<String> soc = new ArrayList<String>(batteryState.length);
-    for (Double state: getDoubleStateOfCharge()) {
-      soc.add(state.toString());
-    }
-    return soc;
-  }
-
-  public List<Double> getDoubleStateOfCharge ()
-  {
-    if (null == batteryState)
-      return null;
-    ArrayList<Double> soc = new ArrayList<Double>(batteryState.length);
-    for (BatteryState state: batteryState) {
-      soc.add(state.getStateOfCharge());
-    }
-    return soc;
-  }
-
-  BatteryState[] getBatteryState ()
-  {
-    return batteryState;
-  }
-
-  // returns battery state sorted by inUse, then by soc
-  BatteryState[] getSortedBatteryState ()
-  {
-    return getSortedBatteryState(batteryState);
-  }
-
-  BatteryState[] getSortedBatteryState (BatteryState[] state)
-  {
-    BatteryState[] result = state.clone();
-    Arrays.sort(result);
-    return result;
+    return stateOfCharge;
   }
 
   double getPlanningHorizon ()
@@ -933,104 +794,12 @@ public class LiftTruck
     }
   }
 
-  // ======== State of an individual battery ========
-  class BatteryState implements Comparable<BatteryState>
-  {
-    private boolean inUse = false;
-    private boolean charging = false;
-    private double soc = 0.0; // in kWh
-    private int index;
-
-    // normal constructor
-    BatteryState (int index, double stateOfCharge)
-    {
-      super();
-      this.index = index;
-      this.soc = stateOfCharge;
-    }
-
-    // clone constructor
-    BatteryState (BatteryState original)
-    {
-      super();
-      this.index = original.index;
-      this.soc = original.soc;
-      this.inUse = original.inUse;
-      this.charging = original.charging;
-    }
-
-    int getIndex()
-    {
-      return index;
-    }
-
-    boolean isInUse ()
-    {
-      return inUse;
-    }
-
-    // clears the inUse property
-    void clearInUse ()
-    {
-      inUse = false;
-    }
-
-    // sets the truck index for this battery
-    // TODO - do we need this??
-    void setInUse (boolean state)
-    {
-      inUse = state;
-    }
-
-    boolean isCharging ()
-    {
-      return charging;
-    }
-
-    void setCharging (boolean state)
-    {
-      charging = state;
-    }
-
-    double getStateOfCharge ()
-    {
-      return soc;
-    }
-
-    // adds energy in kWh, returns actual energy used
-    double charge (double kWh)
-    {
-      double actualCharge = kWh * chargeEfficiency;
-      if (soc + actualCharge > batteryCapacity) {
-        actualCharge = batteryCapacity - soc;
-      }
-      soc = soc + actualCharge;
-      return actualCharge / chargeEfficiency;
-    }
-
-    void discharge (double kWh)
-    {
-      soc = Math.max(0.0, soc - kWh);
-    }
-
-    // sorting should start with the lowest batteries that are not in use
-    @Override
-    public int compareTo (BatteryState bs)
-    {
-      if (!isInUse() && bs.isInUse())
-        return -1;
-      if (isInUse() && !bs.isInUse())
-        return 1;
-      return ((Double)soc).compareTo((Double)bs.soc);
-    }
-  }
-
   // ======== Consumption plan ========
   class CapacityPlan
   {
     private Instant start;
     private double[] usage;
-    private BatteryState[] localBatteryState;
+    //private BatteryState[] localBatteryState;
     private int localChargers;
 
     CapacityPlan (Instant start, int size)
@@ -1038,12 +807,12 @@ public class LiftTruck
       this.start = start;
       this.usage = new double[size];
       // copy in the battery state
-      localBatteryState = new BatteryState[batteryState.length];
-      for (int i = 0; i < batteryState.length; i++) {
-        localBatteryState[i] = new BatteryState(batteryState[i]);
-      }
+      //localBatteryState = new BatteryState[batteryState.length];
+      //for (int i = 0; i < batteryState.length; i++) {
+      //  localBatteryState[i] = new BatteryState(batteryState[i]);
+      //}
       // copy in the charging state, using the local batteries
-      localChargers = availableChargers;
+      //localChargers = availableChargers;
     }
 
     double[] getUsage ()

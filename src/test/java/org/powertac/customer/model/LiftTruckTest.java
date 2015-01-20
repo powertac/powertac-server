@@ -35,7 +35,6 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
 import org.powertac.customer.StepInfo;
-import org.powertac.customer.model.LiftTruck.BatteryState;
 import org.powertac.customer.model.LiftTruck.Shift;
 import org.powertac.customer.model.LiftTruck.ShiftEnergy;
 
@@ -99,6 +98,7 @@ public class LiftTruckTest
 
     LiftTruck twoshift = trucks.get("twoShift");
     assertNotNull("found twoShift", twoshift);
+    twoshift.ensureShifts();
     Shift[] schedule = twoshift.getShiftSchedule();
     assertNotNull("schedule exists", schedule);
     assertEquals("correct size", 168, schedule.length);
@@ -126,6 +126,7 @@ public class LiftTruckTest
 
     LiftTruck threeshift = trucks.get("threeShift");
     assertNotNull("found threeshift", threeshift);
+    threeshift.ensureShifts();
     schedule = threeshift.getShiftSchedule();
     assertNotNull("exists", schedule);
     assertEquals("size", 168, schedule.length);
@@ -258,6 +259,7 @@ public class LiftTruckTest
 
     LiftTruck test = trucks.get("test");
     assertNotNull("found uut", test);
+    test.ensureShifts();
     Shift[] schedule = test.getShiftSchedule();
     assertNotNull("schedule exists", schedule);
     assertEquals("correct size", 168, schedule.length);
@@ -279,20 +281,12 @@ public class LiftTruckTest
     map.put("customer.model.liftTruck.short.shiftData",
             "block,1,2,3,4,5, shift,6,8,8, shift,14,8,6, shift,22,8,4,"
             + "block,6,7, shift,6,8,3, shift,14,8,2");
-    map.put("customer.model.liftTruck.short.stateOfCharge",
-        "40.0, 35.0, 30.0, 24.0, 31.0, 12.0");
+    map.put("customer.model.liftTruck.short.nBatteries", "6");
     map.put("customer.model.liftTruck.long.batteryCapacity", "24.0");
     map.put("customer.model.liftTruck.long.shiftData",
             "block,1,2,3,4,5, shift,6,8,5, shift,14,8,3, shift,22,8,7,"
             + "block,6,7, shift,6,8,3, shift,14,8,2");
-//    map.put("customer.model.liftTruck.long.shifts",
-//            "6, 8, 14, 8, 22, 8");
-//    map.put("customer.model.liftTruck.long.trucksInUseWeekday",
-//            "5.0, 3.0, 7.0");
-//    map.put("customer.model.liftTruck.long.trucksInUseWeekend",
-//            "3.0, 2.0, 1.0");
-    map.put("customer.model.liftTruck.long.stateOfCharge",
-        "20.0, 15.0, 10.0, 24.0, 11.0, 12.0, 15.0, 16.0, 21.0, 22.0");
+    map.put("customer.model.liftTruck.long.nBatteries", "10");
     config = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(config);
@@ -302,14 +296,14 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck shortTruck = trucks.get("short");
-    assertEquals("short before validation", 6, shortTruck.getBatteryState().length);
+    assertEquals("short before validation", 6, shortTruck.getnBatteries());
     shortTruck.validateBatteries();
-    assertEquals("short after validation", 14, shortTruck.getBatteryState().length);
+    assertEquals("short after validation", 14, shortTruck.getnBatteries());
 
     LiftTruck longTruck = trucks.get("long");
-    assertEquals("long before validation", 10, longTruck.getBatteryState().length);
+    assertEquals("long before validation", 10, longTruck.getnBatteries());
     longTruck.validateBatteries();
-    assertEquals("long after validation", 16, longTruck.getBatteryState().length);
+    assertEquals("long after validation", 16, longTruck.getnBatteries());
   }
 
   // charger validation
@@ -353,37 +347,19 @@ public class LiftTruckTest
   public void testInitialize ()
   {
     LiftTruck truck = new LiftTruck("Test");
-    // initially, shift and battery state fields are empty
-    assertNull("no battery state", truck.getDoubleStateOfCharge());
+    // initially, shift schedule is empty
+    for (Shift s : truck.getShiftSchedule()) {
+      if (null != s)
+        fail("shift schedule should be empty");
+    }
     truck.initialize(null, null,  new RandomSeed("test", 0, "1"));
     // now we should see default data
-    List<Double> soc = truck.getDoubleStateOfCharge();
-    assertEquals("16 batteries", 16, soc.size());
-    assertEquals("first soc is 50.0", 50.0, soc.get(0), 1e-6);
-    assertEquals("fifth soc is 20.0", 20.0, soc.get(4), 1e-6);
-  }
-
-  // test sorting of battery state
-  @Test
-  public void testSortBatteryState ()
-  {
-    LiftTruck truck = new LiftTruck("Test");
-    truck.initialize(null, null,  new RandomSeed("test", 0, "1"));
-    BatteryState[] initialState = truck.getBatteryState();
-    assertEquals("first element",
-                 50.0, initialState[0].getStateOfCharge(), 1e-6);
-    initialState[13].setInUse(true);
-    BatteryState[] sorted = truck.getSortedBatteryState();
-    assertEquals("first element 1.0",
-                 1.0, sorted[0].getStateOfCharge(), 1e-6);
-    assertEquals("2nd element",
-                 1.5, sorted[1].getStateOfCharge(), 1e-6);
-    assertEquals("3rd element skips inUse battery",
-                 4.0, sorted[2].getStateOfCharge(), 1e-6);
-    assertFalse("last unused", sorted[14].isInUse());
-    assertTrue("last element is inUse", sorted[15].isInUse());
-    assertEquals("last element",
-                 2.0, sorted[15].getStateOfCharge(), 1e-6);
+    Shift[] shifts = truck.getShiftSchedule();
+    for (Shift s : truck.getShiftSchedule()) {
+      if (null != s)
+        return;
+    }
+    fail("shift schedule should be non-empty");
   }
 
   @Test
