@@ -121,11 +121,22 @@ public class LiftTruck
 
   // ==== Current state ====
 //  private double currentChargeRate = 1.0;
-  private double stateOfCharge = 0.7;
+//  private double stateOfCharge = 0.7;
+
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true,
+      description = "Battery capacity currently being used in trucks")
   private double capacityInUse = 0.0; // capacity in use during shift
-  private double socInUse = 0.0; // state-of-charge for in-use batteries
-  private double capacityCharging = 0.0;
-  private double socCharging = 0.0;
+
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true,
+      description = "Offline battery energy, currently in the trucks")
+  private double energyInUse = 0.0; // energy content of in-use batteries
+
+  @ConfigurableValue(valueType = "Double",
+      bootstrapState = true,
+      description = "Online battery energy, currently being charged")
+  private double energyCharging = 0.0; // energy content of charging batteries
 
   private TariffSubscription currentSubscription;
   // constraint on current charging energy usage
@@ -172,8 +183,9 @@ public class LiftTruck
     validateChargers();
 
     // all batteries are charging
-    socCharging = getStateOfCharge();
-    capacityCharging = batteryCapacity * nBatteries;
+    //energyCharging = getStateOfCharge() * getBatteryCapacity();
+    capacityInUse = 0.0;
+    energyInUse = 0.0;
   }
 
   // use default data if unconfigured
@@ -225,10 +237,10 @@ public class LiftTruck
                 ") for " + getName());
       // Add discharged batteries to fill out battery complement
       log.warn("Adding " + neededBatteries + " batteries for " + getName());
-      double totalCapacity = batteryCapacity * nBatteries;
-      double availableCapacity = stateOfCharge * totalCapacity;
+      //double totalCapacity = batteryCapacity * nBatteries;
+      //double availableCapacity = energyInUse + energyCharging;
       nBatteries += neededBatteries;
-      setStateOfCharge(availableCapacity / (batteryCapacity * nBatteries));
+      //setStateOfCharge(availableCapacity / (batteryCapacity * nBatteries));
     }
   }
 
@@ -240,24 +252,41 @@ public class LiftTruck
     // of batteries in a single shift
 
     // The total output of the availableChargers should be at least enough
-    // to power the trucks over a 24-hour period
+    // to power the trucks over a 24-hour period. Note that the shift schedule
+    // starts at midnight, which may not be the start of the current shift.
     double maxNeeded = 0.0;
+    Shift currentShift = shiftSchedule[0];
+    int hoursInShift = (HOURS_DAY - currentShift.getStart()) % HOURS_DAY;
+    int remainingDuration = currentShift.getDuration() - hoursInShift;
     for (int i = 0; i < (shiftSchedule.length - HOURS_DAY); i++) {
       double totalEnergy = 0.0;
-      Shift currentShift = shiftSchedule[i];
+      Shift thisShift = shiftSchedule[i];
+      if (thisShift != currentShift) {
+        currentShift = thisShift;
+        if (null != currentShift) {
+          // first block of energy in 24h window starting at i
+          remainingDuration = currentShift.getDuration();
+        }
+      }
       if (null != currentShift) {
         totalEnergy +=
-            currentShift.getTrucks() * currentShift.getDuration() * truckKW;
+            currentShift.getTrucks() * remainingDuration * truckKW;
       }
+      // now run fwd 24h and add energy from future shifts
+      Shift current = currentShift;
+      int shiftStart = i;
       for (int j = i + 1; j < (i + HOURS_DAY); j++) {
         Shift newShift = shiftSchedule[j];
-        if (null != newShift && currentShift != newShift) {
+        if (null != newShift && current != newShift) {
+          int durationInWindow =
+              (int)Math.min((i + HOURS_DAY - j), newShift.getDuration());
           totalEnergy +=
-              newShift.getTrucks() * newShift.getDuration() * truckKW;
-          currentShift = newShift;
+              newShift.getTrucks() * durationInWindow * truckKW;
+          current = newShift;
         }
       }
       maxNeeded = Math.max(maxNeeded, totalEnergy);
+      remainingDuration -= 1;
     }
 
     double chargeEnergy = nChargers * maxChargeKW * HOURS_DAY;
@@ -287,13 +316,16 @@ public class LiftTruck
     if (newShift != currentShift) {
       // start of shift
       // Take all batteries out of service
-      double totalCapacity = capacityInUse + capacityCharging;
+      double totalEnergy = energyCharging + energyInUse;
+      energyCharging += energyInUse;
+      capacityInUse = 0.0;
+      energyInUse = 0.0;
       
       // Put the strongest batteries in trucks for the next shift
       if (null != newShift) {
-        double truckCapacity = newShift.getTrucks() * batteryCapacity;
-        capacityInUse = Math.min(truckCapacity, totalCapacity);
-        capacityCharging = totalCapacity - capacityInUse;
+        capacityInUse = newShift.getTrucks() * batteryCapacity;
+        energyInUse = Math.min(capacityInUse, totalEnergy);
+        energyCharging = totalEnergy - energyInUse;
       }
     }
 
@@ -302,15 +334,15 @@ public class LiftTruck
         Math.max(0.0,
                  normal.sample() * truckStd +
                  truckKW * currentShift.getTrucks());
-    double deficit = usage - capacityInUse;
+    double deficit = usage - energyInUse;
     log.debug(getName() + ": trucks use " + usage + " kWh");
     if (deficit > 0.0) {
-      log.warn(getName() + ": trucks run out of capacity by "
+      log.warn(getName() + ": trucks use more energy than available by "
                + deficit + " kWh");
-      capacityInUse += deficit;
-      capacityCharging -= deficit;
+      energyInUse += deficit;
+      energyCharging -= deficit;
     }
-    capacityInUse -= usage;
+    energyInUse -= usage;
 
     // use energy on chargers
     double energyUsed = useEnergy(info);
@@ -337,8 +369,7 @@ public class LiftTruck
   {
     double max = nChargers * maxChargeKW;
     double avail =
-        (nBatteries - currentShift.getTrucks())
-        * batteryCapacity - capacityCharging;
+        nBatteries * batteryCapacity - capacityInUse - energyCharging;
     double energyUsed = Math.min(max, avail) / chargeEfficiency;
     log.debug(getName() + " useEarly " + energyUsed);
     return energyUsed;
@@ -391,7 +422,6 @@ public class LiftTruck
     for (int hour = 1; hour <= planningHorizon; hour++) {
       duration += 1;
       index = nextShiftIndex(index);
-      // TODO - this does not handle the case of only one 24h shift
       if (nextShift != shiftSchedule[index]) {
         // start of next shift or idle period
         nextShift = shiftSchedule[index];
@@ -404,7 +434,10 @@ public class LiftTruck
     futureEnergyNeeds = result;
     double shortage = 0.0;
     for (int i = result.length - 1; i >= 0; i--) {
-      Shift end = shiftSchedule[result[i].endIndex];
+      int endx = result[i].endIndex;
+      int prev = previousShiftIndex(endx);
+      currentShift = shiftSchedule[prev];
+      Shift end = shiftSchedule[endx];
       double needed = 0.0;
       if (null != end) {
         needed =
@@ -419,10 +452,19 @@ public class LiftTruck
       chargers = (int)Math.min(chargers, availableBatteries);
       double available =
           getMaxChargeKW() * result[i].getDuration() * chargers;
-      shortage = Math.max(0.0, -(available - needed - shortage));
       double surplus = Math.max(0.0, available - needed - shortage);
+      shortage = Math.max(0.0, -(available - needed - shortage));
       result[i].setEnergyNeeded(needed);
       result[i].setMaxSurplus(surplus);
+    }
+    // finally, we need to update the first element with
+    // the current battery charge.
+    double finalSurplus = result[0].getMaxSurplus();
+    if (finalSurplus > 0.0) {
+      result[0].setMaxSurplus(finalSurplus + energyCharging);
+    }
+    else if (shortage > 0.0) {
+      result[0].setMaxSurplus(energyCharging - shortage);
     }
     return result;
   }
@@ -645,19 +687,19 @@ public class LiftTruck
     return chargeEfficiency;
   }
 
-  @ConfigurableValue(valueType = "Double",
-      name = "stateOfCharge",
-      bootstrapState = true,
-      description = "current state-of-charge fraction of battery capacity")
-  public void setStateOfCharge (double value)
-  {
-    stateOfCharge = value;
-  }
-
-  public double getStateOfCharge()
-  {
-    return stateOfCharge;
-  }
+//  @ConfigurableValue(valueType = "Double",
+//      name = "stateOfCharge",
+//      bootstrapState = true,
+//      description = "current state-of-charge fraction of battery capacity")
+//  public void setStateOfCharge (double value)
+//  {
+//    stateOfCharge = value;
+//  }
+//
+//  public double getStateOfCharge()
+//  {
+//    return stateOfCharge;
+//  }
 
   double getPlanningHorizon ()
   {

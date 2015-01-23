@@ -308,7 +308,7 @@ public class LiftTruckTest
 
   // charger validation
   @Test
-  public void testValidateChargers ()
+  public void testValidateChargers1 ()
   {
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("customer.model.liftTruck.instances",
@@ -327,19 +327,39 @@ public class LiftTruckTest
     tkw.ensureShifts();
     assertEquals("8 chargers tkw", 8, tkw.getNChargers());
     tkw.validateChargers();
-    assertEquals("14 after tkw validation", 14, tkw.getNChargers());
+    assertEquals("10 after tkw validation", 10, tkw.getNChargers());
 
     LiftTruck ckw = trucks.get("charge_kw");
     ckw.ensureShifts();
     assertEquals("8 chargers", 8, ckw.getNChargers());
     ckw.validateChargers();
-    assertEquals("17 after validation", 17, ckw.getNChargers());
+    assertEquals("12 after validation", 12, ckw.getNChargers());
 
     LiftTruck nc = trucks.get("ncharge");
     nc.ensureShifts();
-    assertEquals("8 chargers", 3, nc.getNChargers());
+    assertEquals("3 chargers", 3, nc.getNChargers());
     nc.validateChargers();
-    assertEquals("6 after validation", 6, nc.getNChargers());
+    assertEquals("4 after validation", 4, nc.getNChargers());
+  }
+
+  // charger validation
+  @Test
+  public void testValidateChargers2 ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances", "c5");
+    map.put("customer.model.liftTruck.c5.nChargers", "5");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck c5 = trucks.get("c5");
+    c5.ensureShifts();
+    assertEquals("5 chargers c5", 5, c5.getNChargers());
+    c5.validateChargers();
+    assertEquals("5 after c5 validation", 5, c5.getNChargers());
   }
 
   // initialize fills in unconfigured fields
@@ -372,10 +392,91 @@ public class LiftTruckTest
     Timeslot ts = new Timeslot(2, now.toInstant());
     StepInfo info = new StepInfo(ts, null);
     ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
+    // ix  dur  end  req  chg  max  sur
+    //  0    6   16  192    7  252   60
+    //  1    8    0   96    8  384  288
+    //  2    8    8  256    8  384  128
+    //  3    8   16  192    7  336  144
+    //  4    8    0   96    8  384  288
+    //  5    8    8  256    8  384  128
+    //  6    8   16  192    7  336  144
+    //  7    0    0   96    8  384  288
     assertNotNull("needs not null", needs);
     assertEquals("8 items", 8, needs.length);
     assertEquals("duration[0] is 6", 6, needs[0].getDuration());
     assertEquals("[0] ends at 16", 16, needs[0].getNextShift().getStart());
+    assertEquals("[0] requires", 192.0,
+                 needs[0].getEnergyNeeded(), 1e-6);
+    assertEquals("[0] max surplus", 60.0,
+                 needs[0].getMaxSurplus(), 1e-6);
+    assertEquals("[1] ends at 0", 0, needs[1].getNextShift().getStart());
+    assertEquals("[1] requires", 96.0,
+                 needs[1].getEnergyNeeded(), 1e-6);
+    assertEquals("[1] surplus", 288.0,
+                 needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[2] ends at 8", 8, needs[2].getNextShift().getStart());
+    assertEquals("[2] requires", 256.0,
+                 needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] surplus", 128.0,
+                 needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[7] ends at 0", 0, needs[7].getNextShift().getStart());
+    assertEquals("[7] requires", 96.0,
+                 needs[7].getEnergyNeeded(), 1e-6);
+    assertEquals("[7] surplus", 288.0,
+                 needs[7].getMaxSurplus(), 1e-6);
+  }
+
+  @Test
+  public void testFutureEnergyNeedsShort ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances", "short");
+    map.put("customer.model.liftTruck.short.nChargers", "5");
+    map.put("customer.model.liftTruck.short.energyCharging", "14.0");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("one instance", 1, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck truck = trucks.get("short");
+    assertNotNull("found short", truck);
+
+    truck.initialize(null, null, new RandomSeed("test", 0, "1"));
+    DateTime now =
+        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    Timeslot ts = new Timeslot(2, now.toInstant());
+    StepInfo info = new StepInfo(ts, null);
+    ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
+    // ix  dur  end  req  chg  max  sur
+    //  0    6   16  192    5  180    2
+    //  1    8    0   96    5  240  128
+    //  2    8    8  256    5  240  -16
+    //  3    8   16  192    5  240   48
+    //  4    8    0   96    5  240  128
+    //  5    8    8  256    5  240  -16
+    //  6    8   16  192    5  240   48
+    //  7    0    0   96    5  240  144
+    assertNotNull("needs not null", needs);
+    assertEquals("8 items", 8, needs.length);
+    assertEquals("duration[0] is 6", 6, needs[0].getDuration());
+    assertEquals("[0] requires", 192.0,
+                 needs[0].getEnergyNeeded(), 1e-6);
+    assertEquals("[0] max surplus", 2.0,
+                 needs[0].getMaxSurplus(), 1e-6);
+    assertEquals("[1] requires", 96.0,
+                 needs[1].getEnergyNeeded(), 1e-6);
+    assertEquals("[1] surplus", 128.0,
+                 needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[2] requires", 256.0,
+                 needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] surplus", 0.0,
+                 needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[7] requires", 96.0,
+                 needs[7].getEnergyNeeded(), 1e-6);
+    assertEquals("[7] surplus", 144.0,
+                 needs[7].getMaxSurplus(), 1e-6);
   }
 
   @Test
