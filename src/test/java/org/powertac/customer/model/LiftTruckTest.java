@@ -450,7 +450,7 @@ public class LiftTruckTest
     StepInfo info = new StepInfo(ts, null);
     ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
     // ix  dur  end  req  chg  max  sur
-    //  0    6   16  192    5  180    2
+    //  0    6   16  192    5  180  -12+14
     //  1    8    0   96    5  240  128
     //  2    8    8  256    5  240  -16
     //  3    8   16  192    5  240   48
@@ -488,6 +488,8 @@ public class LiftTruckTest
     map.put("customer.model.liftTruck.idle.shiftData",
             "block,1,2,3,4,5, shift,8,8,8, shift,0,8,6,"
             + "block,6,7, shift,8,8,4");
+    map.put("customer.model.liftTruck.idle.nChargers", "5");
+    map.put("customer.model.liftTruck.idle.energyCharging", "4.0");
     config = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(config);
@@ -503,12 +505,84 @@ public class LiftTruckTest
     Timeslot ts = new Timeslot(2, now.toInstant());
     StepInfo info = new StepInfo(ts, null);
     ShiftEnergy[] needs = tk.ensureFutureEnergyNeeds(info);
+    // ix  dur  end  req  chg  max  sur
+    //  0    6   16    0    5  180  180+4
+    //  1    8    0  192    5  240   32
+    //  2    8    8  256    5  240  -16
+    //  3    8   16    0    5  240  240
+    //  4    8    0  192    5  240   32
+    //  5    8    8  256    5  240  -16
+    //  6    8   16    0    5  240  240
+    //  7    0    0  192    5  240   48
     assertNotNull("needs not null", needs);
     assertEquals("8 items", 8, needs.length);
     assertEquals("duration[0] is 6", 6, needs[0].getDuration());
     assertNull("[0] ends at idle", needs[0].getNextShift());
+    assertEquals("[0] req", 0.0, needs[0].getEnergyNeeded(), 1e-6);
+    assertEquals("[0] sur", 184.0, needs[0].getMaxSurplus(), 1e-6);
     assertNotNull("[1] not null", needs[1].getNextShift());
-    assertEquals("[1] ends at midnight", 0, needs[1].getNextShift().getStart());
+    assertEquals("[1] ends 00:00", 0, needs[1].getNextShift().getStart());
+    assertEquals("[1] req", 192.0, needs[1].getEnergyNeeded(), 1e-6);
+    assertEquals("[1] sur", 32.0, needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[2] req", 256.0, needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] sur", 0.0, needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[7] req", 192.0, needs[7].getEnergyNeeded(), 1e-6);
+    assertEquals("[7] sur", 48.0, needs[7].getMaxSurplus(), 1e-6);
+  }
+
+  @Test
+  public void testFutureEnergyNeedsWeekend ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances",
+            "idle");
+    map.put("customer.model.liftTruck.idle.shiftData",
+            "block,1,2,3,4,5, shift,8,8,8, shift,0,8,6,"
+            + "block,6,7, shift,8,8,4");
+    map.put("customer.model.liftTruck.idle.nChargers", "5");
+    map.put("customer.model.liftTruck.idle.energyCharging", "75.0");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    assertEquals("one instance", 1, instances.size());
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck tk = trucks.get("idle");
+    assertNotNull("got configured", tk);
+    tk.initialize(null, null, new RandomSeed("test", 0, "2"));
+    // start on Sunday
+    DateTime now =
+        new DateTime(2014, 12, 7, 6, 0, 0, DateTimeZone.UTC);
+    Timeslot ts = new Timeslot(2, now.toInstant());
+    StepInfo info = new StepInfo(ts, null);
+    ShiftEnergy[] needs = tk.ensureFutureEnergyNeeds(info);
+    // ix  dur  end  req  chg  max  sur
+    //  0    2    8  128    5   60  -68+75 - Sun 06:00-08:00
+    //  1    8   16    0    5  240  240   -- Sun 08:00-16:00
+    //  2    8    0  192    5  240   32   -- Sun 16:00-00:00
+    //  3    8    8  256    5  240  -16   -- Mon 00:00-08:00
+    //  4    8   16    0    5  240  240
+    //  5    8    0  192    5  240   32
+    //  6    8    8  256    5  240  -16
+    //  7    8   16    0    5  240  240
+    //  8    8    0  192    5  240   48
+    assertNotNull("needs not null", needs);
+    assertEquals("8 items", 8, needs.length);
+    assertEquals("duration[0] is 2", 2, needs[0].getDuration());
+    assertEquals("[0] req", 128.0, needs[0].getEnergyNeeded(), 1e-6);
+    assertEquals("[0] sur", 7.0, needs[0].getMaxSurplus(), 1e-6);
+    assertNull("[1] ends at idle", needs[1].getNextShift());
+    assertEquals("[1] req", 0.0, needs[1].getEnergyNeeded(), 1e-6);
+    assertEquals("[1] sur", 240.0, needs[1].getMaxSurplus(), 1e-6);
+    assertNotNull("[2] not null", needs[2].getNextShift());
+    assertEquals("[2] ends 00:00", 0, needs[2].getNextShift().getStart());
+    assertEquals("[2] req", 192.0, needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] sur", 32.0, needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[3] req", 256.0, needs[3].getEnergyNeeded(), 1e-6);
+    assertEquals("[3] sur", 0.0, needs[3].getMaxSurplus(), 1e-6);
+    assertEquals("[7] req", 0.0, needs[7].getEnergyNeeded(), 1e-6);
+    assertEquals("[7] sur", 240.0, needs[7].getMaxSurplus(), 1e-6);
   }
 
   /**

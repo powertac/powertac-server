@@ -486,6 +486,8 @@ public class LiftTruck
   // Returns the previous index in the shift schedule
   int previousShiftIndex (int index)
   {
+    if (0 == index)
+      return shiftSchedule.length - 1;
     return (index - 1) % shiftSchedule.length;
   }
 
