@@ -34,8 +34,8 @@ import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.Activity;
-import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.GroupActivity;
 import org.powertac.evcustomer.beans.SocialGroup;
 
 import java.util.ArrayList;
@@ -113,7 +113,7 @@ public class EvCustomer
     this.name = name;
     id = IdGenerator.createId();
   }
-  
+
   public String getName ()
   {
     return name;
@@ -209,6 +209,8 @@ public class EvCustomer
     else {
       sub = subs.get(0);
     }
+
+    driving = false;
 
     // Always do handleRegulations first, setRegulation last
     handleRegulation(day, hour, sub);
@@ -309,12 +311,6 @@ public class EvCustomer
       double probability = groupActivity.getProbability(gender);
       double dailyDistance = groupActivity.getDailyKm(gender);
 
-      // TODO What is this for???
-//      if (probability < 1.0) {
-//        probability = Math.sqrt(probability);
-//      }
-//      dailyDistance *= 5;
-
       // Probs > 1.0 will always happen (why),
       // hence the distance factoring == 1
       if (probability >= generator.nextDouble()) {
@@ -370,19 +366,18 @@ public class EvCustomer
     double intendedDistance = timeslotData.getIntendedDistance();
     double neededCapacity = getNeededCapacity(intendedDistance);
 
-    if (intendedDistance < epsilon || neededCapacity > getCurrentCapacity()) {
+    if (intendedDistance < epsilon || neededCapacity > currentCapacity) {
       return;
     }
 
     try {
       discharge(neededCapacity);
-      log.info("driving " + intendedDistance
-               + ", using " + neededCapacity + "kWh");
+      log.info("driving " + intendedDistance +
+               ", using " + neededCapacity + " kWh");
       driving = true;
     }
     catch (ChargeException ce) {
       log.error(ce);
-      driving = false;
     }
   }
 
@@ -419,6 +414,10 @@ public class EvCustomer
   {
     double[] loads = new double[4];
 
+    if (driving) {
+      return loads;
+    }
+
     double currentCapacity = getCurrentCapacity();
 
     // This the amount we need to have at the next TS
@@ -438,7 +437,7 @@ public class EvCustomer
 
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
-    loads[2] = Math.min(getDischargingCapacity(), loads[2]);
+    loads[2] = Math.min(loads[2], getDischargingCapacity());
 
     // This is the amount we could charge extra (down regulate)
     loads[3] = -1 * (getChargingCapacity() - (loads[0] + loads[1]));

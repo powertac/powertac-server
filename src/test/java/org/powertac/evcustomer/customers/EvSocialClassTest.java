@@ -248,7 +248,7 @@ public class EvSocialClassTest
   }
 
   // Boot-restore works from a Configuration instance
-  @Test
+  //@Test
   public void testBootRestoreConfig ()
   {
     // need to configure manually for test
