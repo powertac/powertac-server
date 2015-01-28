@@ -407,8 +407,19 @@ public class LiftTruck
         return futureEnergyNeeds;
       }
     }
-    // If we get here, the existing array is missing or no longer valid
-    int index = indexOfShift(info.getTimeslot().getStartInstant());
+    else {
+      // If we get here, the existing array is missing or no longer valid
+      futureEnergyNeeds =
+          getFutureEnergyNeeds(info.getTimeslot().getStartInstant(),
+                               planningHorizon);
+    }
+    return futureEnergyNeeds;
+  }
+
+  // Computes constraints on future energy needs
+  ShiftEnergy[] getFutureEnergyNeeds (Instant start, int horizon)
+  {
+    int index = indexOfShift(start);
     Shift currentShift = shiftSchedule[index]; // might be null
     int duration = 1;
     while (shiftSchedule[++index] == currentShift) {
@@ -419,7 +430,7 @@ public class LiftTruck
     ArrayList<ShiftEnergy> data = new ArrayList<ShiftEnergy>();
     data.add(new ShiftEnergy(index, duration));
     duration = 0;
-    for (int hour = 1; hour <= planningHorizon; hour++) {
+    for (int hour = 1; hour <= horizon; hour++) {
       duration += 1;
       index = nextShiftIndex(index);
       if (nextShift != shiftSchedule[index]) {
@@ -431,7 +442,6 @@ public class LiftTruck
     }
     // now we convert to array, then walk backward and fill in energy needs
     ShiftEnergy[] result = data.toArray(new ShiftEnergy[data.size()]);
-    futureEnergyNeeds = result;
     double shortage = 0.0;
     for (int i = result.length - 1; i >= 0; i--) {
       int endx = result[i].endIndex;
@@ -490,21 +500,6 @@ public class LiftTruck
       return shiftSchedule.length - 1;
     return (index - 1) % shiftSchedule.length;
   }
-
-  // If the given timeslot is the start of a new shift, then returns
-  // the shift that starts at the given time, otherwise returns null.
-//  Shift indexStartOfShift (Instant time)
-//  {
-//    Integer result = null;
-//    int hour = time.get(DateTimeFieldType.hourOfDay());
-//    for (int i = 0; i < shifts.size(); i++) {
-//      Shift shift = shifts.get(i);
-//      if (hour == shift.getStart()) {
-//        return (new Integer(i));
-//      }
-//    }
-//    return result;
-//  }
 
   // ================ getters and setters =====================
   // Note that list values must arrive and depart as List<String>,
@@ -689,20 +684,6 @@ public class LiftTruck
     return chargeEfficiency;
   }
 
-//  @ConfigurableValue(valueType = "Double",
-//      name = "stateOfCharge",
-//      bootstrapState = true,
-//      description = "current state-of-charge fraction of battery capacity")
-//  public void setStateOfCharge (double value)
-//  {
-//    stateOfCharge = value;
-//  }
-//
-//  public double getStateOfCharge()
-//  {
-//    return stateOfCharge;
-//  }
-
   double getPlanningHorizon ()
   {
     return planningHorizon;
@@ -841,22 +822,25 @@ public class LiftTruck
   // ======== Consumption plan ========
   class CapacityPlan
   {
-    private Instant start;
     private double[] usage;
-    //private BatteryState[] localBatteryState;
-    private int localChargers;
+    private Instant start;
+    private int size;
+    private Tariff tariff;
 
-    CapacityPlan (Instant start, int size)
+    // Creates a plan for the standard planning horizon
+    CapacityPlan (Tariff tariff, Instant start)
     {
+      this(tariff, start, planningHorizon);
+    }
+
+    // Creates a plan for a custome size
+    CapacityPlan (Tariff tariff, Instant start, int size)
+    {
+      super();
+      this.tariff = tariff;
       this.start = start;
+      this.size = size;
       this.usage = new double[size];
-      // copy in the battery state
-      //localBatteryState = new BatteryState[batteryState.length];
-      //for (int i = 0; i < batteryState.length; i++) {
-      //  localBatteryState[i] = new BatteryState(batteryState[i]);
-      //}
-      // copy in the charging state, using the local batteries
-      //localChargers = availableChargers;
     }
 
     double[] getUsage ()
@@ -864,89 +848,69 @@ public class LiftTruck
       return usage;
     }
 
-    // creates a plan, with specified start time and state-of-charge
-    void createPlan (Tariff tariff)
+    // creates a plan using the default tariff and initial conditions
+    void createPlan (double initialCharging,
+                     double initialInUse)
     {
-      // behavior depends on tariff rate structure
-      if (!tariff.isTimeOfUse()) {
-        // flat rates, just charge ASAP
-        createFlatRatePlan();
-      }
+      createPlan(this.tariff, initialCharging, initialInUse);
     }
 
-    void createFlatRatePlan ()
+    // creates a plan, with specified start time and state-of-charge
+    void createPlan (Tariff tariff,
+                     double initialCharging,
+                     double initialInUse)
     {
-//      // Run localChargers as soon as there are batteries that need them
-//      int hour = start.get(DateTimeFieldType.hourOfDay());
-//      int shiftIndex = 0;
-//      int offset = 0;
-//      while (shifts.get(shiftIndex).getStart() + offset < hour) {
-//        shiftIndex += 1;
-//        if (shiftIndex >= shifts.size()) {
-//          // ran off the end
-//          shiftIndex = 0;
-//          offset += HOURS_DAY;
-//        }
+      ShiftEnergy[] energyNeeds = getFutureEnergyNeeds(start, size);
+      
+      // behavior depends on tariff rate structure
+//      if (!tariff.isTimeOfUse()) {
+//        // flat rates, just charge ASAP
+//        createFlatRatePlan(energyNeeds, initialCharging, initialInUse);
 //      }
-//      // Now run forward to the end
-//      for (int ts = 0; ts < usage.length; ts++) {
-//        int hr = ts % HOURS_DAY;
-//        // if it's shift-change, then swap batteries
-//        Shift shift = shifts.get(shiftIndex);
-//        if (hr == shifts.get(shiftIndex).getStart()) {
-//          shiftIndex = (shiftIndex + 1) % shifts.size();
-//          // all the in-use batteries are no longer in-use
-//          for (BatteryState battery : localBatteryState) {
-//            if (battery.isInUse())
-//              battery.setInUse(null);
-//          }
-//          // sort the batteries and put the strongest in use for the next shift
-//          BatteryState[] sorted = getSortedBatteryState(localBatteryState);
-//          for (int off = 1; off <= getTrucksRounded(shift, hr); off--) {
-//            sorted[sorted.length - off].setInUse(off);
-//          }
-//          // put the weakest on the localChargers
-//          for (int i = 0; i < localChargers.length; i++) {
-//            if (!sorted[i].isInUse()) {
-//              localChargers[i] = sorted[i];
-//              sorted[i].setCharger(i);
-//            }
-//            else {
-//              localChargers[i] = null;
-//            }
-//            // TODO - what happens if one gets full?
-//          }
-//        }
-//        // all the in-use batteries run down some
-//        for (int i = 0; i < localBatteryState.length; i++) {
-//          BatteryState battery = localBatteryState[i];
-//          if (battery.isInUse())
-//            battery.discharge(truckKW);
-//          // TODO - what do we do if battery is completely discharged?
-//        }
-//        // all the charging batteries run up some
-//        for (int i = 0; i < localChargers.length; i++) {
-//          BatteryState battery = localChargers[i];
-//          double kWh = Math.min(maxChargeKW, batteryCapacity -
-//                                battery.getStateOfCharge());
-//          usage[ts] += kWh / chargeEfficiency;
-//        }
-//        // TODO - work out regulation capacity
-//      }
-//    }
-//
-//    // Returns the number of trucks likely to be on this shift.
-//    // Used in the context of generating a tariff eval profile. 
-//    int getTrucksRounded (Shift shift, int hour)
-//    {
-//      Instant when = start.plus(hour * HOUR);
-//      int dow = when.get(DateTimeFieldType.dayOfWeek());
-//      double trucks= 0.0;
-//      if (dow <= 4)
-//        trucks = shift.getWeekdayTrucks();
-//      else
-//        trucks = shift.getWeekendTrucks();
-//      return (int)Math.round(trucks);
     }
+
+//    void createFlatRatePlan (ShiftEnergy[] needs,
+//                             double initialCharging,
+//                             double initialInUse)
+//    {
+//      int shiftIndex = indexOfShift(start);
+//      Shift currentShift = shiftSchedule[previousShiftIndex(shiftIndex)];
+//      double eCharging = initialCharging;
+//      double eInUse = initialInUse;
+//      double cInUse = currentShift.getTrucks() * batteryCapacity;
+//      for (int t = 0; t < size; t++) {
+//        Shift newShift = shiftSchedule[shiftIndex];
+//        shiftIndex = nextShiftIndex(shiftIndex);
+//        if (newShift != currentShift) {
+//          // start of shift
+//          // Take all batteries out of service
+//          double totalEnergy = eCharging + eInUse;
+//          eCharging += eInUse;
+//          cInUse = 0.0;
+//          eInUse = 0.0;
+//          // Put the strongest batteries in trucks for the next shift
+//          if (null != newShift) {
+//            cInUse = newShift.getTrucks() * batteryCapacity;
+//            eInUse = Math.min(cInUse, totalEnergy);
+//            eCharging = totalEnergy - eInUse;
+//          }
+//        }
+//
+//        // discharge batteries on active trucks
+//        double usage =
+//            Math.max(0.0,
+//                     normal.sample() * truckStd +
+//                     truckKW * currentShift.getTrucks());
+//        double deficit = usage - eInUse;
+//        log.debug(getName() + " plan: trucks use " + usage + " kWh");
+//        if (deficit > 0.0) {
+//          log.warn(getName()
+//                   + " plan: trucks use more energy than available by "
+//                   + deficit + " kWh");
+//          eInUse += deficit;
+//          eCharging -= deficit;
+//        }
+//        eInUse -= usage;
+//      }    }
   }
 }
