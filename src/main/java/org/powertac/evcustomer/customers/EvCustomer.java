@@ -232,7 +232,7 @@ public class EvCustomer
     // check for non-zero regulation request
     double actualRegulation =
         sub.getRegulation() * customerInfo.getPopulation();
-    if (actualRegulation == 0.0) {
+    if (Math.abs(actualRegulation) < epsilon) {
       return;
     }
 

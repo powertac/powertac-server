@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 
 
 /**
- * @author Govert Buijs
+ * @author Govert Buijs, John Collins
  */
 public class EvCustomerTest
 {

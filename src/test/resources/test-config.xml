@@ -10,44 +10,46 @@
 	       http://www.mockito.org/spring/mockito
 	       http://www.mockito.org/spring/mockito.xsd">
 
-  <bean id="accountingService" name="mockAccounting" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="org.powertac.common.interfaces.Accounting" />
-  </bean>      
-  
-  <bean id="tariffMarketService" name="mockTariffMarket" class="org.mockito.Mockito" factory-method="mock">
-        <constructor-arg value="org.powertac.common.interfaces.TariffMarket" />
+  <bean id="accountingService" name="mockAccounting" class="org.mockito.Mockito"
+        factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.Accounting"/>
+  </bean>
+
+  <bean id="tariffMarketService" name="mockTariffMarket"
+        class="org.mockito.Mockito" factory-method="mock">
+    <constructor-arg value="org.powertac.common.interfaces.TariffMarket"/>
   </bean>
 
   <bean id="serverPropertiesService" name="mockServerProperties"
         class="org.mockito.Mockito" factory-method="mock">
     <constructor-arg
         value="org.powertac.common.interfaces.ServerConfiguration"/>
-  </bean>	
+  </bean>
 
   <bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
-    <constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
+    <constructor-arg value="org.powertac.common.interfaces.BrokerProxy"/>
   </bean>
 
   <bean id="competitionControl" class="org.mockito.Mockito" factory-method="mock">
-    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl" />
-  </bean> 	
-  
-  <context:annotation-config />
+    <constructor-arg value="org.powertac.common.interfaces.CompetitionControl"/>
+  </bean>
+
+  <context:annotation-config/>
 
   <bean id="springApplicationContext"
-        class="org.powertac.common.spring.SpringApplicationContext" />
+        class="org.powertac.common.spring.SpringApplicationContext"/>
 
   <bean id="timeService"
-        class="org.powertac.common.TimeService" />
- 
+        class="org.powertac.common.TimeService"/>
+
   <bean id="tariffRepo"
-        class="org.powertac.common.repo.TariffRepo" />
-        
+        class="org.powertac.common.repo.TariffRepo"/>
+
   <bean id="tariffSubscriptionRepo"
-        class="org.powertac.common.repo.TariffSubscriptionRepo" />
-  
+        class="org.powertac.common.repo.TariffSubscriptionRepo"/>
+
   <bean id="timeslotRepo"
-        class="org.powertac.common.repo.TimeslotRepo" />
+        class="org.powertac.common.repo.TimeslotRepo"/>
 
   <bean id="weatherReportRepo"
         class="org.powertac.common.repo.WeatherReportRepo"/>
@@ -56,15 +58,8 @@
         class="org.powertac.common.repo.RandomSeedRepo"/>
 
   <bean id="brokerRepo"
-        class="org.powertac.common.repo.BrokerRepo" />
-        
+        class="org.powertac.common.repo.BrokerRepo"/>
+
   <bean id="customerRepo"
-        class="org.powertac.common.repo.CustomerRepo" />         
-        
-  <bean id="evCustomerService"
-        class="org.powertac.evcustomer.EvCustomerService">
-        <property name="timeslotPhase">
-          <value>2</value>
-        </property>
-  </bean>
+        class="org.powertac.common.repo.CustomerRepo"/>
 </beans>

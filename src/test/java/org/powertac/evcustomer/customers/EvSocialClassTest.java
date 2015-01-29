@@ -23,9 +23,6 @@ import org.apache.commons.configuration.XMLConfiguration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.mockito.Mockito.*;
-
 import org.powertac.common.RandomSeed;
 import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
@@ -39,9 +36,11 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.ConfigTest;
-import org.powertac.evcustomer.beans.CarTypeTest;
-import org.powertac.evcustomer.beans.SocialGroup;
+import org.powertac.evcustomer.beans.Activity;
+import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.ClassCar;
 import org.powertac.evcustomer.beans.ClassGroup;
+import org.powertac.evcustomer.beans.SocialGroup;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.InputStream;
@@ -52,16 +51,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
- * @author Govert Buijs
+ * @author Govert Buijs, John Collins
  */
 public class EvSocialClassTest
 {
-  //private TimeService timeService;
-
   private TimeslotRepo timeslotRepo;
 
   private CustomerRepo mockCustomerRepo;
@@ -70,8 +76,6 @@ public class EvSocialClassTest
   private TariffSubscriptionRepo tariffSubscriptionRepo;
   private RandomSeedRepo mockSeedRepo;
   private RandomSeed mockSeed;
-
-  //private TariffMarket mockTariffMarket;
 
   private DummyConfig serverConfiguration;
   private ServiceAccessor service;
@@ -156,10 +160,7 @@ public class EvSocialClassTest
   public void testInitialization ()
   {
     initializeClass();
-
     assertEquals("Correct name", className, evSocialClass.getName());
-
-    //serverConfiguration.configureMe(evSocialClass);
     assertEquals("correct min count", 2, evSocialClass.getMinCount());
   }
 
@@ -170,6 +171,27 @@ public class EvSocialClassTest
     Map<Integer, SocialGroup> groups = evSocialClass.getGroups();
     assertEquals("3 groups", 3, groups.size());
     assertEquals("includes parttime", "parttime", groups.get(1).getName());
+
+    Map<String, CarType> carTypes = evSocialClass.getCarTypes();
+    assertEquals("2 cartypes", 2, carTypes.size());
+    assertTrue("includes Tesla_40_kWh",
+        carTypes.keySet().contains("Tesla_40_kWh"));
+    assertTrue("includes Nissan_Leaf_24_kWh",
+        carTypes.keySet().contains("Nissan_Leaf_24_kWh"));
+
+    Map<Integer, Activity> activities = evSocialClass.getActivities();
+    assertEquals("2 activities", 2, activities.size());
+    assertEquals("commuting activity", "commuting",
+        activities.get(0).getName());
+    assertEquals("business_trip activity", "business_trip",
+        activities.get(1).getName());
+
+    Map<String, ClassCar> classCars = evSocialClass.getClassCars();
+    assertEquals("2 cartypes", 2, classCars.size());
+    assertTrue("includes Tesla_40_kWh",
+        classCars.keySet().contains("Tesla_40_kWh"));
+    assertTrue("includes Nissan_Leaf_24_kWh",
+        classCars.keySet().contains("Nissan_Leaf_24_kWh"));
 
     Map<Integer, ClassGroup> classGroups = evSocialClass.getClassGroups();
     assertEquals("twelve class-groups", 3, classGroups.size());
@@ -189,7 +211,7 @@ public class EvSocialClassTest
     assertEquals("correct population", 2, evSocialClass.getPopulation());
     assertEquals("correct number of customers", 2, customers.size());
     assertEquals("correct number of infos", 2,
-                 evSocialClass.getCustomerInfos().size());
+        evSocialClass.getCustomerInfos().size());
     assertEquals("correct name", "HighIncome_2_0",
                  customers.get(0).getName());
     assertEquals("correct boot-config list 0",
@@ -204,11 +226,9 @@ public class EvSocialClassTest
   public void testBootConfig ()
   {
     initializeClass();
-    //ArrayList<EvCustomer> customers = evSocialClass.getEvCustomers();
     Configurator testConfig = new Configurator();
     ConfigurationPublisher pub = new ConfigurationPublisher();
     testConfig.gatherBootstrapState(evSocialClass, pub);
-    //System.out.println(pub.getConfig().toString());
     assertEquals("one property", 1, pub.getConfig().size());
     Object pop =
         pub.getConfig().get("evcustomer.customers.evSocialClass.customerAttributeList");
@@ -248,14 +268,14 @@ public class EvSocialClassTest
   }
 
   // Boot-restore works from a Configuration instance
-  //@Test
+  @Test
   public void testBootRestoreConfig ()
   {
     // need to configure manually for test
-    serverConfiguration.addPropertiesConfiguration("ev-customers.properties");
-    //serverConfiguration.printKeys();
-    Collection<?> escs = 
+    serverConfiguration.addXmlConfiguration("test-properties.xml");
+    Collection<?> escs =
         serverConfiguration.configureInstances(EvSocialClass.class);
+
     assertEquals("four classes", 4, escs.size());
     EvSocialClass target = null;
     Iterator<?> targets = escs.iterator();
@@ -265,132 +285,24 @@ public class EvSocialClassTest
         target = candidate;
       }
     }
+
     assertNotNull("found target", target);
-    //serverConfiguration.configureMe(evSocialClass);
-    assertNotNull("customer attribute list created",
-                  target.getCustomerAttributeList());
-    assertEquals("3 elements of customer attribute list", 3,
-                 target.getCustomerAttributeList().size());
+    assertNull("customer attribute list created",
+        target.getCustomerAttributeList());
 
     target.setServiceAccessor(service);
     target.initialize();
+
     // make sure initialization does not mess it up
     assertNotNull("customer attribute list created",
                   target.getCustomerAttributeList());
-    assertEquals("3 elements of customer attribute list", 3,
+    assertEquals("15 elements of customer attribute list", 15,
                  target.getCustomerAttributeList().size());
 
     List<EvCustomer> customers = target.getEvCustomers();
-    assertEquals("3 customers", 3, customers.size());
-    //for (EvCustomer c : customers) {
-    //  System.out.println(c.getName() + ": " + c.isDriving());
-    //}
-    assertTrue("first customer is driving", customers.get(0).isDriving());
+    assertEquals("15 customers", 15, customers.size());
+    assertFalse("first customer is not driving", customers.get(0).isDriving());
   }
-
-////  @Test
-////  public void testActivities ()
-////  {
-////    maleProbability = 1;
-////    Random predictable = new PredictableRandom(new double[]{0}, new int[]{0});
-////
-////    initializeClass();
-////    EvCustomer evCustomer = evSocialClass.getEvCustomers().get(0);
-////    evCustomer.setGenerator(predictable);
-////    evCustomer.makeDayPlanning(0);
-////    evCustomer.setRiskAttitude(0);
-////
-////    assertEquals(50, carType.getCurrentCapacity(), 1E-6);
-////    evSocialClass.doActivities(0, 6);
-////    assertEquals(25, carType.getCurrentCapacity(), 1E-6);
-////  }
-////
-////  @Test
-////  public void testConsumePower ()
-////  {
-////    // Make sure the battery is 25% full
-////    testActivities();
-////
-////    EvCustomer evCustomer = evSocialClass.getEvCustomers().get(0);
-////    CarType car2 = evCustomer.getCar();
-////
-////    // Normally isDriving would be set by doActivity
-////    evCustomer.setDriving(false);
-////
-////    TariffSubscription ts = new TariffSubscription(info2, defaultTariffEV);
-////    ts.subscribe(info2.getPopulation());
-////    tariffSubscriptionRepo.add(ts);
-////
-////    assertEquals(25, car2.getCurrentCapacity(), 1E-6);
-////
-////    evSocialClass.getLoads(0, 0);
-////    assertEquals(45, car2.getCurrentCapacity(), 1E-6);
-////
-////    evSocialClass.getLoads(0, 6);
-////    assertEquals(65, car2.getCurrentCapacity(), 1E-6);
-////
-////    evSocialClass.getLoads(0, 7);
-////    assertEquals(80, car2.getCurrentCapacity(), 1E-6);
-////
-////    evSocialClass.getLoads(0, 8);
-////    assertEquals(80, car2.getCurrentCapacity(), 1E-6);
-////
-////    for (CustomerInfo customerInfo : evSocialClass.getCustomerInfos()) {
-////      List<TariffSubscription> subs = tariffSubscriptionRepo
-////          .findActiveSubscriptionsForCustomer(customerInfo);
-////
-////      assertTrue("EvSocialClass consumed power for each customerInfo",
-////          subs.size() == 0 || subs.get(0).getTotalUsage() >= 0);
-////    }
-////  }
-//
-//  @Test
-//  public void testTariffEvaluator ()
-//  {
-//    initializeClass();
-//
-//    EvCustomer evCustomer = evSocialClass.getEvCustomers().get(0);
-//    Random generator = new PredictableRandom(
-//        new double[]{0, 1, 0, 1}, new int[]{0});
-//    double weight = 0.5;
-//    double weeks = Config.maxDefaultDuration;
-//
-//    TariffEvaluator tariffEvaluator =
-//        evSocialClass.createTariffEvaluator(info, weight, weeks);
-//
-//    assertEquals(tariffEvaluator.getInterruptibilityFactor(),
-//        Config.INTERRUPTIBILITY_FACTOR, 1E-6);
-//    assertEquals(tariffEvaluator.getTieredRateFactor(),
-//        Config.TIERED_RATE_FACTOR, 1E-6);
-//    assertEquals(tariffEvaluator.getTouFactor(),
-//        Config.TOU_FACTOR, 1E-6);
-//    assertEquals(tariffEvaluator.getVariablePricingFactor(),
-//        Config.VARIABLE_PRICING_FACTOR, 1E-6);
-//
-//    TariffEvaluationWrapper wrapper = new TariffEvaluationWrapper(
-//        info, evSocialClass.getEvCustomers(), generator);
-//
-//    assertEquals(info.getName(), wrapper.getCustomerInfo().getName());
-//    assertEquals(wrapper.getInertiaSample(), 0, 1E-6);
-//    assertEquals(wrapper.getInertiaSample(), 1, 1E-6);
-//    assertEquals(wrapper.getTariffChoiceSample(), 0, 1E-6);
-//    assertEquals(wrapper.getTariffChoiceSample(), 1, 1E-6);
-//    assertEquals(wrapper.getBrokerSwitchFactor(false),
-//        Config.BROKER_SWITCH_FACTOR, 1E-6);
-//    assertEquals(wrapper.getBrokerSwitchFactor(true),
-//        5 * Config.BROKER_SWITCH_FACTOR, 1E-6);
-//
-//    double[] profile0 = wrapper.getCapacityProfile(defaultTariff);
-//    double[] profile1 = wrapper.getCapacityProfile(defaultTariffEV);
-//
-//    assertEquals(profile0.length, profile1.length);
-//    for (int i = 0; i < profile0.length; i++) {
-//      double load = evCustomer.getDominantLoad() / Config.HOURS_OF_DAY;
-//      assertEquals(profile0[i], load, 1E-6);
-//      assertEquals(profile1[i], load, 1E-6);
-//    }
-//    assertEquals(profile0.length, 24);
-//  }
 
   class DummyConfig implements ServerConfiguration
   {
