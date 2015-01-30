@@ -471,7 +471,7 @@ public class LiftTruckTest
                  needs[1].getMaxSurplus(), 1e-6);
     assertEquals("[2] requires", 256.0,
                  needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] surplus", 0.0,
+    assertEquals("[2] surplus", -16.0,
                  needs[2].getMaxSurplus(), 1e-6);
     assertEquals("[7] requires", 96.0,
                  needs[7].getEnergyNeeded(), 1e-6);
@@ -525,7 +525,7 @@ public class LiftTruckTest
     assertEquals("[1] req", 192.0, needs[1].getEnergyNeeded(), 1e-6);
     assertEquals("[1] sur", 32.0, needs[1].getMaxSurplus(), 1e-6);
     assertEquals("[2] req", 256.0, needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] sur", 0.0, needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[2] sur", -16.0, needs[2].getMaxSurplus(), 1e-6);
     assertEquals("[7] req", 192.0, needs[7].getEnergyNeeded(), 1e-6);
     assertEquals("[7] sur", 48.0, needs[7].getMaxSurplus(), 1e-6);
   }
@@ -580,7 +580,7 @@ public class LiftTruckTest
     assertEquals("[2] req", 192.0, needs[2].getEnergyNeeded(), 1e-6);
     assertEquals("[2] sur", 32.0, needs[2].getMaxSurplus(), 1e-6);
     assertEquals("[3] req", 256.0, needs[3].getEnergyNeeded(), 1e-6);
-    assertEquals("[3] sur", 0.0, needs[3].getMaxSurplus(), 1e-6);
+    assertEquals("[3] sur", -16.0, needs[3].getMaxSurplus(), 1e-6);
     assertEquals("[7] req", 0.0, needs[7].getEnergyNeeded(), 1e-6);
     assertEquals("[7] sur", 240.0, needs[7].getMaxSurplus(), 1e-6);
   }

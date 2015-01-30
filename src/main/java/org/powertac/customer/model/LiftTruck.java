@@ -411,13 +411,15 @@ public class LiftTruck
       // If we get here, the existing array is missing or no longer valid
       futureEnergyNeeds =
           getFutureEnergyNeeds(info.getTimeslot().getStartInstant(),
-                               planningHorizon);
+                               planningHorizon,
+                               energyCharging);
     }
     return futureEnergyNeeds;
   }
 
   // Computes constraints on future energy needs
-  ShiftEnergy[] getFutureEnergyNeeds (Instant start, int horizon)
+  ShiftEnergy[] getFutureEnergyNeeds (Instant start, int horizon,
+                                      double initialCharging)
   {
     int index = indexOfShift(start);
     Shift currentShift = shiftSchedule[index]; // might be null
@@ -462,7 +464,7 @@ public class LiftTruck
       chargers = (int)Math.min(chargers, availableBatteries);
       double available =
           getMaxChargeKW() * result[i].getDuration() * chargers;
-      double surplus = Math.max(0.0, available - needed - shortage);
+      double surplus = available - needed - shortage;
       shortage = Math.max(0.0, -(available - needed - shortage));
       result[i].setEnergyNeeded(needed);
       result[i].setMaxSurplus(surplus);
@@ -471,10 +473,10 @@ public class LiftTruck
     // the current battery charge.
     double finalSurplus = result[0].getMaxSurplus();
     if (finalSurplus > 0.0) {
-      result[0].setMaxSurplus(finalSurplus + energyCharging);
+      result[0].setMaxSurplus(finalSurplus + initialCharging);
     }
     else if (shortage > 0.0) {
-      result[0].setMaxSurplus(energyCharging - shortage);
+      result[0].setMaxSurplus(initialCharging - shortage);
     }
     return result;
   }
@@ -499,6 +501,25 @@ public class LiftTruck
     if (0 == index)
       return shiftSchedule.length - 1;
     return (index - 1) % shiftSchedule.length;
+  }
+
+  // Returns the next date/time when the given shift index will occur
+  Instant indexToInstant (int index)
+  {
+    Instant now = timeslotRepo.currentTimeslot().getStartInstant();
+    int probe = index;
+    // get the probe within the shift schedule
+    while (probe < 0) {
+      probe += shiftSchedule.length;
+    }
+    while (probe > shiftSchedule.length) {
+      probe -= shiftSchedule.length;
+    }
+    int nowIndex = indexOfShift(now);
+    if (nowIndex <= index) {
+      return (now.plus(HOUR * (index - nowIndex)));
+    }
+    return (now.plus(HOUR * (shiftSchedule.length + index - nowIndex)));
   }
 
   // ================ getters and setters =====================
@@ -738,6 +759,7 @@ public class LiftTruck
   }
 
   // ======== Energy needed, available for a Shift ======
+  // 
   class ShiftEnergy
   {
 
@@ -745,7 +767,7 @@ public class LiftTruck
     private int endIndex; // shift index at start of next Shift or idle period
     private int duration; // in hours
     private double energyNeeded = 0.0; // in kWh at end of duration
-    private double maxSurplus = 0.0; // possible kWh beyond needed
+    private double maxSurplus = 0.0; // possible kWh beyond needed - can be negative
 
     ShiftEnergy (int end, int duration)
     {
@@ -758,17 +780,15 @@ public class LiftTruck
       this.duration = duration;
     }
 
-//    int getStartIndex ()
-//    {
-//      return startIndex;
-//    }
-//
-//    Shift getThisShift ()
-//    {
-//      if (startIndex >= shiftSchedule.length)
-//        return null;
-//      return shiftSchedule[startIndex];
-//    }
+    int getStartIndex ()
+    {
+      return previousShiftIndex(endIndex);
+    }
+
+    Shift getThisShift ()
+    {
+      return shiftSchedule[getStartIndex()];
+    }
 
     int getEndIndex ()
     {
@@ -803,6 +823,12 @@ public class LiftTruck
       this.energyNeeded = energyNeeded;
     }
 
+    // Reduces energyNeeded by the given amount
+    void addEnergy (double energy)
+    {
+      energyNeeded -= energy;
+    }
+
     double getMaxSurplus ()
     {
       return maxSurplus;
@@ -813,6 +839,7 @@ public class LiftTruck
       this.maxSurplus = maxSurplus;
     }
 
+    // Increases the surplus by the given amount.
     void addSurplus (double surplus)
     {
       maxSurplus += surplus;
@@ -823,6 +850,7 @@ public class LiftTruck
   class CapacityPlan
   {
     private double[] usage;
+    private double[] slack; // per-shift total energy slack
     private Instant start;
     private int size;
     private Tariff tariff;
@@ -860,57 +888,97 @@ public class LiftTruck
                      double initialCharging,
                      double initialInUse)
     {
-      ShiftEnergy[] energyNeeds = getFutureEnergyNeeds(start, size);
-      
-      // behavior depends on tariff rate structure
-//      if (!tariff.isTimeOfUse()) {
-//        // flat rates, just charge ASAP
-//        createFlatRatePlan(energyNeeds, initialCharging, initialInUse);
-//      }
+      ShiftEnergy[] energyNeeds = getFutureEnergyNeeds(start, size, 0.0);
+      //ensureFeasibility(energyNeeds);
+      LpPlan plan = new LpPlan(tariff, energyNeeds, size);
+      usage = plan.getSolution();
+      slack = plan.getSlack();
+    }
+  }
+
+  // Creates a plan using the JOptimizer LP solver, gives access to
+  // solution and slack values
+  class LpPlan
+  {
+    double[] solution = null;
+    double[] slack;
+    Tariff tariff;
+    ShiftEnergy[] needs;
+    int size;
+
+    LpPlan (Tariff tariff, ShiftEnergy[] needs, int size)
+    {
+      super();
+      this.tariff = tariff;
+      this.needs = needs;
+      this.size = size;
     }
 
-//    void createFlatRatePlan (ShiftEnergy[] needs,
-//                             double initialCharging,
-//                             double initialInUse)
-//    {
-//      int shiftIndex = indexOfShift(start);
-//      Shift currentShift = shiftSchedule[previousShiftIndex(shiftIndex)];
-//      double eCharging = initialCharging;
-//      double eInUse = initialInUse;
-//      double cInUse = currentShift.getTrucks() * batteryCapacity;
-//      for (int t = 0; t < size; t++) {
-//        Shift newShift = shiftSchedule[shiftIndex];
-//        shiftIndex = nextShiftIndex(shiftIndex);
-//        if (newShift != currentShift) {
-//          // start of shift
-//          // Take all batteries out of service
-//          double totalEnergy = eCharging + eInUse;
-//          eCharging += eInUse;
-//          cInUse = 0.0;
-//          eInUse = 0.0;
-//          // Put the strongest batteries in trucks for the next shift
-//          if (null != newShift) {
-//            cInUse = newShift.getTrucks() * batteryCapacity;
-//            eInUse = Math.min(cInUse, totalEnergy);
-//            eCharging = totalEnergy - eInUse;
-//          }
-//        }
-//
-//        // discharge batteries on active trucks
-//        double usage =
-//            Math.max(0.0,
-//                     normal.sample() * truckStd +
-//                     truckKW * currentShift.getTrucks());
-//        double deficit = usage - eInUse;
-//        log.debug(getName() + " plan: trucks use " + usage + " kWh");
-//        if (deficit > 0.0) {
-//          log.warn(getName()
-//                   + " plan: trucks use more energy than available by "
-//                   + deficit + " kWh");
-//          eInUse += deficit;
-//          eCharging -= deficit;
-//        }
-//        eInUse -= usage;
-//      }    }
+    // formulate and generate the solution, if necessary
+    private void solve ()
+    {
+      if (null != solution)
+        return;
+
+      // min obj.x s.t. a.x=b, lb <= x <= ub
+      // x is energy use per hour for size hours, slack var per shift
+      int columns = size;
+      int shifts = needs.length;
+      Instant time =
+          indexToInstant(needs[0].getStartIndex());
+      double[] obj = new double[columns + shifts];
+      double[][] a = new double[shifts][columns + shifts];
+      double[] b = new double[shifts];
+      double[] lb = new double[columns + shifts];
+      double[] ub = new double[columns + shifts];
+      int column = 0;
+      double cumulativeMin = 0.0; // this is the primary constraint
+      // construct the core problem
+      for (int i = 0; i < needs.length; i++) {
+        // fill in objective function
+        // cost based on assumption that shift need is evenly distributed
+        double kwh =
+            needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
+        for (int j = 0; j < needs[i].getDuration(); j++) {
+          double charge =
+              tariff.getUsageCharge(time, kwh / needs[i].getDuration(), kwh);
+          obj[i] = charge;
+          // construct cumulative usage constraints
+          a[i][column] = -1.0;
+          time = time.plus(HOUR);
+          lb[column] = 0.0;
+          ub[column] =
+              (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
+              / needs[i].getDuration();
+          column += 1;
+        }
+        // b vector - one entry per constraint
+        double need = needs[i].getEnergyNeeded();
+        if (needs[i].getMaxSurplus() < 0.0)
+          need += needs[i].getMaxSurplus();
+        cumulativeMin += need;
+        b[i] = cumulativeMin;
+        // fill in slack values, one per constraint
+        obj[columns + i] = 0.0;
+        a[i][columns + i] = -1.0;
+        lb[columns + i] = 0.0;
+        ub[columns + i] =
+            (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
+            / needs[i].getDuration();
+      }
+      // run the optimization
+    }
+
+    double[] getSolution ()
+    {
+      solve();
+      return solution;
+    }
+
+    double[] getSlack ()
+    {
+      solve();
+      return slack;
+    }
   }
 }
