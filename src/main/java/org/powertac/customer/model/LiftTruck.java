@@ -15,24 +15,28 @@
  */
 package org.powertac.customer.model;
 
+import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.random.JDKRandomGenerator;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.customer.StepInfo;
+
+import com.joptimizer.optimizers.LPOptimizationRequest;
+import com.joptimizer.optimizers.LPPrimalDualMethod;
+import com.joptimizer.optimizers.OptimizationResponse;
 
 /**
  * Models the complement of lift trucks in a warehouse. There may be
@@ -418,10 +422,13 @@ public class LiftTruck
   }
 
   // Computes constraints on future energy needs
+  // Amounts are energy needed to run the chargers. Energy input to trucks
+  // will be smaller due to charge efficiency.
   ShiftEnergy[] getFutureEnergyNeeds (Instant start, int horizon,
                                       double initialCharging)
   {
     int index = indexOfShift(start);
+    // current time is likely to be partway into first shift
     Shift currentShift = shiftSchedule[index]; // might be null
     int duration = 1;
     while (shiftSchedule[++index] == currentShift) {
@@ -431,16 +438,18 @@ public class LiftTruck
     // this gives us the info we need to start the sequence
     ArrayList<ShiftEnergy> data = new ArrayList<ShiftEnergy>();
     data.add(new ShiftEnergy(index, duration));
-    duration = 0;
-    for (int hour = 1; hour <= horizon; hour++) {
-      duration += 1;
-      index = nextShiftIndex(index);
-      if (nextShift != shiftSchedule[index]) {
-        // start of next shift or idle period
-        nextShift = shiftSchedule[index];
-        data.add(new ShiftEnergy(index, duration));
-        duration = 0;
+    int elapsed = duration;
+    // add shifts until we run off the end of the horizon
+    // keep in mind that a shift can be null
+    while (elapsed < horizon) {
+      duration = 0;
+      while (nextShift == shiftSchedule[index]) {
+        index = nextShiftIndex(index);
+        duration += 1;
       }
+      nextShift = shiftSchedule[index];
+      data.add(new ShiftEnergy(index, duration));
+      elapsed += duration;
     }
     // now we convert to array, then walk backward and fill in energy needs
     ShiftEnergy[] result = data.toArray(new ShiftEnergy[data.size()]);
@@ -452,8 +461,11 @@ public class LiftTruck
       Shift end = shiftSchedule[endx];
       double needed = 0.0;
       if (null != end) {
+        // Assume we need, at the end of each shift, enough energy to
+        // run the next shift
         needed =
-            (end.getTrucks() * end.getDuration() * getTruckKW());
+            (end.getTrucks() * end.getDuration() * getTruckKW())
+            / getChargeEfficiency();
       }
       // chargers is min of charger capacity and battery availability
       int chargers = getNChargers();
@@ -463,7 +475,8 @@ public class LiftTruck
       }
       chargers = (int)Math.min(chargers, availableBatteries);
       double available =
-          getMaxChargeKW() * result[i].getDuration() * chargers;
+          getMaxChargeKW() * result[i].getDuration() * chargers
+          / getChargeEfficiency();
       double surplus = available - needed - shortage;
       shortage = Math.max(0.0, -(available - needed - shortage));
       result[i].setEnergyNeeded(needed);
@@ -478,6 +491,12 @@ public class LiftTruck
     else if (shortage > 0.0) {
       result[0].setMaxSurplus(initialCharging - shortage);
     }
+    return result;
+  }
+
+  CapacityPlan getCapacityPlan(Tariff tariff, Instant start, int size)
+  {
+    CapacityPlan result = new CapacityPlan(tariff, start, size);
     return result;
   }
 
@@ -759,15 +778,17 @@ public class LiftTruck
   }
 
   // ======== Energy needed, available for a Shift ======
-  // 
   class ShiftEnergy
   {
-
-    //private int startIndex; // shift index of start
     private int endIndex; // shift index at start of next Shift or idle period
     private int duration; // in hours
     private double energyNeeded = 0.0; // in kWh at end of duration
     private double maxSurplus = 0.0; // possible kWh beyond needed - can be negative
+
+    // Plan recommendations
+    private double[] recommendedUsage;
+    private double slack;
+    private int usageIndex = 0;
 
     ShiftEnergy (int end, int duration)
     {
@@ -811,6 +832,7 @@ public class LiftTruck
     void tick ()
     {
       duration -= 1;
+      usageIndex += 1;
     }
 
     double getEnergyNeeded ()
@@ -844,13 +866,52 @@ public class LiftTruck
     {
       maxSurplus += surplus;
     }
+
+    // ---- access to plan data ----
+    // Returns the recommendedUsage array. This will be null unless this
+    // instance has been decorated CapacityPlan.getNeeds().
+    double[] getRecommendedUsage ()
+    {
+      return recommendedUsage;
+    }
+
+    // Returns the recommended usage for the current timeslot, assuming
+    // tick() has been called at the conclusion of each timeslot.
+    double getCurrentRecommendedUsage ()
+    {
+      return recommendedUsage[usageIndex];
+    }
+
+    // Returns amount by which usage can vary before plan is violated
+    double getSlack ()
+    {
+      return slack;
+    }
+
+    // ---- decoration by plan ----
+    void setRecommendedUsage (double[] usagePlan)
+    {
+      if (usagePlan.length != duration) {
+        // These should be the same
+        log.error("usagePlan length " + usagePlan.length
+                  + " > duration " + duration);
+      }
+      this.recommendedUsage = usagePlan;
+    }
+
+    void setSlack (double slack)
+    {
+      this.slack = slack;
+    }
   }
 
   // ======== Consumption plan ========
+  // Used for tariff evaluation, and for guiding consumption.
   class CapacityPlan
   {
     private double[] usage;
-    private double[] slack; // per-shift total energy slack
+    private double[] slack;
+    private ShiftEnergy[] needs;
     private Instant start;
     private int size;
     private Tariff tariff;
@@ -861,14 +922,13 @@ public class LiftTruck
       this(tariff, start, planningHorizon);
     }
 
-    // Creates a plan for a custome size
+    // Creates a plan for a custom size
     CapacityPlan (Tariff tariff, Instant start, int size)
     {
       super();
       this.tariff = tariff;
       this.start = start;
       this.size = size;
-      this.usage = new double[size];
     }
 
     double[] getUsage ()
@@ -877,22 +937,42 @@ public class LiftTruck
     }
 
     // creates a plan using the default tariff and initial conditions
-    void createPlan (double initialCharging,
-                     double initialInUse)
+    void createPlan (double initialCharging)
     {
-      createPlan(this.tariff, initialCharging, initialInUse);
+      createPlan(this.tariff, initialCharging);
     }
 
     // creates a plan, with specified start time and state-of-charge
     void createPlan (Tariff tariff,
-                     double initialCharging,
-                     double initialInUse)
+                     double initialCharging)
     {
-      ShiftEnergy[] energyNeeds = getFutureEnergyNeeds(start, size, 0.0);
-      //ensureFeasibility(energyNeeds);
-      LpPlan plan = new LpPlan(tariff, energyNeeds, size);
+      needs = getFutureEnergyNeeds(start, size, initialCharging);
+      // update size to use all of last ShiftEnergy instance
+      int newSize = 0;
+      for (ShiftEnergy need : needs)
+        newSize += need.getDuration();
+      size = newSize;
+      LpPlan plan = new LpPlan(tariff, needs, size);
       usage = plan.getSolution();
       slack = plan.getSlack();
+    }
+
+    // returns the ShiftEnergy array used to create the plan,
+    // decorated with the most recent solution
+    ShiftEnergy[] getNeeds ()
+    {
+      if (null == needs)
+        return null;
+      int usageIndex = 0;
+      for (int i = 0; i < needs.length; i++) {
+        ShiftEnergy se = needs[i];
+        se.setRecommendedUsage(Arrays.copyOfRange(usage, 
+                                                  usageIndex, 
+                                                  usageIndex + se.getDuration()));
+        usageIndex += se.getDuration();
+        se.setSlack(slack[i]);
+      }
+      return needs;
     }
   }
 
@@ -900,8 +980,9 @@ public class LiftTruck
   // solution and slack values
   class LpPlan
   {
-    double[] solution = null;
+    double[] solution;
     double[] slack;
+    boolean solved = false;
     Tariff tariff;
     ShiftEnergy[] needs;
     int size;
@@ -917,11 +998,12 @@ public class LiftTruck
     // formulate and generate the solution, if necessary
     private void solve ()
     {
-      if (null != solution)
+      if (solved)
         return;
 
       // min obj.x s.t. a.x=b, lb <= x <= ub
       // x is energy use per hour for size hours, slack var per shift
+      Date start = new Date();
       int columns = size;
       int shifts = needs.length;
       Instant time =
@@ -933,18 +1015,20 @@ public class LiftTruck
       double[] ub = new double[columns + shifts];
       int column = 0;
       double cumulativeMin = 0.0; // this is the primary constraint
-      // construct the core problem
-      for (int i = 0; i < needs.length; i++) {
-        // fill in objective function
-        // cost based on assumption that shift need is evenly distributed
+      // construct the problem
+      for (int i = 0; i < shifts; i++) {
+        // one iteration per shift
         double kwh =
             needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
         for (int j = 0; j < needs[i].getDuration(); j++) {
-          double charge =
+          // one iteration per timeslot within a shift
+          // fill in objective function
+          // cost based on assumption that shift need is evenly distributed
+          double cost =
               tariff.getUsageCharge(time, kwh / needs[i].getDuration(), kwh);
-          obj[i] = charge;
+          obj[column] = cost / (kwh / needs[i].getDuration());
           // construct cumulative usage constraints
-          a[i][column] = -1.0;
+          //a[i][column] = -1.0;
           time = time.plus(HOUR);
           lb[column] = 0.0;
           ub[column] =
@@ -952,21 +1036,63 @@ public class LiftTruck
               / needs[i].getDuration();
           column += 1;
         }
+        // fill a row up to column
+        for (int j = 0; j < column; j++) {
+          a[i][j] = -1.0;
+        }
         // b vector - one entry per constraint
         double need = needs[i].getEnergyNeeded();
         if (needs[i].getMaxSurplus() < 0.0)
           need += needs[i].getMaxSurplus();
         cumulativeMin += need;
-        b[i] = cumulativeMin;
+        b[i] = -cumulativeMin;
         // fill in slack values, one per constraint
         obj[columns + i] = 0.0;
-        a[i][columns + i] = -1.0;
+        a[i][columns + i] = 1.0;
         lb[columns + i] = 0.0;
         ub[columns + i] =
             (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
             / needs[i].getDuration();
       }
       // run the optimization
+      LPOptimizationRequest or = new LPOptimizationRequest();
+      log.debug("Obj: " + Arrays.toString(obj));
+      or.setC(obj);
+      log.debug("a:");
+      for (int i = 0; i < a.length; i++)
+        log.debug(Arrays.toString(a[i]));
+      or.setA(a);
+      log.debug("b: " + Arrays.toString(b));
+      or.setB(b);
+      or.setLb(lb);
+      log.debug("ub: " + Arrays.toString(ub));
+      or.setUb(ub);
+      or.setTolerance(1.0e-2);
+      LPPrimalDualMethod opt = new LPPrimalDualMethod();
+      opt.setLPOptimizationRequest(or);
+      try {
+        int returnCode = opt.optimize();
+        assertEquals("success", OptimizationResponse.SUCCESS, returnCode);
+        double[] sol = opt.getOptimizationResponse().getSolution();
+        Date end = new Date();
+        log.debug("Solution time: " + (end.getTime() - start.getTime()));
+        log.debug("Solution = " + Arrays.toString(sol));
+        recordSolution(sol);
+      }
+      catch (Exception e) {
+        log.error(e.toString());
+      }
+      // we call it solved whether or not the solution was successful
+      solved = true;
+    }
+
+    // pulls apart the usage and slack data
+    void recordSolution(double[] lpResult)
+    {
+      solution = Arrays.copyOfRange(lpResult, 0, size);
+      log.debug("Usage: " + Arrays.toString(solution));
+      slack = Arrays.copyOfRange(lpResult, size, lpResult.length);
+      log.debug("Slack: " + Arrays.toString(slack));
     }
 
     double[] getSolution ()

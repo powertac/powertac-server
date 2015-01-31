@@ -16,8 +16,8 @@
 package org.powertac.customer.model;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
-import java.util.List;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,17 +26,24 @@ import java.util.TreeMap;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
-import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.powertac.common.Broker;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.customer.StepInfo;
 import org.powertac.customer.model.LiftTruck.Shift;
 import org.powertac.customer.model.LiftTruck.ShiftEnergy;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author John Collins
@@ -44,6 +51,7 @@ import org.powertac.customer.model.LiftTruck.ShiftEnergy;
 public class LiftTruckTest
 {
   Configuration config;
+  TimeslotRepo tsRepo;
 
   /**
    *
@@ -51,6 +59,7 @@ public class LiftTruckTest
   @Before
   public void setUp () throws Exception
   {
+    tsRepo = mock(TimeslotRepo.class);
   }
 
   // map names to instances
@@ -405,25 +414,27 @@ public class LiftTruckTest
     assertEquals("8 items", 8, needs.length);
     assertEquals("duration[0] is 6", 6, needs[0].getDuration());
     assertEquals("[0] ends at 16", 16, needs[0].getNextShift().getStart());
-    assertEquals("[0] requires", 192.0,
+    assertEquals("[0] requires", 192.0 / truck.getChargeEfficiency(),
                  needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] max surplus", 60.0,
+    assertEquals("[0] max surplus", 60.0 / truck.getChargeEfficiency(),
                  needs[0].getMaxSurplus(), 1e-6);
     assertEquals("[1] ends at 0", 0, needs[1].getNextShift().getStart());
-    assertEquals("[1] requires", 96.0,
+    assertEquals("[1] requires", 96.0 / truck.getChargeEfficiency(),
                  needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] surplus", 288.0,
+    assertEquals("[1] surplus", 288.0 / truck.getChargeEfficiency(),
                  needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[1] dur", 8, needs[1].getDuration());
     assertEquals("[2] ends at 8", 8, needs[2].getNextShift().getStart());
-    assertEquals("[2] requires", 256.0,
+    assertEquals("[2] requires", 256.0 / truck.getChargeEfficiency(),
                  needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] surplus", 128.0,
+    assertEquals("[2] surplus", 128.0 / truck.getChargeEfficiency(),
                  needs[2].getMaxSurplus(), 1e-6);
     assertEquals("[7] ends at 0", 0, needs[7].getNextShift().getStart());
-    assertEquals("[7] requires", 96.0,
+    assertEquals("[7] requires", 96.0 / truck.getChargeEfficiency(),
                  needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] surplus", 288.0,
+    assertEquals("[7] surplus", 288.0 / truck.getChargeEfficiency(),
                  needs[7].getMaxSurplus(), 1e-6);
+    assertEquals("[7] dur", 8, needs[7].getDuration());
   }
 
   @Test
@@ -461,21 +472,21 @@ public class LiftTruckTest
     assertNotNull("needs not null", needs);
     assertEquals("8 items", 8, needs.length);
     assertEquals("duration[0] is 6", 6, needs[0].getDuration());
-    assertEquals("[0] requires", 192.0,
+    assertEquals("[0] requires", 192.0 / truck.getChargeEfficiency(),
                  needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] max surplus", 2.0,
+    assertEquals("[0] max surplus", -12.0 / truck.getChargeEfficiency() + 14,
                  needs[0].getMaxSurplus(), 1e-6);
-    assertEquals("[1] requires", 96.0,
+    assertEquals("[1] requires", 96.0 / truck.getChargeEfficiency(),
                  needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] surplus", 128.0,
+    assertEquals("[1] surplus", 128.0 / truck.getChargeEfficiency(),
                  needs[1].getMaxSurplus(), 1e-6);
-    assertEquals("[2] requires", 256.0,
+    assertEquals("[2] requires", 256.0 / truck.getChargeEfficiency(),
                  needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] surplus", -16.0,
+    assertEquals("[2] surplus", -16.0 / truck.getChargeEfficiency(),
                  needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[7] requires", 96.0,
+    assertEquals("[7] requires", 96.0 / truck.getChargeEfficiency(),
                  needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] surplus", 144.0,
+    assertEquals("[7] surplus", 144.0 / truck.getChargeEfficiency(),
                  needs[7].getMaxSurplus(), 1e-6);
   }
 
@@ -519,15 +530,22 @@ public class LiftTruckTest
     assertEquals("duration[0] is 6", 6, needs[0].getDuration());
     assertNull("[0] ends at idle", needs[0].getNextShift());
     assertEquals("[0] req", 0.0, needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] sur", 184.0, needs[0].getMaxSurplus(), 1e-6);
+    assertEquals("[0] sur", 180.0 / tk.getChargeEfficiency() + 4.0,
+                 needs[0].getMaxSurplus(), 1e-6);
     assertNotNull("[1] not null", needs[1].getNextShift());
     assertEquals("[1] ends 00:00", 0, needs[1].getNextShift().getStart());
-    assertEquals("[1] req", 192.0, needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] sur", 32.0, needs[1].getMaxSurplus(), 1e-6);
-    assertEquals("[2] req", 256.0, needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] sur", -16.0, needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[7] req", 192.0, needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] sur", 48.0, needs[7].getMaxSurplus(), 1e-6);
+    assertEquals("[1] req", 192.0 / tk.getChargeEfficiency(),
+                 needs[1].getEnergyNeeded(), 1e-6);
+    assertEquals("[1] sur", 32.0 / tk.getChargeEfficiency(),
+                 needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[2] req", 256.0 / tk.getChargeEfficiency(),
+                 needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] sur", -16.0 / tk.getChargeEfficiency(),
+                 needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[7] req", 192.0 / tk.getChargeEfficiency(),
+                 needs[7].getEnergyNeeded(), 1e-6);
+    assertEquals("[7] sur", 48.0 / tk.getChargeEfficiency(),
+                 needs[7].getMaxSurplus(), 1e-6);
   }
 
   @Test
@@ -568,21 +586,68 @@ public class LiftTruckTest
     //  7    8   16    0    5  240  240
     //  8    8    0  192    5  240   48
     assertNotNull("needs not null", needs);
-    assertEquals("8 items", 8, needs.length);
+    assertEquals("9 items", 9, needs.length);
     assertEquals("duration[0] is 2", 2, needs[0].getDuration());
-    assertEquals("[0] req", 128.0, needs[0].getEnergyNeeded(), 1e-6);
-    assertEquals("[0] sur", 7.0, needs[0].getMaxSurplus(), 1e-6);
+    assertEquals("[0] req", 128.0 / tk.getChargeEfficiency(),
+                 needs[0].getEnergyNeeded(), 1e-6);
+    assertEquals("[0] sur", -68.0 / tk.getChargeEfficiency() + 75.0,
+                 needs[0].getMaxSurplus(), 1e-6);
     assertNull("[1] ends at idle", needs[1].getNextShift());
     assertEquals("[1] req", 0.0, needs[1].getEnergyNeeded(), 1e-6);
-    assertEquals("[1] sur", 240.0, needs[1].getMaxSurplus(), 1e-6);
+    assertEquals("[1] sur", 240.0 / tk.getChargeEfficiency(),
+                 needs[1].getMaxSurplus(), 1e-6);
     assertNotNull("[2] not null", needs[2].getNextShift());
     assertEquals("[2] ends 00:00", 0, needs[2].getNextShift().getStart());
-    assertEquals("[2] req", 192.0, needs[2].getEnergyNeeded(), 1e-6);
-    assertEquals("[2] sur", 32.0, needs[2].getMaxSurplus(), 1e-6);
-    assertEquals("[3] req", 256.0, needs[3].getEnergyNeeded(), 1e-6);
-    assertEquals("[3] sur", -16.0, needs[3].getMaxSurplus(), 1e-6);
+    assertEquals("[2] req", 192.0 / tk.getChargeEfficiency(),
+                 needs[2].getEnergyNeeded(), 1e-6);
+    assertEquals("[2] sur", 32.0 / tk.getChargeEfficiency(),
+                 needs[2].getMaxSurplus(), 1e-6);
+    assertEquals("[3] req", 256.0 / tk.getChargeEfficiency(),
+                 needs[3].getEnergyNeeded(), 1e-6);
+    assertEquals("[3] sur", -16.0 / tk.getChargeEfficiency(),
+                 needs[3].getMaxSurplus(), 1e-6);
     assertEquals("[7] req", 0.0, needs[7].getEnergyNeeded(), 1e-6);
-    assertEquals("[7] sur", 240.0, needs[7].getMaxSurplus(), 1e-6);
+    assertEquals("[7] sur", 240.0 / tk.getChargeEfficiency(),
+                 needs[7].getMaxSurplus(), 1e-6);
+    assertEquals("[8] req", 192.0 / tk.getChargeEfficiency(),
+                 needs[8].getEnergyNeeded(), 1e-6);
+    assertEquals("[8] sur", 48.0 / tk.getChargeEfficiency(),
+                 needs[8].getMaxSurplus(), 1e-6);
+  }
+
+  @Test
+  public void testPlanFlatDefault ()
+  {
+    LiftTruck truck = new LiftTruck("Test");
+    truck.initialize(null, tsRepo, new RandomSeed("test", 0, "1"));
+    DateTime now =
+        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    Timeslot ts = new Timeslot(2, now.toInstant());
+    when(tsRepo.currentTimeslot()).thenReturn(ts);
+    Broker broker = new Broker("bob");
+    TariffSpecification spec =
+        new TariffSpecification(broker, PowerType.CONSUMPTION);
+    Rate rate = new Rate().withValue(0.15);
+    spec.addRate(rate);
+    Tariff tariff = new Tariff(spec);
+    TimeService tsvc = mock(TimeService.class);
+    when(tsvc.getCurrentTime()).thenReturn(now.toInstant());
+    ReflectionTestUtils.setField(tariff, "timeService", tsvc);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", mock(TariffRepo.class));
+    tariff.init();
+
+    LiftTruck.CapacityPlan plan =
+        truck.getCapacityPlan(tariff, now.toInstant(), 95);
+    assertNotNull("Created a plan", plan);
+    assertNull("No solution yet", plan.getUsage());
+    plan.createPlan(1.0);
+
+    double[] usage = plan.getUsage();
+    assertEquals("correct length", 102, usage.length);
+
+    ShiftEnergy[] needs = plan.getNeeds();
+    assertEquals("correct length", 13, needs.length);
+
   }
 
   /**
