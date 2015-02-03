@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 by the original author
+ * Copyright (c) 2015 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,31 @@
 package org.powertac.customer.model;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-
+import java.util.Map;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
+import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
+import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerModelAccessor;
+import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
-import org.powertac.customer.StepInfo;
+import org.powertac.customer.coldstorage.ColdStorage;
 
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
@@ -65,7 +73,11 @@ import com.joptimizer.optimizers.OptimizationResponse;
  * 
  * @author John Collins
  */
+@Domain
+@ConfigurableInstance
 public class LiftTruck
+extends AbstractCustomer
+implements CustomerModelAccessor
 {
   static private Logger log =
       Logger.getLogger(LiftTruck.class.getName());
@@ -110,6 +122,10 @@ public class LiftTruck
       description = "planning horizon in timeslots - should be at least 48")
   private int planningHorizon = 60;
 
+  @ConfigurableValue(valueType = "Integer",
+      description = "minimum useful horizon of existing plan")
+  private int minPlanningHorizon = 24;
+
   // ==== Shift data ====
   // These List values are configured through their setter methods.
   // The default value is set in the constructor to serialize the
@@ -142,16 +158,26 @@ public class LiftTruck
       description = "Online battery energy, currently being charged")
   private double energyCharging = 0.0; // energy content of charging batteries
 
-  private TariffSubscription currentSubscription;
   // constraint on current charging energy usage
-  private ShiftEnergy[] futureEnergyNeeds = null;
-  //private CapacityPlan plan;
-  //private RandomSeed rs;
+  private PowerType powerType;
+  //private ShiftEnergy[] futureEnergyNeeds = null;
+  private CapacityPlan plan;
+
+  // random seeds
+  private RandomSeed opSeed = null;
+  private RandomSeed evalSeed = null;
   private NormalDistribution normal;
 
   // context references
-  private AbstractCustomer customer;
-  private TimeslotRepo timeslotRepo;
+  private TariffEvaluator tariffEvaluator;
+
+  /**
+   * Default constructor, requires manual setting of name
+   */
+  public LiftTruck ()
+  {
+    super();
+  }
 
   /**
    * Standard constructor for named configurable type
@@ -168,15 +194,25 @@ public class LiftTruck
    * active trucks, and the weakest batteries on availableChargers. Trucks will not
    * be active (in bootstrap mode) until the first shift change.
    */
-  public void initialize (AbstractCustomer customer,
-                          TimeslotRepo timeslotRepo,
-                          RandomSeed seed)
+  @Override
+  public void initialize ()
   {
-    this.customer = customer;
-    this.timeslotRepo = timeslotRepo;
-    //this.rs = seed;
-    normal = new NormalDistribution();
-    normal.reseedRandomGenerator(seed.nextLong());
+    super.initialize();
+    log.info("Initialize " + name);
+    // fill out CustomerInfo. We label this model as thermal storage
+    // because we don't allow battery discharge
+    powerType = PowerType.THERMAL_STORAGE_CONSUMPTION;
+    CustomerInfo info = new CustomerInfo(name, 1);
+    // conservative interruptible capacity
+    double interruptible =
+        Math.min(nChargers * maxChargeKW, nBatteries * maxChargeKW / 3.0);
+    info.withPowerType(powerType)
+        .withControllableKW(-interruptible)
+        .withStorageCapacity(nBatteries * maxChargeKW / 3.0)
+        .withUpRegulationKW(-nChargers * maxChargeKW)
+        .withDownRegulationKW(nChargers * maxChargeKW); // optimistic, perhaps
+    addCustomerInfo(info);
+    ensureSeeds();
 
     // use default values when not configured
     ensureShifts();
@@ -190,6 +226,30 @@ public class LiftTruck
     //energyCharging = getStateOfCharge() * getBatteryCapacity();
     capacityInUse = 0.0;
     energyInUse = 0.0;
+
+    // set up the tariff evaluator. We are wide-open to variable pricing.
+    tariffEvaluator = new TariffEvaluator(this);
+    tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
+    tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
+    tariffEvaluator.initializeRegulationFactors(-nChargers * maxChargeKW * 0.05,
+                                                0.0,
+                                                nChargers * maxChargeKW * 0.04);
+  }
+
+  // Gets a new random-number opSeed just in case we don't already have one.
+  // Useful for mock-based testing.
+  private void ensureSeeds ()
+  {
+    if (null == opSeed) {
+      opSeed = service.getRandomSeedRepo()
+          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+                         0, "model");
+      evalSeed = service.getRandomSeedRepo()
+          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+                         0, "eval");
+      normal = new NormalDistribution(0.0, 1.0);
+      normal.reseedRandomGenerator(opSeed.nextLong());
+    }
   }
 
   // use default data if unconfigured
@@ -278,7 +338,7 @@ public class LiftTruck
       }
       // now run fwd 24h and add energy from future shifts
       Shift current = currentShift;
-      int shiftStart = i;
+      //int shiftStart = i;
       for (int j = i + 1; j < (i + HOURS_DAY); j++) {
         Shift newShift = shiftSchedule[j];
         if (null != newShift && current != newShift) {
@@ -304,6 +364,12 @@ public class LiftTruck
     }
   }
 
+  @Override
+  public CustomerInfo getCustomerInfo ()
+  {
+    return getCustomerInfo(powerType);
+  }
+
   // ======== per-timeslot activities ========
   // deal with curtailment/regulation from previous timeslot.
   // must be called in each timeslot before step().
@@ -312,11 +378,12 @@ public class LiftTruck
     
   }
 
-  public void step (StepInfo info)
+  @Override
+  public void step ()
   {
     // check for end-of-shift
     Shift newShift =
-        shiftSchedule[indexOfShift(info.getTimeslot().getStartInstant())];
+        shiftSchedule[indexOfShift(getNowInstant())];
     if (newShift != currentShift) {
       // start of shift
       // Take all batteries out of service
@@ -348,77 +415,72 @@ public class LiftTruck
     }
     energyInUse -= usage;
 
-    // use energy on chargers
-    double energyUsed = useEnergy(info);
-    info.addkWh(energyUsed);
+    // use energy on chargers, accounting for regulation
+    double regulation = getSubscription().getRegulation();
+    double energyUsed = useEnergy(regulation);
 
     // compute regulation capacity
+    
+
+    // Record energy used
+    getSubscription().usePower(energyUsed);
   }
 
-  double useEnergy (StepInfo info)
+  double useEnergy (double regulation)
   {
-    Tariff tariff = info.getSubscription().getTariff();
-    if (tariff.isTimeOfUse()) {
-      return useEnergyTOU(info);
+    // positive regulation means we lost energy in the last timeslot
+    // and should make it up in the remainder of the shift
+    Tariff tariff = getSubscription().getTariff();
+    ensureCapacityPlan(tariff);
+    ShiftEnergy need = plan.getCurrentNeed(getNowInstant());
+    if (need.getDuration() <= 0) {
+      log.error(getName() + " negative need duration " + need.getDuration());
     }
-    else if (info.getSubscription().getTariff().hasRegulationRate()) {
-      return useEnergyStorage(info);
-    }
-    else {
-      return useEnergyEarly(info);
-    }
-  }
 
-  double useEnergyEarly (StepInfo info)
-  {
+    // Compute the max and min we could possibly use in this timeslot
+    energyCharging -= regulation * chargeEfficiency;
     double max = nChargers * maxChargeKW;
     double avail =
         nBatteries * batteryCapacity - capacityInUse - energyCharging;
-    double energyUsed = Math.min(max, avail) / chargeEfficiency;
-    log.debug(getName() + " useEarly " + energyUsed);
-    return energyUsed;
-  }
+    double maxUsable = Math.min(max, avail) / chargeEfficiency;
+    need.addEnergy(-regulation);
+    double needed = need.getEnergyNeeded();
 
-  // use energy in a time-of-use tariff
-  double useEnergyTOU (StepInfo info)
-  {
-    double energyUsed = 0.0;
-    ShiftEnergy[] constraints = ensureFutureEnergyNeeds(info);
-    return energyUsed;
-  }
-
-  // uses energy to maximize storage capacity for regulation
-  double useEnergyStorage (StepInfo info)
-  {
-    ShiftEnergy[] constraints = ensureFutureEnergyNeeds(info);
-    ShiftEnergy constraint = constraints[0];
-    double needed = constraint.getEnergyNeeded();
-    double rate = needed / constraint.duration;
-    // split the rate among available chargers?
-    // or run as many as possible at full power?
-    constraint.tick();
-    return 0.0;
-  }
-
-  // Ensures that we know the minimum energy we need for the future
-  ShiftEnergy[] ensureFutureEnergyNeeds (StepInfo info)
-  {
-    // If the list exists and it's valid, just return the array
-    if (null != futureEnergyNeeds) {
-      if (futureEnergyNeeds[0].getNextShift() != currentShift) {
-        // first element is still current
-        futureEnergyNeeds[0].tick(); // one period gone
-        return futureEnergyNeeds;
-      }
+    double used = 0;
+    RegulationCapacity regCapacity = null;
+    if (needed/need.getDuration() >= maxUsable) {
+      // we just use the max, and allow no regulation capacity
+      used = needed / need.getDuration();
+      regCapacity = new RegulationCapacity(0.0, 0.0);
+    }
+    else if (tariff.isTimeOfUse() || tariff.isVariableRate()) {
+      // if the current tariff is not a flat rate, we will just use the
+      // planned amout, without offering regulation capacity
+      // TODO - figure out how to combine variable prices with regulation
+      used = need.getRecommendedUsage()[need.getUsageIndex()];
+      regCapacity = new RegulationCapacity(0.0, 0.0);
     }
     else {
-      // If we get here, the existing array is missing or no longer valid
-      futureEnergyNeeds =
-          getFutureEnergyNeeds(info.getTimeslot().getStartInstant(),
-                               planningHorizon,
-                               energyCharging);
+      // otherwise use energy to maximize regulation capacity
+      double slack = (maxUsable - needed) / need.getDuration();
+      used = needed / need.getDuration();
+      regCapacity = new RegulationCapacity(slack / 2.0, -(slack / 2.0));
     }
-    return futureEnergyNeeds;
+
+    // use it
+    energyCharging += used * chargeEfficiency;
+    getSubscription().setRegulationCapacity(regCapacity);
+    need.tick();
+    return used;
+  }
+
+  // Ensures that there is a valid capacity plan in place
+  void ensureCapacityPlan (Tariff tariff)
+  {
+    if (null == plan || !plan.isValid(getNowInstant(), tariff)) {
+      plan = getCapacityPlan(tariff, getNowInstant(), planningHorizon);
+      plan.createPlan(energyCharging);
+    }
   }
 
   // Computes constraints on future energy needs
@@ -525,7 +587,7 @@ public class LiftTruck
   // Returns the next date/time when the given shift index will occur
   Instant indexToInstant (int index)
   {
-    Instant now = timeslotRepo.currentTimeslot().getStartInstant();
+    Instant now = getNowInstant();
     int probe = index;
     // get the probe within the shift schedule
     while (probe < 0) {
@@ -541,16 +603,23 @@ public class LiftTruck
     return (now.plus(HOUR * (shiftSchedule.length + index - nowIndex)));
   }
 
+  private Instant getNowInstant ()
+  {
+    return service.getTimeslotRepo().currentTimeslot().getStartInstant();
+  }
+
   // ================ getters and setters =====================
   // Note that list values must arrive and depart as List<String>,
   // while internally many of them are lists or arrays of numeric values.
   // Therefore we provide @ConfigurableValue setters that do the translation.
-  String getName ()
+  @Override
+  public String getName ()
   {
     return name;
   }
 
-  void setName (String name)
+  @Override
+  public void setName (String name)
   {
     this.name = name;
   }
@@ -729,6 +798,64 @@ public class LiftTruck
     return planningHorizon;
   }
 
+  // ======== CustomerModelAccessor API ===========
+
+  // digs out the current subscription for this thing. Since the population is
+  // always one, there should only ever be one of them
+  private TariffSubscription getSubscription ()
+  {
+    List<TariffSubscription> subs = getCurrentSubscriptions(powerType);
+    if (subs.size() > 1) {
+      log.warn("Multiple subscriptions " + subs.size() + " for " + getName());
+    }
+    return subs.get(0);
+  }
+
+  Map<Tariff, CapacityPlan> profiles = null;
+  @Override
+  public double[] getCapacityProfile (Tariff tariff)
+  {
+    if (null == profiles) {
+      profiles = new HashMap<Tariff, CapacityPlan>();
+    }
+    CapacityPlan plan = profiles.get(tariff);
+    if (null == plan) {
+      plan = getCapacityPlan(tariff, getNowInstant(), planningHorizon);
+      profiles.put(tariff, plan);
+    }
+    plan.createPlan(tariff, 0.0);
+    return plan.getUsage();
+  }
+
+  @Override
+  public double getBrokerSwitchFactor (boolean isSuperseding)
+  {
+    if (isSuperseding)
+      return 0;
+    else
+      return 0.02;
+  }
+
+  @Override
+  public double getTariffChoiceSample ()
+  {
+    return evalSeed.nextDouble();
+  }
+
+  @Override
+  public double getInertiaSample ()
+  {
+    return evalSeed.nextDouble();
+  }
+
+  @Override
+  public void evaluateTariffs (List<Tariff> tariffs)
+  {
+    log.info(getName() + ": evaluate tariffs");
+    tariffEvaluator.evaluateTariffs();
+  }
+
+
   // ======== start, duration of a shift ========
   class Shift implements Comparable<Shift>
   {
@@ -882,6 +1009,14 @@ public class LiftTruck
       return recommendedUsage[usageIndex];
     }
 
+    // Returns the current index into the recommendedUsage array. This
+    // allows the caller to modify (smash) the array to reflect
+    // the effects of regulation and curtailment events
+    int getUsageIndex ()
+    {
+      return usageIndex;
+    }
+
     // Returns amount by which usage can vary before plan is violated
     double getSlack ()
     {
@@ -931,9 +1066,42 @@ public class LiftTruck
       this.size = size;
     }
 
+    // A plan is valid if it's for the given tariff and if there is still
+    // sufficient time left on it
+    public boolean isValid (Instant now, Tariff tariff)
+    {
+      if (tariff != this.tariff)
+        return false;
+      int remaining =
+          (int)(size - (now.getMillis() - start.getMillis()) / HOUR);
+      if (remaining < minPlanningHorizon)
+        return false;
+      return true;
+    }
+
     double[] getUsage ()
     {
       return usage;
+    }
+
+    // Returns the ShiftEnergy instance for the current time
+    // Note that for this to work, the ShiftEnergy.tick() method
+    // must be called once/timeslot.
+    ShiftEnergy getCurrentNeed (Instant when)
+    {
+      if (null == needs)
+        return null;
+      int offset = (int)((when.getMillis() - start.getMillis()) / HOUR);
+      int index = 0;
+      while (offset >= needs[index].getDuration()) {
+        if (index >= needs.length) {
+          log.error(getName() + " ran off end of needs array by "
+                    + (index - needs.length + 1));
+          return null;
+        }
+        offset -= needs[index++].getDuration();
+      }
+      return needs[index];
     }
 
     // creates a plan using the default tariff and initial conditions
@@ -955,11 +1123,12 @@ public class LiftTruck
       LpPlan plan = new LpPlan(tariff, needs, size);
       usage = plan.getSolution();
       slack = plan.getSlack();
+      updateNeeds();
     }
 
     // returns the ShiftEnergy array used to create the plan,
     // decorated with the most recent solution
-    ShiftEnergy[] getNeeds ()
+    ShiftEnergy[] updateNeeds ()
     {
       if (null == needs)
         return null;

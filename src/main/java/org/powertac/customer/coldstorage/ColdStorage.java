@@ -243,6 +243,7 @@ implements CustomerModelAccessor
   }
 
   // separated out to help create profiles
+  // TODO - handle TOU and variable-rate tariffs
   double computeCoolingEnergy (double outsideTemp, double maxAvail)
   {
     double coolingLoss = computeCoolingLoss(outsideTemp);
@@ -340,6 +341,7 @@ implements CustomerModelAccessor
   }
 
   // ------------- CustomerModelAccessor methods -----------------
+  // TODO - make this tariff-dependent
   @Override
   public double[] getCapacityProfile (Tariff tariff)
   {

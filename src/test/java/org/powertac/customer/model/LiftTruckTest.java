@@ -16,6 +16,9 @@
 package org.powertac.customer.model;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.Collection;
@@ -27,9 +30,13 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
+import org.powertac.common.Competition;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -38,8 +45,14 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.CustomerServiceAccessor;
+import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.customer.StepInfo;
 import org.powertac.customer.model.LiftTruck.Shift;
 import org.powertac.customer.model.LiftTruck.ShiftEnergy;
@@ -50,16 +63,65 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class LiftTruckTest
 {
-  Configuration config;
-  TimeslotRepo tsRepo;
+  private Competition competition;
+  private TimeService timeService;
+  private TariffRepo tariffRepo;
+  private TariffSubscriptionRepo mockSubscriptionRepo;
+  private Broker broker;
+  private TariffSpecification spec;
+  private Tariff tariff;
+  private RandomSeedRepo mockSeedRepo;
+  private RandomSeed seed;
+  private ServerConfiguration serverConfig;
+  private Configurator configurator;
+  private Configuration config;
+  private TimeslotRepo tsRepo;
+  private ServiceAccessor serviceAccessor;
 
-  /**
-   *
-   */
   @Before
   public void setUp () throws Exception
   {
     tsRepo = mock(TimeslotRepo.class);
+    competition =
+        Competition.newInstance("ColdStorage test").withTimeslotsOpen(4);
+    Competition.setCurrent(competition);
+    timeService = new TimeService();
+    Instant now =
+        new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
+    timeService.setCurrentTime(now);
+
+    // tariff setup
+    tariffRepo = new TariffRepo();
+    mockSubscriptionRepo = mock(TariffSubscriptionRepo.class);
+    broker = new Broker("Sam");
+    spec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION)
+    .addRate(new Rate().withValue(-0.11));
+    tariff = new Tariff(spec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+
+    // set up randomSeed mock
+    mockSeedRepo = mock(RandomSeedRepo.class);
+    seed = mock(RandomSeed.class);
+    when(mockSeedRepo.getRandomSeed(anyString(),
+                                    anyInt(),
+                                    anyString())).thenReturn(seed);
+
+    // Set up serverProperties mock
+    serverConfig = mock(ServerConfiguration.class);
+    configurator = new Configurator();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        configurator.configureSingleton(args[0]);
+        return null;
+      }
+    }).when(serverConfig).configureMe(anyObject());
+
+    serviceAccessor = new ServiceAccessor();
   }
 
   // map names to instances
@@ -381,7 +443,8 @@ public class LiftTruckTest
       if (null != s)
         fail("shift schedule should be empty");
     }
-    truck.initialize(null, null,  new RandomSeed("test", 0, "1"));
+    truck.setServiceAccessor(serviceAccessor);
+    truck.initialize();
     // now we should see default data
     Shift[] shifts = truck.getShiftSchedule();
     for (Shift s : truck.getShiftSchedule()) {
@@ -395,12 +458,13 @@ public class LiftTruckTest
   public void testFutureEnergyNeedsDefault ()
   {
     LiftTruck truck = new LiftTruck("Test");
-    truck.initialize(null, null, new RandomSeed("test", 0, "1"));
+    truck.setServiceAccessor(serviceAccessor);
+    truck.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
-    StepInfo info = new StepInfo(ts, null);
-    ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
+    ShiftEnergy[] needs =
+        truck.getFutureEnergyNeeds(now.toInstant(), 60, 0.0);
     // ix  dur  end  req  chg  max  sur
     //  0    6   16  192    7  252   60
     //  1    8    0   96    8  384  288
@@ -454,12 +518,13 @@ public class LiftTruckTest
     LiftTruck truck = trucks.get("short");
     assertNotNull("found short", truck);
 
-    truck.initialize(null, null, new RandomSeed("test", 0, "1"));
+    truck.setServiceAccessor(serviceAccessor);
+    truck.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
-    StepInfo info = new StepInfo(ts, null);
-    ShiftEnergy[] needs = truck.ensureFutureEnergyNeeds(info);
+    ShiftEnergy[] needs =
+        truck.getFutureEnergyNeeds(now.toInstant(), 60, 14.0);
     // ix  dur  end  req  chg  max  sur
     //  0    6   16  192    5  180  -12+14
     //  1    8    0   96    5  240  128
@@ -510,12 +575,13 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck tk = trucks.get("idle");
     assertNotNull("got configured", tk);
-    tk.initialize(null, null, new RandomSeed("test", 0, "2"));
+    tk.setServiceAccessor(serviceAccessor);
+    tk.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
-    StepInfo info = new StepInfo(ts, null);
-    ShiftEnergy[] needs = tk.ensureFutureEnergyNeeds(info);
+    ShiftEnergy[] needs = 
+        tk.getFutureEnergyNeeds(now.toInstant(), 60, 4.0);
     // ix  dur  end  req  chg  max  sur
     //  0    6   16    0    5  180  180+4
     //  1    8    0  192    5  240   32
@@ -568,13 +634,14 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
     LiftTruck tk = trucks.get("idle");
     assertNotNull("got configured", tk);
-    tk.initialize(null, null, new RandomSeed("test", 0, "2"));
+    tk.setServiceAccessor(serviceAccessor);
+    tk.initialize();
     // start on Sunday
     DateTime now =
         new DateTime(2014, 12, 7, 6, 0, 0, DateTimeZone.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
-    StepInfo info = new StepInfo(ts, null);
-    ShiftEnergy[] needs = tk.ensureFutureEnergyNeeds(info);
+    ShiftEnergy[] needs =
+        tk.getFutureEnergyNeeds(now.toInstant(), 60, 75.0);
     // ix  dur  end  req  chg  max  sur
     //  0    2    8  128    5   60  -68+75 - Sun 06:00-08:00
     //  1    8   16    0    5  240  240   -- Sun 08:00-16:00
@@ -619,7 +686,8 @@ public class LiftTruckTest
   public void testPlanFlatDefault ()
   {
     LiftTruck truck = new LiftTruck("Test");
-    truck.initialize(null, tsRepo, new RandomSeed("test", 0, "1"));
+    truck.setServiceAccessor(serviceAccessor);
+    truck.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
     Timeslot ts = new Timeslot(2, now.toInstant());
@@ -645,7 +713,7 @@ public class LiftTruckTest
     double[] usage = plan.getUsage();
     assertEquals("correct length", 102, usage.length);
 
-    ShiftEnergy[] needs = plan.getNeeds();
+    ShiftEnergy[] needs = plan.updateNeeds();
     assertEquals("correct length", 13, needs.length);
 
   }
@@ -659,5 +727,52 @@ public class LiftTruckTest
 //    Instant now = new Instant();
 //    System.out.println("hour: " + now.get(DateTimeFieldType.hourOfDay()));
 //    System.out.println("day: " + now.get(DateTimeFieldType.dayOfWeek()));
+  }
+
+  class ServiceAccessor implements CustomerServiceAccessor
+  {
+
+    @Override
+    public CustomerRepo getCustomerRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public RandomSeedRepo getRandomSeedRepo ()
+    {
+      return mockSeedRepo;
+    }
+
+    @Override
+    public TariffRepo getTariffRepo ()
+    {
+      return tariffRepo;
+    }
+
+    @Override
+    public TariffSubscriptionRepo getTariffSubscriptionRepo ()
+    {
+      return mockSubscriptionRepo;
+    }
+
+    @Override
+    public TimeslotRepo getTimeslotRepo ()
+    {
+      return tsRepo;
+    }
+
+    @Override
+    public WeatherReportRepo getWeatherReportRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public ServerConfiguration getServerConfiguration ()
+    {
+      // Auto-generated method stub
+      return null;
+    }
   }
 }

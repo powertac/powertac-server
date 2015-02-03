@@ -16,12 +16,38 @@
 package org.powertac.customer.model;
 
 import static org.junit.Assert.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Date;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.powertac.common.Broker;
+import org.powertac.common.Competition;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TimeService;
+import org.powertac.common.config.Configurator;
+import org.powertac.common.enumerations.PowerType;
+import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.WeatherReportRepo;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
@@ -33,9 +59,6 @@ import com.joptimizer.optimizers.OptimizationResponse;
 public class LpTest
 {
 
-  /**
-   *
-   */
   @Before
   public void setUp () throws Exception
   {
