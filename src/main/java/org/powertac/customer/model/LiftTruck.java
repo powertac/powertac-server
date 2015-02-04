@@ -1263,7 +1263,7 @@ implements CustomerModelAccessor
         assertEquals("success", OptimizationResponse.SUCCESS, returnCode);
         double[] sol = opt.getOptimizationResponse().getSolution();
         Date end = new Date();
-        log.debug("Solution time: " + (end.getTime() - start.getTime()));
+        log.info("Solution time: " + (end.getTime() - start.getTime()));
         log.debug("Solution = " + Arrays.toString(sol));
         recordSolution(sol);
       }
