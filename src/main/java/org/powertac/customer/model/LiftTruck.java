@@ -15,8 +15,6 @@
  */
 package org.powertac.customer.model;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -40,8 +38,6 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
-import org.powertac.customer.coldstorage.ColdStorage;
-
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
 import com.joptimizer.optimizers.OptimizationResponse;
@@ -1260,7 +1256,9 @@ implements CustomerModelAccessor
       opt.setLPOptimizationRequest(or);
       try {
         int returnCode = opt.optimize();
-        assertEquals("success", OptimizationResponse.SUCCESS, returnCode);
+        if (returnCode != OptimizationResponse.SUCCESS) {
+          log.error(getName() + "bad optimization return code " + returnCode);
+        }
         double[] sol = opt.getOptimizationResponse().getSolution();
         Date end = new Date();
         log.info("Solution time: " + (end.getTime() - start.getTime()));
