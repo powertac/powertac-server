@@ -182,9 +182,8 @@ public class EvSocialClass extends AbstractCustomer
       SocialGroup thisGroup = groups.get(Integer.parseInt(attributes[0]));
       String gender = attributes[1];
       CarType car = carTypes.get(attributes[2]);
-      EvCustomer instance =
-          instantiateCustomer(beans, thisGroup, gender, car,
-                              this.name + "_" + index++);
+      instantiateCustomer(beans, thisGroup, gender, car,
+          this.name + "_" + index++);
     }
     service.getServerConfiguration().configureNamedInstances(evCustomers);
   }
@@ -328,28 +327,6 @@ public class EvSocialClass extends AbstractCustomer
       customer.step(service.getTimeslotRepo().currentTimeslot());
     }
   }
-//
-//  protected void getLoads (int day, int hour)
-//  {
-//    consumptionLoad = 0.0;
-//    evLoad = 0.0;
-//    upRegulation = 0.0;
-//    downRegulation = 0.0;
-//
-//    for (EvCustomer evCustomer : evCustomers) {
-//      double[] loads = evCustomer.getLoads(day, hour);
-//
-//      consumptionLoad += loads[0];
-//      evLoad += loads[1];
-//      upRegulation += loads[2];
-//      downRegulation += loads[3];
-//    }
-//
-//    log.info(String.format("%s : consumption = % 7.2f ; electric vehicule = " +
-//            "% 7.2f ; up regulation = % 7.2f ; down regulation = % 7.2f",
-//        name, consumptionLoad, evLoad, upRegulation, downRegulation
-//    ));
-//  }
 
   @Override
   public String toString ()

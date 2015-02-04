@@ -570,6 +570,7 @@
       </activity>
 
       <!-- Join table group:activity -->
+      <!--doubling the driving distance to be more realistic, that might have to change later -->
       <groupActivity>
 	<instances>ga1_0,ga1_1,ga1_2,ga1_3,ga1_4,ga1_5,ga1_6,ga1_7,ga1_8,
         ga2_0,ga2_1,ga2_2,ga2_3,ga2_4,ga2_5,ga2_6,ga2_7,ga2_8,
@@ -582,146 +583,146 @@
 	<ga1_0>
 	  <groupId>1</groupId>
 	  <activityId>0</activityId>
-	  <maleDailyKm>10.62</maleDailyKm>
+	  <maleDailyKm>20.62</maleDailyKm>
 	  <maleProbability>0.74</maleProbability>
-	  <femaleDailyKm>8.28</femaleDailyKm>
+	  <femaleDailyKm>16.28</femaleDailyKm>
 	  <femaleProbability>0.78</femaleProbability>
 	</ga1_0>
 	<ga1_1>
 	  <groupId>1</groupId>
 	  <activityId>1</activityId>
-	  <maleDailyKm>0.82</maleDailyKm>
+	  <maleDailyKm>1.82</maleDailyKm>
 	  <maleProbability>0.05</maleProbability>
-	  <femaleDailyKm>0.69</femaleDailyKm>
+	  <femaleDailyKm>1.69</femaleDailyKm>
 	  <femaleProbability>0.03</femaleProbability>
 	</ga1_1>
 	<ga1_2>
 	  <groupId>1</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>0.88</maleDailyKm>
+	  <maleDailyKm>1.88</maleDailyKm>
 	  <maleProbability>0.08</maleProbability>
-	  <femaleDailyKm>0.9</femaleDailyKm>
+	  <femaleDailyKm>1.9</femaleDailyKm>
 	  <femaleProbability>0.12</femaleProbability>
 	</ga1_2>
 	<ga1_3>
 	  <groupId>1</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>2.02</maleDailyKm>
+	  <maleDailyKm>4.02</maleDailyKm>
 	  <maleProbability>0.53</maleProbability>
-	  <femaleDailyKm>3.69</femaleDailyKm>
+	  <femaleDailyKm>6.69</femaleDailyKm>
 	  <femaleProbability>0.82</femaleProbability>
 	</ga1_3>
 	<ga1_4>
 	  <groupId>1</groupId>
 	  <activityId>4</activityId>
-	  <maleDailyKm>1.91</maleDailyKm>
+	  <maleDailyKm>2.91</maleDailyKm>
 	  <maleProbability>0.15</maleProbability>
-	  <femaleDailyKm>0.96</femaleDailyKm>
+	  <femaleDailyKm>1.96</femaleDailyKm>
 	  <femaleProbability>0.14</femaleProbability>
 	</ga1_4>
 	<ga1_5>
 	  <groupId>1</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>4.31</maleDailyKm>
+	  <maleDailyKm>8.31</maleDailyKm>
 	  <maleProbability>0.33</maleProbability>
-	  <femaleDailyKm>5.11</femaleDailyKm>
+	  <femaleDailyKm>10.11</femaleDailyKm>
 	  <femaleProbability>0.39</femaleProbability>
 	</ga1_5>
 	<ga1_6>
 	  <groupId>1</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>4</maleDailyKm>
+	  <maleDailyKm>8</maleDailyKm>
 	  <maleProbability>0.48</maleProbability>
-	  <femaleDailyKm>5.15</femaleDailyKm>
+	  <femaleDailyKm>10.15</femaleDailyKm>
 	  <femaleProbability>0.43</femaleProbability>
 	</ga1_6>
 	<ga1_7>
 	  <groupId>1</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>1.03</maleDailyKm>
+	  <maleDailyKm>2.03</maleDailyKm>
 	  <maleProbability>0.14</maleProbability>
-	  <femaleDailyKm>0.82</femaleDailyKm>
+	  <femaleDailyKm>1.82</femaleDailyKm>
 	  <femaleProbability>0.21</femaleProbability>
 	</ga1_7>
 	<ga1_8>
 	  <groupId>1</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>4.26</maleDailyKm>
+	  <maleDailyKm>8.26</maleDailyKm>
 	  <maleProbability>0.37</maleProbability>
-	  <femaleDailyKm>3.51</femaleDailyKm>
+	  <femaleDailyKm>6.51</femaleDailyKm>
 	  <femaleProbability>0.52</femaleProbability>
 	</ga1_8>
 
 	<ga2_0>
 	  <groupId>2</groupId>
 	  <activityId>0</activityId>
-	  <maleDailyKm>23.31</maleDailyKm>
+	  <maleDailyKm>46.31</maleDailyKm>
 	  <maleProbability>1.04</maleProbability>
-	  <femaleDailyKm>15.58</femaleDailyKm>
+	  <femaleDailyKm>30.58</femaleDailyKm>
 	  <femaleProbability>0.99</femaleProbability>
 	</ga2_0>
 	<ga2_1>
 	  <groupId>2</groupId>
 	  <activityId>1</activityId>
-	  <maleDailyKm>40.99</maleDailyKm>
+	  <maleDailyKm>80.99</maleDailyKm>
 	  <maleProbability>0.13</maleProbability>
-	  <femaleDailyKm>20.18</femaleDailyKm>
+	  <femaleDailyKm>40.18</femaleDailyKm>
 	  <femaleProbability>0.1</femaleProbability>
 	</ga2_1>
 	<ga2_2>
 	  <groupId>2</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>0.85</maleDailyKm>
+	  <maleDailyKm>1.85</maleDailyKm>
 	  <maleProbability>0.08</maleProbability>
-	  <femaleDailyKm>0.88</femaleDailyKm>
+	  <femaleDailyKm>1.88</femaleDailyKm>
 	  <femaleProbability>0.08</femaleProbability>
 	</ga2_2>
 	<ga2_3>
 	  <groupId>2</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>2.43</maleDailyKm>
+	  <maleDailyKm>4.43</maleDailyKm>
 	  <maleProbability>0.41</maleProbability>
-	  <femaleDailyKm>3.51</femaleDailyKm>
+	  <femaleDailyKm>6.51</femaleDailyKm>
 	  <femaleProbability>0.09</femaleProbability>
 	</ga2_3>
 	<ga2_4>
 	  <groupId>2</groupId>
 	  <activityId>4</activityId>
-	  <maleDailyKm>0.58</maleDailyKm>
+	  <maleDailyKm>1.58</maleDailyKm>
 	  <maleProbability>0.03</maleProbability>
-	  <femaleDailyKm>0.99</femaleDailyKm>
+	  <femaleDailyKm>1.99</femaleDailyKm>
 	  <femaleProbability>0.06</femaleProbability>
 	</ga2_4>
 	<ga2_5>
 	  <groupId>2</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>4.38</maleDailyKm>
+	  <maleDailyKm>8.38</maleDailyKm>
 	  <maleProbability>0.25</maleProbability>
-	  <femaleDailyKm>5.21</femaleDailyKm>
+	  <femaleDailyKm>10.21</femaleDailyKm>
 	  <femaleProbability>0.33</femaleProbability>
 	</ga2_5>
 	<ga2_6>
 	  <groupId>2</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>6.06</maleDailyKm>
+	  <maleDailyKm>12.06</maleDailyKm>
 	  <maleProbability>0.43</maleProbability>
-	  <femaleDailyKm>5.11</femaleDailyKm>
+	  <femaleDailyKm>10.11</femaleDailyKm>
 	  <femaleProbability>0.43</femaleProbability>
 	</ga2_6>
 	<ga2_7>
 	  <groupId>2</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>1.13</maleDailyKm>
+	  <maleDailyKm>2.13</maleDailyKm>
 	  <maleProbability>0.14</maleProbability>
-	  <femaleDailyKm>1.02</femaleDailyKm>
+	  <femaleDailyKm>2.02</femaleDailyKm>
 	  <femaleProbability>0.15</femaleProbability>
 	</ga2_7>
 	<ga2_8>
 	  <groupId>2</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>3.5</maleDailyKm>
+	  <maleDailyKm>6.5</maleDailyKm>
 	  <maleProbability>0.24</maleProbability>
-	  <femaleDailyKm>2.88</femaleDailyKm>
+	  <femaleDailyKm>4.88</femaleDailyKm>
 	  <femaleProbability>0.29</femaleProbability>
 	</ga2_8>
 
@@ -744,17 +745,17 @@
 	<ga3_2>
 	  <groupId>3</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>1.6</maleDailyKm>
+	  <maleDailyKm>2.6</maleDailyKm>
 	  <maleProbability>0.17</maleProbability>
-	  <femaleDailyKm>2.54</femaleDailyKm>
+	  <femaleDailyKm>4.54</femaleDailyKm>
 	  <femaleProbability>0.19</femaleProbability>
 	</ga3_2>
 	<ga3_3>
 	  <groupId>3</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>2.89</maleDailyKm>
+	  <maleDailyKm>4.89</maleDailyKm>
 	  <maleProbability>0.77</maleProbability>
-	  <femaleDailyKm>3.88</femaleDailyKm>
+	  <femaleDailyKm>6.88</femaleDailyKm>
 	  <femaleProbability>0.9</femaleProbability>
 	</ga3_3>
 	<ga3_4>
@@ -768,42 +769,42 @@
 	<ga3_5>
 	  <groupId>3</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>5.45</maleDailyKm>
+	  <maleDailyKm>10.45</maleDailyKm>
 	  <maleProbability>0.47</maleProbability>
-	  <femaleDailyKm>5.94</femaleDailyKm>
+	  <femaleDailyKm>10.94</femaleDailyKm>
 	  <femaleProbability>0.42</femaleProbability>
 	</ga3_5>
 	<ga3_6>
 	  <groupId>3</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>4.64</maleDailyKm>
+	  <maleDailyKm>8.64</maleDailyKm>
 	  <maleProbability>0.44</maleProbability>
-	  <femaleDailyKm>4.43</femaleDailyKm>
+	  <femaleDailyKm>8.43</femaleDailyKm>
 	  <femaleProbability>0.41</femaleProbability>
 	</ga3_6>
 	<ga3_7>
 	  <groupId>3</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>0.84</maleDailyKm>
+	  <maleDailyKm>1.84</maleDailyKm>
 	  <maleProbability>0.19</maleProbability>
-	  <femaleDailyKm>0.66</femaleDailyKm>
+	  <femaleDailyKm>1.66</femaleDailyKm>
 	  <femaleProbability>0.16</femaleProbability>
 	</ga3_7>
 	<ga3_8>
 	  <groupId>3</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>3.28</maleDailyKm>
+	  <maleDailyKm>6.28</maleDailyKm>
 	  <maleProbability>0.31</maleProbability>
-	  <femaleDailyKm>2.06</femaleDailyKm>
+	  <femaleDailyKm>4.06</femaleDailyKm>
 	  <femaleProbability>0.34</femaleProbability>
 	</ga3_8>
 
 	<ga4_0>
 	  <groupId>4</groupId>
 	  <activityId>0</activityId>
-	  <maleDailyKm>3.02</maleDailyKm>
+	  <maleDailyKm>6.02</maleDailyKm>
 	  <maleProbability>0.3</maleProbability>
-	  <femaleDailyKm>3.49</femaleDailyKm>
+	  <femaleDailyKm>6.49</femaleDailyKm>
 	  <femaleProbability>0.35</femaleProbability>
 	</ga4_0>
 	<ga4_1>
@@ -817,72 +818,72 @@
 	<ga4_2>
 	  <groupId>4</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>0.25</maleDailyKm>
+	  <maleDailyKm>1.25</maleDailyKm>
 	  <maleProbability>0.06</maleProbability>
-	  <femaleDailyKm>0.49</femaleDailyKm>
+	  <femaleDailyKm>1.49</femaleDailyKm>
 	  <femaleProbability>0.06</femaleProbability>
 	</ga4_2>
 	<ga4_3>
 	  <groupId>4</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>1.38</maleDailyKm>
+	  <maleDailyKm>2.38</maleDailyKm>
 	  <maleProbability>0.32</maleProbability>
-	  <femaleDailyKm>2.5</femaleDailyKm>
+	  <femaleDailyKm>4.5</femaleDailyKm>
 	  <femaleProbability>0.48</femaleProbability>
 	</ga4_3>
 	<ga4_4>
 	  <groupId>4</groupId>
 	  <activityId>4</activityId>
-	  <maleDailyKm>10.53</maleDailyKm>
+	  <maleDailyKm>20.53</maleDailyKm>
 	  <maleProbability>0.71</maleProbability>
-	  <femaleDailyKm>9.43</femaleDailyKm>
+	  <femaleDailyKm>18.43</femaleDailyKm>
 	  <femaleProbability>0.77</femaleProbability>
 	</ga4_4>
 	<ga4_5>
 	  <groupId>4</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>4.34</maleDailyKm>
+	  <maleDailyKm>8.34</maleDailyKm>
 	  <maleProbability>0.35</maleProbability>
-	  <femaleDailyKm>4.64</femaleDailyKm>
+	  <femaleDailyKm>8.64</femaleDailyKm>
 	  <femaleProbability>0.41</femaleProbability>
 	</ga4_5>
 	<ga4_6>
 	  <groupId>4</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>5.71</maleDailyKm>
+	  <maleDailyKm>10.71</maleDailyKm>
 	  <maleProbability>0.58</maleProbability>
-	  <femaleDailyKm>5.21</femaleDailyKm>
+	  <femaleDailyKm>10.21</femaleDailyKm>
 	  <femaleProbability>0.49</femaleProbability>
 	</ga4_6>
 	<ga4_7>
 	  <groupId>4</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>0.28</maleDailyKm>
+	  <maleDailyKm>1.28</maleDailyKm>
 	  <maleProbability>0.06</maleProbability>
-	  <femaleDailyKm>0.31</femaleDailyKm>
+	  <femaleDailyKm>1.31</femaleDailyKm>
 	  <femaleProbability>0.08</femaleProbability>
 	</ga4_7>
 	<ga4_8>
 	  <groupId>4</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>2.71</maleDailyKm>
+	  <maleDailyKm>4.71</maleDailyKm>
 	  <maleProbability>0.16</maleProbability>
-	  <femaleDailyKm>2.75</femaleDailyKm>
+	  <femaleDailyKm>4.75</femaleDailyKm>
 	  <femaleProbability>0.2</femaleProbability>
 	</ga4_8>
 
 	<ga5_0>
 	  <groupId>5</groupId>
 	  <activityId>0</activityId>
-	  <maleDailyKm>10.98</maleDailyKm>
+	  <maleDailyKm>20.98</maleDailyKm>
 	  <maleProbability>0.51</maleProbability>
-	  <femaleDailyKm>4.94</femaleDailyKm>
+	  <femaleDailyKm>8.94</femaleDailyKm>
 	  <femaleProbability>0.43</femaleProbability>
 	</ga5_0>
 	<ga5_1>
 	  <groupId>5</groupId>
 	  <activityId>1</activityId>
-	  <maleDailyKm>5.92</maleDailyKm>
+	  <maleDailyKm>10.92</maleDailyKm>
 	  <maleProbability>0.14</maleProbability>
 	  <femaleDailyKm>0</femaleDailyKm>
 	  <femaleProbability>0</femaleProbability>
@@ -892,15 +893,15 @@
 	  <activityId>2</activityId>
 	  <maleDailyKm>0</maleDailyKm>
 	  <maleProbability>0</maleProbability>
-	  <femaleDailyKm>0.69</femaleDailyKm>
+	  <femaleDailyKm>1.69</femaleDailyKm>
 	  <femaleProbability>0.13</femaleProbability>
 	</ga5_2>
 	<ga5_3>
 	  <groupId>5</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>2.97</maleDailyKm>
+	  <maleDailyKm>4.97</maleDailyKm>
 	  <maleProbability>0.45</maleProbability>
-	  <femaleDailyKm>2.93</femaleDailyKm>
+	  <femaleDailyKm>4.93</femaleDailyKm>
 	  <femaleProbability>0.79</femaleProbability>
 	</ga5_3>
 	<ga5_4>
@@ -908,54 +909,54 @@
 	  <activityId>4</activityId>
 	  <maleDailyKm>0</maleDailyKm>
 	  <maleProbability>0</maleProbability>
-	  <femaleDailyKm>0.47</femaleDailyKm>
+	  <femaleDailyKm>1.47</femaleDailyKm>
 	  <femaleProbability>0.12</femaleProbability>
 	</ga5_4>
 	<ga5_5>
 	  <groupId>5</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>5.77</maleDailyKm>
+	  <maleDailyKm>10.77</maleDailyKm>
 	  <maleProbability>0.2</maleProbability>
-	  <femaleDailyKm>5.18</femaleDailyKm>
+	  <femaleDailyKm>10.18</femaleDailyKm>
 	  <femaleProbability>0.37</femaleProbability>
 	</ga5_5>
 	<ga5_6>
 	  <groupId>5</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>5.64</maleDailyKm>
+	  <maleDailyKm>10.64</maleDailyKm>
 	  <maleProbability>0.33</maleProbability>
-	  <femaleDailyKm>4.99</femaleDailyKm>
+	  <femaleDailyKm>8.99</femaleDailyKm>
 	  <femaleProbability>0.43</femaleProbability>
 	</ga5_6>
 	<ga5_7>
 	  <groupId>5</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>1.81</maleDailyKm>
+	  <maleDailyKm>2.81</maleDailyKm>
 	  <maleProbability>0.16</maleProbability>
-	  <femaleDailyKm>1.79</femaleDailyKm>
+	  <femaleDailyKm>2.79</femaleDailyKm>
 	  <femaleProbability>0.32</femaleProbability>
 	</ga5_7>
 	<ga5_8>
 	  <groupId>5</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>1.83</maleDailyKm>
+	  <maleDailyKm>2.83</maleDailyKm>
 	  <maleProbability>0.17</maleProbability>
-	  <femaleDailyKm>4.75</femaleDailyKm>
+	  <femaleDailyKm>8.75</femaleDailyKm>
 	  <femaleProbability>0.4</femaleProbability>
 	</ga5_8>
 
 	<ga6_0>
 	  <groupId>6</groupId>
 	  <activityId>0</activityId>
-	  <maleDailyKm>0.99</maleDailyKm>
+	  <maleDailyKm>1.99</maleDailyKm>
 	  <maleProbability>0.07</maleProbability>
-	  <femaleDailyKm>0.26</femaleDailyKm>
+	  <femaleDailyKm>1.26</femaleDailyKm>
 	  <femaleProbability>0.03</femaleProbability>
 	</ga6_0>
 	<ga6_1>
 	  <groupId>6</groupId>
 	  <activityId>1</activityId>
-	  <maleDailyKm>0.43</maleDailyKm>
+	  <maleDailyKm>1.43</maleDailyKm>
 	  <maleProbability>0.02</maleProbability>
 	  <femaleDailyKm>0</femaleDailyKm>
 	  <femaleProbability>0</femaleProbability>
@@ -963,57 +964,57 @@
 	<ga6_2>
 	  <groupId>6</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>1.33</maleDailyKm>
+	  <maleDailyKm>2.33</maleDailyKm>
 	  <maleProbability>0.16</maleProbability>
-	  <femaleDailyKm>0.96</femaleDailyKm>
+	  <femaleDailyKm>1.96</femaleDailyKm>
 	  <femaleProbability>0.16</femaleProbability>
 	</ga6_2>
 	<ga6_3>
 	  <groupId>6</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>3.7</maleDailyKm>
+	  <maleDailyKm>6.7</maleDailyKm>
 	  <maleProbability>0.77</maleProbability>
-	  <femaleDailyKm>2.91</femaleDailyKm>
+	  <femaleDailyKm>4.91</femaleDailyKm>
 	  <femaleProbability>0.75</femaleProbability>
 	</ga6_3>
 	<ga6_4>
 	  <groupId>6</groupId>
 	  <activityId>4</activityId>
-	  <maleDailyKm>0.12</maleDailyKm>
+	  <maleDailyKm>1.12</maleDailyKm>
 	  <maleProbability>0.01</maleProbability>
-	  <femaleDailyKm>0.13</femaleDailyKm>
+	  <femaleDailyKm>1.13</femaleDailyKm>
 	  <femaleProbability>0.01</femaleProbability>
 	</ga6_4>
 	<ga6_5>
 	  <groupId>6</groupId>
 	  <activityId>5</activityId>
-	  <maleDailyKm>6.06</maleDailyKm>
+	  <maleDailyKm>12.06</maleDailyKm>
 	  <maleProbability>0.33</maleProbability>
-	  <femaleDailyKm>3.81</femaleDailyKm>
+	  <femaleDailyKm>6.81</femaleDailyKm>
 	  <femaleProbability>0.32</femaleProbability>
 	</ga6_5>
 	<ga6_6>
 	  <groupId>6</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>4.85</maleDailyKm>
+	  <maleDailyKm>8.85</maleDailyKm>
 	  <maleProbability>0.43</maleProbability>
-	  <femaleDailyKm>3.22</femaleDailyKm>
+	  <femaleDailyKm>6.22</femaleDailyKm>
 	  <femaleProbability>0.31</femaleProbability>
 	</ga6_6>
 	<ga6_7>
 	  <groupId>6</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>1.76</maleDailyKm>
+	  <maleDailyKm>2.76</maleDailyKm>
 	  <maleProbability>0.22</maleProbability>
-	  <femaleDailyKm>1.3</femaleDailyKm>
+	  <femaleDailyKm>2.3</femaleDailyKm>
 	  <femaleProbability>0.14</femaleProbability>
 	</ga6_7>
 	<ga6_8>
 	  <groupId>6</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>2.66</maleDailyKm>
+	  <maleDailyKm>4.66</maleDailyKm>
 	  <maleProbability>0.18</maleProbability>
-	  <femaleDailyKm>1.11</femaleDailyKm>
+	  <femaleDailyKm>2.11</femaleDailyKm>
 	  <femaleProbability>0.1</femaleProbability>
 	</ga6_8>
 
@@ -1036,17 +1037,17 @@
 	<ga7_2>
 	  <groupId>7</groupId>
 	  <activityId>2</activityId>
-	  <maleDailyKm>1.98</maleDailyKm>
+	  <maleDailyKm>2.98</maleDailyKm>
 	  <maleProbability>0.23</maleProbability>
-	  <femaleDailyKm>2.21</femaleDailyKm>
+	  <femaleDailyKm>4.21</femaleDailyKm>
 	  <femaleProbability>0.27</femaleProbability>
 	</ga7_2>
 	<ga7_3>
 	  <groupId>7</groupId>
 	  <activityId>3</activityId>
-	  <maleDailyKm>2.25</maleDailyKm>
+	  <maleDailyKm>4.25</maleDailyKm>
 	  <maleProbability>0.65</maleProbability>
-	  <femaleDailyKm>4.8</femaleDailyKm>
+	  <femaleDailyKm>8.8</femaleDailyKm>
 	  <femaleProbability>0.81</femaleProbability>
 	</ga7_3>
 	<ga7_4>
@@ -1068,15 +1069,15 @@
 	<ga7_6>
 	  <groupId>7</groupId>
 	  <activityId>6</activityId>
-	  <maleDailyKm>2.79</maleDailyKm>
+	  <maleDailyKm>4.79</maleDailyKm>
 	  <maleProbability>0.32</maleProbability>
-	  <femaleDailyKm>2.64</femaleDailyKm>
+	  <femaleDailyKm>4.64</femaleDailyKm>
 	  <femaleProbability>0.36</femaleProbability>
 	</ga7_6>
 	<ga7_7>
 	  <groupId>7</groupId>
 	  <activityId>7</activityId>
-	  <maleDailyKm>2.31</maleDailyKm>
+	  <maleDailyKm>1.31</maleDailyKm>
 	  <maleProbability>0.22</maleProbability>
 	  <femaleDailyKm>0.75</femaleDailyKm>
 	  <femaleProbability>0.21</femaleProbability>
@@ -1084,9 +1085,9 @@
 	<ga7_8>
 	  <groupId>7</groupId>
 	  <activityId>8</activityId>
-	  <maleDailyKm>1.49</maleDailyKm>
+	  <maleDailyKm>2.49</maleDailyKm>
 	  <maleProbability>0.2</maleProbability>
-	  <femaleDailyKm>2.23</femaleDailyKm>
+	  <femaleDailyKm>4.23</femaleDailyKm>
 	  <femaleProbability>0.35</femaleProbability>
 	</ga7_8>
       </groupActivity>
