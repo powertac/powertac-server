@@ -159,7 +159,7 @@ public class TariffSubscription
       log.debug("signup bonus: " + customerCount + 
                 " customers, total = " + customerCount * tariff.getSignupPayment());
     }
-    // signup payment is positive for a bonus, to it's a debit for the broker.
+    // signup payment is positive for a bonus, so it's a debit for the broker.
     getAccounting().addTariffTransaction(TariffTransaction.Type.SIGNUP,
                                          tariff, customer, 
                                          customerCount, 0.0,
