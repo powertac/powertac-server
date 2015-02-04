@@ -274,11 +274,11 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     lazyInit();
     config.setProperty(key, value);
   }
-  
+
   // -- valid configuration resources --
   private String[] excludedPaths =
     {".*/test-classes/.*", ".*/log4j.properties"};
-  
+
   private boolean validXmlResource (Resource xml)
   {
     log.debug("resource class: " + xml.getClass().getName());
@@ -297,31 +297,31 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       return false;
     }
   }
-  
+
   private boolean validPropResource (Resource prop)
   {
     return validXmlResource(prop);
   }
-  
+
   // call this to allow test-classes to be included in valid paths
   void allowTestPaths ()
   {
     excludedPaths = new String[] { ".*/log4j.properties" };
   }
-  
+
   // test support
   Configuration getConfig ()
   {
     return config;
   }
-  
+
   /**
    * Configuration recorder for publishing config info to brokers
    */
   class ConfigurationPublisher implements ConfigurationRecorder
   {
     Properties publishedConfig;
-    
+
     ConfigurationPublisher ()
     {
       publishedConfig = new Properties();
@@ -332,7 +332,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     {
       publishedConfig.put(key, value);      
     }
-    
+
     Properties getConfig ()
     {
       return publishedConfig;
