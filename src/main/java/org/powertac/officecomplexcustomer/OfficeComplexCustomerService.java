@@ -338,7 +338,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   }
 
   @Override
-  public ServerConfiguration getServerConfig ()
+  public ServerConfiguration getServerConfiguration ()
   {
     // Auto-generated method stub
     return null;
