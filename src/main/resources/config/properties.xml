@@ -50,11 +50,11 @@
 	<minTemp>-35</minTemp>
 	<newStockTemp>0</newStockTemp>
 	<roofArea>600</roofArea>
-	<wallArea>900</wallArea>
+	<wallArea>1500</wallArea>
 	<stockCapacity>375</stockCapacity>
 	<turnoverRatio>0.08</turnoverRatio>
 	<cop>1.6</cop>
-	<unitSize>25</unitSize>
+	<unitSize>35</unitSize>
 	<nonCoolingUsage>12</nonCoolingUsage>
       </freezeco-2>
       <freezeco-3>
@@ -62,14 +62,39 @@
 	<nominalTemp>-15</nominalTemp>
 	<minTemp>-35</minTemp>
 	<newStockTemp>0</newStockTemp>
-	<roofArea>900</roofArea>
-	<wallArea>1100</wallArea>
+	<roofArea>6400</roofArea>
+	<wallArea>4000</wallArea>
 	<stockCapacity>450</stockCapacity>
 	<turnoverRatio>0.02</turnoverRatio>
 	<cop>1.7</cop>
-	<unitSize>35</unitSize>
+	<unitSize>120</unitSize>
 	<nonCoolingUsage>10</nonCoolingUsage>
       </freezeco-3>
     </coldStorage>
   </coldstorage>
+
+  <model>
+    <liftTruck>
+      <instances>sf2,fc2,fc3</instances>
+      <sf2>
+	<!-- 2 trucks, one shift 6 days -->
+	<nBatteries>3</nBatteries>
+	<nChargers>2</nChargers>
+	<shiftData>block,1,2,3,4,5,6, shift,8,8,2</shiftData>
+      </sf2>
+      <fc2>
+	<!-- 1 truck, 3 shifts weekdays -->
+	<nBatteries>3</nBatteries>
+	<nChargers>2</nChargers>
+	<shiftData>block,1,2,3,4,5, shift,0,8,1, shift,8,8,1, shift,16,8,1</shiftData>
+      </fc2>
+      <fc3>
+	<!-- 8 trucks, 2 shifts weekdays, 1 shift weekends -->
+	<nBatteries>18</nBatteries>
+	<nChargers>10</nChargers>
+	<shiftData>block,1,2,3,4,5, shift,8,8,8, shift,16,8,6,
+                   block,6,7, shift,8,8,4</shiftData>
+      </fc3>
+    </liftTruck>
+  </model>
 </customer></customer-model-root>

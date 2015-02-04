@@ -377,7 +377,7 @@ public class LiftTruckTest
     assertEquals("long after validation", 16, longTruck.getnBatteries());
   }
 
-  // charger validation
+  // charger validation - check limits
   @Test
   public void testValidateChargers1 ()
   {
@@ -420,6 +420,28 @@ public class LiftTruckTest
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("customer.model.liftTruck.instances", "c5");
     map.put("customer.model.liftTruck.c5.nChargers", "5");
+    config = new MapConfiguration(map);
+    Configurator configurator = new Configurator();
+    configurator.setConfiguration(config);
+    Collection<?> instances =
+        configurator.configureInstances(LiftTruck.class);
+    Map<String, LiftTruck> trucks = mapNames(instances);
+    LiftTruck c5 = trucks.get("c5");
+    c5.ensureShifts();
+    assertEquals("5 chargers c5", 5, c5.getNChargers());
+    c5.validateChargers();
+    assertEquals("5 after c5 validation", 5, c5.getNChargers());
+  }
+
+  // charger validation with null shift at midnight
+  @Test
+  public void testValidateChargers3 ()
+  {
+    TreeMap<String, String> map = new TreeMap<String, String>();
+    map.put("customer.model.liftTruck.instances", "c5");
+    map.put("customer.model.liftTruck.c5.nChargers", "5");
+    map.put("customer.model.liftTruck.c5.shiftData",
+            "block,1,2,3,4,5, shift,6,8,8, shift,14,8,6");
     config = new MapConfiguration(map);
     Configurator configurator = new Configurator();
     configurator.setConfiguration(config);

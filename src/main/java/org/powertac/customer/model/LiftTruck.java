@@ -87,8 +87,8 @@ implements CustomerModelAccessor
   static final int DAYS_WEEK = 7;
   static final long HOUR = 3600*1000;
 
-  // need a name so we can configure it
-  private String name;
+  // need a name so we can configure it (in case it's not an AbstractCustomer)
+  //private String name;
 
   @ConfigurableValue(valueType = "Double",
       description = "mean power usage when truck is in use")
@@ -184,8 +184,7 @@ implements CustomerModelAccessor
    */
   public LiftTruck (String name)
   {
-    super();
-    this.name = name;
+    super(name);
   }
 
   /**
@@ -242,10 +241,10 @@ implements CustomerModelAccessor
   {
     if (null == opSeed) {
       opSeed = service.getRandomSeedRepo()
-          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+          .getRandomSeed(LiftTruck.class.getName() + "-" + name,
                          0, "model");
       evalSeed = service.getRandomSeedRepo()
-          .getRandomSeed(ColdStorage.class.getName() + "-" + name,
+          .getRandomSeed(LiftTruck.class.getName() + "-" + name,
                          0, "eval");
       normal = new NormalDistribution(0.0, 1.0);
       normal.reseedRandomGenerator(opSeed.nextLong());
@@ -319,10 +318,16 @@ implements CustomerModelAccessor
     // to power the trucks over a 24-hour period. Note that the shift schedule
     // starts at midnight, which may not be the start of the current shift.
     double maxNeeded = 0.0;
-    Shift currentShift = shiftSchedule[0];
+    int offset = 0;
+    while (null == shiftSchedule[offset]) {
+      offset += 1;
+    }
+    Shift currentShift = shiftSchedule[offset];
+    int remainingDuration = 0;
     int hoursInShift = (HOURS_DAY - currentShift.getStart()) % HOURS_DAY;
-    int remainingDuration = currentShift.getDuration() - hoursInShift;
-    for (int i = 0; i < (shiftSchedule.length - HOURS_DAY); i++) {
+    remainingDuration = currentShift.getDuration() - hoursInShift;
+
+    for (int i = offset; i < (shiftSchedule.length - HOURS_DAY); i++) {
       double totalEnergy = 0.0;
       Shift thisShift = shiftSchedule[i];
       if (thisShift != currentShift) {
@@ -371,13 +376,6 @@ implements CustomerModelAccessor
   }
 
   // ======== per-timeslot activities ========
-  // deal with curtailment/regulation from previous timeslot.
-  // must be called in each timeslot before step().
-  public void regulate (double kWh)
-  {
-    
-  }
-
   @Override
   public void step ()
   {
@@ -398,58 +396,65 @@ implements CustomerModelAccessor
         energyInUse = Math.min(capacityInUse, totalEnergy);
         energyCharging = totalEnergy - energyInUse;
       }
+      currentShift = newShift;
     }
 
     // discharge batteries on active trucks
-    double usage =
-        Math.max(0.0,
-                 normal.sample() * truckStd +
-                 truckKW * currentShift.getTrucks());
-    double deficit = usage - energyInUse;
-    log.debug(getName() + ": trucks use " + usage + " kWh");
-    if (deficit > 0.0) {
-      log.warn(getName() + ": trucks use more energy than available by "
-               + deficit + " kWh");
-      energyInUse += deficit;
-      energyCharging -= deficit;
+    if (null != currentShift) {
+      double usage =
+          Math.max(0.0,
+                   normal.sample() * truckStd +
+                   truckKW * currentShift.getTrucks());
+      double deficit = usage - energyInUse;
+      log.debug(getName() + ": trucks use " + usage + " kWh");
+      if (deficit > 0.0) {
+        log.warn(getName() + ": trucks use more energy than available by "
+            + deficit + " kWh");
+        energyInUse += deficit;
+        energyCharging -= deficit;
+      }
+      energyInUse -= usage;
     }
-    energyInUse -= usage;
 
     // use energy on chargers, accounting for regulation
     double regulation = getSubscription().getRegulation();
     double energyUsed = useEnergy(regulation);
 
-    // compute regulation capacity
-    
-
     // Record energy used
     getSubscription().usePower(energyUsed);
   }
 
+  // Computes energy use by chargers in the current timeslot.
+  // Remember that the plan has computed usage in terms of AC power,
+  // while the energy going into the batteries is lower by
+  // the chargeEfficiency value.
   double useEnergy (double regulation)
   {
-    // positive regulation means we lost energy in the last timeslot
-    // and should make it up in the remainder of the shift
     Tariff tariff = getSubscription().getTariff();
     ensureCapacityPlan(tariff);
+
+    // positive regulation means we lost energy in the last timeslot
+    // and should make it up in the remainder of the shift
+    energyCharging -= regulation * chargeEfficiency;
     ShiftEnergy need = plan.getCurrentNeed(getNowInstant());
     if (need.getDuration() <= 0) {
       log.error(getName() + " negative need duration " + need.getDuration());
     }
+    need.addEnergy(-regulation);
 
     // Compute the max and min we could possibly use in this timeslot
-    energyCharging -= regulation * chargeEfficiency;
-    double max = nChargers * maxChargeKW;
-    double avail =
+    // -- start with max and avail for remainder of shift
+    double max = nChargers * maxChargeKW * need.getDuration(); //  shift
+    double avail = // for remainder of shift
         nBatteries * batteryCapacity - capacityInUse - energyCharging;
     double maxUsable = Math.min(max, avail) / chargeEfficiency;
-    need.addEnergy(-regulation);
     double needed = need.getEnergyNeeded();
 
     double used = 0;
     RegulationCapacity regCapacity = null;
-    if (needed/need.getDuration() >= maxUsable) {
+    if (needed >= maxUsable) {
       // we just use the max, and allow no regulation capacity
+      log.info(getName() + ": no slack in current shift");
       used = needed / need.getDuration();
       regCapacity = new RegulationCapacity(0.0, 0.0);
     }
@@ -462,14 +467,17 @@ implements CustomerModelAccessor
     }
     else {
       // otherwise use energy to maximize regulation capacity
-      double slack = (maxUsable - needed) / need.getDuration();
-      used = needed / need.getDuration();
-      regCapacity = new RegulationCapacity(slack / 2.0, -(slack / 2.0));
+      double slack = (maxUsable - needed) / need.getDuration() / 2.0;
+      used = needed / need.getDuration() + slack;
+      regCapacity = new RegulationCapacity(slack, -slack);
     }
 
     // use it
     energyCharging += used * chargeEfficiency;
     getSubscription().setRegulationCapacity(regCapacity);
+    log.info(getName() + " uses " + used + "kWh, reg cap ("
+             + regCapacity.getUpRegulationCapacity() + ", "
+             + regCapacity.getDownRegulationCapacity() + ")");
     need.tick();
     return used;
   }
@@ -489,17 +497,20 @@ implements CustomerModelAccessor
   ShiftEnergy[] getFutureEnergyNeeds (Instant start, int horizon,
                                       double initialCharging)
   {
+    Instant seStart = start;
     int index = indexOfShift(start);
     // current time is likely to be partway into first shift
     Shift currentShift = shiftSchedule[index]; // might be null
-    int duration = 1;
-    while (shiftSchedule[++index] == currentShift) {
+    int duration = 0;
+    while (shiftSchedule[index] == currentShift) {
       duration += 1;
+      index = nextShiftIndex(index);
     }
     Shift nextShift = shiftSchedule[index];
     // this gives us the info we need to start the sequence
     ArrayList<ShiftEnergy> data = new ArrayList<ShiftEnergy>();
-    data.add(new ShiftEnergy(index, duration));
+    data.add(new ShiftEnergy(seStart, index, duration));
+    seStart = seStart.plus(duration * HOUR);
     int elapsed = duration;
     // add shifts until we run off the end of the horizon
     // keep in mind that a shift can be null
@@ -510,8 +521,9 @@ implements CustomerModelAccessor
         duration += 1;
       }
       nextShift = shiftSchedule[index];
-      data.add(new ShiftEnergy(index, duration));
+      data.add(new ShiftEnergy(seStart, index, duration));
       elapsed += duration;
+      seStart = seStart.plus(duration * HOUR);
     }
     // now we convert to array, then walk backward and fill in energy needs
     ShiftEnergy[] result = data.toArray(new ShiftEnergy[data.size()]);
@@ -628,11 +640,6 @@ implements CustomerModelAccessor
   {
     return truckKW;
   }
-
-//  int getnTrucks ()
-//  {
-//    return nTrucks;
-//  }
 
   /**
    * Converts a list of Strings to a sorted list of Shifts. Entries in the
@@ -907,6 +914,7 @@ implements CustomerModelAccessor
   // ======== Energy needed, available for a Shift ======
   class ShiftEnergy
   {
+    private Instant start;
     private int endIndex; // shift index at start of next Shift or idle period
     private int duration; // in hours
     private double energyNeeded = 0.0; // in kWh at end of duration
@@ -917,15 +925,21 @@ implements CustomerModelAccessor
     private double slack;
     private int usageIndex = 0;
 
-    ShiftEnergy (int end, int duration)
+    ShiftEnergy (Instant start, int end, int duration)
     {
       super();
+      this.start = start;
       this.endIndex = end;
       Shift next = shiftSchedule[end];
       if (null != next) {
         energyNeeded = next.getTrucks() * next.getDuration() * getTruckKW();
       }
       this.duration = duration;
+    }
+
+    Instant getStart ()
+    {
+      return start;
     }
 
     int getStartIndex ()
@@ -959,6 +973,10 @@ implements CustomerModelAccessor
     void tick ()
     {
       duration -= 1;
+      if (duration < 0) {
+        log.error(getName() + "SE start at " + start.toString()
+                  + " ticked past duration " + duration);
+      }
       usageIndex += 1;
     }
 
@@ -1091,17 +1109,18 @@ implements CustomerModelAccessor
     {
       if (null == needs)
         return null;
-      int offset = (int)((when.getMillis() - start.getMillis()) / HOUR);
-      int index = 0;
-      while (offset >= needs[index].getDuration()) {
-        if (index >= needs.length) {
-          log.error(getName() + " ran off end of needs array by "
-                    + (index - needs.length + 1));
-          return null;
+      for (int i = 0; i < needs.length; i++) {
+        // if it's the last one, return it.
+        if ((i == needs.length - 1)
+            || (needs[i + 1].getStart().isAfter(when))) {
+          return needs[i];
         }
-        offset -= needs[index++].getDuration();
       }
-      return needs[index];
+      // should never get here
+      log.error(getName() + " at " + when.toString()
+                + " ran off end of plan length " + size
+                + " starting " + start.toString());
+      return null;
     }
 
     // creates a plan using the default tariff and initial conditions
