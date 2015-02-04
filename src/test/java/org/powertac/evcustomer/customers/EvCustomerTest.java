@@ -482,7 +482,7 @@ public class EvCustomerTest
     }
 
     @Override
-    public ServerConfiguration getServerConfig ()
+    public ServerConfiguration getServerConfiguration ()
     {
       return null;
     }

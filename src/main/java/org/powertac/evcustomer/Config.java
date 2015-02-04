@@ -18,6 +18,7 @@ package org.powertac.evcustomer;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -92,9 +93,9 @@ public final class Config
           description = "Length in timeslots of evaluation profile")
   private int profileLength = 48;
 
-  private static String[] beanTypes =
-    {"SocialGroup", "ClassGroup",
-	  "CarType", "ClassCar", "Activity", "GroupActivity"};
+  @ConfigurableValue(valueType = "List",
+      description = "classnames of bean types to be configured")
+  private List<String> beanTypes;
 
   private Map<String, Collection<?>> beans;
 

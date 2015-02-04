@@ -265,6 +265,7 @@
     <config>
       <touFactor>0.25</touFactor>
       <interruptibilityFactor>0.01</interruptibilityFactor>
+      <beanTypes>SocialGroup,ClassGroup,CarType,ClassCar,Activity,GroupActivity</beanTypes>
     </config>
 
     <!-- TODO We need proper day- and hour-weights -->

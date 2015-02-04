@@ -554,7 +554,7 @@ public class EvSocialClassTest
     }
 
     @Override
-    public ServerConfiguration getServerConfig ()
+    public ServerConfiguration getServerConfiguration ()
     {
       return serverConfiguration;
     }

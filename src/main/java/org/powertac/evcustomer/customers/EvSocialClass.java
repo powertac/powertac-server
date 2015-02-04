@@ -186,7 +186,7 @@ public class EvSocialClass extends AbstractCustomer
           instantiateCustomer(beans, thisGroup, gender, car,
                               this.name + "_" + index++);
     }
-    service.getServerConfig().configureNamedInstances(evCustomers);
+    service.getServerConfiguration().configureNamedInstances(evCustomers);
   }
 
   private EvCustomer instantiateCustomer (Map<String, Collection<?>> beans,
@@ -211,7 +211,7 @@ public class EvSocialClass extends AbstractCustomer
   @Override
   public void saveBootstrapState ()
   {
-    service.getServerConfig().saveBootstrapState(evCustomers);
+    service.getServerConfiguration().saveBootstrapState(evCustomers);
   }
 
   private SocialGroup pickGroup (ArrayList<SocialGroup> groupList,
