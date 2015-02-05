@@ -414,7 +414,7 @@ public class Tariff
   private double applyRegulationAdjustment (double value, double kwh,
                                             TariffEvaluationHelper helper)
   {
-    if (null == helper || !this.hasRegulationRate())
+    if (null == helper || kwh == 0.0 || !this.hasRegulationRate())
       return value;
     double p1 =
       getRegulationCharge(helper.getExpectedCurtailment() / kwh, 0.0, false);
