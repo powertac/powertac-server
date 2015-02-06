@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
@@ -37,7 +38,9 @@ import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
+
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;
 import com.joptimizer.optimizers.OptimizationResponse;
@@ -211,7 +214,6 @@ implements CustomerModelAccessor
 
     // use default values when not configured
     ensureShifts();
-    //ensureBatteryState();
 
     // make sure we have enough batteries and availableChargers
     validateBatteries();
@@ -219,8 +221,8 @@ implements CustomerModelAccessor
 
     // all batteries are charging
     //energyCharging = getStateOfCharge() * getBatteryCapacity();
-    capacityInUse = 0.0;
-    energyInUse = 0.0;
+    //capacityInUse = 0.0;
+    //energyInUse = 0.0;
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = new TariffEvaluator(this);
@@ -379,19 +381,21 @@ implements CustomerModelAccessor
     Shift newShift =
         shiftSchedule[indexOfShift(getNowInstant())];
     if (newShift != currentShift) {
-      // start of shift
+      log.info(getName() + " start of shift");
       // Take all batteries out of service
-      double totalEnergy = energyCharging + energyInUse;
-      energyCharging += energyInUse;
-      capacityInUse = 0.0;
-      energyInUse = 0.0;
+      double totalEnergy = getEnergyCharging() + getEnergyInUse();
+      setEnergyCharging(getEnergyCharging() + getEnergyInUse());
+      setCapacityInUse(0.0);
+      setEnergyInUse(0.0);
       
       // Put the strongest batteries in trucks for the next shift
       if (null != newShift) {
-        capacityInUse = newShift.getTrucks() * batteryCapacity;
-        energyInUse = Math.min(capacityInUse, totalEnergy);
-        energyCharging = totalEnergy - energyInUse;
+        setCapacityInUse(newShift.getTrucks() * batteryCapacity);
+        setEnergyInUse(Math.min(getCapacityInUse(), totalEnergy));
+        setEnergyCharging(totalEnergy - getEnergyInUse());
       }
+      log.info(getName() + ": new shift cInUse " + capacityInUse
+               + ", eInUse " + energyInUse + ", eCharging " + energyCharging);
       currentShift = newShift;
     }
 
@@ -401,15 +405,15 @@ implements CustomerModelAccessor
           Math.max(0.0,
                    normal.sample() * truckStd +
                    truckKW * currentShift.getTrucks());
-      double deficit = usage - energyInUse;
+      double deficit = usage - getEnergyInUse();
       log.debug(getName() + ": trucks use " + usage + " kWh");
       if (deficit > 0.0) {
         log.warn(getName() + ": trucks use more energy than available by "
             + deficit + " kWh");
-        energyInUse += deficit;
-        energyCharging -= deficit;
+        addEnergyInUse(deficit);
+        addEnergyCharging(-deficit);
       }
-      energyInUse -= usage;
+      addEnergyInUse(-usage);
     }
 
     // use energy on chargers, accounting for regulation
@@ -418,6 +422,8 @@ implements CustomerModelAccessor
 
     // Record energy used
     getSubscription().usePower(energyUsed);
+    log.info(getName() + " cInUse " + capacityInUse + ", eInUse "
+             + energyInUse + ", eCharging " + energyCharging);
   }
 
   // Computes energy use by chargers in the current timeslot.
@@ -431,7 +437,7 @@ implements CustomerModelAccessor
 
     // positive regulation means we lost energy in the last timeslot
     // and should make it up in the remainder of the shift
-    energyCharging -= regulation * chargeEfficiency;
+    addEnergyCharging(-regulation * chargeEfficiency);
     ShiftEnergy need = plan.getCurrentNeed(getNowInstant());
     if (need.getDuration() <= 0) {
       log.error(getName() + " negative need duration " + need.getDuration());
@@ -442,7 +448,7 @@ implements CustomerModelAccessor
     // -- start with max and avail for remainder of shift
     double max = nChargers * maxChargeKW * need.getDuration(); //  shift
     double avail = // for remainder of shift
-        nBatteries * batteryCapacity - capacityInUse - energyCharging;
+        nBatteries * batteryCapacity - getCapacityInUse() - getEnergyCharging();
     double maxUsable = Math.min(max, avail) / chargeEfficiency;
     double needed = need.getEnergyNeeded();
 
@@ -450,8 +456,9 @@ implements CustomerModelAccessor
     RegulationCapacity regCapacity = null;
     if (needed >= maxUsable) {
       // we just use the max, and allow no regulation capacity
-      log.info(getName() + ": no slack in current shift");
-      used = needed / need.getDuration();
+      log.info(getName() + ": no slack - need " + needed
+               + ", max " + max + ", avail " + avail + ", dur " + need.getDuration());
+      used = Math.min(maxUsable, (needed / need.getDuration()));
       regCapacity = new RegulationCapacity(0.0, 0.0);
     }
     else if (tariff.isTimeOfUse() || tariff.isVariableRate()) {
@@ -463,18 +470,23 @@ implements CustomerModelAccessor
     }
     else {
       // otherwise use energy to maximize regulation capacity
-      double slack = (maxUsable - needed) / need.getDuration() / 2.0;
+      double slack =
+          (maxUsable - needed) / need.getDuration() / 2.0;
+      log.info(getName() + " needed " + needed
+               + ", maxUsable " + maxUsable
+               + ", duration " + need.getDuration());
       used = needed / need.getDuration() + slack;
       regCapacity = new RegulationCapacity(slack, -slack);
     }
 
     // use it
-    energyCharging += used * chargeEfficiency;
+    addEnergyCharging(used * chargeEfficiency);
     getSubscription().setRegulationCapacity(regCapacity);
     log.info(getName() + " uses " + used + "kWh, reg cap ("
              + regCapacity.getUpRegulationCapacity() + ", "
              + regCapacity.getDownRegulationCapacity() + ")");
     need.tick();
+    need.addEnergy(used);
     return used;
   }
 
@@ -483,7 +495,7 @@ implements CustomerModelAccessor
   {
     if (null == plan || !plan.isValid(getNowInstant(), tariff)) {
       plan = getCapacityPlan(tariff, getNowInstant(), planningHorizon);
-      plan.createPlan(energyCharging);
+      plan.createPlan(getEnergyCharging());
     }
   }
 
@@ -801,6 +813,58 @@ implements CustomerModelAccessor
     return planningHorizon;
   }
 
+  /**
+   * Updates the energy content of offline batteries
+   */
+  @StateChange
+  public void setEnergyCharging (double kwh)
+  {
+    energyCharging = kwh;
+  }
+
+  public double getEnergyCharging ()
+  {
+    return energyCharging;
+  }
+
+  public void addEnergyCharging (double kwh)
+  {
+    setEnergyCharging(getEnergyCharging() + kwh);
+  }
+
+  /**
+   * Updates the energy content of in-use batteries
+   */
+  @StateChange
+  public void setEnergyInUse (double kwh)
+  {
+    energyInUse = kwh;
+  }
+
+  public double getEnergyInUse ()
+  {
+    return energyInUse;
+  }
+
+  public void addEnergyInUse (double kwh)
+  {
+    setEnergyInUse(getEnergyInUse() + kwh);
+  }
+
+  /**
+   * Updates the total capacity of in-use batteries
+   */
+  @StateChange
+  public void setCapacityInUse (double kwh)
+  {
+    capacityInUse = kwh;
+  }
+
+  public double getCapacityInUse ()
+  {
+    return capacityInUse;
+  }
+
   // ======== CustomerModelAccessor API ===========
 
   // digs out the current subscription for this thing. Since the population is
@@ -989,7 +1053,7 @@ implements CustomerModelAccessor
     // Reduces energyNeeded by the given amount
     void addEnergy (double energy)
     {
-      energyNeeded -= energy;
+      energyNeeded = Math.max(0.0, (energyNeeded - energy));
     }
 
     double getMaxSurplus ()
