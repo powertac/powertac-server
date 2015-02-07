@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 by the original author or authors.
+ * Copyright (c) 2011-2015 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,6 +78,7 @@ public class TariffSubscriptionTests
   {
     //timeService = new TimeService();
     reset(mockAccounting);
+    reset(mockTariffMarket);
     baseTime = new DateTime(1972, 9, 6, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(baseTime);
     Competition.newInstance("tst").withSimulationBaseTime(baseTime);
@@ -137,7 +138,7 @@ public class TariffSubscriptionTests
   }
 
   // TODO - test subscribe and unsubscribe with non-zero signup and withdraw payments
-  
+
   @Test
   public void testHandleRevokedTariffDefault ()
   {
@@ -175,7 +176,44 @@ public class TariffSubscriptionTests
     verify(mockTariffMarket).subscribeToTariff(tariff, customer, -33);
     verify(mockTariffMarket).subscribeToTariff(defaultTariff, customer, 33);
   }
-  
+
+  @Test
+  public void testHandleRevokedTariffNegSignup ()
+  {
+    //List<List<Object>>results = new ArrayList<List<Object>>();
+    // set up default tariff, install in tariff market
+    spec.withSignupPayment(-3.0);
+
+    TariffSpecification defaultSpec =
+        new TariffSpecification(broker, PowerType.CONSUMPTION)
+        .addRate(new Rate().withValue(-0.21));
+    Tariff defaultTariff = new Tariff(defaultSpec);
+    defaultTariff.init();
+    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
+        .thenReturn(defaultTariff);
+
+    // subscribe some customers to the original tariff
+    TariffSubscription sub = new TariffSubscription(customer, tariff);
+    sub.subscribe(33);
+    verify(mockAccounting).addTariffTransaction(TariffTransaction.Type.SIGNUP,
+                                                tariff, customer,
+                                                33, 0.0, 33 * 3.0);
+
+    // revoke the original subscription
+    tariff.setState(Tariff.State.KILLED);
+    sub.handleRevokedTariff();
+    // should have called tariff market three times
+    verify(mockTariffMarket).getDefaultTariff(PowerType.CONSUMPTION);
+    verify(mockTariffMarket).subscribeToTariff(tariff, customer, -33);
+    verify(mockTariffMarket).subscribeToTariff(defaultTariff, customer, 33);
+
+    sub.deferredUnsubscribe(33);
+    verify(mockAccounting)
+    .addTariffTransaction(TariffTransaction.Type.REFUND,
+                          tariff, customer, 33,
+                          0.0, 33 * -3.0);
+  }
+
   @Test
   public void testHandleRevokedTariffDefaultPT ()
   {
@@ -209,7 +247,7 @@ public class TariffSubscriptionTests
     verify(mockTariffMarket).subscribeToTariff(pttariff, ptcustomer, -19);
     verify(mockTariffMarket).subscribeToTariff(defaultTariff, ptcustomer, 19);
   }
-  
+
   // TODO - public void handleRevokedTariffSuperseded ()
 
   @Test

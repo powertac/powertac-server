@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2014 by the original author or authors.
+ * Copyright (c) 2011-2015 by the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -209,12 +209,18 @@ public class TariffSubscription
     }
     customersCommitted -= customerCount;
     // Post withdrawal and possible penalties
-    //if (tariff.getEarlyWithdrawPayment() != 0.0 && penaltyCount > 0) {
-    if (!tariff.isRevoked())
+    if (!tariff.isRevoked()) {
       getAccounting().addTariffTransaction(TariffTransaction.Type.WITHDRAW,
           tariff, customer, customerCount, 0.0,
           penaltyCount * -tariff.getEarlyWithdrawPayment());
-    //}
+    }
+    if (tariff.getSignupPayment() < 0.0) {
+      // Refund signup payment
+      getAccounting().addTariffTransaction(TariffTransaction.Type.REFUND,
+                                           tariff, customer,
+                                           customerCount, 0.0,
+                                           customerCount * tariff.getSignupPayment());
+    }
   }
 
 //  private void adjustRegulationCapacity (double ratio)
