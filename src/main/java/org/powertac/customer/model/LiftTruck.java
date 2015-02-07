@@ -418,6 +418,7 @@ implements CustomerModelAccessor
 
     // use energy on chargers, accounting for regulation
     double regulation = getSubscription().getRegulation();
+    log.info(getName() + ": regulation " + regulation);
     double energyUsed = useEnergy(regulation);
 
     // Record energy used
