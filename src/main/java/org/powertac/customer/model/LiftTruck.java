@@ -33,6 +33,7 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -84,45 +85,19 @@ implements CustomerModelAccessor
   // ==== static constants ====
   static final int HOURS_DAY = 24;
   static final int DAYS_WEEK = 7;
-  static final long HOUR = 3600*1000;
+  //static final long HOUR = 3600*1000;
 
   // need a name so we can configure it (in case it's not an AbstractCustomer)
   //private String name;
 
-  @ConfigurableValue(valueType = "Double",
-      description = "mean power usage when truck is in use")
   private double truckKW = 4.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "Std dev of truck power usage")
   private double truckStd = 0.8;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "size of battery pack in kWh")
   private double batteryCapacity = 50.0;
-
-  @ConfigurableValue(valueType = "Integer",
-      description = "total number of battery packs")
   private int nBatteries = 15;
-
-  @ConfigurableValue(valueType = "Integer",
-      description = "number of battery chargers")
   private int nChargers = 8;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "maximum charge rate of one truck's battery pack")
   private double maxChargeKW = 6.0;
-
-  @ConfigurableValue(valueType = "Double",
-      description = "ratio of charge energy to battery energy")
   private double chargeEfficiency = 0.9;
-
-  @ConfigurableValue(valueType = "Integer",
-      description = "planning horizon in timeslots - should be at least 48")
   private int planningHorizon = 60;
-
-  @ConfigurableValue(valueType = "Integer",
-      description = "minimum useful horizon of existing plan")
   private int minPlanningHorizon = 24;
 
   // ==== Shift data ====
@@ -300,7 +275,7 @@ implements CustomerModelAccessor
       log.warn("Adding " + neededBatteries + " batteries for " + getName());
       //double totalCapacity = batteryCapacity * nBatteries;
       //double availableCapacity = energyInUse + energyCharging;
-      nBatteries += neededBatteries;
+      setNBatteries(getNBatteries() + neededBatteries);
       //setStateOfCharge(availableCapacity / (batteryCapacity * nBatteries));
     }
   }
@@ -363,7 +338,7 @@ implements CustomerModelAccessor
       log.error("Insufficient charging capacity for " + getName() + ": have " +
                 chargeEnergy + ", need " + maxNeeded +
                 ". Adding " + add + " availableChargers.");
-      nChargers += add;
+      setNChargers(getNChargers() + add);
     }
   }
 
@@ -495,7 +470,7 @@ implements CustomerModelAccessor
   void ensureCapacityPlan (Tariff tariff)
   {
     if (null == plan || !plan.isValid(getNowInstant(), tariff)) {
-      plan = getCapacityPlan(tariff, getNowInstant(), planningHorizon);
+      plan = getCapacityPlan(tariff, getNowInstant(), getPlanningHorizon());
       plan.createPlan(getEnergyCharging());
     }
   }
@@ -519,7 +494,7 @@ implements CustomerModelAccessor
     // this gives us the info we need to start the sequence
     ArrayList<ShiftEnergy> data = new ArrayList<ShiftEnergy>();
     data.add(new ShiftEnergy(seStart, index, duration));
-    seStart = seStart.plus(duration * HOUR);
+    seStart = seStart.plus(duration * TimeService.HOUR);
     int elapsed = duration;
     // add shifts until we run off the end of the horizon
     // keep in mind that a shift can be null
@@ -532,7 +507,7 @@ implements CustomerModelAccessor
       nextShift = shiftSchedule[index];
       data.add(new ShiftEnergy(seStart, index, duration));
       elapsed += duration;
-      seStart = seStart.plus(duration * HOUR);
+      seStart = seStart.plus(duration * TimeService.HOUR);
     }
     // now we convert to array, then walk backward and fill in energy needs
     ShiftEnergy[] result = data.toArray(new ShiftEnergy[data.size()]);
@@ -619,9 +594,9 @@ implements CustomerModelAccessor
     }
     int nowIndex = indexOfShift(now);
     if (nowIndex <= index) {
-      return (now.plus(HOUR * (index - nowIndex)));
+      return (now.plus(TimeService.HOUR * (index - nowIndex)));
     }
-    return (now.plus(HOUR * (shiftSchedule.length + index - nowIndex)));
+    return (now.plus(TimeService.HOUR * (shiftSchedule.length + index - nowIndex)));
   }
 
   private Instant getNowInstant ()
@@ -645,9 +620,30 @@ implements CustomerModelAccessor
     this.name = name;
   }
 
-  double getTruckKW ()
+  @ConfigurableValue(valueType = "Double",
+      description = "mean power usage when truck is in use")
+  @StateChange
+  public void setTruckKW (double value)
+  {
+    truckKW = value;
+  }
+
+  public double getTruckKW ()
   {
     return truckKW;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "Std dev of truck power usage")
+  @StateChange
+  public void setTruckStd (double stdDev)
+  {
+    truckStd = stdDev;
+  }
+
+  public double getTruckStd ()
+  {
+    return truckStd;
   }
 
   /**
@@ -784,34 +780,95 @@ implements CustomerModelAccessor
     return shiftSchedule;
   }
 
-  double getBatteryCapacity ()
+  @ConfigurableValue(valueType = "Double",
+      description = "size of battery pack in kWh")
+  @StateChange
+  public void setBatteryCapacity (double value)
+  {
+    batteryCapacity = value;
+  }
+
+  public double getBatteryCapacity ()
   {
     return batteryCapacity;
   }
 
-  int getnBatteries ()
+  @ConfigurableValue(valueType = "Integer",
+      description = "total number of battery packs")
+  @StateChange
+  public void setNBatteries (int value)
+  {
+    nBatteries = value;
+  }
+
+  public int getNBatteries ()
   {
     return nBatteries;
   }
 
-  int getNChargers ()
+  @ConfigurableValue(valueType = "Integer",
+      description = "number of battery chargers")
+  @StateChange
+  public void setNChargers (int value)
+  {
+    nChargers = value;
+  }
+
+  public int getNChargers ()
   {
     return nChargers;
   }
 
-  double getMaxChargeKW ()
+  @ConfigurableValue(valueType = "Double",
+      description = "maximum charge rate of one truck's battery pack")
+  @StateChange
+  public void setMaxChargeKW (double value)
+  {
+    maxChargeKW = value;
+  }
+
+  public double getMaxChargeKW ()
   {
     return maxChargeKW;
   }
 
-  double getChargeEfficiency ()
+  @ConfigurableValue(valueType = "Double",
+      description = "ratio of charge energy to battery energy")
+  @StateChange
+  public void setChargeEfficiency (double value)
+  {
+    chargeEfficiency = value;
+  }
+
+  public double getChargeEfficiency ()
   {
     return chargeEfficiency;
   }
 
-  double getPlanningHorizon ()
+  @ConfigurableValue(valueType = "Integer",
+      description = "planning horizon in timeslots - should be at least 48")
+  @StateChange
+  public void setPlanningHorizon (int horizon)
+  {
+    planningHorizon = horizon;
+  }
+
+  public int getPlanningHorizon ()
   {
     return planningHorizon;
+  }
+
+  @ConfigurableValue(valueType = "Integer",
+      description = "minimum useful horizon of existing plan")
+  @StateChange
+  public void setMinPlanningHorizon (int horizon)
+  {
+    minPlanningHorizon = horizon;
+  }
+
+  public int getMinPlanningHorizon ()
+  {
+    return minPlanningHorizon;
   }
 
   /**
@@ -888,7 +945,7 @@ implements CustomerModelAccessor
     }
     CapacityPlan plan = profiles.get(tariff);
     if (null == plan) {
-      plan = getCapacityPlan(tariff, getNowInstant(), planningHorizon);
+      plan = getCapacityPlan(tariff, getNowInstant(), getPlanningHorizon());
       profiles.put(tariff, plan);
     }
     plan.createPlan(tariff, 0.0);
@@ -1133,7 +1190,7 @@ implements CustomerModelAccessor
     // Creates a plan for the standard planning horizon
     CapacityPlan (Tariff tariff, Instant start)
     {
-      this(tariff, start, planningHorizon);
+      this(tariff, start, getPlanningHorizon());
     }
 
     // Creates a plan for a custom size
@@ -1152,8 +1209,8 @@ implements CustomerModelAccessor
       if (tariff != this.tariff)
         return false;
       int remaining =
-          (int)(size - (now.getMillis() - start.getMillis()) / HOUR);
-      if (remaining < minPlanningHorizon)
+          (int)(size - (now.getMillis() - start.getMillis()) / TimeService.HOUR);
+      if (remaining < getMinPlanningHorizon())
         return false;
       return true;
     }
@@ -1278,7 +1335,7 @@ implements CustomerModelAccessor
           obj[column] = cost / (kwh / needs[i].getDuration());
           // construct cumulative usage constraints
           //a[i][column] = -1.0;
-          time = time.plus(HOUR);
+          time = time.plus(TimeService.HOUR);
           lb[column] = 0.0;
           ub[column] =
               (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())

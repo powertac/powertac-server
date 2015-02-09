@@ -65,6 +65,8 @@ implements CustomerModelAccessor
   private double minTemp = -35.0; // deg C
   private double maxTemp = -10.0;
   private double nominalTemp = -20.0;
+  private double shiftSag = 4.0; // temp diff allowed for cost-shift
+  private double evalEnvTemp = 20.0; // assumed outside temp for tariff eval
 
   private double roofArea = 900.0; //m^2
   private double roofRValue = 40.0;

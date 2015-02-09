@@ -367,14 +367,14 @@ public class LiftTruckTest
     Map<String, LiftTruck> trucks = mapNames(instances);
 
     LiftTruck shortTruck = trucks.get("short");
-    assertEquals("short before validation", 6, shortTruck.getnBatteries());
+    assertEquals("short before validation", 6, shortTruck.getNBatteries());
     shortTruck.validateBatteries();
-    assertEquals("short after validation", 14, shortTruck.getnBatteries());
+    assertEquals("short after validation", 14, shortTruck.getNBatteries());
 
     LiftTruck longTruck = trucks.get("long");
-    assertEquals("long before validation", 10, longTruck.getnBatteries());
+    assertEquals("long before validation", 10, longTruck.getNBatteries());
     longTruck.validateBatteries();
-    assertEquals("long after validation", 16, longTruck.getnBatteries());
+    assertEquals("long after validation", 16, longTruck.getNBatteries());
   }
 
   // charger validation - check limits
