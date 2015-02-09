@@ -39,7 +39,7 @@ public class TariffTransaction extends BrokerTransaction
 {
   //static private Logger log = Logger.getLogger(TariffTransaction.class);
 
-  public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE }
+  public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE, REFUND }
   
   /** Purpose of this transaction */
   @XStreamAsAttribute
