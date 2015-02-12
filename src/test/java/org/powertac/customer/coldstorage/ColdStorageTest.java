@@ -25,10 +25,13 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.TreeMap;
+
+
 //import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -51,6 +54,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
@@ -77,6 +81,7 @@ public class ColdStorageTest
   private WeatherReport weather;
   private TariffRepo tariffRepo;
   private TariffSubscriptionRepo mockSubscriptionRepo;
+  private TimeslotRepo mockTimeslotRepo;
   private TimeService timeService;
   private CustomerServiceAccessor serviceAccessor;
 
@@ -118,6 +123,9 @@ public class ColdStorageTest
     when(mockSeedRepo.getRandomSeed(anyString(),
                                     anyInt(),
                                     anyString())).thenReturn(seed);
+
+    // mock the timeslotRepo
+    mockTimeslotRepo = mock(TimeslotRepo.class);
 
     // set up WeatherRepo mock
     mockWeatherRepo = mock(WeatherReportRepo.class);
@@ -328,6 +336,135 @@ public class ColdStorageTest
     //fail("Not yet implemented");
   }
 
+  // check out TOU price profiling
+  @Test
+  public void testDailyPriceProfile ()
+  {
+    init();
+    DateTime now =
+        new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+        .thenReturn(new Timeslot(0, now.toInstant()));
+    TariffSpecification dailySpec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION);
+    Rate r1 =
+        new Rate().withDailyBegin(7).withDailyEnd(19).withValue(.18);
+    dailySpec.addRate(r1);
+    Rate r2 =
+        new Rate().withDailyBegin(20).withDailyEnd(6).withValue(.08);
+    dailySpec.addRate(r2);
+    Tariff dailyTariff = new Tariff(dailySpec);
+    ReflectionTestUtils.setField(dailyTariff, "timeService", timeService);
+    ReflectionTestUtils.setField(dailyTariff, "tariffRepo", tariffRepo);
+    dailyTariff.init();
+    assertTrue("good tariff", dailyTariff.isCovered());
+    ColdStorage.TariffInfo info = uut.makeTariffInfo(dailyTariff);
+    double[] result = info.getPrices();
+    assertEquals("length", 168, result.length);
+    assertEquals("[0]", .18, result[0], 1e-6);
+    assertEquals("[9]", .18, result[9], 1e-6);
+    assertEquals("[10]", .08, result[10], 1e-6);
+    assertEquals("[20]", .08, result[20], 1e-6);
+    assertEquals("[21]", .18, result[21], 1e-6);
+  }
+
+  // check out TOU price profiling
+  @Test
+  public void testWeeklyPriceProfile ()
+  {
+    init();
+    DateTime now =
+        new DateTime(2015, 2, 12, 12, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+        .thenReturn(new Timeslot(0, now.toInstant()));
+    TariffSpecification weeklySpec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION);
+    Rate r1 = new Rate()
+        .withWeeklyBegin(1).withWeeklyEnd(5)
+        .withDailyBegin(7).withDailyEnd(19).withValue(.18);
+    weeklySpec.addRate(r1);
+    Rate r2 = new Rate()
+        .withWeeklyBegin(1).withWeeklyEnd(5)
+        .withDailyBegin(20).withDailyEnd(6).withValue(.08);
+    weeklySpec.addRate(r2);
+    Rate r3 = new Rate()
+        .withWeeklyBegin(6).withWeeklyEnd(7)
+        .withDailyBegin(7).withDailyEnd(20).withValue(.15);
+    weeklySpec.addRate(r3);
+    Rate r4 = new Rate()
+        .withWeeklyBegin(6).withWeeklyEnd(7)
+        .withDailyBegin(21).withDailyEnd(6).withValue(.05);
+    weeklySpec.addRate(r4);
+
+    Tariff weeklyTariff = new Tariff(weeklySpec);
+    ReflectionTestUtils.setField(weeklyTariff, "timeService", timeService);
+    ReflectionTestUtils.setField(weeklyTariff, "tariffRepo", tariffRepo);
+    weeklyTariff.init();
+    assertTrue("good tariff", weeklyTariff.isCovered());
+
+    ColdStorage.TariffInfo info = uut.makeTariffInfo(weeklyTariff);
+    double[] result = info.getPrices();
+    // Thursday
+    assertEquals("length", 168, result.length);
+    assertEquals("Th 12", .18, result[0], 1e-6);
+    assertEquals("Th 19", .18, result[7], 1e-6);
+    assertEquals("Th 20", .08, result[8], 1e-6);
+    // Friday
+    assertEquals("Fr 6", .08, result[18], 1e-6);
+    assertEquals("Fr 7", .18, result[19], 1e-6);
+    assertEquals("Fr 19", .18, result[31], 1e-6);
+    assertEquals("Fr 20", .08, result[32], 1e-6);
+    assertEquals("Fr 23", .08, result[35], 1e-6);
+    // Saturday
+    assertEquals("Sa 0", .05, result[36], 1e-6);
+    assertEquals("Sa 6", .05, result[42], 1e-6);
+    assertEquals("Sa 7", .15, result[43], 1e-6);
+    assertEquals("Sa 20", .15, result[56], 1e-6);
+    assertEquals("Sa 21", .05, result[57], 1e-6);
+  }
+
+  // TOU usage profile
+  @Test
+  public void testTouHeuristicProfile ()
+  {
+    init();
+    DateTime now =
+        new DateTime(2015, 2, 12, 12, 0, 0, DateTimeZone.UTC);
+    when(mockTimeslotRepo.currentTimeslot())
+        .thenReturn(new Timeslot(0, now.toInstant()));
+    TariffSpecification weeklySpec =
+        new TariffSpecification(broker, PowerType.THERMAL_STORAGE_CONSUMPTION);
+    Rate r1 = new Rate()
+        .withWeeklyBegin(1).withWeeklyEnd(5)
+        .withDailyBegin(7).withDailyEnd(19).withValue(.18);
+    weeklySpec.addRate(r1);
+    Rate r2 = new Rate()
+        .withWeeklyBegin(1).withWeeklyEnd(5)
+        .withDailyBegin(20).withDailyEnd(6).withValue(.08);
+    weeklySpec.addRate(r2);
+    Rate r3 = new Rate()
+        .withWeeklyBegin(6).withWeeklyEnd(7)
+        .withDailyBegin(7).withDailyEnd(20).withValue(.15);
+    weeklySpec.addRate(r3);
+    Rate r4 = new Rate()
+        .withWeeklyBegin(6).withWeeklyEnd(7)
+        .withDailyBegin(21).withDailyEnd(6).withValue(.05);
+    weeklySpec.addRate(r4);
+
+    Tariff weeklyTariff = new Tariff(weeklySpec);
+    ReflectionTestUtils.setField(weeklyTariff, "timeService", timeService);
+    ReflectionTestUtils.setField(weeklyTariff, "tariffRepo", tariffRepo);
+    weeklyTariff.init();
+    assertTrue("good tariff", weeklyTariff.isCovered());
+
+    ColdStorage.TariffInfo info = uut.makeTariffInfo(weeklyTariff);
+    uut.heuristicTouProfile(info);
+    double[] profile = info.getProfile();
+    assertNotNull("profile exists", profile);
+    assertEquals("profile length", 168, profile.length);
+    System.out.println(Arrays.toString(profile));
+  }
+
   class ServiceAccessor implements CustomerServiceAccessor
   {
 
@@ -358,7 +495,7 @@ public class ColdStorageTest
     @Override
     public TimeslotRepo getTimeslotRepo ()
     {
-      return null;
+      return mockTimeslotRepo;
     }
 
     @Override

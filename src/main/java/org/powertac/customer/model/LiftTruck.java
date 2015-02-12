@@ -273,10 +273,7 @@ implements CustomerModelAccessor
                 ") for " + getName());
       // Add discharged batteries to fill out battery complement
       log.warn("Adding " + neededBatteries + " batteries for " + getName());
-      //double totalCapacity = batteryCapacity * nBatteries;
-      //double availableCapacity = energyInUse + energyCharging;
       setNBatteries(getNBatteries() + neededBatteries);
-      //setStateOfCharge(availableCapacity / (batteryCapacity * nBatteries));
     }
   }
 
@@ -936,7 +933,7 @@ implements CustomerModelAccessor
     return subs.get(0);
   }
 
-  Map<Tariff, CapacityPlan> profiles = null;
+  private Map<Tariff, CapacityPlan> profiles = null;
   @Override
   public double[] getCapacityProfile (Tariff tariff)
   {
@@ -944,10 +941,11 @@ implements CustomerModelAccessor
       profiles = new HashMap<Tariff, CapacityPlan>();
     }
     CapacityPlan plan = profiles.get(tariff);
-    if (null == plan) {
-      plan = getCapacityPlan(tariff, getNowInstant(), getPlanningHorizon());
-      profiles.put(tariff, plan);
+    if (null != plan) {
+      return plan.getUsage();
     }
+    plan = getCapacityPlan(tariff, getNowInstant(), getPlanningHorizon());
+    profiles.put(tariff, plan);
     plan.createPlan(tariff, 0.0);
     return plan.getUsage();
   }

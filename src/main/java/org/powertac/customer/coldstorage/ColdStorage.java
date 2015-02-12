@@ -15,24 +15,28 @@
  */
 package org.powertac.customer.coldstorage;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.commons.math3.random.JDKRandomGenerator;
-import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeFieldType;
+import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
-import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 import org.powertac.customer.AbstractCustomer;
@@ -108,7 +112,7 @@ implements CustomerModelAccessor
   private double currentStock = 0.0;
 
   private TariffEvaluator tariffEvaluator;
-  private int profileSize = 14; // two weeks of weather data
+  private int profileSize = 168; // 1 week to accomodate weekly TOU
 
   /**
    * Default constructor, requires manual setting of name
@@ -151,9 +155,9 @@ implements CustomerModelAccessor
     tariffEvaluator = new TariffEvaluator(this);
     tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(-unitSize * TON_CONVERSION * 0.05,
+    tariffEvaluator.initializeRegulationFactors(-getMaxCooling() * 0.05,
                                                 0.0,
-                                                unitSize * TON_CONVERSION * 0.04);
+                                                getMaxCooling() * 0.04);
   }
 
   // Gets a new random-number opSeed just in case we don't already have one.
@@ -206,17 +210,22 @@ implements CustomerModelAccessor
     WeatherReport weather = 
         service.getWeatherReportRepo().currentWeatherReport();
     double outsideTemp = weather.getTemperature();
-    double energyNeeded =
-        computeCoolingEnergy(outsideTemp, unitSize * TON_CONVERSION);
+    double priceAdjustment = computePriceAdjustment(getTariffInfo());
+    EnergyInfo info =
+        computeCoolingEnergy(getCurrentTemp(),
+                             getNominalTemp(),
+                             outsideTemp);
+    setCurrentTemp(currentTemp + info.getDeltaTemp());
+
 
     // Now we need to record available regulation capacity. Note that only
     // the cooling portion is available for regulation.
     // Note also that we have to stay within the min-max temp range
-    double availableUp = energyNeeded / cop;
+    double availableUp = info.getEnergy() / cop;
     if (currentTemp >= maxTemp)
       // can't regulate up above max temp
       availableUp = 0.0;
-    double availableDown = -(unitSize * TON_CONVERSION - energyNeeded) / cop;
+    double availableDown = -(getMaxCooling() - info.getEnergy()) / cop;
     if (currentTemp <= minTemp)
       // and can't regulate down below min
       availableDown = 0.0;
@@ -227,7 +236,7 @@ implements CustomerModelAccessor
              + ": regulation capacity (" + capacity.getUpRegulationCapacity()
              + ", " + capacity.getDownRegulationCapacity() + ")");
 
-    useEnergy(energyNeeded / cop);
+    useEnergy(info.getEnergy() / cop);
 
     log.debug("total energy = " + totalEnergyUsed);
     getSubscription().usePower(totalEnergyUsed);
@@ -244,33 +253,45 @@ implements CustomerModelAccessor
     return subs.get(0);
   }
 
+  // Returns an adjustment factor in the range [-1 .. +1] 
+  // based on energy price. 
+  private double computePriceAdjustment (TariffInfo info)
+  {
+    return 0.0;
+  }
+
   // separated out to help create profiles
   // TODO - handle TOU and variable-rate tariffs
-  double computeCoolingEnergy (double outsideTemp, double maxAvail)
+  // TODO - don't change model state here.
+  EnergyInfo computeCoolingEnergy (double currentTemp,
+                                   double targetTemp,
+                                   double outsideTemp)
   {
+    EnergyInfo result = new EnergyInfo();
     double coolingLoss = computeCoolingLoss(outsideTemp);
     // at this point, coolingLoss is the energy needed to maintain current temp
     double adjustmentCooling = 0.0;
-    if (getCurrentTemp() < (getNominalTemp() - hysteresis / 2.0)) {
+    if (currentTemp < (targetTemp - hysteresis / 2.0)) {
       // go to nominal as quickly as possible
       double maxWarming = coolingLoss;
       double neededWarming =
-          currentStock * CP_ICE * (getNominalTemp() - getCurrentTemp());
+          currentStock * CP_ICE * (targetTemp - currentTemp);
       adjustmentCooling = -Math.min(maxWarming, neededWarming);
     }
-    else if (getCurrentTemp() > (getNominalTemp() + hysteresis / 2.0)) {
-      double maxCooling = maxAvail - coolingLoss;
+    else if (currentTemp > (targetTemp + hysteresis / 2.0)) {
+      double maxCooling = getMaxCooling() - coolingLoss;
       double neededCooling =
-          currentStock * CP_ICE * (getCurrentTemp() - getNominalTemp());
+          currentStock * CP_ICE * (currentTemp - targetTemp);
       adjustmentCooling = Math.min(neededCooling, maxCooling);
     }
-    setCurrentTemp(currentTemp - adjustmentCooling / (currentStock * CP_ICE));
-    double energyNeeded = coolingLoss + adjustmentCooling;
-    log.info(getName() + ": temp = " + currentTemp + ", adjustmentCooling = "
-             + adjustmentCooling + ", total cooling energy = " + energyNeeded
+    result.setDeltaTemp(-adjustmentCooling / (currentStock * CP_ICE));
+    result.setEnergy(coolingLoss + adjustmentCooling);
+    log.info(getName() + ": temp = " + currentTemp
+             + ", adjustmentCooling = " + adjustmentCooling
+             + ", total cooling energy = " + result.getEnergy()
              + ", temp change = "
              + (-adjustmentCooling / (currentStock * CP_ICE)));
-    return energyNeeded;
+    return result;
   }
 
   // computes rise in temperature due to stock turnover
@@ -344,27 +365,113 @@ implements CustomerModelAccessor
 
   // ------------- CustomerModelAccessor methods -----------------
   // TODO - make this tariff-dependent
+  private Map<Tariff, TariffInfo> profiles = null;
+  double nominalHourlyConsumption = 0.0;
   @Override
   public double[] getCapacityProfile (Tariff tariff)
   {
-    List<WeatherReport> weather = 
-        service.getWeatherReportRepo().allWeatherReports();
-    int offset = 
-        (weather.size() >= profileSize)? (weather.size() - profileSize): 0;
-    double[] result = new double[profileSize];
-    for (int i = 0; i < profileSize; i++) {
-      int wi = i + offset;
-      double temperature;
-      if (weather.size() > wi)
-        temperature = weather.get(wi).getTemperature();
-      else
-        temperature = 18.0; // default temp
-      double cooling =
-        computeCoolingEnergy(temperature, unitSize * TON_CONVERSION);
-      result[i] = cooling / cop + nonCoolingUsage;
+    // lazy creation of profile table
+    if (null == profiles) {
+      profiles = new HashMap<Tariff, TariffInfo>();
     }
-    return result;
+    // return existing profile if it exists
+    TariffInfo info = profiles.get(tariff);
+    if (null != info) {
+      return info.getProfile();
+    }
+    // otherwise, create a new profile
+    info = makeTariffInfo(tariff);
+    //double nomConsumption = getNominalHourlyConsumption();
+    if (tariff.isTimeOfUse()) {
+      heuristicTouProfile(info);
+    }
+    log.debug(getName() + " profile " + Arrays.toString(info.getProfile()));
+    profiles.put(tariff, info);
+    return info.getProfile();
   }
+
+  // Should be non-null for any tariff other than the default tariff
+  private TariffInfo getTariffInfo (Tariff tariff)
+  {
+    if (null == profiles)
+      return null;
+    return profiles.get(tariff);
+  }
+
+  // Returns the tariffInfo for the current subscribed tariff
+  private TariffInfo getTariffInfo ()
+  {
+    if (null == profiles)
+      return null;
+    TariffSubscription sub = getSubscription();
+    return profiles.get(sub.getTariff());
+  }
+
+  TariffInfo makeTariffInfo (Tariff tariff)
+  {
+    return new TariffInfo(tariff);
+  }
+
+  private double getNominalHourlyConsumption ()
+  {
+    if (0.0 == nominalHourlyConsumption) {
+      double turnoverUsage =
+          stockCapacity * (turnoverRatio / 24.0) * CP_ICE
+          * (newStockTemp - getNominalTemp()) / cop;
+      double maintenanceUsage =
+          getCoolingLossPerK() * (getEvalEnvTemp() - getNominalTemp()) / cop;
+      nominalHourlyConsumption =
+          nonCoolingUsage + turnoverUsage + maintenanceUsage;
+      log.info(getName()
+               + " turnoverUsage " + turnoverUsage
+               + ", maintenanceUsage " + maintenanceUsage
+               + ", nominalHourlyConsumption " + nominalHourlyConsumption);
+    }
+    return nominalHourlyConsumption;
+  }
+
+  void heuristicTouProfile (TariffInfo tariffInfo)
+  {
+    double nhc = getNominalHourlyConsumption();
+    // Start with a price profile.
+    //log.debug(getName() + " price profile " + Arrays.toString(prices));
+    // Characterize the price variability
+    double mean = tariffInfo.getMeanPrice();
+    double nominalCooling = nhc - nonCoolingUsage;
+    double maxCooling = getMaxCooling() / getCop();
+    double kwhRange = Math.min(nominalCooling,
+                               (maxCooling - nominalCooling));
+    double priceRange = Math.max((tariffInfo.getMaxPrice() - mean),
+                                 (mean - tariffInfo.getMinPrice()));
+    double scaleFactor = kwhRange / priceRange;
+    log.debug(getName() + " mean " + mean
+              + ", max " + tariffInfo.getMaxPrice()
+              + ", min " + tariffInfo.getMinPrice()
+              + ", scaleFactor " + scaleFactor);
+    //double maxRatio = stats.getMax() / gmean;
+    // Generate a profile
+    double evalTemp = getNominalTemp();
+    double[] result = new double[profileSize];
+    EnergyInfo info =
+        computeCoolingEnergy(evalTemp + turnoverRise(),
+                             getNominalTemp(), getEvalEnvTemp());
+    double coolingKwh = info.getEnergy() / getCop();
+    log.debug(getName() + " coolingEnergy " + coolingKwh
+              + ", max cooling " + maxCooling
+              + ", nominal cooling " + nominalCooling);
+    double[] prices = tariffInfo.getPrices();
+    for (int i = 0; i < profileSize; i++) {
+      // stock turnover changes temp
+      //evalTemp += turnoverRise();
+      double actual =
+          nominalCooling + (mean - prices[i]) * scaleFactor;
+      result[i] = actual  + nonCoolingUsage;
+      //evalTemp += info.getDeltaTemp();
+    }
+    tariffInfo.setProfile(result);
+  }
+
+  // Retrieves an array of 
 
   @Override
   public double getBrokerSwitchFactor (boolean isSuperseding)
@@ -391,6 +498,12 @@ implements CustomerModelAccessor
   public double getCurrentTemp ()
   {
     return currentTemp;
+  }
+
+  // Returns the maximum kWh that can be expended with the cooling unit
+  double getMaxCooling ()
+  {
+    return unitSize * TON_CONVERSION;
   }
 
   @StateChange
@@ -442,6 +555,32 @@ implements CustomerModelAccessor
   public double getNominalTemp ()
   {
     return nominalTemp;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "allowable temperature change to save money on TOU tariffs")
+  @StateChange
+  public void setShiftSag (double deltaT)
+  {
+    shiftSag = deltaT;
+  }
+
+  public double getShiftSag ()
+  {
+    return shiftSag;
+  }
+
+  @ConfigurableValue(valueType = "Double",
+      description = "assumed outdoor temp for tariff evaluation")
+  @StateChange
+  public void setEvalEnvTemp (double temp)
+  {
+    evalEnvTemp = temp;
+  }
+
+  public double getEvalEnvTemp ()
+  {
+    return evalEnvTemp;
   }
 
   @ConfigurableValue(valueType = "Double",
@@ -660,5 +799,134 @@ implements CustomerModelAccessor
     else
       nonCoolingUsage = value;
     return this;
+  }
+
+  /**
+   * Data structure to hold energy and temperature-change info
+   * @author jcollins
+   */
+  class EnergyInfo
+  {
+    private double energy;
+    private double deltaTemp;
+
+    EnergyInfo ()
+    {
+      super();
+    }
+
+    void setEnergy (double kWh)
+    {
+      energy = kWh;
+    }
+
+    double getEnergy ()
+    {
+      return energy;
+    }
+
+    void setDeltaTemp (double dt)
+    {
+      deltaTemp = dt;
+    }
+
+    double getDeltaTemp ()
+    {
+      return deltaTemp;
+    }
+  }
+
+  /**
+   * Info about evaluated tariffs that might be useful if we subscribe
+   */
+  class TariffInfo
+  {
+    private Tariff tariff;
+    double[] prices;
+    double[] profile;
+    private DescriptiveStatistics stats;
+
+    TariffInfo (Tariff tariff)
+    {
+      super();
+      this.tariff = tariff;
+    }
+
+    Tariff getTariff ()
+    {
+      return tariff;
+    }
+
+    // true just in case the tariff is a TOU tariff. If it's not, then
+    // the price array and profile will be empty (null).
+    boolean isTOU ()
+    {
+      return tariff.isTimeOfUse();
+    }
+
+    // prices 00:00 Monday through 23:00 Sunday
+    double[] getPrices ()
+    {
+      if (null != this.prices)
+        return prices;
+      double nhc = getNominalHourlyConsumption();
+      prices = new double[profileSize];
+      double cumulativeUsage = 0.0;
+      Instant start =
+          service.getTimeslotRepo().currentTimeslot().getStartInstant();
+      for (int i = 0; i < profileSize; i++) {
+        Instant when = start.plus(i * TimeService.HOUR);
+        if (when.get(DateTimeFieldType.hourOfDay()) == 0) {
+          cumulativeUsage = 0.0;
+        }
+        prices[i] =
+            tariff.getUsageCharge(when, nhc, cumulativeUsage) / nhc;
+        cumulativeUsage += nhc;
+      }
+      return prices;
+    }
+
+    void setPrices (double[] prices)
+    {
+      this.prices = prices;
+    }
+
+    // profile used for evaluation
+    double[] getProfile ()
+    {
+      return profile;
+    }
+
+    void setProfile (double[] profile)
+    {
+      this.profile = profile;
+    }
+
+    // For a TOU price, returns the mean price, otherwise the fixed
+    // or expected-mean price
+    double getMeanPrice ()
+    {
+      ensureStats();
+      return stats.getMean();
+    }
+
+    double getMaxPrice ()
+    {
+      ensureStats();
+      return stats.getMax();
+    }
+
+    double getMinPrice ()
+    {
+      ensureStats();
+      return stats.getMin();
+    }
+
+    private void ensureStats ()
+    {
+      if (null == stats) {
+        stats = new DescriptiveStatistics(getPrices());
+      }
+    }
   }
 }
