@@ -381,9 +381,14 @@ implements CustomerModelAccessor
     }
     // otherwise, create a new profile
     info = makeTariffInfo(tariff);
-    //double nomConsumption = getNominalHourlyConsumption();
     if (tariff.isTimeOfUse()) {
       heuristicTouProfile(info);
+    }
+    else {
+      // fill profile with nominal consumption
+      double[] pr = new double[profileSize];
+      Arrays.fill(pr, getNominalHourlyConsumption());
+      info.setProfile(pr);
     }
     log.debug(getName() + " profile " + Arrays.toString(info.getProfile()));
     profiles.put(tariff, info);
