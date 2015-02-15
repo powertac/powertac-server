@@ -16,7 +16,6 @@
 package org.powertac.customer;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -29,12 +28,6 @@ import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TariffSubscriptionRepo;
-import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 
 /**
  * Abstract customer implementation
