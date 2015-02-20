@@ -16,6 +16,7 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
+import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.factoredcustomer.CapacityProfile;
 
@@ -40,6 +41,8 @@ public interface CapacityOriginator
 
     CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
         TariffSubscription subscription);
+
+    double getShiftingInconvenienceFactor(Tariff tariff);
 
 }
 

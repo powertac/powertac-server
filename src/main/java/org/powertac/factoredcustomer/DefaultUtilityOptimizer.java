@@ -441,6 +441,20 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
       return inertiaSampler.nextDouble();
     }
+
+    /**
+     * Is it correct to sum inconveniences over originators? currently every
+     * shifting customer has 1 originator so this doesn't matter, but it might
+     * change in the future.
+     */
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      double inconv = 0;
+      for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+        inconv +=  capacityOriginator.getShiftingInconvenienceFactor(tariff);
+      }
+      return inconv;
+    }
   }
 
   /**

@@ -256,6 +256,11 @@ class DefaultCapacityOriginator implements CapacityOriginator
   }
 
   @Override
+  public double getShiftingInconvenienceFactor(Tariff tariff) {
+    return 0; // not shifting should take place in DefaultCapacityOriginator
+  }
+
+  @Override
   public double useCapacity (TariffSubscription subscription)
   {
     //log.info("Daniel useCapacity()");

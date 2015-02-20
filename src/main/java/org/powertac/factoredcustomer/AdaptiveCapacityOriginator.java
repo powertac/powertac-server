@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeZone;
+import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
 import org.powertac.common.state.Domain;
@@ -52,6 +53,8 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     private final Random recommendationHandler;
 
     private Map<TariffSubscription, Map<Integer, Double>> forecastCapacitiesPerSub;
+
+    private Map<Tariff, Double> tariff2inconv;
     
     
     
@@ -74,6 +77,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
                                           .getValue());
         
         forecastCapacitiesPerSub = new HashMap<TariffSubscription, Map<Integer,Double>>();
+        tariff2inconv = new HashMap<Tariff, Double>();
     }
     
     @Override /** @code{ProfileRecommendation.Listener} **/
@@ -159,6 +163,16 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         //log.info("srv chosen: " + sub.getCustomer().getName() + " " +  sub.getTariff().getId() + " " + chosenProfile.toString());
         overwriteForecastCapacitiesPerSub(service.getTimeslotRepo().currentTimeslot(),
                                     chosenProfile, sub);
+        // record inconv
+        // (non-scaled) score = (charge / a) + w x d(e,e') / b 
+        // so a x score is supposed to be comparable to profile charge, taking inconv into account 
+        Opinion opinionOnChosenProfile = localRec.getOpinions().get(chosenProfile);
+        double originalScore = localRec.getNonScaledScore(chosenProfile);
+        // a = charge / normalized-charge
+        double costNormalizationConst = (opinionOnChosenProfile.normUsageCharge != 0) ? opinionOnChosenProfile.usageCharge / opinionOnChosenProfile.normUsageCharge : 0;
+        // scaled-inconv-factor = |a| x score - charge  = w|a|/b x d(e,e')
+        double inconvenienceFactor = Math.abs(costNormalizationConst) * originalScore - opinionOnChosenProfile.usageCharge;
+        tariff2inconv.put(sub.getTariff(), inconvenienceFactor);
     }
     private CapacityProfile selectBestProfileInRecommendation(ProfileRecommendation rec) 
     {
@@ -233,6 +247,16 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
       }
       //log.info("forecastCapacitiesPerSub[" + sub.getTariff().getId() + "," + futureTimeslot + "]=" + futureCapacity);
       ts2capacity.put(futureTimeslot, futureCapacity);
+    }
+    
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      Double inconv = tariff2inconv.get(tariff);
+      // shouldn't happen that it is null..
+      if (inconv != null)
+        return inconv;
+      log.error("How come inconvenience is null?");
+      return 0;
     }
     
     @Override

@@ -37,6 +37,8 @@ import org.powertac.common.state.StateChange;
 @Domain
 public class ProfileRecommendation
 {
+    private static final int SCORE_SCALING_FACTOR = 10000;
+
     static private Logger log = Logger.getLogger(ProfileRecommendation.class);
 
   
@@ -134,7 +136,7 @@ public class ProfileRecommendation
             //log.info("processing opinion: " + opinion.toString());
             //log.info("computeScores() score=" + score + " usageChargeScoringSign=" +usageChargeScoringSign + " x opinion.normUsageCharge=" + opinion.normUsageCharge + " + profileChangeWeight=" + profileChangeWeight + " x opinion.normProfileChange" + opinion.normProfileChange + " + bundleValueWeight=" + bundleValueWeight + " x opinion.normBundleValue" + opinion.normBundleValue);
             //log.info("for profile " + Arrays.toString(profile.values.toArray()));
-            scores.put(profile, score * 10000); // HACK BY DANIEL TO OVERCOME THE 0.0001 in computeUtilities()
+            scores.put(profile, score * SCORE_SCALING_FACTOR); // HACK BY DANIEL TO OVERCOME THE 0.0001 in computeUtilities()
         }
     }
     
@@ -221,6 +223,10 @@ public class ProfileRecommendation
     {
         void handleProfileRecommendation(ProfileRecommendation rec);
         void handleProfileRecommendationPerSub(ProfileRecommendation rec, TariffSubscription sub, CapacityProfile capacityProfile);
+    }
+
+    public double getNonScaledScore(CapacityProfile chosenProfile) {
+      return scores.get(chosenProfile) / SCORE_SCALING_FACTOR;
     }
     
 } // end class
