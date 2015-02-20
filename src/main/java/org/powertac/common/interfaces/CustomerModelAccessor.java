@@ -64,4 +64,6 @@ public interface CustomerModelAccessor
    * evaluate tariffs or not.
    */
   public double getInertiaSample();
+
+  public double getShiftingInconvenienceFactor(Tariff tariff);
 }

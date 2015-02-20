@@ -546,6 +546,8 @@ public class TariffEvaluator
   private double forecastCost (Tariff tariff)
   {
     double[] profile = accessor.getCapacityProfileStartingNextTimeSlot(tariff);
+    // NOTE: must call the next function after the previous, since the previous writes inconv. factors
+    double inconv = accessor.getShiftingInconvenienceFactor(tariff); // always 0 except for AdaptiveCapacityOriginator
     double profileCost = helper.estimateCost(tariff, profile);
     if (Double.isNaN(profileCost)) {
       log.error(getName() + ": profile cost NaN for tariff "
@@ -556,7 +558,8 @@ public class TariffEvaluator
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }
-    return profileCost * scale;
+    log.debug("inconv profileCost=" + profileCost + " inconv=" + inconv + " scaled-charge=" + profileCost * scale + " scaled (cost+inconv)=" + (profileCost + inconv) * scale + " ratio= " + (profileCost + inconv) * scale / (profileCost * scale));
+    return (profileCost + inconv) * scale;
   }
 
   // tracks additions and deletions for tariff subscriptions

@@ -995,5 +995,11 @@ public class TariffEvaluatorTest
     {
       inertiaSamples = samples;
     }
+
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 }
