@@ -1579,5 +1579,12 @@ public class OfficeComplex extends AbstractCustomer
     {
       return gen.nextDouble();
     }
+
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      // TODO Auto-generated method stub
+      return 0;
+    }
+
   }
 }
