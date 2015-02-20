@@ -436,6 +436,8 @@ public class CpGenco extends Broker
     double b = 1.0;
     double c = 1.0;
 
+    final double x0 = 25; //20; // 10; // 30; // 0;// 35; //50;
+
     boolean validateCoefficients (List<String> coefficients)
     {
       double[] test = extractCoefficients(coefficients);
@@ -456,19 +458,63 @@ public class CpGenco extends Broker
     // c = as^2 + bs + p where s is startX and p is priceInterval 
     double getDeltaX (double startX)
     {
+      // store
+      double aOrig = a;
+      double bOrig = b;
+      double cOrig = c;
+      double priceIntervalOrig = priceInterval;
+
+      if (startX >= x0) {
+        scaleCoefficients(); 
+      }
+
+
       double endX =
         -b / (2.0 * a)
             + Math.sqrt(b * b
                         + 4.0 * a * (a * startX * startX
                                      + b * startX
                                      + priceInterval)) / (2.0 * a);
+
+      
+      // restore
+      a = aOrig;
+      b = bOrig;
+      c = cOrig;
+      priceInterval = priceIntervalOrig;
+
       return (endX - startX);
     }
 
     // returns a price given a qty
     double getY (double x)
     {
-      return (a * x * x + b * x + c);
+      // store
+      double aOrig = a;
+      double bOrig = b;
+      double cOrig = c;
+      double priceIntervalOrig = priceInterval;
+    
+      if (x >= x0) {
+        scaleCoefficients(); 
+      }
+    
+      double result = (a * x * x + b * x + c);
+    
+      // restore
+      a = aOrig;
+      b = bOrig;
+      c = cOrig;
+      priceInterval = priceIntervalOrig;
+      return result;
+    }
+
+    private void scaleCoefficients() {
+      double y0 = a * x0 * x0 + b * x0 + c;
+      a *= 5; // 4; // 3; // 4; // 3; // 2;
+      b *= 5; // 4; // 3; // 4; // 3; // 2;
+      c = y0 - a * x0 * x0 - b * x0;
+      priceInterval *= 2;
     }
   }
 

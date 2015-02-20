@@ -270,7 +270,7 @@ public class CpGencoTest
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("30 orders", 30, orderList.size());
+    assertEquals("72 orders", 72, orderList.size());
   }
 
   @Test
@@ -298,6 +298,6 @@ public class CpGencoTest
     genco.addMarketPosition(posn2, ts2.getSerialNumber());
     // generate orders and check
     genco.generateOrders(start, timeslotRepo.enabledTimeslots());
-    assertEquals("32 orders", 32, orderList.size());
+    assertEquals("73 orders", 73, orderList.size());
   }
 }
