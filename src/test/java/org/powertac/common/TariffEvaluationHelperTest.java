@@ -185,6 +185,26 @@ public class TariffEvaluationHelperTest
     assertEquals("correct result", -30.0, result, 1e-6);
   }
 
+  // Issue #792
+  @Test
+  public void testEstimateCostSimple48Usage ()
+  {
+    Rate r = new Rate().withFixed(true).withValue(-.1);
+    tariffSpec.addRate(r);
+    tariff = new Tariff(tariffSpec);
+    ReflectionTestUtils.setField(tariff, "timeService", timeService);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+    ReflectionTestUtils.setField(tariff, "tariffRepo", tariffRepo);
+    tariff.init();
+    tariff.getUsageCharge(10000.0, 0.0, true);
+
+    teh.init(.6, .4, .5, 10000.0);
+    double[] usage = {100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,
+                      0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
+    double result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", -30.0*6, result, 1e-6);
+  }
+
   @Test
   public void testEstimatedCostTOU ()
   {
