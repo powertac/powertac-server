@@ -600,6 +600,18 @@ implements CustomerModelAccessor
   {
     return service.getTimeslotRepo().currentTimeslot().getStartInstant();
   }
+  
+  // Get a beginning-of-week time for consistent tariff evaluation
+  private Instant getNextSunday ()
+  {
+    Instant result = getNowInstant();
+    int hour = result.get(DateTimeFieldType.hourOfDay());
+    if (hour > 0)
+      result = result.plus((24 - hour) * TimeService.HOUR);
+    int day = result.get(DateTimeFieldType.dayOfWeek());
+    result = result.plus((7 - day) * TimeService.DAY);
+    return result;
+  }
 
   // ================ getters and setters =====================
   // Note that list values must arrive and depart as List<String>,
@@ -944,7 +956,7 @@ implements CustomerModelAccessor
     if (null != plan) {
       return plan.getUsage();
     }
-    plan = getCapacityPlan(tariff, getNowInstant(), getPlanningHorizon());
+    plan = getCapacityPlan(tariff, getNextSunday(), getPlanningHorizon());
     profiles.put(tariff, plan);
     plan.createPlan(tariff, 0.0);
     return plan.getUsage();
@@ -1024,6 +1036,53 @@ implements CustomerModelAccessor
     public String toString()
     {
       return ("Shift(" + start + "," + duration + "," + trucks + ")");
+    }
+  }
+  
+  // ======== Constant-price block within a shift ======
+  // Each ShiftBlock is one column in the LP problem
+  class ShiftBlock
+  {
+    ShiftEnergy shiftEnergy;
+    int startOffset;
+    int duration = 0;
+    double cost = 0; // per-hour cost
+    
+    ShiftBlock (ShiftEnergy shiftEnergy, int startOffset)
+    {
+      super();
+      this.shiftEnergy = shiftEnergy;
+      this.startOffset = startOffset;
+    }
+
+    int getDuration ()
+    {
+      return duration;
+    }
+    
+    void incrementDuration ()
+    {
+      this.duration += 1;
+    }
+
+    double getCost ()
+    {
+      return cost;
+    }
+
+    void setCost (double cost)
+    {
+      this.cost = cost;
+    }
+
+    ShiftEnergy getShiftEnergy ()
+    {
+      return shiftEnergy;
+    }
+
+    int getStartOffset ()
+    {
+      return startOffset;
     }
   }
 
@@ -1289,7 +1348,8 @@ implements CustomerModelAccessor
     boolean solved = false;
     Tariff tariff;
     ShiftEnergy[] needs;
-    int size;
+    int size;  // number of hours in plan
+    int blockCount = 0; // number of multi-hour blocks in solution
 
     LpPlan (Tariff tariff, ShiftEnergy[] needs, int size)
     {
@@ -1306,12 +1366,19 @@ implements CustomerModelAccessor
         return;
 
       // min obj.x s.t. a.x=b, lb <= x <= ub
-      // x is energy use per hour for size hours, slack var per shift
+      // x is energy use per block for size hours, b is slack var per block.
+      // Block is a shift, or portion of shift with constant price.
+      // For multi-hour blocks, energy use is evenly distributed across hours
+      // after solution.
       Date start = new Date();
-      int columns = size;
       int shifts = needs.length;
-      Instant time =
-          indexToInstant(needs[0].getStartIndex());
+      
+      // Create blocks that break on both shift boundaries and tariff price
+      // boundaries.
+      ShiftBlock[] blocks = makeBlocks(shifts); 
+      int columns = blocks.length;
+      int blockIndex = -1;
+      
       double[] obj = new double[columns + shifts];
       double[][] a = new double[shifts][columns + shifts];
       double[] b = new double[shifts];
@@ -1324,21 +1391,21 @@ implements CustomerModelAccessor
         // one iteration per shift
         double kwh =
             needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
-        for (int j = 0; j < needs[i].getDuration(); j++) {
-          // one iteration per timeslot within a shift
+        //for (int j = 0; j < needs[i].getDuration(); j++) {
+        while ((blockIndex < blocks.length - 1) &&
+                (blocks[blockIndex + 1].getShiftEnergy() == needs[i])) {
+          blockIndex += 1;
+          // one iteration per block within a shift
           // fill in objective function
-          // cost based on assumption that shift need is evenly distributed
-          double cost =
-              tariff.getUsageCharge(time, kwh / needs[i].getDuration(), kwh);
-          obj[column] = cost / (kwh / needs[i].getDuration());
-          // construct cumulative usage constraints
-          //a[i][column] = -1.0;
-          time = time.plus(TimeService.HOUR);
+          obj[column] = blocks[blockIndex].getCost();
           lb[column] = 0.0;
           ub[column] =
-              (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
-              / needs[i].getDuration();
+                  (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
+                  * (double)blocks[blockIndex].getDuration() / needs[i].getDuration();
           column += 1;
+          // construct cumulative usage constraints
+          //a[i][column] = -1.0;
+          //time = time.plus(TimeService.HOUR);
         }
         // fill a row up to column
         for (int j = 0; j < column; j++) {
@@ -1354,9 +1421,9 @@ implements CustomerModelAccessor
         obj[columns + i] = 0.0;
         a[i][columns + i] = 1.0;
         lb[columns + i] = 0.0;
+        // upper bound is max possible energy for shift
         ub[columns + i] =
-            (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus())
-            / needs[i].getDuration();
+            (needs[i].getEnergyNeeded() + needs[i].getMaxSurplus());
       }
       // run the optimization
       LPOptimizationRequest or = new LPOptimizationRequest();
@@ -1383,7 +1450,7 @@ implements CustomerModelAccessor
         Date end = new Date();
         log.info("Solution time: " + (end.getTime() - start.getTime()));
         log.debug("Solution = " + Arrays.toString(sol));
-        recordSolution(sol);
+        recordSolution(sol, blocks);
       }
       catch (Exception e) {
         log.error(e.toString());
@@ -1392,12 +1459,62 @@ implements CustomerModelAccessor
       solved = true;
     }
 
-    // pulls apart the usage and slack data
-    void recordSolution(double[] lpResult)
+    ShiftBlock[] makeBlocks (int shifts)
     {
-      solution = Arrays.copyOfRange(lpResult, 0, size);
+      ArrayList<ShiftBlock> blocks = new ArrayList<ShiftBlock>();
+      double epsilon = 1e-3;  // min price difference to ignore
+      Instant time =
+              indexToInstant(needs[0].getStartIndex());
+      for (int i = 0; i < shifts; i++) {
+        // one iteration per shift
+        double kwh =
+            needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
+        ShiftBlock currentBlock = null;
+        double blockCost = 0.0; // per-kWh cost of current block
+        int blockLength = 0;    // length of current block
+        for (int j = 0; j < needs[i].getDuration(); j++) {
+          // one iteration per timeslot within a shift
+          // fill in objective function
+          // cost/kWh based on assumption that shift need is evenly distributed
+          double kwhPerTs = kwh / needs[i].getDuration();
+          double cost =
+              tariff.getUsageCharge(time, kwhPerTs, kwh) / kwhPerTs;
+          if (null == currentBlock) {
+            blockCost = cost;
+            currentBlock = new ShiftBlock(needs[i], j);
+            currentBlock.setCost(blockCost);
+            blocks.add(currentBlock);
+          }
+          else if (Math.abs(cost - blockCost) > epsilon) {
+            // start of new block --
+            // finish off last block
+            currentBlock = new ShiftBlock(needs[i], j);
+            currentBlock.setCost(cost);
+            blocks.add(currentBlock);
+          }
+          currentBlock.incrementDuration();
+        }
+      }
+      ShiftBlock[] result = new ShiftBlock[blocks.size()];
+      return blocks.toArray(result);
+    }
+
+    // pulls apart the usage and slack data
+    void recordSolution(double[] lpResult, ShiftBlock[] blocks)
+    {
+      double[] blockSolution = Arrays.copyOfRange(lpResult, 0, blocks.length);
+      log.debug("Block soln: " + Arrays.toString(blockSolution));
+      solution = new double[size];
+      int solutionIndex = 0;
+      int lpIndex = 0;
+      for (ShiftBlock block: blocks) {
+        double blockValue = blockSolution[lpIndex++] / block.getDuration();
+        for (int i = 0; i < block.getDuration(); i++) {
+          solution[solutionIndex++] = blockValue;
+        }
+      }
       log.debug("Usage: " + Arrays.toString(solution));
-      slack = Arrays.copyOfRange(lpResult, size, lpResult.length);
+      slack = Arrays.copyOfRange(lpResult, blocks.length, lpResult.length);
       log.debug("Slack: " + Arrays.toString(slack));
     }
 
