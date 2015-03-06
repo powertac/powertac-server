@@ -148,9 +148,9 @@ implements CapacityControl, InitializationService
     if (null == tariff) {
       // broker error, most likely
       log.warn("Null tariff " + order.getTariffId() + " for balancing order");
-      return new RegulationCapacity(0.0, 0.0);
+      return new RegulationCapacity(null, 0.0, 0.0);
     }
-    RegulationCapacity result = new RegulationCapacity(0.0, 0.0);
+    RegulationCapacity result = new RegulationCapacity(null, 0.0, 0.0);
     List<TariffSubscription> subs =
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
     for (TariffSubscription sub : subs) {

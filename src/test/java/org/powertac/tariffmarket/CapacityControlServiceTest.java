@@ -222,9 +222,9 @@ public class CapacityControlServiceTest
     TariffSubscription sub2 =
         tariffSubscriptionRepo.getSubscription(customer2, tariffRR);
     sub2.subscribe(200);
-    sub1.setRegulationCapacity(new RegulationCapacity(3.0, -1.5));
+    sub1.setRegulationCapacity(new RegulationCapacity(sub1, 3.0, -1.5));
     sub1.usePower(200);
-    sub2.setRegulationCapacity(new RegulationCapacity(2.0, -1.1));
+    sub2.setRegulationCapacity(new RegulationCapacity(sub2, 2.0, -1.1));
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, specRR, 1.0, 0.1);
     RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
