@@ -350,7 +350,7 @@ public class Village extends AbstractCustomer
               .withInertia(Double.parseDouble(conf
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
-                                                     * VillageConstants.DAYS_OF_WEEK)
+                                             * VillageConstants.DAYS_OF_WEEK)
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(VillageConstants.TARIFF_COUNT)
