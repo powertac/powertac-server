@@ -217,7 +217,6 @@ implements CustomerModelAccessor
                              outsideTemp);
     setCurrentTemp(currentTemp + info.getDeltaTemp());
 
-
     // Now we need to record available regulation capacity. Note that only
     // the cooling portion is available for regulation.
     // Note also that we have to stay within the min-max temp range
@@ -230,7 +229,7 @@ implements CustomerModelAccessor
       // and can't regulate down below min
       availableDown = 0.0;
     RegulationCapacity capacity =
-      new RegulationCapacity(availableUp, availableDown);
+      new RegulationCapacity(getSubscription(), availableUp, availableDown);
     getSubscription().setRegulationCapacity(capacity);
     log.info(getName()
              + ": regulation capacity (" + capacity.getUpRegulationCapacity()

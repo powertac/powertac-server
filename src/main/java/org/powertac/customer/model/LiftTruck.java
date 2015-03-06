@@ -405,7 +405,8 @@ implements CustomerModelAccessor
   // the chargeEfficiency value.
   double useEnergy (double regulation)
   {
-    Tariff tariff = getSubscription().getTariff();
+    TariffSubscription subscription = getSubscription();
+    Tariff tariff = subscription.getTariff();
     ensureCapacityPlan(tariff);
 
     // positive regulation means we lost energy in the last timeslot
@@ -432,14 +433,14 @@ implements CustomerModelAccessor
       log.info(getName() + ": no slack - need " + needed
                + ", max " + max + ", avail " + avail + ", dur " + need.getDuration());
       used = Math.min(maxUsable, (needed / need.getDuration()));
-      regCapacity = new RegulationCapacity(0.0, 0.0);
+      regCapacity = new RegulationCapacity(subscription, 0.0, 0.0);
     }
     else if (tariff.isTimeOfUse() || tariff.isVariableRate()) {
       // if the current tariff is not a flat rate, we will just use the
       // planned amout, without offering regulation capacity
       // TODO - figure out how to combine variable prices with regulation
       used = need.getRecommendedUsage()[need.getUsageIndex()];
-      regCapacity = new RegulationCapacity(0.0, 0.0);
+      regCapacity = new RegulationCapacity(subscription, 0.0, 0.0);
     }
     else {
       // otherwise use energy to maximize regulation capacity
@@ -449,7 +450,7 @@ implements CustomerModelAccessor
                + ", maxUsable " + maxUsable
                + ", duration " + need.getDuration());
       used = needed / need.getDuration() + slack;
-      regCapacity = new RegulationCapacity(slack, -slack);
+      regCapacity = new RegulationCapacity(subscription, slack, -slack);
     }
 
     // use it
@@ -1389,8 +1390,8 @@ implements CustomerModelAccessor
       // construct the problem
       for (int i = 0; i < shifts; i++) {
         // one iteration per shift
-        double kwh =
-            needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
+        //double kwh =
+        //    needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
         //for (int j = 0; j < needs[i].getDuration(); j++) {
         while ((blockIndex < blocks.length - 1) &&
                 (blocks[blockIndex + 1].getShiftEnergy() == needs[i])) {
@@ -1471,7 +1472,7 @@ implements CustomerModelAccessor
             needs[i].getEnergyNeeded() + needs[i].getMaxSurplus();
         ShiftBlock currentBlock = null;
         double blockCost = 0.0; // per-kWh cost of current block
-        int blockLength = 0;    // length of current block
+        //int blockLength = 0;    // length of current block
         for (int j = 0; j < needs[i].getDuration(); j++) {
           // one iteration per timeslot within a shift
           // fill in objective function

@@ -49,7 +49,7 @@ public class StepInfo
     super();
     timeslot = slot;
     subscription = sub;
-    regulationCapacity = new RegulationCapacity(0.0, 0.0);
+    regulationCapacity = new RegulationCapacity(sub, 0.0, 0.0);
   }
 
   public double getKWh ()
