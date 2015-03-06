@@ -330,7 +330,7 @@ public class TariffSubscriptionTests
   {
     TariffSubscription sub = new TariffSubscription(customer, tariff);
     sub.subscribe(33);
-    sub.setRegulationCapacity(new RegulationCapacity(4.5, -3.0));
+    sub.setRegulationCapacity(new RegulationCapacity(sub, 4.5, -3.0));
     assertEquals("no regulation yet", 0.0, sub.getRegulation(), 1e-6);
     RegulationCapacity remaining = sub.getRemainingRegulationCapacity();
     assertEquals("population up ", 4.5 * 33,
@@ -432,7 +432,7 @@ public class TariffSubscriptionTests
         .addTariffTransaction(TariffTransaction.Type.SIGNUP, tariff, customer,
                               10, 0.0, -0.0);
     timeslotRepo.findOrCreateBySerialNumber(10);
-    sub.setRegulationCapacity(new RegulationCapacity(5.0, -2.0)); // per-member
+    sub.setRegulationCapacity(new RegulationCapacity(sub, 5.0, -2.0)); // per-member
     sub.usePower(100.0);
     verify(mockAccounting)
         .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),

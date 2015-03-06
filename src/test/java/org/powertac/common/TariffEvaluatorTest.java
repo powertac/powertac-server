@@ -559,7 +559,7 @@ public class TariffEvaluatorTest
     assertEquals("-10000 for default",
                  new Integer(-10000), calls.get(defaultConsumption));
     assertEquals("+10000 for bob",
-                 new Integer(10000), calls.get(jimTariff));
+                 new Integer(10000), calls.get(bobTariff));
   }
 
   @Test

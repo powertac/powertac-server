@@ -23,7 +23,9 @@ import org.powertac.common.state.StateChange;
  * Represents available regulation capacity for a given TariffSubscription.
  * This is basically a data structure that holds two numbers: an amount of
  * up-regulation capacity (non-negative), and an amount of down-regulation
- * capacity (non-positive).
+ * capacity (non-positive). The subscription is also included to simplify
+ * log analysis; in cases where no subscription is involved, this value
+ * should be null.
  * 
  * @author John Collins
  */
@@ -40,6 +42,9 @@ public class RegulationCapacity
   private double upRegulationCapacity = 0.0;
 
   private double downRegulationCapacity = 0.0;
+  
+  @SuppressWarnings("unused")
+  private TariffSubscription subscription;
 
   /**
    * Creates a new RegulationCapacity instance specifying the amounts of
@@ -49,10 +54,12 @@ public class RegulationCapacity
    * positive value means power is delivered to the balancing market
    * (up-regulation).
    */
-  public RegulationCapacity (double upRegulationCapacity,
+  public RegulationCapacity (TariffSubscription subscription,
+                             double upRegulationCapacity,
                              double downRegulationCapacity)
   {
     super();
+    this.subscription = subscription;
     if (upRegulationCapacity < 0.0) {
       log.warn("upRegulationCapacity " + upRegulationCapacity + " < 0.0");
       upRegulationCapacity = 0.0;

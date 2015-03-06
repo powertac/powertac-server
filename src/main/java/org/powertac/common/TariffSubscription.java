@@ -24,6 +24,8 @@ import org.joda.time.Instant;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 /**
  * A TariffSubscription is an entity representing an association between a Customer
@@ -34,6 +36,7 @@ import org.powertac.common.spring.SpringApplicationContext;
  * returned from the Tariff.  
  * @author John Collins, Carsten Block
  */
+@Domain
 public class TariffSubscription 
 {
   static private Logger log = Logger.getLogger(TariffSubscription.class.getName());
@@ -77,7 +80,7 @@ public class TariffSubscription
   private double pendingRegulationRatio = 0.0;
 
   /** Available regulation capacity for the current timeslot. */
-  RegulationCapacity regulationCapacity = new RegulationCapacity(0.0, 0.0);
+  RegulationCapacity regulationCapacity;
 
   /** Actual up-regulation (positive) or down-regulation (negative)
    * from previous timeslot.
@@ -93,6 +96,7 @@ public class TariffSubscription
     this.customer = customer;
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
+    regulationCapacity = new RegulationCapacity(this, 0.0, 0.0);
   }
 
   public long getId ()
@@ -129,6 +133,7 @@ public class TariffSubscription
    * minDuration. For the purpose of computing expiration, all contracts are assumed to begin at
    * 00:00 on the day of the subscription.
    */
+  @StateChange
   public void subscribe (int customerCount)
   {
     // first, update the customer count
@@ -183,6 +188,7 @@ public class TariffSubscription
    * the TariffMarket (phase 4) to avoid subscription changes between customer
    * consumption/production and balancing.
    */
+  @StateChange
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
@@ -357,6 +363,7 @@ public class TariffSubscription
    * Communicates the ability of the customer model to handle regulation
    * requests. Quantities are per-member.
    */
+  @StateChange
   public void setRegulationCapacity (RegulationCapacity capacity)
   {
     regulationCapacity = capacity;
@@ -369,7 +376,7 @@ public class TariffSubscription
   public void ensureRegulationCapacity ()
   {
     if (null == regulationCapacity) {
-      regulationCapacity = new RegulationCapacity(0.0, 0.0);
+      regulationCapacity = new RegulationCapacity(this, 0.0, 0.0);
     }
   }
 
@@ -463,6 +470,7 @@ public class TariffSubscription
    * Posts the ratio for an EconomicControlEvent to the subscription for the
    * current timeslot.
    */
+  @StateChange
   public synchronized void postRatioControl (double ratio)
   {
     pendingRegulationRatio = ratio;
@@ -477,6 +485,7 @@ public class TariffSubscription
    * energy account balance. The kwh value is a population value, not a
    * per-member value.
    */
+  @StateChange
   public synchronized void postBalancingControl (double kwh)
   {
     // issue compensating tariff transaction
@@ -521,7 +530,7 @@ public class TariffSubscription
     if (0 == pendingUnsubscribeCount) {
       log.info("regulation capacity for " + getCustomer().getName()
                + " (" + up + ", " + down + ")");
-      return new RegulationCapacity(up, down);
+      return new RegulationCapacity(this, up, down);
     }
     else {
       // we have some unsubscribes - need to adjust 
@@ -530,7 +539,7 @@ public class TariffSubscription
       log.info("remaining regulation capacity for "
                + getCustomer().getName() + " reduced by " + ratio
                + " to (" + up * ratio + ", " + down * ratio + ")");
-      return new RegulationCapacity(up * ratio, down * ratio);
+      return new RegulationCapacity(this, up * ratio, down * ratio);
     }
   }
 

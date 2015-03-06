@@ -79,6 +79,7 @@ public class TariffEvaluator
   // algorithm parameters - needed for numerical stablity
   private double lambdaMax = 50.0;
   private double maxLinearUtility = 7.0;
+  private double stdDuration = 48.0; // standardized profile length
 
   public TariffEvaluator (CustomerModelAccessor cma)
   {
@@ -244,7 +245,7 @@ public class TariffEvaluator
 
   /**
    * Sets the preferred maximum contract duration in days. For tariffs
-   * having a non-zero early-withdraway fee, this is the period after which
+   * having a non-zero early-withdrawal fee, this is the period after which
    * the cost of withdrawal is discounted. It is also the standard period
    * over which usage cost is compared against signup/withdrawal payments.
    * Default value is 6 days.
@@ -530,7 +531,8 @@ public class TariffEvaluator
       log.error(getName() + ": profile cost NaN for tariff "
                 + tariff.getId());
     }
-    double scale = preferredDuration * 24.0 / profile.length;
+    //double scale = preferredDuration * 24.0 / profile.length;
+    double scale = stdDuration / profile.length;
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }

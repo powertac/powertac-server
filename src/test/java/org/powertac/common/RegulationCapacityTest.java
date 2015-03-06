@@ -38,7 +38,7 @@ public class RegulationCapacityTest
   public void testRegulationCapacity ()
   {
     // normal creation
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
                  1e-6);
     assertEquals("correct down-regulation", -2.0,
@@ -48,12 +48,12 @@ public class RegulationCapacityTest
   @Test
   public void bogusRegulationCapacity ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, 2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, 2.0);
     assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
                  1e-6);
     assertEquals("default down-regulation", 0.0,
                  rc.getDownRegulationCapacity(), 1e-6);
-    RegulationCapacity rc1 = new RegulationCapacity(-1.0, -2.0);
+    RegulationCapacity rc1 = new RegulationCapacity(null, -1.0, -2.0);
     assertEquals("default up-regulation", 0.0, rc1.getUpRegulationCapacity(),
                  1e-6);
     assertEquals("correct down-regulation", -2.0,
@@ -63,7 +63,7 @@ public class RegulationCapacityTest
   @Test
   public void testSetUp ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.setUpRegulationCapacity(2.5);
     assertEquals("successful set", 2.5, rc.getUpRegulationCapacity(), 1e-6);
     rc.setUpRegulationCapacity(-3.0);
@@ -73,7 +73,7 @@ public class RegulationCapacityTest
   @Test
   public void testSetDown ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.setDownRegulationCapacity(-2.5);
     assertEquals("successful set", -2.5, rc.getDownRegulationCapacity(), 1e-6);
     rc.setDownRegulationCapacity(3.0);
@@ -83,8 +83,8 @@ public class RegulationCapacityTest
   @Test
   public void testAdd ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
-    RegulationCapacity rc1 = new RegulationCapacity(2.0, -3.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
+    RegulationCapacity rc1 = new RegulationCapacity(null, 2.0, -3.0);
     rc.add(rc1);
     assertEquals("correct up-regulation", 3.0, rc.getUpRegulationCapacity(),
                  1e-6);
@@ -95,7 +95,7 @@ public class RegulationCapacityTest
   @Test
   public void testAddUpRegulation ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.addUpRegulation(3.0);
     assertEquals("correct up-regulation", 4.0, rc.getUpRegulationCapacity(),
                  1e-6);
@@ -106,7 +106,7 @@ public class RegulationCapacityTest
   @Test
   public void bugusAddUpRegulation ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.addUpRegulation(-3.0);
     assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
                  1e-6);
@@ -117,7 +117,7 @@ public class RegulationCapacityTest
   @Test
   public void testAddDownRegulation ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.addDownRegulation(-3.0);
     assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
                  1e-6);
@@ -128,7 +128,7 @@ public class RegulationCapacityTest
   @Test
   public void bogusAddDownRegulation ()
   {
-    RegulationCapacity rc = new RegulationCapacity(1.0, -2.0);
+    RegulationCapacity rc = new RegulationCapacity(null, 1.0, -2.0);
     rc.addDownRegulation(3.0);
     assertEquals("correct up-regulation", 1.0, rc.getUpRegulationCapacity(),
                  1e-6);
