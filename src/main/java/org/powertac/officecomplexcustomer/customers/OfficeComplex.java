@@ -284,7 +284,7 @@ public class OfficeComplex extends AbstractCustomer
               .withInertia(Double.parseDouble(conf
                                    .getProperty(type + "Inertia")))
               .withPreferredContractDuration(weeks
-                                                     * OfficeComplexConstants.DAYS_OF_WEEK)
+                                             * OfficeComplexConstants.DAYS_OF_WEEK)
               .withRationality(Double.parseDouble(conf
                                        .getProperty(type + "Rationality")))
               .withTariffEvalDepth(OfficeComplexConstants.TARIFF_COUNT)
