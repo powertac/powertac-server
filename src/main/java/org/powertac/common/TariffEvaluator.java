@@ -18,8 +18,8 @@ package org.powertac.common;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.powertac.common.interfaces.CustomerModelAccessor;
@@ -351,7 +351,7 @@ public class TariffEvaluator
                                            Set<Tariff> initialTariffs)
   {
     // Associate each alternate tariff with its utility value
-    PriorityQueue<TariffUtility> evals = new PriorityQueue<TariffUtility>();
+    TreeSet<TariffUtility> evals = new TreeSet<TariffUtility>();
     HashSet<Tariff> tariffs = new HashSet<Tariff>(initialTariffs);
     tariffs.add(defaultTariff);
 
