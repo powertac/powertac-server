@@ -257,7 +257,7 @@ public class EvCustomer
     if (null == sub) 
       return;
     RegulationCapacity regulationCapacity =
-        new RegulationCapacity(up, down);
+        new RegulationCapacity(sub, up, down);
     sub.setRegulationCapacity(regulationCapacity);
     log.info(getName() + " setting regulation, up: "
              + up + "; down: " + down);
