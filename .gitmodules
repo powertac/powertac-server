@@ -38,5 +38,5 @@
 	path = customer-models
 	url = git://github.com/powertac/customer-models.git
 [submodule "evcustomer"]
-	   path = evcustomer
-	   url = git://github.com/powertac/evcustomer.git
+	path = evcustomer
+	url = git@github.com:powertac/evcustomer.git
