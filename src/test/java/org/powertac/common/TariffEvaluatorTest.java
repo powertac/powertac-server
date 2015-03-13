@@ -730,7 +730,7 @@ public class TariffEvaluatorTest
     assertEquals("two changes", 2, calls.size());
     assertEquals("-10000 for default",
                  new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for jim",
+    assertEquals("+10000 for jim-long",
                  new Integer(10000), calls.get(jimTariff));
   }
 
