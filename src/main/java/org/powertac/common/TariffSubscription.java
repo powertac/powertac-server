@@ -215,11 +215,13 @@ public class TariffSubscription
     }
     customersCommitted -= customerCount;
     // Post withdrawal and possible penalties
-    if (!tariff.isRevoked()) {
-      getAccounting().addTariffTransaction(TariffTransaction.Type.WITHDRAW,
-          tariff, customer, customerCount, 0.0,
-          penaltyCount * -tariff.getEarlyWithdrawPayment());
+    double withdrawPayment = -tariff.getEarlyWithdrawPayment();
+    if (tariff.isRevoked()) {
+      withdrawPayment = 0.0;
     }
+    getAccounting().addTariffTransaction(TariffTransaction.Type.WITHDRAW,
+                                         tariff, customer, customerCount, 0.0,
+                                         penaltyCount * withdrawPayment);
     if (tariff.getSignupPayment() < 0.0) {
       // Refund signup payment
       getAccounting().addTariffTransaction(TariffTransaction.Type.REFUND,

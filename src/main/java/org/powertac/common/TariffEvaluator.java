@@ -397,7 +397,7 @@ public class TariffEvaluator
         else {
           cost += tariff.getSignupPayment();
         }
-        cost += withdraw0;
+        cost += withdraw0; // withdraw from current tariff
         double withdrawFactor =
                 Math.min(1.0,
                          (double)tariff.getMinDuration()
