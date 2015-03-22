@@ -220,9 +220,9 @@ public class TariffSubscriptionTests
     assertTrue("tariff revoked", tariff.isRevoked());
     tsub.unsubscribe(2);
     tariffMarketService.activate(wk2, 4);
-    verify(mockAccounting, never()).addTariffTransaction(eq(TariffTransaction.Type.WITHDRAW),
+    verify(mockAccounting).addTariffTransaction(eq(TariffTransaction.Type.WITHDRAW),
                                                 eq(tariff), eq(customer),
-                                                anyInt(), anyDouble(), anyDouble());
+                                                anyInt(), anyDouble(), eq(0.0));
   }
 
   // Check consumption transactions
