@@ -684,10 +684,12 @@ public class TariffMarketService
   // ----------- Subscribe/unsubscribe processing --------------
 
   /**
-   * Subscribes a block of Customers from a single Customer model to
-   * this Tariff, as long as this Tariff has not expired. If the
-   * subscription succeeds, then the TariffSubscription instance is
-   * return, otherwise null.
+   * If customerCount is positive, subscribes a block of Customers
+   * from a single Customer model to the specified Tariff, as long
+   * as the Tariff is not expired or revoked. If customerCount is negative,
+   * unsubscribes a block of customers from the specified tariff.
+   * Processing is deferred unless the customer has no subscriptions,
+   * which should only be true at the start of a boot or sim session.
    * <p>
    * Note that you cannot unsubscribe directly from a Tariff -- you have to do
    * that from the TariffSubscription that represents the Tariff you want
