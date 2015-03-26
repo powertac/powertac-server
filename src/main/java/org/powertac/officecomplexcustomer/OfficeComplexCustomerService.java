@@ -28,7 +28,6 @@ import org.apache.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
@@ -44,7 +43,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.OfficeComplex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -142,7 +140,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
     officeComplexList.clear();
 
-    tariffMarketService.registerNewTariffListener(this);
+    //tariffMarketService.registerNewTariffListener(this);
 
     if (configFile1 == null) {
       log.info("No Config File for OfficeComplexType1 Taken");
