@@ -57,8 +57,8 @@ extends TimeslotPhaseProcessor
 implements InitializationService, BootstrapState, NewTariffListener,
   CustomerServiceAccessor
 {
-  //static private Logger log =
-  //    Logger.getLogger(CustomerModelService.class.getName());
+  static private Logger log =
+      Logger.getLogger(CustomerModelService.class.getName());
 
   @Autowired
   private TimeService timeService;
@@ -120,6 +120,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
       for (Object modelObj:
            serverConfig.configureInstances(modelEx.getClass())) {
         AbstractCustomer model = (AbstractCustomer) modelObj;
+        log.info("Adding model " + model.getName());
         models.add(model);
         model.setServiceAccessor(this);
         model.initialize();
@@ -141,6 +142,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public void activate (Instant time, int phaseNumber)
   {
     for (AbstractCustomer model : models) {
+      log.info("Step model " + model.getName());
       model.step();
     }
   }
@@ -149,6 +151,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
   public void publishNewTariffs (List<Tariff> tariffs)
   {
     for (AbstractCustomer model : models) {
+      log.info("Evaluating tariffs for " + model.getName());
       model.evaluateTariffs(tariffs);
     }
   }

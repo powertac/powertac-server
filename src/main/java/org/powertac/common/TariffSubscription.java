@@ -119,6 +119,12 @@ public class TariffSubscription
     return customersCommitted;
   }
 
+  @StateChange
+  public void setCustomersCommitted (int value)
+  {
+    customersCommitted = value;
+  }
+
   public double getTotalUsage ()
   {
     return totalUsage;
@@ -137,7 +143,7 @@ public class TariffSubscription
   public void subscribe (int customerCount)
   {
     // first, update the customer count
-    customersCommitted += customerCount;
+    setCustomersCommitted(getCustomersCommitted() + customerCount);
     
     // if the Tariff has a minDuration, then we have to record the expiration date.
     // we do this by adding an entry to end of list, or updating the entry at the end.
@@ -194,7 +200,14 @@ public class TariffSubscription
     pendingUnsubscribeCount = 0;
     //regulationCapacity = new RegulationCapacity(0.0, 0.0);
     // first, make customerCount no larger than the subscription count
-    customerCount = Math.min(customerCount, customersCommitted);
+    if (customerCount > customersCommitted) {
+      log.error("tariff " + tariff.getId() +
+                " customer " + customer.getName() +
+                ": attempt to unsubscribe " + customerCount +
+                " from subscription of " + customersCommitted);
+      customerCount = customersCommitted;
+    }
+//    customerCount = Math.min(customerCount, customersCommitted);
 //    adjustRegulationCapacity((double)(customersCommitted - customerCount)
 //                             / customersCommitted);
     // find the number of customers who can withdraw without penalty
@@ -213,7 +226,7 @@ public class TariffSubscription
         expCount = 0;
       }
     }
-    customersCommitted -= customerCount;
+    setCustomersCommitted(getCustomersCommitted() - customerCount);
     // Post withdrawal and possible penalties
     double withdrawPayment = -tariff.getEarlyWithdrawPayment();
     if (tariff.isRevoked()) {
