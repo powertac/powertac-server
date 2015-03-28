@@ -148,7 +148,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   // /////////////// TARIFF SUBSCRIPTION //////////////////////
 
   @StateChange
-  protected void subscribe (Tariff tariff, CapacityBundle bundle,
+  private void subscribe (Tariff tariff, CapacityBundle bundle,
                             int customerCount, boolean verbose)
   {
     getTariffMarket().subscribeToTariff(tariff, bundle.getCustomerInfo(),
@@ -158,17 +158,17 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
                + " customers to tariff " + tariff.getId() + " successfully");
   }
 
-  @StateChange
-  protected void unsubscribe (TariffSubscription subscription,
-                              CapacityBundle bundle, int customerCount,
-                              boolean verbose)
-  {
-    subscription.unsubscribe(customerCount);
-    if (verbose)
-      log.info(bundle.getName() + ": Unsubscribed " + customerCount
-               + " customers from tariff " + subscription.getTariff().getId()
-               + " successfully");
-  }
+//  @StateChange
+//  protected void unsubscribe (TariffSubscription subscription,
+//                              CapacityBundle bundle, int customerCount,
+//                              boolean verbose)
+//  {
+//    subscription.unsubscribe(customerCount);
+//    if (verbose)
+//      log.info(bundle.getName() + ": Unsubscribed " + customerCount
+//               + " customers from tariff " + subscription.getTariff().getId()
+//               + " successfully");
+//  }
 
   /** @Override hook **/
   protected void subscribeDefault ()
