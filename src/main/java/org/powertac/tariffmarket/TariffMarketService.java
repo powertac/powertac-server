@@ -16,10 +16,13 @@
 package org.powertac.tariffmarket;
 
 import static org.powertac.util.ListTools.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -57,6 +60,7 @@ import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -198,6 +202,13 @@ public class TariffMarketService
 
     serverProps.configureMe(this);
 
+    // Register the NewTariffListeners
+    List<NewTariffListener> listeners =
+        SpringApplicationContext.listBeansOfType(NewTariffListener.class);
+    for (NewTariffListener listener : listeners) {
+      registerNewTariffListener(listener);
+    }
+
     // compute the fees
     RandomSeed random =
         randomSeedService.getRandomSeed("TariffMarket",
@@ -292,9 +303,10 @@ public class TariffMarketService
     }
   }
 
+  // Test support
   List<NewTariffListener> getRegistrations ()
   {
-    return registrations;
+    return new ArrayList<NewTariffListener>(registrations);
   }
 
   // ----------------- Broker message API --------------------
@@ -607,7 +619,7 @@ public class TariffMarketService
     revokedTariffs = null;
   }
 
-  private List<NewTariffListener> registrations = new ArrayList<NewTariffListener>();
+  private Set<NewTariffListener> registrations = new HashSet<NewTariffListener>();
 
   @Override
   public void registerNewTariffListener (NewTariffListener listener)
