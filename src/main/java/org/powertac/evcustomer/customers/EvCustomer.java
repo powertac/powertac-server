@@ -98,11 +98,6 @@ public class EvCustomer
       description = "True if the customer is driving and cannot charge")
   private boolean driving;
 
-  // state
-  //private double evLoad = 0.0;
-  private double upRegulation = 0.0;
-  private double downRegulation = 0.0;
-
   private final int dataMapSize = 48;
   private Map<Integer, TimeslotData> timeslotDataMap =
       new HashMap<Integer, TimeslotData>(dataMapSize);
@@ -238,18 +233,24 @@ public class EvCustomer
 
     // compute the regulation factor and do the regulation
     log.info(name + " regulate : " + actualRegulation);
-    double regulationFactor;
-    if (actualRegulation > epsilon && upRegulation > epsilon) {
-      regulationFactor = actualRegulation / upRegulation;
+
+    double startCapacity = currentCapacity;
+    try {
+      if (actualRegulation > epsilon) {
+        discharge(actualRegulation);
+      }
+      else if (actualRegulation < -epsilon) {
+        charge(-1 * actualRegulation);
+      }
     }
-    else if (actualRegulation < -epsilon && downRegulation < -epsilon) {
-      regulationFactor = -1 * actualRegulation / downRegulation;
+    catch (ChargeException ce) {
+      log.error(name +" : "+ ce);
     }
-    else {
-      return;
+
+    if (Math.abs(startCapacity - currentCapacity) > epsilon) {
+      log.info(String.format("%s regulated from %.1f to %.1f",
+          name, startCapacity, currentCapacity));
     }
-    // do the regulation
-    regulate(hour, regulationFactor);
   }
 
   private void setRegulation (double up, double down, TariffSubscription sub)
@@ -259,10 +260,8 @@ public class EvCustomer
     RegulationCapacity regulationCapacity =
         new RegulationCapacity(sub, up, down);
     sub.setRegulationCapacity(regulationCapacity);
-    log.info(getName() + " setting regulation, up: "
-             + up + "; down: " + down);
+    log.info(name + " setting regulation, up: " + up + "; down: " + down);
   }
-
 
   /**
    * We always have data for at least 24h in advance.
@@ -371,9 +370,10 @@ public class EvCustomer
     }
 
     try {
+      double before = currentCapacity;
       discharge(neededCapacity);
-      log.info("driving " + intendedDistance +
-               ", using " + neededCapacity + " kWh");
+      log.info(String.format("%s driving %.1f kms / %.1f kWh from %.1f to %.1f",
+          name, intendedDistance, neededCapacity, before, currentCapacity));
       driving = true;
     }
     catch (ChargeException ce) {
@@ -385,6 +385,13 @@ public class EvCustomer
   private void consumePower (double[] loads, TariffSubscription sub)
   {
     sub.usePower(loads[0] + loads[1]);
+
+    try {
+      charge(loads[0] + loads[1]);
+    }
+    catch (ChargeException ce) {
+      log.error(ce.getMessage());
+    }
   }
 
   /*
@@ -407,7 +414,7 @@ public class EvCustomer
    * loads[0] = consumptionLoad
    * loads[1] = evLoad
    * loads[2] = upRegulation
-   * loads[0] = downRegulation
+   * loads[3] = downRegulation
    * TODO More documentation
    */
   public double[] getLoads (int day, int hour)
@@ -438,16 +445,13 @@ public class EvCustomer
     // This is the amount we could discharge (up regulate)
     loads[2] = Math.max(0, currentCapacity - minCapacity);
     loads[2] = Math.min(loads[2], getDischargingCapacity());
+    if (loads[2] < epsilon)
+      loads[2] = 0;
 
     // This is the amount we could charge extra (down regulate)
     loads[3] = -1 * (getChargingCapacity() - (loads[0] + loads[1]));
-
-    try {
-      charge(loads[0] + loads[1]);
-    }
-    catch (ChargeException ce) {
-      log.error(ce.getMessage());
-    }
+    if (loads[3] > -epsilon)
+      loads[3] = 0;
 
     // We need the available regulations in the next timeslot
     timeslotDataMap.get(hour).setUpRegulationCharge(loads[1]);
@@ -503,45 +507,6 @@ public class EvCustomer
     return neededCapacity;
   }
 
-  /*
-   * We divide the amount we need to regulate evenly over the ev customers that
-   * allowed regulation. But we need to
-   * TODO Need more doc
-   */
-  public void regulate (int hour, double regulationFactor)
-  {
-    TimeslotData tsData = timeslotDataMap.get(hour - 1);
-
-    // At the beginning no regulation set
-    if (tsData == null) {
-      return;
-    }
-
-    try {
-      if (regulationFactor < -epsilon && tsData.getDownRegulation() < -epsilon){
-        double regulation = regulationFactor * tsData.getDownRegulation();
-        charge(regulation);
-      }
-      else if (regulationFactor > epsilon) {
-        if (tsData.getUpRegulationCharge() > epsilon) {
-          // This is the part we thought we we're charging, but we didn't get
-          // due to regulation. Just subtract from the current capacity
-          double cap = -1 * regulationFactor * tsData.getUpRegulationCharge();
-          setCurrentCapacity(getCurrentCapacity() - cap);
-        }
-
-        if (tsData.getUpRegulation() > epsilon) {
-          // This is the part that's regulated via actual discharge
-          double discharge = -1 * regulationFactor * tsData.getUpRegulation();
-          discharge(-1 * discharge);
-        }
-      }
-    }
-    catch (ChargeException ce) {
-      log.error(ce);
-    }
-  }
-
   // ============ Vehicle state ===============
 
   public double getCurrentCapacity ()
@@ -572,11 +537,18 @@ public class EvCustomer
     // TODO Check if partially charging would suffice
 
     if ((currentCapacity + kwh) <= car.getMaxCapacity()) {
+      double startCapacity = currentCapacity;
       setCurrentCapacity(currentCapacity + kwh);
+
+      if (Math.abs(startCapacity - currentCapacity) > epsilon) {
+        log.info(String.format("%s charging from %.1f to %.1f",
+            name, startCapacity, currentCapacity));
+      }
     }
     else {
       throw new ChargeException("Not possible to charge " + name + " : "
-          + kwh + " at " + currentCapacity + " (maxCap " + car.getMaxCapacity() +")");
+          + kwh + " at " + currentCapacity
+          + " (maxCap " + car.getMaxCapacity() +")");
     }
   }
 
