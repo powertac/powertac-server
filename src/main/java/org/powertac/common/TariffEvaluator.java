@@ -288,7 +288,7 @@ public class TariffEvaluator
     // ensure we have the cost eval for each of the new tariffs
     for (Tariff tariff : newTariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
-      if (null == eval) {
+      if (true || null == eval) { // BUG: if keeping old evals, better new tariffs can be considered worse than worse-ones with old evals
         // compute the projected cost for this tariff
         double cost = forecastCost(tariff);
         double hassle = computeInconvenience(tariff);
