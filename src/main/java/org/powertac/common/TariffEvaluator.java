@@ -511,6 +511,12 @@ public class TariffEvaluator
   // and the cost of a proposed tariff
   private double computeNormalizedDifference (double cost, double defaultCost)
   {
+    // Daniel temporary bug fix
+    if (defaultCost == 0) {
+      // this means that capacity is 0, so we don't want any changes
+      // so return small utility
+      return 0;
+    }
     double ndiff = (defaultCost - cost) / defaultCost;
     if (customerInfo.getPowerType().isProduction())
       ndiff = -ndiff;
