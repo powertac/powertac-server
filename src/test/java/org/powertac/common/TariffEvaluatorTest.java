@@ -956,7 +956,7 @@ public class TariffEvaluatorTest
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       return capacityProfile;
     }
