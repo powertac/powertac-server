@@ -948,7 +948,7 @@ implements CustomerModelAccessor
 
   private Map<Tariff, CapacityPlan> profiles = null;
   @Override
-  public double[] getCapacityProfile (Tariff tariff)
+  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
   {
     if (null == profiles) {
       profiles = new HashMap<Tariff, CapacityPlan>();
@@ -1531,4 +1531,11 @@ implements CustomerModelAccessor
       return slack;
     }
   }
+
+  @Override
+  public double getShiftingInconvenienceFactor(Tariff tariff) {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
 }
