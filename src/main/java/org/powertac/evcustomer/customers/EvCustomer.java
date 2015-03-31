@@ -722,7 +722,7 @@ public class EvCustomer
      * TODO: this does not appear to be a reasonable profile
      */
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       double[] result = new double[config.getProfileLength()];
 
@@ -752,6 +752,12 @@ public class EvCustomer
     public double getInertiaSample ()
     {
       return generator.nextDouble();
+    }
+
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      // TODO Auto-generated method stub
+      return 0;
     }
   }
 
