@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.math.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
-import org.powertac.common.ConfigServerBroker;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;

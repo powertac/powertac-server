@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
 import org.apache.log4j.Logger;
-import org.powertac.common.ConfigServerBroker;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.springframework.util.Log4jConfigurer;
@@ -53,10 +52,7 @@ public final class ProfileOptimizerStructure
     final boolean raconcileRecommendations;
     
     //final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.LOGIT_CHOICE;
-    final ProfileSelectionMethod profileSelectionMethod = 
-        (ConfigServerBroker.getProfileSelectionMethod() == ConfigServerBroker.ProfileSelectionMethod.BEST_UTILITY) 
-            ? ProfileSelectionMethod.BEST_UTILITY 
-            : ProfileSelectionMethod.LOGIT_CHOICE; // ProfileSelectionMethod.BEST_UTILITY;
+    final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.BEST_UTILITY; 
 
     // factors controlling responsiveness to recommendation
     final double reactivityFactor;  // [0.0, 1.0]
