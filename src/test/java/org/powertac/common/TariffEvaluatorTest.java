@@ -956,7 +956,7 @@ public class TariffEvaluatorTest
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       return capacityProfile;
     }
@@ -994,6 +994,12 @@ public class TariffEvaluatorTest
     void setInertiaSamples (double... samples)
     {
       inertiaSamples = samples;
+    }
+
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      // TODO Auto-generated method stub
+      return 0;
     }
   }
 }

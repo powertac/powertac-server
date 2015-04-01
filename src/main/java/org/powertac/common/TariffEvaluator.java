@@ -15,6 +15,7 @@
  */
 package org.powertac.common;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -50,7 +51,8 @@ public class TariffEvaluator
   private CustomerInfo customerInfo;
 
   // inconvenience factors
-  private double touFactor = 0.2;
+  private double touFactorCap = 0.0;// disabling touFactor since it's incorrect
+  private double touFactor = Math.min(0.2, touFactorCap); // 0.2;
   private double tieredRateFactor = 0.1;
   private double variablePricingFactor = 0.5;
   private double interruptibilityFactor = 0.2;
@@ -115,7 +117,7 @@ public class TariffEvaluator
                                               double variablePricingFactor,
                                               double interruptibilityFactor)
   {
-    this.touFactor = touFactor;
+    this.touFactor = Math.min(touFactor, touFactorCap); //touFactor;
     this.tieredRateFactor = tieredRateFactor;
     this.variablePricingFactor = variablePricingFactor;
     this.interruptibilityFactor = interruptibilityFactor;
@@ -286,7 +288,7 @@ public class TariffEvaluator
     // ensure we have the cost eval for each of the new tariffs
     for (Tariff tariff : newTariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
-      if (null == eval) {
+      if (true || null == eval) { // BUG: if keeping old evals, better new tariffs can be considered worse than worse-ones with old evals
         // compute the projected cost for this tariff
         double cost = forecastCost(tariff);
         double hassle = computeInconvenience(tariff);
@@ -351,6 +353,7 @@ public class TariffEvaluator
                                            EvalData defaultEval,
                                            Set<Tariff> initialTariffs)
   {
+    //log.info("evaluateAlternativeTariffs(" + current.getTariff().getId() + ")");
     // Associate each alternate tariff with its utility value
     TreeSet<TariffUtility> evals = new TreeSet<TariffUtility>();
     HashSet<Tariff> tariffs = new HashSet<Tariff>(initialTariffs);
@@ -375,16 +378,23 @@ public class TariffEvaluator
     }
     else
       tariffs.add(currentTariff);
+    //log.info("tariffs:");
+    for (Tariff t : tariffs) {
+      //log.info(t.getId());
+    }
 
     // for each tariff, including the current and default tariffs,
     // compute the utility
     for (Tariff tariff: tariffs) {
+      //log.info("UTILITYFORTARIFF " + tariff.getId());
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
       double cost = eval.costEstimate;
+      //log.info("cost=" + cost + " inconvenience=" + inconvenience);
       if (tariff != currentTariff
               && tariff != replacementTariff) {
         inconvenience += tariffSwitchFactor;
+        //log.info("tariffSwitchFactor " + tariffSwitchFactor);
         if (tariff.getBroker() != currentTariff.getBroker()) {
           inconvenience +=
                   accessor.getBrokerSwitchFactor(revoked);
@@ -403,6 +413,7 @@ public class TariffEvaluator
                          (double)tariff.getMinDuration()
                          / (preferredDuration * TimeService.DAY));
         cost += withdrawFactor * tariff.getEarlyWithdrawPayment();
+        //log.info("withdraw0=" + withdraw0 + " withdrawFactor=" + withdrawFactor + " withdraw-cost=" + withdrawFactor * tariff.getEarlyWithdrawPayment());
         if (Double.isNaN(cost)) {
           log.error(getName() + ": cost is NaN for tariff "
                     + tariff.getId());
@@ -413,6 +424,7 @@ public class TariffEvaluator
         double utility = computeNormalizedDifference(cost,
                                                      defaultEval.costEstimate);
         utility -= inconvenienceWeight * inconvenience;
+        //log.info("adding TariffUtility(" + tariff.getId() + ", " + constrainUtility(utility) + " (" + utility + ")");
         if (Double.isNaN(utility)) {
           log.error(getName() + ": utility is NaN for tariff "
                     + tariff.getId());
@@ -436,6 +448,7 @@ public class TariffEvaluator
       util.probability =
               Math.exp(lambda * util.utility)
               / logitDenominator;
+      //log.info("util " + util.probability + ", " + util.utility);
       if (Double.isNaN(util.probability)) {
         log.error(getName() + ": Probability NAN, util=" + util.utility
                   + ", denom=" + logitDenominator
@@ -464,6 +477,7 @@ public class TariffEvaluator
       boolean allocated = false;
       for (TariffUtility tu : evals) {
         if (tariffSample <= tu.probability) {
+          //log.info("addAllocation: " + count + " of " + customerInfo.getna + " for " + tu.tariff.getId() + " " + tariffSample + " <= " + tu.probability);
           addAllocation(currentTariff, tu.tariff, count);
           allocated = true;
           break;
@@ -497,6 +511,12 @@ public class TariffEvaluator
   // and the cost of a proposed tariff
   private double computeNormalizedDifference (double cost, double defaultCost)
   {
+    // Daniel temporary bug fix
+    if (defaultCost == 0) {
+      // this means that capacity is 0, so we don't want any changes
+      // so return small utility
+      return 0;
+    }
     double ndiff = (defaultCost - cost) / defaultCost;
     if (customerInfo.getPowerType().isProduction())
       ndiff = -ndiff;
@@ -525,7 +545,9 @@ public class TariffEvaluator
   // Cost forecaster
   private double forecastCost (Tariff tariff)
   {
-    double[] profile = accessor.getCapacityProfile(tariff);
+    double[] profile = accessor.getCapacityProfileStartingNextTimeSlot(tariff);
+    // NOTE: must call the next function after the previous, since the previous writes inconv. factors
+    double inconv = accessor.getShiftingInconvenienceFactor(tariff); // always 0 except for AdaptiveCapacityOriginator
     double profileCost = helper.estimateCost(tariff, profile);
     if (Double.isNaN(profileCost)) {
       log.error(getName() + ": profile cost NaN for tariff "
@@ -536,7 +558,8 @@ public class TariffEvaluator
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }
-    return profileCost * scale;
+    log.debug("inconv profileCost=" + profileCost + " inconv=" + inconv + " scaled-charge=" + profileCost * scale + " scaled (cost+inconv)=" + (profileCost + inconv) * scale + " ratio= " + (profileCost + inconv) * scale / (profileCost * scale));
+    return (profileCost + inconv) * scale;
   }
 
   // tracks additions and deletions for tariff subscriptions

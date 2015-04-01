@@ -44,7 +44,7 @@ public interface CustomerModelAccessor
    * the usage of a single individual in a population model over some
    * model-specific time period.
    */
-  public double[] getCapacityProfile (Tariff tariff);
+  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff);
 
   /**
    * Returns the inconvenience of switching brokers. The value may depend
@@ -64,4 +64,6 @@ public interface CustomerModelAccessor
    * evaluate tariffs or not.
    */
   public double getInertiaSample();
+
+  public double getShiftingInconvenienceFactor(Tariff tariff);
 }

@@ -71,6 +71,8 @@ public interface TariffMarket {
    */
   public void registerNewTariffListener (NewTariffListener listener);
 
+  public void registerNewSubscriptionRepoListener(SubscriptionRepoListener listener);
+
   /**
    * Revokes tariffs for which TariffRevoke messages have been received
    * since the last time this method was called in an earlier timeslot.
