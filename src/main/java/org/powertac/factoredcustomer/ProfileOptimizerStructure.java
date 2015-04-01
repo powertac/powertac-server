@@ -17,8 +17,10 @@
 package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
+import org.apache.log4j.Logger;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
+import org.springframework.util.Log4jConfigurer;
 
 /**
  * Data-holder class for parsed configuration elements that control the 
@@ -49,7 +51,8 @@ public final class ProfileOptimizerStructure
     final PermutationRule permutationRule;
     final boolean raconcileRecommendations;
     
-    final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.LOGIT_CHOICE;
+    //final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.LOGIT_CHOICE;
+    final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.BEST_UTILITY; 
 
     // factors controlling responsiveness to recommendation
     final double reactivityFactor;  // [0.0, 1.0]
@@ -64,6 +67,8 @@ public final class ProfileOptimizerStructure
     // scoring weights of other factors relative to fixed usage charge weight of +/-1.
     final double profileChangeWeight;  // (-inf, 0.0]
     final double bundleValueWeight;  //  [0.0, inf]
+    static private Logger log = Logger.getLogger(ProfileOptimizerStructure.class);
+
 
     
     ProfileOptimizerStructure(CustomerStructure structure, CapacityBundle bundle, Element xml)
@@ -72,6 +77,7 @@ public final class ProfileOptimizerStructure
         capacityBundle = bundle;        
         
         if (xml == null) {
+            //log.info("Daniel xml is null");
             receiveRecommendations = false;
             raconcileRecommendations = false;
             permutationRule = null;
@@ -84,7 +90,9 @@ public final class ProfileOptimizerStructure
             profileChangeWeight = DEFAULT_PROFILE_CHANGE_WEIGHT;
             bundleValueWeight = DEFAULT_BUNDLE_VALUE_WEIGHT;
         } else {
+            //log.info("Daniel xml is not null");
             receiveRecommendations = Boolean.parseBoolean(xml.getAttribute("recommendation"));
+            //log.info("Daniel receiveRecommendations " + receiveRecommendations);
             raconcileRecommendations = Boolean.parseBoolean(xml.getAttribute("reconcile"));
             permutationRule = Enum.valueOf(PermutationRule.class, xml.getAttribute("permutationRule"));
             

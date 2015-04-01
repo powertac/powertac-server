@@ -16,6 +16,7 @@
 
 package org.powertac.factoredcustomer;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -222,9 +223,19 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   // /////////////// TIMESLOT ACTIVITY //////////////////////
 
+  /**
+   * used by LearningUtilityOptimizer to execute actions
+   * that need updated repo (currently shifting computations)
+   */
+  @Override
+  public void updatedSubscriptionRepo() {
+    
+  }
+
   @Override
   public void handleNewTimeslot (Timeslot timeslot)
   {
+    //log.info("handleNewTimeslot()");
     //checkRevokedSubscriptions();
     usePower(timeslot);
   }
@@ -244,6 +255,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   private void usePower (Timeslot timeslot)
   {
+    //log.info("usePower()");
     for (CapacityBundle bundle: capacityBundles) {
       List<TariffSubscription> subscriptions =
         getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(bundle
@@ -262,6 +274,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           totalUsageCharge += charge;
         }
         subscription.usePower(currCapacity);
+        //log.info("currCapaticy=" + currCapacity);
         totalCapacity += currCapacity;
       }
       log.info(bundle.getName() + ": Total " + bundle.getPowerType()
@@ -276,9 +289,11 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   public double useCapacity (TariffSubscription subscription,
                              CapacityBundle bundle)
   {
+    //log.info("useCapacity()");
     double capacity = 0;
     for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
       capacity += capacityOriginator.useCapacity(subscription);
+      //log.info("updated capacity " + capacity );
     }
     return capacity;
   }
@@ -319,18 +334,83 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
 
     @Override
-    public double[] getCapacityProfile (Tariff tariff)
+    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
     {
       double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
-      double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
-      for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-        CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
-        for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-          double hourlyUsage = usageSign * forecast.getCapacity(i);
-          usageForecast[i] += hourlyUsage / bundle.getPopulation();
+      
+      //// Old code: non-shifted prediction - incorrect for tariff-eval purposes
+      //// =======================================================================
+      //double[] oldforecast;
+      //if ( true ) {
+      //  // original code (with a bug fix)
+      //  double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
+      //  for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+      //    CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
+      //    for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+      //      double hourlyUsage = usageSign * forecast.getCapacity(i);
+      //      usageForecast[i] += hourlyUsage / bundle.getPopulation();
+      //      //log.info("forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
+      //    }
+      //    //log.info("oldway " + forecast.toString());
+      //    
+      //  }
+      //  //log.info("oldway total" + Arrays.toString(usageForecast));
+      //  
+      //  oldforecast = usageForecast;
+      //}
+      
+      // New code: shifted prediction - correct for tariff-eval purposes
+      // ===============================================================
+      double[] newForecast;
+      if (true) { // else {
+        
+        // new code
+        HashMap<CapacityOriginator, double[]> originator2usage = new HashMap<CapacityOriginator, double[]>();
+        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+          double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
+          // BUG FIX: this function is called from forecastCost() and used
+          // by TariffEvaluationHelper, which assumes the forcast starts
+          // at the next timeslot
+          CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
+          for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+            double hourlyUsage = usageSign * forecast.getCapacity(i);
+            usageForecast[i] = hourlyUsage ;// don't divide yet / bundle.getPopulation();
+            //log.info("forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
+          }
+          //log.info("newway " + Arrays.toString(usageForecast));
+          originator2usage .put(capacityOriginator, usageForecast);
         }
+
+        // Refactored the following code for LearningUtilityOptimizer - shift profile
+        //
+        // create dummy subscription for the above usage vector: 
+        // 1 population member under 'tariff', (consuming the sum 
+        // of the originators' usage)
+        TariffSubscription dummySubscription = new DummyTariffSubscription(getCustomerInfo(), tariff);
+        newForecast = adjustForecastPerTariff(originator2usage, dummySubscription, bundle);
+        //log.info("newway total" + Arrays.toString(newForecast));
+        
+        
       }
-      return usageForecast;
+        
+      //// Compare old forecast and new - they must be different for *shifting-customers* *under non-fixed-rate-tariffs*.
+      // 
+      //if (! Arrays.equals(newForecast, oldforecast) ) {
+      //  log.info("DIFFERENTFORECASTS " + bundle.getCustomerInfo().getName() + " " + tariff.getId());
+      //  log.info("old: " + Arrays.toString(oldforecast));
+      //  log.info("new: " + Arrays.toString(newForecast));
+      //}
+      //else {
+      //  log.info("SAMEFORECASTS" + bundle.getCustomerInfo().getName() + " " + tariff.getId());
+      //  log.info("old/new: " + newForecast);
+      //}
+
+      double[] result = newForecast;
+      //double[] result = oldforecast;
+      //log.info("returning " + Arrays.toString(result));
+      return result; 
+      
+      
     }
 
     @Override
@@ -353,7 +433,60 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
       return inertiaSampler.nextDouble();
     }
+
+    /**
+     * Is it correct to sum inconveniences over originators? currently every
+     * shifting customer has 1 originator so this doesn't matter, but it might
+     * change in the future.
+     */
+    @Override
+    public double getShiftingInconvenienceFactor(Tariff tariff) {
+      double inconv = 0;
+      for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+        inconv +=  capacityOriginator.getShiftingInconvenienceFactor(tariff);
+      }
+      return inconv;
+    }
   }
+
+  /**
+   * 
+   * HACK, accessed from inner class, overriden from derived class
+   * 
+   * sum all originators' usage arrays
+   * @param originator2usage
+   * @param dummySubscription 
+   * @param bundle 
+   * @return
+   */
+  public double[] adjustForecastPerTariff(HashMap<CapacityOriginator,double[]> originator2usage, TariffSubscription dummySubscription, CapacityBundle bundle) {
+    //log.info("newway DefaultUtilityOptimizer.adjustForecastPerTariff()");
+    
+    // sum all originators' usage arrays
+    double [] result = new double[originator2usage.values().iterator().next().length];
+    for (double[] usage : originator2usage.values()) {
+      for (int i = 0; i < result.length; ++i) {
+        result[i] += usage[i] / bundle.getPopulation();
+      }
+    }
+    return result;
+  }
+
+  class DummyTariffSubscription extends TariffSubscription {
+
+    int count; 
+    
+    public DummyTariffSubscription(CustomerInfo customer, Tariff tariff) {
+      super(customer, tariff);
+    }
+    
+    @Override
+    public int getCustomersCommitted () {
+      return 1;
+    }
+    
+  }
+
 } // end class
 
 

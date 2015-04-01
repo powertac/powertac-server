@@ -3,7 +3,8 @@
 
 <customers>
 
-    <customer name="BrooksideHomes" count="1" creatorKey="" entityType="RESIDENTIAL">
+<!--original:   <customer name="BrooksideHomes" count="1" creatorKey="" entityType="RESIDENTIAL"> -->
+    <customer name="BrooksideHomes" count="1" creatorKey="LEARNING" entityType="RESIDENTIAL">
         <description>
         A prototypical multicontracting consumer population of 30000 households in a suburban area 
         with consumption peaking in the morning and evening. The aggregate capacity is generated 
@@ -67,6 +68,11 @@
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
+            <profileOptimizer recommendation="TRUE" permutationRule="ALL_SHIFTS" reconcile="FALSE">
+                <responseFactors reactivity="1.0" receptivity="1.0" rationality="1.0" />
+                 <constraints usageChargeStance="NEUTRAL" />
+                <scoringWeights profileChange="-0.001" bundleValue="+1.0" />
+            </profileOptimizer>
         </capacityBundle>
     </customer>
 
@@ -112,6 +118,11 @@
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
+            <profileOptimizer recommendation="TRUE" permutationRule="ALL_SHIFTS" reconcile="FALSE">
+                <responseFactors reactivity="1.0" receptivity="1.0" rationality="1.0" />
+                 <constraints usageChargeStance="NEUTRAL" />
+                <scoringWeights profileChange="-0.001" bundleValue="+1.0" />
+            </profileOptimizer>
         </capacityBundle>
     </customer>
 
@@ -198,6 +209,11 @@
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
+            <profileOptimizer recommendation="TRUE" permutationRule="ALL_SHIFTS" reconcile="FALSE">
+                <responseFactors reactivity="1.0" receptivity="1.0" rationality="1.0" />
+                 <constraints usageChargeStance="NEUTRAL" />
+                <scoringWeights profileChange="-0.001" bundleValue="+1.0" />
+            </profileOptimizer>
         </capacityBundle>
     </customer>
 

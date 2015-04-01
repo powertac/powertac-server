@@ -17,9 +17,15 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
+import java.util.Map.Entry;
+
+import org.apache.commons.logging.Log;
+import org.apache.log4j.Logger;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
 
@@ -31,6 +37,11 @@ import org.powertac.common.state.StateChange;
 @Domain
 public class ProfileRecommendation
 {
+    private static final int SCORE_SCALING_FACTOR = 10000;
+
+    static private Logger log = Logger.getLogger(ProfileRecommendation.class);
+
+  
     enum ScoringFactor { USAGE_CHARGE, PROFILE_CHANGE, BUNDLE_VALUE }
     
     private static final double UTILITY_RANGE_MAX_VALUE = 3.0;  // range = [-3.0, +3.0]
@@ -117,11 +128,15 @@ public class ProfileRecommendation
     {
         for (CapacityProfile profile: opinions.keySet()) {  
             Opinion opinion = opinions.get(profile);
-            double usageChargeScoringSign = opinion.normUsageCharge > 0 ? +1.0 : -1.0;
+            // Daniel: here was a bug that prefer more expensive consumption tariffs...
+            double usageChargeScoringSign = opinion.usageCharge > 0 ? +1.0 : -1.0;
             Double score = usageChargeScoringSign * opinion.normUsageCharge
                            + profileChangeWeight * opinion.normProfileChange
                            + bundleValueWeight * opinion.normBundleValue;
-            scores.put(profile, score);
+            //log.info("processing opinion: " + opinion.toString());
+            //log.info("computeScores() score=" + score + " usageChargeScoringSign=" +usageChargeScoringSign + " x opinion.normUsageCharge=" + opinion.normUsageCharge + " + profileChangeWeight=" + profileChangeWeight + " x opinion.normProfileChange" + opinion.normProfileChange + " + bundleValueWeight=" + bundleValueWeight + " x opinion.normBundleValue" + opinion.normBundleValue);
+            //log.info("for profile " + Arrays.toString(profile.values.toArray()));
+            scores.put(profile, score * SCORE_SCALING_FACTOR); // HACK BY DANIEL TO OVERCOME THE 0.0001 in computeUtilities()
         }
     }
     
@@ -150,6 +165,10 @@ public class ProfileRecommendation
                 utilities.put(entry.getKey(), utility);
             }
         }
+        //log.info("scores");
+        //for ( Entry<CapacityProfile, Double> entry : utilities.entrySet()) {
+          //log.info("score: " + entry.getValue() + " profile" + entry.getKey().toString());
+        //}
     }
 
     @StateChange
@@ -203,6 +222,11 @@ public class ProfileRecommendation
     public interface Listener
     {
         void handleProfileRecommendation(ProfileRecommendation rec);
+        void handleProfileRecommendationPerSub(ProfileRecommendation rec, TariffSubscription sub, CapacityProfile capacityProfile);
+    }
+
+    public double getNonScaledScore(CapacityProfile chosenProfile) {
+      return scores.get(chosenProfile) / SCORE_SCALING_FACTOR;
     }
     
 } // end class
