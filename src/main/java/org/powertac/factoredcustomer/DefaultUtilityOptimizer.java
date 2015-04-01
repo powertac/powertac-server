@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import org.apache.log4j.Logger;
-import org.powertac.common.ConfigServerBroker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
@@ -236,7 +235,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   @Override
   public void handleNewTimeslot (Timeslot timeslot)
   {
-    //log.info("Daniel handleNewTimeslot()");
+    //log.info("handleNewTimeslot()");
     //checkRevokedSubscriptions();
     usePower(timeslot);
   }
@@ -256,7 +255,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
 
   private void usePower (Timeslot timeslot)
   {
-    //log.info("Daniel usePower()");
+    //log.info("usePower()");
     for (CapacityBundle bundle: capacityBundles) {
       List<TariffSubscription> subscriptions =
         getTariffSubscriptionRepo().findActiveSubscriptionsForCustomer(bundle
@@ -275,7 +274,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           totalUsageCharge += charge;
         }
         subscription.usePower(currCapacity);
-        //log.info("Daniel currCapaticy=" + currCapacity);
+        //log.info("currCapaticy=" + currCapacity);
         totalCapacity += currCapacity;
       }
       log.info(bundle.getName() + ": Total " + bundle.getPowerType()
@@ -290,11 +289,11 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
   public double useCapacity (TariffSubscription subscription,
                              CapacityBundle bundle)
   {
-    //log.info("Daniel useCapacity()");
+    //log.info("useCapacity()");
     double capacity = 0;
     for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
       capacity += capacityOriginator.useCapacity(subscription);
-      //log.info("Daniel: updated capacity " + capacity );
+      //log.info("updated capacity " + capacity );
     }
     return capacity;
   }
@@ -339,35 +338,30 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     {
       double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
       
-      // RESTORE:
-      double[] oldforecast;
-      // RESTORE: 
-      if ( true /*|| ! ConfigServerBroker.useShiftedPredForTrfEval()*/) {
+      //// Old code: non-shifted prediction - incorrect for tariff-eval purposes
+      //// =======================================================================
+      //double[] oldforecast;
+      //if ( true ) {
+      //  // original code (with a bug fix)
+      //  double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
+      //  for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
+      //    CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
+      //    for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
+      //      double hourlyUsage = usageSign * forecast.getCapacity(i);
+      //      usageForecast[i] += hourlyUsage / bundle.getPopulation();
+      //      //log.info("forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
+      //    }
+      //    //log.info("oldway " + forecast.toString());
+      //    
+      //  }
+      //  //log.info("oldway total" + Arrays.toString(usageForecast));
+      //  
+      //  oldforecast = usageForecast;
+      //}
       
-        
-        // original code (with a bug fix)
-        double[] usageForecast = new double[CapacityProfile.NUM_TIMESLOTS];
-        for (CapacityOriginator capacityOriginator: bundle.getCapacityOriginators()) {
-          CapacityProfile forecast = capacityOriginator.getForecastForNextTimeslot();
-          for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
-            double hourlyUsage = usageSign * forecast.getCapacity(i);
-            usageForecast[i] += hourlyUsage / bundle.getPopulation();
-            //log.info("Daniel forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
-          }
-          //log.info("Daniel oldway " + forecast.toString());
-          
-        }
-        //log.info("Daniel oldway total" + Arrays.toString(usageForecast));
-        
-        // RESTORE:
-        //return usageForecast;
-        
-        // RESTORE: remove
-        oldforecast = usageForecast;
-        
-      }
-      
-      // RESTORE:
+      // New code: shifted prediction - correct for tariff-eval purposes
+      // ===============================================================
+      double[] newForecast;
       if (true) { // else {
         
         // new code
@@ -381,9 +375,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
           for (int i = 0; i < CapacityProfile.NUM_TIMESLOTS; ++i) {
             double hourlyUsage = usageSign * forecast.getCapacity(i);
             usageForecast[i] = hourlyUsage ;// don't divide yet / bundle.getPopulation();
-            //log.info("Daniel forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
+            //log.info("forecast.getCapacity(i)=" + forecast.getCapacity(i) + "hourlyUsage=" + hourlyUsage + "usageForecast[i]" + usageForecast[i]);
           }
-          //log.info("Daniel newway " + Arrays.toString(usageForecast));
+          //log.info("newway " + Arrays.toString(usageForecast));
           originator2usage .put(capacityOriginator, usageForecast);
         }
 
@@ -393,31 +387,29 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
         // 1 population member under 'tariff', (consuming the sum 
         // of the originators' usage)
         TariffSubscription dummySubscription = new DummyTariffSubscription(getCustomerInfo(), tariff);
-        double[] usageForecast = adjustForecastPerTariff(originator2usage, dummySubscription, bundle);
-        //log.info("Daniel newway total" + Arrays.toString(usageForecast));
-        
-        if (! Arrays.equals(usageForecast, oldforecast) ) {
-          //log.info("Daniel DIFFERENTFORECASTS " + bundle.getCustomerInfo().getName() + " " + tariff.getId());
-          //log.info("old: " + Arrays.toString(oldforecast));
-          //log.info("new: " + Arrays.toString(usageForecast));
-        }
-        else {
-          //log.info("Daniel SAMEFORECASTS" + bundle.getCustomerInfo().getName() + " " + tariff.getId());
-          //log.info("old/new: " + usageForecast);
-        }
-        
-        //RESTORE:
-        double[] result = usageForecast;
-        //double[] result = oldforecast;
-        //log.info("Daniel returning " + Arrays.toString(result));
-        return result; 
+        newForecast = adjustForecastPerTariff(originator2usage, dummySubscription, bundle);
+        //log.info("newway total" + Arrays.toString(newForecast));
         
         
       }
+        
+      //// Compare old forecast and new - they must be different for *shifting-customers* *under non-fixed-rate-tariffs*.
+      // 
+      //if (! Arrays.equals(newForecast, oldforecast) ) {
+      //  log.info("DIFFERENTFORECASTS " + bundle.getCustomerInfo().getName() + " " + tariff.getId());
+      //  log.info("old: " + Arrays.toString(oldforecast));
+      //  log.info("new: " + Arrays.toString(newForecast));
+      //}
+      //else {
+      //  log.info("SAMEFORECASTS" + bundle.getCustomerInfo().getName() + " " + tariff.getId());
+      //  log.info("old/new: " + newForecast);
+      //}
+
+      double[] result = newForecast;
+      //double[] result = oldforecast;
+      //log.info("returning " + Arrays.toString(result));
+      return result; 
       
-      
-      // RESTORE:
-      return null;
       
     }
 
@@ -468,7 +460,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
    * @return
    */
   public double[] adjustForecastPerTariff(HashMap<CapacityOriginator,double[]> originator2usage, TariffSubscription dummySubscription, CapacityBundle bundle) {
-    //log.info("Daniel newway DefaultUtilityOptimizer.adjustForecastPerTariff()");
+    //log.info("newway DefaultUtilityOptimizer.adjustForecastPerTariff()");
     
     // sum all originators' usage arrays
     double [] result = new double[originator2usage.values().iterator().next().length];
