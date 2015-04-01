@@ -247,6 +247,28 @@ public class TariffRepoTest
     assertTrue("contains second", tariffs.contains(t2));
   }
 
+  // make sure we don't get null for broker with no tariffs (#813)
+  @Test
+  public void testTariffByBroker ()
+  {
+    List<Tariff> tariffs = repo.findTariffsByBroker(broker);
+    assertNotNull("should be non-null", tariffs);
+    assertEquals("should be empty list", 0, tariffs.size());
+    repo.addSpecification(spec);
+    Tariff t1 = new Tariff(spec);
+    repo.addTariff(t1);
+    TariffSpecification spec2 = new TariffSpecification(broker, PowerType.CONSUMPTION)
+      .withMinDuration(TimeService.WEEK * 10)
+      .addRate(new Rate().withValue(0.2));
+    repo.addSpecification(spec2);
+    Tariff t2 = new Tariff(spec2);
+    repo.addTariff(t2);
+    tariffs = repo.findTariffsByBroker(broker);
+    assertEquals("tariffs inserted", 2, tariffs.size());
+    assertTrue("contains first", tariffs.contains(t1));
+    assertTrue("contains second", tariffs.contains(t2));
+  }
+
   /**
    * Test method for {@link org.powertac.common.repo.TariffRepo#findTariffById(long)}.
    */

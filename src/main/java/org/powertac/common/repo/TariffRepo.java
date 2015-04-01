@@ -236,7 +236,11 @@ public class TariffRepo implements DomainRepo
 
   public List<Tariff> findTariffsByBroker (Broker broker)
   {
-    return brokerTariffs.get(broker.getId());
+    List<Tariff> result = brokerTariffs.get(broker.getId());
+    if (null == result)
+      return new LinkedList<Tariff>();
+    else
+      return result;
   }
 
   /**
