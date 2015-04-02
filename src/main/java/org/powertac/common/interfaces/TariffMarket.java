@@ -21,7 +21,6 @@ import java.util.List;
 import org.powertac.common.Tariff;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
 
 /**
@@ -70,8 +69,6 @@ public interface TariffMarket {
    * Registers a listener for publication of new Tariffs.
    */
   public void registerNewTariffListener (NewTariffListener listener);
-
-  public void registerNewSubscriptionRepoListener(SubscriptionRepoListener listener);
 
   /**
    * Revokes tariffs for which TariffRevoke messages have been received

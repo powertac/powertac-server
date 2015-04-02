@@ -227,6 +227,11 @@ public class TariffSubscription
       }
     }
     setCustomersCommitted(getCustomersCommitted() - customerCount);
+    // if count is now zero, set regulation capacity to zero
+    if (0 == getCustomersCommitted()) {
+      regulationCapacity.setDownRegulationCapacity(0.0);
+      regulationCapacity.setUpRegulationCapacity(0.0);
+    }
     // Post withdrawal and possible penalties
     double withdrawPayment = -tariff.getEarlyWithdrawPayment();
     if (tariff.isRevoked()) {
