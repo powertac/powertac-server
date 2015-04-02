@@ -46,6 +46,7 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.interfaces.SubscriptionRepoListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalancingOrder;
@@ -146,17 +147,24 @@ public class TariffMarketService
   // these properties are constrained, so we provide explicit setters for them
   private int publicationInterval = 6;
   private int publicationOffset = 0;
-  private boolean firstPublication;
+  private boolean subsequentPublication;
 
   // list of pending subscription events.
   private List<PendingSubscription> pendingSubscriptionEvents =
           new ArrayList<PendingSubscription>();
 
   // list of pending variable-rate updates.
-  private List<VariableRateUpdate> pendingVrus = new ArrayList<VariableRateUpdate>();
+  private List<VariableRateUpdate> pendingVrus =
+      new ArrayList<VariableRateUpdate>();
 
   // set of already-disabled brokers
-  private HashSet<Broker> disabledBrokers = new HashSet<Broker>(); 
+  private HashSet<Broker> disabledBrokers = 
+      new HashSet<Broker>(); 
+
+  // Temporary structure
+  // TODO - remove once a better API is available
+  private HashSet<SubscriptionRepoListener> subscriptionRepoRegistrations =
+      new HashSet<SubscriptionRepoListener>();
 
   /**
    * Default constructor
@@ -186,7 +194,7 @@ public class TariffMarketService
                                              BalancingOrder.class)) {
       brokerProxyService.registerBrokerMessageListener(this, messageType);
     }
-    firstPublication = false;
+    subsequentPublication = false;
     registrations.clear();
     publicationFee = null;
     revocationFee = null;
@@ -635,7 +643,7 @@ public class TariffMarketService
     log.info("Activate");
     processPendingVrus();
     long msec = timeService.getCurrentTime().getMillis();
-    if (!firstPublication ||
+    if (!subsequentPublication ||
         (msec / TimeService.HOUR) % publicationInterval == publicationOffset) {
       // time to publish or never published
       revokeTariffsForDisabledBrokers();
@@ -643,7 +651,7 @@ public class TariffMarketService
       publishTariffs();
       //removeRevokedTariffs();
       processPendingSubscriptions();
-      firstPublication = true;
+      subsequentPublication = true;
     }
   }
 
@@ -755,6 +763,15 @@ public class TariffMarketService
         sub.deferredUnsubscribe(-pending.count);
     }
     pendingSubscriptionEvents.clear();
+
+    // TODO - clean up this temporary fix ASAP
+    // notify listeners (currently LearningUtilityOptimizer, so it could
+    // run the shifting computation based on existing subscriptions
+    if (subsequentPublication) {
+      for (SubscriptionRepoListener listener : subscriptionRepoRegistrations) {
+        listener.updatedSubscriptionRepo();
+      }
+    }
   }
   
   /**
@@ -868,5 +885,12 @@ public class TariffMarketService
   @Override
   public void setDefaults ()
   {
+  }
+
+  @Override
+  public void
+    registerNewSubscriptionRepoListener (SubscriptionRepoListener listener)
+  {
+    subscriptionRepoRegistrations.add(listener);
   }
 }
