@@ -89,7 +89,8 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
               .withTariffSwitchFactor(subStructure.tariffSwitchFactor)
               .withPreferredContractDuration(subStructure.expectedDuration)
               .withInconvenienceWeight(subStructure.inconvenienceWeight)
-              .withRationality(subStructure.logitChoiceRationality);
+              .withRationality(subStructure.logitChoiceRationality)
+              .withEvaluateAllTariffs(true);
       evaluator.initializeCostFactors(subStructure.expMeanPriceWeight,
                                       subStructure.maxValuePriceWeight,
                                       subStructure.realizedPriceWeight,
