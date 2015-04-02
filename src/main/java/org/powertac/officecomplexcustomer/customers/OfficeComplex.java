@@ -1583,7 +1583,7 @@ public class OfficeComplex extends AbstractCustomer
     @Override
     public double getShiftingInconvenienceFactor(Tariff tariff) {
       // TODO Auto-generated method stub
-      return 0;
+      return OfficeComplexConstants.TOU_FACTOR;
     }
 
   }
