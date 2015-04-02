@@ -72,6 +72,7 @@ public class TariffEvaluator
   private double inconvenienceWeight = 0.2;
   private double tariffSwitchFactor = 0.04;
   private double preferredDuration = 6;
+  private boolean evaluateAllTariffs = false;
 
   // state
   private int evaluationCounter = 0;
@@ -189,7 +190,18 @@ public class TariffEvaluator
     tariffEvalDepth = depth;
     return this;
   }
-  
+
+  /**
+   * If true, then tariff evaluations are not saved; instead, all tariffs
+   * are evaluated each time. This is needed for customers that generate
+   * usage profiles that are sensitive to current conditions or state.
+   */
+  public TariffEvaluator withEvaluateAllTariffs (boolean value)
+  {
+    evaluateAllTariffs = value;
+    return this;
+  }
+
   /**
    * Sets the steady-state evaluation inertia for the customer. This is a
    * value in [0,1], where 0 is no inertia (always evaluates), and 1 is
@@ -288,7 +300,7 @@ public class TariffEvaluator
     // ensure we have the cost eval for each of the new tariffs
     for (Tariff tariff : newTariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
-      if (true || null == eval) { // BUG: if keeping old evals, better new tariffs can be considered worse than worse-ones with old evals
+      if (evaluateAllTariffs || null == eval) {
         // compute the projected cost for this tariff
         double cost = forecastCost(tariff);
         double hassle = computeInconvenience(tariff);
