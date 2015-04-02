@@ -1973,7 +1973,7 @@ public class Village extends AbstractCustomer
     @Override
     public double getShiftingInconvenienceFactor(Tariff tariff) {
       // TODO Auto-generated method stub
-      return 0;
+      return VillageConstants.TOU_FACTOR;
     }
 
   }
