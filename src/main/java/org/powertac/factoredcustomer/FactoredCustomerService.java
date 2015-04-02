@@ -32,7 +32,6 @@ import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.SubscriptionRepoListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.CustomerRepo;
@@ -57,7 +56,7 @@ import org.springframework.stereotype.Service;
  */
 @Service  // allow autowiring
 public class FactoredCustomerService extends TimeslotPhaseProcessor
-    implements InitializationService, NewTariffListener, SubscriptionRepoListener
+    implements InitializationService, NewTariffListener
 {
     private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
 
@@ -107,6 +106,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     private List<CustomerStructure> customerStructures = new ArrayList<CustomerStructure>();
     private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
     private CustomerFactory customerFactory = new CustomerFactory();
+    private boolean newTariffs = false; // When true, check for new subscriptions
 
 
     public FactoredCustomerService()
@@ -133,12 +133,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
         customerStructures.clear();
         customers.clear();
         SeedIdGenerator.reset();
+        newTariffs = false;
 
         super.init();
         serverConfig.configureMe(this);
 
         tariffMarketService.registerNewTariffListener(this);
-        tariffMarketService.registerNewSubscriptionRepoListener(this);
     
         registerAvailableCustomerCreators();
     
@@ -274,11 +274,12 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     for (FactoredCustomer customer : customers) {
       customer.evaluateTariffs();
     }
+    newTariffs = true;
   }
 
-  @Override
-  public void updatedSubscriptionRepo() {
+  private void updatedSubscriptionRepo() {
     // Find the subset of tariffs to evaluate
+    log.info("Time to handle new subscriptions");
     for (FactoredCustomer customer : customers) {
       customer.updatedSubscriptionRepo();
     }
@@ -287,6 +288,11 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   @Override
   public void activate(Instant now, int phase)
   {
+    if (newTariffs) {
+      // possible new subscriptions in last timeslot
+      newTariffs = false;
+      updatedSubscriptionRepo();
+    }
       for (FactoredCustomer customer : customers) {
           customer.handleNewTimeslot();
       }
