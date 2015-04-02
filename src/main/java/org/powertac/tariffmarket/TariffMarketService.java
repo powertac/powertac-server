@@ -46,7 +46,6 @@ import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.interfaces.SubscriptionRepoListener;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.BalancingOrder;
@@ -160,11 +159,6 @@ public class TariffMarketService
   // set of already-disabled brokers
   private HashSet<Broker> disabledBrokers = 
       new HashSet<Broker>(); 
-
-  // Temporary structure
-  // TODO - remove once a better API is available
-  private HashSet<SubscriptionRepoListener> subscriptionRepoRegistrations =
-      new HashSet<SubscriptionRepoListener>();
 
   /**
    * Default constructor
@@ -763,15 +757,6 @@ public class TariffMarketService
         sub.deferredUnsubscribe(-pending.count);
     }
     pendingSubscriptionEvents.clear();
-
-    // TODO - clean up this temporary fix ASAP
-    // notify listeners (currently LearningUtilityOptimizer, so it could
-    // run the shifting computation based on existing subscriptions
-    if (subsequentPublication) {
-      for (SubscriptionRepoListener listener : subscriptionRepoRegistrations) {
-        listener.updatedSubscriptionRepo();
-      }
-    }
   }
   
   /**
@@ -887,10 +872,10 @@ public class TariffMarketService
   {
   }
 
-  @Override
-  public void
-    registerNewSubscriptionRepoListener (SubscriptionRepoListener listener)
-  {
-    subscriptionRepoRegistrations.add(listener);
-  }
+//  @Override
+//  public void
+//    registerNewSubscriptionRepoListener (SubscriptionRepoListener listener)
+//  {
+//    subscriptionRepoRegistrations.add(listener);
+//  }
 }
