@@ -30,6 +30,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 //import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -44,7 +45,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,6 +85,9 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TimeslotRepo timeslotRepo;
+
+  @Autowired
+  private TimeService timeService;
 
   @Autowired
   private WeatherReportRepo weatherReportRepo;
@@ -181,6 +184,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     houses.put("SS", sshouses);
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      @Override
       public int compare (CustomerInfo customer1, CustomerInfo customer2)
       {
         return customer1.getName().compareToIgnoreCase(customer2.getName());
@@ -309,6 +313,12 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
   public TimeslotRepo getTimeslotRepo ()
   {
     return timeslotRepo;
+  }
+
+  @Override
+  public TimeService getTimeService ()
+  {
+    return timeService;
   }
 
   @Override

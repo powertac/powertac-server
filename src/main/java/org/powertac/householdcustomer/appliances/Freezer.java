@@ -19,6 +19,7 @@ package org.powertac.householdcustomer.appliances;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -99,7 +100,7 @@ public class Freezer extends NotShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day)
+                                 int day, Instant start)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];

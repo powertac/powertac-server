@@ -1132,11 +1132,12 @@ public class Household
    * @param tariff
    * @param now
    * @param day
+   * @param start 
    * @return
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                           TariffEvaluationHelper tariffEvalHelper, int day,
-                          RandomSeed gen)
+                          RandomSeed gen, Instant start)
   {
 
     double[] dominantLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -1145,7 +1146,8 @@ public class Household
 
     if (appliance.getOverallPower() != -1)
       dominantLoad =
-        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day);
+        appliance.dailyShifting(tariff, nonDominantLoad,
+                                tariffEvalHelper, day, start);
 
     log.debug("Dominant Appliance " + appliance.toString() + " Overall Power: "
               + appliance.getOverallPower());

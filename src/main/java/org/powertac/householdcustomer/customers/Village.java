@@ -27,6 +27,7 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
@@ -1633,13 +1634,13 @@ public class Village extends AbstractCustomer
    * evaluation.
    * 
    * @param tariff
-   * @param now
    * @param day
    * @param type
+   * @param start 
    * @return
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantUsage, int day,
-                          String type)
+                          String type, Instant start)
   {
 
     double[] newControllableLoad = nonDominantUsage;
@@ -1665,7 +1666,7 @@ public class Village extends AbstractCustomer
     for (Household house: houses) {
       double[] temp =
         house.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
-                            dayTemp, gen);
+                            dayTemp, gen, start);
 
       log.debug("New Dominant Load for house " + house.toString()
                 + " for Tariff " + tariff.toString() + ": "
@@ -1862,7 +1863,8 @@ public class Village extends AbstractCustomer
     log.debug("Old Consumption for day " + day + ": "
               + getControllableConsumptions(dayTemp, type).toString());
     double[] newControllableLoad =
-      dailyShifting(sub.getTariff(), nonDominantUsage, dayTemp, type);
+      dailyShifting(sub.getTariff(), nonDominantUsage,
+                    dayTemp, type, nextStartOfDay());
 
     for (int i = 0; i < VillageConstants.HOURS_OF_DAY; i++) {
       String newControllableLoadString =
@@ -1924,7 +1926,7 @@ public class Village extends AbstractCustomer
     }
 
     @Override
-    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+    public CapacityProfile getCapacityProfile (Tariff tariff)
     {
       double[] result = new double[VillageConstants.HOURS_OF_DAY];
 
@@ -1935,7 +1937,8 @@ public class Village extends AbstractCustomer
       else {
         double[] nonDominantUsage = getNonDominantUsage(day, type);
 
-        result = dailyShifting(tariff, nonDominantUsage, day, type);
+        result = dailyShifting(tariff, nonDominantUsage,
+                               day, type, nextStartOfDay());
       }
 
       log.debug(Arrays.toString(result));
@@ -1945,7 +1948,7 @@ public class Village extends AbstractCustomer
 
       log.info("Usage: " + Arrays.toString(result));
 
-      return result;
+      return new CapacityProfile(result, nextStartOfDay());
     }
 
     @Override

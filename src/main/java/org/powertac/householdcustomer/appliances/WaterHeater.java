@@ -17,10 +17,10 @@
 package org.powertac.householdcustomer.appliances;
 
 import java.util.Arrays;
-import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -217,7 +217,7 @@ public class WaterHeater extends FullyShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day)
+                                 int day, Instant start)
   {
 
     double[] newControllableLoad = new double[VillageConstants.HOURS_OF_DAY];
@@ -261,7 +261,7 @@ public class WaterHeater extends FullyShiftingAppliance
               VillageConstants.QUARTERS_OF_HOUR * power;
 
             double cost =
-              Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+              Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp, start));
 
             // log.debug("Overall Cost for hour " + possibleHours.get(j) + " : "
             // + cost);
@@ -309,7 +309,7 @@ public class WaterHeater extends FullyShiftingAppliance
           newTemp[i] += VillageConstants.QUARTERS_OF_HOUR * power;
 
           double cost =
-            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp, start));
 
           log.debug("Overall Cost for hour " + i + " : " + cost);
 
@@ -350,6 +350,7 @@ public class WaterHeater extends FullyShiftingAppliance
     return newControllableLoad;
   }
 
+  @Override
   public void calculateOverallPower ()
   {
     boolean flag = true;
