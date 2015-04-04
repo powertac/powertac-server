@@ -20,12 +20,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+
 import org.apache.log4j.Logger;
+import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -335,7 +338,7 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
     }
 
     @Override
-    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+    public org.powertac.common.CapacityProfile getCapacityProfile (Tariff tariff)
     {
       double usageSign = bundle.getPowerType().isConsumption()? +1: -1;
       
@@ -409,9 +412,9 @@ class DefaultUtilityOptimizer implements UtilityOptimizer
       double[] result = newForecast;
       //double[] result = oldforecast;
       //log.info("returning " + Arrays.toString(result));
-      return result; 
-      
-      
+      Instant start =
+          service.getTimeService().getCurrentTime().plus(TimeService.HOUR);
+      return new org.powertac.common.CapacityProfile(result, start); 
     }
 
     @Override
