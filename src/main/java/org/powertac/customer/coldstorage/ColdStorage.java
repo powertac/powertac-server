@@ -24,7 +24,9 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
@@ -210,7 +212,7 @@ implements CustomerModelAccessor
     WeatherReport weather = 
         service.getWeatherReportRepo().currentWeatherReport();
     double outsideTemp = weather.getTemperature();
-    double priceAdjustment = computePriceAdjustment(getTariffInfo());
+    //double priceAdjustment = computePriceAdjustment(getTariffInfo());
     EnergyInfo info =
         computeCoolingEnergy(getCurrentTemp(),
                              getNominalTemp(),
@@ -254,12 +256,12 @@ implements CustomerModelAccessor
 
   // Returns an adjustment factor in the range [-1 .. +1] 
   // based on energy price. 
-  private double computePriceAdjustment (TariffInfo info)
-  {
-    return 0.0;
-  }
+  //private double computePriceAdjustment (TariffInfo info)
+  //{
+  //  return 0.0;
+  //}
 
-  // separated out to help create profiles
+  // separated out to help create TariffProfiles
   // TODO - handle TOU and variable-rate tariffs
   // TODO - don't change model state here.
   EnergyInfo computeCoolingEnergy (double currentTemp,
@@ -363,52 +365,51 @@ implements CustomerModelAccessor
   }
 
   // ------------- CustomerModelAccessor methods -----------------
-  // TODO - make this tariff-dependent
-  private Map<Tariff, TariffInfo> profiles = null;
+  private Map<Tariff, TariffInfo> TariffProfiles = null;
   double nominalHourlyConsumption = 0.0;
   @Override
-  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+  public CapacityProfile getCapacityProfile (Tariff tariff)
   {
-    // lazy creation of profile table
-    if (null == profiles) {
-      profiles = new HashMap<Tariff, TariffInfo>();
+    // lazy creation of capacityProfile table
+    if (null == TariffProfiles) {
+      TariffProfiles = new HashMap<Tariff, TariffInfo>();
     }
-    // return existing profile if it exists
-    TariffInfo info = profiles.get(tariff);
+    // return existing capacityProfile if it exists
+    TariffInfo info = TariffProfiles.get(tariff);
     if (null != info) {
-      return info.getProfile();
+      return info.getCapacityProfile();
     }
-    // otherwise, create a new profile
+    // otherwise, create a new capacityProfile
     info = makeTariffInfo(tariff);
     if (tariff.isTimeOfUse()) {
       heuristicTouProfile(info);
     }
     else {
-      // fill profile with nominal consumption
+      // fill capacityProfile with nominal consumption
       double[] pr = new double[profileSize];
       Arrays.fill(pr, getNominalHourlyConsumption());
-      info.setProfile(pr);
+      info.setCapacityProfile(new CapacityProfile(pr, lastSunday()));
     }
-    log.debug(getName() + " profile " + Arrays.toString(info.getProfile()));
-    profiles.put(tariff, info);
-    return info.getProfile();
+    log.debug(getName() + " capacityProfile " + Arrays.toString(info.getCapacityProfile().getProfile()));
+    TariffProfiles.put(tariff, info);
+    return info.getCapacityProfile();
   }
 
   // Should be non-null for any tariff other than the default tariff
   private TariffInfo getTariffInfo (Tariff tariff)
   {
-    if (null == profiles)
+    if (null == TariffProfiles)
       return null;
-    return profiles.get(tariff);
+    return TariffProfiles.get(tariff);
   }
 
   // Returns the tariffInfo for the current subscribed tariff
   private TariffInfo getTariffInfo ()
   {
-    if (null == profiles)
+    if (null == TariffProfiles)
       return null;
     TariffSubscription sub = getSubscription();
-    return profiles.get(sub.getTariff());
+    return TariffProfiles.get(sub.getTariff());
   }
 
   TariffInfo makeTariffInfo (Tariff tariff)
@@ -437,8 +438,8 @@ implements CustomerModelAccessor
   void heuristicTouProfile (TariffInfo tariffInfo)
   {
     double nhc = getNominalHourlyConsumption();
-    // Start with a price profile.
-    //log.debug(getName() + " price profile " + Arrays.toString(prices));
+    // Start with a price capacityProfile.
+    //log.debug(getName() + " price capacityProfile " + Arrays.toString(prices));
     // Characterize the price variability
     double mean = tariffInfo.getMeanPrice();
     double nominalCooling = nhc - nonCoolingUsage;
@@ -453,7 +454,8 @@ implements CustomerModelAccessor
               + ", min " + tariffInfo.getMinPrice()
               + ", scaleFactor " + scaleFactor);
     //double maxRatio = stats.getMax() / gmean;
-    // Generate a profile
+    // Generate a capacityProfile
+    Instant start = lastSunday();
     double evalTemp = getNominalTemp();
     double[] result = new double[profileSize];
     EnergyInfo info =
@@ -472,10 +474,8 @@ implements CustomerModelAccessor
       result[i] = actual  + nonCoolingUsage;
       //evalTemp += info.getDeltaTemp();
     }
-    tariffInfo.setProfile(result);
+    tariffInfo.setCapacityProfile(new CapacityProfile(result, start));
   }
-
-  // Retrieves an array of 
 
   @Override
   public double getBrokerSwitchFactor (boolean isSuperseding)
@@ -847,7 +847,7 @@ implements CustomerModelAccessor
   {
     private Tariff tariff;
     double[] prices;
-    double[] profile;
+    CapacityProfile capacityProfile;
     private DescriptiveStatistics stats;
 
     TariffInfo (Tariff tariff)
@@ -862,7 +862,7 @@ implements CustomerModelAccessor
     }
 
     // true just in case the tariff is a TOU tariff. If it's not, then
-    // the price array and profile will be empty (null).
+    // the price array and capacityProfile will be empty (null).
     boolean isTOU ()
     {
       return tariff.isTimeOfUse();
@@ -895,15 +895,15 @@ implements CustomerModelAccessor
       this.prices = prices;
     }
 
-    // profile used for evaluation
-    double[] getProfile ()
+    // capacityProfile used for evaluation
+    CapacityProfile getCapacityProfile ()
     {
-      return profile;
+      return capacityProfile;
     }
 
-    void setProfile (double[] profile)
+    void setCapacityProfile (CapacityProfile profile)
     {
-      this.profile = profile;
+      this.capacityProfile = profile;
     }
 
     // For a TOU price, returns the mean price, otherwise the fixed

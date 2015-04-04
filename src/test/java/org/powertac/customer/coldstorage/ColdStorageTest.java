@@ -32,6 +32,7 @@ import java.util.Queue;
 import java.util.TreeMap;
 
 
+
 //import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +47,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
@@ -292,6 +294,7 @@ public class ColdStorageTest
         }
         test = input.readLine();
       }
+      input.close();
     }
     catch (FileNotFoundException e) {
       fail("cannot find state file: " + e.toString());
@@ -423,7 +426,7 @@ public class ColdStorageTest
     assertEquals("Sa 21", .05, result[57], 1e-6);
   }
 
-  // TOU usage profile
+  // TOU usage capacityProfile
   @Test
   public void testTouHeuristicProfile ()
   {
@@ -459,10 +462,10 @@ public class ColdStorageTest
 
     ColdStorage.TariffInfo info = uut.makeTariffInfo(weeklyTariff);
     uut.heuristicTouProfile(info);
-    double[] profile = info.getProfile();
-    assertNotNull("profile exists", profile);
-    assertEquals("profile length", 168, profile.length);
-    System.out.println(Arrays.toString(profile));
+    CapacityProfile profile = info.getCapacityProfile();
+    assertNotNull("capacityProfile exists", profile);
+    assertEquals("capacityProfile length", 168, profile.getProfile().length);
+    System.out.println(Arrays.toString(profile.getProfile()));
   }
 
   class ServiceAccessor implements CustomerServiceAccessor
@@ -496,6 +499,12 @@ public class ColdStorageTest
     public TimeslotRepo getTimeslotRepo ()
     {
       return mockTimeslotRepo;
+    }
+
+    @Override
+    public TimeService getTimeService ()
+    {
+      return timeService;
     }
 
     @Override

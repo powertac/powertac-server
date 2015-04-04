@@ -27,6 +27,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
@@ -948,19 +949,19 @@ implements CustomerModelAccessor
 
   private Map<Tariff, CapacityPlan> profiles = null;
   @Override
-  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+  public CapacityProfile getCapacityProfile (Tariff tariff)
   {
     if (null == profiles) {
       profiles = new HashMap<Tariff, CapacityPlan>();
     }
     CapacityPlan plan = profiles.get(tariff);
     if (null != plan) {
-      return plan.getUsage();
+      return plan.getCapacityProfile();
     }
     plan = getCapacityPlan(tariff, getNextSunday(), getPlanningHorizon());
     profiles.put(tariff, plan);
     plan.createPlan(tariff, 0.0);
-    return plan.getUsage();
+    return plan.getCapacityProfile();
   }
 
   @Override
@@ -1273,9 +1274,9 @@ implements CustomerModelAccessor
       return true;
     }
 
-    double[] getUsage ()
+    CapacityProfile getCapacityProfile ()
     {
-      return usage;
+      return new CapacityProfile(usage, start);
     }
 
     // Returns the ShiftEnergy instance for the current time
@@ -1534,8 +1535,6 @@ implements CustomerModelAccessor
 
   @Override
   public double getShiftingInconvenienceFactor(Tariff tariff) {
-    // TODO Auto-generated method stub
     return 0;
   }
-
 }

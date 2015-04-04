@@ -15,7 +15,7 @@
  */
 /**
  * Discrete capacity modules that can be combined into customer models. Each
- * has a daily or weekly usage profile, some ability to shift consumption
+ * has a daily or weekly usage capacityProfile, some ability to shift consumption
  * or production, and possibly some regulating capacity related to its
  * shifting capability.
  * 

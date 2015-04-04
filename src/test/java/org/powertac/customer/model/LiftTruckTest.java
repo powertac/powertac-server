@@ -469,7 +469,7 @@ public class LiftTruckTest
     truck.initialize();
     // now we should see default data
     Shift[] shifts = truck.getShiftSchedule();
-    for (Shift s : truck.getShiftSchedule()) {
+    for (Shift s : shifts) {
       if (null != s)
         return;
     }
@@ -729,10 +729,10 @@ public class LiftTruckTest
     LiftTruck.CapacityPlan plan =
         truck.getCapacityPlan(tariff, now.toInstant(), 95);
     assertNotNull("Created a plan", plan);
-    assertNull("No solution yet", plan.getUsage());
+    assertNull("No solution yet", plan.getCapacityProfile().getProfile());
     plan.createPlan(1.0);
 
-    double[] usage = plan.getUsage();
+    double[] usage = plan.getCapacityProfile().getProfile();
     assertEquals("correct length", 102, usage.length);
 
     ShiftEnergy[] needs = plan.updateNeeds();
@@ -782,6 +782,12 @@ public class LiftTruckTest
     public TimeslotRepo getTimeslotRepo ()
     {
       return tsRepo;
+    }
+
+    @Override
+    public TimeService getTimeService ()
+    {
+      return timeService;
     }
 
     @Override
