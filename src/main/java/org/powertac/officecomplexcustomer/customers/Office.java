@@ -1157,7 +1157,8 @@ public class Office
    * @return
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
-                          TariffEvaluationHelper tariffEvalHelper, int day)
+                          TariffEvaluationHelper tariffEvalHelper, int day,
+                          Instant start)
   {
 
     double[] dominantLoad = new double[OfficeComplexConstants.HOURS_OF_DAY];
@@ -1166,7 +1167,8 @@ public class Office
 
     if (appliance.getOverallPower() != -1)
       dominantLoad =
-        appliance.dailyShifting(tariff, nonDominantLoad, tariffEvalHelper, day);
+        appliance.dailyShifting(tariff, nonDominantLoad,
+                                tariffEvalHelper, day, start);
 
     log.debug("Dominant Appliance " + appliance.toString() + " Overall Power: "
               + appliance.getOverallPower());

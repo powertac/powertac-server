@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.joda.time.Instant;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -116,7 +117,7 @@ public class MicrowaveOven extends SemiShiftingAppliance
   @Override
   public double[] dailyShifting (Tariff tariff, double[] nonDominantUsage,
                                  TariffEvaluationHelper tariffEvalHelper,
-                                 int day)
+                                 int day, Instant start)
   {
     double[] newControllableLoad =
       new double[OfficeComplexConstants.HOURS_OF_DAY];
@@ -134,7 +135,8 @@ public class MicrowaveOven extends SemiShiftingAppliance
 
         newTemp[j] += power;
 
-        double cost = Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp));
+        double cost =
+            Math.abs(tariffEvalHelper.estimateCost(tariff, newTemp, start));
 
         // log.debug("Overall Cost for hour " + j + " : " + cost);
 
@@ -172,6 +174,7 @@ public class MicrowaveOven extends SemiShiftingAppliance
     return newControllableLoad;
   }
 
+  @Override
   public void calculateOverallPower ()
   {
     overallPower = power * times;

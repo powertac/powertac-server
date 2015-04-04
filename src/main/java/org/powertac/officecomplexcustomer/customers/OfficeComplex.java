@@ -27,26 +27,20 @@ import java.util.Vector;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Instant;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The office complex domain class is a set of offices that comprise a office
@@ -199,6 +193,7 @@ public class OfficeComplex extends AbstractCustomer
     typeList.add("SS");
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      @Override
       public int compare (CustomerInfo customer1, CustomerInfo customer2)
       {
         return customer1.getName().compareToIgnoreCase(customer2.getName());
@@ -1287,7 +1282,7 @@ public class OfficeComplex extends AbstractCustomer
     for (Office office: offices) {
       double[] temp =
         office.dailyShifting(tariff, newControllableLoad, tariffEvalHelper,
-                             dayTemp);
+                             dayTemp, nextStartOfDay());
 
       log.debug("New Dominant Load for house " + office.toString()
                 + " for Tariff " + tariff.toString() + ": "
@@ -1533,20 +1528,18 @@ public class OfficeComplex extends AbstractCustomer
     }
 
     @Override
-    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+    public CapacityProfile getCapacityProfile (Tariff tariff)
     {
       double[] result = new double[OfficeComplexConstants.HOURS_OF_DAY];
 
-      if (type.equalsIgnoreCase("NS"))
+      if (type.equalsIgnoreCase("NS")) {
         result =
           Arrays.copyOf(getDominantLoad(type), getDominantLoad(type).length);
-
+      }
       else {
         double[] nonDominantUsage = getNonDominantUsage(day, type);
-
         result = dailyShifting(tariff, nonDominantUsage, day, type);
       }
-
       log.debug(Arrays.toString(result));
 
       for (int i = 0; i < result.length; i++)
@@ -1554,7 +1547,7 @@ public class OfficeComplex extends AbstractCustomer
 
       log.info("Usage:" + Arrays.toString(result));
 
-      return result;
+      return new CapacityProfile(result, nextStartOfDay());
     }
 
     @Override

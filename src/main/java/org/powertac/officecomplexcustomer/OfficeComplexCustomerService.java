@@ -29,6 +29,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -83,6 +84,9 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
 
   @Autowired
   private TimeslotRepo timeslotRepo;
+
+  @Autowired
+  private TimeService timeService;
 
   @Autowired
   private WeatherReportRepo weatherReportRepo;
@@ -186,6 +190,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     offices.put("SS", ssoffices);
 
     Comparator<CustomerInfo> comp = new Comparator<CustomerInfo>() {
+      @Override
       public int compare (CustomerInfo customer1, CustomerInfo customer2)
       {
         return customer1.getName().compareToIgnoreCase(customer2.getName());
@@ -327,6 +332,12 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   public TimeslotRepo getTimeslotRepo ()
   {
     return timeslotRepo;
+  }
+
+  @Override
+  public TimeService getTimeService ()
+  {
+    return timeService;
   }
 
   @Override
