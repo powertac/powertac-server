@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -64,6 +65,7 @@ public class TariffEvaluatorTest
   private Tariff defaultProduction;
   private Broker bob;
   private Broker jim;
+  private Instant start;
 
   // customer model accessor
   private TestAccessor cma;
@@ -78,6 +80,7 @@ public class TariffEvaluatorTest
     timeService = new TimeService();
     timeService.setCurrentTime(competition.getSimulationBaseTime()
                                .plus(TimeService.HOUR * 7));
+    start = timeService.getCurrentTime().plus(TimeService.HOUR);
     //tariffRepo = new TariffRepo();
     tariffSubscriptionRepo = new TariffSubscriptionRepo();
 
@@ -172,7 +175,8 @@ public class TariffEvaluatorTest
   {
     subscribeTo(defaultConsumption, customer.getPopulation());
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile =
+        new CapacityProfile(profile, start);
     ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
     tariffs.add(defaultConsumption);
     when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
@@ -199,7 +203,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
@@ -242,7 +246,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
@@ -293,7 +297,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
@@ -347,7 +351,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -392,7 +396,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
     
     // capture calls to tariffMarket
@@ -440,7 +444,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -488,7 +492,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -536,7 +540,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {10.0, 20.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -584,7 +588,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {2.0, 4.0, 2.0, 4.0, 2.0, 4.0, 2.0, 4.0, 2.0, 4.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -639,7 +643,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
     cma.setInertiaSamples(0.35, 0.45); // half should skip
 
@@ -708,7 +712,7 @@ public class TariffEvaluatorTest
         .thenReturn(tariffs);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // capture calls to tariffMarket
@@ -753,7 +757,7 @@ public class TariffEvaluatorTest
     initTariff(jimTariff);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.4, 0.6);
 
     // distribute all customers across jim & bob
@@ -809,7 +813,7 @@ public class TariffEvaluatorTest
     initTariff(jimTariff);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.45, 0.55);
 
     // distribute all customers across jim & bob
@@ -878,7 +882,7 @@ public class TariffEvaluatorTest
     initTariff(jimTariff);
 
     double[] profile = {1.0, 2.0};
-    cma.capacityProfile = profile;
+    cma.capacityProfile = new CapacityProfile(profile, start);
     cma.setChoiceSamples(0.45, 0.55);
 
     // distribute all customers across jim & bob
@@ -936,7 +940,7 @@ public class TariffEvaluatorTest
   class TestAccessor implements CustomerModelAccessor
   {
     // values to return
-    double[] capacityProfile;
+    CapacityProfile capacityProfile;
     double brokerSwitchFactor = 0.05;
     
     double[] choiceSamples = {0.5};
@@ -956,7 +960,7 @@ public class TariffEvaluatorTest
     }
 
     @Override
-    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+    public CapacityProfile getCapacityProfile (Tariff tariff)
     {
       return capacityProfile;
     }

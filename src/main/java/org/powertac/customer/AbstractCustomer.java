@@ -20,11 +20,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
@@ -203,6 +206,30 @@ public abstract class AbstractCustomer
    * Called to evaluate tariffs.
    */
   public abstract void evaluateTariffs (List<Tariff> tariffs);
+
+  // Tariff evaluation support
+  // Returns the start of the week
+  protected Instant lastSunday ()
+  {
+    Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
+    return start.toDateTime(DateTimeZone.UTC)
+        .withDayOfWeek(1).withHourOfDay(0).toInstant();
+  }
+
+  // Returns the start of the current day (previous midnight)
+  protected Instant startOfDay ()
+  {
+    Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
+    return start.toDateTime(DateTimeZone.UTC).withHourOfDay(0).toInstant();
+  }
+
+  // Returns tonight at midnight (next midnight)
+  protected Instant nextStartOfDay ()
+  {
+    Instant start = service.getTimeslotRepo().currentTimeslot().getStartInstant();
+    return start.toDateTime(DateTimeZone.UTC)
+        .withHourOfDay(0).toInstant().plus(TimeService.DAY);
+  }
 
   // --------------------------------------------
   //   Test support only

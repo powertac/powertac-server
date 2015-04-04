@@ -15,6 +15,7 @@
  */
 package org.powertac.common.interfaces;
 
+import org.powertac.common.TimeService;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -60,6 +61,11 @@ public interface CustomerServiceAccessor
    * Returns a reference to a TimeslotRepo
    */
   public TimeslotRepo getTimeslotRepo ();
+
+  /**
+   * Returns a reference to the TimeService
+   */
+  public TimeService getTimeService ();
 
   /**
    * Returns a reference to a WeatherReportRepo

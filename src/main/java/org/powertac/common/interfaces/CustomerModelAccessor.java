@@ -15,6 +15,7 @@
  */
 package org.powertac.common.interfaces;
 
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 
@@ -44,7 +45,7 @@ public interface CustomerModelAccessor
    * the usage of a single individual in a population model over some
    * model-specific time period.
    */
-  public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff);
+  public CapacityProfile getCapacityProfile (Tariff tariff);
 
   /**
    * Returns the inconvenience of switching brokers. The value may depend

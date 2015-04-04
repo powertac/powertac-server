@@ -207,6 +207,12 @@ implements InitializationService, BootstrapState, NewTariffListener,
   }
 
   @Override
+  public TimeService getTimeService()
+  {
+    return timeService;
+  }
+
+  @Override
   public WeatherReportRepo getWeatherReportRepo ()
   {
     return weatherReportRepo;

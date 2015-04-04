@@ -15,7 +15,6 @@
  */
 package org.powertac.common;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -391,14 +390,13 @@ public class TariffEvaluator
     else
       tariffs.add(currentTariff);
     //log.info("tariffs:");
-    for (Tariff t : tariffs) {
+    //for (Tariff t : tariffs) {
       //log.info(t.getId());
-    }
+    //}
 
     // for each tariff, including the current and default tariffs,
     // compute the utility
     for (Tariff tariff: tariffs) {
-      //log.info("UTILITYFORTARIFF " + tariff.getId());
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
       double cost = eval.costEstimate;
@@ -557,16 +555,22 @@ public class TariffEvaluator
   // Cost forecaster
   private double forecastCost (Tariff tariff)
   {
-    double[] profile = accessor.getCapacityProfileStartingNextTimeSlot(tariff);
+    CapacityProfile profile = accessor.getCapacityProfile(tariff);
+    // TODO - some models don't return data starting in the next timeslot
+    if (null == profile) {
+      // get the profile starting at some other time, and get the offset
+    }
     // NOTE: must call the next function after the previous, since the previous writes inconv. factors
     double inconv = accessor.getShiftingInconvenienceFactor(tariff); // always 0 except for AdaptiveCapacityOriginator
-    double profileCost = helper.estimateCost(tariff, profile);
+    double profileCost = helper.estimateCost(tariff,
+                                             profile.getProfile(),
+                                             profile.getStart());
     if (Double.isNaN(profileCost)) {
       log.error(getName() + ": profile cost NaN for tariff "
                 + tariff.getId());
     }
     //double scale = preferredDuration * 24.0 / profile.length;
-    double scale = stdDuration / profile.length;
+    double scale = stdDuration / profile.getProfile().length;
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }

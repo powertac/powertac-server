@@ -519,11 +519,11 @@ public class AbstractCustomerTests
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
 
-    TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
+    //TariffRevoke tex = new TariffRevoke(tsc2.getBroker(), tsc2);
     tariff2.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff2.isRevoked());
 
-    TariffRevoke tex2 = new TariffRevoke(tsc3.getBroker(), tsc3);
+    //TariffRevoke tex2 = new TariffRevoke(tsc3.getBroker(), tsc3);
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 
@@ -558,6 +558,12 @@ public class AbstractCustomerTests
 
     @Override
     public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public TimeService getTimeService()
     {
       return null;
     }
