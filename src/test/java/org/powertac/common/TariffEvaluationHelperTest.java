@@ -120,7 +120,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = new double[1];
     usage[0] = 0.0;
-    teh.estimateCost(tariff, usage);
+    teh.estimateCost(tariff, usage, start);
     double result = teh.getWeightedValue(r);
     assertEquals("correct result", (.6 * -.15 + .4 * -.2), result, 1e-6);
   }
@@ -144,7 +144,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = new double[1];
     usage[0] = 0.0;
-    teh.estimateCost(tariff, usage);
+    teh.estimateCost(tariff, usage, start);
     double result = teh.getWeightedValue(r);
     double expected = 0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18;
     assertEquals("correct result", expected, result, 1e-6);
@@ -163,7 +163,7 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0, result, 1e-6);
   }
 
@@ -181,7 +181,7 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0, result, 1e-6);
   }
 
@@ -201,7 +201,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,100.0,200.0,
                       0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0*6, result, 1e-6);
   }
 
@@ -223,7 +223,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 100.0, 200.0, 200.0, 200.0, 300.0};
     double expected = 600.0 * -.1 + 500.0 * -.2;
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", expected, result, 1e-6);
 
   }
@@ -247,7 +247,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
     double expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", expected, result, 1e-6);
     
     // add a single hourly charge -- it should be ignored
@@ -256,7 +256,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     double[] usage1 = {100.0, 200.0};
     expected = 300.0 * (0.75 * (.6 * -.15 + .4 * -.2) + 0.25 * -.18);
-    result = teh.estimateCost(tariff, usage1);
+    result = teh.estimateCost(tariff, usage1, start);
     assertEquals("correct result", expected, result, 1e-6);
   }
 
@@ -281,7 +281,7 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * (.6 * -.2 + .4 * -.9);
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", expected, result, 1e-6);
   }
 
@@ -308,9 +308,9 @@ public class TariffEvaluationHelperTest
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * (.6 * -.2 + .4 * -.9);
     assertEquals("correct result", expected,
-                 teh.estimateCost(tariff, usage, false), 1e-6);
+                 teh.estimateCost(tariff, usage, start, false), 1e-6);
     assertEquals("correct result", expected - 0.02,
-                 teh.estimateCost(tariff, usage), 1e-6);
+                 teh.estimateCost(tariff, usage, start), 1e-6);
   }
 
   @Test
@@ -363,7 +363,7 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double expected = 100.0 * (.6 * -.15 + .4 * -.2)
                       + 200.0 * -.18;
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", expected, result, 1e-6);
   }
 
@@ -386,7 +386,7 @@ public class TariffEvaluationHelperTest
 
     teh.init(.6, .4, .5, 10000.0);
     double[] usage = {100.0, 200.0};
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0, result, 1e-6);
   }
 
@@ -410,7 +410,7 @@ public class TariffEvaluationHelperTest
     teh.init(.6, .4, .5, 10000.0);
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
     double[] usage = {100.0, 200.0};
-    double result = teh.estimateCost(tariff, usage);
+    double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", (- 100 * (0.1 * (1 - .01)
                                              - 0.2 * 2.0 / 100 + 0.04 / 100)
                                     - 200 * (0.1 * (1 - .005)

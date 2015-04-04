@@ -127,6 +127,7 @@ public class TimeService
     this.rate = rate;
     this.modulo = modulo;
     id = index++;
+    instance = this;
   }
 
   /**

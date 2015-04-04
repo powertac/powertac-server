@@ -16,6 +16,7 @@
 package org.powertac.common;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.powertac.common.spring.SpringApplicationContext;
 
@@ -118,9 +119,9 @@ public class TariffEvaluationHelper
     alpha = 0.0;
     tariff = null;
     normalizeWeights();
-    //if (null == timeService) {
-    //  timeService = (TimeService) SpringApplicationContext.getBean("timeService");
-    //}
+    if (null == timeService) {
+      timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+    }
     // for non-Spring test environment
     if (null == timeService) {
       timeService = TimeService.getInstance();
@@ -155,7 +156,7 @@ public class TariffEvaluationHelper
 
   /**
    * Estimate the total cost of buying the given amounts of power
-   * from the given tariff, starting in the following timeslot.
+   * from the given tariff, starting in the timeslot identified by startIndex.
    * Payments include usage charges, and periodic payments just in case
    * <code>includePeriodicCharge</code> is true. They do not
    * include signup or withdrawal charges.
@@ -165,6 +166,7 @@ public class TariffEvaluationHelper
    * tariff.
    */
   public double estimateCost (Tariff tariff, double[] usage,
+                              Instant start,
                               boolean includePeriodicCharge)
   {
     init();
@@ -172,7 +174,8 @@ public class TariffEvaluationHelper
     computeAlpha(tariff);
     double dailyUsage = 0.0;
     double result = 0.0;
-    Instant time = timeService.getCurrentTime();
+    //Instant time = timeService.getCurrentTime();
+    Instant time = start;
     if (null == time)
       log.error("Time is null!");
     for (int index = 0; index < usage.length; index++) {
@@ -201,9 +204,9 @@ public class TariffEvaluationHelper
   /**
    * Returns aggregate estimated cost, including periodic charges
    */
-  public double estimateCost (Tariff tariff, double[] usage)
+  public double estimateCost (Tariff tariff, double[] usage, Instant start)
   {
-    return estimateCost(tariff, usage, true);
+    return estimateCost(tariff, usage, start, true);
   }
   
   
