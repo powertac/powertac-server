@@ -24,6 +24,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
@@ -457,6 +458,12 @@ public class EvSocialClassTest
     public TimeslotRepo getTimeslotRepo ()
     {
       return timeslotRepo;
+    }
+
+    @Override
+    public TimeService getTimeService ()
+    {
+      return null;
     }
 
     @Override

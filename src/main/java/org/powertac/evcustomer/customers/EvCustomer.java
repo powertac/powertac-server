@@ -17,6 +17,9 @@
 package org.powertac.evcustomer.customers;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Instant;
+import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
@@ -24,6 +27,7 @@ import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
+import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
@@ -523,7 +527,7 @@ public class EvCustomer
   // TODO Set min charge to 20%?
   public void discharge (double kwh) throws ChargeException
   {
-    if (currentCapacity >= kwh) {
+    if (currentCapacity >= (kwh - epsilon)) {
       setCurrentCapacity(currentCapacity - kwh);
     }
     else {
@@ -722,14 +726,20 @@ public class EvCustomer
      * TODO: this does not appear to be a reasonable profile
      */
     @Override
-    public double[] getCapacityProfileStartingNextTimeSlot (Tariff tariff)
+    public CapacityProfile getCapacityProfile (Tariff tariff)
     {
       double[] result = new double[config.getProfileLength()];
 
       for (int i = 0; i < result.length; i++) {
         result[i] = getDominantLoad() / hrsPerDay;
       }
-      return result;
+      // Assume profile starts at midnight
+      Instant start =
+          service.getTimeslotRepo().currentTimeslot().getStartInstant();
+      return new CapacityProfile(result,
+                                 start.toDateTime(DateTimeZone.UTC)
+                                 .withHourOfDay(0).toInstant()
+                                 .plus(TimeService.DAY));
     }
 
     @Override

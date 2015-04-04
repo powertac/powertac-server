@@ -19,6 +19,7 @@ package org.powertac.evcustomer.customers;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.CustomerRepo;
@@ -471,6 +472,12 @@ public class EvCustomerTest
 
     @Override
     public TimeslotRepo getTimeslotRepo ()
+    {
+      return null;
+    }
+
+    @Override
+    public TimeService getTimeService ()
     {
       return null;
     }
