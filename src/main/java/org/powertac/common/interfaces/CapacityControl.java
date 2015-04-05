@@ -30,7 +30,8 @@ public interface CapacityControl {
   // -------------------- BalancingMarket API ------------------------
   /**
    * Creates BalancingControlEvent, posts it on correct TariffSubscription
-   * instances.
+   * instances. Up-regulation is represented by positive kwh (the market
+   * is getting more energy) and typically positive payment.
    */
   void exerciseBalancingControl (BalancingOrder order, double kwh,
                                  double payment);
