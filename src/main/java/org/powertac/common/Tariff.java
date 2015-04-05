@@ -344,7 +344,7 @@ public class Tariff
       }
       else {
         // down-regulation
-        return kwh * regulationRate.getDownRegulationPayment();
+        return -kwh * regulationRate.getDownRegulationPayment();
       }
     }
   }

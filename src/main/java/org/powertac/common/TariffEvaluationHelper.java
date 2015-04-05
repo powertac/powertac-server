@@ -16,7 +16,6 @@
 package org.powertac.common;
 
 import org.apache.log4j.Logger;
-import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.powertac.common.spring.SpringApplicationContext;
 
