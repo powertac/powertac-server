@@ -92,23 +92,31 @@ implements CapacityControl, InitializationService
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
     // allocate control across subscriptions in proportion to their curtailable
     // usage.
-    double curtailable = 0.0;
+    double available = 0.0;
     HashMap<TariffSubscription, Double> amts =
         new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0) {
         RegulationCapacity value = sub.getRemainingRegulationCapacity();
-        amts.put(sub, value.getUpRegulationCapacity());
-        curtailable += value.getUpRegulationCapacity();
+        if (kwh > 0) {
+          // up-regulation
+          amts.put(sub, value.getUpRegulationCapacity());
+          available += value.getUpRegulationCapacity();
+        }
+        else {
+          // down-regulation
+          amts.put(sub, value.getDownRegulationCapacity());
+          available += value.getDownRegulationCapacity();
+        }
       }
     }
-    if (Math.abs(curtailable) < epsilon) {
-      log.warn("Unable to exercise balancing control: curtailable == 0");
+    if (Math.abs(available) < epsilon) {
+      log.warn("Unable to exercise balancing control: available == 0");
       return;
     }
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0)
-        sub.postBalancingControl(kwh * amts.get(sub) / curtailable);
+        sub.postBalancingControl(kwh * amts.get(sub) / available);
     }
     // send off the event to the broker
     BalancingControlEvent bce = 
