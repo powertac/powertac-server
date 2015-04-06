@@ -96,7 +96,7 @@ public class TariffSubscription
     this.customer = customer;
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
-    regulationCapacity = new RegulationCapacity(this, 0.0, 0.0);
+    setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
   }
 
   public long getId ()
@@ -198,7 +198,12 @@ public class TariffSubscription
   public void deferredUnsubscribe (int customerCount)
   {
     pendingUnsubscribeCount = 0;
-    //regulationCapacity = new RegulationCapacity(0.0, 0.0);
+    if (customerCount == customersCommitted) {
+      // common case
+      setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
+      setRegulation(0.0);
+    }
+
     // first, make customerCount no larger than the subscription count
     if (customerCount > customersCommitted) {
       log.error("tariff " + tariff.getId() +
@@ -358,7 +363,7 @@ public class TariffSubscription
     if (tariff.getPowerType().isProduction())
       sgn = -1.0;
     double result = sgn * Math.max(sgn * regulation, 0.0) * customersCommitted;
-    regulation = 0.0;
+    setRegulation(0.0);
     return result;
   }
 
@@ -375,8 +380,14 @@ public class TariffSubscription
   public synchronized double getRegulation ()
   {
     double result = regulation;
-    regulation = 0.0;
+    setRegulation(0.0);
     return result;
+  }
+
+  @StateChange
+  public void setRegulation (double newValue)
+  {
+    regulation = newValue;
   }
 
   /**
@@ -396,7 +407,7 @@ public class TariffSubscription
   public void ensureRegulationCapacity ()
   {
     if (null == regulationCapacity) {
-      regulationCapacity = new RegulationCapacity(this, 0.0, 0.0);
+      setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
     }
   }
 
@@ -440,7 +451,7 @@ public class TariffSubscription
   double getEconomicRegulation (double proposedUsage, double cumulativeUsage)
   {
     // reset the regulation qty here
-    regulation = 0.0;
+    setRegulation(0.0);
     double result = 0.0;
     if (getTariff().hasRegulationRate()) {
       if (pendingRegulationRatio < 0.0) {
@@ -542,6 +553,10 @@ public class TariffSubscription
    */
   public RegulationCapacity getRemainingRegulationCapacity ()
   {
+    if (0 == customersCommitted) {
+      // nothing to do here...
+      return new RegulationCapacity(this, 0.0, 0.0);
+    }
     // generate aggregate value here
     double up =
       regulationCapacity.getUpRegulationCapacity() * customersCommitted;
@@ -549,6 +564,7 @@ public class TariffSubscription
       regulationCapacity.getDownRegulationCapacity() * customersCommitted;
     if (0 == pendingUnsubscribeCount) {
       log.info("regulation capacity for " + getCustomer().getName()
+               + ":" + this.getTariff().getId()
                + " (" + up + ", " + down + ")");
       return new RegulationCapacity(this, up, down);
     }
@@ -557,7 +573,8 @@ public class TariffSubscription
       double ratio = (double)(customersCommitted - pendingUnsubscribeCount)
                               / customersCommitted;
       log.info("remaining regulation capacity for "
-               + getCustomer().getName() + " reduced by " + ratio
+               + getCustomer().getName() + ":" + this.getTariff().getId()
+               + " reduced by " + ratio
                + " to (" + up * ratio + ", " + down * ratio + ")");
       return new RegulationCapacity(this, up * ratio, down * ratio);
     }
@@ -571,7 +588,7 @@ public class TariffSubscription
    */
   void addRegulation (double kwh)
   {
-    regulation += kwh;
+    setRegulation(regulation + kwh);
   }
 
   // ================= access to Spring components =======================
