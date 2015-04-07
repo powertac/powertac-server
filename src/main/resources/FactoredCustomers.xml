@@ -375,7 +375,7 @@
             </tariffSubscriber>
             <capacity count="1" description="Solar capacity in hospital complex.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="1000" stdDev="50" />
+                    <individualCapacity distribution="NORMAL" mean="500" stdDev="50" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
@@ -393,7 +393,7 @@
         </capacityBundle>
     </customer>
 
-    <customer name="SunnyhillSolar" count="1" creatorKey="" entityType="INDUSTRIAL">
+    <customer name="SunnyhillSolar" count="2" creatorKey="" entityType="INDUSTRIAL">
         <description>
         A small community-owned PEV farm that is managed as a single unit and therefore 
         has no multicontracting capabilities.  The generated capacity is driven largely 
@@ -418,7 +418,7 @@
             </tariffSubscriber>
             <capacity count="1" description="Community solar farm.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="6000" stdDev="300" />
+                    <individualCapacity distribution="NORMAL" mean="1000" stdDev="100" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
@@ -513,7 +513,49 @@
             </capacity>
         </capacityBundle>
     </customer>
-    
+
+    <customer name="SolarLeasing" count="1" creatorKey="" entityType="INDUSTRIAL">
+        <description>
+        A leasing company that leases thousands of rooftop solar
+	installations to individual homeowners. Muticontracting production.
+        </description>
+        <capacityBundle id="1" population="5000" powerType="SOLAR_PRODUCTION" multiContracting="true" canNegotiate="false">
+            <tariffSubscriber>
+                <constraints>
+                    <benchmarkRisk enable="true" ratio="1:10" />
+                    <tariffThrottling enable="true" /> 
+                </constraints>
+                <influenceFactors>
+                    <priceWeights expMean="0.6" maxValue="0.4" realized="0.8" />  
+                </influenceFactors>
+                <allocation method="LOGIT_CHOICE">
+                    <logitChoice rationality="0.9" />
+                </allocation>
+                <reconsideration period="28"/>
+                <switchingInertia>
+                    <inertiaDistribution distribution="INTERVAL" mean="0.7" stdDev="0.1" low="0" high="1" />
+                </switchingInertia>
+            </tariffSubscriber>
+            <capacity count="1" description="Collection of rooftop solar installations.">
+                <baseCapacity type="INDIVIDUAL">  
+                    <individualCapacity distribution="NORMAL" mean="5" stdDev="2" />
+                </baseCapacity>
+                <influenceFactors>
+                    <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
+                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
+                    <temperature influence="NONE" />
+		    <windSpeed influence="NONE" />
+                    <windDirection influence="NONE" />
+                    <cloudCover influence="DIRECT" percentMap="0~40: 1.0, 41~60: 0.95, 61~75: 0.9, 76~90: 0.8, 91~100: 0.7" />
+                    <priceElasticity>
+                        <benchmarkRates rangeMap="00~23: 0.08" />
+                        <elasticityModel type="CONTINUOUS" ratio="-0.0001" range="0.9~1.0" />
+                    </priceElasticity>
+                </influenceFactors>
+            </capacity>
+        </capacityBundle>
+    </customer>
+   
 </customers>
 
 

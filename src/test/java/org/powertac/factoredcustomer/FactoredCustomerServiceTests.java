@@ -213,6 +213,6 @@ public class FactoredCustomerServiceTests
   {
     initializeService();
     assertEquals("Configured number of customers created",
-        9, factoredCustomerService.getCustomers().size());
+        11, factoredCustomerService.getCustomers().size());
   }
 } // end class
