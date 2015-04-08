@@ -54,7 +54,7 @@ import java.util.*;
  * 
  * @author Konstantina Valogianni, Govert Buijs, John Collins
  */
-@Domain
+//@Domain
 @ConfigurableInstance
 public class EvSocialClass extends AbstractCustomer
 {
