@@ -29,7 +29,7 @@ import org.powertac.common.state.StateChange;
  * 
  * @author John Collins
  */
-@Domain
+//@Domain
 public class RegulationCapacity
 {
   protected static Logger log = Logger.getLogger(RegulationCapacity.class.getName());
@@ -90,7 +90,7 @@ public class RegulationCapacity
    * Sets the up-regulation value.
    * Argument must be non-negative.
    */
-  @StateChange
+  //@StateChange
   public void setUpRegulationCapacity (double value)
   {
     double filteredValue = filterValue(value);
@@ -115,7 +115,7 @@ public class RegulationCapacity
    * Sets the down-regulation value.
    * Argument must be non-negative.
    */
-  @StateChange
+  //@StateChange
   public void setDownRegulationCapacity (double value)
   {
     double filteredValue = filterValue(value);
