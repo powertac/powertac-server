@@ -165,6 +165,8 @@ public class TariffEvaluationHelperTest
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0, result, 1e-6);
+    result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", -30.0, result, 1e-6);
   }
 
   @Test
@@ -203,6 +205,8 @@ public class TariffEvaluationHelperTest
                       0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0};
     double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", -30.0*6, result, 1e-6);
+    result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", -30.0*6, result, 1e-6);
   }
 
   @Test
@@ -225,7 +229,8 @@ public class TariffEvaluationHelperTest
     double expected = 600.0 * -.1 + 500.0 * -.2;
     double result = teh.estimateCost(tariff, usage, start);
     assertEquals("correct result", expected, result, 1e-6);
-
+    result = teh.estimateCost(tariff, usage);
+    assertEquals("correct result", expected, result, 1e-6);
   }
 
   @Test

@@ -193,13 +193,17 @@ public class TariffEvaluationHelper
     return result;
   }
 
-  private void computeAlpha (Tariff tariff)
+  /**
+   * Estimate cost for a profile starting in the next timeslot
+   */
+  public double estimateCost (Tariff tariff, double[] usage,
+                              boolean includePeriodicCharge)
   {
-    alpha = 1.0 - getWtRealized()
-            * (1.0 - 1.0 / (1.0 + tariff.getTotalUsage()
-                                  / getSoldThreshold()));
+    return estimateCost(tariff, usage,
+                        timeService.getCurrentTime(),
+                        includePeriodicCharge);
   }
-  
+
   /**
    * Returns aggregate estimated cost, including periodic charges
    */
@@ -207,8 +211,23 @@ public class TariffEvaluationHelper
   {
     return estimateCost(tariff, usage, start, true);
   }
-  
-  
+
+  /**
+   * Returns aggregate estimated cost, including periodic charges,
+   * starting in the next timeslot.
+   */
+  public double estimateCost (Tariff tariff, double[] usage)
+  {
+    return estimateCost(tariff, usage, true);
+  }
+
+  private void computeAlpha (Tariff tariff)
+  {
+    alpha = 1.0 - getWtRealized()
+            * (1.0 - 1.0 / (1.0 + tariff.getTotalUsage()
+                                  / getSoldThreshold()));
+  }
+
   /**
    * Returns the cost estimate in the form of an array of the same shape
    * as the usage vector. Each element of the result corresponds to the
