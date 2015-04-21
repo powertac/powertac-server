@@ -187,6 +187,16 @@ public class TariffEvaluatorTest
   }
 
   @Test
+  public void testScaleFactor ()
+  {
+    assertEquals("default scale factor", 48.0 / (4 * 24.0),
+                 evaluator.getScaleFactor(), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("default scale factor", 48.0 / (14 * 24.0),
+                 evaluator.getScaleFactor(), 1e-6);
+  }
+
+  @Test
   public void singleNewTariffConsumption ()
   {
     subscribeTo(defaultConsumption, customer.getPopulation());

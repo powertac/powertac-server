@@ -270,6 +270,15 @@ public class TariffEvaluator
   }
 
   /**
+   * Returns the eval scale factor, the ratio of the stdDuration to the
+   * preferredDuration.
+   */
+  public double getScaleFactor ()
+  {
+    return stdDuration / (preferredDuration * 24.0);
+  }
+
+  /**
    * Evaluates tariffs and updates subscriptions
    * for a single customer model with a single power type.
    * Also handles tariff revoke/supersede. This requires that each
@@ -415,14 +424,15 @@ public class TariffEvaluator
               preferredDuration * 24.0 / signupFeePeriod;
         }
         else {
-          cost += tariff.getSignupPayment();
+          cost += tariff.getSignupPayment() * getScaleFactor();
         }
         cost += withdraw0; // withdraw from current tariff
         double withdrawFactor =
-                Math.min(1.0,
+                Math.max(1.0,
                          (double)tariff.getMinDuration()
                          / (preferredDuration * TimeService.DAY));
-        cost += withdrawFactor * tariff.getEarlyWithdrawPayment();
+        cost +=
+            withdrawFactor * tariff.getEarlyWithdrawPayment() * getScaleFactor();
         //log.info("withdraw0=" + withdraw0 + " withdrawFactor=" + withdrawFactor + " withdraw-cost=" + withdrawFactor * tariff.getEarlyWithdrawPayment());
         if (Double.isNaN(cost)) {
           log.error(getName() + ": cost is NaN for tariff "
@@ -556,10 +566,6 @@ public class TariffEvaluator
   private double forecastCost (Tariff tariff)
   {
     CapacityProfile profile = accessor.getCapacityProfile(tariff);
-    // TODO - some models don't return data starting in the next timeslot
-    if (null == profile) {
-      // get the profile starting at some other time, and get the offset
-    }
     // NOTE: must call the next function after the previous, since the previous writes inconv. factors
     double inconv = accessor.getShiftingInconvenienceFactor(tariff); // always 0 except for AdaptiveCapacityOriginator
     double profileCost = helper.estimateCost(tariff,
