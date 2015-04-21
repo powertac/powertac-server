@@ -375,18 +375,18 @@
             </tariffSubscriber>
             <capacity count="1" description="Solar capacity in hospital complex.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="500" stdDev="50" />
+                    <individualCapacity distribution="NORMAL" mean="1000" stdDev="50" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
-                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
+                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.31, 0.58, 0.77, 0.92, 1.0, 1.0, 0.92, 0.77, 0.58, 0.31, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
                     <temperature influence="NONE" />
                     <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
-                    <cloudCover influence="DIRECT" percentMap="0~40: 1.0, 41~60: 0.95, 61~75: 0.9, 76~90: 0.8, 91~100: 0.7" />
+                    <cloudCover influence="DIRECT" percentMap="0~30: 1.0, 31~50: 0.8, 51~70: 0.5, 71~80: 0.35, 81~90: 0.25, 91~100: 0.15" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
-                        <elasticityModel type="CONTINUOUS" ratio="-0.0001" range="0.9~1.0"/>
+                        <elasticityModel type="CONTINUOUS" ratio="0.0" range="1.0~1.0"/>
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
@@ -418,18 +418,18 @@
             </tariffSubscriber>
             <capacity count="1" description="Community solar farm.">
                 <baseCapacity type="INDIVIDUAL">  
-                    <individualCapacity distribution="NORMAL" mean="1000" stdDev="100" />
+                    <individualCapacity distribution="NORMAL" mean="1500" stdDev="100" />
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
-                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.8, 0.8, 0.6, 0.4, 0.0, 0.0, 0.0" />
+                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.31, 0.58, 0.77, 0.92, 1.0, 1.0, 0.92, 0.77, 0.58, 0.31, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
                     <temperature influence="NONE" />
                     <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
-                    <cloudCover influence="DIRECT" percentMap="0~30: 1.0, 31~50: 1.1, 51~70: 1.0, 71~80: 0.9, 81~90: 0.8, 91~100: 0.7" />
+                    <cloudCover influence="DIRECT" percentMap="0~30: 1.0, 31~50: 0.8, 51~70: 0.5, 71~80: 0.35, 81~90: 0.25, 91~100: 0.15" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
-                        <elasticityModel type="CONTINUOUS" ratio="-0.001" range="0.8~1.0"/>
+                        <elasticityModel type="CONTINUOUS" ratio="0.0" range="1.0~1.0"/>
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
@@ -472,7 +472,7 @@
                     <cloudCover influence="NONE" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
-                        <elasticityModel type="STEPWISE" map="0.5: 0.8, 0.75: 0.9" />
+                        <elasticityModel type="CONTINUOUS" ratio="0.0" range="1.0~1.0" />
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
@@ -507,19 +507,19 @@
                     <cloudCover influence="NONE" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
-                        <elasticityModel type="STEPWISE" map="0.5: 0.8, 0.75: 0.9" />
+                        <elasticityModel type="CONTINUOUS" ratio="0.0" range="1.0~1.0" />
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
         </capacityBundle>
     </customer>
 
-    <customer name="SolarLeasing" count="1" creatorKey="" entityType="INDUSTRIAL">
+    <customer name="SolarLeasing" count="1" creatorKey="" entityType="COMMERCIAL">
         <description>
         A leasing company that leases thousands of rooftop solar
 	installations to individual homeowners. Muticontracting production.
         </description>
-        <capacityBundle id="1" population="5000" powerType="SOLAR_PRODUCTION" multiContracting="true" canNegotiate="false">
+        <capacityBundle id="1" population="7000" powerType="SOLAR_PRODUCTION" multiContracting="true" canNegotiate="false">
             <tariffSubscriber>
                 <constraints>
                     <benchmarkRisk enable="true" ratio="1:10" />
@@ -542,14 +542,14 @@
                 </baseCapacity>
                 <influenceFactors>
                     <dailySkew array="1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0" />
-                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
+                    <hourlySkew array="0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.05, 0.31, 0.58, 0.77, 0.92, 1.0, 1.0, 0.92, 0.77, 0.58, 0.31, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0" />
                     <temperature influence="NONE" />
 		    <windSpeed influence="NONE" />
                     <windDirection influence="NONE" />
-                    <cloudCover influence="DIRECT" percentMap="0~40: 1.0, 41~60: 0.95, 61~75: 0.9, 76~90: 0.8, 91~100: 0.7" />
+                    <cloudCover influence="DIRECT" percentMap="0~30: 1.0, 31~50: 0.8, 51~70: 0.5, 71~80: 0.35, 81~90: 0.25, 91~100: 0.15" />
                     <priceElasticity>
                         <benchmarkRates rangeMap="00~23: 0.08" />
-                        <elasticityModel type="CONTINUOUS" ratio="-0.0001" range="0.9~1.0" />
+                        <elasticityModel type="CONTINUOUS" ratio="0.0" range="1.0~1.0" />
                     </priceElasticity>
                 </influenceFactors>
             </capacity>
