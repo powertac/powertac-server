@@ -164,6 +164,9 @@ implements CapacityControl, InitializationService
     for (TariffSubscription sub : subs) {
       result.add(sub.getRemainingRegulationCapacity());
     }
+    log.info("BalancingOrder " + order.getId() + " capacity = ("
+             + result.getUpRegulationCapacity() + ","
+             + result.getDownRegulationCapacity() + ")");
     return result;
   }
 
