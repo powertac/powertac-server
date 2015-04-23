@@ -8,10 +8,10 @@
     <relativePath />
   </parent>
 
-  <artifactId>ev-customer</artifactId>
+  <artifactId>evcustomer</artifactId>
   <name>Power TAC ev customer</name>
-  <version>1.2.0</version>
-  <description>Bottom-up model of a electric vehicule customer</description>
+  <version>1.2.0-SNAPSHOT</version>
+  <description>Bottom-up model of a electric vehicle customer</description>
 
   <repositories>
     <repository>
