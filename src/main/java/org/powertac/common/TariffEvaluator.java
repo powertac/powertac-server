@@ -57,7 +57,7 @@ public class TariffEvaluator
   private double interruptibilityFactor = 0.2;
 
   // amortization period for negative signup payments
-  private int signupFeePeriod = 6;
+  private long signupFeePeriod = 6 * TimeService.HOUR;
 
   // profile cost analyzer
   private TariffEvaluationHelper helper;
@@ -81,7 +81,8 @@ public class TariffEvaluator
   // algorithm parameters - needed for numerical stablity
   private double lambdaMax = 50.0;
   private double maxLinearUtility = 7.0;
-  private double stdDuration = 48.0; // standardized profile length
+  private int stdDuration = 2; // two-day standardized profile length
+  private int profileLength = 168; // length of customer-supplied profile
 
   public TariffEvaluator (CustomerModelAccessor cma)
   {
@@ -270,12 +271,26 @@ public class TariffEvaluator
   }
 
   /**
+   * Sets the length of the customer-supplied profile. Used internally and
+   * for test support.
+   */
+  void setProfileLength (int length)
+  {
+    profileLength = length;
+  }
+
+  int getProfileLength ()
+  {
+    return profileLength;
+  }
+
+  /**
    * Returns the eval scale factor, the ratio of the stdDuration to the
    * preferredDuration.
    */
-  public double getScaleFactor ()
+  double getScaleFactor ()
   {
-    return stdDuration / (preferredDuration * 24.0);
+    return (double)stdDuration * 24.0 / (double)getProfileLength();
   }
 
   /**
@@ -418,21 +433,9 @@ public class TariffEvaluator
           inconvenience +=
                   accessor.getBrokerSwitchFactor(revoked);
         }
-        if (tariff.getSignupPayment() < 0.0) {
-          // discount negative signup fees
-          cost += tariff.getSignupPayment() *
-              preferredDuration * 24.0 / signupFeePeriod;
-        }
-        else {
-          cost += tariff.getSignupPayment() * getScaleFactor();
-        }
+        cost += computeSignupCost(tariff);
         cost += withdraw0; // withdraw from current tariff
-        double withdrawFactor =
-                Math.max(1.0,
-                         (double)tariff.getMinDuration()
-                         / (preferredDuration * TimeService.DAY));
-        cost +=
-            withdrawFactor * tariff.getEarlyWithdrawPayment() * getScaleFactor();
+        cost += computeWithdrawCost(tariff);
         //log.info("withdraw0=" + withdraw0 + " withdrawFactor=" + withdrawFactor + " withdraw-cost=" + withdrawFactor * tariff.getEarlyWithdrawPayment());
         if (Double.isNaN(cost)) {
           log.error(getName() + ": cost is NaN for tariff "
@@ -497,7 +500,6 @@ public class TariffEvaluator
       boolean allocated = false;
       for (TariffUtility tu : evals) {
         if (tariffSample <= tu.probability) {
-          //log.info("addAllocation: " + count + " of " + customerInfo.getna + " for " + tu.tariff.getId() + " " + tariffSample + " <= " + tu.probability);
           addAllocation(currentTariff, tu.tariff, count);
           allocated = true;
           break;
@@ -510,6 +512,41 @@ public class TariffEvaluator
         log.error(getName() + ": Failed to allocate: P=" + tariffSample);
       }
     }
+  }
+
+  // Customers really, really don't like paying to sign up. This computation
+  // inflates the cost of signup fees by the ratio of the customer's
+  // preferred duration to the duration of one tariff-publication cycle.
+  // On the other hand, positive signup payments are scaled to amortize over
+  // just the standard eval duration.
+  double computeSignupCost (Tariff tariff)
+  {
+    if (tariff.getSignupPayment() < 0.0) {
+      // penalize negative signup fees
+      return tariff.getSignupPayment() *
+          preferredDuration * TimeService.DAY / signupFeePeriod;
+    }
+    else {
+      return tariff.getSignupPayment() * getScaleFactor();
+    }
+  }
+
+  // If the tariff has a non-zero minDuration and a negative
+  // earlyWithdrawPayment, then we prefer shorter values for minDuration.
+  double computeWithdrawCost (Tariff tariff)
+  {
+    if (0 == tariff.getMinDuration()
+        || 0.0 == tariff.getEarlyWithdrawPayment()) {
+      return 0.0;
+    }
+    double annoyance = 1.0;
+    if (tariff.getEarlyWithdrawPayment() < 0.0) {
+      annoyance =
+          (double)tariff.getMinDuration()
+          / (double)(preferredDuration * TimeService.DAY);
+    }
+    double scale = annoyance * getScaleFactor();
+    return tariff.getEarlyWithdrawPayment() * scale;
   }
 
   // Ensures numeric stability by constraining range of utility values.
@@ -566,6 +603,11 @@ public class TariffEvaluator
   private double forecastCost (Tariff tariff)
   {
     CapacityProfile profile = accessor.getCapacityProfile(tariff);
+    if (0 == profile.getProfile().length) {
+      log.error("Zero-length profile for " + customerInfo.getName());
+      return 0.0;
+    }
+    setProfileLength(profile.getProfile().length);
     // NOTE: must call the next function after the previous, since the previous writes inconv. factors
     double inconv = accessor.getShiftingInconvenienceFactor(tariff); // always 0 except for AdaptiveCapacityOriginator
     double profileCost = helper.estimateCost(tariff,
@@ -576,7 +618,7 @@ public class TariffEvaluator
                 + tariff.getId());
     }
     //double scale = preferredDuration * 24.0 / profile.length;
-    double scale = stdDuration / profile.getProfile().length;
+    double scale = stdDuration * 24.0 / getProfileLength();
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }

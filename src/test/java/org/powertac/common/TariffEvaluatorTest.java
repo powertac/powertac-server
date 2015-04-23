@@ -189,11 +189,153 @@ public class TariffEvaluatorTest
   @Test
   public void testScaleFactor ()
   {
-    assertEquals("default scale factor", 48.0 / (4 * 24.0),
+    assertEquals("default scale factor", 48.0 / (7 * 24.0),
                  evaluator.getScaleFactor(), 1e-6);
-    evaluator.withPreferredContractDuration(14);
+    evaluator.setProfileLength(14 * 24);
     assertEquals("default scale factor", 48.0 / (14 * 24.0),
                  evaluator.getScaleFactor(), 1e-6);
+  }
+
+  @Test
+  public void testSignupCostPositive ()
+  {
+    TariffSpecification ts1 =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09))
+                                .withSignupPayment(2.0);
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
+    assertEquals("positive signup, default duration",
+                 2.0 * 48.0 / (7 * 24.0),
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("positive signup, longer pref duration", 
+                 2.0 * 48.0 / (7 * 24.0),
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+    evaluator.setProfileLength(14 * 24);
+    assertEquals("positive signup, longer pref duration", 
+                 2.0 * 48.0 / (14 * 24.0),
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testSignupCostNegative ()
+  {
+    TariffSpecification ts1 =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09))
+                                .withSignupPayment(-2.0);
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
+    assertEquals("negative signup, default duration",
+                 -2.0 * (4 * 24.0) / 6.0,
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("negative signup, longer pref duration", 
+                 -2.0 * (14 * 24.0) / 6.0,
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testSignupCostZero ()
+  {
+    TariffSpecification ts1 =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09));
+    Tariff tariff1 = new Tariff(ts1);
+    initTariff(tariff1);
+    assertEquals("zero signup, default duration",
+                 0.0,
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("zero signup, longer pref duration", 
+                 0.0,
+                 evaluator.computeSignupCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testWithdrawCostPositive ()
+  {
+    TariffSpecification ts =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09))
+                                .withMinDuration(8 * TimeService.DAY)
+                                .withEarlyWithdrawPayment(2.0);
+    Tariff tariff1 = new Tariff(ts);
+    initTariff(tariff1);
+    assertEquals("positive withdraw cost, default dur",
+                 2.0 * 2.0 / 7.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("positive withdraw cost, longer dur",
+                 2.0 * 2.0 / 7.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.setProfileLength(14 * 24);
+    assertEquals("positive withdraw cost, longer dur",
+                 2.0 * 2.0 / 14.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testWithdrawCostNegative ()
+  {
+    TariffSpecification ts =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09))
+                                .withMinDuration(8 * TimeService.DAY)
+                                .withEarlyWithdrawPayment(-2.0);
+    Tariff tariff1 = new Tariff(ts);
+    initTariff(tariff1);
+    assertEquals("negative withdraw cost, default dur",
+                 -2.0 * (2.0 / 7.0) * (8.0 / 4.0),
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("negative withdraw cost, longer dur",
+                 -2.0 * (2.0 / 7.0) * (8.0 / 14.0),
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testWithdrawCostZero ()
+  {
+    TariffSpecification ts =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION)
+                                .addRate(new Rate().withValue(-0.09))
+                                .withMinDuration(8 * TimeService.DAY);
+    Tariff tariff1 = new Tariff(ts);
+    initTariff(tariff1);
+    assertEquals("zero withdraw cost, default dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("zero withdraw cost, longer dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+  }
+
+  @Test
+  public void testWithdrawCostOpen ()
+  {
+    TariffSpecification ts =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION)
+                                .addRate(new Rate().withValue(-0.09))
+                                .withEarlyWithdrawPayment(-2.0);
+    Tariff tariff1 = new Tariff(ts);
+    initTariff(tariff1);
+    assertEquals("zero withdraw cost, default dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("zero withdraw cost, longer dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
   }
 
   @Test
