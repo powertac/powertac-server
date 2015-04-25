@@ -22,6 +22,9 @@ Icon?
 Thumbs.db
 *.log
 
+# Editor backups
+*~
+
 # Compiled source
 *.class
 
