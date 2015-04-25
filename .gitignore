@@ -13,6 +13,9 @@ activemq-data/
 log/
 .settings/
 
+# Editor backups
+*~
+
 # OS generated files
 .DS_Store?
 .DS_Store
