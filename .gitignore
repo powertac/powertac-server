@@ -21,6 +21,9 @@ log/
 .settings/
 .springBeans
 
+# Editor backups
+*~
+
 # OS generated files
 .DS_Store?
 .DS_Store
