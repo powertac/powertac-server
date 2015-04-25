@@ -28,6 +28,8 @@ logs/
 log/
 .settings/
 server-main/boot-data.xml
+*.jar
+*.asc
 
 # OS generated files
 .DS_Store?
