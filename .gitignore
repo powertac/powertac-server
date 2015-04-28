@@ -4,6 +4,10 @@
 *.iws
 .idea/
 
+# Eclipse artifacts
+.classpath
+.project
+
 # Deployment directories
 target/
 activemq-data/
