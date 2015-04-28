@@ -675,21 +675,32 @@ public class Rate extends RateCore
   public boolean isValid(TariffSpecification spec)
   {
     // numeric sanity test
-    if (Double.isNaN(minValue) || Double.isNaN(maxValue) || Double.isNaN(expectedMean)) {
-      log.warn("numeric insanity: (" + minValue + "," + maxValue + "," + expectedMean);
+    if (Double.isNaN(minValue) || Double.isNaN(maxValue)
+        || Double.isNaN(expectedMean)) {
+      log.warn("numeric insanity: ("
+          + minValue + "," + maxValue + "," + expectedMean + ")");
+      return false;
+    }
+    if (Double.isInfinite(minValue) || Double.isInfinite(maxValue)
+        || Double.isInfinite(expectedMean)) {
+      log.warn("Infinite value: ("
+          + minValue + "," + maxValue + "," + expectedMean + ")");
       return false;
     }
     // curtailment test
-    if (maxCurtailment < 0.0 || maxCurtailment > 1.0) {
+    if (Double.isNaN(maxCurtailment)
+        || maxCurtailment < 0.0 || maxCurtailment > 1.0) {
       log.warn("Curtailment ratio " + maxCurtailment + " out of range");
       return false;
     }
     // tier tests
-    if (spec.getPowerType().isConsumption() && tierThreshold < 0.0) {
+    if (Double.isNaN(tierThreshold)
+        || (spec.getPowerType().isConsumption() && tierThreshold < 0.0)) {
       log.warn("Negative tier threshold for consumption rate");
       return false;
     }
-    if (spec.getPowerType().isProduction() && tierThreshold > 0.0) {
+    if (Double.isNaN(tierThreshold)
+        || (spec.getPowerType().isProduction() && tierThreshold > 0.0)) {
       log.warn("Positive tier threshold for production rate");
       return false;
     }

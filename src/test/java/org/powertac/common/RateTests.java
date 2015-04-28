@@ -50,21 +50,38 @@ public class RateTests
   }
   
   @Test
-  public void testFixedRate() 
+  public void testFixedRate () 
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,0,0,0,0,DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121);
     ReflectionTestUtils.setField(r, "timeService", timeService);
-    
+
     assertNotNull("Rate not null", r);
     assertTrue("Rate is fixed", r.isFixed());
     assertEquals("Correct fixed rate", 0.121, r.getValue(), 1e-6);
     assertEquals("Correct notice interval", 0, r.getNoticeInterval());
   }
-  
+
+  // Test validity tests
+  @Test
+  public void testRateValidity ()
+  {
+    timeService.setCurrentTime(new DateTime(2011,1,10,0,0,0,0,DateTimeZone.UTC));
+    Rate r = new Rate().withValue(Double.NaN);
+    ReflectionTestUtils.setField(r, "timeService", timeService);
+
+    assertFalse("Invalid numeric value", r.isValid(null));
+
+    r.withValue(Double.POSITIVE_INFINITY);
+    assertFalse("Invalid Infinity", r.isValid(null));
+
+    r.withValue(Double.NEGATIVE_INFINITY);
+    assertFalse("Invalid Infinity 2", r.isValid(null));
+  }
+
   // Test a rate that applies between 6:00 and 8:00
   @Test
-  public void testDailyRate()
+  public void testDailyRate ()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,5,0, 0, 0, DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121)
@@ -82,7 +99,7 @@ public class RateTests
   
   // Test a rate that applies between 22:00 and 5:00
   @Test
-  public void testDailyRateOverMidnight()
+  public void testDailyRateOverMidnight ()
   {
     timeService.setCurrentTime(new DateTime(2011,1,10,21,0,0,0,DateTimeZone.UTC));
     Rate r = new Rate().withValue(0.121) 
