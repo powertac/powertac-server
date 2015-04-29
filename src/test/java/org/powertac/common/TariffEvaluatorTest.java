@@ -281,6 +281,30 @@ public class TariffEvaluatorTest
   }
 
   @Test
+  public void testWithdrawCostPositiveShort ()
+  {
+    TariffSpecification ts =
+        new TariffSpecification(bob,
+                                PowerType.CONSUMPTION).
+                                addRate(new Rate().withValue(-0.09))
+                                .withMinDuration(5 * TimeService.HOUR)
+                                .withEarlyWithdrawPayment(2.0);
+    Tariff tariff1 = new Tariff(ts);
+    initTariff(tariff1);
+    assertEquals("positive withdraw cost, default dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.withPreferredContractDuration(14);
+    assertEquals("positive withdraw cost, longer dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+    evaluator.setProfileLength(14 * 24);
+    assertEquals("positive withdraw cost, longer dur",
+                 0.0,
+                 evaluator.computeWithdrawCost(tariff1), 1e-6);
+  }
+
+  @Test
   public void testWithdrawCostNegative ()
   {
     TariffSpecification ts =

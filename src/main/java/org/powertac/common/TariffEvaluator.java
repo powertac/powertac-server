@@ -59,6 +59,9 @@ public class TariffEvaluator
   // amortization period for negative signup payments
   private long signupFeePeriod = 6 * TimeService.HOUR;
 
+  // minimum usable tariff-expiration interval
+  private long minExpirationInterval = 6 * TimeService.HOUR;
+
   // profile cost analyzer
   private TariffEvaluationHelper helper;
 
@@ -535,7 +538,8 @@ public class TariffEvaluator
   // earlyWithdrawPayment, then we prefer shorter values for minDuration.
   double computeWithdrawCost (Tariff tariff)
   {
-    if (0 == tariff.getMinDuration()
+    if (tariff.getMinDuration() <= minExpirationInterval
+        //0.0 == tariff.getMinDuration()
         || 0.0 == tariff.getEarlyWithdrawPayment()) {
       return 0.0;
     }
