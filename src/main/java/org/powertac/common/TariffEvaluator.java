@@ -60,7 +60,7 @@ public class TariffEvaluator
   private long signupFeePeriod = 6 * TimeService.HOUR;
 
   // minimum usable tariff-expiration interval
-  private long minExpirationInterval = 6 * TimeService.HOUR;
+  private long minExpirationInterval = TimeService.DAY;
 
   // profile cost analyzer
   private TariffEvaluationHelper helper;
@@ -539,7 +539,6 @@ public class TariffEvaluator
   double computeWithdrawCost (Tariff tariff)
   {
     if (tariff.getMinDuration() <= minExpirationInterval
-        //0.0 == tariff.getMinDuration()
         || 0.0 == tariff.getEarlyWithdrawPayment()) {
       return 0.0;
     }
