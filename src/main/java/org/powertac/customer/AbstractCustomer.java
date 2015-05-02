@@ -50,7 +50,7 @@ public abstract class AbstractCustomer
   protected CustomerServiceAccessor service;
 
   /** The id of the Abstract Customer */
-  protected long custId;
+  private long id;
 
   /** Random Number Generator */
   protected RandomSeed rs1;
@@ -61,7 +61,7 @@ public abstract class AbstractCustomer
   public AbstractCustomer ()
   {
     super();
-    custId = IdGenerator.createId();
+    id = IdGenerator.createId();
     customerInfos = new HashMap<PowerType, List<CustomerInfo>>();
     allCustomerInfos = new ArrayList<CustomerInfo>();
   }
@@ -176,13 +176,13 @@ public abstract class AbstractCustomer
 
   public long getCustId ()
   {
-    return custId;
+    return id;
   }
 
   /** Synonym for getCustId() */
   public long getId ()
   {
-    return custId;
+    return id;
   }
 
   /** Sets the name for this model **/
