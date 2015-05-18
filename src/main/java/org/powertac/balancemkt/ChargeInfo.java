@@ -25,7 +25,7 @@ import org.powertac.common.msg.BalancingOrder;
  * Per-broker data holder for DU settlement processors
  * @author John Collins
  */
-class ChargeInfo
+public class ChargeInfo
 {
   private Broker broker = null;
   private double netLoadKWh = 0.0;
@@ -34,34 +34,34 @@ class ChargeInfo
   private double balanceChargeP2 = 0.0;
   private List<BalancingOrder> balancingOrders = null;
 
-  ChargeInfo (Broker broker, double netLoad)
+  public ChargeInfo (Broker broker, double netLoad)
   {
     this.broker = broker;
     this.netLoadKWh = netLoad;
   }
   
   // -- getters & setters
-  Broker getBroker ()
+  public Broker getBroker ()
   {
     return broker;
   }
   
-  String getBrokerName ()
+  public String getBrokerName ()
   {
     return broker.getUsername();
   }
   
-  double getNetLoadKWh ()
+  public double getNetLoadKWh ()
   {
     return netLoadKWh;
   }
   
-  double getBalanceCharge ()
+  public double getBalanceCharge ()
   {
     return balanceChargeP1 + balanceChargeP2;
   }
 
-  double getBalanceChargeP1()
+  public double getBalanceChargeP1()
   {
     return balanceChargeP1;
   }
@@ -71,7 +71,7 @@ class ChargeInfo
     balanceChargeP1 = charge;
   }
 
-  double getBalanceChargeP2()
+  public double getBalanceChargeP2()
   {
     return balanceChargeP2;
   }
@@ -86,18 +86,18 @@ class ChargeInfo
     return balancingOrders;
   }
   
-  void addBalancingOrder (BalancingOrder order)
+  public void addBalancingOrder (BalancingOrder order)
   {
     if (null == balancingOrders)
       balancingOrders = new ArrayList<BalancingOrder>();
     balancingOrders.add(order);
   }
   
-  void addCurtailment (double kWh) {
+  public void addCurtailment (double kWh) {
     curtailment += kWh;
   }
   
-  double getCurtailment () {
+  public double getCurtailment () {
     return curtailment;
   }
   

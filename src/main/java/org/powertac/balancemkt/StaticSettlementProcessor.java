@@ -40,13 +40,13 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
   double pPlus, pMinus;
   double pPlusPrime, pMinusPrime;
-  
-  StaticSettlementProcessor (TariffRepo tariffRepo,
-                             CapacityControl capacityControl)
+
+  public StaticSettlementProcessor (TariffRepo tariffRepo,
+                                    CapacityControl capacityControl)
   {
     super(tariffRepo, capacityControl);
   }
-  
+
   /* (non-Javadoc)
    * @see org.powertac.balancemkt.SettlementProcessor#settle(java.util.Collection)
    */
@@ -58,7 +58,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     pPlusPrime = service.getPPlusPrime();
     pMinus = service.getPMinus();
     pMinusPrime = service.getPMinusPrime();
-    
+
     // find total imbalance
     double totalImbalance = 0.0;
     double totalQty = 0.0;
