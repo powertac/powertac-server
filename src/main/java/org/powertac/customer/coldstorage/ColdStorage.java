@@ -511,7 +511,7 @@ implements CustomerModelAccessor
   }
 
   @StateChange
-  void setCurrentTemp (double temp)
+  public void setCurrentTemp (double temp)
   {
     currentTemp = temp;
   }
