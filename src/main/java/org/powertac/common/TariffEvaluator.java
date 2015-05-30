@@ -494,8 +494,10 @@ public class TariffEvaluator
       remainingPopulation -= count;
       // allocate a chunk
       double inertiaSample = accessor.getInertiaSample();
-      if (!revoked && inertiaSample < inertia) {
-        // skip this one if not processing revoked tariff
+      if (!revoked && withdraw0 <= 0.0 && inertiaSample < inertia) {
+        // skip this one if not processing revoked tariff,
+        // or if there is no payment possible from withdrawing,
+        // or if the customer is not paying attention.
         continue;
       }
       double tariffSample = accessor.getTariffChoiceSample();

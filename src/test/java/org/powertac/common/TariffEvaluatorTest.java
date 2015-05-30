@@ -554,15 +554,14 @@ public class TariffEvaluatorTest
   }
 
   @Test
-  public void BogusWithdrawCost ()
+  public void posWithdrawCost ()
   {
     subscribeTo(defaultConsumption, customer.getPopulation());
     TariffSpecification jimTS =
-            new TariffSpecification(jim,
-                                    PowerType.CONSUMPTION).
+            new TariffSpecification(jim, PowerType.CONSUMPTION).
                                     withMinDuration(TimeService.DAY * 5).
-                                    withEarlyWithdrawPayment(1e20).
-                                    addRate(new Rate().withValue(-0.4));
+                                    withEarlyWithdrawPayment(2.0).
+                                    addRate(new Rate().withValue(-0.6));
     Tariff jimTariff = new Tariff(jimTS);
     initTariff(jimTariff);
     ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
@@ -594,7 +593,96 @@ public class TariffEvaluatorTest
     assertEquals("two tariffs", 2, calls.size());
     assertEquals("-10000 for default",
                  new Integer(-10000), calls.get(defaultConsumption));
-    assertEquals("+10000 for bob",
+    assertEquals("+10000 for jim",
+                 new Integer(10000), calls.get(jimTariff));
+  }
+
+  @Test
+  public void posWithdrawPmt ()
+  {
+    //subscribeTo(defaultConsumption, customer.getPopulation());
+    TariffSpecification jimTS =
+            new TariffSpecification(jim, PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    withEarlyWithdrawPayment(2.0).
+                                    addRate(new Rate().withValue(-0.60));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+    subscribeTo(jimTariff, customer.getPopulation());
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(jimTariff);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = new CapacityProfile(profile, start);
+    cma.setChoiceSamples(0.4, 0.6);
+    
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+
+    evaluator.withChunkSize(50); // 200 chunks
+    evaluator.evaluateTariffs();
+    assertEquals("two tariffs", 2, calls.size());
+    assertEquals("-10000 for jim",
+                 new Integer(-10000), calls.get(jimTariff));
+    assertEquals("+10000 for default",
+                 new Integer(10000), calls.get(defaultConsumption));
+  }
+
+  @Test
+  public void BogusWithdrawCost ()
+  {
+    subscribeTo(defaultConsumption, customer.getPopulation());
+    TariffSpecification jimTS =
+            new TariffSpecification(jim, PowerType.CONSUMPTION).
+                                    withMinDuration(TimeService.DAY * 5).
+                                    withEarlyWithdrawPayment(1e20).
+                                    addRate(new Rate().withValue(-0.6));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(jimTariff);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = new CapacityProfile(profile, start);
+    cma.setChoiceSamples(0.4, 0.6);
+    
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+
+    evaluator.withChunkSize(50); // 200 chunks
+    evaluator.evaluateTariffs();
+    assertEquals("two tariffs", 2, calls.size());
+    assertEquals("-10000 for default",
+                 new Integer(-10000), calls.get(defaultConsumption));
+    assertEquals("+10000 for jim",
                  new Integer(10000), calls.get(jimTariff));
   }
 
