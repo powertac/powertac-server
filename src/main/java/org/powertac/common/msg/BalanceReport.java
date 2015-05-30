@@ -15,6 +15,7 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -32,6 +33,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 public class BalanceReport
 {
   @XStreamAsAttribute
+  private long id = IdGenerator.createId();
+
+  @XStreamAsAttribute
   private double netImbalance = 0.0;
 
   @XStreamAsAttribute
@@ -44,6 +48,14 @@ public class BalanceReport
   {
     super();
     this.timeslotIndex = timeslotIndex;
+  }
+
+  /**
+   * Returns the id of this instance
+   */
+  public long getId ()
+  {
+    return id;
   }
 
   /**
