@@ -659,7 +659,8 @@ public class StaticSettlementProcessorTest
     when(capacityControlService.getRegulationCapacity(bo1)).
       thenReturn(new RegulationCapacity(null, 5.0, 0.0));
     uut.settle(context, brokerData);
-    verify(capacityControlService, never()).exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
+    verify(capacityControlService, never())
+      .exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
     assertEquals("b1.p1", -1.202, ci1.getBalanceCharge(), 1e-6);
     assertEquals("b2.p1", 0.601, ci2.getBalanceCharge(), 1e-6);
   }
@@ -683,8 +684,54 @@ public class StaticSettlementProcessorTest
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(eq(bo1), eq(5.0),
                                                             eq(0.379, 1e-4));
-    assertEquals("b1.p1", -1.278, ci1.getBalanceChargeP1(), 1e-4);
-    assertEquals("b2.p1", 0.643, ci2.getBalanceChargeP1(), 1e-4);
+    assertEquals("b1.p1", -1.296, ci1.getBalanceChargeP1(), 1e-4);
+    assertEquals("b2.p1", 0.647, ci2.getBalanceChargeP1(), 1e-4);
+ }
+
+  // Simple balancing, net imbalance, single zero-capacity balancing order
+  // for b1
+  @Test
+  public void testPosSingleBO_splitDummyZero ()
+  {
+    pplusPrime = 0.0001;
+    pminusPrime = -0.0001;
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, -0.6, -0.013);
+    tariffRepo.addBalancingOrder(bo1);
+    ChargeInfo ci1 = new ChargeInfo(b1, 20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
+    brokerData.add(ci2);
+    when(capacityControlService.getRegulationCapacity(bo1))
+        .thenReturn(new RegulationCapacity(null, 5.0, -0.0));
+    uut.settle(context, brokerData);
+    verify(capacityControlService, never())
+      .exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
+    assertEquals("b1.p1", -0.24, ci1.getBalanceChargeP1(), 1e-5);
+    assertEquals("b2.p1", -0.12, ci2.getBalanceChargeP1(), 1e-5);
+ }
+
+  // Simple balancing, net imbalance, single balancing order for b1
+  // causes both dummy orders to be used.
+  @Test
+  public void testPosSingleBO_splitDummyNZ ()
+  {
+    pplusPrime = 0.0001;
+    pminusPrime = -0.0001;
+    BalancingOrder bo1 = new BalancingOrder(b1, spec1, -0.6, -0.014);
+    tariffRepo.addBalancingOrder(bo1);
+    ChargeInfo ci1 = new ChargeInfo(b1, 20.0);
+    ci1.addBalancingOrder(bo1);
+    brokerData.add(ci1);
+    ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
+    brokerData.add(ci2);
+    when(capacityControlService.getRegulationCapacity(bo1))
+        .thenReturn(new RegulationCapacity(null, 5.0, -5.0));
+    uut.settle(context, brokerData);
+    verify(capacityControlService)
+      .exerciseBalancingControl(eq(bo1), eq(-5.0), eq(-0.0325, 1e-5));
+    assertEquals("b1.p1", -0.133333, ci1.getBalanceChargeP1(), 1e-5);
+    assertEquals("b2.p1", -0.063333, ci2.getBalanceChargeP1(), 1e-5);
  }
 
   // Simple balancing, net imbalance, single balancing order for b1

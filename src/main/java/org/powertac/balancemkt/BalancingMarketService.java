@@ -72,10 +72,10 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   @Autowired
   private Accounting accountingService;
-  
+
   @Autowired
   private CapacityControl capacityControlService;
-  
+
   @Autowired
   private ServerConfiguration serverProps;
 
@@ -95,12 +95,12 @@ implements BalancingMarket, SettlementContext, InitializationService
       publish = true,
       description = "Balancing cost for simple settlement processor: overrides random value selection")
   private Double balancingCost = null;
-  
+
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of up-regulation cost /kwh")
   private double pPlusPrime = 0.0; // .00002/kwh
-  
+
   @ConfigurableValue(valueType = "Double",
           publish = true,
           description = "Slope of down-regulation cost /kwh")

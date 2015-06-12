@@ -15,6 +15,7 @@
  */
 package org.powertac.balancemkt;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -83,7 +84,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
       findCandidateOrders(brokerData, totalImbalance);
 
     // get curtailable usage for each order.
-    for (BOWrapper bo: candidates) {
+    ArrayList<BOWrapper> possibles = new ArrayList<BOWrapper> ();
+    possibles.addAll(candidates);
+    for (BOWrapper bo: possibles) {
       RegulationCapacity cap =
         capacityControlService.getRegulationCapacity(bo.balancingOrder);
       log.info("tariff " + bo.balancingOrder.getTariffId()
@@ -97,6 +100,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
         // down-regulation
         bo.availableCapacity = cap.getDownRegulationCapacity();
       }
+      // drop the bo if it has insufficient capacity
+      if (Math.abs(bo.availableCapacity) < epsilon)
+        candidates.remove(bo);
     }
 
     // insert dummy orders to represent available balancing power through
@@ -315,7 +321,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     double targetRemainingQty = 0;
     double sgn = Math.signum(totalImbalance);
     for (BOWrapper bow : candidates) {
-      if (0.0 == bow.exercisedCapacity)
+      if (bow.availableCapacity != 0.0 && 0.0 == bow.exercisedCapacity)
         break;
       if (target == bow.info)
         targetRemainingQty += bow.exercisedCapacity;
@@ -463,7 +469,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     //double rpQty = 0.0;
     for (BOWrapper bid : remains) {
       // this code depends on encountering the dummy orders in order
-      if (bid.isDummy())
+      if (bid.isDummy() && bid.exercisedCapacity != 0.0)
         // cost is total dummy qty times final marginal price
         //rpQty += bid.exercisedCapacity;
         //rpCost = -rpQty * bid.getMarginalPrice(bid.exercisedCapacity);
@@ -571,12 +577,6 @@ public class StaticSettlementProcessor extends SettlementProcessor
       return price + slope * qty;
     }
 
-    // Returns the total price (integral) for using qty from the order
-//    double getTotalPrice (double qty)
-//    {
-//      return qty * 0.5 * (price + price + slope * qty);
-//    }
-
     // Returns the total price (integral) for using qty from the 
     // non-exercised portion of order
     double getTotalNEPrice (double qty)
@@ -593,9 +593,12 @@ public class StaticSettlementProcessor extends SettlementProcessor
     // Returns total price of this order, including its effect on earlier dummy orders
     double getTotalEPrice ()
     {
-      double oldMPrice = getMarginalPrice(exercisedCapacity);
-      double cost = oldMPrice * exercisedCapacity + // for exercisedCapacity
-            startX * (oldMPrice - price);    // extra cost for any earlier dummy orders
+      double mp1 = 0.0;
+      if (startX != 0.0)
+        mp1 = getMarginalPrice(startX);
+      double mp2 = getMarginalPrice(startX + exercisedCapacity);
+      double cost = mp2 * exercisedCapacity + // for exercisedCapacity
+            startX * (mp2 - mp1);    // extra cost for any earlier dummy orders
       return Math.signum(exercisedCapacity) * cost;
     }
 
