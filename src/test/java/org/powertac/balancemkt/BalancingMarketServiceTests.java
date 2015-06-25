@@ -259,6 +259,7 @@ public class BalancingMarketServiceTests
   public void testScenario1BalancingCharges ()
   {
     initializeService();
+    balancingMarketService.setRmPremium(1.0);
 
     when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad(brokerList.get(0))).thenReturn(200.0);    
@@ -292,13 +293,14 @@ public class BalancingMarketServiceTests
   {
     initializeService();
     updatePrices();
+    balancingMarketService.setRmPremium(1.1);
 
     // make sure we can retrieve current spot price
     assertEquals("correct spot price", 0.0201,
                  balancingMarketService.getSpotPrice(), 1e-6);
-    assertEquals("correct pMinus", -0.0198,
+    assertEquals("correct pMinus", -0.0198 / 1.1,
                  balancingMarketService.getPMinus(), 1e-6);
-    assertEquals("correct pPlus", 0.0212,
+    assertEquals("correct pPlus", 0.0212 * 1.1,
                  balancingMarketService.getPPlus(), 1e-6);
   }
 

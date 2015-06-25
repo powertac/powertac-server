@@ -107,6 +107,11 @@ implements BalancingMarket, SettlementContext, InitializationService
   private double pMinusPrime = 0.0; // -.00002/kwh
 
   @ConfigurableValue(valueType = "Double",
+          publish = true,
+          description = "Ratio of regulating-market price to spot price")
+  private double rmPremium = 1.1; // 10% premium
+
+  @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Spot price/mwh used if unavailable from wholesale market")
   private double defaultSpotPrice = 30.0; // per mwh
@@ -301,7 +306,7 @@ implements BalancingMarket, SettlementContext, InitializationService
       if (max != null)
         result = max;
     }
-    return result / 1000.0;
+    return result * rmPremium / 1000.0;
   }
   
   /**
@@ -323,7 +328,7 @@ implements BalancingMarket, SettlementContext, InitializationService
       if (min != null)
         result = min;
     }
-    return -result / 1000.0;
+    return -result / rmPremium / 1000.0;
   }
 
   @Override
@@ -383,5 +388,16 @@ implements BalancingMarket, SettlementContext, InitializationService
       log.error("cannot create settlement processor: " + e.toString());
     }
     return result;
+  }
+
+  // test support
+  double getRmPremium ()
+  {
+    return rmPremium;
+  }
+
+  void setRmPremium (double value)
+  {
+    rmPremium = value;
   }
 }

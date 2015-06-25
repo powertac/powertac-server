@@ -33,6 +33,9 @@ import org.powertac.util.Predicate;
 /**
  * DU settlement processor for Scenario 2 - controllable capacities,
  * one-shot static solution
+ * 
+ * Naming convention: Price is per-unit, Cost is price * qty
+ * 
  * @author John Collins, Mathijs de Weerdt
  */
 public class StaticSettlementProcessor extends SettlementProcessor
@@ -343,10 +346,10 @@ public class StaticSettlementProcessor extends SettlementProcessor
           (nextNonExercised.availableCapacity
               - nextNonExercised.exercisedCapacity);
         double used = sgn * Math.max(sgn * avail, sgn * targetRemainingQty);
-        price += sgn * nextNonExercised.getTotalNEPrice(used);
+        price += sgn * nextNonExercised.getTotalNECost(used);
         targetRemainingQty -= used;
         log.debug("  VCG cost part of "
-                  + nextNonExercised.getTotalNEPrice(used) + " for " + used
+                  + nextNonExercised.getTotalNECost(used) + " for " + used
                   + " kWh at " + nextNonExercised.price);
       }
     }
@@ -473,7 +476,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
         // cost is total dummy qty times final marginal price
         //rpQty += bid.exercisedCapacity;
         //rpCost = -rpQty * bid.getMarginalPrice(bid.exercisedCapacity);
-        rpCost = -bid.getTotalEPrice();
+        rpCost = -bid.getTotalECost();
     }
     return rpCost;
   }
@@ -577,9 +580,9 @@ public class StaticSettlementProcessor extends SettlementProcessor
       return price + slope * qty;
     }
 
-    // Returns the total price (integral) for using qty from the 
+    // Returns the total cost (integral) for using qty from the 
     // non-exercised portion of order
-    double getTotalNEPrice (double qty)
+    double getTotalNECost (double qty)
     {
       //double nePrice = getMarginalPrice(exercisedCapacity);
       //return qty * 0.5 * (nePrice + nePrice + slope * qty);
@@ -590,8 +593,8 @@ public class StaticSettlementProcessor extends SettlementProcessor
              startX * (newMPrice - price);                 // extra cost for any earlier dummy orders
     }
     
-    // Returns total price of this order, including its effect on earlier dummy orders
-    double getTotalEPrice ()
+    // Returns total cost of this order, including its effect on earlier dummy orders
+    double getTotalECost ()
     {
       double mp1 = 0.0;
       if (startX != 0.0)
