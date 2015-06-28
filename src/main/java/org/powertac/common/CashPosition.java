@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * a broker's cash account. An new CashPosition is sent to brokers
  * during each timeslot. This is not public information.
  *
- * @author Carsten Block, David Dauer
- * @version 1.1 - 02/27/2011
+ * @author Carsten Block, David Dauer, John Collins
  */
-@Domain
+@Domain(fields = {"postedTimeslot", "balance"})
 @XStreamAlias("cash")
 public class CashPosition extends BrokerTransaction 
 {

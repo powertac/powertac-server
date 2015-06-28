@@ -18,6 +18,7 @@ package org.powertac.common;
 import org.joda.time.Instant;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -27,7 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
  * Superclass with common attributes for a number of transaction types.
  * @author John Collins
  */
-public abstract class BrokerTransaction
+public abstract class BrokerTransaction extends XStreamStateLoggable
 {
   @XStreamAsAttribute
   protected long id = IdGenerator.createId();

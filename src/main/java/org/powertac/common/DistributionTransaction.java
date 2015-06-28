@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.powertac.common;
 
 import org.powertac.common.state.Domain;
-
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
@@ -31,7 +30,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  *
  * @author John Collins
  */
-@Domain
+@Domain(fields = {"postedTimeslot", "KWh", "charge"})
 @XStreamAlias("distribution-tx")
 public class DistributionTransaction extends BrokerTransaction
 {
