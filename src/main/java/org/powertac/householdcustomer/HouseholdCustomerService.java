@@ -278,11 +278,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     }
   }
 
-  @Override
-  public void setDefaults ()
-  {
-  }
-
   // ========= CustomerServiceAccessor API ===========
 
   @Override
