@@ -151,7 +151,6 @@ public class DefaultBrokerServiceTests
 
   private Broker init ()
   {
-    service.setDefaults();
     List<String> completedInits = new ArrayList<String>();
     completedInits.add("TariffMarket");
     String answer = service.initialize(competition, completedInits);
@@ -164,7 +163,6 @@ public class DefaultBrokerServiceTests
   @Test
   public void testBogusInit ()
   {
-    service.setDefaults();
     List<String> completedInits = new ArrayList<String>();
     String answer = service.initialize(competition, completedInits);
     assertNull("cannot proceed", answer);
@@ -196,7 +194,6 @@ public class DefaultBrokerServiceTests
   @Test
   public void testConfig ()
   {
-    service.setDefaults();
     List<String> completedInits = new ArrayList<String>();
     completedInits.add("TariffMarket");
     

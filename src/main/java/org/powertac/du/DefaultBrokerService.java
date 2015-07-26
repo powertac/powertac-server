@@ -123,13 +123,6 @@ public class DefaultBrokerService
     super();
   }
 
-  @Override
-  public void setDefaults ()
-  {
-    // create the default broker instance, register it with the repo
-    brokerRepo.add(createBroker("default broker"));
-  }
-
   /**
    * Called by initialization service once at the beginning of each game.
    * Configures parameters, sets up and publishes default tariffs.
@@ -145,7 +138,10 @@ public class DefaultBrokerService
 
     // keep track of competition
     this.competition = competition;
-    
+
+    // create the default broker instance, register it with the repo
+    brokerRepo.add(createBroker("default broker"));
+
     // log in to ccs
     competitionControlService.loginBroker(face.getUsername());
     
