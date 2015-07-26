@@ -298,11 +298,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
     }
   }
 
-  @Override
-  public void setDefaults ()
-  {
-  }
-
   // ============== CustomerServiceAccessor API
   @Override
   public CustomerRepo getCustomerRepo ()
