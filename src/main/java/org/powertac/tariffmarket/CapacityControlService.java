@@ -228,23 +228,17 @@ implements CapacityControl, InitializationService
       }
     }
   }
-  
-  // ---------------- Test support ------------------
-  List<EconomicControlEvent> getControlsForTimeslot (int timeslotIndex)
-  {
-    return pendingEconomicControls.get(timeslotIndex);
-  }
-
-  @Override
-  public void setDefaults ()
-  {
-    // Nothing to do at pre-game
-  }
 
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
     pendingEconomicControls.clear();
     return "CapacityControl";
+  }
+
+  // ---------------- Test support ------------------
+  List<EconomicControlEvent> getControlsForTimeslot (int timeslotIndex)
+  {
+    return pendingEconomicControls.get(timeslotIndex);
   }
 }

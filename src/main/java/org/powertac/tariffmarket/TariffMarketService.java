@@ -866,16 +866,4 @@ public class TariffMarketService
       this.count = count;
     }
   }
-
-  @Override
-  public void setDefaults ()
-  {
-  }
-
-//  @Override
-//  public void
-//    registerNewSubscriptionRepoListener (SubscriptionRepoListener listener)
-//  {
-//    subscriptionRepoRegistrations.add(listener);
-//  }
 }

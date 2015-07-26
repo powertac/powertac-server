@@ -102,11 +102,6 @@ public class AccountingService
   }
 
   @Override
-  public void setDefaults ()
-  {    
-  }
-
-  @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
     pendingTransactions.clear();
