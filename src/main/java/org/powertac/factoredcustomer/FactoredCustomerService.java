@@ -114,11 +114,6 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
         super();
     }
 
-    @Override
-    public void setDefaults ()
-    {
-    }
-
     /**
      * This is called once at the beginning of each game.
      */
