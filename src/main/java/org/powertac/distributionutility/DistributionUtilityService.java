@@ -92,11 +92,6 @@ implements InitializationService
       description = "Distribution fee: overrides random value selection")
   private Double distributionFee = null;
 
-  @Override
-  public void setDefaults ()
-  {
-  }
-
   /**
    * Computes actual distribution and balancing costs by random selection
    */

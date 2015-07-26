@@ -129,7 +129,6 @@ public class DistributionUtilityServiceTests
 
   private void initializeService ()
   {
-    distributionUtilityService.setDefaults();
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
     map.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
