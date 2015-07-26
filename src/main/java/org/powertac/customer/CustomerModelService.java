@@ -92,12 +92,6 @@ implements InitializationService, BootstrapState, NewTariffListener,
   private ArrayList<AbstractCustomer> models;
 
   @Override
-  public void setDefaults ()
-  {
-    // Obsolete
-  }
-
-  @Override
   public String
     initialize (Competition competition, List<String> completedInits)
   {

@@ -45,8 +45,8 @@ import org.powertac.common.Competition;
  */
 public interface InitializationService
 {
-  @Deprecated
-  public void setDefaults();
+  //@Deprecated
+  //public void setDefaults();
   
   /**
    * Initializes a plugin prior to the beginning of a game. The completedInits
