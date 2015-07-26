@@ -137,7 +137,6 @@ public class BalancingMarketServiceTests
 
   private void initializeService ()
   {
-    balancingMarketService.setDefaults();
     TreeMap<String, String> map = new TreeMap<String, String>();
     map.put("balancemkt.balancingMarketService.balancingCostMin", "-0.06");
     map.put("balancemkt.balancingMarketService.balancingCostMax", "-0.06");

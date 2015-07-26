@@ -133,11 +133,6 @@ implements BalancingMarket, SettlementContext, InitializationService
 
   private Map<Broker, ChargeInfo> balancingResults = null;
 
-  @Override
-  public void setDefaults ()
-  {
-  }
-
   /**
    * Computes actual distribution and balancing costs by random selection
    */
