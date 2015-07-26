@@ -18,7 +18,6 @@ package org.powertac.genco;
  
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -79,12 +78,6 @@ public class SimpleGencoService
     super();
   }
 
-  @Override
-  public void setDefaults ()
-  {
-    // nothing to do at this point
-  }
-
   /**
    * Creates the gencos and the buyer using the server configuration service.
    */
@@ -130,6 +123,7 @@ public class SimpleGencoService
    * Called once/timeslot, simply calls updateModel() and generateOrders() on
    * each of the gencos.
    */
+  @Override
   public void activate(Instant now, int phase)
   {
     log.info("Activate");
