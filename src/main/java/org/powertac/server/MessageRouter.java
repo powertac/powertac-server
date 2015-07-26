@@ -64,8 +64,8 @@ public class MessageRouter implements InitializationService
    * Initializes the message listener registrations at the pre-game phase,
    * once per game.
    */
-  @Override
-  public void setDefaults ()
+
+  public void recycle ()
   {
     // initialize the registrations
     registrations = new HashMap<Class<?>, Set<Object>>();

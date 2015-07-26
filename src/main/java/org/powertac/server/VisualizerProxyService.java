@@ -103,12 +103,6 @@ implements VisualizerProxy, InitializationService
   }
 
   @Override
-  public void setDefaults ()
-  {
-    // stub
-  }
-
-  @Override
   public String
     initialize (Competition competition, List<String> completedInits)
   {

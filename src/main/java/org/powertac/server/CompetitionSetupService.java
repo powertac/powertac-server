@@ -86,8 +86,12 @@ public class CompetitionSetupService
 
   @Autowired
   private ServerPropertiesService serverProps;
-  
-  @Autowired RandomSeedRepo randomSeedRepo;
+
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
+
+  @Autowired
+  private MessageRouter messageRouter;
 
   @Autowired
   private XMLMessageConverter messageConverter;
@@ -575,8 +579,10 @@ public class CompetitionSetupService
   public void preGame ()
   {    
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
+    String pomId = serverProps.getProperty("server.pomId", "0");
     logService.startLog(suffix);
-    log.info("preGame() - start");
+    log.info("preGame() - start game " + gameId);
+    log.info("POM version ID: " + pomId);
     IdGenerator.recycle();
     // Create competition instance
     competition = Competition.newInstance("game-" + gameId);
@@ -595,17 +601,11 @@ public class CompetitionSetupService
     for (DomainRepo repo : repos) {
       repo.recycle();
     }
+    // Message router also needs pre-game initialization
+    messageRouter.recycle();
+
     // Init random seeds after clearing repos and before initializing services
     loadSeedsMaybe();
-    // Now init services --
-    // NOTE that this is now obsolete, and should be removed. Services now
-    // initialize themselves through the ServerPropertiesService.
-    List<InitializationService> initializers =
-      SpringApplicationContext.listBeansOfType(InitializationService.class);
-    log.debug("found " + initializers.size() + " initializers");
-    for (InitializationService init : initializers) {
-      init.setDefaults();
-    }
   }
 
   // configures a Competition from server.properties
