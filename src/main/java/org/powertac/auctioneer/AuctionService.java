@@ -520,9 +520,4 @@ public class AuctionService
   {
     return -thisQty.compareTo(otherQty);
   }
-
-  @Override
-  public void setDefaults ()
-  {
-  }
 }
