@@ -119,7 +119,13 @@ public class TariffEvaluationHelper
     tariff = null;
     normalizeWeights();
     if (null == timeService) {
-      timeService = (TimeService) SpringApplicationContext.getBean("timeService");
+      try {
+        timeService =
+            (TimeService) SpringApplicationContext.getBean("timeService");
+      }
+      catch (IllegalStateException ise) {
+        log.warn("SpringApplicationContext is closed");
+      }
     }
     // for non-Spring test environment
     if (null == timeService) {
