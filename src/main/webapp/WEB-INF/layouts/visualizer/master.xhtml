@@ -394,18 +394,18 @@
 	<p:socket onMessage="handleInfoMsg" channel="/infopush" />
 	<p:socket onMessage="handleGlobalMsg" channel="/globalpush" />
 
-	<p:socket onMessage="handleChat" channel="/chat" />
-	<script type="text/javascript">
-		function handleChat(data) {
+<!-- 	<p:socket onMessage="handleChat" channel="/chat" /> -->
+<!-- 	<script type="text/javascript">
+// 		function handleChat(data) {
 
-			var chatContent = $(PrimeFaces.escapeClientId('chatwindow'));
+// 			var chatContent = $(PrimeFaces.escapeClientId('chatwindow'));
 
-			chatContent.append(data + '<br />');
+// 			chatContent.append(data + '<br />');
 
-			//keep scroll  
-			chatContent.scrollTop(chatContent.scrollTop() + 50);
-		}
-	</script>
+// 			//keep scroll  
+// 			chatContent.scrollTop(chatContent.scrollTop() + 50);
+// 		}
+ 	</script> -->
 
 	<script type="text/javascript">
 		function popupDialog(title, content) {

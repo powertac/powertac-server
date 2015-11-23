@@ -10,7 +10,7 @@ import org.primefaces.push.PushContext;
 import org.primefaces.push.PushContextFactory;
 import org.springframework.stereotype.Service;
 
-@Service
+//@Service
 public class ChatGlobal {
 
 	private final PushContext pushContext = PushContextFactory.getDefault()
