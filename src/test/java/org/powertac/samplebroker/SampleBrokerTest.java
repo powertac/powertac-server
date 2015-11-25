@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
+import org.powertac.common.TimeService;
 import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
@@ -57,6 +58,13 @@ public class SampleBrokerTest
     // initialize the broker under test
     broker = new PowerTacBroker();
 
+    Competition.setCurrent(Competition.newInstance("test"));
+    Competition competition = Competition.currentCompetition();
+    TimeService timeService = new TimeService(competition.getSimulationBaseTime().getMillis(),
+                                              new DateTime(DateTimeZone.UTC).getMillis(),
+                                              competition.getSimulationRate(),
+                                              competition.getSimulationModulo());
+
     // set up the autowired dependencies
     ApplicationContext ctx = mock(ApplicationContext.class);
     SpringApplicationContext sac = new SpringApplicationContext();
@@ -68,6 +76,7 @@ public class SampleBrokerTest
     brokerRepo = new BrokerRepo();
     ReflectionTestUtils.setField(broker, "brokerRepo", brokerRepo);
     ReflectionTestUtils.setField(broker, "username", "Sample");
+    ReflectionTestUtils.setField(broker, "timeService", timeService);
 
     broker.init();
   }
