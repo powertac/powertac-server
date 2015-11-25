@@ -18,7 +18,8 @@ package org.powertac.common;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
@@ -62,7 +63,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("tariff-spec")
 public class TariffSpecification extends TariffMessage
 {
-  static private Logger log = Logger.getLogger(TariffSpecification.class);
+  static private Logger log = LogManager.getLogger(TariffSpecification.class);
 
   /** Last date new subscriptions will be accepted. Null means never expire. */
   private Instant expiration = null;

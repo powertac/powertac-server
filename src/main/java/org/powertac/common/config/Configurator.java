@@ -28,7 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.util.Predicate;
 
 /**
@@ -65,7 +66,7 @@ import org.powertac.util.Predicate;
  */
 public class Configurator
 {
-  static private Logger log = Logger.getLogger(Configurator.class);
+  static private Logger log = LogManager.getLogger(Configurator.class);
 
   private Configuration config;
   

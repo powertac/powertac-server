@@ -16,7 +16,8 @@
 
 package org.powertac.common;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -36,7 +37,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("cust-info")
 public class CustomerInfo //implements Serializable 
 {
-  static private Logger log = Logger.getLogger(CustomerInfo.class.getName());
+  static private Logger log = LogManager.getLogger(CustomerInfo.class.getName());
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();

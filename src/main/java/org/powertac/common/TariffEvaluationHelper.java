@@ -15,7 +15,8 @@
  */
 package org.powertac.common;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.spring.SpringApplicationContext;
 
@@ -64,7 +65,7 @@ import org.powertac.common.spring.SpringApplicationContext;
 public class TariffEvaluationHelper
 {
   static private Logger log =
-          Logger.getLogger(TariffEvaluationHelper.class.getName());
+          LogManager.getLogger(TariffEvaluationHelper.class.getName());
 
   // weights
   private double wtExpected = 0.6;

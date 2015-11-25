@@ -20,7 +20,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Broker;
 import org.springframework.stereotype.Repository;
 
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class BrokerRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(BrokerRepo.class.getName());
+  static private Logger log = LogManager.getLogger(BrokerRepo.class.getName());
 
   // indexed by username, and by id value
   private HashMap<String, Broker> nameTable;
