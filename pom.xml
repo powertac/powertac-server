@@ -9,9 +9,14 @@
   </parent>
   
   <artifactId>customer-models</artifactId>
-  <name>PowerTAC customer models</name>
+  <name>Power TAC customer models</name>
   <version>1.3.0-SNAPSHOT</version>
   <description />
+
+  <properties>
+    <aspectj-plugin.version>1.8</aspectj-plugin.version>
+    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
+  </properties>
   
   <dependencies>
     <dependency>
@@ -51,7 +56,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>1.3</version>
+        <version>${aspectj-plugin.version}</version>
         <executions>
           <execution>
             <goals>
@@ -60,7 +65,7 @@
             </goals>
             <configuration>
               <verbose>false</verbose>
-              <complianceLevel>1.6</complianceLevel>
+              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
               <weaveDependencies>
                 <weaveDependency>
                   <groupId>org.powertac</groupId>
