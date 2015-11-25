@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.math.stat.descriptive.moment.Variance;
+import org.apache.commons.math3.stat.descriptive.moment.Variance;
 import org.apache.log4j.Logger;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
