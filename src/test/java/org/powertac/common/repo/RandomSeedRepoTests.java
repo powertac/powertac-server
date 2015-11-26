@@ -94,7 +94,7 @@ public class RandomSeedRepoTests
       int rsLines = 0;
       for (String entry : lines) {
         String[] fields = entry.split("::");
-        if(seedClass.equals(fields[1]) && "FooTest".equals(fields[4]))
+        if(seedClass.equals(fields[0].split(":")[1]) && fields[3].equals("FooTest"))
           rsLines += 1;
       }
       assertTrue("exactly three RandomSeed lines", rsLines == 3);

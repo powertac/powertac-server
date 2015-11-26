@@ -12,7 +12,7 @@
       <Layout type="PatternLayout" pattern="%r %-5p %c{2}: %m%n"/>
     </Appender>
     <Appender name="StateFile" type="File" fileName="${statefile}" append="false">
-      <Layout type="PatternLayout" pattern="%r::%m%n"/>
+      <Layout type="PatternLayout" pattern="%r:%m%n"/>
     </Appender>
   </Appenders>
  
