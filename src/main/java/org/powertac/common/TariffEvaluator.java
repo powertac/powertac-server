@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.interfaces.CustomerModelAccessor;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.repo.TariffRepo;
@@ -38,7 +39,7 @@ import org.powertac.common.spring.SpringApplicationContext;
  */
 public class TariffEvaluator
 {
-  static private Logger log = Logger.getLogger(TariffEvaluator.class.getName());
+  static private Logger log = LogManager.getLogger(TariffEvaluator.class.getName());
 
   // component dependencies
   TariffRepo tariffRepo;

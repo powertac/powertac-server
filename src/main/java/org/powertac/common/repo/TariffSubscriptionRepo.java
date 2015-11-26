@@ -20,12 +20,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
-//import org.apache.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;

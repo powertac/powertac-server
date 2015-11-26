@@ -20,7 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ServiceLoader;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -58,7 +59,7 @@ implements InitializationService, BootstrapState, NewTariffListener,
   CustomerServiceAccessor
 {
   static private Logger log =
-      Logger.getLogger(CustomerModelService.class.getName());
+      LogManager.getLogger(CustomerModelService.class.getName());
 
   @Autowired
   private TimeService timeService;

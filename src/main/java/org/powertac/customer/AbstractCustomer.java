@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2014 the original author or authors.
+ * Copyright 2011-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
@@ -39,7 +40,7 @@ import org.powertac.common.interfaces.TariffMarket;
  */
 public abstract class AbstractCustomer
 {
-  static protected Logger log = Logger.getLogger(AbstractCustomer.class
+  static protected Logger log = LogManager.getLogger(AbstractCustomer.class
           .getName());
 
   protected String name = "dummy";

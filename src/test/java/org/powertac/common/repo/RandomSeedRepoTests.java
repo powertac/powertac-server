@@ -76,12 +76,12 @@ public class RandomSeedRepoTests
     // Need to do this without depending on test sequence:
     File state = new File("log/test.state");
     try {
-      FileOutputStream stateFile = new FileOutputStream(state);
-      stateFile.getChannel().truncate(0);
-      stateFile.close();
-      randomSeedRepo.getRandomSeed("Foo", 3, "test");
-      randomSeedRepo.getRandomSeed("Bar", 42, "more test");
-      randomSeedRepo.getRandomSeed("Baz", -36, "third test");
+      //FileOutputStream stateFile = new FileOutputStream(state);
+      //stateFile.getChannel().truncate(0);
+      //stateFile.close();
+      randomSeedRepo.getRandomSeed("FooTest", 3, "test");
+      randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
+      randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
 
       BufferedReader input = new BufferedReader(new FileReader("log/test.state"));
       String seedClass = RandomSeed.class.getName();
@@ -94,7 +94,7 @@ public class RandomSeedRepoTests
       int rsLines = 0;
       for (String entry : lines) {
         String[] fields = entry.split("::");
-        if(seedClass.equals(fields[1]))
+        if(seedClass.equals(fields[1]) && "FooTest".equals(fields[4]))
           rsLines += 1;
       }
       assertTrue("exactly three RandomSeed lines", rsLines == 3);

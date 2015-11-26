@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2011 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.RandomSeed;
 import org.springframework.stereotype.Repository;
 
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class RandomSeedRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(RandomSeedRepo.class.getName());
+  static private Logger log = LogManager.getLogger(RandomSeedRepo.class.getName());
   
   private HashMap<String, RandomSeed> seedMap;
   private HashMap<String, Long> pendingSeedMap;
