@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffTransaction;
 import org.powertac.visualizer.Helper;
@@ -17,7 +18,7 @@ import org.powertac.visualizer.Helper;
 public class CustomerModel
 {
 
-  Logger log = Logger.getLogger(CustomerModel.class);
+  Logger log = LogManager.getLogger(CustomerModel.class);
   // active customers
   private int customerCount;
   // cash from/to particular broker:

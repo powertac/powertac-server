@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
 import org.powertac.common.TariffSpecification;
@@ -23,7 +24,7 @@ import com.google.gson.Gson;
  */
 public class TariffData
 {
-  private Logger log = Logger.getLogger(TariffData.class);
+  private Logger log = LogManager.getLogger(TariffData.class);
   private BrokerModel broker;
   private TariffSpecification spec;
 

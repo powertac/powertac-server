@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" strict="true" name="XMLConfigTest"
+               packages="org.apache.logging.log4j.test">
+  <Properties>
+    <Property name="logfile">log${s}/${simNode}init.trace</Property>
+    <Property name="statefile">log${s}/${simNode}init.state</Property>
+  </Properties>
+  <Filter type="ThresholdFilter" level="debug"/>
+ 
+  <Appenders>
+    <Appender name="LogFile" type="File" fileName="${logfile}" append="false">
+      <Layout type="PatternLayout" pattern="%r %-5p %c{2}: %m%n"/>
+    </Appender>
+    <Appender name="StateFile" type="File" fileName="${statefile}" append="false">
+      <Layout type="PatternLayout" pattern="%r:%m%n"/>
+    </Appender>
+  </Appenders>
+ 
+  <Loggers>
+    <Logger name="Log" level="info" additivity="false">
+      <AppenderRef ref="LogFile"/>
+    </Logger>
+ 
+    <Logger name="State" level="info" additivity="false">
+      <AppenderRef ref="StateFile"/>
+    </Logger>
+ 
+    <Root level="debug">
+      <AppenderRef ref="LogFile"/>
+    </Root>
+    
+  </Loggers>
+ 
+</Configuration>

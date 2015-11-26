@@ -14,6 +14,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.MarketTransaction;
 import org.powertac.visualizer.beans.VisualizerBean;
@@ -65,7 +66,7 @@ public class BrokerService
   @Autowired
   GradingService gradingBean;
   
-  private static Logger log = Logger.getLogger(BrokerService.class);
+  private static Logger log = LogManager.getLogger(BrokerService.class);
 
   private final int TIMESLOTS_TO_DISPLAY = 48;
 

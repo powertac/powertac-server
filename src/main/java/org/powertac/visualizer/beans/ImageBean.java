@@ -1,6 +1,7 @@
 package org.powertac.visualizer.beans;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 
 import java.io.Serializable;
 
@@ -16,7 +17,7 @@ public class ImageBean implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  Logger log = Logger.getLogger(ImageBean.class);
+  Logger log = LogManager.getLogger(ImageBean.class);
 
   private String logoPath;
   private String offeredTarrifPath;

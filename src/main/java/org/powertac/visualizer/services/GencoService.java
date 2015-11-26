@@ -1,6 +1,7 @@
 package org.powertac.visualizer.services;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.visualizer.domain.genco.Genco;
@@ -20,7 +21,7 @@ import java.util.List;
 @Service
 public class GencoService implements TimeslotCompleteActivation, Recyclable {
 
-	private static Logger log = Logger.getLogger(GencoService.class);
+	private static Logger log = LogManager.getLogger(GencoService.class);
 
 	private HashMap<String, Genco> gencoMap;
 

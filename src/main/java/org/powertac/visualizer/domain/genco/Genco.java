@@ -2,6 +2,7 @@ package org.powertac.visualizer.domain.genco;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;
@@ -23,7 +24,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class Genco implements TimeslotModelUpdate {
 
-	private static Logger log = Logger.getLogger(Genco.class);
+	private static Logger log = LogManager.getLogger(Genco.class);
 	private Broker broker;
 	private double cash;
 	private GencoJSON json;
