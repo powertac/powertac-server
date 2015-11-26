@@ -1,6 +1,7 @@
 package org.powertac.server;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
@@ -15,7 +16,7 @@ import java.net.URLEncoder;
 public class TournamentSchedulerService
 {
   static private Logger log =
-      Logger.getLogger(TournamentSchedulerService.class.getName());
+      LogManager.getLogger(TournamentSchedulerService.class.getName());
 
   private String tournamentSchedulerUrl = "";
 

@@ -21,7 +21,8 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.TimeService;
@@ -75,7 +76,7 @@ import java.util.Properties;
 public class CompetitionSetupService
   implements CompetitionSetup//, ApplicationContextAware
 {
-  static private Logger log = Logger.getLogger(CompetitionSetupService.class);
+  static private Logger log = LogManager.getLogger(CompetitionSetupService.class);
   //static private ApplicationContext context;
 
   @Autowired

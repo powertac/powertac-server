@@ -29,7 +29,8 @@ import com.thoughtworks.xstream.converters.MarshallingContext;
 import com.thoughtworks.xstream.converters.UnmarshallingContext;
 import com.thoughtworks.xstream.io.HierarchicalStreamReader;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
@@ -70,7 +71,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class WeatherService extends TimeslotPhaseProcessor implements
     InitializationService
 {
-  static private Logger log = Logger.getLogger(WeatherService.class.getName());
+  static private Logger log = LogManager.getLogger(WeatherService.class);
 
   @ConfigurableValue(valueType = "String", description = "Location of weather data to be reported")
   private String weatherLocation = "rotterdam";

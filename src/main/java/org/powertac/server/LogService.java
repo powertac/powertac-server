@@ -17,14 +17,9 @@ package org.powertac.server;
 
 import java.io.IOException;
 
-//import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.DefaultShutdownCallbackRegistry;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,19 +52,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogService
 {
-  //private String configFilename = "src/main/resources/log.config";
   private String filenamePrefix = "powertac";
   
   public LogService ()
   {
     super();
-    //PropertyConfigurator.configure(configFilename);
-  }
-  
-  public LogService (String config)
-  {
-    super();
-    PropertyConfigurator.configure(config);
   }
   
   /**
@@ -83,12 +70,12 @@ public class LogService
   
   public Logger getStateLogger ()
   {
-    return Logger.getLogger("State");
+    return LogManager.getLogger("State");
   }
 
   public void startLog (String id)
   {
-    Logger root = Logger.getRootLogger();
+    Logger root = LogManager.getRootLogger();
     Logger state = getStateLogger();
     state.setAdditivity(false);
     root.removeAllAppenders();
@@ -115,18 +102,11 @@ public class LogService
 
   public void stopLog ()
   {
-    stopLogger(Logger.getRootLogger());
-    stopLogger(Logger.getLogger("State"));
-  }
-  
-  private void stopLogger (Logger logger)
-  {
-    LogManager.shutdown();
     reset();
   }
   
   private void reset() {
-    Logger root = Logger.getRootLogger();
+    Logger root = LogManager.getRootLogger();
     Logger state = getStateLogger();
     root.removeAllAppenders();
     state.removeAllAppenders();
@@ -135,5 +115,11 @@ public class LogService
     appender.setThreshold(Level.OFF);
     root.addAppender(appender);
     state.addAppender(appender);
+  }
+  
+  
+  public static class ShutdownCallback
+  extends DefaultShutdownCallbackRegistry {
+    
   }
 }

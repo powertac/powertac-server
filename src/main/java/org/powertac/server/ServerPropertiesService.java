@@ -27,7 +27,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.config.ConfigurationRecorder;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Service;
 public class ServerPropertiesService
 implements ServerProperties, ServerConfiguration, ApplicationContextAware
 {
-  static private Logger log = Logger.getLogger(ServerPropertiesService.class);
+  static private Logger log = LogManager.getLogger(ServerPropertiesService.class);
 
   private ApplicationContext context;
   private CompositeConfiguration config;

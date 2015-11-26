@@ -15,7 +15,8 @@
  */
 package org.powertac.server;
 
-//import org.apache.log4j.Logger;
+//import org.apache.logging.log4j.Logger;
+//import org.apache.logging.log4j.LogManager;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -25,7 +26,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class PowerTacServer
 {
-  //static private Logger log = Logger.getLogger(PowerTacServer.class);
+  //static private Logger log = LogManager.getLogger(PowerTacServer.class);
 
   private static CompetitionSetupService css = null;
 

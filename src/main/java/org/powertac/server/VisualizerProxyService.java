@@ -9,7 +9,8 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.config.ConfigurableValue;
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Service;
 public class VisualizerProxyService
 implements VisualizerProxy, InitializationService
 {
-  static private Logger log = Logger.getLogger(VisualizerProxyService.class);
+  static private Logger log = LogManager.getLogger(VisualizerProxyService.class);
 
   @Autowired
   private ServerConfiguration serverConfig;

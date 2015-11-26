@@ -22,7 +22,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -30,7 +31,7 @@ import org.junit.Test;
 public class LogServiceTests
 {
   static private LogService logService;
-  static private Logger staticLog = Logger.getLogger(LogService.class.getName());
+  static private Logger staticLog = LogManager.getLogger(LogService.class.getName());
   private Logger log;
   private Logger stateLog;
   
@@ -47,8 +48,8 @@ public class LogServiceTests
     new File("log/test.trace").delete();
     new File("log/test.state").delete();
     
-    // initialize the log service
-    logService = new LogService("src/test/resources/log4j.properties");
+    // initialize the log service (config src/test/resources/log4j2-test.xml)
+    logService = new LogService();
   }
   
   // per-test setup
@@ -56,7 +57,7 @@ public class LogServiceTests
   public void setup ()
   {
     // get references to the loggers
-    log = Logger.getLogger("test.org.powertac.server.LogServiceTests");
+    log = LogManager.getLogger(LogServiceTests.class);
     stateLog = logService.getStateLogger();
   }
   
@@ -64,8 +65,8 @@ public class LogServiceTests
   @Test
   public void testDefaultLogging ()
   {
-    // reinitialize the log service
-    logService = new LogService("src/test/resources/log4j.properties");
+    // reinitialize the log service (config src/test/resources/log4j2-test.xml)
+    logService = new LogService();
     assertNotNull("log service got created", logService);
     
     // log to the default trace file, check file

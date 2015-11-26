@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.interfaces.InitializationService;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageRouter implements InitializationService
 {
-  static private Logger log = Logger.getLogger(MessageRouter.class);
+  static private Logger log = LogManager.getLogger(MessageRouter.class);
 
   // Routing data
   private HashMap<Class<?>, Set<Object>> registrations =
