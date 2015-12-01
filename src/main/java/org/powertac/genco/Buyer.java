@@ -17,7 +17,8 @@ package org.powertac.genco;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.Order;
@@ -36,7 +37,7 @@ import org.powertac.common.state.StateChange;
  */
 public class Buyer extends Genco
 {
-  static private Logger log = Logger.getLogger(Buyer.class.getName());
+  static private Logger log = LogManager.getLogger(Buyer.class.getName());
 
   private double priceBeta = 10.0;
   private double mwh = 100.0;
