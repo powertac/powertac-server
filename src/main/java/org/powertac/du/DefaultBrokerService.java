@@ -15,7 +15,8 @@
  */
 package org.powertac.du;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
@@ -51,7 +52,7 @@ import static org.powertac.util.MessageDispatcher.dispatch;
 public class DefaultBrokerService
   implements BootstrapDataCollector, InitializationService
 {
-  static private Logger log = Logger.getLogger(DefaultBrokerService.class.getName());
+  static private Logger log = LogManager.getLogger(DefaultBrokerService.class.getName());
   
   @Autowired // routing of outgoing messages
   private BrokerProxy brokerProxyService;
