@@ -44,10 +44,6 @@ public class LogServiceTests
   @BeforeClass
   static public void initialize ()
   {
-    // delete old logfiles
-    new File("log/test.trace").delete();
-    new File("log/test.state").delete();
-    
     // initialize the log service (config src/test/resources/log4j2-test.xml)
     logService = new LogService();
   }
@@ -65,9 +61,8 @@ public class LogServiceTests
   @Test
   public void testDefaultLogging ()
   {
-    // reinitialize the log service (config src/test/resources/log4j2-test.xml)
-    logService = new LogService();
-    assertNotNull("log service got created", logService);
+    logService.setPrefix("test");
+    logService.startLog();
     
     // log to the default trace file, check file
     log.info("first message");
@@ -75,7 +70,10 @@ public class LogServiceTests
     assertTrue("trace file exists", traceFile.exists());
     try {
       BufferedReader traceReader = new BufferedReader(new FileReader(traceFile));
-      String line1 = traceReader.readLine();
+      String line1 = "";
+      while (line1 != null && line1.indexOf("first message") == -1) {
+        line1 = traceReader.readLine();
+      }
       assertNotNull("line one in file", line1);
       String[] fields = line1.split("\\s+");
       assertEquals("5 fields", 5, fields.length);

@@ -25,7 +25,7 @@
       <AppenderRef ref="StateFile"/>
     </Logger>
  
-    <Root level="debug">
+    <Root level="info">
       <AppenderRef ref="LogFile"/>
     </Root>
     
