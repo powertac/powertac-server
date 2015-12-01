@@ -2,13 +2,10 @@ package org.powertac.server;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -74,11 +71,6 @@ public class WeatherServiceTest
 
   private Competition comp;
   private Configurator config;
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    Logger.getRootLogger().setLevel(Level.DEBUG);
-  }
 
   @Before
   public void setUp() throws Exception {

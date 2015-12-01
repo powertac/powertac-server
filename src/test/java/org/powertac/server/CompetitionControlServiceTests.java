@@ -13,15 +13,12 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.CustomerInfo;
@@ -52,12 +49,7 @@ public class CompetitionControlServiceTests
   
   private CustomerInfo customer1;
   private CustomerInfo customer2;
-  
-  @BeforeClass
-  public static void setUpBeforeClass () throws Exception
-  {
-    Logger.getRootLogger().setLevel(Level.DEBUG);
-  }
+
 
   @Before
   public void setUp () throws Exception
