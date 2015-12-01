@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
@@ -80,8 +81,7 @@ public class LiftTruck
 extends AbstractCustomer
 implements CustomerModelAccessor
 {
-  static private Logger log =
-      Logger.getLogger(LiftTruck.class.getName());
+  static private Logger log = LogManager.getLogger(LiftTruck.class.getName());
 
   // ==== static constants ====
   static final int HOURS_DAY = 24;
