@@ -21,7 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.powertac.common.Tariff;
@@ -44,8 +45,7 @@ import org.powertac.factoredcustomer.CapacityStructure.InfluenceKind;
 @Domain
 class DefaultCapacityOriginator implements CapacityOriginator
 {
-  protected Logger log = Logger.getLogger(DefaultCapacityOriginator.class
-          .getName());
+  private static Logger log = LogManager.getLogger(DefaultCapacityOriginator.class);
 
   protected final FactoredCustomerService service;
   // protected final TimeService timeService;

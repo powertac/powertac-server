@@ -19,7 +19,8 @@ package org.powertac.factoredcustomer;
 import java.util.List;
 
 import org.w3c.dom.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
@@ -33,10 +34,11 @@ import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
 @Domain
 class LearningFactoredCustomer extends DefaultFactoredCustomer
 {
+    private static Logger log = LogManager.getLogger(LearningFactoredCustomer.class);
+  
     LearningFactoredCustomer(CustomerStructure structure) 
     {        
         super(structure);
-        log = Logger.getLogger(LearningFactoredCustomer.class.getName());
     }
 
     @Override

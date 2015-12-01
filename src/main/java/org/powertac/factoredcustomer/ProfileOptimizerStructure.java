@@ -17,7 +17,8 @@
 package org.powertac.factoredcustomer;
 
 import org.w3c.dom.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.springframework.util.Log4jConfigurer;
@@ -67,7 +68,7 @@ public final class ProfileOptimizerStructure
     // scoring weights of other factors relative to fixed usage charge weight of +/-1.
     final double profileChangeWeight;  // (-inf, 0.0]
     final double bundleValueWeight;  //  [0.0, inf]
-    static private Logger log = Logger.getLogger(ProfileOptimizerStructure.class);
+    static private Logger log = LogManager.getLogger(ProfileOptimizerStructure.class);
 
 
     
