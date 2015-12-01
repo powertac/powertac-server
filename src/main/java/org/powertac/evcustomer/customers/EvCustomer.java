@@ -16,7 +16,8 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
@@ -56,7 +57,7 @@ import java.util.Map;
 @ConfigurableInstance
 public class EvCustomer
 {
-  static private Logger log = Logger.getLogger(EvCustomer.class.getName());
+  static private Logger log = LogManager.getLogger(EvCustomer.class.getName());
 
   private String name;
   private long id;

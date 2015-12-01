@@ -21,7 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -32,8 +33,7 @@ import org.powertac.common.spring.SpringApplicationContext;
  */
 public final class Config
 {
-  static private Logger log =
-      Logger.getLogger(Config.class.getName());
+  static private Logger log = LogManager.getLogger(Config.class.getName());
 
   // Singleton instance
   private static Config instance = null;

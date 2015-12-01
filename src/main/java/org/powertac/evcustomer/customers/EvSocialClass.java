@@ -24,6 +24,9 @@ import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.util.*;
 
 /**
@@ -58,7 +61,7 @@ import java.util.*;
 @ConfigurableInstance
 public class EvSocialClass extends AbstractCustomer
 {
-  //private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
+  private static Logger log = LogManager.getLogger(EvSocialClass.class.getName());
 
   private RandomSeed generator;
 
