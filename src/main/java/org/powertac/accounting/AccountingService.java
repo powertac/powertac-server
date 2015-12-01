@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
@@ -47,7 +48,7 @@ public class AccountingService
   implements Accounting, InitializationService
 {
   static private Logger log =
-          Logger.getLogger(AccountingService.class.getSimpleName());
+          LogManager.getLogger(AccountingService.class.getSimpleName());
 
   @Autowired
   private TimeService timeService;

@@ -23,7 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -77,7 +78,7 @@ public class TariffMarketService
   implements TariffMarket, InitializationService
 {
   static private Logger log =
-          Logger.getLogger(TariffMarketService.class.getSimpleName());
+          LogManager.getLogger(TariffMarketService.class.getSimpleName());
 
   @Autowired
   private TimeService timeService;
