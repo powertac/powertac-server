@@ -25,7 +25,8 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
@@ -66,7 +67,7 @@ public class Village extends AbstractCustomer
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static protected Logger log = Logger.getLogger(Village.class.getName());
+  static protected Logger log = LogManager.getLogger(Village.class.getName());
 
   int seedId = 1;
 

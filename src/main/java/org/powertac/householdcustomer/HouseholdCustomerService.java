@@ -24,7 +24,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
@@ -68,7 +69,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static private Logger log = Logger.getLogger(HouseholdCustomerService.class
+  static private Logger log = LogManager.getLogger(HouseholdCustomerService.class
           .getName());
 
   @Autowired
