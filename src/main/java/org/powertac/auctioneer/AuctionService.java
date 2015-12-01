@@ -15,7 +15,8 @@
  */
 package org.powertac.auctioneer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
@@ -70,7 +71,7 @@ public class AuctionService
   extends TimeslotPhaseProcessor
   implements InitializationService
 {
-  static private Logger log = Logger.getLogger(AuctionService.class.getName());
+  static private Logger log = LogManager.getLogger(AuctionService.class.getName());
 
   //@Autowired
   //private TimeService timeService;
