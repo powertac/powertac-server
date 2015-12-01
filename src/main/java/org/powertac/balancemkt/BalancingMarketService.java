@@ -23,7 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
@@ -53,7 +54,7 @@ public class BalancingMarketService
 extends TimeslotPhaseProcessor
 implements BalancingMarket, SettlementContext, InitializationService
 {
-  Logger log = Logger.getLogger(this.getClass().getSimpleName());
+  static Logger log = LogManager.getLogger(BalancingMarketService.class.getSimpleName());
 
   @Autowired
   private BrokerRepo brokerRepo;
