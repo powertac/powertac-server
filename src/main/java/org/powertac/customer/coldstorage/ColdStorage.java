@@ -22,7 +22,8 @@ import java.util.Map;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -59,7 +60,7 @@ public class ColdStorage
 extends AbstractCustomer
 implements CustomerModelAccessor
 {
-  static private Logger log = Logger.getLogger(ColdStorage.class.getName());
+  static private Logger log = LogManager.getLogger(ColdStorage.class.getName());
 
   // handy contstants
   static final double R_CONVERSION = 3.1545 / 1000.0; // kW/m^2-K
