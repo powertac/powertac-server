@@ -24,7 +24,10 @@ import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -40,6 +43,10 @@ import static org.mockito.Mockito.reset;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:weather-test-config.xml" })
 @DirtiesContext
+@TestExecutionListeners(listeners = {
+  DependencyInjectionTestExecutionListener.class,
+  DirtiesContextTestExecutionListener.class
+})
 public class WeatherServiceTest
 {
   @Autowired
