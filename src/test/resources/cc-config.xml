@@ -12,7 +12,7 @@
   <!-- Spring JMS Template -->
   <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
     <property name="connectionFactory">
-      <ref local="jmsFactory"/>
+      <ref bean="jmsFactory"/>
     </property>
   </bean>
 

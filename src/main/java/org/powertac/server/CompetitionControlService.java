@@ -15,7 +15,8 @@
  */
 package org.powertac.server;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableValue;
@@ -65,7 +66,7 @@ import java.util.*;
 public class CompetitionControlService
   implements CompetitionControl
 {
-  static private Logger log = Logger.getLogger(CompetitionControlService.class);
+  static private Logger log = LogManager.getLogger(CompetitionControlService.class);
 
   private Competition competition;
 

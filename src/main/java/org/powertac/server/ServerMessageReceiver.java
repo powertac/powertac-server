@@ -8,7 +8,8 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Broker;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.XMLMessageConverter;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ServerMessageReceiver implements MessageListener
 {
-  static private Logger log = Logger.getLogger(ServerMessageReceiver.class);
+  static private Logger log = LogManager.getLogger(ServerMessageReceiver.class);
 
   @Autowired
   private XMLMessageConverter converter;

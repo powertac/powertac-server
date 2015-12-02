@@ -12,7 +12,8 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.XMLMessageConverter;
@@ -27,7 +28,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class BrokerProxyService implements BrokerProxy
 {
-  static private Logger log = Logger.getLogger(BrokerProxyService.class);
+  static private Logger log = LogManager.getLogger(BrokerProxyService.class);
 
   @Autowired
   private JmsTemplate template;

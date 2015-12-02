@@ -17,14 +17,14 @@ package org.powertac.server;
 
 import java.io.IOException;
 
-//import org.apache.log4j.Appender;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.springframework.stereotype.Service;
 
 /**
@@ -57,19 +57,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogService
 {
-  //private String configFilename = "src/main/resources/log.config";
   private String filenamePrefix = "powertac";
   
   public LogService ()
   {
     super();
-    //PropertyConfigurator.configure(configFilename);
-  }
-  
-  public LogService (String config)
-  {
-    super();
-    PropertyConfigurator.configure(config);
   }
   
   /**
@@ -83,31 +75,27 @@ public class LogService
   
   public Logger getStateLogger ()
   {
-    return Logger.getLogger("State");
+    return LogManager.getLogger("State");
+  }
+
+  public void startLog () {
+    startLog(null);
   }
 
   public void startLog (String id)
   {
-    Logger root = Logger.getRootLogger();
-    Logger state = getStateLogger();
-    state.setAdditivity(false);
-    root.removeAllAppenders();
-    state.removeAllAppenders();
     try {
-      PatternLayout logLayout = new PatternLayout("%r %-5p %c{2}: %m%n");
-      FileAppender logFile
-          = new FileAppender(logLayout,
-                             ("log/" + filenamePrefix + "-" + id + ".trace"),
-                             false);
-      root.addAppender(logFile);
-      PatternLayout stateLayout = new PatternLayout("%r:%m%n");
-      FileAppender stateFile
-          = new FileAppender(stateLayout,
-                             ("log/" + filenamePrefix + "-" + id + ".state"),
-                             false);
-      state.addAppender(stateFile);
+      String filename = filenamePrefix;
+      if (id != null && id.length() > 0) {
+        filename += "-" + id;
+      }
+      
+      System.setProperty("logfile", "log/" + filename + ".trace");
+      System.setProperty("statefile", "log/" + filename + ".state");
+      
+      ((LoggerContext) LogManager.getContext(false)).reconfigure();
     }
-    catch (IOException ioe) {
+    catch (Exception ioe) {
       System.out.println("Can't open log file");
       System.exit(0);
     }
@@ -115,25 +103,43 @@ public class LogService
 
   public void stopLog ()
   {
-    stopLogger(Logger.getRootLogger());
-    stopLogger(Logger.getLogger("State"));
-  }
-  
-  private void stopLogger (Logger logger)
-  {
-    LogManager.shutdown();
     reset();
   }
   
   private void reset() {
-    Logger root = Logger.getRootLogger();
+    Logger root = LogManager.getRootLogger();
     Logger state = getStateLogger();
-    root.removeAllAppenders();
-    state.removeAllAppenders();
-
-    ConsoleAppender appender = new ConsoleAppender();
-    appender.setThreshold(Level.OFF);
-    root.addAppender(appender);
-    state.addAppender(appender);
+    
+    LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+    Configuration cfg = ctx.getConfiguration();
+    
+    ConsoleAppender console = ConsoleAppender.createAppender(
+        null, null, "SYSTEM_OUT", "Console", "true", "true"
+    );
+    AppenderRef[] refs = new AppenderRef[] {
+        AppenderRef.createAppenderRef("Console", null, null)
+    };
+    
+    LoggerConfig newRoot = LoggerConfig.createLogger(
+        "false", Level.OFF, root.getName(), "true", refs, null, cfg, null
+    );
+    newRoot.addAppender(console, null, null);
+    
+    LoggerConfig newState = LoggerConfig.createLogger(
+        "false", Level.OFF, state.getName(), "true", refs, null, cfg, null
+    );
+    newState.addAppender(console, null, null);
+    
+    console.start();
+    cfg.addAppender(console);
+    
+    cfg.removeLogger(root.getName());
+    cfg.addLogger(root.getName(), newRoot);
+    
+    cfg.removeLogger(state.getName());
+    cfg.addLogger(state.getName(), newState);
+    
+    ctx.updateLoggers(cfg);
   }
+
 }

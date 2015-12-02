@@ -2,13 +2,10 @@ package org.powertac.server;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
@@ -27,7 +24,10 @@ import org.powertac.common.repo.WeatherReportRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
@@ -43,6 +43,10 @@ import static org.mockito.Mockito.reset;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:weather-test-config.xml" })
 @DirtiesContext
+@TestExecutionListeners(listeners = {
+  DependencyInjectionTestExecutionListener.class,
+  DirtiesContextTestExecutionListener.class
+})
 public class WeatherServiceTest
 {
   @Autowired
@@ -74,11 +78,6 @@ public class WeatherServiceTest
 
   private Competition comp;
   private Configurator config;
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    Logger.getRootLogger().setLevel(Level.DEBUG);
-  }
 
   @Before
   public void setUp() throws Exception {

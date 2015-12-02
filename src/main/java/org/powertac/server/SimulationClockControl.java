@@ -23,7 +23,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.TimeService;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
@@ -60,7 +61,7 @@ import org.powertac.common.spring.SpringApplicationContext;
  */
 public class SimulationClockControl
 {
-  static private Logger log = Logger.getLogger(SimulationClockControl.class);
+  static private Logger log = LogManager.getLogger(SimulationClockControl.class);
 
   public enum Status { CLEAR, COMPLETE, DELAYED, PAUSED, STOPPED }
   

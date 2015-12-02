@@ -8,45 +8,44 @@
     <relativePath />
   </parent>
 
+  <properties>
+    <active-mq.version>5.7.0</active-mq.version>
+    <slf4j.version>1.7.13</slf4j.version>
+    <jopt.version>4.9</jopt.version>
+  </properties>
+
   <artifactId>server-main</artifactId>
   <name>Power TAC server main</name>
   <version>1.3.0-SNAPSHOT</version>
   <description>Top-level module of the Power TAC simulation server</description>
 
   <dependencies>
-    <!-- BeanUtils -->
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>1.8.0</version>
-    </dependency>
-
     <!-- ActiveMQ -->
     <dependency>    
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-core</artifactId>
-      <version>5.6.0</version>
+      <version>${active-mq.version}</version>
     </dependency>
     <dependency>    
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-pool</artifactId>
-      <version>5.6.0</version>
+      <version>${active-mq.version}</version>
     </dependency>
     <!-- JMS dependencies -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>1.6.4</version>
+      <version>${slf4j.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
-      <version>4.3</version>
+      <version>${jopt.version}</version>
     </dependency>
 
 	<!-- Spring for JMS  -->

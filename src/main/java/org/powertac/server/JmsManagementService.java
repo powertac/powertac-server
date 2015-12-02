@@ -26,7 +26,8 @@ import org.apache.activemq.broker.region.Subscription;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.command.ConsumerInfo;
 import org.apache.activemq.pool.PooledConnectionFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JmsManagementService
 {
-  static private Logger log = Logger.getLogger(JmsManagementService.class);
+  static private Logger log = LogManager.getLogger(JmsManagementService.class);
 
   @Resource(name = "jmsFactory")
   private ConnectionFactory connectionFactory;
