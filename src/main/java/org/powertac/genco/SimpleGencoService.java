@@ -20,7 +20,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 
 import org.powertac.common.Competition;
@@ -47,7 +48,7 @@ public class SimpleGencoService
   extends TimeslotPhaseProcessor
   implements InitializationService, BootstrapState
 {
-  static private Logger log = Logger.getLogger(SimpleGencoService.class.getName());
+  static private Logger log = LogManager.getLogger(SimpleGencoService.class.getName());
 
   @Autowired
   private TimeService timeService;

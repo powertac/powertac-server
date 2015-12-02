@@ -16,7 +16,8 @@
 package org.powertac.genco;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
@@ -51,7 +52,7 @@ import java.util.List;
 @ConfigurableInstance
 public class CpGenco extends Broker
 {
-  static private Logger log = Logger.getLogger(CpGenco.class.getName());
+  static private Logger log = LogManager.getLogger(CpGenco.class.getName());
 
   /** Price and quantity variability. The value is the ratio of sigma to mean */
   private double pSigma = 0.1;

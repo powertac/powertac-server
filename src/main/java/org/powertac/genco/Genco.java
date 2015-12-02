@@ -15,7 +15,8 @@
  */
 package org.powertac.genco;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
@@ -38,7 +39,7 @@ import java.util.List;
 public class Genco
   extends Broker
 {
-  static private Logger log = Logger.getLogger(Genco.class.getName());
+  static private Logger log = LogManager.getLogger(Genco.class.getName());
 
   // id values are standardized
   //private long id = IdGenerator.createId();
