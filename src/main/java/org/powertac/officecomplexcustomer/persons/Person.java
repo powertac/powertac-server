@@ -20,7 +20,8 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
@@ -47,7 +48,7 @@ public class Person
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static protected Logger log = Logger.getLogger(Person.class.getName());
+  static protected Logger log = LogManager.getLogger(Person.class.getName());
 
   @Autowired
   protected RandomSeedRepo randomSeedRepo;

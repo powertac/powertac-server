@@ -21,7 +21,8 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Tariff;
@@ -66,7 +67,7 @@ public class Office
    * appropriately. Use log.debug() for output you want to see in testing or
    * debugging.
    */
-  static protected Logger log = Logger.getLogger(Office.class.getName());
+  static protected Logger log = LogManager.getLogger(Office.class.getName());
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
