@@ -17,7 +17,8 @@ package org.powertac.balancemkt;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.repo.TariffRepo;
 
@@ -27,7 +28,7 @@ import org.powertac.common.repo.TariffRepo;
  */
 public abstract class SettlementProcessor
 {
-  protected static Logger log = Logger.getLogger(SettlementProcessor.class.getName());
+  protected static Logger log = LogManager.getLogger(SettlementProcessor.class.getName());
 
   protected TariffRepo tariffRepo;
   protected CapacityControl capacityControlService;
