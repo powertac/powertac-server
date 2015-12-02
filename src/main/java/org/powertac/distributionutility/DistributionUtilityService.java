@@ -19,7 +19,8 @@ package org.powertac.distributionutility;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.Accounting;
@@ -51,7 +52,7 @@ public class DistributionUtilityService
 extends TimeslotPhaseProcessor
 implements InitializationService
 {
-  Logger log = Logger.getLogger(this.getClass().getSimpleName());
+  static Logger log = LogManager.getLogger(DistributionUtilityService.class.getSimpleName());
 
   @Autowired
   private BrokerRepo brokerRepo;
