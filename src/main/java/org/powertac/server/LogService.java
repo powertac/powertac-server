@@ -22,11 +22,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
-import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.springframework.stereotype.Service;
 
 /**
@@ -92,61 +90,10 @@ public class LogService
         filename += "-" + id;
       }
       
-      Logger root = LogManager.getRootLogger();
-      Logger state = getStateLogger();
+      System.setProperty("logfile", "log/" + filename + ".trace");
+      System.setProperty("statefile", "log/" + filename + ".state");
       
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      Configuration cfg = ctx.getConfiguration();
-      
-      PatternLayout logLayout = PatternLayout.createLayout(
-          "%r %-5p %c{2}: %m%n",
-          null, cfg, null, null, true, false, null, null
-      );
-      FileAppender logFile = FileAppender.createAppender(
-          "log/" + filename + ".trace",
-          "false", "false", root.getName() + "File", "true", "true", "true", "8192",
-          logLayout, null, "false", null, cfg
-      );
-      LoggerConfig newRoot = LoggerConfig.createLogger(
-          "false", Level.INFO, root.getName(), "true",
-          new AppenderRef[] {
-              AppenderRef.createAppenderRef(root.getName() + "File", null, null)
-          },
-          null, cfg, null
-      );
-      newRoot.addAppender(logFile, null, null);
-      
-      PatternLayout stateLayout = PatternLayout.createLayout(
-          "%r:%m%n",
-          null, cfg, null, null, true, false, null, null
-      );
-      FileAppender stateFile = FileAppender.createAppender(
-          "log/" + filename + ".state",
-          "false", "false", state.getName() + "File", "true", "true", "true", "8192",
-          stateLayout, null, "false", null, cfg
-      );
-      LoggerConfig newState = LoggerConfig.createLogger(
-          "false", Level.INFO, state.getName(), "true",
-          new AppenderRef[] {
-              AppenderRef.createAppenderRef(state.getName() + "File", null, null)
-          },
-          null, cfg, null
-      );
-      newState.addAppender(stateFile, null, null);
-      
-      logFile.start();
-      cfg.addAppender(logFile);
-      
-      stateFile.start();
-      cfg.addAppender(stateFile);
-      
-      cfg.removeLogger(root.getName());
-      cfg.addLogger(root.getName(), newRoot);
-      
-      cfg.removeLogger(state.getName());
-      cfg.addLogger(state.getName(), newState);
-      
-      ctx.updateLoggers(cfg);
+      ((LoggerContext) LogManager.getContext(false)).reconfigure();
     }
     catch (Exception ioe) {
       System.out.println("Can't open log file");
