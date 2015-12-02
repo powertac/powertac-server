@@ -36,8 +36,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffSubscriptionRepo implements DomainRepo
 {
-  //static private Logger log = Logger.getLogger(TariffSubscriptionRepo.class.getName());
-
+  
   private HashMap<Tariff, List<TariffSubscription>> tariffMap;
   private HashMap<CustomerInfo, List<TariffSubscription>> customerMap;
   

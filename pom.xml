@@ -16,6 +16,11 @@
     interfaces and domain types shared by multiple server components
   </description>
 
+  <properties>
+    <aspectj-plugin.version>1.8</aspectj-plugin.version>
+    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
+  </properties>
+
   <!-- Sonatype OSS repo for resolving snapshot modules -->
   <repositories>
     <repository>
@@ -36,7 +41,7 @@
       <plugin>
 	<groupId>org.codehaus.mojo</groupId>
 	<artifactId>aspectj-maven-plugin</artifactId>
-	<version>1.8</version>
+	<version>${aspectj-plugin.version}</version>
 	<executions>
 	  <execution>
 	    <goals>
@@ -45,7 +50,7 @@
 	    </goals>
 	    <configuration>
 	      <verbose>false</verbose>
-	      <complianceLevel>1.8</complianceLevel>
+	      <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
 	      <weaveDependencies>
 		<weaveDependency>
 		  <groupId>org.powertac</groupId>
