@@ -28,7 +28,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.powertac.common.repo.TimeslotRepo;
 
@@ -40,7 +41,7 @@ import org.powertac.common.repo.TimeslotRepo;
  */
 final class TimeseriesGenerator
 {
-  protected Logger log = Logger.getLogger(TimeseriesGenerator.class.getName());
+    private static Logger log = LogManager.getLogger(TimeseriesGenerator.class);
 
     enum ModelType { ARIMA_101x101 }
     enum DataSource { BUILTIN, CLASSPATH, FILEPATH }

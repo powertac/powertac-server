@@ -21,7 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
@@ -51,8 +52,8 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 @Domain
 class DefaultUtilityOptimizer implements UtilityOptimizer
 {
-  protected Logger log =
-          Logger.getLogger(DefaultUtilityOptimizer.class.getName());
+  private static Logger log =
+          LogManager.getLogger(DefaultUtilityOptimizer.class.getName());
 
   protected FactoredCustomerService service;
 

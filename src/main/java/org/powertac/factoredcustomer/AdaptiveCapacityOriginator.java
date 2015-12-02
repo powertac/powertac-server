@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.DateTimeZone;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
@@ -47,6 +48,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
      implements ProfileRecommendation.Listener
 {    
     //private RandomSeedRepo randomSeedRepo;
+    private static Logger log = LogManager.getLogger(AdaptiveCapacityOriginator.class); 
     
     private final ProfileOptimizerStructure optimizerStructure;
 
@@ -63,7 +65,6 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
                                DefaultCapacityBundle bundle) 
     {
         super(service, capacityStructure, bundle);
-        log = Logger.getLogger(AdaptiveCapacityOriginator.class.getName());
         
         //randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
 

@@ -21,8 +21,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.math.stat.descriptive.moment.Variance;
-import org.apache.log4j.Logger;
+import org.apache.commons.math3.stat.descriptive.moment.Variance;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
@@ -41,14 +42,15 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 class LearningUtilityOptimizer extends DefaultUtilityOptimizer
 {
   private static final double NUM_SAMPLING_ITERATIONS = 30;
-
+  
+  private static Logger log = LogManager.getLogger(LearningUtilityOptimizer.class);
+  
   private RandomSeed recommendationMaker;
 
   LearningUtilityOptimizer (CustomerStructure structure,
                             List<CapacityBundle> bundles)
   {
     super(structure, bundles);
-    log = Logger.getLogger(LearningUtilityOptimizer.class.getName());
   }
 
   @Override

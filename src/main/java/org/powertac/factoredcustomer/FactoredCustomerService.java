@@ -19,7 +19,8 @@ package org.powertac.factoredcustomer;
 import java.io.InputStream;
 import java.util.List;
 import java.util.ArrayList;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.w3c.dom.*;
 
@@ -58,7 +59,7 @@ import org.springframework.stereotype.Service;
 public class FactoredCustomerService extends TimeslotPhaseProcessor
     implements InitializationService, NewTariffListener
 {
-    private static Logger log = Logger.getLogger(FactoredCustomerService.class.getName());
+    private static Logger log = LogManager.getLogger(FactoredCustomerService.class.getName());
 
     @Autowired
     private TimeService timeService;

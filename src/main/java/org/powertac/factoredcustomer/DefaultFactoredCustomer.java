@@ -19,7 +19,8 @@ package org.powertac.factoredcustomer;
 import java.util.List;
 import java.util.ArrayList;
 import org.w3c.dom.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -36,7 +37,7 @@ import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 @Domain
 class DefaultFactoredCustomer implements FactoredCustomer 
 {
-    protected Logger log = Logger.getLogger(DefaultFactoredCustomer.class.getName());
+    private static Logger log = LogManager.getLogger(DefaultFactoredCustomer.class);
 
     protected CustomerStructure customerStructure;    
     protected UtilityOptimizer utilityOptimizer;        
