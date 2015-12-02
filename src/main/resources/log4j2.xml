@@ -27,6 +27,20 @@
       <AppenderRef ref="StateFile"/>
     </Logger>
     
+    <!-- Higher threshold for framework packages -->
+    <Logger name="org.springframework" level="warn" additivity="false">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.apache" level="warn" additivity="false">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="com.joptimizer" level="warn" additivity="false">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.powertac.common.XMLMessageConverter" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    
     <Root level="info">
       <AppenderRef ref="LogFile"/>
     </Root>
