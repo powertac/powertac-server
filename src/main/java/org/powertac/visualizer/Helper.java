@@ -3,6 +3,7 @@ package org.powertac.visualizer;
 import java.math.BigDecimal;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Chronology;
 import org.joda.time.Instant;
 import org.powertac.common.TariffTransaction;
@@ -11,11 +12,9 @@ import org.primefaces.json.JSONException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.log4j.Logger;
-
 public class Helper {
 
-	private static Logger log = Logger.getLogger(Helper.class);
+	private static Logger log = LogManager.getLogger(Helper.class);
 
 	/**
 	 * @param tariffTransaction

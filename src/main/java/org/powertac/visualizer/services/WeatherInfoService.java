@@ -3,6 +3,7 @@ package org.powertac.visualizer.services;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
@@ -32,7 +33,7 @@ import java.util.Iterator;
 public class WeatherInfoService implements Recyclable,
 		TimeslotCompleteActivation {
 
-	private static Logger log = Logger.getLogger(WeatherInfoService.class);
+	private static Logger log = LogManager.getLogger(WeatherInfoService.class);
 
 	private ConcurrentHashMap<Integer, WeatherReport> reports;
 

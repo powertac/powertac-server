@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.BankTransaction;
 import org.powertac.common.Competition;
 import org.powertac.common.MarketPosition;
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisualizerMessageHandler implements Initializable {
 
-	private Logger log = Logger
+	private Logger log = LogManager
 			.getLogger(VisualizerMessageHandler.class);
 	@Autowired
 	private VisualizerBean visualizerBean;

@@ -6,6 +6,7 @@ import java.util.List;
 import javax.faces.bean.ManagedBean;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Service;
 public class VisualizerBean implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	private Logger log = Logger.getLogger(VisualizerBean.class);
+	private Logger log = LogManager.getLogger(VisualizerBean.class);
 
 	private int messageCounter;
 	private int visualizerRunCount;

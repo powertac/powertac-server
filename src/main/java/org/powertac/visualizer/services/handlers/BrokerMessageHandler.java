@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Service;
 public class BrokerMessageHandler implements Initializable
 {
 
-  private Logger log = Logger.getLogger(BrokerMessageHandler.class);
+  private Logger log = LogManager.getLogger(BrokerMessageHandler.class);
 
   @Autowired
   private MessageDispatcher router;

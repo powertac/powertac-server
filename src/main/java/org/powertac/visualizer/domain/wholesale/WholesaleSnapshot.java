@@ -1,6 +1,7 @@
 package org.powertac.visualizer.domain.wholesale;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Order;
 import org.powertac.common.Timeslot;
@@ -21,7 +22,7 @@ public class WholesaleSnapshot
 {
 
   private static final int MARKET_PRICE = 100;
-  Logger log = Logger.getLogger(WholesaleSnapshot.class.getName());
+  Logger log = LogManager.getLogger(WholesaleSnapshot.class.getName());
 
   // timeslot serial number value in which the snapshot is created.
   private int timeslotSerialNumberCreated;
