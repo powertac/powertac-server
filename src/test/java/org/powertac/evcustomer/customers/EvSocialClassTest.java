@@ -216,7 +216,7 @@ public class EvSocialClassTest
     assertEquals("correct name", "HighIncome_2_0",
                  customers.get(0).getName());
     assertEquals("correct boot-config list 0",
-                 "0.male.Tesla_40_kWh.x",
+                "0.male.Tesla_40_kWh.x",
                  evSocialClass.getCustomerAttributeList().get(0));
     assertEquals("correct boot-config list 1",
                  "0.male.Tesla_40_kWh.x",
@@ -237,9 +237,9 @@ public class EvSocialClassTest
     List<String> popList = (List<String>)pop;
     assertEquals("2 items", 2, popList.size());
     assertEquals("correct customer instance 0",
-                 "0.male.Tesla_40_kWh.x", popList.get(0));
+                "0.male.Tesla_40_kWh.x", popList.get(0));
     assertEquals("correct customer instance 1",
-                 "0.male.Tesla_40_kWh.x", popList.get(1));
+                "0.male.Tesla_40_kWh.x", popList.get(1));
   }
 
   // Boot-restore is triggered and creates the correct objects

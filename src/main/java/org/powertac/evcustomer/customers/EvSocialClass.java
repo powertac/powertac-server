@@ -24,6 +24,9 @@ import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import java.util.*;
 
 /**
@@ -58,7 +61,7 @@ import java.util.*;
 @ConfigurableInstance
 public class EvSocialClass extends AbstractCustomer
 {
-  //private static Logger log = Logger.getLogger(EvSocialClass.class.getName());
+  private static Logger log = LogManager.getLogger(EvSocialClass.class.getName());
 
   private RandomSeed generator;
 
@@ -235,6 +238,7 @@ public class EvSocialClass extends AbstractCustomer
 
   }
 
+  @SuppressWarnings("unchecked")
   // creates indexed lists of the various bean types
   void unpackBeans (Map<String, Collection<?>> beans)
   {
@@ -246,8 +250,17 @@ public class EvSocialClass extends AbstractCustomer
     }
 
     // car types
-    carTypes = new HashMap<String, CarType>();
-    for (Object thing : beans.get("CarType")) {
+    carTypes = new LinkedHashMap<String, CarType>();
+    @SuppressWarnings({ "rawtypes" })
+    List tmp = new ArrayList(beans.get("CarType"));
+    Collections.sort(tmp, new Comparator<CarType>(){
+      @Override
+      public int compare (CarType o1, CarType o2)
+      {
+        return o1.getId() < o2.getId() ? -1 : o1.getId() > o2.getId() ? 1 : 0;
+      }
+    });
+    for (Object thing : tmp) {
       CarType car = (CarType) thing;
       carTypes.put(car.getName(), car);
     }
