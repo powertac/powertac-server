@@ -13,13 +13,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
 @DirtiesContext
+@TestExecutionListeners(listeners = {
+  DependencyInjectionTestExecutionListener.class,
+  DirtiesContextTestExecutionListener.class
+})
 public class CompetitionTests
 {
 
