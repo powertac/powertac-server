@@ -25,6 +25,7 @@
     <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
 
     <log4j.version>2.4.1</log4j.version>
+    <commons-logging.version>1.2</commons-logging.version>
 
     <commons-configuration.version>1.10</commons-configuration.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>
@@ -102,6 +103,11 @@
       <artifactId>log4j-jcl</artifactId>
       <version>${log4j.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>${commons-logging.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
