@@ -22,7 +22,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -55,7 +56,7 @@ import org.powertac.common.state.StateChange;
 @Domain
 public class Tariff
 {
-  static private Logger log = Logger.getLogger(Tariff.class.getName());
+  static private Logger log = LogManager.getLogger(Tariff.class.getName());
 
   // ----------- State enumeration --------------
 

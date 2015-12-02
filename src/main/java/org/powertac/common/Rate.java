@@ -18,7 +18,8 @@ package org.powertac.common;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.*;
 import org.joda.time.base.AbstractDateTime;
 import org.joda.time.base.AbstractInstant;
@@ -99,7 +100,7 @@ import com.thoughtworks.xstream.annotations.*;
 @XStreamAlias("rate")
 public class Rate extends RateCore
 {
-  static private Logger log = Logger.getLogger(Rate.class.getName());
+  static private Logger log = LogManager.getLogger(Rate.class.getName());
 
   @XStreamAsAttribute
   private int weeklyBegin = -1; // weekly applicability

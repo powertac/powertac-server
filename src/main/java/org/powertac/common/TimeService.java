@@ -22,7 +22,8 @@ import java.util.TreeSet;
 import org.powertac.common.state.StateChange;
 
 import org.apache.commons.configuration.MapConfiguration;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -67,7 +68,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TimeService 
 {
-  static private Logger log = Logger.getLogger(TimeService.class.getName());
+  static private Logger log = LogManager.getLogger(TimeService.class.getName());
 
   public static final long SECOND = 1000l;
   public static final long MINUTE = SECOND * 60;

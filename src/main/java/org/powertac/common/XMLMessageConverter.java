@@ -22,8 +22,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimPause;
@@ -46,7 +46,7 @@ import com.thoughtworks.xstream.XStream;
 @Service
 public class XMLMessageConverter 
 {
-  private static final Log log = LogFactory.getLog(XMLMessageConverter.class);
+  private static final Logger log = LogManager.getLogger(XMLMessageConverter.class);
   
   @SuppressWarnings("rawtypes")
   private Class[] commandClasses = { CustomerBootstrapData.class, SimEnd.class,

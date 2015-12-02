@@ -22,7 +22,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.Rate;
 import org.powertac.common.Tariff;
@@ -38,7 +39,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(TariffRepo.class.getName());
+  static private Logger log = LogManager.getLogger(TariffRepo.class.getName());
   
   //@Autowired
   //private TimeService timeService;

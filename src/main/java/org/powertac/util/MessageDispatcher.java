@@ -18,7 +18,8 @@ package org.powertac.util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Static resource for dispatching messages. Helps avoid visitor or 
@@ -42,7 +43,7 @@ public class MessageDispatcher
                                  String methodName, 
                                  Object... args)
   {
-    Logger log = Logger.getLogger(target.getClass().getName());
+    Logger log = LogManager.getLogger(target.getClass().getName());
     Object result = null;
     try {
       Class[] classes = new Class[args.length];

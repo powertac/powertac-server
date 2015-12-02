@@ -15,7 +15,8 @@
  */
 package org.powertac.common.xml;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Broker;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -29,14 +30,13 @@ import com.thoughtworks.xstream.converters.SingleValueConverter;
  */
 public class BrokerConverter implements SingleValueConverter
 {
-  private static Logger log = Logger.getLogger(BrokerConverter.class.getName());
+  private static Logger log = LogManager.getLogger(BrokerConverter.class.getName());
   
   private BrokerRepo brokerRepo;
   
   public BrokerConverter ()
   {
     super();
-    brokerRepo = (BrokerRepo) SpringApplicationContext.getBean("brokerRepo");
   }
   
   @SuppressWarnings("rawtypes")
@@ -54,6 +54,10 @@ public class BrokerConverter implements SingleValueConverter
   public Object fromString (String username)
   {
     if (brokerRepo == null) {
+      brokerRepo = (BrokerRepo) SpringApplicationContext.getBean("brokerRepo");
+    }
+    if (brokerRepo == null) {
+      // get here if no Spring context
       log.warn("no autowire BrokerRepo - using singleton");
       brokerRepo = BrokerRepo.getInstance();
     }

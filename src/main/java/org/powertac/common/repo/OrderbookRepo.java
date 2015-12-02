@@ -19,7 +19,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class OrderbookRepo implements DomainRepo
 {
-  static private Logger log = Logger.getLogger(OrderbookRepo.class.getName());
+  static private Logger log = LogManager.getLogger(OrderbookRepo.class.getName());
 
   @Autowired
   private TimeService timeService;

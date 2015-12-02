@@ -20,8 +20,9 @@ import java.util.Map;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.LogManager;
 //import org.apache.log4j.Logger;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.WeatherForecast;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -38,7 +39,7 @@ import org.powertac.common.exceptions.PowerTacException;
 public class WeatherForecastRepo implements DomainRepo
 {
   static private Logger log =
-          Logger.getLogger(WeatherForecastRepo.class.getName());
+          LogManager.getLogger(WeatherForecastRepo.class.getName());
 
   // storage
   private Map<Integer, WeatherForecast> indexedWeatherForecasts;

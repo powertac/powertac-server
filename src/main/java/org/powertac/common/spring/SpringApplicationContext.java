@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
  * as a service so Spring will create and initialize it.
  * 
  * NOTE: These methods should NOT be used in constructors. Doing so makes it
- * vitually impossible to test with mocks, and makes transitive dependencies
+ * virtually impossible to test with mocks, and makes transitive dependencies
  * very difficult in a test environment. Better to use them in individual
  * "service getter" methods that do nothing for dependencies that have
  * already been satisfied by test code using ReflectionTestUtils.setField().

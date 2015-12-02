@@ -21,6 +21,7 @@ import java.io.StringWriter;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.HourlyCharge;
@@ -29,6 +30,12 @@ import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.BrokerRepo;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 import com.thoughtworks.xstream.XStream;
 
@@ -36,6 +43,13 @@ import com.thoughtworks.xstream.XStream;
  * Tests for VRU
  * @author John Collins
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:test-config.xml"})
+@DirtiesContext
+@TestExecutionListeners(listeners = {
+  DependencyInjectionTestExecutionListener.class,
+  DirtiesContextTestExecutionListener.class
+})
 public class VariableRateUpdateTests
 {
   private Broker broker;

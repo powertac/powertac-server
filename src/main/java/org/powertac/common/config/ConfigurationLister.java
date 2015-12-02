@@ -3,7 +3,8 @@
  */
 package org.powertac.common.config;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This is a helper class for generating a sample configuration file from configured instances.
@@ -14,6 +15,6 @@ import org.apache.log4j.Logger;
  */
 public class ConfigurationLister
 {
-  static private Logger log = Logger.getLogger(ConfigurationLister.class);
+  static private Logger log = LogManager.getLogger(ConfigurationLister.class);
 
 }

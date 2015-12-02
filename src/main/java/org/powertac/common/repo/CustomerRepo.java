@@ -21,7 +21,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.util.Predicate;
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Repository;
 public class CustomerRepo implements DomainRepo
 {
   @SuppressWarnings("unused")
-  static private Logger log = Logger.getLogger(CustomerRepo.class.getName());
+  static private Logger log = LogManager.getLogger(CustomerRepo.class.getName());
 
   private HashMap<Long,CustomerInfo> customers;
   

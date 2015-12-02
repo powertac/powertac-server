@@ -16,7 +16,8 @@
 
 package org.powertac.common;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.ChainedConstructor;
@@ -53,7 +54,7 @@ import com.thoughtworks.xstream.annotations.XStreamConverter;
 @XStreamAlias("order")
 public class Order extends XStreamStateLoggable
 {  
-  static private Logger log = Logger.getLogger(Order.class);
+  static private Logger log = LogManager.getLogger(Order.class);
 
   @XStreamAsAttribute
   private long id = IdGenerator.createId();

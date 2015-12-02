@@ -15,7 +15,8 @@
  */
 package org.powertac.common.msg;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.state.Domain;
 
@@ -49,7 +50,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 @XStreamAlias("economic-control")
 public class EconomicControlEvent extends ControlEvent
 {
-  static private Logger log = Logger.getLogger(EconomicControlEvent.class.getName());
+  static private Logger log = LogManager.getLogger(EconomicControlEvent.class.getName());
 
   @XStreamAsAttribute
   private double curtailmentRatio = 0.0;
