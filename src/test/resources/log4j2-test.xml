@@ -27,6 +27,10 @@
       <AppenderRef ref="StateFile"/>
     </Logger>
     
+    <Logger name="org.springframework" level="warn" additivity="false">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    
     <Root level="debug">
       <AppenderRef ref="LogFile"/>
     </Root>
