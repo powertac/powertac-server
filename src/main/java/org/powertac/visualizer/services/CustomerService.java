@@ -1,6 +1,7 @@
 package org.powertac.visualizer.services;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
@@ -24,7 +25,7 @@ import java.util.Map.Entry;
 @Service
 public class CustomerService implements TimeslotCompleteActivation, Recyclable {
 
-	private static Logger log = Logger.getLogger(CustomerService.class);
+	private static Logger log = LogManager.getLogger(CustomerService.class);
 
 	private HashMap<CustomerInfo, Customer> customerMap;
 	private ArrayList<Customer> customerList;

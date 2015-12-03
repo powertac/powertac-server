@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import javax.el.ELContext;
 import javax.el.ValueExpression;
 import javax.faces.application.Resource;
@@ -20,7 +20,7 @@ import org.primefaces.util.Constants;
 
 public class CustomResourceHandler extends ResourceHandlerWrapper {
 
-	 private final static Logger logger = Logger.getLogger(CustomResourceHandler.class.getName());
+	 private final static Logger logger = LogManager.getLogger(CustomResourceHandler.class.getName());
      
 	    public static final String DYNAMIC_CONTENT_PARAM = "pfdrid";
 	    
@@ -68,7 +68,7 @@ public class CustomResourceHandler extends ResourceHandlerWrapper {
 	                context.responseComplete();
 
 	            } catch(Exception e) {
-	                logger.log(Level.SEVERE, "Error in streaming dynamic resource.\n"+e.toString());
+	                logger.error("Error in streaming dynamic resource.\n"+e.toString());
 	            } finally {
 	                session.remove(dynamicContentId);
 	            }

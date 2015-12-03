@@ -1,6 +1,7 @@
 package org.powertac.visualizer.domain.wholesale;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.json.WholesaleMarketJSON;
@@ -22,7 +23,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class WholesaleMarket  {
 	
-	private static Logger log = Logger.getLogger(WholesaleMarket.class);
+	private static Logger log = LogManager.getLogger(WholesaleMarket.class);
 	private Timeslot timeslot;
 	private int timeslotSerialNumber;
 	private Map<Integer, WholesaleSnapshot> snapshotsMap = new ConcurrentSkipListMap<Integer, WholesaleSnapshot>();

@@ -1,6 +1,7 @@
 package org.powertac.visualizer;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.TariffSpecification;
@@ -29,7 +30,7 @@ import java.util.Set;
 @Service
 public class MessageDispatcher
 {
-  static private Logger log = Logger.getLogger(MessageDispatcher.class);
+  static private Logger log = LogManager.getLogger(MessageDispatcher.class);
 
   @Autowired
   private CustomerRepo customerRepo;
@@ -97,7 +98,7 @@ public class MessageDispatcher
   static public Object dispatch (Object target, String methodName,
                                  Object... args)
   {
-    Logger log = Logger.getLogger(target.getClass().getName());
+    Logger log = LogManager.getLogger(target.getClass().getName());
     Object result = null;
     try {
       Class[] classes = new Class[args.length];

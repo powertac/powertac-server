@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.MarketPosition;
 import org.powertac.common.MarketTransaction;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Service;
 public class WholesaleMessageHandler implements Initializable
 {
 
-  private Logger log = Logger.getLogger(WholesaleMessageHandler.class);
+  private Logger log = LogManager.getLogger(WholesaleMessageHandler.class);
 
   @Autowired
   private VisualizerBean visualizerBean;

@@ -1,6 +1,7 @@
 package org.powertac.visualizer.domain.wholesale;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
@@ -17,7 +18,7 @@ import java.util.TreeSet;
  * @author Jurica Babic
  */
 public class VisualizerOrderbook {
-  private Logger log = Logger.getLogger(VisualizerOrderbook.class);
+  private Logger log = LogManager.getLogger(VisualizerOrderbook.class);
 	
 	private Instant dateExecuted;
 

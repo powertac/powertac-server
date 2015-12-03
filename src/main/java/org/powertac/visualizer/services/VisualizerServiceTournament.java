@@ -18,9 +18,8 @@ package org.powertac.visualizer.services;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
-import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
+import org.apache.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.msg.BrokerAccept;
@@ -80,7 +79,7 @@ public class VisualizerServiceTournament
     implements MessageListener, InitializingBean
 {
   static private Logger log =
-      Logger.getLogger(VisualizerServiceTournament.class.getName());
+      LogManager.getLogger(VisualizerServiceTournament.class.getName());
 
   @Resource(name = "jmsFactory")
   private ConnectionFactory connectionFactory;
@@ -142,6 +141,10 @@ public class VisualizerServiceTournament
   public void init ()
   {
     // Start the logger
+
+    /* Erik: TODO need to re-implement this dynamic log4j config but didn't
+     * think it wise to do this now (new one visualizer is being developed)
+
     Logger root = Logger.getRootLogger();
     root.removeAllAppenders();
     try {
@@ -159,6 +162,7 @@ public class VisualizerServiceTournament
       log.info("Can't open log file");
       System.exit(0);
     }
+    */
 
     // Start the message feeder
     messageFeeder = new Thread(messagePump);

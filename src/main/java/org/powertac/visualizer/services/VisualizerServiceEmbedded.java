@@ -17,6 +17,7 @@
 package org.powertac.visualizer.services;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.LogManager;
 import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.visualizer.MessageDispatcher;
@@ -39,7 +40,7 @@ import java.util.List;
 @Service
 public class VisualizerServiceEmbedded implements VisualizerMessageListener {
 	static private Logger log =
-      Logger.getLogger(VisualizerServiceEmbedded.class.getName());
+      LogManager.getLogger(VisualizerServiceEmbedded.class.getName());
 
 	@Autowired
 	private VisualizerBean visualizerBean;
