@@ -56,7 +56,6 @@ public class XMLMessageConverter
   
   // inject context here so that it would be initialized before this class
   // @PostConstruct method get called and use the singleton.
-  @SuppressWarnings("unused")
   @Autowired
   private SpringApplicationContext context;
 
