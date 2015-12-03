@@ -105,18 +105,18 @@ public class WholesaleMessageHandler implements Initializable
 
   public void handleMessage (Order order)
   {
-    log.info("+++ Order in ts:" + helper.getSafetyTimeslotIndex() + "-- From: "
-             + order.getBroker() + ", for TS: " + order.getTimeslotIndex());
-
-    BrokerModel broker =
-      brokerService.getBrokersMap().get(order.getBroker().getUsername());
-
-    if (broker != null) {
-      WholesaleCategory cat = broker.getWholesaleCategory();
-      int tsIndex = order.getTimeslotIndex();
-      cat.getOrders().putIfAbsent(tsIndex, new ArrayList<Order>(24));
-      cat.getOrders().get(tsIndex).add(order);
-    }
+//    log.info("+++ Order in ts:" + helper.getSafetyTimeslotIndex() + "-- From: "
+//             + order.getBroker() + ", for TS: " + order.getTimeslotIndex());
+//
+//    BrokerModel broker =
+//      brokerService.getBrokersMap().get(order.getBroker().getUsername());
+//
+//    if (broker != null) {
+//      WholesaleCategory cat = broker.getWholesaleCategory();
+//      int tsIndex = order.getTimeslotIndex();
+//      cat.getOrders().putIfAbsent(tsIndex, new ArrayList<Order>(24));
+//      cat.getOrders().get(tsIndex).add(order);
+//    }
 
   }
 

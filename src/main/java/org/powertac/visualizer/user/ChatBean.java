@@ -22,7 +22,7 @@ public class ChatBean implements Serializable {
 	
 	private ChatGlobal chatGlobal;
 	
-	//@Autowired
+	@Autowired
 	public ChatBean(ChatGlobal chatGlobal) {
 	this.chatGlobal=chatGlobal;
 	}

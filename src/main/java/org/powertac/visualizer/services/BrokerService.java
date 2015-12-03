@@ -36,8 +36,8 @@ import org.powertac.visualizer.statistical.FinanceCategory;
 import org.powertac.visualizer.statistical.FinanceDynamicData;
 import org.powertac.visualizer.statistical.TariffCategory;
 import org.powertac.visualizer.statistical.WholesaleCategory;
-import org.primefaces.push.PushContext;
-import org.primefaces.push.PushContextFactory;
+import org.primefaces.push.EventBus;
+import org.primefaces.push.EventBusFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -110,7 +110,7 @@ public class BrokerService
   public void activate (int timeslotIndex, Instant postedTime)
   {
     // // do the push:
-    PushContext pushContext = PushContextFactory.getDefault().getPushContext();
+    EventBus pushContext = EventBusFactory.getDefault().eventBus();
 
     Gson gson = new Gson();
     ArrayList<TariffMarketPusher> tariffMarketPushers =
@@ -296,16 +296,16 @@ public class BrokerService
       visualizerBean.setNominationPusher(np);
     }
 
-    pushContext.push("/tariffpush", gson.toJson(tariffMarketPushers));
-    pushContext.push("/wholesalemarketpush",
+    pushContext.publish("/tariffpush", gson.toJson(tariffMarketPushers));
+    pushContext.publish("/wholesalemarketpush",
                      gson.toJson(wholesaleMarketPushers));
-    pushContext.push("/balancingmarketpush",
+    pushContext.publish("/balancingmarketpush",
                      gson.toJson(balancingMarketPushers));
-    pushContext.push("/distributionpush", gson.toJson(distributionPushers));
-    pushContext.push("/financepush", gson.toJson(financePushers));
-    pushContext.push("/markettransactionepush", gson.toJson(allWholesaleData));
-    pushContext.push("/gameoverview", gson.toJson(brokersOverview));
-    pushContext.push("/ranking", getRanking());
+    pushContext.publish("/distributionpush", gson.toJson(distributionPushers));
+    pushContext.publish("/financepush", gson.toJson(financePushers));
+    pushContext.publish("/markettransactionepush", gson.toJson(allWholesaleData));
+    pushContext.publish("/gameoverview", gson.toJson(brokersOverview));
+    pushContext.publish("/ranking", getRanking());
   }
 
   public ArrayList<BrokerModel> getBrokers ()
