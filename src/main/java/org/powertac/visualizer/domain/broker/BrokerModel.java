@@ -1,8 +1,8 @@
 package org.powertac.visualizer.domain.broker;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.visualizer.domain.Appearance;
 import org.powertac.visualizer.statistical.BalancingCategory;
 import org.powertac.visualizer.statistical.DistributionCategory;

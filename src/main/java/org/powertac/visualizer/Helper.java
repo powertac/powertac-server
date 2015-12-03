@@ -2,8 +2,8 @@ package org.powertac.visualizer;
 
 import java.math.BigDecimal;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Chronology;
 import org.joda.time.Instant;
 import org.powertac.common.TariffTransaction;

@@ -1,7 +1,7 @@
 package org.powertac.visualizer.services;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;

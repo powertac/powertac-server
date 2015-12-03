@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;

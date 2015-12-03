@@ -2,8 +2,8 @@ package org.powertac.visualizer.services.handlers;
 
 
 import java.util.Arrays;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.WeatherForecast;
 import org.powertac.common.WeatherReport;
 import org.powertac.visualizer.MessageDispatcher;

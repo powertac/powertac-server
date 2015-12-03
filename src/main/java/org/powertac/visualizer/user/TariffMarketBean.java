@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.display.CustomerStatisticsTemplate;

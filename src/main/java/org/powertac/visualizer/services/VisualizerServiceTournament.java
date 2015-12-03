@@ -18,8 +18,8 @@ package org.powertac.visualizer.services;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.msg.BrokerAccept;

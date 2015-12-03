@@ -1,8 +1,8 @@
 package org.powertac.visualizer.domain.genco;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;

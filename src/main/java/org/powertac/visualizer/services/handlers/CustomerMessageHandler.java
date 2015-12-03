@@ -1,7 +1,7 @@
 package org.powertac.visualizer.services.handlers;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.msg.CustomerBootstrapData;

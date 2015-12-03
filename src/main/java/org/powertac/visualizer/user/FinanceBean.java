@@ -8,7 +8,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
 import org.powertac.visualizer.display.BrokerSeriesTemplate;
 import org.powertac.visualizer.domain.broker.BrokerModel;
 import org.powertac.visualizer.services.BrokerService;

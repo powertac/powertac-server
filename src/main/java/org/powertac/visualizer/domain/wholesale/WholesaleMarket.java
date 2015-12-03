@@ -1,7 +1,7 @@
 package org.powertac.visualizer.domain.wholesale;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Timeslot;
 import org.powertac.visualizer.Helper;
 import org.powertac.visualizer.json.WholesaleMarketJSON;

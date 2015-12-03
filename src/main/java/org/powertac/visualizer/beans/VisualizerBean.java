@@ -5,8 +5,8 @@ import java.util.List;
 
 import javax.faces.bean.ManagedBean;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Competition;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.msg.TimeslotUpdate;
