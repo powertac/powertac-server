@@ -27,7 +27,8 @@ import javax.jms.Message;
 import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.XMLMessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MessageDispatcher
 {
-  static private Logger log = Logger.getLogger(MessageDispatcher.class);
+  static private Logger log = LogManager.getLogger(MessageDispatcher.class);
 
   @Autowired
   private XMLMessageConverter converter;

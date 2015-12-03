@@ -17,7 +17,8 @@ package org.powertac.samplebroker.core;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.connection.CachingConnectionFactory;
@@ -36,7 +37,7 @@ import java.util.concurrent.Executor;
 @Service
 public class JmsManagementService
 {
-  static private Logger log = Logger.getLogger(JmsManagementService.class);
+  static private Logger log = LogManager.getLogger(JmsManagementService.class);
 
   @Resource(name = "jmsFactory")
   private ConnectionFactory connectionFactory;
