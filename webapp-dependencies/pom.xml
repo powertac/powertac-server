@@ -16,8 +16,8 @@
   </parent>
 
   <properties>
-    <springwebflow-version>2.3.0.RELEASE</springwebflow-version>
-    <springsecurity-version>3.0.3.RELEASE</springsecurity-version>
+    <springwebflow-version>2.4.2.RELEASE</springwebflow-version>
+    <springsecurity-version>4.0.3.RELEASE</springsecurity-version>
   </properties>
 
   <dependencies>
@@ -85,18 +85,18 @@
     <dependency>
       <groupId>com.sun.faces</groupId>
       <artifactId>jsf-api</artifactId>
-      <version>2.0.3</version>
+      <version>2.2.12</version>
     </dependency>
     <dependency>
       <groupId>com.sun.faces</groupId>
       <artifactId>jsf-impl</artifactId>
-      <version>2.0.3</version>
+      <version>2.2.12</version>
     </dependency>
     <!-- PrimeFaces component library -->
     <dependency>
       <groupId>org.primefaces</groupId>
       <artifactId>primefaces</artifactId>
-      <version>3.5</version>
+      <version>5.3</version>
     </dependency>
     <!-- Primefaces theme -->
     <dependency>
@@ -113,7 +113,7 @@
     <dependency>
       <groupId>org.atmosphere</groupId>
       <artifactId>atmosphere-runtime</artifactId>
-      <version>1.1.0.RC4</version>
+      <version>2.4.1</version>
     </dependency>
 
     <!-- JSR 303 validation -->
