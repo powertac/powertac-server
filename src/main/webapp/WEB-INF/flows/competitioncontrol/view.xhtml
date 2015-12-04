@@ -106,7 +106,7 @@
 
 					<h:panelGroup layout="block">
 						<p:commandButton value="Add broker" update="display"
-							oncomplete="dialog.show()" />
+							oncomplete="PF('dialog').show()" />
 						<p:commandButton value="Reset"
 							actionListener="#{gameParametersBean.resetBrokerList}"
 							update="comp_form" />
@@ -148,10 +148,10 @@
 
 					<p:commandButton value="Add"
 						actionListener="#{gameParametersBean.addBroker}"
-						update="comp_form" oncomplete="dialog.hide()" />
+						update="comp_form" oncomplete="PF('dialog').hide()" />
 						<p:commandButton value="Cancel"
 						
-						update="comp_form" oncomplete="dialog.hide()" />
+						update="comp_form" oncomplete="PF('dialog').hide()" />
 				</h:panelGrid>
 			</p:dialog>
 			<hr />
