@@ -10,18 +10,14 @@ import org.powertac.common.WeatherReport;
 import org.powertac.visualizer.beans.VisualizerBean;
 import org.powertac.visualizer.interfaces.Recyclable;
 import org.powertac.visualizer.interfaces.TimeslotCompleteActivation;
-import org.powertac.visualizer.push.TariffMarketPusher;
 import org.powertac.visualizer.push.WeatherPusher;
 import org.powertac.visualizer.services.handlers.VisualizerHelperService;
-import org.primefaces.push.PushContext;
-import org.primefaces.push.PushContextFactory;
+import org.primefaces.push.EventBus;
+import org.primefaces.push.EventBusFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
-
-import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Service for weather-related data
@@ -85,8 +81,7 @@ public class WeatherInfoService implements Recyclable,
 	public void activate(int timeslotIndex, Instant postedTime) {
 		if (currentReport != null) {
 			// // do the push:
-			PushContext pushContext = PushContextFactory.getDefault()
-					.getPushContext();
+			EventBus pushContext = EventBusFactory.getDefault().eventBus();
 			Gson gson = new Gson();
 			WeatherPusher weather = new WeatherPusher(
 					helper.getMillisForIndex(currentReport.getCurrentTimeslot()
@@ -97,7 +92,7 @@ public class WeatherInfoService implements Recyclable,
 					currentReport.getCloudCover(), currentReport.getTimeslotIndex());
 			visualizerBean.setWeatherPusher(weather);
 			String weatherReportPush = gson.toJson(weather);
-			pushContext.push("/weather", weatherReportPush);
+			pushContext.publish("/weather", weatherReportPush);
 			
 		}
 

@@ -69,6 +69,11 @@
   <servlet>
     <servlet-name>Push Servlet</servlet-name>
     <servlet-class>org.primefaces.push.PushServlet</servlet-class>
+    <init-param>
+        <param-name>org.atmosphere.cpr.broadcasterCacheClass</param-name>
+        <param-value>org.atmosphere.cache.UUIDBroadcasterCache</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
     <async-supported>true</async-supported>
 
   </servlet>
@@ -96,5 +101,10 @@
     <param-name>javax.faces.FACELETS_LIBRARIES</param-name>
     <param-value>/WEB-INF/tags/visualizer.taglib.xml</param-value>
   </context-param>
+  
+  <mime-mapping>
+  <extension>woff</extension>
+  <mime-type>application/octet-stream</mime-type>
+  </mime-mapping>
 
 </web-app>

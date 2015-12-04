@@ -47,7 +47,7 @@
 					useUTC : true
 				}
 			});
-			handleGlobalMsg(#{globalBean.globalPusher});
+		
 
 		});
 		
@@ -320,63 +320,13 @@
 
 				<div></div>
 
-				<div class="page">
 
-					<div class="grid">
-						<div class="row">
-							<br />
-							<div class="span3 bg-color-blue padding10 text-center"
-								style="height: 170px">
-								<h1 class="fg-color-white">Chat</h1>
-								<br /> <img
-									src="#{resource['images/preloader-w8-line-white.gif']}"
-									class="place-right" style="margin: 10px;" />
-							</div>
-
-							<div class="span4 border-color-blue padding10"
-								style="height: 170px">
-								<h:form>
-									<h:panelGrid columns="2">
-										<h:outputText value="Name*:" />
-										<p:inputText value="#{chatBean.name}" required="true"
-											style="width:120px" />
-
-										<h:outputText value="Message*:" />
-										<p:inputText value="#{chatBean.msg}" required="true"
-											style="width:120px" />
-									</h:panelGrid>
-									<h:outputText value="*required" />
-									<p:commandButton value="Send"
-										actionListener="#{chatBean.sendMsg}"
-										styleClass="standart default place-right" />
-								</h:form>
-							</div>
-
-							<div class="span5 bg-color-blue padding10">
-
-								<div id="chatwindow" style="height: 150px; overflow-y: scroll;"
-									class="fg-color-white">
-									<ui:repeat var="msg" value="#{chatGlobal.msgs}">
-				#{msg} <br />
-									</ui:repeat>
-								</div>
-
-							</div>
-
-
-						</div>
-					</div>
-
-
-
-
-				</div>
 
 
 				<div class="page">
 					<div class="nav-bar">
 						<div class="nav-bar-inner padding10">
-							<span class="element"> 2013, Power TAC </span>
+							<span class="element"> 2015, Power TAC </span>
 							<div class="divider"></div>
 							<span class="element"><a class="fg-color-white"
 								href="http://www.powertac.org/">Official website</a> </span>
@@ -428,9 +378,10 @@
 			})
 		}
 		function handleGlobalMsg(data) {
-			
+			console.log(data);
 			
 			var pushObject = jQuery.parseJSON(data);
+			console.log(pushObject);
 			//bad hacking:
 			if(pushObject ==null){
 				pushObject = data;

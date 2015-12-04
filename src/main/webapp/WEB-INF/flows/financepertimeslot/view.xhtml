@@ -22,9 +22,11 @@
 		
 		var array = jQuery.parseJSON(data);
 		var cnt = 0;
+		console.log(data);
 		jQuery.each(array, function() {
 			  var pushObject = this;
 			  //known ordering: profit
+			  console.log(pushObject);
 			  financeDynDataOneTimeslot.series[cnt++].addPoint([pushObject["millis"],pushObject["profitDelta"]],false);
 		 
 			});
