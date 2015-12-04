@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="warn" strict="true">
   <Properties>
-    <Property name="logfile">log${sys:s}/${sys:simNode}init.trace</Property>
-    <Property name="statefile">log${sys:s}/${sys:simNode}init.state</Property>
+    <Property name="logfile">log/init.trace</Property>
+    <Property name="statefile">log/init.state</Property>
   </Properties>
   
   <Appenders>
@@ -27,13 +27,16 @@
       <AppenderRef ref="StateFile"/>
     </Logger>
     
-    <Logger name="org.springframework" level="info" additivity="false">
+    <Logger name="org.springframework" level="warn" additivity="false">
       <AppenderRef ref="LogFile" />
     </Logger>
-    <Logger name="org.apache" level="info" additivity="false">
+    <Logger name="org.apache" level="warn" additivity="false">
       <AppenderRef ref="LogFile" />
     </Logger>
     <Logger name="org.powertac.common.XMLMessageConverter" level="warn">
+      <AppenderRef ref="LogFile" />
+    </Logger>
+    <Logger name="org.powertac.visualizer" level="warn">
       <AppenderRef ref="LogFile" />
     </Logger>
     
