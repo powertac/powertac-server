@@ -24,9 +24,9 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
-import org.apache.log4j.Appender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Logger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -141,20 +141,9 @@ public class BrokerRunner
   // reopen the logfiles for each session
   private void reopenLogs(int counter)
   {
-    Logger root = Logger.getRootLogger();
-    @SuppressWarnings("unchecked")
-    Enumeration<Appender> rootAppenders = root.getAllAppenders();
-    FileAppender logOutput = (FileAppender) rootAppenders.nextElement();
-    // assume there's only the one, and that it's a file appender
-    logOutput.setFile("log/broker" + counter + ".trace");
-    logOutput.activateOptions();
+    System.setProperty("logfile", "log/broker" + counter + ".trace");
+    System.setProperty("statefile", "log/broker" + counter + ".state");
     
-    Logger state = Logger.getLogger("State");
-    @SuppressWarnings("unchecked")
-    Enumeration<Appender> stateAppenders = state.getAllAppenders();
-    FileAppender stateOutput = (FileAppender) stateAppenders.nextElement();
-    // assume there's only the one, and that it's a file appender
-    stateOutput.setFile("log/broker" + counter + ".state");
-    stateOutput.activateOptions();
+    ((LoggerContext) LogManager.getContext(false)).reconfigure();
   }
 }

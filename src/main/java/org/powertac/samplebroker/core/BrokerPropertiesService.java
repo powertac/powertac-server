@@ -24,7 +24,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.Configurator;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -39,7 +40,7 @@ import org.springframework.stereotype.Service;
 public class BrokerPropertiesService
 implements ApplicationContextAware
 {
-  static private Logger log = Logger.getLogger(BrokerPropertiesService.class);
+  static private Logger log = LogManager.getLogger(BrokerPropertiesService.class);
 
   private ApplicationContext context;
   private CompositeConfiguration config;

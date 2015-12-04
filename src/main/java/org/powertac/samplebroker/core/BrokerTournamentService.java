@@ -26,7 +26,8 @@ import net.sf.json.JSONObject;
 import net.sf.json.JSONSerializer;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ import org.w3c.dom.Node;
 @Service
 public class BrokerTournamentService
 {
-  static private Logger log = Logger.getLogger(BrokerTournamentService.class);
+  static private Logger log = LogManager.getLogger(BrokerTournamentService.class);
 
   @Autowired
   private BrokerPropertiesService brokerPropertiesService;

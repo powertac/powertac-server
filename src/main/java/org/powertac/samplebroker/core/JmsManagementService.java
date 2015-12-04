@@ -15,65 +15,56 @@
  */
 package org.powertac.samplebroker.core;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Executor;
-
-import javax.annotation.Resource;
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.MessageListener;
-import javax.jms.Session;
-
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.pool.PooledConnectionFactory;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.connection.CachingConnectionFactory;
-import org.springframework.jms.listener.AbstractMessageListenerContainer;
 import org.springframework.jms.listener.DefaultMessageListenerContainer;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import javax.jms.ConnectionFactory;
+import javax.jms.MessageListener;
+import java.util.concurrent.Executor;
+
+
 /**
- * 
  * @author Nguyen Nguyen, John Collins
  */
 @Service
-public class JmsManagementService {
-  static private Logger log = Logger.getLogger(JmsManagementService.class);
+public class JmsManagementService
+{
+  static private Logger log = LogManager.getLogger(JmsManagementService.class);
 
-  @Resource(name="jmsFactory")
+  @Resource(name = "jmsFactory")
   private ConnectionFactory connectionFactory;
-  
+
   @Autowired
   private Executor taskExecutor;
-  
+
   @Autowired
   private BrokerPropertiesService brokerPropertiesService;
-  
-  // configurable parameters
-  private String serverQueueName = "serverInput"; 
-  private String jmsBrokerUrl = "tcp://localhost:61616";
-  
-  // JMS artifacts
-  Connection connection;
-  boolean connectionOpen = false;
-  DefaultMessageListenerContainer container;
-  Session session;
 
-  private Map<MessageListener,AbstractMessageListenerContainer> listenerContainerMap = 
-      new HashMap<MessageListener,AbstractMessageListenerContainer>();
-  
+  // configurable parameters
+  private String serverQueueName = "serverInput";
+  private String jmsBrokerUrl = "tcp://localhost:61616";
+
+  // JMS artifacts
+  private boolean connectionOpen = false;
+  private DefaultMessageListenerContainer container;
+
   public void init (String overridenBrokerUrl,
                     String serverQueueName)
   {
     brokerPropertiesService.configureMe(this);
-    this.serverQueueName = serverQueueName; 
+    this.serverQueueName = serverQueueName;
     if (overridenBrokerUrl != null && !overridenBrokerUrl.isEmpty()) {
       setJmsBrokerUrl(overridenBrokerUrl);
     }
-    
+
     ActiveMQConnectionFactory amqConnectionFactory = null;
     if (connectionFactory instanceof PooledConnectionFactory) {
       PooledConnectionFactory pooledConnectionFactory = (PooledConnectionFactory) connectionFactory;
@@ -94,9 +85,9 @@ public class JmsManagementService {
       amqConnectionFactory.setBrokerURL(getJmsBrokerUrl());
     }
   }
-  
-  public void registerMessageListener(MessageListener listener,
-                                      String destinationName)
+
+  public void registerMessageListener (MessageListener listener,
+                                       String destinationName)
   {
     log.info("registerMessageListener(" + destinationName + ", " + listener + ")");
     container = new DefaultMessageListenerContainer();
@@ -106,13 +97,12 @@ public class JmsManagementService {
     container.setTaskExecutor(taskExecutor);
     container.afterPropertiesSet();
     container.start();
-    
-    listenerContainerMap.put(listener, container);
   }
 
   public synchronized void shutdown ()
   {
-    Runnable callback = new Runnable() {
+    Runnable callback = new Runnable()
+    {
       @Override
       public void run ()
       {
@@ -120,7 +110,7 @@ public class JmsManagementService {
       }
     };
     container.stop(callback);
-    
+
     while (connectionOpen) {
       try {
         wait();
@@ -138,18 +128,20 @@ public class JmsManagementService {
     connectionOpen = false;
     notifyAll();
   }
-  
-  public String getServerQueueName()
+
+  public String getServerQueueName ()
   {
     return serverQueueName;
   }
+
   /**
    * @param serverQueueName the serverQueueName to set
    */
   public void setServerQueueName (String serverQueueName)
   {
     this.serverQueueName = serverQueueName;
-  }  
+  }
+
   /**
    * @return the jmsBrokerUrl
    */
@@ -162,9 +154,9 @@ public class JmsManagementService {
    * @param jmsBrokerUrl the jmsBrokerUrl to set
    */
   @ConfigurableValue(valueType = "String",
-          description = "JMS broker URL to use")  
+      description = "JMS broker URL to use")
   public void setJmsBrokerUrl (String jmsBrokerUrl)
   {
     this.jmsBrokerUrl = jmsBrokerUrl;
-  }  
+  }
 }
