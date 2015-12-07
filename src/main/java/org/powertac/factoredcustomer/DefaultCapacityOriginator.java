@@ -480,7 +480,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
 
   private double determineContinuousElasticityFactor (double rateRatio)
   {
-    double percentChange = (rateRatio - 1.0) / 0.01;
+    double percentChange = (rateRatio - 1.0); // / 0.01;
     double elasticityRatio =
       Double.parseDouble(capacityStructure.elasticityModelXml
               .getAttribute("ratio"));
