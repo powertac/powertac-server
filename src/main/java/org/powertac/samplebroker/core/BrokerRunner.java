@@ -17,7 +17,6 @@ package org.powertac.samplebroker.core;
 
 import java.io.File;
 import java.util.Date;
-import java.util.Enumeration;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
