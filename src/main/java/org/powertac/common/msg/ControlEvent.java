@@ -17,10 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 

@@ -16,7 +16,6 @@
 package org.powertac.common.msg;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Message sent by a remote visualizer to check status of a server.

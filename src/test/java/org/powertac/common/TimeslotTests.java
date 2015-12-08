@@ -2,14 +2,9 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
-import java.io.StringWriter;
-
-import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.thoughtworks.xstream.XStream;
 
 public class TimeslotTests
 {

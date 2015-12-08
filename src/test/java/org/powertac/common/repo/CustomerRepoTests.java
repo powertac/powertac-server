@@ -20,18 +20,12 @@ import static org.junit.Assert.*;
 import java.util.Collection;
 import java.util.List;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.Orderbook;
-import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.enumerations.PowerType;
-import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author John Collins

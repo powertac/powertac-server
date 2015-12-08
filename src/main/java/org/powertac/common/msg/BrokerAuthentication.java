@@ -17,7 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

@@ -30,7 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.repo.TariffRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,7 +37,6 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
@@ -51,9 +49,6 @@ public class TariffTests
 {
   @Autowired
   private TimeService timeService; // dependency injection
-
-  @Autowired
-  private TariffRepo repo;
 
   private TariffSpecification tariffSpec; // instance var
   private TariffSpecification productionSpec; // instance var
@@ -77,7 +72,6 @@ public class TariffTests
     start = new DateTime(2011, 1, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     timeService.setCurrentTime(start);
     broker = new Broker ("testBroker");
-    repo = new TariffRepo();
     exp = new DateTime(2011, 3, 1, 12, 0, 0, 0, DateTimeZone.UTC).toInstant();
     tariffSpec = new TariffSpecification(broker, PowerType.CONSUMPTION)
         .withExpiration(exp)
