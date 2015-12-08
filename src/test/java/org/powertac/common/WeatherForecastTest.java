@@ -23,6 +23,7 @@ public class WeatherForecastTest
 	TimeService timeService;
 	
 	Timeslot ts1;
+	int ts1Num;
 	List<WeatherForecastPrediction> tlist;
 
 	@Before
@@ -32,18 +33,19 @@ public class WeatherForecastTest
 		Instant baseTime = new DateTime().toInstant();
 		tlist = new ArrayList<WeatherForecastPrediction>();
 		ts1 = new Timeslot(1, baseTime);
+		ts1Num = ts1.getSerialNumber();
 		tlist.add(new WeatherForecastPrediction(0, 0, 0, 0, 0));
 	}
 	
 	@Test
 	public void timeslotTest(){
-		WeatherForecast wr = new WeatherForecast(ts1, tlist);
+		WeatherForecast wr = new WeatherForecast(ts1Num, tlist);
 		assertEquals(ts1.getSerialNumber(),wr.getTimeslotIndex());
 	}
 	
 	@Test
 	public void tempTest(){
-		WeatherForecast wr = new WeatherForecast(ts1, tlist);
+		WeatherForecast wr = new WeatherForecast(ts1Num, tlist);
 		assertEquals(1,wr.getPredictions().size());	
 	}
 	

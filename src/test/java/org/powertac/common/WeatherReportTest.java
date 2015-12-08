@@ -15,41 +15,43 @@ import com.thoughtworks.xstream.XStream;
 public class WeatherReportTest {
 
 	Timeslot ts1;
+	int ts1Num;
 
 	@Before
 	public void setUp() throws Exception {
 	    Competition.newInstance("test");
 		Instant baseTime = new DateTime().toInstant();
 		ts1 = new Timeslot(1, baseTime);
+		ts1Num = ts1.getSerialNumber();
 	}
 	
 	@Test
 	public void timeslotTest(){
-		WeatherReport wr = new WeatherReport(ts1, 1, 2, 3, 4);
+		WeatherReport wr = new WeatherReport(ts1Num, 1, 2, 3, 4);
 		assertEquals(ts1.getSerialNumber(),wr.getTimeslotIndex());
 	}
 	
 	@Test
 	public void tempTest(){
-		WeatherReport wr = new WeatherReport(ts1, 1, 2, 3, 4);
+		WeatherReport wr = new WeatherReport(ts1Num, 1, 2, 3, 4);
 		assertEquals(1,wr.getTemperature(),.0001);	
 	}
 	
 	@Test
 	public void windspeedTest(){
-		WeatherReport wr = new WeatherReport(ts1, 1, 2, 3, 4);
+		WeatherReport wr = new WeatherReport(ts1Num, 1, 2, 3, 4);
 		assertEquals(2,wr.getWindSpeed(),.0001);	
 	}
 	
 	@Test
 	public void winddirTest(){
-		WeatherReport wr = new WeatherReport(ts1, 1, 2, 3, 4);
+		WeatherReport wr = new WeatherReport(ts1Num, 1, 2, 3, 4);
 		assertEquals(3,wr.getWindDirection(),.0001);	
 	}
 	
 	@Test
 	public void cloudCoverTest(){
-		WeatherReport wr = new WeatherReport(ts1, 1, 2, 3, 4);
+		WeatherReport wr = new WeatherReport(ts1Num, 1, 2, 3, 4);
 		assertEquals(4,wr.getCloudCover(),.0001);	
 	}
 
