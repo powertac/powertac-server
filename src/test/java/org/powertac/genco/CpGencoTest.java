@@ -46,7 +46,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.test.util.ReflectionTestUtils;
