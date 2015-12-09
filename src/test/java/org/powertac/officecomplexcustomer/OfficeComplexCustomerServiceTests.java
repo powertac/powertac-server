@@ -179,7 +179,7 @@ public class OfficeComplexCustomerServiceTests
     accountingArgs = new ArrayList<Object[]>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
@@ -198,7 +198,7 @@ public class OfficeComplexCustomerServiceTests
                                  mockServerProperties);
     config = new Configurator();
 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer (InvocationOnMock invocation)
       {
