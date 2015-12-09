@@ -29,6 +29,8 @@ import org.powertac.common.msg.SimEnd;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.SimStart;
+import org.powertac.common.spring.SpringApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -54,8 +56,9 @@ public class XMLMessageConverter
   
   // inject context here so that it would be initialized before this class
   // @PostConstruct method get called and use the singleton.
-  //@Autowired
-  //private SpringApplicationContext context;
+  @SuppressWarnings("unused")
+  @Autowired
+  private SpringApplicationContext context;
 
   @SuppressWarnings("rawtypes")
   @PostConstruct
