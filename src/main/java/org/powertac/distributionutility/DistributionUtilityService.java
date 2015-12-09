@@ -33,10 +33,10 @@ import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.OrderbookRepo;
+//import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TimeslotRepo;
+//import org.powertac.common.repo.TariffRepo;
+//import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,14 +57,14 @@ implements InitializationService
   @Autowired
   private BrokerRepo brokerRepo;
 
-  @Autowired
-  private TimeslotRepo timeslotRepo;
+  //@Autowired
+  //private TimeslotRepo timeslotRepo;
 
-  @Autowired
-  private OrderbookRepo orderbookRepo;
+  //@Autowired
+  //private OrderbookRepo orderbookRepo;
   
-  @Autowired
-  private TariffRepo tariffRepo;
+  //@Autowired
+  //private TariffRepo tariffRepo;
 
   @Autowired
   private Accounting accounting;
