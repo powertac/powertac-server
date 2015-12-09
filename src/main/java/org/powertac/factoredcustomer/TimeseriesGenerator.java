@@ -164,7 +164,6 @@ final class TimeseriesGenerator
         if (refStream == null) throw new Error("Reference timeseries input stream is uninitialized!");
             
         try {
-            @SuppressWarnings("unchecked")
             List<String> series = (List<String>) IOUtils.readLines(refStream);
             for (String line: series) {
                 Double element = Double.parseDouble(line);
