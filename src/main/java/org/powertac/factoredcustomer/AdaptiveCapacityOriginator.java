@@ -326,7 +326,7 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
         return getForecastCapacity(timeslot);
       } else {
         // TODO: remove, just for print
-        double perAllCapacity = getForecastCapacity(timeslot);
+        //double perAllCapacity = getForecastCapacity(timeslot);
         double perSubCapacity = ts2capacity.get(timeslot);
         //log.info("Daniel: succeeded to get sub capacity!, " + ((perSubCapacity != perAllCapacity) ? "DIFFERENT " : " ") + "nonShifted=" + perAllCapacity + " shifted=" + perSubCapacity + " " + subscription.getTariff().getBroker().getUsername() + " time=" + service.getTimeslotRepo().getTimeForIndex(timeslot).toDateTime(DateTimeZone.UTC).getHourOfDay());
         //log.info("sub capacity for " + subscription.getCustomer().getName() + " " + subscription.getTariff().getId() + ": " + perSubCapacity);

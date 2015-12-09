@@ -21,8 +21,6 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
@@ -37,9 +35,6 @@ public class ProfileRecommendation
 {
     private static final int SCORE_SCALING_FACTOR = 10000;
 
-    static private Logger log = LogManager.getLogger(ProfileRecommendation.class);
-
-  
     enum ScoringFactor { USAGE_CHARGE, PROFILE_CHANGE, BUNDLE_VALUE }
     
     private static final double UTILITY_RANGE_MAX_VALUE = 3.0;  // range = [-3.0, +3.0]
