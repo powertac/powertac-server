@@ -19,7 +19,6 @@ package org.powertac.evcustomer.customers;
 import org.powertac.common.*;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
-import org.powertac.common.state.Domain;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.beans.*;
