@@ -16,11 +16,9 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
-import java.util.HashMap;
 import java.util.List;
 import org.w3c.dom.Element;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.TariffSubscription;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.CustomerStructure;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure;

@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;

@@ -16,12 +16,11 @@
 
 package org.powertac.factoredcustomer;
 
-import org.w3c.dom.*;
+import org.w3c.dom.Element;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
-import org.springframework.util.Log4jConfigurer;
 
 /**
  * Data-holder class for parsed configuration elements that control the 

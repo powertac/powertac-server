@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Random;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.joda.time.DateTimeZone;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;

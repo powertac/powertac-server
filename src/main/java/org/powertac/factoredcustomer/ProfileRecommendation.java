@@ -17,13 +17,10 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
-import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.powertac.common.TariffSubscription;
