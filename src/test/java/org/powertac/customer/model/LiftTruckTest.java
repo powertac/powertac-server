@@ -53,7 +53,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.customer.StepInfo;
 import org.powertac.customer.model.LiftTruck.Shift;
 import org.powertac.customer.model.LiftTruck.ShiftEnergy;
 import org.springframework.test.util.ReflectionTestUtils;
