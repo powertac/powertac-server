@@ -483,7 +483,7 @@ public class LiftTruckTest
     truck.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
-    Timeslot ts = new Timeslot(2, now.toInstant());
+    new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         truck.getFutureEnergyNeeds(now.toInstant(), 60, 0.0);
     // ix  dur  end  req  chg  max  sur
@@ -543,7 +543,7 @@ public class LiftTruckTest
     truck.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
-    Timeslot ts = new Timeslot(2, now.toInstant());
+    new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         truck.getFutureEnergyNeeds(now.toInstant(), 60, 14.0);
     // ix  dur  end  req  chg  max  sur
@@ -600,7 +600,7 @@ public class LiftTruckTest
     tk.initialize();
     DateTime now =
         new DateTime(2014, 12, 1, 10, 0, 0, DateTimeZone.UTC);
-    Timeslot ts = new Timeslot(2, now.toInstant());
+    new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs = 
         tk.getFutureEnergyNeeds(now.toInstant(), 60, 4.0);
     // ix  dur  end  req  chg  max  sur
@@ -660,7 +660,7 @@ public class LiftTruckTest
     // start on Sunday
     DateTime now =
         new DateTime(2014, 12, 7, 6, 0, 0, DateTimeZone.UTC);
-    Timeslot ts = new Timeslot(2, now.toInstant());
+    new Timeslot(2, now.toInstant());
     ShiftEnergy[] needs =
         tk.getFutureEnergyNeeds(now.toInstant(), 60, 75.0);
     // ix  dur  end  req  chg  max  sur

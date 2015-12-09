@@ -396,6 +396,8 @@ implements CustomerModelAccessor
   }
 
   // Should be non-null for any tariff other than the default tariff
+  // Erik: not used
+  /*
   private TariffInfo getTariffInfo (Tariff tariff)
   {
     if (null == TariffProfiles)
@@ -411,6 +413,7 @@ implements CustomerModelAccessor
     TariffSubscription sub = getSubscription();
     return TariffProfiles.get(sub.getTariff());
   }
+  */
 
   TariffInfo makeTariffInfo (Tariff tariff)
   {
