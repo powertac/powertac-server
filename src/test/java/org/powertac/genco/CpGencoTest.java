@@ -253,7 +253,7 @@ public class CpGencoTest
     when(mockNorm.sample(2)).thenReturn(samples);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -282,7 +282,7 @@ public class CpGencoTest
     genco.withPriceInterval(10.0);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
