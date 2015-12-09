@@ -229,7 +229,7 @@ public class AuctionServiceTests
   public void testValidateOrder ()
   {
     // mock the Broker Proxy for b1, capture messages
-    doAnswer(new Answer()
+    doAnswer(new Answer<Object>()
     {
       @Override
       public Object answer (InvocationOnMock invocation)
