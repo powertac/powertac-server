@@ -237,6 +237,7 @@ public class CpGencoTest
   /**
    * Test method for {@link org.powertac.genco.CpGenco#generateOrders(org.joda.time.Instant, java.util.List)}.
    */
+  @SuppressWarnings("unused")
   @Test
   public void generateFixedOrders ()
   {
@@ -272,6 +273,7 @@ public class CpGencoTest
     assertEquals("72 orders", 72, orderList.size());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void generateVarOrders ()
   {

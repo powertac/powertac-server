@@ -121,6 +121,7 @@ public class GencoTests
     assertTrue("still in operation", genco.isInOperation());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testGenerateOrders ()
   {
