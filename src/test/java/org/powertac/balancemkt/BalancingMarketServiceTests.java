@@ -308,6 +308,7 @@ public class BalancingMarketServiceTests
                  balancingMarketService.getPPlus(), 1e-6);
   }
 
+  @SuppressWarnings("unused")
   private void updatePrices ()
   {
     // add some new timeslots
