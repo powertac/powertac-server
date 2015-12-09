@@ -79,12 +79,8 @@ public class RandomSeedRepoTests
   @Test
   public void checkLogfile ()
   {
-    // Need to do this without depending on test sequence:
-    File state = new File("log/test.state");
+    
     try {
-      //FileOutputStream stateFile = new FileOutputStream(state);
-      //stateFile.getChannel().truncate(0);
-      //stateFile.close();
       randomSeedRepo.getRandomSeed("FooTest", 3, "test");
       randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
       randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
