@@ -764,7 +764,7 @@ public class HouseholdCustomerServiceTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -775,7 +775,7 @@ public class HouseholdCustomerServiceTests
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
@@ -806,7 +806,7 @@ public class HouseholdCustomerServiceTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -817,7 +817,7 @@ public class HouseholdCustomerServiceTests
       // log.debug(ts1.toString());
 
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
