@@ -882,7 +882,7 @@ public class HouseholdControllableCapacitiesTests
     timeService.setCurrentTime(timeService.getCurrentTime());
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(timeService.HOUR));
+            .plus(TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
   }
