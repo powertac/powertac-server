@@ -58,7 +58,6 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.msg.TariffRevoke;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -130,8 +129,8 @@ public class HouseholdCustomerServiceTests
   private Instant exp;
   private Broker broker1;
   private Instant now;
-  private TariffSpecification defaultTariffSpec, defaultTariffSpecControllable;
-  private Tariff defaultTariff, defaultTariffControllable;
+  private TariffSpecification defaultTariffSpec;
+  private Tariff defaultTariff;
   private Competition comp;
   private List<Object[]> accountingArgs;
 
@@ -600,7 +599,6 @@ public class HouseholdCustomerServiceTests
 
     timeService.setCurrentTime(new Instant(timeService.getCurrentTime()
             .getMillis() + TimeService.HOUR));
-    TariffRevoke tex = new TariffRevoke(tsc3.getBroker(), tsc3);
     tariff3.setState(Tariff.State.KILLED);
     assertTrue("tariff revoked", tariff3.isRevoked());
 
