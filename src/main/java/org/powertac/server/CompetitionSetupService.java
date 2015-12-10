@@ -30,7 +30,6 @@ import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CompetitionSetup;
-import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
