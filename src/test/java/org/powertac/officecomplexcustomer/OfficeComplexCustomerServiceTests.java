@@ -131,8 +131,8 @@ public class OfficeComplexCustomerServiceTests
   private Instant exp;
   private Broker broker1;
   private Instant now;
-  private TariffSpecification defaultTariffSpec, defaultTariffSpecControllable;
-  private Tariff defaultTariff, defaultTariffControllable;
+  private TariffSpecification defaultTariffSpec;
+  private Tariff defaultTariff;
   private Competition comp;
   private List<Object[]> accountingArgs;
 
