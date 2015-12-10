@@ -118,7 +118,6 @@ public class RandomSeedRepoTests
     assertEquals("empty again", 0, randomSeedRepo.size());    
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void testLoadRepo ()
   {
