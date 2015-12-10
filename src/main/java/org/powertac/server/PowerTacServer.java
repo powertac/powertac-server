@@ -63,14 +63,15 @@ public class PowerTacServer
    */
   public static void main (String[] args)
   {
-    AbstractApplicationContext context = new ClassPathXmlApplicationContext("powertac.xml");
-    context.registerShutdownHook();
-    
-    // find the CompetitionControl and ServerProperties beans
-    css = (CompetitionSetupService)context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
-    
-    css.processCmdLine(args);
-    // if we get here, it's time to exit
-    System.exit(0);
+    try (AbstractApplicationContext context = new ClassPathXmlApplicationContext("powertac.xml")) { 
+      context.registerShutdownHook();
+      
+      // find the CompetitionControl and ServerProperties beans
+      css = (CompetitionSetupService)context.getBeansOfType(CompetitionSetupService.class).values().toArray()[0];
+      
+      css.processCmdLine(args);
+      // if we get here, it's time to exit
+      System.exit(0);
+    }
   }
 }
