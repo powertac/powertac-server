@@ -187,7 +187,7 @@ public class HouseholdControllableCapacitiesTests
     accountingArgs = new ArrayList<Object[]>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
@@ -205,7 +205,7 @@ public class HouseholdControllableCapacitiesTests
                                  mockServerProperties);
     config = new Configurator();
 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer (InvocationOnMock invocation)
       {
