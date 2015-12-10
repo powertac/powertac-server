@@ -77,12 +77,4 @@ public class ServerMessageReceiverTests
     return serialized.toString();
   }
   
-  private String prToXml (PauseRequest pr)
-  {
-    XStream xstream = new XStream();
-    xstream.processAnnotations(PauseRequest.class);
-    StringWriter serialized = new StringWriter();
-    serialized.write(xstream.toXML(pr));
-    return serialized.toString();
-  }
 }
