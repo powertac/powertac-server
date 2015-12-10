@@ -79,13 +79,11 @@ public class RandomSeedRepoTests
   @Test
   public void checkLogfile ()
   {
-    
-    try {
+    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
       randomSeedRepo.getRandomSeed("FooTest", 3, "test");
       randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
       randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
 
-      BufferedReader input = new BufferedReader(new FileReader("log/test.state"));
       String seedClass = RandomSeed.class.getName();
       ArrayList<String> lines = new ArrayList<String>();
       String line;
