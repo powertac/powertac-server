@@ -116,6 +116,7 @@ public class TimeslotRepoTests
     assertEquals("11 entries", 11, repo.count());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots0 ()
   {
@@ -128,6 +129,7 @@ public class TimeslotRepoTests
     assertEquals("first is ts1", ts1, enabled.get(0));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testEnabledTimeslots1 ()
   {
@@ -140,6 +142,7 @@ public class TimeslotRepoTests
     assertEquals("first is ts1", ts1, enabled.get(0));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testTimeForIndex ()
   {
@@ -151,6 +154,7 @@ public class TimeslotRepoTests
                  repo.getTimeForIndex(3));
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testRecycle ()
   {
