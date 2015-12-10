@@ -124,7 +124,7 @@ public class WeatherServiceTest
 
     // Set up serverProperties mock
     config = new Configurator();
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
