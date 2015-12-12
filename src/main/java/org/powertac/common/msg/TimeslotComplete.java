@@ -15,7 +15,6 @@
  */
 
 package org.powertac.common.msg;
-import org.powertac.common.IdGenerator;
 
 import com.thoughtworks.xstream.annotations.*;
 

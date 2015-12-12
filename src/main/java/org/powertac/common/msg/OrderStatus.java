@@ -17,7 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.IdGenerator;
-import org.powertac.common.msg.TariffStatus.Status;
 import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.XStreamStateLoggable;

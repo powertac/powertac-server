@@ -2,15 +2,9 @@ package org.powertac.common;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.StringWriter;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,6 +39,7 @@ public class OrderTests
 
   private Broker broker;
   private Timeslot timeslot;
+  private int timeslotNum;
   private Instant now;
 
   @AfterClass
@@ -66,12 +61,13 @@ public class OrderTests
     brokerRepo.add(broker);
     now = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     timeslot = timeslotRepo.makeTimeslot(now);
+    timeslotNum = timeslot.getSerialNumber();
   }
 
   @Test
   public void testOrder ()
   {
-    Order mo = new Order(broker, timeslot, 0.5, -12.0);
+    Order mo = new Order(broker, timeslotNum, 0.5, -12.0);
     assertNotNull("created something", mo);
     assertEquals("correct broker", broker, mo.getBroker());
     assertEquals("correct timeslot", timeslot, mo.getTimeslot());
@@ -82,7 +78,7 @@ public class OrderTests
   @Test
   public void testOrderNull ()
   {
-    Order mo = new Order(broker, timeslot.getSerialNumber(), 0.5, null);
+    Order mo = new Order(broker, timeslotNum, 0.5, null);
     assertNotNull("created something", mo);
     assertEquals("correct broker", broker, mo.getBroker());
     assertEquals("correct timeslot", timeslot, mo.getTimeslot());
@@ -94,7 +90,7 @@ public class OrderTests
   public void testOrderMin ()
   {
     Competition.currentCompetition().withMinimumOrderQuantity(0.01);
-    Order mo = new Order(broker, timeslot.getSerialNumber(), 0.005, null);
+    Order mo = new Order(broker, timeslotNum, 0.005, null);
     assertNotNull("created something", mo);
     assertEquals("correct broker", broker, mo.getBroker());
     assertEquals("correct timeslot", timeslot, mo.getTimeslot());
@@ -105,7 +101,7 @@ public class OrderTests
   @Test
   public void xmlSerializationTest ()
   {
-    Order mo1 = new Order(broker, timeslot, 0.5, -12.0);
+    Order mo1 = new Order(broker, timeslotNum, 0.5, -12.0);
     XStream xstream = new XStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
@@ -125,7 +121,7 @@ public class OrderTests
   @Test
   public void xmlSerializationTestNull ()
   {
-    Order mo1 = new Order(broker, timeslot, 0.5, null);
+    Order mo1 = new Order(broker, timeslotNum, 0.5, null);
     XStream xstream = new XStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
@@ -147,7 +143,7 @@ public class OrderTests
   {
     DummyBroker db = new DummyBroker("Dummy", true, false);
     brokerRepo.add(db);
-    Order mo1 = new Order(db, timeslot, 0.5, -12.0);
+    Order mo1 = new Order(db, timeslotNum, 0.5, -12.0);
     XStream xstream = new XStream();
     xstream.processAnnotations(Order.class);
     xstream.processAnnotations(Broker.class);
