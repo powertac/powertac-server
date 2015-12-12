@@ -10,7 +10,6 @@
 
   <properties>
     <active-mq.version>5.7.0</active-mq.version>
-    <slf4j.version>1.7.13</slf4j.version>
     <jopt.version>4.9</jopt.version>
   </properties>
 
@@ -32,16 +31,6 @@
       <version>${active-mq.version}</version>
     </dependency>
     <!-- JMS dependencies -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
     <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
