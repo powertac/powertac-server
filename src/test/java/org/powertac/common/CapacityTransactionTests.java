@@ -37,10 +37,9 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import com.thoughtworks.xstream.XStream;
 
 /**
- * Tests for BalancingTransaction. We use Spring, because the xml serialization
+ * Tests for DistributionTransaction. We use Spring, because the xml serialization
  * requires that the BrokerConverter be able to find the BrokerRepo.
  * @author John Collins
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
@@ -49,8 +48,9 @@ import com.thoughtworks.xstream.XStream;
   DependencyInjectionTestExecutionListener.class,
   DirtiesContextTestExecutionListener.class
 })
-public class BalancingTransactionTests
+public class CapacityTransactionTests
 {
+  TestContextManager f;
   Instant baseTime;
   Broker broker;
   BrokerRepo brokerRepo;
@@ -58,7 +58,7 @@ public class BalancingTransactionTests
   @Before
   public void setUp () throws Exception
   {
-    Competition.setCurrent(Competition.newInstance("market order test"));
+    Competition.setCurrent(Competition.newInstance("Capacity transaction test"));
     baseTime = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     brokerRepo = BrokerRepo.getInstance();
     broker = new Broker("Sally");
@@ -66,39 +66,40 @@ public class BalancingTransactionTests
   }
 
   @Test
-  public void testBalancingTransaction ()
+  public void testCapacityTransaction ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    assertNotNull("not null", bt);
-    assertEquals("correct time", 24, bt.getPostedTimeslotIndex());
-    assertEquals("correct broker", broker, bt.getBroker());
-    assertEquals("correct qty", 42.1, bt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, bt.getCharge(), 1e-6);
+    CapacityTransaction ct = new CapacityTransaction(broker, 24, 120.0, 42.1, 3.22);
+    assertNotNull("not null", ct);
+    assertEquals("correct time", 24, ct.getPostedTimeslotIndex());
+    assertEquals("correct broker", broker, ct.getBroker());
+    assertEquals("correct qty", 42.1, ct.getKWh(), 1e-6);
+    assertEquals("correct charge", 3.22, ct.getCharge(), 1e-6);
   }
 
   @Test
   public void testToString ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    String sut = bt.toString();
-    //System.out.println(sut);
-    assertTrue("match", sut.matches("Balance tx \\d+-Sally-42.1-3.22"));
+    CapacityTransaction ct = new CapacityTransaction(broker, 24, 110.0, 42.1, 3.22);
+    String sut = ct.toString();
+    System.out.println(sut);
+    assertEquals("match", "Capacity tx 24-Sally-(110.0,42.1)-3.22", sut);
   }
-  
+
   @Test
   public void xmlSerializationTest ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
+    CapacityTransaction ct = new CapacityTransaction(broker, 24, 130.0, 42.1, 3.22);
     XStream xstream = new XStream();
-    xstream.processAnnotations(BalancingTransaction.class);
+    xstream.processAnnotations(CapacityTransaction.class);
     StringWriter serialized = new StringWriter();
-    serialized.write(xstream.toXML(bt));
+    serialized.write(xstream.toXML(ct));
     //System.out.println(serialized.toString());
-    BalancingTransaction xbt = (BalancingTransaction)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xbt);
-    assertEquals("correct broker", broker, xbt.getBroker());
-    assertEquals("correct time", 24, xbt.getPostedTimeslotIndex());
-    assertEquals("correct qty", 42.1, xbt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, xbt.getCharge(), 1e-6);
+    CapacityTransaction xct = (CapacityTransaction)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xct);
+    assertEquals("correct broker", broker, xct.getBroker());
+    assertEquals("correct time", 24, xct.getPostedTimeslotIndex());
+    assertEquals("correct threshold", 130.0, xct.getThreshold(), 1e-6);
+    assertEquals("correct qty", 42.1, xct.getKWh(), 1e-6);
+    assertEquals("correct charge", 3.22, xct.getCharge(), 1e-6);
   }
 }

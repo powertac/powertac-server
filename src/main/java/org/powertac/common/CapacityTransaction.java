@@ -21,41 +21,45 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
- * Represents the fee assessed
- * by the Distribution Utility for transport of energy over its facilities
- * during the current timeslot. The kWh is the total energy delivered,
- * which is the sum of the positive net load of the broker's customers, and 
- * the positive net export of energy through the wholesale market. Negative
- * values are ignored.
+ * Represents the fee assessed by the Distribution Utility for peak
+ * capacity events. These are issued to each broker once for each
+ * capacity assessment interval.
  *
  * @author John Collins
  */
-@Domain(fields = {"postedTimeslot", "KWh", "charge"})
+@Domain(fields = {"postedTimeslot", "threshold", "KWh", "charge"})
 @XStreamAlias("distribution-tx")
-public class DistributionTransaction extends BrokerTransaction
+public class CapacityTransaction extends BrokerTransaction
 {
-  /** The total positive amount of energy transported in kWh.
+  /**
+   * The peak-demand threshold for this assessment.
+   */
+  @XStreamAsAttribute
+  private double threshold = 0.0;
+
+  /** The amount by which this broker's total net consumption
+   *  exceeded the threshold, in kWh.
    */
   @XStreamAsAttribute
   private double kWh = 0.0;
   
-  /** The total charge imposed by the DU for this transport. Since this
+  /** The total charge imposed by the DU for this assessment. Since this
    * is a debit, it will always be negative. */
   @XStreamAsAttribute
   private double charge = 0.0;
 
-  public DistributionTransaction (Broker broker, int when, 
-                                  double kwh, double charge)
+  public CapacityTransaction (Broker broker, int when, double threshold,
+                              double kwh, double charge)
   {
     super(when, broker);
+    this.threshold = threshold;
     this.kWh = kwh;
     this.charge = charge;
   }
 
-  @Deprecated
-  public double getQuantity ()
+  public double getThreshold ()
   {
-    return kWh;
+    return threshold;
   }
 
   public double getKWh ()
@@ -70,7 +74,7 @@ public class DistributionTransaction extends BrokerTransaction
 
   @Override
   public String toString() {
-    return ("Distribution tx " + postedTimeslot + 
-        "-" + broker.getUsername() + "-" + kWh + "-" + charge);
+    return ("Capacity tx " + postedTimeslot +
+        "-" + broker.getUsername() + "-(" + threshold + "," + kWh + ")-" + charge);
   }
 }

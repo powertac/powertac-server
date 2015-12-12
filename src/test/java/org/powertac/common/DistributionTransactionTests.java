@@ -37,10 +37,9 @@ import org.springframework.test.context.support.DirtiesContextTestExecutionListe
 import com.thoughtworks.xstream.XStream;
 
 /**
- * Tests for BalancingTransaction. We use Spring, because the xml serialization
+ * Tests for DistributionTransaction. We use Spring, because the xml serialization
  * requires that the BrokerConverter be able to find the BrokerRepo.
  * @author John Collins
- *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"classpath:test-config.xml"})
@@ -49,8 +48,9 @@ import com.thoughtworks.xstream.XStream;
   DependencyInjectionTestExecutionListener.class,
   DirtiesContextTestExecutionListener.class
 })
-public class BalancingTransactionTests
+public class DistributionTransactionTests
 {
+  TestContextManager f;
   Instant baseTime;
   Broker broker;
   BrokerRepo brokerRepo;
@@ -58,7 +58,7 @@ public class BalancingTransactionTests
   @Before
   public void setUp () throws Exception
   {
-    Competition.setCurrent(Competition.newInstance("market order test"));
+    Competition.setCurrent(Competition.newInstance("distribution transaction test"));
     baseTime = Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     brokerRepo = BrokerRepo.getInstance();
     broker = new Broker("Sally");
@@ -66,39 +66,39 @@ public class BalancingTransactionTests
   }
 
   @Test
-  public void testBalancingTransaction ()
+  public void testDistributionTransaction ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    assertNotNull("not null", bt);
-    assertEquals("correct time", 24, bt.getPostedTimeslotIndex());
-    assertEquals("correct broker", broker, bt.getBroker());
-    assertEquals("correct qty", 42.1, bt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, bt.getCharge(), 1e-6);
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
+    assertNotNull("not null", dt);
+    assertEquals("correct time", 24, dt.getPostedTimeslotIndex());
+    assertEquals("correct broker", broker, dt.getBroker());
+    assertEquals("correct qty", 42.1, dt.getKWh(), 1e-6);
+    assertEquals("correct charge", 3.22, dt.getCharge(), 1e-6);
   }
 
   @Test
   public void testToString ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
-    String sut = bt.toString();
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
+    String sut = dt.toString();
     //System.out.println(sut);
-    assertTrue("match", sut.matches("Balance tx \\d+-Sally-42.1-3.22"));
+    assertTrue("match", sut.matches("Distribution tx 24-Sally-42.1-3.22"));
   }
-  
+
   @Test
   public void xmlSerializationTest ()
   {
-    BalancingTransaction bt = new BalancingTransaction(broker, 24, 42.1, 3.22);
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
     XStream xstream = new XStream();
-    xstream.processAnnotations(BalancingTransaction.class);
+    xstream.processAnnotations(DistributionTransaction.class);
     StringWriter serialized = new StringWriter();
-    serialized.write(xstream.toXML(bt));
+    serialized.write(xstream.toXML(dt));
     //System.out.println(serialized.toString());
-    BalancingTransaction xbt = (BalancingTransaction)xstream.fromXML(serialized.toString());
-    assertNotNull("deserialized something", xbt);
-    assertEquals("correct broker", broker, xbt.getBroker());
-    assertEquals("correct time", 24, xbt.getPostedTimeslotIndex());
-    assertEquals("correct qty", 42.1, xbt.getKWh(), 1e-6);
-    assertEquals("correct charge", 3.22, xbt.getCharge(), 1e-6);
+    DistributionTransaction xdt = (DistributionTransaction)xstream.fromXML(serialized.toString());
+    assertNotNull("deserialized something", xdt);
+    assertEquals("correct broker", broker, xdt.getBroker());
+    assertEquals("correct time", 24, xdt.getPostedTimeslotIndex());
+    assertEquals("correct qty", 42.1, xdt.getKWh(), 1e-6);
+    assertEquals("correct charge", 3.22, xdt.getCharge(), 1e-6);
   }
 }

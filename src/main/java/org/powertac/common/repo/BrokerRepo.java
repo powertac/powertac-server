@@ -135,6 +135,8 @@ public class BrokerRepo implements DomainRepo
   
   public static BrokerRepo getInstance ()
   {
+    if (null == instance)
+      instance = new BrokerRepo();
     return instance;
   }
 }
