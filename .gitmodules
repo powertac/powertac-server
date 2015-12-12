@@ -1,57 +1,57 @@
 [submodule "server-interface"]
 	path = server-interface
 	url = git://github.com/erikkemperman/server-interface.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "accounting"]
 	path = accounting
 	url = git://github.com/erikkemperman/accounting.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "auctioneer"]
 	path = auctioneer
 	url = git://github.com/erikkemperman/auctioneer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "default-broker"]
 	path = default-broker
 	url = git://github.com/erikkemperman/default-broker.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "distribution-utility"]
 	path = distribution-utility
 	url = git://github.com/erikkemperman/distribution-utility.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "genco"]
 	path = genco
 	url = git://github.com/erikkemperman/genco.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "household-customer"]
 	path = household-customer
 	url = git://github.com/erikkemperman/household-customer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "factored-customer"]
 	path = factored-customer
 	url = git://github.com/erikkemperman/factored-customer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "server-main"]
 	path = server-main
 	url = git://github.com/erikkemperman/server-main.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "officecomplex-customer"]
 	path = officecomplex-customer
 	url = git://github.com/erikkemperman/officecomplex-customer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "visualizer"]
 	path = visualizer
 	url = git://github.com/erikkemperman/visualizer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "balancing-market"]
 	path = balancing-market
 	url = git://github.com/erikkemperman/balancing-market.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "customer-models"]
 	path = customer-models
 	url = git://github.com/erikkemperman/customer-models.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 [submodule "evcustomer"]
 	path = evcustomer
 	url = git://github.com/erikkemperman/evcustomer.git
-        branch = bump-deps-clean
+        branch = reduce-warnings
 
