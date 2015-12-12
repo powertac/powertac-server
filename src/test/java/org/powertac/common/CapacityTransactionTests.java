@@ -17,8 +17,6 @@ package org.powertac.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.StringWriter;
 
 import org.joda.time.Instant;
@@ -81,7 +79,6 @@ public class CapacityTransactionTests
   {
     CapacityTransaction ct = new CapacityTransaction(broker, 24, 110.0, 42.1, 3.22);
     String sut = ct.toString();
-    System.out.println(sut);
     assertEquals("match", "Capacity tx 24-Sally-(110.0,42.1)-3.22", sut);
   }
 
