@@ -24,7 +24,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
-import org.powertac.common.Timeslot;
 import org.powertac.common.msg.SimPause;
 import org.powertac.common.msg.SimResume;
 import org.powertac.common.msg.TimeslotComplete;

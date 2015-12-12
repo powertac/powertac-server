@@ -4,8 +4,6 @@
 
   <artifactId>broker-core</artifactId>
   <description>Common core of a Power TAC broker implementation</description>
-  <groupId>org.powertac</groupId>
-  <version>1.3.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>broker-core</name>
