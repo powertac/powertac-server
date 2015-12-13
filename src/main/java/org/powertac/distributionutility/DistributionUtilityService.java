@@ -80,6 +80,13 @@ implements InitializationService
   private RandomSeed randomGen;
 
   // fees and prices should be negative, because they are debits against brokers
+
+  // Parameters for original transport-based distribution fee
+  @ConfigurableValue(valueType = "Boolean",
+      publish = true,
+      description = "If true, DU should charge for energy transport")
+  private boolean useTransportFee = true;
+
   @ConfigurableValue(valueType = "Double",
       description = "Low end of distribution fee range")
   private double distributionFeeMin = -0.005;
@@ -92,6 +99,44 @@ implements InitializationService
       publish = true,
       description = "Distribution fee: overrides random value selection")
   private Double distributionFee = null;
+
+  // ------------------
+  // Parameters for per-customer meter charges
+  @ConfigurableValue(valueType = "Boolean",
+      publish = true,
+      description = "If true, DU should assess fixed per-customer meter charges")
+  private boolean useMeterFee = false;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Per-customer meter fee for small customers")
+  private double mSmall = 0.015; // per timeslot
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Per-customer meter fee for large customers")
+  private double mLarge = 0.05;
+
+  // ------------------
+  @ConfigurableValue(valueType = "Boolean",
+      publish = true,
+      description = "If true, DU should assess transmission capacity fees")
+  private boolean useCapacityFee = false;
+
+  @ConfigurableValue(valueType = "Integer",
+      publish = true,
+      description = "Assessment interval in hours")
+  private int assessmentInterval = 168;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "Std deviation coefficient (nu)")
+  private double stdevCoefficient = 1.2;
+
+  @ConfigurableValue (valueType = "Double",
+      publish = true,
+      description = "Per-point fee (lambda)")
+  private double feePerPoint = 4000.0;
 
   /**
    * Computes actual distribution and balancing costs by random selection
