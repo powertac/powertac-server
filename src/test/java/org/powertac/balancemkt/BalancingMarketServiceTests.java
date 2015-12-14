@@ -45,7 +45,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:test-config.xml" })
@@ -309,6 +308,7 @@ public class BalancingMarketServiceTests
                  balancingMarketService.getPPlus(), 1e-6);
   }
 
+  @SuppressWarnings("unused")
   private void updatePrices ()
   {
     // add some new timeslots
