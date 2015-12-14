@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -80,17 +79,11 @@ public class RandomSeedRepoTests
   @Test
   public void checkLogfile ()
   {
-    // Need to do this without depending on test sequence:
-    File state = new File("log/test.state");
-    try {
-      //FileOutputStream stateFile = new FileOutputStream(state);
-      //stateFile.getChannel().truncate(0);
-      //stateFile.close();
+    try (BufferedReader input = new BufferedReader(new FileReader("log/test.state"))) {
       randomSeedRepo.getRandomSeed("FooTest", 3, "test");
       randomSeedRepo.getRandomSeed("FooTest", 42, "more test");
       randomSeedRepo.getRandomSeed("FooTest", -36, "third test");
 
-      BufferedReader input = new BufferedReader(new FileReader("log/test.state"));
       String seedClass = RandomSeed.class.getName();
       ArrayList<String> lines = new ArrayList<String>();
       String line;
@@ -123,7 +116,6 @@ public class RandomSeedRepoTests
     assertEquals("empty again", 0, randomSeedRepo.size());    
   }
 
-  @SuppressWarnings("unused")
   @Test
   public void testLoadRepo ()
   {
