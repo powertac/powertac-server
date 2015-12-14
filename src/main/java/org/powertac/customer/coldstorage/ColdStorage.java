@@ -25,7 +25,6 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTimeFieldType;
-import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
@@ -397,6 +396,8 @@ implements CustomerModelAccessor
   }
 
   // Should be non-null for any tariff other than the default tariff
+  // Erik: not used
+  /*
   private TariffInfo getTariffInfo (Tariff tariff)
   {
     if (null == TariffProfiles)
@@ -412,6 +413,7 @@ implements CustomerModelAccessor
     TariffSubscription sub = getSubscription();
     return TariffProfiles.get(sub.getTariff());
   }
+  */
 
   TariffInfo makeTariffInfo (Tariff tariff)
   {
