@@ -307,7 +307,7 @@ public class DefaultBrokerService
     }
     log.info("new order for " + neededMWh + " at " + limitPrice +
              " in timeslot " + timeslot.getSerialNumber());
-    Order result = new Order(face, timeslot, neededMWh, limitPrice);
+    Order result = new Order(face, timeslot.getSerialNumber(), neededMWh, limitPrice);
     lastOrder.put(timeslot, result);
     brokerProxyService.routeMessage(result);
   }
