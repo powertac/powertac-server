@@ -172,7 +172,6 @@ public class TariffMarketService
   /**
    * Reads configuration parameters, registers for timeslot phase activation.
    */
-  @SuppressWarnings("unchecked")
   @Override
   public String initialize (Competition competition, List<String> completedInits)
   {
