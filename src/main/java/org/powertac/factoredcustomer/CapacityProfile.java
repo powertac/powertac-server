@@ -20,8 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 import org.powertac.common.state.Domain;
 
 /**
@@ -33,7 +31,6 @@ import org.powertac.common.state.Domain;
 @Domain
 public final class CapacityProfile
 {
-    static private Logger log = LogManager.getLogger(CapacityProfile.class);
 
     enum PermutationRule { TEMPORAL_SHIFTS, BALANCING_SHIFTS, ALL_SHIFTS }
     

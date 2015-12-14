@@ -25,7 +25,6 @@ import java.util.Properties;
 import java.util.Random;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
@@ -165,7 +164,6 @@ final class TimeseriesGenerator
         if (refStream == null) throw new Error("Reference timeseries input stream is uninitialized!");
             
         try {
-            @SuppressWarnings("unchecked")
             List<String> series = (List<String>) IOUtils.readLines(refStream);
             for (String line: series) {
                 Double element = Double.parseDouble(line);

@@ -16,15 +16,14 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.math3.stat.descriptive.moment.Variance;
+//import org.apache.commons.math3.stat.descriptive.moment.Variance;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import org.powertac.common.RandomSeed;
+//import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
@@ -41,11 +40,11 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 @Domain
 class LearningUtilityOptimizer extends DefaultUtilityOptimizer
 {
-  private static final double NUM_SAMPLING_ITERATIONS = 30;
+  //private static final double NUM_SAMPLING_ITERATIONS = 30;
   
   private static Logger log = LogManager.getLogger(LearningUtilityOptimizer.class);
   
-  private RandomSeed recommendationMaker;
+  //private RandomSeed recommendationMaker;
 
   LearningUtilityOptimizer (CustomerStructure structure,
                             List<CapacityBundle> bundles)
@@ -65,10 +64,10 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
       getRandomSeedRepo()
               .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
                              SeedIdGenerator.getId(), "TariffSelector");
-    recommendationMaker =
-      getRandomSeedRepo()
-              .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
-                             SeedIdGenerator.getId(), "RecommendationMaker");
+    //recommendationMaker =
+    //  getRandomSeedRepo()
+    //          .getRandomSeed("factoredcustomer.LearningUtilityOptimizer",
+    //                         SeedIdGenerator.getId(), "RecommendationMaker");
 
     subscribeDefault();
   }
@@ -126,10 +125,10 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
 
     //List<TariffSubscription> subscriptions = getBundleSubscriptions(bundle);
 
-    Map<CapacityOriginator, ForecastRecord> forecasts =
-      new HashMap<CapacityOriginator, ForecastRecord>();
-    Map<CapacityOriginator, List<CapacityProfile>> perms =
-      new HashMap<CapacityOriginator, List<CapacityProfile>>();
+    //Map<CapacityOriginator, ForecastRecord> forecasts =
+    //  new HashMap<CapacityOriginator, ForecastRecord>();
+    //Map<CapacityOriginator, List<CapacityProfile>> perms =
+    //  new HashMap<CapacityOriginator, List<CapacityProfile>>();
     Map<CapacityOriginator, Map<TariffSubscription, List<CapacityProfile>>> permsPerSub =
       new HashMap<CapacityOriginator, Map<TariffSubscription, List<CapacityProfile>>>();
     Map<CapacityOriginator, ProfileRecommendation> recs =
@@ -290,6 +289,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
             .findSubscriptionsForCustomer(bundle.getCustomerInfo());
   }
 
+  /* Erik: this method is not used
   private
     ProfileRecommendation
     getProfileRecommendation (CapacityOriginator capacityOriginator,
@@ -322,7 +322,8 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
       computeDerivedValues(rec, bundle.getOptimizerStructure());
     return rec;
   }
-
+  */
+  
   private
     ProfileRecommendation
     getProfileRecommendationPerSub (CapacityOriginator capacityOriginator,
@@ -371,6 +372,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     rec.computeProbabilities(optimizerStructure.rationalityFactor);
   }
 
+  /* Erik: this method is not used
   private double
     computeProfileUsageCharge (CapacityProfile profile,
                                List<TariffSubscription> subscriptions,
@@ -400,6 +402,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
     return totalCharge;
   }
+  */
 
   private double
     computeProfileUsageChargePerSub (CapacityProfile profile,
@@ -467,6 +470,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
   }
 
+  /* Erik: these methods are not used
   private
     void
     reconcileRecommendations (List<TariffSubscription> subscriptions,
@@ -547,6 +551,7 @@ class LearningUtilityOptimizer extends DefaultUtilityOptimizer
     }
     throw new Error("Drawing from recommendation resulted in a null profile!");
   }
+  */
 
   private void logRecommendationDetails (String msg)
   {

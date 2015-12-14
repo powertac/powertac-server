@@ -76,8 +76,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     @Autowired
     private CustomerRepo customerRepo;
     
-    @Autowired
-    private TariffRepo getTariffRepo;
+    //@Autowired
+    //private TariffRepo getTariffRepo;
     
     @Autowired
     private TimeslotRepo timeslotRepo;
