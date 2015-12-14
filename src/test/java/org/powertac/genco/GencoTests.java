@@ -83,7 +83,7 @@ public class GencoTests
     // Set up serverProperties mock
     serverConfig = mock(ServerConfiguration.class);
     config = new Configurator();
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -121,13 +121,14 @@ public class GencoTests
     assertTrue("still in operation", genco.isInOperation());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void testGenerateOrders ()
   {
     // set up the genco
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -170,7 +171,7 @@ public class GencoTests
     serverConfig.configureMe(genco);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -212,7 +213,7 @@ public class GencoTests
     serverConfig.configureMe(genco);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);

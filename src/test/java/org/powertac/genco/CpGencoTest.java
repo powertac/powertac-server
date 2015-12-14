@@ -46,7 +46,6 @@ import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.BrokerProxy;
-import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -238,6 +237,7 @@ public class CpGencoTest
   /**
    * Test method for {@link org.powertac.genco.CpGenco#generateOrders(org.joda.time.Instant, java.util.List)}.
    */
+  @SuppressWarnings("unused")
   @Test
   public void generateFixedOrders ()
   {
@@ -253,7 +253,7 @@ public class CpGencoTest
     when(mockNorm.sample(2)).thenReturn(samples);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);
@@ -273,6 +273,7 @@ public class CpGencoTest
     assertEquals("72 orders", 72, orderList.size());
   }
 
+  @SuppressWarnings("unused")
   @Test
   public void generateVarOrders ()
   {
@@ -281,7 +282,7 @@ public class CpGencoTest
     genco.withPriceInterval(10.0);
     // capture orders
     final ArrayList<Order> orderList = new ArrayList<Order>(); 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         orderList.add((Order)args[0]);

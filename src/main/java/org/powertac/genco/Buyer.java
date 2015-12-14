@@ -56,14 +56,15 @@ public class Buyer extends Genco
   {
     log.info("generate orders for " + getUsername());
     for (Timeslot slot : openSlots) {
+      int slotNum = slot.getSerialNumber();
       double price = - priceBeta * Math.log(1.0 - seed.nextDouble());
       double qty = mwh / price;
       if (Math.abs(qty) < Competition.currentCompetition()
           .getMinimumOrderQuantity())
         return;
-      Order offer = new Order(this, slot, qty, -price);
+      Order offer = new Order(this, slotNum, qty, -price);
       log.debug(getUsername() + " wants " + qty +
-                  " in " + slot.getSerialNumber() + " for " + price);
+                  " in " + slotNum + " for " + price);
       brokerProxyService.routeMessage(offer);
     }
   }

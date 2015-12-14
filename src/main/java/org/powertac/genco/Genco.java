@@ -254,9 +254,10 @@ public class Genco
     if (skip < 0)
       skip = 0;
     for (Timeslot slot : openSlots) {
+      int slotNum = slot.getSerialNumber();
       double availableCapacity = currentCapacity;
       // do we receive these?
-      MarketPosition posn = findMarketPositionByTimeslot(slot.getSerialNumber());
+      MarketPosition posn = findMarketPositionByTimeslot(slotNum);
       if (skip-- > 0 && (posn == null || posn.getOverallBalance() == 0.0))
         continue;
       if (posn != null) {
@@ -266,9 +267,9 @@ public class Genco
       if (availableCapacity > Competition.currentCompetition()
           .getMinimumOrderQuantity()) {
         // make an offer to sell
-        Order offer = new Order(this, slot, -availableCapacity, cost);
+        Order offer = new Order(this, slotNum, -availableCapacity, cost);
         log.debug(getUsername() + " offers " + availableCapacity + " in "
-                  + slot.getSerialNumber() + " for " + cost);
+                  + slotNum + " for " + cost);
         brokerProxyService.routeMessage(offer);
       }
     }
