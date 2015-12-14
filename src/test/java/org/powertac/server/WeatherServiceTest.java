@@ -12,6 +12,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
+import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherForecastPrediction;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.config.Configurator;
@@ -21,6 +22,7 @@ import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
+import org.powertac.common.spring.SpringApplicationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -124,7 +126,7 @@ public class WeatherServiceTest
 
     // Set up serverProperties mock
     config = new Configurator();
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -202,30 +204,30 @@ public class WeatherServiceTest
 
     assertEquals(24, weatherReportRepo.count());
 
+    timeslotRepo = (TimeslotRepo) SpringApplicationContext.getBean("timeslotRepo");
+
     // Check to see that the weatherReportRepo only gives the current
     // timeslot
     // weather report
-    assertEquals(start, weatherReportRepo.currentWeatherReport()
-                 .getCurrentTimeslot().getStartInstant());
-    assertEquals(timeslotRepo.currentTimeslot(), weatherReportRepo
-                 .currentWeatherReport().getCurrentTimeslot());
+    int index = weatherReportRepo.currentWeatherReport().getTimeslotIndex();
+    Timeslot slot = timeslotRepo.findBySerialNumber(index);
+    assertEquals(start, slot.getStartInstant());
+    assertEquals(timeslotRepo.currentTimeslot(), slot);
 
     // Check to see that the next timeslot is as expected
-
     timeService.setCurrentTime(next);
-    assertEquals(next, weatherReportRepo.currentWeatherReport()
-                 .getCurrentTimeslot().getStartInstant());
-    assertEquals(timeslotRepo.currentTimeslot(), weatherReportRepo
-                 .currentWeatherReport().getCurrentTimeslot());
+    index = weatherReportRepo.currentWeatherReport().getTimeslotIndex();
+    slot = timeslotRepo.findBySerialNumber(index);
+    assertEquals(next, slot.getStartInstant());
+    assertEquals(timeslotRepo.currentTimeslot(), slot);
 
     // Check that we can read backwards only 2 timeslots (current +
     // previous)
     assertEquals(2, weatherReportRepo.allWeatherReports().size());
 
     // Check that the 2 timeslots are different in the repo
-    assertEquals(false, weatherReportRepo.allWeatherReports().get(0)
-                 .getCurrentTimeslot() == weatherReportRepo.allWeatherReports()
-                 .get(1).getCurrentTimeslot());
+    assertNotEquals(weatherReportRepo.allWeatherReports().get(0).getTimeslotIndex(),
+                    weatherReportRepo.allWeatherReports().get(1).getTimeslotIndex());
 
   }
 

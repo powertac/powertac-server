@@ -167,7 +167,6 @@ public class CompetitionControlService
   /**
    * Initializes the service in preparation for a new simulation
    */
-  @SuppressWarnings("unchecked")
   public void init ()
   {
     phaseRegistrations = null;

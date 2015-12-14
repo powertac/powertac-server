@@ -26,8 +26,6 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.genco.Genco;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

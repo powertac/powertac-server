@@ -4,7 +4,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -97,7 +96,7 @@ public class TournamentSchedulerService
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       // Get the response
-      InputStream input = conn.getInputStream();
+      conn.getInputStream();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -121,7 +120,7 @@ public class TournamentSchedulerService
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       // Get the response
-      InputStream input = conn.getInputStream();
+      conn.getInputStream();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -146,7 +145,7 @@ public class TournamentSchedulerService
       URL url = new URL(finalUrl);
       URLConnection conn = url.openConnection();
       // Get the response
-      InputStream input = conn.getInputStream();
+      conn.getInputStream();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -173,7 +172,8 @@ public class TournamentSchedulerService
       wr.write(postData);
       wr.flush();
       // Get the response
-      InputStream input = conn.getInputStream();
+      // TODO is this necessary? already doing an output write/flush
+      conn.getInputStream();
     }
     catch (Exception e) {
       e.printStackTrace();
