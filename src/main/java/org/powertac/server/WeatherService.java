@@ -454,7 +454,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
 
     @Override
-    public boolean canConvert (Class clazz)
+    public boolean canConvert (@SuppressWarnings("rawtypes") Class clazz)
     {
       return clazz.equals(WeatherReport.class);
     }
@@ -488,7 +488,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
     }
 
     @Override
-    public boolean canConvert (Class clazz)
+    public boolean canConvert (@SuppressWarnings("rawtypes") Class clazz)
     {
       return clazz.equals(WeatherForecastPrediction.class);
     }
@@ -535,6 +535,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
       return weatherForecasts;
     }
 
+    @SuppressWarnings("unused")
     public List<EnergyReport> getEnergyReports ()
     {
       return energyReports;

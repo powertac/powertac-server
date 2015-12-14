@@ -13,8 +13,6 @@ import org.powertac.common.Broker;
 import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.msg.BrokerAuthentication;
-import org.powertac.common.msg.PauseRequest;
-import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.thoughtworks.xstream.XStream;
@@ -79,12 +77,4 @@ public class ServerMessageReceiverTests
     return serialized.toString();
   }
   
-  private String prToXml (PauseRequest pr)
-  {
-    XStream xstream = new XStream();
-    xstream.processAnnotations(PauseRequest.class);
-    StringWriter serialized = new StringWriter();
-    serialized.write(xstream.toXML(pr));
-    return serialized.toString();
-  }
 }

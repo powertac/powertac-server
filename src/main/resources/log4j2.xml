@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="warn" strict="true" shutdownHook="disable">
+<Configuration status="warn" strict="true" shutdownHook="disable"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="http://xlarge.rsm.nl/xsd/Log4j-config.xsd">
   <Properties>
     <Property name="logfile">log/init.trace</Property>
     <Property name="statefile">log/init.state</Property>
   </Properties>
+  
+  <ThresholdFilter level="trace"/>
   
   <Appenders>
     

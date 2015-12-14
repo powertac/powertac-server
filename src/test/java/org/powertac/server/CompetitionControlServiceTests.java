@@ -46,9 +46,6 @@ public class CompetitionControlServiceTests
 {
 
   @Autowired
-  private CompetitionControlService ccs;
-  
-  @Autowired
   private CompetitionSetupService css;
   
   @Autowired
