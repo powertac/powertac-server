@@ -67,7 +67,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.householdcustomer.configurations.VillageConstants;
 import org.powertac.householdcustomer.customers.Village;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -188,7 +187,7 @@ public class HouseholdControllableCapacitiesTests
     accountingArgs = new ArrayList<Object[]>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
@@ -206,7 +205,7 @@ public class HouseholdControllableCapacitiesTests
                                  mockServerProperties);
     config = new Configurator();
 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer (InvocationOnMock invocation)
       {
@@ -734,7 +733,7 @@ public class HouseholdControllableCapacitiesTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -745,7 +744,7 @@ public class HouseholdControllableCapacitiesTests
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
     }
@@ -791,7 +790,7 @@ public class HouseholdControllableCapacitiesTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -802,7 +801,7 @@ public class HouseholdControllableCapacitiesTests
       // log.debug(ts1.toString());
 
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -883,7 +882,7 @@ public class HouseholdControllableCapacitiesTests
     timeService.setCurrentTime(timeService.getCurrentTime());
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
     timeService.setCurrentTime(timeService.getCurrentTime()
-            .plus(timeService.HOUR));
+            .plus(TimeService.HOUR));
     householdCustomerService.activate(timeService.getCurrentTime(), 1);
 
   }

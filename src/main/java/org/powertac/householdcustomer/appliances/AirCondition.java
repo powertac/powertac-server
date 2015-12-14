@@ -16,7 +16,6 @@
 
 package org.powertac.householdcustomer.appliances;
 
-import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Vector;
 

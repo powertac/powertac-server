@@ -35,21 +35,13 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluationHelper;
 import org.powertac.common.TariffEvaluator;
 import org.powertac.common.TariffSubscription;
-import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.powertac.common.WeatherReport;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.CustomerModelAccessor;
-import org.powertac.common.interfaces.CustomerServiceAccessor;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.repo.CustomerRepo;
-import org.powertac.common.repo.TariffRepo;
-import org.powertac.common.repo.TimeslotRepo;
-import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.householdcustomer.configurations.VillageConstants;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The village domain class is a set of households that comprise a small village
