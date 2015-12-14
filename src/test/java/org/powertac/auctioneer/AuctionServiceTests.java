@@ -111,10 +111,12 @@ public class AuctionServiceTests
   private Broker s2;
   private Timeslot ts0;
   private Timeslot ts1;
+  private int ts1Num;
   private Timeslot ts2;
+  private int ts2Num;
   //private Timeslot ts3;
   //private Timeslot ts4;
-
+  
   private List<Object[]> accountingArgs;
   private List<Object> brokerMsgs;
 
@@ -160,7 +162,9 @@ public class AuctionServiceTests
     timeService.setCurrentTime(now);
     ts0 = timeslotRepo.makeTimeslot(now);
     ts1 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR));
+    ts1Num = ts1.getSerialNumber();
     ts2 = timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 2));
+    ts2Num = ts2.getSerialNumber();
     //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 3));
     //timeslotRepo.makeTimeslot(now.plus(TimeService.HOUR * 4));
     svc.clearEnabledTimeslots();
@@ -229,7 +233,7 @@ public class AuctionServiceTests
   public void testValidateOrder ()
   {
     // mock the Broker Proxy for b1, capture messages
-    doAnswer(new Answer()
+    doAnswer(new Answer<Object>()
     {
       @Override
       public Object answer (InvocationOnMock invocation)
@@ -379,9 +383,9 @@ public class AuctionServiceTests
   @Test
   public void testActivate1_2_tradeable ()
   {
-    Order sell = new Order(s1, ts1, -1.0, 20.0);
-    Order buy1 = new Order(b1, ts1, 0.6, -21.0);
-    Order buy2 = new Order(b2, ts1, 0.6, -22.0);
+    Order sell = new Order(s1, ts1Num, -1.0, 20.0);
+    Order buy1 = new Order(b1, ts1Num, 0.6, -21.0);
+    Order buy2 = new Order(b2, ts1Num, 0.6, -22.0);
     svc.handleMessage(sell);
     svc.handleMessage(buy1);
     svc.handleMessage(buy2);
@@ -621,10 +625,10 @@ public class AuctionServiceTests
   @Test
   public void marketAskTest ()
   {
-    Order sell1 = new Order(s1, ts2, -0.9, 18.0);
-    Order sell2 = new Order(s2, ts2, -1.0, null);
-    Order buy1 = new Order(b1, ts2, 1.4, -21.0);
-    Order buy2 = new Order(b2, ts2, 0.6, -22.0);
+    Order sell1 = new Order(s1, ts2Num, -0.9, 18.0);
+    Order sell2 = new Order(s2, ts2Num, -1.0, null);
+    Order buy1 = new Order(b1, ts2Num, 1.4, -21.0);
+    Order buy2 = new Order(b2, ts2Num, 0.6, -22.0);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(buy1);
@@ -657,10 +661,10 @@ public class AuctionServiceTests
   @Test
   public void marketAskZeroTest ()
   {
-    Order sell1 = new Order(s1, ts2, -1.9, 18.0);
-    Order sell2 = new Order(s2, ts2, -1.0, null);
-    Order buy1 = new Order(b1, ts2, 0.0, -24.0);
-    Order buy2 = new Order(b2, ts2, 4.0, -16.0);
+    Order sell1 = new Order(s1, ts2Num, -1.9, 18.0);
+    Order sell2 = new Order(s2, ts2Num, -1.0, null);
+    Order buy1 = new Order(b1, ts2Num, 0.0, -24.0);
+    Order buy2 = new Order(b2, ts2Num, 4.0, -16.0);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(buy1);
@@ -695,10 +699,10 @@ public class AuctionServiceTests
   @Test
   public void marketBidTest ()
   {
-    Order sell1 = new Order(s1, ts2, -0.9, 18.0);
-    Order sell2 = new Order(s2, ts2, -1.0, 20.0);
-    Order buy1 = new Order(b1, ts2, 1.4, -21.0);
-    Order buy2 = new Order(b2, ts2, 0.6, null);
+    Order sell1 = new Order(s1, ts2Num, -0.9, 18.0);
+    Order sell2 = new Order(s2, ts2Num, -1.0, 20.0);
+    Order buy1 = new Order(b1, ts2Num, 1.4, -21.0);
+    Order buy2 = new Order(b2, ts2Num, 0.6, null);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(buy1);
@@ -736,9 +740,9 @@ public class AuctionServiceTests
   @Test
   public void marketBidClear ()
   {
-    Order sell1 = new Order(s1, ts2, -0.9, 18.0);
-    Order sell2 = new Order(s2, ts2, -1.0, 20.0);
-    Order buy1 = new Order(b1, ts2, 1.4, null);
+    Order sell1 = new Order(s1, ts2Num, -0.9, 18.0);
+    Order sell2 = new Order(s2, ts2Num, -1.0, 20.0);
+    Order buy1 = new Order(b1, ts2Num, 1.4, null);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(buy1);
@@ -774,9 +778,9 @@ public class AuctionServiceTests
   @Test
   public void marketAskClear ()
   {
-    Order sell1 = new Order(s1, ts2, -1.0, null);
-    Order buy1 = new Order(b1, ts2, 1.4, -21.0);
-    Order buy2 = new Order(b2, ts2, 0.6, -22.0);
+    Order sell1 = new Order(s1, ts2Num, -1.0, null);
+    Order buy1 = new Order(b1, ts2Num, 1.4, -21.0);
+    Order buy2 = new Order(b2, ts2Num, 0.6, -22.0);
     svc.handleMessage(sell1);
     svc.handleMessage(buy1);
     svc.handleMessage(buy2);
@@ -812,8 +816,8 @@ public class AuctionServiceTests
   @Test
   public void marketClear ()
   {
-    Order sell1 = new Order(s1, ts2, -1.0, null);
-    Order buy1 = new Order(b1, ts2, 1.4, null);
+    Order sell1 = new Order(s1, ts2Num, -1.0, null);
+    Order buy1 = new Order(b1, ts2Num, 1.4, null);
     svc.handleMessage(sell1);
     svc.handleMessage(buy1);
     assertEquals("two orders received", 2, svc.getIncoming().size());
@@ -833,14 +837,14 @@ public class AuctionServiceTests
   public void testNumericRange ()
   {
     competition.withMinimumOrderQuantity(0.001);
-    Order sell1 = new Order(s1, ts2, -0.036040484378997206, 20.0);
-    Order sell2 = new Order(s2, ts2, -0.3961457798682808, 21.8);
-    Order sell3 = new Order(s2, ts2, -26.185209758164312, 35.0);
-    Order buy1 = new Order(b1, ts2, 6.0, -35.0);
-    Order buy2 = new Order(b2, ts2, 0.35, -50.0);
-    Order buy3 = new Order(b2, ts2, 8.728125, null);
-    Order buy4 = new Order(b2, ts2, 0.0075, -37.0);
-    Order buy5 = new Order(b2, ts2, 7.875, -35.0);
+    Order sell1 = new Order(s1, ts2Num, -0.036040484378997206, 20.0);
+    Order sell2 = new Order(s2, ts2Num, -0.3961457798682808, 21.8);
+    Order sell3 = new Order(s2, ts2Num, -26.185209758164312, 35.0);
+    Order buy1 = new Order(b1, ts2Num, 6.0, -35.0);
+    Order buy2 = new Order(b2, ts2Num, 0.35, -50.0);
+    Order buy3 = new Order(b2, ts2Num, 8.728125, null);
+    Order buy4 = new Order(b2, ts2Num, 0.0075, -37.0);
+    Order buy5 = new Order(b2, ts2Num, 7.875, -35.0);
     svc.handleMessage(sell1);
     svc.handleMessage(sell2);
     svc.handleMessage(sell3);
