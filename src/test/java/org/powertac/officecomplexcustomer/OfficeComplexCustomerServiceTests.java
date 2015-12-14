@@ -67,7 +67,6 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
-import org.powertac.officecomplexcustomer.configurations.OfficeComplexConstants;
 import org.powertac.officecomplexcustomer.customers.OfficeComplex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -132,8 +131,8 @@ public class OfficeComplexCustomerServiceTests
   private Instant exp;
   private Broker broker1;
   private Instant now;
-  private TariffSpecification defaultTariffSpec, defaultTariffSpecControllable;
-  private Tariff defaultTariff, defaultTariffControllable;
+  private TariffSpecification defaultTariffSpec;
+  private Tariff defaultTariff;
   private Competition comp;
   private List<Object[]> accountingArgs;
 
@@ -180,7 +179,7 @@ public class OfficeComplexCustomerServiceTests
     accountingArgs = new ArrayList<Object[]>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
@@ -199,7 +198,7 @@ public class OfficeComplexCustomerServiceTests
                                  mockServerProperties);
     config = new Configurator();
 
-    doAnswer(new Answer() {
+    doAnswer(new Answer<Object>() {
       @Override
       public Object answer (InvocationOnMock invocation)
       {
@@ -831,7 +830,7 @@ public class OfficeComplexCustomerServiceTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -842,7 +841,7 @@ public class OfficeComplexCustomerServiceTests
       ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
       // log.debug(ts1.toString());
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
     }
@@ -882,7 +881,7 @@ public class OfficeComplexCustomerServiceTests
     Timeslot ts1 = timeslotRepo.makeTimeslot(timeService.getCurrentTime());
     // log.debug(ts1.toString());
     double temperature = 40 * Math.random();
-    WeatherReport wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+    WeatherReport wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
     weatherReportRepo.add(wr);
     officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
@@ -893,7 +892,7 @@ public class OfficeComplexCustomerServiceTests
       // log.debug(ts1.toString());
 
       temperature = 40 * Math.random();
-      wr = new WeatherReport(ts1, temperature, 2, 3, 4);
+      wr = new WeatherReport(ts1.getSerialNumber(), temperature, 2, 3, 4);
       weatherReportRepo.add(wr);
       officeComplexCustomerService.activate(timeService.getCurrentTime(), 1);
 
