@@ -38,7 +38,17 @@ public class DistributionTransaction extends BrokerTransaction
    */
   @XStreamAsAttribute
   private double kWh = 0.0;
-  
+
+  /** Number of small-customer meter charges
+   */
+  @XStreamAsAttribute
+  private int nSmall = 0;
+
+  /** Number of large-customer meter charges
+   */
+  @XStreamAsAttribute
+  private int nLarge = 0;
+
   /** The total charge imposed by the DU for this transport. Since this
    * is a debit, it will always be negative. */
   @XStreamAsAttribute
@@ -53,6 +63,7 @@ public class DistributionTransaction extends BrokerTransaction
   }
 
   @Deprecated
+  // may be in use by older brokers
   public double getQuantity ()
   {
     return kWh;
