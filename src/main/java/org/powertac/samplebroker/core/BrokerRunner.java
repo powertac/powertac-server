@@ -23,8 +23,8 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
-
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -36,14 +36,15 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class BrokerRunner
 {
+  private static Logger log = LogManager.getLogger();
   private AbstractApplicationContext context;
   private PowerTacBroker broker;
-  
+
   public BrokerRunner ()
   {
     super();
   }
-  
+
   public void processCmdLine (String[] args)
   {
     OptionParser parser = new OptionParser();
@@ -112,9 +113,6 @@ public class BrokerRunner
               (new Date().getTime() < end)) {
         counter += 1;
 
-        // Re-open the logfiles
-        reopenLogs(counter);
-        
         // initialize and run
         if (null == context) {
           context = new ClassPathXmlApplicationContext("broker.xml");
@@ -123,10 +121,15 @@ public class BrokerRunner
           context.close();
           context.refresh();
         }
+
+        // Re-open the logfiles
+        reopenLogs(counter);
+
         // get the broker reference and delegate the rest
         context.registerShutdownHook();
         broker = (PowerTacBroker)context.getBeansOfType(PowerTacBroker.class).values().toArray()[0];
         System.out.println("Starting session " + counter);
+        log.info("Starting session {}", counter);
         broker.startSession(configFile, jmsUrl, noNtp, queueName, serverQueue, end);
         if (null != repeatCount)
           repeatCount -= 1;

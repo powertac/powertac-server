@@ -24,9 +24,11 @@
   <!-- A JmsTemplate instance that uses the cached connection and destination -->
   <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate"
     p:connectionFactory-ref="jmsFactory" />
-  
+
   <bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor" p:corePoolSize="5" p:maxPoolSize="25"/>
   
+  <bean id="stateLogging" class="org.powertac.common.state.StateLogging"/>
+
   <!-- need explicit list of beans that have properties to set -->
   
 </beans>
