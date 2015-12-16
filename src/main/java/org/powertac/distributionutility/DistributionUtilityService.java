@@ -222,6 +222,31 @@ implements InitializationService
     return distributionFee;
   }
 
+  double getMSmall ()
+  {
+    return mSmall;
+  }
+
+  double getMLarge ()
+  {
+    return mLarge;
+  }
+
+  int getAssessmentInterval ()
+  {
+    return assessmentInterval;
+  }
+
+  double getStdevCoefficient ()
+  {
+    return stdevCoefficient;
+  }
+
+  double getFeePerPoint ()
+  {
+    return feePerPoint;
+  }
+
   // -------- Delegation methods for backward compatibility -------
   // The only purpose of these methods is to produce configuration data for
   // older brokers. Should not be called by server code.
