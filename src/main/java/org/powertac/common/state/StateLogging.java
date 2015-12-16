@@ -29,6 +29,7 @@ import org.aspectj.lang.Signature;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
 
 /**
  * Implement uniform state-logging using aspects. This scheme depends on two
@@ -47,6 +48,7 @@ import org.aspectj.lang.annotation.Pointcut;
  * @author John Collins
  */
 @Aspect
+@Component
 public class StateLogging
 {
   static private Logger log = LogManager.getLogger(StateLogging.class);
