@@ -25,6 +25,8 @@
     <json-lib.version>2.4</json-lib.version>
     <commons-io.version>2.4</commons-io.version>
     
+    <aspectj-plugin.version>1.8</aspectj-plugin.version>
+    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
   </properties>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
@@ -87,6 +89,29 @@
           <target>${maven-compiler.target}</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <version>${aspectj-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>compile</goal>
+              <goal>test-compile</goal>
+            </goals>
+            <configuration>
+              <verbose>false</verbose>
+              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
+              <weaveDependencies>
+                <weaveDependency>
+                  <groupId>org.powertac</groupId>
+                  <artifactId>common</artifactId>
+                </weaveDependency>
+              </weaveDependencies>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
-   </build>
+  </build>
 </project>
