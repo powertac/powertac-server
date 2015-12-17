@@ -1,57 +1,57 @@
 [submodule "server-interface"]
-	path = server-interface
-	url = git://github.com/erikkemperman/server-interface.git
-        branch = bump-deps-clean
+    path = server-interface
+    url = git://github.com/powertac/server-interface.git
+    branch = master
 [submodule "accounting"]
-	path = accounting
-	url = git://github.com/erikkemperman/accounting.git
-        branch = bump-deps-clean
+    path = accounting
+    url = git://github.com/powertac/accounting.git
+    branch = master
 [submodule "auctioneer"]
-	path = auctioneer
-	url = git://github.com/erikkemperman/auctioneer.git
-        branch = bump-deps-clean
+    path = auctioneer
+    url = git://github.com/powertac/auctioneer.git
+    branch = master
 [submodule "default-broker"]
-	path = default-broker
-	url = git://github.com/erikkemperman/default-broker.git
-        branch = bump-deps-clean
+    path = default-broker
+    url = git://github.com/powertac/default-broker.git
+    branch = master
 [submodule "distribution-utility"]
-	path = distribution-utility
-	url = git://github.com/erikkemperman/distribution-utility.git
-        branch = bump-deps-clean
+    path = distribution-utility
+    url = git://github.com/powertac/distribution-utility.git
+    branch = master
 [submodule "genco"]
-	path = genco
-	url = git://github.com/erikkemperman/genco.git
-        branch = bump-deps-clean
+    path = genco
+    url = git://github.com/powertac/genco.git
+    branch = master
 [submodule "household-customer"]
-	path = household-customer
-	url = git://github.com/erikkemperman/household-customer.git
-        branch = bump-deps-clean
+    path = household-customer
+    url = git://github.com/powertac/household-customer.git
+    branch = master
 [submodule "factored-customer"]
-	path = factored-customer
-	url = git://github.com/erikkemperman/factored-customer.git
-        branch = bump-deps-clean
+    path = factored-customer
+    url = git://github.com/powertac/factored-customer.git
+    branch = master
 [submodule "server-main"]
-	path = server-main
-	url = git://github.com/erikkemperman/server-main.git
-        branch = bump-deps-clean
+    path = server-main
+    url = git://github.com/powertac/server-main.git
+    branch = master
 [submodule "officecomplex-customer"]
-	path = officecomplex-customer
-	url = git://github.com/erikkemperman/officecomplex-customer.git
-        branch = bump-deps-clean
+    path = officecomplex-customer
+    url = git://github.com/powertac/officecomplex-customer.git
+    branch = master
 [submodule "visualizer"]
-	path = visualizer
-	url = git://github.com/erikkemperman/visualizer.git
-        branch = bump-deps-clean
+    path = visualizer
+    url = git://github.com/powertac/visualizer.git
+    branch = master
 [submodule "balancing-market"]
-	path = balancing-market
-	url = git://github.com/erikkemperman/balancing-market.git
-        branch = bump-deps-clean
+    path = balancing-market
+    url = git://github.com/powertac/balancing-market.git
+    branch = master
 [submodule "customer-models"]
-	path = customer-models
-	url = git://github.com/erikkemperman/customer-models.git
-        branch = bump-deps-clean
+    path = customer-models
+    url = git://github.com/powertac/customer-models.git
+    branch = master
 [submodule "evcustomer"]
-	path = evcustomer
-	url = git://github.com/erikkemperman/evcustomer.git
-        branch = bump-deps-clean
+    path = evcustomer
+    url = git://github.com/powertac/evcustomer.git
+    branch = master
 
