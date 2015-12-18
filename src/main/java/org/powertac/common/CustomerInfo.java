@@ -65,8 +65,9 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private double storageCapacity = 0.0;
 
-  /** True just in case this customer can engage in multiple contracts
-   * at the same time. Defaults to false. */
+  /** True just in case the population of this customer model can be
+   * divided to engage in multiple contracts at the same time.
+   * Defaults to false. */
   @XStreamAsAttribute
   private boolean multiContracting = false;
 
