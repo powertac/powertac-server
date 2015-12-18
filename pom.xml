@@ -25,9 +25,16 @@
   </parent>
 
   <artifactId>powertac-server</artifactId>
-  <version>1.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>common</artifactId>
+      <version>1.3.0-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 
   <!-- server components -->
   <modules>
@@ -47,6 +54,28 @@
     <module>webapp-dependencies</module>
     <module>visualizer</module>
   </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc.version}</version>
+        <configuration>
+          <failOnError>false</failOnError>
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
+        <executions>
+          <execution>
+	    <id>aggregate</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>aggregate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
   <repositories>

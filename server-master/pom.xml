@@ -25,6 +25,8 @@
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
+    <maven-javadoc.version>2.10.3</maven-javadoc.version>
+
     <maven-surefire.version>2.19</maven-surefire.version>
 
     <mockito.version>1.10.19</mockito.version>
@@ -129,7 +131,23 @@
 	  </includes>
 	</configuration>
       </plugin>
-      
+
+      <!--  bundle sources for javadoc prep -->
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.1.1</version>
+        <executions>
+          <execution>
+            <id>bundle-sources</id>
+            <phase>verify</phase>
+            <goals>
+              <!-- produce source artifact for main project sources -->
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
       <!-- Make m2e and maven-enforcer-plugin get along -->
       <plugin>
         <groupId>org.eclipse.m2e</groupId>
