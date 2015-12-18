@@ -24,6 +24,8 @@
     <aspectj-plugin.version>1.8</aspectj-plugin.version>
     <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
 
+    <maven-javadoc.version>2.10.3</maven-javadoc.version>
+
     <log4j.version>2.4.1</log4j.version>
     <commons-logging.version>1.2</commons-logging.version>
     <slf4j.version>1.7.13</slf4j.version>
@@ -222,6 +224,17 @@
               </pluginExecution>
             </pluginExecutions>
           </lifecycleMappingMetadata>
+        </configuration>
+      </plugin>
+
+      <!-- javadoc config -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${maven-javadoc.version}</version>
+        <configuration>
+          <failOnError>false</failOnError>
+          <additionalparam>-Xdoclint:none</additionalparam>
         </configuration>
       </plugin>
     </plugins>
