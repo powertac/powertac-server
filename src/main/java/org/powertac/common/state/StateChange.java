@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
 import java.lang.annotation.ElementType;
 
 /**
- * Annotation for methods that must trigger state-log entries
+ * Annotation for methods that must trigger state-log entries.
  * @author John Collins
  */
 @Documented

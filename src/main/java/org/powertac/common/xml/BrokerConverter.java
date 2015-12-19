@@ -39,6 +39,7 @@ public class BrokerConverter implements SingleValueConverter
     super();
   }
   
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
@@ -51,6 +52,7 @@ public class BrokerConverter implements SingleValueConverter
     }
   }
 
+  @Override
   public Object fromString (String username)
   {
     if (brokerRepo == null) {
@@ -64,6 +66,7 @@ public class BrokerConverter implements SingleValueConverter
     return brokerRepo.findOrCreateByUsername(username);
   }
 
+  @Override
   public String toString (Object broker)
   {
     return ((Broker)broker).getUsername();

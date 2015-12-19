@@ -34,6 +34,7 @@ public class FullCustomerConverter implements Converter
     super();
   }
   
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {

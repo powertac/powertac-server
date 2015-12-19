@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import org.powertac.common.repo.BrokerRepo;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestContextManager;
+//import org.springframework.test.context.TestContextManager;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;

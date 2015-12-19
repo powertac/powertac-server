@@ -5,12 +5,14 @@ import com.thoughtworks.xstream.converters.SingleValueConverter;
 public class DoubleArrayConverter implements SingleValueConverter
 {
 
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return double[].class.isAssignableFrom(type);
   }
 
+  @Override
   public Object fromString (String xml)
   {
     String[] values = xml.split(",");
@@ -21,6 +23,7 @@ public class DoubleArrayConverter implements SingleValueConverter
     return result;
   }
 
+  @Override
   public String toString (Object input)
   {
     // convert array to string

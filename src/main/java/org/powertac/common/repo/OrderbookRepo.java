@@ -151,6 +151,7 @@ public class OrderbookRepo implements DomainRepo
   }
 
   /** Clears the index in preparation for a new simulation */
+  @Override
   public void recycle ()
   {
     orderbookIndex.clear();
