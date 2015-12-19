@@ -14,17 +14,20 @@ public class TariffSpecificationConverter implements SingleValueConverter
     super();
   }
   
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return TariffSpecification.class.isAssignableFrom(type);
   }
 
+  @Override
   public Object fromString (String id)
   {
     return getTariffRepo().findSpecificationById(Long.parseLong(id));
   }
 
+  @Override
   public String toString (Object tariffSpec)
   {
     return Long.toString(((TariffSpecification)tariffSpec).getId());

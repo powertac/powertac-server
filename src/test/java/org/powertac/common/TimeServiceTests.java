@@ -158,6 +158,7 @@ public class TimeServiceTests
     final IntHolder var = new IntHolder(0);
     ts.addAction(theBase.toInstant(),
                  new TimedAction() {
+      @Override
       public void perform(Instant time) {
         var.setValue(1); 
         }
@@ -173,6 +174,7 @@ public class TimeServiceTests
     final IntHolder var = new IntHolder(0);
     ts.addAction(theBase.toInstant().plus(15*60*1000),
                  new TimedAction(){
+      @Override
       public void perform(Instant time) {
         var.setValue(2);
       }
@@ -199,6 +201,7 @@ public class TimeServiceTests
     final IntHolder actionCount = new IntHolder(0);
     final int interval = 15 * 60 * 1000; // one 15-minute tick
     final TimedAction action = new TimedAction() {
+      @Override
       public void perform(Instant time) {
         actionCount.setValue(actionCount.getValue() + 1);
         var.setValue(3 * actionCount.getValue());
@@ -206,6 +209,7 @@ public class TimeServiceTests
     };
     final RecursiveTimedAction add = new RecursiveTimedAction(interval);
     TimedAction recurse = new TimedAction(){
+      @Override
       public void perform(Instant time) {
         action.perform(time);
         add.perform(time);
@@ -274,6 +278,7 @@ public class TimeServiceTests
       core = act;
     }
     
+    @Override
     public void perform (Instant time) {
       ts.addAction(ts.getCurrentTime().plus(interval),
                    core);

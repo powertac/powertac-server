@@ -31,17 +31,20 @@ public class CustomerConverter implements SingleValueConverter
     customerRepo = (CustomerRepo) SpringApplicationContext.getBean("customerRepo");
   }
   
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert (Class type)
   {
     return CustomerInfo.class.isAssignableFrom(type);
   }
 
+  @Override
   public Object fromString (String id)
   {
     return customerRepo.findById(Long.parseLong(id));
   }
 
+  @Override
   public String toString (Object customer)
   {
     return Long.toString(((CustomerInfo)customer).getId());

@@ -119,6 +119,7 @@ public class CustomerRepo implements DomainRepo
     return candidates.get(0);
   }
 
+  @Override
   public void recycle ()
   {
     customers.clear();
