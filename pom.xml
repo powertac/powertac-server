@@ -12,8 +12,8 @@
   <!--
      Note that this does not seem to work for release processing,
      because maven does not do the right thing with the git submodules.
-     However, it does work for local installation and snapshot
-     deployment.
+     However, it does work for local installation, javadoc generation,
+     and snapshot deployment.
    -->
 
   <!-- pull in the project master pom -->
@@ -27,14 +27,6 @@
   <artifactId>powertac-server</artifactId>
   <packaging>pom</packaging>
   <name>Power TAC server modules</name>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>common</artifactId>
-      <version>1.3.0-SNAPSHOT</version>
-    </dependency>
-  </dependencies>
 
   <!-- server components -->
   <modules>
@@ -63,6 +55,14 @@
         <configuration>
           <failOnError>false</failOnError>
           <additionalparam>-Xdoclint:none</additionalparam>
+	  <additionalDependencies>
+	    <additionalDependency>
+	      <groupId>org.powertac</groupId>
+	      <artifactId>common</artifactId>
+	      <version>1.3.0-SNAPSHOT</version>
+	    </additionalDependency>
+	  </additionalDependencies>
+	  <includeDependencySources>true</includeDependencySources>
         </configuration>
         <executions>
           <execution>
