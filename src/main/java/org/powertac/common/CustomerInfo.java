@@ -39,6 +39,7 @@ public class CustomerInfo //implements Serializable
 {
   static private Logger log = LogManager.getLogger(CustomerInfo.class.getName());
 
+  public enum CustomerClass { SMALL, LARGE }
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -52,6 +53,9 @@ public class CustomerInfo //implements Serializable
 
   @XStreamAsAttribute
   private PowerType powerType;
+
+  @XStreamAsAttribute
+  private CustomerClass customerClass = CustomerClass.SMALL;
 
   @XStreamAsAttribute
   private double controllableKW = 0.0;
