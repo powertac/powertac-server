@@ -15,6 +15,7 @@
  */
 package org.powertac.common.state;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -24,6 +25,7 @@ import java.lang.annotation.ElementType;
  * Annotation for methods that must trigger state-log entries
  * @author John Collins
  */
+@Documented
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.METHOD)
 public @interface StateChange {
