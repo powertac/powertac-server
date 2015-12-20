@@ -96,18 +96,30 @@ public class TariffSubscriptionRepoTests
     TariffSubscription sub1 = new TariffSubscription(c1, t1);
     repo.add(sub1);
     subs = repo.findSubscriptionsForCustomer(c1);
-    assertEquals("one found for customer", 1, subs.size());
+    assertEquals("one found for customer 1", 1, subs.size());
     assertEquals("correct sub 1", sub1, subs.get(0));
+    subs = repo.findSubscriptionsForCustomer(c2);
+    assertEquals("non found for customer 2", 0, subs.size());
     subs = repo.findSubscriptionsForTariff(t1);
     assertEquals("one found for tariff", 1, subs.size());
     assertEquals("correct sub 2", sub1, subs.get(0));
+    subs = repo.findSubscriptionsForBroker(b1);
+    assertEquals("one found for Bob", 1, subs.size());
+    assertEquals("correct sub 3", sub1, subs.get(0));
+    subs = repo.findSubscriptionsForBroker(b2);
+    assertEquals("none found for Barb", 0, subs.size());
+
     TariffSubscription sub2 = new TariffSubscription(c2, t1);
     repo.add(sub2);
     subs = repo.findSubscriptionsForCustomer(c2);
-    assertEquals("one found for customer", 1, subs.size());
+    assertEquals("one found for customer 2", 1, subs.size());
     assertEquals("correct sub 3", sub2, subs.get(0));
     subs = repo.findSubscriptionsForTariff(t1);
     assertEquals("two found for tariff", 2, subs.size());
+    subs = repo.findSubscriptionsForBroker(b1);
+    assertEquals("two found for Bob", 2, subs.size());
+    subs = repo.findSubscriptionsForBroker(b2);
+    assertEquals("none found for Barb", 0, subs.size());
   }
 
   @Test
