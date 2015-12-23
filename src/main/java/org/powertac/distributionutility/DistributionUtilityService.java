@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2014 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,9 @@
 
 package org.powertac.distributionutility;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,12 +34,13 @@ import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.TariffTransaction;
+import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
+import org.powertac.common.msg.CustomerBootstrapData;
+import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
-//import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.RandomSeedRepo;
-//import org.powertac.common.repo.TariffRepo;
-//import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,14 +61,11 @@ implements InitializationService
   @Autowired
   private BrokerRepo brokerRepo;
 
-  //@Autowired
-  //private TimeslotRepo timeslotRepo;
+  @Autowired
+  private TimeslotRepo timeslotRepo;
 
-  //@Autowired
-  //private OrderbookRepo orderbookRepo;
-  
-  //@Autowired
-  //private TariffRepo tariffRepo;
+  @Autowired
+  private BootstrapDataRepo bootstrapDataRepo;
 
   @Autowired
   private Accounting accounting;
@@ -127,16 +128,26 @@ implements InitializationService
       publish = true,
       description = "Assessment interval in hours")
   private int assessmentInterval = 168;
+  private Integer timeslotOffset = null;
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Std deviation coefficient (nu)")
-  private double stdevCoefficient = 1.2;
+  private double stdCoefficient = 1.2;
 
   @ConfigurableValue (valueType = "Double",
       publish = true,
       description = "Per-point fee (lambda)")
   private double feePerPoint = 4000.0;
+
+  // peak-demand dataset
+  private double[] netDemand;
+  private HashMap<Broker, double[]> brokerNetDemand = null;
+  private double runningMean = 0.0;
+  private double runningVar = 0.0;
+  private double runningSigma = 0.0;
+  private int runningCount = 0;
+  private int lastAssessmentTimeslot = 0;
 
   /**
    * Computes actual distribution and balancing costs by random selection
@@ -153,17 +164,65 @@ implements InitializationService
     distributionFee = null;
 
     serverProps.configureMe(this);
-    
+
+    // initialize peak-demand data
+    if (useCapacityFee) {
+      brokerNetDemand = new HashMap<Broker, double[]>();
+      List<Broker> brokerList = brokerRepo.findRetailBrokers();
+      for (Broker b: brokerList) {
+        brokerNetDemand.put(b, new double[assessmentInterval]);
+      }
+      netDemand = new double[assessmentInterval];
+      processBootstrapRecord();
+    }
+
     // compute randomly-generated values if not overridden
     randomGen = randomSeedService.getRandomSeed("DistributionUtilityService",
                                                 0, "model");
     if (null == distributionFee)
       distributionFee = (distributionFeeMin + randomGen.nextDouble()
                          * (distributionFeeMax - distributionFeeMin));
+    if (!useTransportFee)
+      distributionFee = 0.0;
     log.info("Configured DU: distro fee = " + distributionFee);
     
     serverProps.publishConfiguration(this);
     return "DistributionUtility";
+  }
+
+  private void processBootstrapRecord ()
+  {
+    List<Object> usage = bootstrapDataRepo.getData(CustomerBootstrapData.class);
+    if (null == usage) {
+      // boot session, ignore
+      return;
+    }
+    // data contains usage array for each customer. Should be 14 days, 336 hrs
+    double[] first = ((CustomerBootstrapData) usage.get(0)).getNetUsage();
+    if (336 != first.length) {
+      // note error but use it
+      log.warn("First item in customer bootstrap data is {} hrs long",
+               first.length);
+    }
+    // aggregate the usage numbers across all customers
+    double[] result = new double[first.length];
+    for (Object item: usage) {
+      double[] data = ((CustomerBootstrapData) item).getNetUsage();
+      if (data.length != first.length) {
+        log.warn("Length inconsistency for record {}, length = {}",
+                 ((CustomerBootstrapData) item).getCustomerName(),
+                 data.length);
+      }
+      for (int i = 0; i < Math.min(first.length, data.length); i += 1) {
+        result[i] -= data[i];
+      }
+    }
+    // Initialize running mean, sigma
+    for (double net: result) {
+      updateStats(net);
+    }
+    log.info("Bootstrap data: n = {}, mean = {}, sigma = {}",
+             runningCount, runningMean, runningSigma);
   }
 
   @Override
@@ -176,12 +235,80 @@ implements InitializationService
       return;
     }
 
-    // Add distribution transactions
-    // should be total production + total consumption
-    //    + final imbalance - balancing transactions
+    // retrieve timeslot index and supply/demand data
+    int timeslot = timeslotRepo.getTimeslotIndex(time);
     Map<Broker, Map<TariffTransaction.Type, Double>> totals =
-            accounting.getCurrentSupplyDemandByBroker();
+        accounting.getCurrentSupplyDemandByBroker();
+
+    // optionally do peak-demand assessment
+    if (useCapacityFee) {
+      // make sure we know the timeslot offset
+      if (null == timeslotOffset) {
+        timeslotOffset = timeslot;
+        lastAssessmentTimeslot = timeslot;
+      }
+      else if (0 == (timeslot - timeslotOffset) % assessmentInterval) {
+        // do the assessment
+        log.info("Peak-demand assessment at timeslot {}", timeslot);
+        // discover the over-threshold peaks in the netDemand array
+        double threshold = runningMean + stdCoefficient * runningSigma;
+        List<PeakEvent> peaks = new ArrayList<PeakEvent>();
+        for (int i = 0; i < netDemand.length; i++) {
+          if (netDemand[i] >= threshold) {
+            // gather peak
+            peaks.add(new PeakEvent(netDemand[i], i));
+          }
+        }
+        log.info("{} peaks found above threshold {}", peaks.size(), threshold);
+        if (peaks.size() > 0) {
+          // sort the peak events and assess charges
+          peaks.sort(null);
+          Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
+          for (PeakEvent peak: peaks.subList(0, 3)) {
+            double charge = (peak.value - threshold) * feePerPoint;
+            for (Broker broker: brokerList) {
+              // charge for broker comes from broker_usage/peak.value
+              double[] brokerDemand = brokerNetDemand.get(broker);
+              double cost = charge * brokerDemand[peak.index]
+                  / netDemand[peak.index];
+              brokerCharge.put(broker, cost);
+              double brokerExcess = 
+                  peak.value * brokerDemand[peak.index]/ netDemand[peak.index];
+              accounting.addCapacityTransaction(broker,
+                                                lastAssessmentTimeslot + peak.index,
+                                                brokerExcess,
+                                                threshold, cost);
+            }
+            if (log.isInfoEnabled()) {
+              double pts = peak.value - threshold;
+              StringBuilder sb =
+                  new StringBuilder(String.format("Peak at ts %d, pts=%.3f, charge=%.3f (",
+                                                  timeslot, pts, charge));
+              for (Broker broker: brokerCharge.keySet()) {
+                sb.append(String.format("%s:%.3f, ",
+                                        broker.getUsername(),
+                                        brokerCharge.get(broker)));
+              }
+              sb.append(")");
+              log.info(sb.toString());
+            }
+          }
+        }
+        // record time of last assessment
+        lastAssessmentTimeslot = timeslot;
+      }
+      // keep track of demand peaks for next assessment
+      recordNetDemand(timeslot, totals);
+    }
+
+    // Add distribution transactions
     for (Broker broker : brokerList) {
+      double distroCharge = 0.0;
+      // meter charge is small-customers * mSmall + large customers * mLarge
+      // TODO add meter charge
+
+      // transport fee is total production + total consumption
+      //    + final imbalance - balancing transactions
       Map<TariffTransaction.Type, Double> brokerTotals = totals.get(broker);
       if (null == brokerTotals)
         continue;
@@ -200,48 +327,122 @@ implements InitializationService
                + balanceAdj + ")");
       double transport = (production - consumption - balanceAdj
                           + Math.abs(imports - imbalance)) / 2.0;
-      accounting.addDistributionTransaction(broker, transport,
-                                                   transport * distributionFee);
+      distroCharge += transport * distributionFee;
+      accounting.addDistributionTransaction(broker, transport, distroCharge);
     }
+  }
+
+  // Records hourly net demand, updates running stats
+  private void recordNetDemand (int timeslot,
+                                Map<Broker, Map<Type, Double>> totals)
+  {
+    int index = (timeslot - timeslotOffset) % assessmentInterval;
+    double totalConsumption = 0.0;
+    for (Broker broker: totals.keySet()) {
+      Map<TariffTransaction.Type, Double> data = totals.get(broker);
+      if (null == data)
+        continue;
+      double netConsumption =
+          -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
+      brokerNetDemand.get(broker)[index] = netConsumption;
+      totalConsumption += netConsumption;
+    }
+    log.info("Total net consumption for ts {} = {}",
+             timeslot, totalConsumption);
+    netDemand[index] = totalConsumption;
+    // Update running mean and var
+    if (runningCount == 0) {
+      // first time through, assume this is a boot session
+      runningMean = totalConsumption;
+      runningVar = 0.0;
+      runningCount = 1;
+    }
+    else {
+      // use recurrence formula to update mean, sigma
+      updateStats(totalConsumption);
+      log.info("Net demand k = {}, mean = {}, sigma = {}",
+               runningCount, runningMean, runningSigma);
+    }
+  }
+
+  // Runs the recurrence formula for computing mean, sigma
+  private void updateStats (double netConsumption)
+  {
+    double lastM = runningMean;
+    runningCount += 1;
+    runningMean = lastM + (netConsumption - lastM) / runningCount;
+    runningVar = runningVar +
+        (netConsumption - lastM) * (netConsumption - runningMean);
+    runningSigma = Math.sqrt(runningVar / (runningCount - 1.0));
   }
 
   // ---------- parameter getters ---------
 
+  /**
+   * Returns the minimum value for the per-kWh distribution fee.
+   */
   double getDistributionFeeMin ()
   {
     return distributionFeeMin;
   }
 
+  /**
+   * Returns the maximum value for the per-kWh distribution fee.
+   */
   double getDistributionFeeMax ()
   {
     return distributionFeeMax;
   }
 
+  /**
+   * Returns the game value for the per-kWh distribution fee.
+   * 
+   */
   Double getDistributionFee ()
   {
-    return distributionFee;
+    if (null == distributionFee)
+      return 0.0;
+    else
+      return distributionFee;
   }
 
+  /**
+   * Returns the per-timeslot meter charge for small customers.
+   */
   double getMSmall ()
   {
     return mSmall;
   }
 
+  /**
+   * Returns the per-timeslot meter charge for large customers.
+   */
   double getMLarge ()
   {
     return mLarge;
   }
 
+  /**
+   * Returns the assessment interval for peak-demand measurement.
+   */
   int getAssessmentInterval ()
   {
     return assessmentInterval;
   }
 
-  double getStdevCoefficient ()
+  /**
+   * Returns the coefficient nu used in peak-demand assessment, in the formula
+   * points = mean + coeff * sigma.
+   */
+  double getStdCoefficient ()
   {
-    return stdevCoefficient;
+    return stdCoefficient;
   }
 
+  /**
+   * Returns the fee assessed per point for peak demand at each assessment
+   * interval.
+   */
   double getFeePerPoint ()
   {
     return feePerPoint;
@@ -304,5 +505,31 @@ implements InitializationService
   public double getDefaultSpotPrice()
   {
     return balancingMarket.getDefaultSpotPrice();
+  }
+
+  // Sortable data structure for tracking peak-demand events
+  class PeakEvent implements Comparable<PeakEvent>
+  {
+    double value = 0.0;
+    int index = 0;
+
+    PeakEvent (double val, int idx)
+    {
+      super();
+      value = val;
+      index = idx;
+    }
+
+    @Override
+    public int compareTo (PeakEvent o)
+    {
+      if (this.value > o.value)
+        return 1;
+      else if (this.value < o.value)
+        return -1;
+      else
+        // make comparison consistent with equals
+        return this.index - o.index;
+    }
   }
 }
