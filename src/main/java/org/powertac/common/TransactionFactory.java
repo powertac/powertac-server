@@ -87,4 +87,13 @@ public class TransactionFactory
                                   txType, spec, customer,
                                   customerCount, kWh, charge);
   }
+
+  public CapacityTransaction
+  makeCapacityTransaction (Broker broker,
+                           int peakTimeslot, double threshold,
+                           double kWh, double fee)
+  {
+    return new CapacityTransaction(broker, getTimeslotIndex(),
+                                   peakTimeslot, threshold, kWh, fee);
+  }
 }
