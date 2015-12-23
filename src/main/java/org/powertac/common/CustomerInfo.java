@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +145,25 @@ public class CustomerInfo //implements Serializable
   public CustomerInfo withPowerType (PowerType type)
   {
     powerType = type;
+    return this;
+  }
+
+  /**
+   * Returns the customer class of this customer. This value determines the
+   * amount of the periodic per-customer "meter charge" if this feature is
+   * used.
+   */
+  public CustomerClass getCustomerClass ()
+  {
+    return customerClass;
+  }
+
+  /**
+   * Fluent setter for customerClass attribute.
+   */
+  public CustomerInfo withCustomerClass (CustomerClass cClass)
+  {
+    customerClass = cClass;
     return this;
   }
 

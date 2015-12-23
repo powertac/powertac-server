@@ -27,46 +27,62 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  *
  * @author John Collins
  */
-@Domain(fields = {"postedTimeslot", "threshold", "KWh", "charge"})
+@Domain(fields = {"postedTimeslot", "peakTimeslot",
+                  "threshold", "KWh", "charge"})
 @XStreamAlias("distribution-tx")
 public class CapacityTransaction extends BrokerTransaction
 {
-  /**
-   * The peak-demand threshold for this assessment.
-   */
+  @XStreamAsAttribute
+  private int peakTimeslot = 0;
+
   @XStreamAsAttribute
   private double threshold = 0.0;
 
-  /** The amount by which this broker's total net consumption
-   *  exceeded the threshold, in kWh.
-   */
   @XStreamAsAttribute
   private double kWh = 0.0;
-  
-  /** The total charge imposed by the DU for this assessment. Since this
-   * is a debit, it will always be negative. */
+
   @XStreamAsAttribute
   private double charge = 0.0;
 
-  public CapacityTransaction (Broker broker, int when, double threshold,
-                              double kwh, double charge)
+  public CapacityTransaction (Broker broker, int when, int peakTimeslot,
+                              double threshold, double kwh, double charge)
   {
     super(when, broker);
+    this.peakTimeslot = peakTimeslot;
     this.threshold = threshold;
     this.kWh = kwh;
     this.charge = charge;
   }
 
+  /**
+   * When this peak occurred.
+   */
+  public int getPeakTimeslot ()
+  {
+    return peakTimeslot;
+  }
+
+  /**
+   * The peak-demand threshold for this assessment.
+   */
   public double getThreshold ()
   {
     return threshold;
   }
 
+  /**
+   * The amount by which this broker's total net consumption
+   *  exceeded the threshold, in kWh.
+   */
   public double getKWh ()
   {
     return kWh;
   }
 
+  /**
+   * The total charge imposed by the DU for this assessment. Since this
+   * is a debit, it will always be negative.
+   */
   public double getCharge ()
   {
     return charge;
@@ -74,7 +90,8 @@ public class CapacityTransaction extends BrokerTransaction
 
   @Override
   public String toString() {
-    return ("Capacity tx " + postedTimeslot +
-        "-" + broker.getUsername() + "-(" + threshold + "," + kWh + ")-" + charge);
+    return (String.format("Capacity tx %d-%s-(%d,%.2f,%.2f)-%.2f",
+                          postedTimeslot, broker.getUsername(),
+                          peakTimeslot, threshold, kWh, charge));
   }
 }
