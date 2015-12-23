@@ -191,6 +191,18 @@ public class AccountingService
     return btx;
   }
 
+  @Override
+  public synchronized CapacityTransaction
+  addCapacityTransaction (Broker broker, int peakTimeslot,
+                          double threshold, double kWh, double fee)
+  {
+    CapacityTransaction ctx =
+        txFactory.makeCapacityTransaction(broker, peakTimeslot,
+                                          threshold, kWh, fee);
+    pendingTransactions.add(ctx);
+    return ctx;
+  }
+
   /**
    * Returns the net load for the given broker in the current timeslot.
    * Note that this only works AFTER the customer models have run, and
