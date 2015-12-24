@@ -3,6 +3,7 @@ package org.powertac.distributionutility;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
+import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
@@ -52,6 +54,9 @@ public class DistributionUtilityServiceTests
   private TimeslotRepo timeslotRepo;
 
   @Autowired
+  private BootstrapDataRepo bootRepo;
+
+  @Autowired
   private BrokerRepo brokerRepo;
 
   @Autowired
@@ -75,6 +80,7 @@ public class DistributionUtilityServiceTests
   private List<TariffSpecification> tariffSpecList = new ArrayList<TariffSpecification>();
   private List<Tariff> tariffList = new ArrayList<Tariff>();
   private DateTime start;
+  private TreeMap<String, String> cfgMap;
 
   @Before
   public void setUp ()
@@ -105,6 +111,7 @@ public class DistributionUtilityServiceTests
     brokerList.add(broker3);
 
     // Set up serverProperties mock
+    cfgMap = new TreeMap<String, String>();
     config = new Configurator();
     doAnswer(new Answer<Object>() {
       @Override
@@ -133,21 +140,38 @@ public class DistributionUtilityServiceTests
 
   private void initializeService ()
   {
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
-    map.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
-    Configuration mapConfig = new MapConfiguration(map);
+    Configuration mapConfig = new MapConfiguration(cfgMap);
     config.setConfiguration(mapConfig);
     distributionUtilityService.initialize(comp, Arrays.asList("BalancingMarket"));
   }
 
   @Test
-  public void setupTest ()
+  public void transportInit ()
   {
+    cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
+    cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
     initializeService();
     assertEquals("correct min dist fee", -0.01,
                  distributionUtilityService.getDistributionFeeMin(), 1e-6);
     assertEquals("correct max dist fee", -0.12,
                  distributionUtilityService.getDistributionFeeMax(), 1e-6);
+  }
+
+  @Test
+  public void capacityInit ()
+  {
+    cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
+    cfgMap.put("distributionutility.distributionUtilityService.assessmentInterval", "24");
+    cfgMap.put("distributionutility.distributionUtilityService.stdCoefficient", "1.1");
+    cfgMap.put("distributionutility.distributionUtilityService.feePerPoint", "1001.0");
+    initializeService();
+    assertTrue("using capacity fee",
+                 distributionUtilityService.usingCapacityFee());
+    assertEquals("correct assessmentInterval", 24,
+                 distributionUtilityService.getAssessmentInterval(), 24);
+    assertEquals("correct std coefficient", 1.1,
+                 distributionUtilityService.getStdCoefficient(), 1e-6);
+    assertEquals("correct fee-per-point", 1001.0,
+                 distributionUtilityService.getFeePerPoint(), 1e-6);
   }
 }

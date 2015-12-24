@@ -193,7 +193,7 @@ implements InitializationService
   private void processBootstrapRecord ()
   {
     List<Object> usage = bootstrapDataRepo.getData(CustomerBootstrapData.class);
-    if (null == usage) {
+    if (null == usage || 0 == usage.size()) {
       // boot session, ignore
       return;
     }
@@ -379,6 +379,14 @@ implements InitializationService
   // ---------- parameter getters ---------
 
   /**
+   * True just in case the transport fee is being assessed
+   */
+  boolean usingTransportFee ()
+  {
+    return useTransportFee;
+  }
+
+  /**
    * Returns the minimum value for the per-kWh distribution fee.
    */
   double getDistributionFeeMin ()
@@ -407,6 +415,14 @@ implements InitializationService
   }
 
   /**
+   * True just in case per-meter charges are being assessed.
+   */
+  boolean usingMeterFee ()
+  {
+    return useMeterFee;
+  }
+
+  /**
    * Returns the per-timeslot meter charge for small customers.
    */
   double getMSmall ()
@@ -420,6 +436,14 @@ implements InitializationService
   double getMLarge ()
   {
     return mLarge;
+  }
+
+  /**
+   * True just in case capacity (peak-demand) fees are being assessed.
+   */
+  boolean usingCapacityFee ()
+  {
+    return useCapacityFee;
   }
 
   /**

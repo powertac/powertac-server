@@ -9,6 +9,7 @@
 	       http://www.mockito.org/spring/mockito 
 	       http://www.mockito.org/spring/mockito.xsd">
 
+        <!--  Set up mock services -->
 	<bean id="brokerProxy" class="org.mockito.Mockito" factory-method="mock">
 		<constructor-arg value="org.powertac.common.interfaces.BrokerProxy" />
 	</bean>
@@ -36,6 +37,11 @@
         <bean id="serverPropertiesService" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.interfaces.ServerConfiguration" />
+        </bean>
+
+        <bean id="bootstrapDataRepo" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.repo.BootstrapDataRepo" />
         </bean>
 
 	<context:annotation-config />
