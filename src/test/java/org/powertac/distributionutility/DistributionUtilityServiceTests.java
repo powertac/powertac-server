@@ -25,6 +25,8 @@ import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TimeService;
@@ -76,11 +78,13 @@ public class DistributionUtilityServiceTests
 
   private Competition comp;
   private Configurator config;
+  private TreeMap<String, String> cfgMap;
   private List<Broker> brokerList = new ArrayList<Broker>();
   private List<TariffSpecification> tariffSpecList = new ArrayList<TariffSpecification>();
   private List<Tariff> tariffList = new ArrayList<Tariff>();
+  private CustomerInfo cust1;
+  private CustomerInfo cust2;
   private DateTime start;
-  private TreeMap<String, String> cfgMap;
 
   @Before
   public void setUp ()
@@ -88,7 +92,13 @@ public class DistributionUtilityServiceTests
     // create a Competition, needed for initialization
     comp = Competition.newInstance("du-test");
     Competition.setCurrent(comp);
-    
+
+    // set up some customers
+    cust1 =
+        new CustomerInfo("Podunk", 10).withCustomerClass(CustomerClass.SMALL);
+    cust2 =
+        new CustomerInfo("Acme", 1).withCustomerClass(CustomerClass.LARGE);
+
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
     start = new DateTime(start, DateTimeZone.UTC);
@@ -146,7 +156,7 @@ public class DistributionUtilityServiceTests
   }
 
   @Test
-  public void transportInit ()
+  public void testTransportInit ()
   {
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
@@ -158,7 +168,7 @@ public class DistributionUtilityServiceTests
   }
 
   @Test
-  public void capacityInit ()
+  public void testCapacityInit ()
   {
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
     cfgMap.put("distributionutility.distributionUtilityService.assessmentInterval", "24");
@@ -173,5 +183,14 @@ public class DistributionUtilityServiceTests
                  distributionUtilityService.getStdCoefficient(), 1e-6);
     assertEquals("correct fee-per-point", 1001.0,
                  distributionUtilityService.getFeePerPoint(), 1e-6);
+  }
+
+  @Test
+  public void testBootInit ()
+  {
+    
+    cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
+    initializeService();
+    
   }
 }

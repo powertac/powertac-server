@@ -376,7 +376,7 @@ implements InitializationService
     runningSigma = Math.sqrt(runningVar / (runningCount - 1.0));
   }
 
-  // ---------- parameter getters ---------
+  // ---------- parameter getters -- test support ---------
 
   /**
    * True just in case the transport fee is being assessed
@@ -470,6 +470,31 @@ implements InitializationService
   double getFeePerPoint ()
   {
     return feePerPoint;
+  }
+
+  double getRunningMean ()
+  {
+    return runningMean;
+  }
+
+  double getRunningVar ()
+  {
+    return runningVar;
+  }
+
+  double getRunningSigma ()
+  {
+    return runningSigma;
+  }
+
+  int getRunningCount ()
+  {
+    return runningCount;
+  }
+
+  int getLastAssessmentTimeslot ()
+  {
+    return lastAssessmentTimeslot;
   }
 
   // -------- Delegation methods for backward compatibility -------
