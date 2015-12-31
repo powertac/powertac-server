@@ -168,6 +168,7 @@ public class DuServiceNoConfigTests
   @Test
   public void testTransportInit ()
   {
+    cfgMap.put("distributionutility.distributionUtilityService.useTransportFee", "true");
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMin", "-0.01");
     cfgMap.put("distributionutility.distributionUtilityService.distributionFeeMax", "-0.12");
     initializeService();
