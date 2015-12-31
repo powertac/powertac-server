@@ -17,7 +17,6 @@
 package org.powertac.distributionutility;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -264,7 +263,7 @@ implements InitializationService
           // sort the peak events and assess charges
           peaks.sort(null);
           Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
-          for (PeakEvent peak: peaks.subList(0, 3)) {
+          for (PeakEvent peak: peaks.subList(0, Math.min(3, peaks.size()))) {
             double charge = (peak.value - threshold) * feePerPoint;
             for (Broker broker: brokerList) {
               // charge for broker comes from broker_usage/peak.value
