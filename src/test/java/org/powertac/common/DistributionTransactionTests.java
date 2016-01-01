@@ -66,7 +66,7 @@ public class DistributionTransactionTests
   }
 
   @Test
-  public void testDistributionTransaction ()
+  public void testDistributionTransactionA ()
   {
     DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
     assertNotNull("not null", dt);
@@ -74,21 +74,36 @@ public class DistributionTransactionTests
     assertEquals("correct broker", broker, dt.getBroker());
     assertEquals("correct qty", 42.1, dt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, dt.getCharge(), 1e-6);
+    assertEquals("no small", 0, dt.getNSmall());
+    assertEquals("no large", 0, dt.getNLarge());
+  }
+
+  @Test
+  public void testDistributionTransactionB ()
+  {
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
+    assertNotNull("not null", dt);
+    assertEquals("correct time", 24, dt.getPostedTimeslotIndex());
+    assertEquals("correct broker", broker, dt.getBroker());
+    assertEquals("correct qty", 42.1, dt.getKWh(), 1e-6);
+    assertEquals("correct charge", 3.22, dt.getCharge(), 1e-6);
+    assertEquals("correct small", 123, dt.getNSmall());
+    assertEquals("correct large", 45, dt.getNLarge());
   }
 
   @Test
   public void testToString ()
   {
-    DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
     String sut = dt.toString();
     //System.out.println(sut);
-    assertTrue("match", sut.matches("Distribution tx 24-Sally-42.1-3.22"));
+    assertTrue("match", sut.matches("Distribution tx 24-Sally-123-45-42.100-3.220"));
   }
 
   @Test
   public void xmlSerializationTest ()
   {
-    DistributionTransaction dt = new DistributionTransaction(broker, 24, 42.1, 3.22);
+    DistributionTransaction dt = new DistributionTransaction(broker, 24, 123, 45, 42.1, 3.22);
     XStream xstream = new XStream();
     xstream.processAnnotations(DistributionTransaction.class);
     StringWriter serialized = new StringWriter();
@@ -98,6 +113,8 @@ public class DistributionTransactionTests
     assertNotNull("deserialized something", xdt);
     assertEquals("correct broker", broker, xdt.getBroker());
     assertEquals("correct time", 24, xdt.getPostedTimeslotIndex());
+    assertEquals("correct small", 123, xdt.getNSmall());
+    assertEquals("correct large", 45, xdt.getNLarge());
     assertEquals("correct qty", 42.1, xdt.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, xdt.getCharge(), 1e-6);
   }
