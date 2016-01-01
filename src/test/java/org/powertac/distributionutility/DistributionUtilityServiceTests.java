@@ -39,6 +39,7 @@ import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -70,6 +71,9 @@ public class DistributionUtilityServiceTests
 
   @Autowired
   private TariffRepo tariffRepo;
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
   private OrderbookRepo orderbookRepo;
@@ -222,9 +226,10 @@ public class DistributionUtilityServiceTests
   {
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "true");
     cfgMap.put("distributionutility.distributionUtilityService.useTransportFee", "false");
+    cfgMap.put("distributionutility.distributionUtilityService.useMeterFee", "false");
     cfgMap.put("distributionutility.distributionUtilityService.assessmentInterval", "2");
     cfgMap.put("distributionutility.distributionUtilityService.stdCoefficient", "1.1");
-    cfgMap.put("distributionutility.distributionUtilityService.feePerPoint", "1001.0");
+    cfgMap.put("distributionutility.distributionUtilityService.feePerPoint", "10.0");
     setBootRecord();
     initializeService();
     
@@ -266,7 +271,7 @@ public class DistributionUtilityServiceTests
     broker2Map.put(Type.CONSUME, -5.0);
     broker2Map.put(Type.PRODUCE, 1.0); //+4
     broker3Map.put(Type.CONSUME, -7.5);
-    broker3Map.put(Type.PRODUCE, 2.0); //+4.5
+    broker3Map.put(Type.PRODUCE, 2.0); //+5.5
     distributionUtilityService.activate(timeService.getCurrentTime(), 4);
     verify(accountingService, never()).addCapacityTransaction(anyObject(), anyInt(),
                                                               anyDouble(), anyDouble(),
@@ -290,5 +295,18 @@ public class DistributionUtilityServiceTests
   private void bumpTime (long incr)
   {
     timeService.setCurrentTime(timeService.getCurrentTime().plus(incr));
+  }
+
+  @Test
+  private void testMeterFee ()
+  {
+    cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "false");
+    cfgMap.put("distributionutility.distributionUtilityService.useTransportFee", "false");
+    cfgMap.put("distributionutility.distributionUtilityService.useMeterFee", "true");
+    cfgMap.put("distributionutility.distributionUtilityService.mSmall", "0.12");
+    cfgMap.put("distributionutility.distributionUtilityService.mLarge", "0.18");
+    setBootRecord();
+    initializeService();
+    
   }
 }

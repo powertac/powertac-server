@@ -44,6 +44,11 @@
           <constructor-arg value="org.powertac.common.repo.BootstrapDataRepo" />
         </bean>
 
+        <bean id="tariffSubscriptionReop" class="org.mockito.Mockito"
+              factory-method="mock">
+          <constructor-arg value="org.powertac.common.repo.TariffSubscriptionRepo" />
+        </bean>
+
 	<context:annotation-config />
 
 	<bean id="springApplicationContext"

@@ -31,7 +31,9 @@ import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
@@ -39,6 +41,7 @@ import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -65,6 +68,9 @@ implements InitializationService
 
   @Autowired
   private BootstrapDataRepo bootstrapDataRepo;
+  
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
 
   @Autowired
   private Accounting accounting;
@@ -241,94 +247,124 @@ implements InitializationService
 
     // optionally do peak-demand assessment
     if (useCapacityFee) {
-      // make sure we know the timeslot offset
-      if (null == timeslotOffset) {
-        timeslotOffset = timeslot;
-        lastAssessmentTimeslot = timeslot;
-      }
-      else if (0 == (timeslot - timeslotOffset) % assessmentInterval) {
-        // do the assessment
-        log.info("Peak-demand assessment at timeslot {}", timeslot);
-        // discover the over-threshold peaks in the netDemand array
-        double threshold = runningMean + stdCoefficient * runningSigma;
-        List<PeakEvent> peaks = new ArrayList<PeakEvent>();
-        for (int i = 0; i < netDemand.length; i++) {
-          if (netDemand[i] >= threshold) {
-            // gather peak
-            peaks.add(new PeakEvent(netDemand[i], i));
-          }
-        }
-        log.info("{} peaks found above threshold {}", peaks.size(), threshold);
-        if (peaks.size() > 0) {
-          // sort the peak events and assess charges
-          peaks.sort(null);
-          Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
-          for (PeakEvent peak: peaks.subList(0, Math.min(3, peaks.size()))) {
-            double charge = (peak.value - threshold) * feePerPoint;
-            for (Broker broker: brokerList) {
-              // charge for broker comes from broker_usage/peak.value
-              double[] brokerDemand = brokerNetDemand.get(broker);
-              double cost = charge * brokerDemand[peak.index]
-                  / netDemand[peak.index];
-              brokerCharge.put(broker, cost);
-              double brokerExcess = 
-                  peak.value * brokerDemand[peak.index]/ netDemand[peak.index];
-              accounting.addCapacityTransaction(broker,
-                                                lastAssessmentTimeslot + peak.index,
-                                                brokerExcess,
-                                                threshold, cost);
-            }
-            if (log.isInfoEnabled()) {
-              double pts = peak.value - threshold;
-              StringBuilder sb =
-                  new StringBuilder(String.format("Peak at ts %d, pts=%.3f, charge=%.3f (",
-                                                  timeslot, pts, charge));
-              for (Broker broker: brokerCharge.keySet()) {
-                sb.append(String.format("%s:%.3f, ",
-                                        broker.getUsername(),
-                                        brokerCharge.get(broker)));
-              }
-              sb.append(")");
-              log.info(sb.toString());
-            }
-          }
-        }
-        // record time of last assessment
-        lastAssessmentTimeslot = timeslot;
-      }
-      // keep track of demand peaks for next assessment
-      recordNetDemand(timeslot, totals);
+      assessCapacityFees(brokerList, timeslot, totals);
     }
 
     // Add distribution transactions
     for (Broker broker : brokerList) {
+      double transport = 0.0;
       double distroCharge = 0.0;
+      int nSmall = 0;
+      int nLarge = 0;
       // meter charge is small-customers * mSmall + large customers * mLarge
-      // TODO add meter charge
+      if (useMeterFee) {
+        // count up individual customers
+        List<TariffSubscription> subs =
+                tariffSubscriptionRepo.findActiveSubscriptionsForBroker(broker);
+        for (TariffSubscription sub: subs) {
+          if (CustomerClass.LARGE == sub.getCustomer().getCustomerClass()) {
+            nLarge += sub.getCustomersCommitted();
+          }
+          else {
+            nSmall += sub.getCustomersCommitted();
+          }
+        }
+        distroCharge += nLarge * mLarge;
+        distroCharge += nSmall * mSmall;
+        log.info("Meter charges for {}: small={}, large={}, charge={}",
+                 broker.getUsername(), nSmall, nLarge, distroCharge);
+      }
 
-      // transport fee is total production + total consumption
-      //    + final imbalance - balancing transactions
-      Map<TariffTransaction.Type, Double> brokerTotals = totals.get(broker);
-      if (null == brokerTotals)
-        continue;
-      double consumption = brokerTotals.get(TariffTransaction.Type.CONSUME);
-      double production = brokerTotals.get(TariffTransaction.Type.PRODUCE);
-      double imports = accounting.getCurrentMarketPosition(broker) * 1000.0;
-      // balancing adjusts imports
-      double imbalance = balancingMarket.getMarketBalance(broker); // >0 if oversupply
-      double balanceAdj = balancingMarket.getRegulation(broker);
-      log.info("Distribution tx for "
-               + broker.getUsername() + "(c,p,m,i,b) = ("
-               + consumption + ","
-               + production + ","
-               + imports + ","
-               + imbalance + ","
-               + balanceAdj + ")");
-      double transport = (production - consumption - balanceAdj
-                          + Math.abs(imports - imbalance)) / 2.0;
-      distroCharge += transport * distributionFee;
-      accounting.addDistributionTransaction(broker, transport, distroCharge);
+      if (useTransportFee) {
+        // transport fee is total production + total consumption
+        //    + final imbalance - balancing transactions
+        Map<TariffTransaction.Type, Double> brokerTotals = totals.get(broker);
+        if (null == brokerTotals)
+          continue;
+        double consumption = brokerTotals.get(TariffTransaction.Type.CONSUME);
+        double production = brokerTotals.get(TariffTransaction.Type.PRODUCE);
+        double imports = accounting.getCurrentMarketPosition(broker) * 1000.0;
+        // balancing adjusts imports
+        double imbalance = balancingMarket.getMarketBalance(broker); // >0 if oversupply
+        double balanceAdj = balancingMarket.getRegulation(broker);
+        log.info("Distribution tx for "
+                + broker.getUsername() + "(c,p,m,i,b) = ("
+                + consumption + ","
+                + production + ","
+                + imports + ","
+                + imbalance + ","
+                + balanceAdj + ")");
+        transport =
+                (production - consumption - balanceAdj
+                        + Math.abs(imports - imbalance)) / 2.0;
+        distroCharge += transport * distributionFee;
+      }
+      accounting.addDistributionTransaction(broker, nSmall, nLarge, transport, distroCharge);
     }
+  }
+
+  void
+    assessCapacityFees (List<Broker> brokerList, int timeslot,
+                        Map<Broker, Map<TariffTransaction.Type, Double>> totals)
+  {
+    // make sure we know the timeslot offset
+    if (null == timeslotOffset) {
+      timeslotOffset = timeslot;
+      lastAssessmentTimeslot = timeslot;
+    }
+    else if (0 == (timeslot - timeslotOffset) % assessmentInterval) {
+      // do the assessment
+      log.info("Peak-demand assessment at timeslot {}", timeslot);
+      // discover the over-threshold peaks in the netDemand array
+      double threshold = runningMean + stdCoefficient * runningSigma;
+      List<PeakEvent> peaks = new ArrayList<PeakEvent>();
+      for (int i = 0; i < netDemand.length; i++) {
+        if (netDemand[i] >= threshold) {
+          // gather peak
+          peaks.add(new PeakEvent(netDemand[i], i));
+        }
+      }
+      log.info("{} peaks found above threshold {}", peaks.size(), threshold);
+      if (peaks.size() > 0) {
+        // sort the peak events and assess charges
+        peaks.sort(null);
+        Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
+        for (PeakEvent peak: peaks.subList(0, Math.min(3, peaks.size()))) {
+          double charge = (peak.value - threshold) * feePerPoint;
+          for (Broker broker: brokerList) {
+            // charge for broker comes from broker_usage/peak.value
+            double[] brokerDemand = brokerNetDemand.get(broker);
+            double cost = charge * brokerDemand[peak.index]
+                / netDemand[peak.index];
+            brokerCharge.put(broker, cost);
+            double brokerExcess = 
+                peak.value * brokerDemand[peak.index]/ netDemand[peak.index];
+            accounting.addCapacityTransaction(broker,
+                                              lastAssessmentTimeslot + peak.index,
+                                              brokerExcess,
+                                              threshold, cost);
+          }
+          if (log.isInfoEnabled()) {
+            double pts = peak.value - threshold;
+            StringBuilder sb =
+                new StringBuilder(String.format("Peak at ts %d, pts=%.3f, charge=%.3f (",
+                                                peak.index + timeslot - assessmentInterval,
+                                                pts, charge));
+            for (Broker broker: brokerCharge.keySet()) {
+              sb.append(String.format("%s:%.3f, ",
+                                      broker.getUsername(),
+                                      brokerCharge.get(broker)));
+            }
+            sb.append(")");
+            log.info(sb.toString());
+          }
+        }
+      }
+      // record time of last assessment
+      lastAssessmentTimeslot = timeslot;
+    }
+    // keep track of demand peaks for next assessment
+    recordNetDemand(timeslot, totals);
   }
 
   // Records hourly net demand, updates running stats
