@@ -55,13 +55,15 @@ public interface Accounting
   public TariffTransaction addTariffTransaction (TariffTransaction.Type txType,
       Tariff tariff, CustomerInfo customer, int customerCount, double kWh,
       double charge);
-  
+
   /**
-   * Adds a distribution transaction to represent charges for carrying power
+   * Adds a distribution transaction to represent charges for customer
+   * connections and energy transport.
    */
-  public DistributionTransaction addDistributionTransaction (Broker broker,
-                                                             double load,
-                                                             double fee);
+  public DistributionTransaction
+  addDistributionTransaction (Broker broker, int nSmall, int nLarge,
+                              double transport,
+                              double distroCharge);
 
   /**
    * Adds a capacity transaction to represent charges for contribution to

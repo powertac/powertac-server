@@ -60,12 +60,14 @@ public class TransactionFactory
   {
     return new CashPosition(broker, balance, getTimeslotIndex());
   }
-  
+
   public DistributionTransaction
-  makeDistributionTransaction (Broker broker, double kWh, double charge)
+  makeDistributionTransaction (Broker broker, int nSmall, int nLarge,
+                                 double transport, double distroCharge)
   {
     return new DistributionTransaction(broker, getTimeslotIndex(),
-                                       kWh, charge);
+                                       nSmall, nLarge, transport,
+                                       distroCharge);
   }
   
   public MarketTransaction
