@@ -39,6 +39,7 @@ public class SimpleSettlementProcessor extends SettlementProcessor
   /* (non-Javadoc)
    * @see org.powertac.balancemkt.SettlementProcessor#settle(java.util.Collection)
    */
+  @SuppressWarnings("deprecation")
   @Override
   public void settle (SettlementContext service,
                       List<ChargeInfo> brokerData)
