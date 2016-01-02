@@ -6,9 +6,7 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
@@ -23,21 +21,15 @@ import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powertac.common.config.Configurator;
-import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
-import org.powertac.common.CustomerInfo;
-import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
-import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.TimeService;
 import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,9 +64,6 @@ public class DuServiceNoConfigTests
   private TariffRepo tariffRepo;
 
   @Autowired
-  private OrderbookRepo orderbookRepo;
-  
-  @Autowired
   private Accounting accountingService;
   
   @Autowired
@@ -92,8 +81,8 @@ public class DuServiceNoConfigTests
   private Broker broker1;
   private Broker broker2;
   private Broker broker3;
-  private CustomerInfo cust1;
-  private CustomerInfo cust2;
+  //private CustomerInfo cust1;
+  //private CustomerInfo cust2;
   private DateTime start;
 
   @Before
@@ -104,10 +93,10 @@ public class DuServiceNoConfigTests
     Competition.setCurrent(comp);
 
     // set up some customers
-    cust1 =
-        new CustomerInfo("Podunk", 10).withCustomerClass(CustomerClass.SMALL);
-    cust2 =
-        new CustomerInfo("Acme", 1).withCustomerClass(CustomerClass.LARGE);
+    //cust1 =
+    //    new CustomerInfo("Podunk", 10).withCustomerClass(CustomerClass.SMALL);
+    //cust2 =
+    //    new CustomerInfo("Acme", 1).withCustomerClass(CustomerClass.LARGE);
 
     Instant base =
             Competition.currentCompetition().getSimulationBaseTime().plus(TimeService.DAY);
@@ -150,7 +139,6 @@ public class DuServiceNoConfigTests
     timeslotRepo.recycle();
     brokerRepo.recycle();
     tariffRepo.recycle();
-    orderbookRepo.recycle();
 
     // clear member lists
     tariffSpecList.clear();

@@ -44,7 +44,7 @@
           <constructor-arg value="org.powertac.common.repo.BootstrapDataRepo" />
         </bean>
 
-        <bean id="tariffSubscriptionReop" class="org.mockito.Mockito"
+        <bean id="tariffSubscriptionRepo" class="org.mockito.Mockito"
               factory-method="mock">
           <constructor-arg value="org.powertac.common.repo.TariffSubscriptionRepo" />
         </bean>
@@ -62,16 +62,8 @@
               class="org.powertac.distributionutility.DistributionUtilityService">
         </bean>
 
-	<bean id="tariffRepo"
-	      class="org.powertac.common.repo.TariffRepo">
-	</bean>
-
-        <bean id="tariffSubscriptionRepo"
-              class="org.powertac.common.repo.TariffSubscriptionRepo">
-        </bean>
-
-        <bean id="orderbookRepo"
-              class="org.powertac.common.repo.OrderbookRepo">
+        <bean id="tariffRepo"
+              class="org.powertac.common.repo.TariffRepo">
         </bean>
 
 	<bean id="randomSeedRepo"

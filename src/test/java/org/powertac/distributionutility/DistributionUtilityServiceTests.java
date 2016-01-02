@@ -1,5 +1,8 @@
 package org.powertac.distributionutility;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyDouble;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
@@ -30,14 +33,15 @@ import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
 import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffSubscription;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.TimeService;
 import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
-import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -74,9 +78,6 @@ public class DistributionUtilityServiceTests
 
   @Autowired
   private TariffSubscriptionRepo tariffSubscriptionRepo;
-
-  @Autowired
-  private OrderbookRepo orderbookRepo;
   
   @Autowired
   private Accounting accountingService;
@@ -154,7 +155,6 @@ public class DistributionUtilityServiceTests
     timeslotRepo.recycle();
     brokerRepo.recycle();
     tariffRepo.recycle();
-    orderbookRepo.recycle();
 
     // clear member lists
     tariffSpecList.clear();
@@ -298,7 +298,7 @@ public class DistributionUtilityServiceTests
   }
 
   @Test
-  private void testMeterFee ()
+  public void testMeterFee ()
   {
     cfgMap.put("distributionutility.distributionUtilityService.useCapacityFee", "false");
     cfgMap.put("distributionutility.distributionUtilityService.useTransportFee", "false");
@@ -307,6 +307,83 @@ public class DistributionUtilityServiceTests
     cfgMap.put("distributionutility.distributionUtilityService.mLarge", "0.18");
     setBootRecord();
     initializeService();
-    
+
+    // broker 1 - two tariffs, four subscriptions, 30 small meters, 8 large.
+    TariffSpecification spec1a =
+            new TariffSpecification(broker1, PowerType.CONSUMPTION)
+            .addRate(new Rate().withValue(-0.11));
+    Tariff tariff1a = new Tariff(spec1a);
+    tariff1a.init();
+    TariffSubscription sub1a1 = new TariffSubscription(cust1, tariff1a);
+    sub1a1.setCustomersCommitted(10);
+    TariffSubscription sub1a2 = new TariffSubscription(cust2, tariff1a);
+    sub1a2.setCustomersCommitted(5);
+    TariffSpecification spec1b =
+            new TariffSpecification(broker1, PowerType.CONSUMPTION)
+            .addRate(new Rate().withValue(-0.11));
+    Tariff tariff1b = new Tariff(spec1b);
+    tariff1b.init();
+    TariffSubscription sub1b1 = new TariffSubscription(cust1, tariff1b);
+    sub1b1.setCustomersCommitted(20);
+    TariffSubscription sub1b2 = new TariffSubscription(cust2, tariff1b);
+    sub1b2.setCustomersCommitted(3);
+    List<TariffSubscription> subs1 =
+            Arrays.asList(sub1a1, sub1a2, sub1b1, sub1b2);
+
+    // broker 2, one tariff, 2 subs, 18 small, 7 large
+    TariffSpecification spec2a =
+            new TariffSpecification(broker2, PowerType.CONSUMPTION)
+            .addRate(new Rate().withValue(-0.11));
+    Tariff tariff2a = new Tariff(spec2a);
+    tariff2a.init();
+    TariffSubscription sub2a1 = new TariffSubscription(cust1, tariff2a);
+    sub2a1.setCustomersCommitted(18);
+    TariffSubscription sub2a2 = new TariffSubscription(cust2, tariff2a);
+    sub2a2.setCustomersCommitted(7);
+    List<TariffSubscription> subs2 = Arrays.asList(sub2a1, sub2a2);
+
+    // broker 3, one tariff, 15 large customers
+    TariffSpecification spec3a =
+            new TariffSpecification(broker2, PowerType.CONSUMPTION)
+            .addRate(new Rate().withValue(-0.11));
+    Tariff tariff3a = new Tariff(spec3a);
+    tariff3a.init();
+    TariffSubscription sub3a2 = new TariffSubscription(cust2, tariff3a);
+    sub3a2.setCustomersCommitted(15);
+    List<TariffSubscription> subs3 = Arrays.asList(sub3a2);
+
+    // return the subscriptions when asked
+    when(tariffSubscriptionRepo.findActiveSubscriptionsForBroker(broker1))
+    .thenReturn(subs1);
+    when(tariffSubscriptionRepo.findActiveSubscriptionsForBroker(broker2))
+    .thenReturn(subs2);
+    when(tariffSubscriptionRepo.findActiveSubscriptionsForBroker(broker3))
+    .thenReturn(subs3);
+
+    // capture transactions
+    Map<Broker, Object[]> answers =
+            new HashMap<Broker, Object[]>();
+    when(accountingService.addDistributionTransaction(any(Broker.class),
+                                                      anyInt(), anyInt(),
+                                                      anyDouble(),
+                                                      anyDouble()))
+        .thenAnswer(new Answer<Object>() {
+          @Override
+          public Object answer(InvocationOnMock invocation) {
+            Object[] args = invocation.getArguments();
+            Broker b = (Broker)args[0];
+            answers.put(b, args);
+            return null;
+          }
+        });
+
+    // Activate, check calls
+    distributionUtilityService.activate(timeService.getCurrentTime(), 4);
+    assertEquals("one entry per broker", 3, answers.size());
+    Object[] answer = answers.get(broker1);
+    assertEquals("correct small", 30, answer[1]);
+    assertEquals("correct large", 8, answer[2]);
+    assertEquals("no kwh", 0.0, (double)answer[3], 1e-6);
+    assertEquals("correct fee", 30*.12 + 8*.18, (double)answer[4], 1e-6);
   }
 }
