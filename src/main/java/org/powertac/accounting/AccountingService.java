@@ -183,17 +183,6 @@ public class AccountingService
   }
 
   @Override
-  public CapacityTransaction
-  addCapacityTransaction (Broker broker, int peakTimeslot, double threshold,
-                          double kWh, double fee)
-  {
-    CapacityTransaction ctx =
-            txFactory.makeCapacityTransaction(broker, peakTimeslot,
-                                              threshold, kWh, fee);
-    return ctx;
-  }
-
-  @Override
   public synchronized BalancingTransaction 
   addBalancingTransaction(Broker broker, double kWh, double charge)
   {
