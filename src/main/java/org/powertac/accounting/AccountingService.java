@@ -170,15 +170,27 @@ public class AccountingService
   }
 
   @Override
-  public synchronized DistributionTransaction 
-  addDistributionTransaction(Broker broker,
-                             double kWh,
-                             double charge) 
+  public synchronized DistributionTransaction
+  addDistributionTransaction (Broker broker, int nSmall, int nLarge,
+                              double transport, double distroCharge)
   {
     DistributionTransaction dtx =
-            txFactory.makeDistributionTransaction(broker, kWh, charge);
+            txFactory.makeDistributionTransaction(broker, nSmall,
+                                                  nLarge, transport,
+                                                  distroCharge);
     pendingTransactions.add(dtx);
     return dtx;
+  }
+
+  @Override
+  public CapacityTransaction
+  addCapacityTransaction (Broker broker, int peakTimeslot, double threshold,
+                          double kWh, double fee)
+  {
+    CapacityTransaction ctx =
+            txFactory.makeCapacityTransaction(broker, peakTimeslot,
+                                              threshold, kWh, fee);
+    return ctx;
   }
 
   @Override
