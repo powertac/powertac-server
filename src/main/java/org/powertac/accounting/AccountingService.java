@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 the original author or authors.
+ * Copyright 2010-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -203,6 +203,18 @@ public class AccountingService
     return btx;
   }
 
+  @Override
+  public synchronized CapacityTransaction
+  addCapacityTransaction (Broker broker, int peakTimeslot,
+                          double threshold, double kWh, double fee)
+  {
+    CapacityTransaction ctx =
+        txFactory.makeCapacityTransaction(broker, peakTimeslot,
+                                          threshold, kWh, fee);
+    pendingTransactions.add(ctx);
+    return ctx;
+  }
+
   /**
    * Returns the net load for the given broker in the current timeslot.
    * Note that this only works AFTER the customer models have run, and
@@ -351,9 +363,14 @@ public class AccountingService
     return result;
   }
 
-  // process a tariff transaction
-  public void processTransaction(TariffTransaction tx,
-                                 ArrayList<Object> messages) {
+  /**
+   * Processes a tariff transaction, updating the broker's cash position
+   * and the consumption, production data in the distribution report.
+   */
+  public void
+  processTransaction(TariffTransaction tx,
+                     ArrayList<Object> messages)
+  {
     //log.info("processing tariff tx " + tx.toString());
     updateCash(tx.getBroker(), tx.getCharge());
     // update the distribution report
@@ -363,29 +380,56 @@ public class AccountingService
       distributionReport.addProduction(tx.getKWh());
   }
 
-  // process a balance transaction
-  public void processTransaction(BalancingTransaction tx,
-                                 ArrayList<Object> messages) {
+  /**
+   * Processes a balancing transaction by updating the broker's cash position.
+   */
+  public void
+  processTransaction(BalancingTransaction tx,
+                     ArrayList<Object> messages)
+  {
     updateCash(tx.getBroker(), tx.getCharge());
   }
 
-  // process a DU fee transaction
-  public void processTransaction(DistributionTransaction tx,
-                                 ArrayList<Object> messages) {
+  /**
+   * Processes a distribution transaction by updating the
+   * broker's cash position.
+   */
+  public void
+  processTransaction(DistributionTransaction tx,
+                     ArrayList<Object> messages)
+  {
     updateCash(tx.getBroker(), tx.getCharge());
   }
-  
-  // process market transaction by sending update market position.
-  // actual transaction posting is deferred to delivery time
-  public void processTransaction(MarketTransaction tx,
-                                 ArrayList<Object> messages) {
+
+  /**
+   * Processes a capacity transaction by updating the broker's cash position.
+   */
+  public void
+  processCapacityTransaction (CapacityTransaction tx,
+                              ArrayList<Object> messages)
+  {
+    updateCash(tx.getBroker(), tx.getCharge());
+  }
+
+  /**
+   * Processes a market transaction by ensuring that the market position
+   * will be sent to the broker.
+   * Actual transaction posting is deferred to delivery time
+   */
+  public void 
+  processTransaction(MarketTransaction tx,
+                     ArrayList<Object> messages)
+  {
     MarketPosition mkt =
         tx.getBroker().findMarketPositionByTimeslot(tx.getTimeslotIndex());
     if (!messages.contains(mkt))
       messages.add(mkt);
   }
-  
-  // process deferred market transactions for the current timeslot
+
+  /**
+   * Processes deferred market transactions for the current timeslot
+   * by updating the broker's cash position.
+   */
   public void handleMarketTransactionsForTimeslot(Timeslot ts) 
   {
     ArrayList<MarketTransaction> pending = pendingMarketTransactions.get(ts);
@@ -398,7 +442,7 @@ public class AccountingService
   }
 
   // pre-process a market transaction
-  public void updateBrokerMarketPosition(MarketTransaction tx) 
+  private void updateBrokerMarketPosition(MarketTransaction tx) 
   {
     Broker broker = tx.getBroker();
     MarketPosition mkt =
@@ -420,10 +464,16 @@ public class AccountingService
     broker.updateCash(amount);
   }
 
+  /**
+   * Complains if a bank transaction is among the transactions to be
+   * handled. These should be generated locally and sent directly to
+   * brokers.
+   */
   public void processTransaction (BankTransaction tx,
                                   ArrayList<Object> messages)
   {
-    log.error("tx " + tx.toString() + " calls processTransaction - should not happen");   
+    log.error("tx {} calls processTransaction - should not happen",
+              tx.toString());
   }
   
   /**
@@ -448,16 +498,25 @@ public class AccountingService
     return pendingTransactions;
   }
 
+  /**
+   * Returns the low end of the bank interest range.
+   */
   public double getMinInterest ()
   {
     return minInterest;
   }
 
+  /**
+   * Returns the high end of the bank interest range.
+   */
   public double getMaxInterest ()
   {
     return maxInterest;
   }
 
+  /**
+   * Returns the actual bank interest once configuration is complete.
+   */
   public Double getBankInterest ()
   {
     return bankInterest;
