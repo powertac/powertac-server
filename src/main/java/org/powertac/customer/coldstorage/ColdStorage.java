@@ -28,6 +28,7 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
@@ -141,6 +142,7 @@ implements CustomerModelAccessor
     powerType = PowerType.THERMAL_STORAGE_CONSUMPTION;
     CustomerInfo info = new CustomerInfo(name, 1);
     info.withPowerType(powerType)
+        .withCustomerClass(CustomerClass.LARGE)
         .withControllableKW(-unitSize / cop)
         .withStorageCapacity(stockCapacity * CP_ICE * (maxTemp - minTemp))
         .withUpRegulationKW(-unitSize / cop)

@@ -30,6 +30,7 @@ import org.joda.time.DateTimeFieldType;
 import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
@@ -181,6 +182,7 @@ implements CustomerModelAccessor
     double interruptible =
         Math.min(nChargers * maxChargeKW, nBatteries * maxChargeKW / 3.0);
     info.withPowerType(powerType)
+        .withCustomerClass(CustomerClass.LARGE)
         .withControllableKW(-interruptible)
         .withStorageCapacity(nBatteries * maxChargeKW / 3.0)
         .withUpRegulationKW(-nChargers * maxChargeKW)
