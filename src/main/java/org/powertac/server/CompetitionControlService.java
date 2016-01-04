@@ -126,10 +126,9 @@ public class CompetitionControlService
 
   // broker interaction state
   private ArrayList<String> alwaysAuthorizedBrokers;
-  //private ArrayList<String> authorizedBrokerMap;
   private HashMap<String, String> authorizedBrokerMap;
-  private int idPrefix = 0;
-  
+  private List<String> brokerNames;
+
   @ConfigurableValue(valueType = "Integer",
       description = "Maximum time in msec to wait for first broker login")
   private int firstLoginTimeout = 0;
@@ -170,7 +169,6 @@ public class CompetitionControlService
   public void init ()
   {
     phaseRegistrations = null;
-    idPrefix = 0;
 
     // register with JMS Server
     if (!bootstrapMode) {
@@ -178,9 +176,6 @@ public class CompetitionControlService
       jmsManagementService.registerMessageListener(serverQueueName,
           serverMessageReceiver);
     }
-    
-    // create broker queues
-    //String[] brokerArray = new String[authorizedBrokerMap.size()];
     
     // broker message registration for clock-control messages
     //brokerProxyService.registerSimListener(this);
@@ -223,6 +218,7 @@ public class CompetitionControlService
   @Override
   public void setAuthorizedBrokerList (List<String> brokerList)
   {
+    this.brokerNames = brokerList;
     loginCount = brokerList.size();
     pendingLogins = new ArrayList<String>();
     authorizedBrokerMap = new HashMap<String, String>();
@@ -474,7 +470,7 @@ public class CompetitionControlService
       timeslotCount = 1;
     }    
   }
-  
+
   /**
    * Logs in a broker, just in case the broker is on the authorizedBrokerMap.
    * Returns true if the broker is authorized, otherwise false.
@@ -516,7 +512,7 @@ public class CompetitionControlService
       computeBrokerKey(broker);
     }
     // assign prefix and key with accept message
-    int prefix = ++idPrefix;
+    int prefix = getBrokerPrefix(broker);
     broker.setIdPrefix(prefix);
     log.info("Broker " + broker.getUsername()
              + " key: " + broker.getKey() + ", prefix: " + prefix);
@@ -529,6 +525,15 @@ public class CompetitionControlService
       loginCount -= 1;
     notifyAll();
     return true;
+  }
+
+  /**
+   * Get a prefix based on the list of brokers
+   * Default broker (not in the list) must have prefix == 1
+   */
+  private int getBrokerPrefix (Broker broker)
+  {
+    return brokerNames.indexOf(broker.getUsername()) + 2;
   }
 
   private void computeBrokerKey (Broker broker)
