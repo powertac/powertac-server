@@ -80,9 +80,9 @@ public class BalancingMarketServiceTests
 
   private Competition comp;
   private Configurator config;
-  private List<Broker> brokerList = new ArrayList<Broker>();
-  private List<TariffSpecification> tariffSpecList = new ArrayList<TariffSpecification>();
-  private List<Tariff> tariffList = new ArrayList<Tariff>();
+  private List<Broker> brokerList = new ArrayList<>();
+  private List<TariffSpecification> tariffSpecList = new ArrayList<>();
+  private List<Tariff> tariffList = new ArrayList<>();
   private DateTime start;
 
   @Before
@@ -142,12 +142,12 @@ public class BalancingMarketServiceTests
 
   private void initializeService ()
   {
-    TreeMap<String, String> map = new TreeMap<String, String>();
+    TreeMap<String, String> map = new TreeMap<>();
     map.put("balancemkt.balancingMarketService.balancingCostMin", "-0.06");
     map.put("balancemkt.balancingMarketService.balancingCostMax", "-0.06");
     Configuration mapConfig = new MapConfiguration(map);
     config.setConfiguration(mapConfig);
-    balancingMarketService.initialize(comp, new ArrayList<String>());
+    balancingMarketService.initialize(comp, new ArrayList<>());
     assertEquals("correct setting", -0.06,
                  balancingMarketService.getBalancingCostMin(), 1e-6);
     assertEquals("correct setting", -0.06,
@@ -188,7 +188,7 @@ public class BalancingMarketServiceTests
     Timeslot current = timeslotRepo.currentTimeslot();
     BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
-        balancingMarketService.balanceTimeslot(current, brokerList, report);
+        balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct balance report",
                  marketBalance, report.getNetImbalance(), 1e-6);
 
@@ -210,7 +210,7 @@ public class BalancingMarketServiceTests
     Timeslot current = timeslotRepo.currentTimeslot();
     BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
-        balancingMarketService.balanceTimeslot(current, brokerList, report);
+        balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct balance report",
                  marketBalance, report.getNetImbalance(), 1e-6);
 
@@ -243,7 +243,7 @@ public class BalancingMarketServiceTests
     Timeslot current = timeslotRepo.currentTimeslot();
     BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
-        balancingMarketService.balanceTimeslot(current, brokerList, report);
+        balancingMarketService.balanceTimeslot(brokerList, report);
 
     // ensure each broker was balanced correctly
     for (Broker broker : brokerList) {
@@ -275,7 +275,7 @@ public class BalancingMarketServiceTests
     Timeslot current = timeslotRepo.currentTimeslot();
     BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
-        balancingMarketService.balanceTimeslot(current, brokerList, report);
+        balancingMarketService.balanceTimeslot(brokerList, report);
 
     // Correct solution list is [-4, 14, 2] (but negated)
     ChargeInfo ci = chargeInfos.get(brokerList.get(0)); // BalancingTransaction.findByBroker(brokerList.get(0));
@@ -362,7 +362,7 @@ public class BalancingMarketServiceTests
     Timeslot current = timeslotRepo.currentTimeslot();
     BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
-            balancingMarketService.balanceTimeslot(current, brokerList, report);
+            balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct count", 3, chargeInfos.size());
     
     ChargeInfo c1b1 = findFirst(chargeInfos.values(),
