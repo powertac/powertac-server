@@ -357,19 +357,13 @@ public class WaterHeater extends FullyShiftingAppliance
     int day = -1;
 
     while (flag) {
-      day = (int) (Math.random() * operationDaysVector.size());
-      // log.debug("WH Choosen Day: " + day);
-
+      day = (int) (gen.nextDouble() * operationDaysVector.size());
       flag = false;
-      Vector<Integer> consumption = weeklyLoadVector.get(day);
 
-      for (int i = 0; i < consumption.size(); i++)
-        overallPower += consumption.get(i);
-
+      for (Integer consumption : weeklyLoadVector.get(day)) {
+        overallPower += consumption;
+      }
     }
-    // log.debug("Overall Operation Power of " + toString() + ":" +
-    // overallPower);
-
   }
 
   @Override
@@ -378,5 +372,4 @@ public class WaterHeater extends FullyShiftingAppliance
     fillWeeklyOperation();
     createWeeklyPossibilityOperationVector();
   }
-
 }
