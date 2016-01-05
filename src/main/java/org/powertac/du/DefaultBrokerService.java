@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import static org.powertac.util.MessageDispatcher.dispatch;
@@ -98,17 +99,12 @@ public class DefaultBrokerService
   
   // bootstrap-mode data - uninitialized for normal sim mode
   private boolean bootstrapMode = false;
-  //private HashMap<CustomerInfo, ArrayList<Double>> netUsageMap;
   private HashMap<Timeslot, ArrayList<MarketTransaction>> marketTxMap;
   private ArrayList<Double> marketMWh;
   private ArrayList<Double> marketPrice;
   private ArrayList<WeatherReport> weather;
-  
-  // local state
-  private TariffSpecification defaultConsumption;
-  //private TariffSpecification defaultInterruptibleConsumption;
-  private TariffSpecification defaultProduction;
-  private HashMap<TariffSpecification, 
+
+  private HashMap<TariffSpecification,
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
   private RandomSeed randomSeed;
   private HashMap<Timeslot, Order> lastOrder;
@@ -149,44 +145,33 @@ public class DefaultBrokerService
     // set up local state
     bootstrapMode = competitionControlService.isBootstrapMode();
     log.info("init, bootstrapMode=" + bootstrapMode);
-    customerSubscriptions = new HashMap<TariffSpecification,
-                                        HashMap<CustomerInfo, CustomerRecord>>();
-    lastOrder = new HashMap<Timeslot, Order>();
+    customerSubscriptions = new LinkedHashMap<>();
+    lastOrder = new HashMap<>();
     randomSeed = randomSeedRepo.getRandomSeed(this.getClass().getName(),
                                               0, "pricing");
     
     // if we are in bootstrap mode, we need to set up the dataset
     if (bootstrapMode)
     {
-      //netUsageMap = new HashMap<CustomerInfo, ArrayList<Double>>();
-      marketTxMap = new HashMap<Timeslot, ArrayList<MarketTransaction>>();
-      marketMWh = new ArrayList<Double>();
-      marketPrice = new ArrayList<Double>();
-      weather = new ArrayList<WeatherReport>();
+      marketTxMap = new HashMap<>();
+      marketMWh = new ArrayList<>();
+      marketPrice = new ArrayList<>();
+      weather = new ArrayList<>();
     }
 
     // pull down configuration
     serverPropertiesService.configureMe(this);
 
     // create and publish default tariffs
-    defaultConsumption = new TariffSpecification(face, PowerType.CONSUMPTION)
+    TariffSpecification defaultConsumption = new TariffSpecification(face, PowerType.CONSUMPTION)
         .addRate(new Rate().withValue(defaultConsumptionRate));
     tariffMarketService.setDefaultTariff(defaultConsumption);
-    customerSubscriptions.put(defaultConsumption,
-                              new HashMap<CustomerInfo, CustomerRecord>());
+    customerSubscriptions.put(defaultConsumption, new LinkedHashMap<>());
 
-    //defaultInterruptibleConsumption =
-    //        new TariffSpecification(face, PowerType.INTERRUPTIBLE_CONSUMPTION)
-    //            .addRate(new Rate().withValue(defaultConsumptionRate));
-    //tariffMarketService.setDefaultTariff(defaultInterruptibleConsumption);
-    //customerSubscriptions.put(defaultInterruptibleConsumption,
-    //                      new HashMap<CustomerInfo, CustomerRecord>());
-
-    defaultProduction = new TariffSpecification(face, PowerType.PRODUCTION)
+    TariffSpecification defaultProduction = new TariffSpecification(face, PowerType.PRODUCTION)
         .addRate(new Rate().withValue(defaultProductionRate));
     tariffMarketService.setDefaultTariff(defaultProduction);
-    customerSubscriptions.put(defaultProduction,
-                              new HashMap<CustomerInfo, CustomerRecord>());
+    customerSubscriptions.put(defaultProduction, new LinkedHashMap<>());
 
     return "DefaultBroker";
   }
