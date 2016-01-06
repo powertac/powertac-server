@@ -172,11 +172,6 @@ implements InitializationService
 
     // initialize peak-demand data
     if (useCapacityFee) {
-      brokerNetDemand = new HashMap<Broker, double[]>();
-      List<Broker> brokerList = brokerRepo.findRetailBrokers();
-      for (Broker b: brokerList) {
-        brokerNetDemand.put(b, new double[assessmentInterval]);
-      }
       netDemand = new double[assessmentInterval];
       processBootstrapRecord();
     }
@@ -238,6 +233,13 @@ implements InitializationService
     if (brokerList == null) {
       log.error("Failed to retrieve retail broker list");
       return;
+    }
+    if (useCapacityFee && null == brokerNetDemand) {
+      // first time through
+      brokerNetDemand = new HashMap<Broker, double[]>();
+      for (Broker b: brokerList) {
+        brokerNetDemand.put(b, new double[assessmentInterval]);
+      }
     }
 
     // retrieve timeslot index and supply/demand data
