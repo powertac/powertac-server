@@ -5,14 +5,14 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.3.1-SNAPSHOT</version>
     <relativePath />
   </parent>
 
   <artifactId>visualizer</artifactId>
   <name>Power TAC visualizer</name>
   <packaging>war</packaging>
-  <version>1.3.0-SNAPSHOT</version>
+  <version>1.3.1-SNAPSHOT</version>
 
   <properties>
     <!-- from webapp-dependencies
@@ -30,7 +30,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>webapp-dependencies</artifactId>
-      <version>1.3.0-SNAPSHOT</version>
+      <version>1.3.1-SNAPSHOT</version>
       <type>pom</type>
     </dependency>
     <!-- Servlet provided dependencies -->
@@ -80,7 +80,7 @@
         <dependency>
           <groupId>org.powertac</groupId>
           <artifactId>server-main</artifactId>
-          <version>1.3.0-SNAPSHOT</version>
+          <version>1.3.1-SNAPSHOT</version>
         </dependency>
       </dependencies>
     
@@ -128,7 +128,7 @@
         <dependency>
           <groupId>org.powertac</groupId>
           <artifactId>server-main</artifactId>
-          <version>1.3.0-SNAPSHOT</version>
+          <version>1.3.1-SNAPSHOT</version>
         </dependency>
       </dependencies>
 
