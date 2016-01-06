@@ -25,6 +25,7 @@ import org.powertac.common.interfaces.CompetitionControl;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.msg.*;
+import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -80,6 +81,9 @@ public class CompetitionControlService
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
+
+  @Autowired
+  private BootstrapDataRepo bootstrapDataRepo;
 
   @Autowired
   private LogService logService;
@@ -159,7 +163,7 @@ public class CompetitionControlService
 
   // if we don't have a bootstrap dataset, we are in bootstrap mode.
   private boolean bootstrapMode = true;
-  private List<Object> bootstrapDataset = null;
+  //private List<Object> bootstrapDataset = null;
   //private int bootstrapDiscardedTimeslots = 24;
   
   private boolean simRunning = false;
@@ -250,10 +254,10 @@ public class CompetitionControlService
   /**
    * Sets up the bootstrap dataset extracted from its external source.
    */
-  void setBootstrapDataset (List<Object> dataset)
-  {
-    bootstrapDataset = dataset;
-  }
+  //void setBootstrapDataset (List<Object> dataset)
+  //{
+  //  bootstrapDataset = dataset;
+  //}
   
   /**
    * Sets the name of the server's JMS input queue.
@@ -399,6 +403,7 @@ public class CompetitionControlService
     brokerProxyService.broadcastMessage(competition);
     brokerProxyService.broadcastMessage(configService.getPublishedConfiguration());
     if (!bootstrapMode) {
+      List<Object> bootstrapDataset = bootstrapDataRepo.getData();
       brokerProxyService.broadcastMessages(bootstrapDataset);
       // pull out the weather reports and stick them in their repo
       for (Object msg : bootstrapDataset) {
