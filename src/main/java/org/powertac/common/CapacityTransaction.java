@@ -29,7 +29,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  */
 @Domain(fields = {"postedTimeslot", "peakTimeslot",
                   "threshold", "KWh", "charge"})
-@XStreamAlias("distribution-tx")
+@XStreamAlias("capacity-tx")
 public class CapacityTransaction extends BrokerTransaction
 {
   @XStreamAsAttribute
