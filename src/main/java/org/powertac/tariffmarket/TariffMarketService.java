@@ -20,6 +20,7 @@ import static org.powertac.util.ListTools.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -111,8 +112,7 @@ public class TariffMarketService
   private RandomSeedRepo randomSeedService;
   
   // list of tariffs that have been revoked but not processed
-  private ArrayList<Tariff> pendingRevokedTariffs =
-      new ArrayList<Tariff> ();
+  private ArrayList<Tariff> pendingRevokedTariffs = new ArrayList<> ();
   // list of revoked but not yet deleted tariffs
   private List<Tariff> revokedTariffs = null;
   private Instant lastRevokeProcess = new Instant(0l);
@@ -151,15 +151,15 @@ public class TariffMarketService
 
   // list of pending subscription events.
   private List<PendingSubscription> pendingSubscriptionEvents =
-          new ArrayList<PendingSubscription>();
+      new ArrayList<>();
 
   // list of pending variable-rate updates.
-  private List<VariableRateUpdate> pendingVrus =
-      new ArrayList<VariableRateUpdate>();
+  private List<VariableRateUpdate> pendingVrus = new ArrayList<>();
 
   // set of already-disabled brokers
-  private HashSet<Broker> disabledBrokers = 
-      new HashSet<Broker>(); 
+  private HashSet<Broker> disabledBrokers = new HashSet<>();
+
+  private Set<NewTariffListener> registrations = new LinkedHashSet<>();
 
   /**
    * Default constructor
@@ -308,7 +308,7 @@ public class TariffMarketService
   // Test support
   List<NewTariffListener> getRegistrations ()
   {
-    return new ArrayList<NewTariffListener>(registrations);
+    return new ArrayList<>(registrations);
   }
 
   // ----------------- Broker message API --------------------
@@ -532,7 +532,7 @@ public class TariffMarketService
     Instant now = timeService.getCurrentTime();
     if (now.isAfter(lastRevokeProcess)) {
       lastRevokeProcess = now;
-      List<Tariff> result = new ArrayList<Tariff>(pendingRevokedTariffs);
+      List<Tariff> result = new ArrayList<>(pendingRevokedTariffs);
       pendingRevokedTariffs.clear();
       return result;
     }
@@ -621,8 +621,6 @@ public class TariffMarketService
     revokedTariffs = null;
   }
 
-  private Set<NewTariffListener> registrations = new HashSet<NewTariffListener>();
-
   @Override
   public void registerNewTariffListener (NewTariffListener listener)
   {
@@ -660,7 +658,7 @@ public class TariffMarketService
       tariff.setState(Tariff.State.OFFERED);
     }
 
-    List<TariffSpecification> publishedTariffSpecs = new ArrayList<TariffSpecification>();
+    List<TariffSpecification> publishedTariffSpecs = new ArrayList<>();
     for (Tariff tariff : publishedTariffs) {
       TariffSpecification spec = tariff.getTariffSpecification();
       publishedTariffSpecs.add(spec);
@@ -758,7 +756,7 @@ public class TariffMarketService
     }
     pendingSubscriptionEvents.clear();
   }
-  
+
   /**
    * Handles pending vru messages
    */
@@ -789,7 +787,7 @@ public class TariffMarketService
   // transfers the contents of the pending VRU list to the caller
   private synchronized List<VariableRateUpdate> getVruList()
   {
-    ArrayList<VariableRateUpdate> result = new ArrayList<VariableRateUpdate>(pendingVrus);
+    ArrayList<VariableRateUpdate> result = new ArrayList<>(pendingVrus);
     pendingVrus.clear();
     return result;
   }
