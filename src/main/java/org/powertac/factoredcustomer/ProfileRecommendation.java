@@ -17,6 +17,7 @@
 package org.powertac.factoredcustomer;
 
 import java.util.AbstractMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
@@ -40,14 +41,14 @@ public class ProfileRecommendation
     private static final double UTILITY_RANGE_MAX_VALUE = 3.0;  // range = [-3.0, +3.0]
     
     private final Map<CapacityProfile, Opinion> opinions;
-    private final Map<CapacityProfile, Double> scores = new HashMap<CapacityProfile, Double>();
-    private final Map<CapacityProfile, Double> utilities = new HashMap<CapacityProfile, Double>();
-    private final Map<CapacityProfile, Double> probabilities = new HashMap<CapacityProfile, Double>();
+    private final Map<CapacityProfile, Double> scores = new LinkedHashMap<>();
+    private final Map<CapacityProfile, Double> utilities = new LinkedHashMap<>();
+    private final Map<CapacityProfile, Double> probabilities = new LinkedHashMap<>();
 
 
     ProfileRecommendation()
     {
-        opinions = new HashMap<CapacityProfile, Opinion>();
+        opinions = new LinkedHashMap<>();
     }
     
     ProfileRecommendation(Map<CapacityProfile, Opinion> map)
