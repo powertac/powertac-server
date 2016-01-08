@@ -121,8 +121,8 @@ public class RandomSeedRepo implements DomainRepo
             log.error("Bad seed spec: " + line);
           }
           else {
-            System.out.println("fields[3, 4, 5, 6]: " + fields[3]
-                    + "," + fields[4] + "," + fields[5] + "," + fields[6]);
+            //System.out.println("fields[3, 4, 5, 6]: " + fields[3]
+            //        + "," + fields[4] + "," + fields[5] + "," + fields[6]);
             //RandomSeed seed = new RandomSeed(fields[3],
             //                                 Long.parseLong(fields[4]), 
             //                                 fields[5],
