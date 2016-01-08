@@ -116,12 +116,12 @@ implements InitializationService
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Per-customer meter fee for small customers")
-  private double mSmall = 0.015; // per timeslot
+  private double mSmall = -0.015; // per timeslot
 
   @ConfigurableValue(valueType = "Double",
       publish = true,
       description = "Per-customer meter fee for large customers")
-  private double mLarge = 0.05;
+  private double mLarge = -0.05;
 
   // ------------------
   @ConfigurableValue(valueType = "Boolean",
@@ -143,7 +143,7 @@ implements InitializationService
   @ConfigurableValue (valueType = "Double",
       publish = true,
       description = "Per-point fee (lambda)")
-  private double feePerPoint = 4000.0;
+  private double feePerPoint = -180.0;
 
   // peak-demand dataset
   private double[] netDemand;
@@ -306,13 +306,15 @@ implements InitializationService
   }
 
   void
-    assessCapacityFees (List<Broker> brokerList, int timeslot,
-                        Map<Broker, Map<TariffTransaction.Type, Double>> totals)
+  assessCapacityFees (List<Broker> brokerList, int timeslot,
+                      Map<Broker, Map<TariffTransaction.Type, Double>> totals)
   {
     // make sure we know the timeslot offset
     if (null == timeslotOffset) {
       timeslotOffset = timeslot;
       lastAssessmentTimeslot = timeslot;
+      log.info("Start timeslot {}, timeslotOffset = {}",
+               timeslot, timeslotOffset);
     }
     else if (0 == (timeslot - timeslotOffset) % assessmentInterval) {
       // do the assessment
@@ -332,7 +334,8 @@ implements InitializationService
         peaks.sort(null);
         Map<Broker, Double> brokerCharge = new HashMap<Broker, Double>();
         for (PeakEvent peak: peaks.subList(0, Math.min(3, peaks.size()))) {
-          double charge = (peak.value - threshold) * feePerPoint;
+          double excess = peak.value - threshold;
+          double charge = excess * feePerPoint;
           for (Broker broker: brokerList) {
             // charge for broker comes from broker_usage/peak.value
             double[] brokerDemand = brokerNetDemand.get(broker);
@@ -340,11 +343,10 @@ implements InitializationService
                 / netDemand[peak.index];
             brokerCharge.put(broker, cost);
             double brokerExcess = 
-                peak.value * brokerDemand[peak.index]/ netDemand[peak.index];
+                excess * brokerDemand[peak.index]/ netDemand[peak.index];
             accounting.addCapacityTransaction(broker,
                                               lastAssessmentTimeslot + peak.index,
-                                              brokerExcess,
-                                              threshold, cost);
+                                              threshold, brokerExcess, cost);
           }
           if (log.isInfoEnabled()) {
             double pts = peak.value - threshold;
@@ -381,6 +383,10 @@ implements InitializationService
         continue;
       double netConsumption =
           -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
+      double[] brokerDemand = brokerNetDemand.get(broker);
+      if (null == brokerDemand) {
+        log.error("No demand array for broker {}", broker.getUsername());
+      }
       brokerNetDemand.get(broker)[index] = netConsumption;
       totalConsumption += netConsumption;
     }
