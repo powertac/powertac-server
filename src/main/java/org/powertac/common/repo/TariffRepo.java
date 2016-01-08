@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,27 +42,24 @@ public class TariffRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(TariffRepo.class.getName());
   
-  //@Autowired
-  //private TimeService timeService;
-
   private HashMap<Long, TariffSpecification> specs;
   private HashSet<Long> deletedTariffs;
   private HashMap<PowerType, Tariff> defaultTariffs;
   private HashMap<Long, Tariff> tariffs;
   private HashMap<Long, Rate> rates;
-  private HashMap<Long, BoPair> balancingOrders;
-  private HashMap<Long, LinkedList<Tariff>> brokerTariffs;
+  private TreeMap<Long, BoPair> balancingOrders;
+  private TreeMap<String, LinkedList<Tariff>> brokerTariffs;
   
   public TariffRepo ()
   {
     super();
-    specs = new HashMap<Long, TariffSpecification>();
-    deletedTariffs = new HashSet<Long>();
-    defaultTariffs = new HashMap<PowerType, Tariff>();
-    tariffs = new HashMap<Long, Tariff>();
-    brokerTariffs = new HashMap<Long, LinkedList<Tariff>>();
-    rates = new HashMap<Long, Rate>();
-    balancingOrders = new HashMap<Long, BoPair>();
+    specs = new HashMap<>();
+    deletedTariffs = new HashSet<>();
+    defaultTariffs = new HashMap<>();
+    tariffs = new HashMap<>();
+    rates = new HashMap<>();
+    balancingOrders = new TreeMap<>();
+    brokerTariffs = new TreeMap<>();
   }
   
   /**
@@ -113,7 +111,7 @@ public class TariffRepo implements DomainRepo
   public synchronized List<TariffSpecification>
   findTariffSpecificationsByBroker (Broker broker)
   {
-    List<TariffSpecification> result = new ArrayList<TariffSpecification>();
+    List<TariffSpecification> result = new ArrayList<>();
     for (TariffSpecification spec : specs.values()) {
       if (spec.getBroker() == broker) {
         result.add(spec);
@@ -125,7 +123,7 @@ public class TariffRepo implements DomainRepo
   public synchronized List<TariffSpecification>
   findTariffSpecificationsByPowerType (PowerType type)
   {
-    List<TariffSpecification> result = new ArrayList<TariffSpecification>();
+    List<TariffSpecification> result = new ArrayList<>();
     for (TariffSpecification spec : specs.values()) {
       if (spec.getPowerType().canUse(type)) {
         result.add(spec);
@@ -136,7 +134,7 @@ public class TariffRepo implements DomainRepo
 
   public synchronized List<TariffSpecification> findAllTariffSpecifications()
   {
-    return new ArrayList<TariffSpecification>(specs.values());
+    return new ArrayList<>(specs.values());
   }
   
   public synchronized void addTariff (Tariff tariff)
@@ -149,10 +147,10 @@ public class TariffRepo implements DomainRepo
     tariffs.put(tariff.getId(), tariff);
     
     // add to the brokerTariffs list
-    LinkedList<Tariff> tariffList = brokerTariffs.get(tariff.getBroker().getId());
+    LinkedList<Tariff> tariffList = brokerTariffs.get(tariff.getBroker().getUsername());
     if (null == tariffList) {
-      tariffList = new LinkedList<Tariff>();
-      brokerTariffs.put(tariff.getBroker().getId(), tariffList);
+      tariffList = new LinkedList<>();
+      brokerTariffs.put(tariff.getBroker().getUsername(), tariffList);
     }
     tariffList.push(tariff);
   }
@@ -164,12 +162,12 @@ public class TariffRepo implements DomainRepo
   
   public synchronized List<Tariff> findAllTariffs ()
   {
-    return new ArrayList<Tariff>(tariffs.values());
+    return new ArrayList<>(tariffs.values());
   }
 
   public synchronized List<Tariff> findTariffsByState (Tariff.State state)
   {
-    ArrayList<Tariff> result = new ArrayList<Tariff>();
+    ArrayList<Tariff> result = new ArrayList<>();
     for (Tariff tariff : tariffs.values()) {
       if (state == tariff.getState()) {
         result.add(tariff);
@@ -184,7 +182,7 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized List<Tariff> findActiveTariffs (PowerType type)
   {
-    List<Tariff> result = new ArrayList<Tariff>();
+    List<Tariff> result = new ArrayList<>();
     for (Tariff tariff : tariffs.values()) {
       if (tariff.getPowerType() == type && tariff.isSubscribable()) {
         result.add(tariff);
@@ -200,7 +198,7 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized List<Tariff> findAllActiveTariffs (PowerType type)
   {
-    List<Tariff> result = new ArrayList<Tariff>();
+    List<Tariff> result = new ArrayList<>();
     for (Tariff tariff : tariffs.values()) {
       if (type.canUse(tariff.getPowerType()) && tariff.isSubscribable()) {
         result.add(tariff);
@@ -217,9 +215,9 @@ public class TariffRepo implements DomainRepo
   {
     List<Tariff> result = new ArrayList<Tariff>();
     HashMap<PowerType,Integer> ptCounter = new HashMap<PowerType,Integer>(); 
-    for (Long id : brokerTariffs.keySet()) {
+    for (String userName : brokerTariffs.keySet()) {
       ptCounter.clear();
-      for (Tariff tariff : brokerTariffs.get(id)) {
+      for (Tariff tariff : brokerTariffs.get(userName)) {
         PowerType pt = tariff.getPowerType();
         if (tariff.isSubscribable() && type.canUse(pt)) {
           Integer count = ptCounter.get(pt);
@@ -237,9 +235,9 @@ public class TariffRepo implements DomainRepo
 
   public List<Tariff> findTariffsByBroker (Broker broker)
   {
-    List<Tariff> result = brokerTariffs.get(broker.getId());
+    List<Tariff> result = brokerTariffs.get(broker.getUsername());
     if (null == result)
-      return new LinkedList<Tariff>();
+      return new LinkedList<>();
     else
       return result;
   }
@@ -262,7 +260,7 @@ public class TariffRepo implements DomainRepo
   public synchronized void deleteTariff (Tariff tariff)
   {
     tariffs.remove(tariff.getId());
-    List<Tariff> bt = brokerTariffs.get(tariff.getBroker().getId());
+    List<Tariff> bt = brokerTariffs.get(tariff.getBroker().getUsername());
     bt.remove(tariff);
     removeSpecification(tariff.getId());
   }
@@ -301,7 +299,7 @@ public class TariffRepo implements DomainRepo
    */
   public synchronized Collection<BalancingOrder> getBalancingOrders ()
   {
-    ArrayList<BalancingOrder> result = new ArrayList<BalancingOrder>();
+    ArrayList<BalancingOrder> result = new ArrayList<>();
     for (BoPair pair : balancingOrders.values()) {
       for (BalancingOrder item : pair.getOrders()) {
         result.add(item);
@@ -365,7 +363,7 @@ public class TariffRepo implements DomainRepo
     // returns contents as a list
     List<BalancingOrder> getOrders ()
     {
-      List <BalancingOrder> result = new ArrayList<BalancingOrder>();
+      List <BalancingOrder> result = new ArrayList<>();
       if (null != upOrder)
         result.add(upOrder);
       if (null != downOrder)
