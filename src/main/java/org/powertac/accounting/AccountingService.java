@@ -333,6 +333,8 @@ public class AccountingService
       }
       // add the cash position to the list and send messages
       brokerMsg.get(broker).add(txFactory.makeCashPosition(broker, broker.getCashBalance()));
+      log.info("Broker {} balance = {}", broker.getUsername(),
+               broker.getCashBalance());
       log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
@@ -394,8 +396,8 @@ public class AccountingService
    * Processes a capacity transaction by updating the broker's cash position.
    */
   public void
-  processCapacityTransaction (CapacityTransaction tx,
-                              ArrayList<Object> messages)
+  processTransaction (CapacityTransaction tx,
+                      ArrayList<Object> messages)
   {
     updateCash(tx.getBroker(), tx.getCharge());
   }
