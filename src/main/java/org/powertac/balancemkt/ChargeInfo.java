@@ -101,6 +101,7 @@ public class ChargeInfo
     return curtailment;
   }
   
+  @Override
   public String toString ()
   {
     return ("CI(" + broker.getUsername() + "): p1=" + balanceChargeP1
