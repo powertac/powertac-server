@@ -364,6 +364,13 @@ implements InitializationService
           }
         }
       }
+      else {
+        // no peaks this time. Send dummy capacity tx to convey theshold info
+        for (Broker broker: brokerList) {
+          accounting.addCapacityTransaction(broker, timeslot, threshold,
+                                            0.0, 0.0);
+        }
+      }
       // record time of last assessment
       lastAssessmentTimeslot = timeslot;
     }
