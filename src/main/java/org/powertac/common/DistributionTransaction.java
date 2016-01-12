@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  *
  * @author John Collins
  */
-@Domain(fields = {"postedTimeslot", "KWh", "charge"})
+@Domain(fields = {"postedTimeslot", "NSmall", "NLarge", "KWh", "charge"})
 @XStreamAlias("distribution-tx")
 public class DistributionTransaction extends BrokerTransaction
 {
