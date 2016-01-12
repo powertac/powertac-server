@@ -392,7 +392,8 @@ implements InitializationService
           -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
       double[] brokerDemand = brokerNetDemand.get(broker);
       if (null == brokerDemand) {
-        log.error("No demand array for broker {}", broker.getUsername());
+        log.warn("Broker {} not in brokerNetDemand map", broker.getUsername());
+        brokerNetDemand.put(broker, new double[assessmentInterval]);
       }
       brokerNetDemand.get(broker)[index] = netConsumption;
       totalConsumption += netConsumption;
