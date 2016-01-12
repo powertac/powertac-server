@@ -136,21 +136,6 @@ public class Broker
     return idPrefix;
   }
 
-//  /**
-//   * Returns a CashPosition representing the current cash balance for this
-//   * broker.
-//   */
-//  public CashPosition getCashPosition() 
-//  {
-//    return new CashPosition(this, cash);
-//  }
-//  
-//  @Deprecated
-//  public CashPosition getCash() 
-//  {
-//    return getCashPosition();
-//  }
-  
   /**
    * Updates broker's cash position. Note that this operation does not generate
    * a state log entry. To see the broker's cash balance in the state log,
@@ -180,6 +165,7 @@ public class Broker
   }
   
   // backward compatibility
+  @Deprecated
   public Broker addMarketPosition (MarketPosition posn, Timeslot slot)
   {
     return addMarketPosition(posn, slot.getSerialNumber());
@@ -195,6 +181,7 @@ public class Broker
   }
   
   // backward compatibility
+  @Deprecated
   public MarketPosition findMarketPositionByTimeslot (Timeslot slot)
   {
     return findMarketPositionByTimeslot(slot.getSerialNumber());

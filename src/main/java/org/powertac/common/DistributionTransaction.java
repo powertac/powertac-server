@@ -16,6 +16,7 @@
 
 package org.powertac.common;
 
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -30,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  *
  * @author John Collins
  */
-@Domain(fields = {"postedTimeslot", "KWh", "charge"})
+@Domain(fields = {"postedTimeslot", "NSmall", "NLarge", "KWh", "charge"})
 @XStreamAlias("distribution-tx")
 public class DistributionTransaction extends BrokerTransaction
 {
@@ -38,31 +39,77 @@ public class DistributionTransaction extends BrokerTransaction
    */
   @XStreamAsAttribute
   private double kWh = 0.0;
-  
+
+  /** Number of small-customer meter charges
+   */
+  @XStreamAsAttribute
+  private int nSmall = 0;
+
+  /** Number of large-customer meter charges
+   */
+  @XStreamAsAttribute
+  private int nLarge = 0;
+
   /** The total charge imposed by the DU for this transport. Since this
    * is a debit, it will always be negative. */
   @XStreamAsAttribute
   private double charge = 0.0;
 
+  @ChainedConstructor
   public DistributionTransaction (Broker broker, int when, 
                                   double kwh, double charge)
   {
+    this(broker, when, 0, 0, kwh, charge);
+  }
+
+  public DistributionTransaction (Broker broker, int when,
+                                  int nSmall, int nLarge,
+                                  double kwh, double charge)
+  {
     super(when, broker);
+    this.nSmall = nSmall;
+    this.nLarge = nLarge;
     this.kWh = kwh;
     this.charge = charge;
   }
 
   @Deprecated
+  // may be in use by older brokers
   public double getQuantity ()
   {
     return kWh;
   }
 
+  /**
+   * Returns the transported energy quantity represented by this transaction.
+   * Will be non-zero only if transport fees are being assessed.
+   */
   public double getKWh ()
   {
     return kWh;
   }
 
+  /**
+   * Returns the number of small customer subscriptions for which meter fees
+   * are assessed.
+   */
+  public int getNSmall ()
+  {
+    return nSmall;
+  }
+
+  /**
+   * Returns the number of large customer subscriptions for which meter fees
+   * are assessed.
+   */
+  public int getNLarge ()
+  {
+    return nLarge;
+  }
+
+  /**
+   * Returns the total fee assessed for transport and customer connections.
+   */
   public double getCharge ()
   {
     return charge;
@@ -70,7 +117,8 @@ public class DistributionTransaction extends BrokerTransaction
 
   @Override
   public String toString() {
-    return ("Distribution tx " + postedTimeslot + 
-        "-" + broker.getUsername() + "-" + kWh + "-" + charge);
+    return (String.format("Distribution tx %d-%s-%d-%d-%.3f-%.3f",
+                          postedTimeslot, broker.getUsername(),
+                          nSmall, nLarge, kWh, charge));
   }
 }

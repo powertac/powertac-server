@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2013 the original author or authors.
+ * Copyright 2009-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ public class CustomerInfo //implements Serializable
 {
   static private Logger log = LogManager.getLogger(CustomerInfo.class.getName());
 
+  public enum CustomerClass { SMALL, LARGE }
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
 
@@ -54,6 +55,9 @@ public class CustomerInfo //implements Serializable
   private PowerType powerType;
 
   @XStreamAsAttribute
+  private CustomerClass customerClass = CustomerClass.SMALL;
+
+  @XStreamAsAttribute
   private double controllableKW = 0.0;
 
   @XStreamAsAttribute
@@ -65,8 +69,9 @@ public class CustomerInfo //implements Serializable
   @XStreamAsAttribute
   private double storageCapacity = 0.0;
 
-  /** True just in case this customer can engage in multiple contracts
-   * at the same time. Defaults to false. */
+  /** True just in case the population of this customer model can be
+   * divided to engage in multiple contracts at the same time.
+   * Defaults to false. */
   @XStreamAsAttribute
   private boolean multiContracting = false;
 
@@ -140,6 +145,25 @@ public class CustomerInfo //implements Serializable
   public CustomerInfo withPowerType (PowerType type)
   {
     powerType = type;
+    return this;
+  }
+
+  /**
+   * Returns the customer class of this customer. This value determines the
+   * amount of the periodic per-customer "meter charge" if this feature is
+   * used.
+   */
+  public CustomerClass getCustomerClass ()
+  {
+    return customerClass;
+  }
+
+  /**
+   * Fluent setter for customerClass attribute.
+   */
+  public CustomerInfo withCustomerClass (CustomerClass cClass)
+  {
+    customerClass = cClass;
     return this;
   }
 

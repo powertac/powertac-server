@@ -66,9 +66,11 @@ public class CapacityTransactionTests
   @Test
   public void testCapacityTransaction ()
   {
-    CapacityTransaction ct = new CapacityTransaction(broker, 24, 120.0, 42.1, 3.22);
+    CapacityTransaction ct =
+        new CapacityTransaction(broker, 24, 22, 120.0, 42.1, 3.22);
     assertNotNull("not null", ct);
     assertEquals("correct time", 24, ct.getPostedTimeslotIndex());
+    assertEquals("correct ts", 22, ct.getPeakTimeslot());
     assertEquals("correct broker", broker, ct.getBroker());
     assertEquals("correct qty", 42.1, ct.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, ct.getCharge(), 1e-6);
@@ -77,15 +79,17 @@ public class CapacityTransactionTests
   @Test
   public void testToString ()
   {
-    CapacityTransaction ct = new CapacityTransaction(broker, 24, 110.0, 42.1, 3.22);
+    CapacityTransaction ct =
+        new CapacityTransaction(broker, 24, 22, 110.0, 42.1, 3.22);
     String sut = ct.toString();
-    assertEquals("match", "Capacity tx 24-Sally-(110.0,42.1)-3.22", sut);
+    assertEquals("match", "Capacity tx 24-Sally-(22,110.00,42.10)-3.22", sut);
   }
 
   @Test
   public void xmlSerializationTest ()
   {
-    CapacityTransaction ct = new CapacityTransaction(broker, 24, 130.0, 42.1, 3.22);
+    CapacityTransaction ct =
+        new CapacityTransaction(broker, 24, 22, 130.0, 42.1, 3.22);
     XStream xstream = new XStream();
     xstream.processAnnotations(CapacityTransaction.class);
     StringWriter serialized = new StringWriter();
@@ -95,6 +99,7 @@ public class CapacityTransactionTests
     assertNotNull("deserialized something", xct);
     assertEquals("correct broker", broker, xct.getBroker());
     assertEquals("correct time", 24, xct.getPostedTimeslotIndex());
+    assertEquals("correct peak ts", 22, xct.getPeakTimeslot());
     assertEquals("correct threshold", 130.0, xct.getThreshold(), 1e-6);
     assertEquals("correct qty", 42.1, xct.getKWh(), 1e-6);
     assertEquals("correct charge", 3.22, xct.getCharge(), 1e-6);
