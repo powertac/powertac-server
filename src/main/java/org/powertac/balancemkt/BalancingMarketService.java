@@ -20,6 +20,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -175,8 +176,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     // Run the balancing market
     // Transactions are posted to the Accounting Service and Brokers are
     // notified of balancing transactions
-    balancingResults =
-            balanceTimeslot(current, brokerList, report);
+    balancingResults = balanceTimeslot(brokerList, report);
 
     // Send the balance report
     brokerProxyService.broadcastMessage(report);
@@ -189,12 +189,10 @@ implements BalancingMarket, SettlementContext, InitializationService
    * 
    * @return List of ChargeInfo instances
    */
-  public HashMap<Broker, ChargeInfo>
-  balanceTimeslot (Timeslot currentTimeslot,
-                   List<Broker> brokerList,
-                   BalanceReport report)
+  public Map<Broker, ChargeInfo> balanceTimeslot (List<Broker> brokerList,
+                                                  BalanceReport report)
   {
-    HashMap<Broker, ChargeInfo> chargeInfoMap = new HashMap<Broker, ChargeInfo>();
+    Map<Broker, ChargeInfo> chargeInfoMap = new LinkedHashMap<>();
 
     // create the ChargeInfo instances for each broker
     for (Broker broker : brokerList) {
@@ -214,7 +212,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     // gather up the list of ChargeInfo instances and settle
     log.info("balancing prices: pPlus=" + getPPlus()
              + ", pMinus=" + getPMinus());
-    List<ChargeInfo> brokerData = new ArrayList<ChargeInfo>(chargeInfoMap.values());
+    List<ChargeInfo> brokerData = new ArrayList<>(chargeInfoMap.values());
     getSettlementProcessor().settle(this, brokerData);
     
     // add balancing transactions - note that debits/credits for balancing
