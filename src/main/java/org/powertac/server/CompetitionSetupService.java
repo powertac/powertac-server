@@ -30,6 +30,7 @@ import org.powertac.common.XMLMessageConverter;
 import org.powertac.common.interfaces.BootstrapDataCollector;
 import org.powertac.common.interfaces.BootstrapState;
 import org.powertac.common.interfaces.CompetitionSetup;
+import org.powertac.common.repo.BootstrapDataRepo;
 import org.powertac.common.repo.DomainRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.spring.SpringApplicationContext;
@@ -86,6 +87,9 @@ public class CompetitionSetupService
 
   @Autowired
   private ServerPropertiesService serverProps;
+
+  @Autowired
+  private BootstrapDataRepo bootstrapDataRepo;
 
   @Autowired
   private RandomSeedRepo randomSeedRepo;
@@ -559,7 +563,8 @@ public class CompetitionSetupService
         cc.setAuthorizedBrokerList(brokers);
         cc.setInputQueueName(inputQueueName);
         if (preGame(bootDataset)) {
-          cc.setBootstrapDataset(processBootDataset(bootDataset));
+          //cc.setBootstrapDataset(processBootDataset(bootDataset));
+          bootstrapDataRepo.add(processBootDataset(bootDataset));
           cc.runOnce(false);
           gameId += 1;
         }        

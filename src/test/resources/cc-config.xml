@@ -88,6 +88,10 @@
         class="org.powertac.common.repo.TariffRepo">
   </bean>
 
+  <bean id="bootstrapDataRepo"
+        class="org.powertac.common.repo.BootstrapDataRepo">
+  </bean>
+
   <bean id="transactionFactory"
         class="org.powertac.common.TransactionFactory">
   </bean>
