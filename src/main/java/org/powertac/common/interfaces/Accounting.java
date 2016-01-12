@@ -17,6 +17,7 @@ import java.util.Map;
 import org.joda.time.Instant;
 import org.powertac.common.BalancingTransaction;
 import org.powertac.common.Broker;
+import org.powertac.common.CapacityTransaction;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.DistributionTransaction;
 import org.powertac.common.MarketTransaction;
@@ -54,20 +55,35 @@ public interface Accounting
   public TariffTransaction addTariffTransaction (TariffTransaction.Type txType,
       Tariff tariff, CustomerInfo customer, int customerCount, double kWh,
       double charge);
-  
+
   /**
-   * Adds a distribution transaction to represent charges for carrying power
+   * Adds a distribution transaction to represent charges for customer
+   * connections and energy transport.
    */
-  public DistributionTransaction addDistributionTransaction (Broker broker,
-                                                      double load,
-                                                      double fee);
-  
+  public DistributionTransaction
+  addDistributionTransaction (Broker broker, int nSmall, int nLarge,
+                              double transport,
+                              double distroCharge);
+
+  /**
+   * Adds a capacity transaction to represent charges for contribution to
+   * a demand peak. One is generated for each peak event.
+   * @param peakTimeslot: when the peak occurred
+   * @param threshold: assessment threshold
+   * @param kWh: total net demand among broker's customers during timeslot
+   * @param fee: assessed capacity fee for this peak event
+   * @return 
+   */
+  public CapacityTransaction
+  addCapacityTransaction (Broker broker, int peakTimeslot,
+                          double threshold, double kWh, double fee);
+
   /**
    * Adds a balancing transaction to represent the cost of imbalance
    */
   public BalancingTransaction addBalancingTransaction (Broker broker,
-                                                double imbalance,
-                                                double charge);
+                                                       double imbalance,
+                                                       double charge);
 
   /**
    * Returns the current net load represented by unprocessed TariffTransactions

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2013 by the original author
+ * Copyright (c) 2011-2015 by John Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 package org.powertac.common.repo;
 
 import static org.powertac.util.ListTools.*;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
@@ -36,21 +38,29 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class TariffSubscriptionRepo implements DomainRepo
 {
-  
+  // subscriptions are indexed by Tariff, CustomerInfo, and Broker
   private HashMap<Tariff, List<TariffSubscription>> tariffMap;
   private HashMap<CustomerInfo, List<TariffSubscription>> customerMap;
-  
+  private HashMap<Broker, List<TariffSubscription>> brokerMap;
+
   @Autowired
   private TariffRepo tariffRepo;
-
-  //@Autowired
-  //private TariffMarket tariffMarketService;
 
   public TariffSubscriptionRepo ()
   {
     super();
     tariffMap = new HashMap<Tariff, List<TariffSubscription>>();
     customerMap = new HashMap<CustomerInfo, List<TariffSubscription>>();
+    brokerMap = new HashMap<Broker, List<TariffSubscription>>();
+  }
+
+  /** Adds an existing subscription to the repo. */
+  public TariffSubscription add (TariffSubscription subscription)
+  {
+    storeSubscription(subscription,
+                      subscription.getCustomer(),
+                      subscription.getTariff());
+    return subscription;
   }
 
   /**
@@ -62,12 +72,6 @@ public class TariffSubscriptionRepo implements DomainRepo
   public TariffSubscription getSubscription (CustomerInfo customer,
                                              Tariff tariff)
   {
-//    Tariff realTariff = tariffRepo.findTariffById(tariff.getId()); 
-//    if (null == realTariff) {
-//      // tariff does not exist
-//      return null;
-//    }
-
     TariffSubscription result =
         findSubscriptionForCustomer(tariffMap.get(tariff), customer);
     if (null != result) {
@@ -79,15 +83,27 @@ public class TariffSubscriptionRepo implements DomainRepo
     return result;
   }
 
-  /** Returns the list of subscriptions for a given tariff. */
+  /**
+   * Returns the subscription, if any, for the specified tariff and customer.
+   * Does not create a subscription in case it cannot be found in the repo.
+   */
+  public TariffSubscription
+  findSubscriptionForTariffAndCustomer (Tariff tariff, CustomerInfo customer)
+  {
+    List<TariffSubscription> subs = findSubscriptionsForTariff(tariff);
+    if (subs == null)
+      return null;
+    for (TariffSubscription sub : subs) {
+      if (sub.getCustomer() == customer)
+        return sub;
+    }
+    return null;
+  }
+
+  /** Returns the list of subscriptions for a given tariff. Return value
+   * does not share structure with the repo. */
   public List<TariffSubscription> findSubscriptionsForTariff (Tariff tariff)
   {
-//    Tariff realTariff = tariffRepo.findTariffById(tariff.getId()); 
-//    if (null == realTariff) {
-//      // tariff does not exist
-//      return null;
-//    }
-
     // new list allows caller to smash the return value
     List<TariffSubscription> result = tariffMap.get(tariff);
     if (result == null)
@@ -96,19 +112,11 @@ public class TariffSubscriptionRepo implements DomainRepo
       return new ArrayList<TariffSubscription>(result);
   }
 
-  /** Returns the list of subscriptions for a given customer. */
+  /** Returns the list of subscriptions for a given customer. Return value
+   * does not share structure with the repo. */
   public List<TariffSubscription>
   findSubscriptionsForCustomer (CustomerInfo customer)
   {
-    // new list allows caller to smash the return value
-//    List<TariffSubscription> result = 
-//        filter(customerMap.get(customer),
-//               new Predicate<TariffSubscription> () {
-//          @Override
-//          public boolean apply (TariffSubscription thing) {
-//            return (null != tariffRepo.findTariffById(thing.getTariff().getId()));
-//          }
-//        });
     List<TariffSubscription> result = customerMap.get(customer);
     if (null == result)
       return new ArrayList<TariffSubscription>();
@@ -126,36 +134,40 @@ public class TariffSubscriptionRepo implements DomainRepo
     List<TariffSubscription> result = new ArrayList<TariffSubscription>();
     for (TariffSubscription sub : findSubscriptionsForCustomer(customer)) {
       if (sub.getCustomersCommitted() > 0) {
-        //if (sub.getTariff().getState() == Tariff.State.KILLED)
-        //  log.warn("Subscription for revoked tariff " + sub.getTariff().getId()
-        //           + ", customer " + customer.getName()
-        //           + " has non-zero count " + sub.getCustomersCommitted());
         result.add(sub);
       }
     }
     return result;
   }
 
-  /** Adds an existing subscription to the repo. */
-  public TariffSubscription add (TariffSubscription subscription)
+  /**
+   * Returns the list of subscriptions for the specified broker. Return
+   * value does not share structure with the repo.
+   */
+  public List<TariffSubscription> findSubscriptionsForBroker(Broker b)
   {
-    storeSubscription(subscription,
-                      subscription.getCustomer(),
-                      subscription.getTariff());
-    return subscription;
+    
+    List<TariffSubscription> result = brokerMap.get(b);
+    if (null == result)
+      return new ArrayList<TariffSubscription>();
+    else
+      return new ArrayList<TariffSubscription>(result);
   }
 
-  public TariffSubscription
-  findSubscriptionForTariffAndCustomer (Tariff tariff, CustomerInfo customer)
+  /**
+   * Returns the list of active subscriptions for a given broker.
+   * These are subscriptions that have non-zero committed-customer counts.
+   */
+  public List<TariffSubscription>
+  findActiveSubscriptionsForBroker (Broker broker)
   {
-    List<TariffSubscription> subs = findSubscriptionsForTariff(tariff);
-    if (subs == null)
-      return null;
-    for (TariffSubscription sub : subs) {
-      if (sub.getCustomer() == customer)
-        return sub;
+    List<TariffSubscription> result = new ArrayList<TariffSubscription>();
+    for (TariffSubscription sub : findSubscriptionsForBroker(broker)) {
+      if (sub.getCustomersCommitted() > 0) {
+        result.add(sub);
+      }
     }
-    return null;
+    return result;
   }
 
   /**
@@ -167,7 +179,6 @@ public class TariffSubscriptionRepo implements DomainRepo
   public List<TariffSubscription>
   getRevokedSubscriptionList (CustomerInfo customer)
   {
-    //tariffMarketService.processRevokedTariffs();
     if (null == customerMap.get(customer))
       // can happen first time...
       return new ArrayList<TariffSubscription>();
@@ -195,21 +206,17 @@ public class TariffSubscriptionRepo implements DomainRepo
     if (null == subs)
       return;
     
-    // first, remove the subscriptions from the customer map
+    // first, remove the subscriptions from the customer map and broker map
     for (TariffSubscription sub : subs) {
       customerMap.get(sub.getCustomer()).remove(sub);
+    }
+    for (TariffSubscription sub : subs) {
+      brokerMap.get(sub.getTariff().getBroker()).remove(sub);
     }
 
     // then clear out the tariff entry
     tariffMap.remove(tariff);
   }
-
-//  /** Removes a subscription from the repo. */
-//  private void remove (TariffSubscription subscription)
-//  {
-//    tariffMap.get(subscription.getTariff()).remove(subscription);
-//    customerMap.get(subscription.getCustomer()).remove(subscription);
-//  }
 
   /** Clears out the repo in preparation for another simulation. */
   @Override
@@ -217,6 +224,7 @@ public class TariffSubscriptionRepo implements DomainRepo
   {
     tariffMap.clear();
     customerMap.clear();
+    brokerMap.clear();
   }
 
   // ----- helper methods -----
@@ -244,5 +252,9 @@ public class TariffSubscriptionRepo implements DomainRepo
     if (customerMap.get(customer) == null)
       customerMap.put(customer, new ArrayList<TariffSubscription>());
     customerMap.get(customer).add(subscription);
+    Broker broker = tariff.getBroker();
+    if (brokerMap.get(broker) == null)
+      brokerMap.put(broker, new ArrayList<TariffSubscription>());
+    brokerMap.get(broker).add(subscription);
   }
 }

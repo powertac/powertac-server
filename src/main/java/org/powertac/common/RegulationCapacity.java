@@ -60,12 +60,14 @@ public class RegulationCapacity
     super();
     this.subscription = subscription;
     if (upRegulationCapacity < 0.0) {
-      log.warn("upRegulationCapacity " + upRegulationCapacity + " < 0.0");
       upRegulationCapacity = 0.0;
+      if (upRegulationCapacity < -1.0e-12)
+        log.warn("upRegulationCapacity " + upRegulationCapacity + " < 0.0");
     }
     if (downRegulationCapacity > 0.0) {
-      log.warn("downRegulationCapacity " + downRegulationCapacity + " > 0.0");
       downRegulationCapacity = 0.0;
+      if (downRegulationCapacity > 1.0e-12)
+        log.warn("downRegulationCapacity " + downRegulationCapacity + " > 0.0");
     }
     this.upRegulationCapacity = upRegulationCapacity;
     this.downRegulationCapacity = downRegulationCapacity;
