@@ -471,8 +471,8 @@ public class CapacityControlServiceTest
     assertEquals("correct charge", 240.0 * 0.11, (Double) args[5], 1e-6);
     
     // check regulation info
-    assertEquals("correct regulation sub1", 40.0, sub1.getCurtailment(), 1e-6);
-    assertEquals("correct regulation sub1", 60.0, sub2.getCurtailment(), 1e-6);
+    assertEquals("correct regulation sub1", 40.0 / 100.0, sub1.getRegulation(), 1e-6);
+    assertEquals("correct regulation sub1", 60.0 / 200.0, sub2.getRegulation(), 1e-6);
   }
 
 }
