@@ -76,6 +76,9 @@ public class AccountingService
 
   private ArrayList<BrokerTransaction> pendingTransactions;
   private DistributionReport distributionReport;
+  private double totalConsumption;
+  private double totalProduction;
+
   private HashMap<Timeslot, ArrayList<MarketTransaction>>
       pendingMarketTransactions;
 
@@ -295,8 +298,6 @@ public class AccountingService
     for (Broker broker : brokerRepo.list()) {
       brokerMsg.put(broker, new ArrayList<Object>());
     }
-    // initialize the distribution report
-    distributionReport = new DistributionReport();
     
     // walk through the pending transactions and run the updates
     for (BrokerTransaction tx : getPendingTransactionList()) {
@@ -338,7 +339,9 @@ public class AccountingService
       log.info("Sending " + brokerMsg.get(broker).size() + " messages to " + broker.getUsername());
       brokerProxyService.sendMessages(broker, brokerMsg.get(broker));
     }
-    // send the distribution report
+    // build and send the distribution report
+    distributionReport =
+        new DistributionReport(totalConsumption, totalProduction);
     brokerProxyService.broadcastMessage(distributionReport);
   }
   
@@ -366,9 +369,9 @@ public class AccountingService
     updateCash(tx.getBroker(), tx.getCharge());
     // update the distribution report
     if (TariffTransaction.Type.CONSUME == tx.getTxType())
-      distributionReport.addConsumption(-tx.getKWh());
+      totalConsumption -= tx.getKWh();
     else if (TariffTransaction.Type.PRODUCE == tx.getTxType())
-      distributionReport.addProduction(tx.getKWh());
+      totalProduction += tx.getKWh();
   }
 
   /**
