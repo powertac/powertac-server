@@ -15,6 +15,9 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
@@ -24,6 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
+@Domain
 @XStreamAlias("distribution-report")
 public class DistributionReport
 {
@@ -34,7 +38,7 @@ public class DistributionReport
   private double totalProduction;
 
   /**
-   * Constructed empty. Call addProduction and addConsumption to fill it in.
+   * Dummy constructor.
    */
   public DistributionReport ()
   {
@@ -43,29 +47,18 @@ public class DistributionReport
     totalProduction = 0.0;
   }
 
-  /**
-   * Adds to the total consumption. If kwh is coming from a source that
-   * uses negative values for consumption, then the caller must negate
-   * the value.
-   */
-  public void addConsumption (double kwh)
+  public DistributionReport (double consumption, double production)
   {
-    totalConsumption += kwh;
+    super();
+    totalConsumption = consumption;
+    totalProduction = production;
   }
-  
+
   public double getTotalConsumption ()
   {
     return totalConsumption;
   }
-  
-  /**
-   * Adds to production
-   */
-  public void addProduction (double kwh)
-  {
-    totalProduction += kwh;
-  }
-  
+
   public double getTotalProduction ()
   {
     return totalProduction;
