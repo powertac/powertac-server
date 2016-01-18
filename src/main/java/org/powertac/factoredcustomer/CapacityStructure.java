@@ -15,125 +15,283 @@
 
 package org.powertac.factoredcustomer;
 
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import org.w3c.dom.*;
+
 
 /**
  * Data-holder class for parsed configuration elements of one capacity.
- * All members are declared final in the package scope.
- * 
- * @author Prashant Reddy
+ *
+ * @author Prashant Reddy, Govert Buijs
  */
-public final class CapacityStructure
-{	
-    public enum InfluenceKind { DIRECT, DEVIATION, NONE }
-    
-    public enum BaseCapacityType { POPULATION, INDIVIDUAL, TIMESERIES }
+public final class CapacityStructure implements StructureInstance
+{
+  public enum InfluenceKind
+  {
+    DIRECT, DEVIATION, NONE
+  }
 
-    public enum ElasticityModelType { CONTINUOUS, STEPWISE }
-        
-    final String capacityName;
-    final String description;
-    
-    final BaseCapacityType baseCapacityType;
-    final ProbabilityDistribution basePopulationCapacity;
-    final ProbabilityDistribution baseIndividualCapacity;
-    final TimeseriesStructure baseTimeseriesStructure;
-    
-    final double[] dailySkew;
-    final double[] hourlySkew;
+  public enum BaseCapacityType
+  {
+    POPULATION, INDIVIDUAL, TIMESERIES
+  }
 
-    final InfluenceKind temperatureInfluence;
-    final Map<Integer, Double> temperatureMap = new HashMap<Integer, Double>();  // key: degree Celsius
-    final double temperatureReference;
-    final InfluenceKind windSpeedInfluence;
-    final Map<Integer, Double> windSpeedMap = new HashMap<Integer, Double>();  // key: speed in m/s
-    final InfluenceKind windDirectionInfluence;
-    final Map<Integer, Double> windDirectionMap = new HashMap<Integer, Double>();  // key: angle 0-360
-    final InfluenceKind cloudCoverInfluence;
-    final Map<Integer, Double> cloudCoverMap = new HashMap<Integer, Double>();  // key: 0 (clear) - 100 (cloudy) 
-        
-    final Map<Integer, Double> benchmarkRates = new HashMap<Integer, Double>();  // key: hour of day
-    final ElasticityModelType elasticityModelType;
-    final Element elasticityModelXml;
-        
-    final double[] curtailmentShifts;  // index = timeslot
-    
-    
-    CapacityStructure(FactoredCustomerService service, String name, Element xml, DefaultCapacityBundle bundle) 
-    {
-        capacityName = name;
-        description = xml.getAttribute("description");
-        
-        Element baseCapacityElement = (Element) xml.getElementsByTagName("baseCapacity").item(0);
-        baseCapacityType = Enum.valueOf(BaseCapacityType.class, baseCapacityElement.getAttribute("type"));
-        switch (baseCapacityType) {
-        case POPULATION: 
-            Element populationCapacityElement = (Element) baseCapacityElement.getElementsByTagName("populationCapacity").item(0);
-            basePopulationCapacity = new ProbabilityDistribution(service, populationCapacityElement);
-            baseIndividualCapacity = null;
-            baseTimeseriesStructure = null;
-            break;
-        case INDIVIDUAL: 
-            basePopulationCapacity = null;
-            Element individualCapacityElement = (Element) baseCapacityElement.getElementsByTagName("individualCapacity").item(0);
-            baseIndividualCapacity = new ProbabilityDistribution(service, individualCapacityElement);
-            baseTimeseriesStructure = null;
-            break;
-        case TIMESERIES: 
-            basePopulationCapacity = null;
-            baseIndividualCapacity = null;
-            Element timeseriesModelElement = (Element) baseCapacityElement.getElementsByTagName("timeseriesModel").item(0);
-            baseTimeseriesStructure = new TimeseriesStructure(timeseriesModelElement);
-            break;
-        default: throw new Error("Unexpected base capacity type: " + baseCapacityType);
-        }
-        
-        Element dailySkewElement = (Element) xml.getElementsByTagName("dailySkew").item(0);
-        dailySkew = ParserFunctions.parseDoubleArray(dailySkewElement.getAttribute("array"));
-        
-        Element hourlySkewElement = (Element) xml.getElementsByTagName("hourlySkew").item(0);
-        hourlySkew = ParserFunctions.parseDoubleArray(hourlySkewElement.getAttribute("array"));
-        
-        Element temperatureInfluenceElement = (Element) xml.getElementsByTagName("temperature").item(0);
-        temperatureInfluence = Enum.valueOf(InfluenceKind.class, temperatureInfluenceElement.getAttribute("influence"));
-        if (temperatureInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(temperatureInfluenceElement.getAttribute("rangeMap"), temperatureMap);
-            if (temperatureInfluence == InfluenceKind.DEVIATION) {
-                temperatureReference = Double.parseDouble(temperatureInfluenceElement.getAttribute("reference"));
-            } else temperatureReference = Double.NaN;
-        } else temperatureReference = Double.NaN;
+  public enum ElasticityModelType
+  {
+    CONTINUOUS, STEPWISE
+  }
 
-        Element windSpeedInfluenceElement = (Element) xml.getElementsByTagName("windSpeed").item(0);
-        windSpeedInfluence = Enum.valueOf(InfluenceKind.class, windSpeedInfluenceElement.getAttribute("influence"));
-        if (windSpeedInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(windSpeedInfluenceElement.getAttribute("rangeMap"), windSpeedMap);
-        }
-          
-        Element windDirectionInfluenceElement = (Element) xml.getElementsByTagName("windDirection").item(0);
-        windDirectionInfluence = Enum.valueOf(InfluenceKind.class, windDirectionInfluenceElement.getAttribute("influence"));
-        if (windDirectionInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(windDirectionInfluenceElement.getAttribute("rangeMap"), windDirectionMap);
-        }
-        
-        Element cloudCoverInfluenceElement = (Element) xml.getElementsByTagName("cloudCover").item(0);
-        cloudCoverInfluence = Enum.valueOf(InfluenceKind.class, cloudCoverInfluenceElement.getAttribute("influence"));
-        if (cloudCoverInfluence != InfluenceKind.NONE) {
-            ParserFunctions.parseRangeMap(cloudCoverInfluenceElement.getAttribute("percentMap"), cloudCoverMap);
-        }
+  private String name;
 
-        Element priceElasticityElement = (Element) xml.getElementsByTagName("priceElasticity").item(0);
-        Element benchmarkRatesElement = (Element) priceElasticityElement.getElementsByTagName("benchmarkRates").item(0);
-        ParserFunctions.parseRangeMap(benchmarkRatesElement.getAttribute("rangeMap"), benchmarkRates);
-        
-        elasticityModelXml = (Element) priceElasticityElement.getElementsByTagName("elasticityModel").item(0);
-        elasticityModelType = Enum.valueOf(ElasticityModelType.class, elasticityModelXml.getAttribute("type"));
-        
-        Element curtailmentElement = (Element) xml.getElementsByTagName("curtailment").item(0);
-        curtailmentShifts = (curtailmentElement != null) ? 
-                ParserFunctions.parseDoubleArray(curtailmentElement.getAttribute("shifts")) : null;
+  @ConfigurableValue(valueType = "String")
+  private String baseCapacityType;
+  private ProbabilityDistribution basePopulationCapacity;
+  private ProbabilityDistribution baseIndividualCapacity;
+
+  // Calendar factors
+  private double[] dailySkew;
+  private double[] hourlySkew;
+
+  // Weather factors
+  @ConfigurableValue(valueType = "String")
+  private String temperatureInfluence;
+  private Map<Integer, Double> temperatureMap = new HashMap<>();  // key: degree Celsius
+  @ConfigurableValue(valueType = "Double")
+  private double temperatureReference = Double.NaN;
+  @ConfigurableValue(valueType = "String")
+  private String windSpeedInfluence;
+  private Map<Integer, Double> windSpeedMap = new HashMap<>();  // key: speed in m/s
+  @ConfigurableValue(valueType = "String")
+  private String windDirectionInfluence;
+  private Map<Integer, Double> windDirectionMap = new HashMap<>();  // key: angle 0-360
+  @ConfigurableValue(valueType = "String")
+  private String cloudCoverInfluence;
+  private Map<Integer, Double> cloudCoverMap = new HashMap<>();  // key: 0 (clear) - 100 (cloudy)
+
+  // Market factors
+  private Map<Integer, Double> benchmarkRates = new HashMap<>();  // key: hour of day
+  @ConfigurableValue(valueType = "String")
+  private String elasticityModelType;
+  @ConfigurableValue(valueType = "Double")
+  private double elasticityRatio;
+  private double[] elasticityRange;
+  private double[][] elasticityMap;
+
+  private double[] curtailmentShifts;  // index = timeslot
+
+  public CapacityStructure (String name)
+  {
+    this.name = name;
+  }
+
+  public void initialize (FactoredCustomerService service)
+  {
+    Map<String, StructureInstance> map =
+        Config.getInstance().getStructures().get("ProbabilityDistribution");
+
+    switch (BaseCapacityType.valueOf(baseCapacityType)) {
+      case POPULATION:
+        basePopulationCapacity = (ProbabilityDistribution)
+            map.get(name + "Population");
+        if (basePopulationCapacity != null) {
+          basePopulationCapacity.initialize(service);
+        }
+        break;
+      case INDIVIDUAL:
+        baseIndividualCapacity = (ProbabilityDistribution)
+            map.get(name + "Population");
+        if (baseIndividualCapacity != null) {
+          baseIndividualCapacity.initialize(service);
+        }
+        break;
+      case TIMESERIES:
+        break;
+      default:
+        throw new Error("Unexpected base capacity type: " + baseCapacityType);
     }
-    
-} // end class
+  }
+
+  // =================== Setters ======================
+
+  @ConfigurableValue(valueType = "List")
+  public void setDailySkew (List<String> data)
+  {
+    dailySkew = data.stream().mapToDouble(Double::parseDouble).toArray();
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setHourlySkew (List<String> data)
+  {
+    hourlySkew = data.stream().mapToDouble(Double::parseDouble).toArray();
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setTemperatureMap (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    temperatureMap = ParserFunctions.parseRangeMap(tmp);
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setWindSpeedMap (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    windSpeedMap = ParserFunctions.parseRangeMap(tmp);
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setWindDirectionMap (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    windDirectionMap = ParserFunctions.parseRangeMap(tmp);
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setCloudCoverMap (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    cloudCoverMap = ParserFunctions.parseRangeMap(tmp);
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setBenchmarkRates (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    benchmarkRates = ParserFunctions.parseRangeMap(tmp);
+  }
+
+  @ConfigurableValue(valueType = "String")
+  public void setElasticityRange (String data)
+  {
+    String[] minMax = data.split("~");
+    double low = Double.parseDouble(minMax[0]);
+    double high = Double.parseDouble(minMax[1]);
+    elasticityRange = new double[]{low, high};
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setElasticityMap (List<String> data)
+  {
+    String tmp = ("" + data).replace("[", "").replace("]", "");
+    elasticityMap = ParserFunctions.parseMapToDoubleArray(tmp);
+  }
+
+  @ConfigurableValue(valueType = "List")
+  public void setCurtailmentShifts (List<String> data)
+  {
+    curtailmentShifts = data.stream().mapToDouble(Double::parseDouble).toArray();
+  }
+
+  // =================== Accessors ====================
+
+  public String getName ()
+  {
+    return name;
+  }
+
+  public BaseCapacityType getBaseCapacityType ()
+  {
+    return BaseCapacityType.valueOf(baseCapacityType);
+  }
+
+  public ProbabilityDistribution getBasePopulationCapacity ()
+  {
+    return basePopulationCapacity;
+  }
+
+  public ProbabilityDistribution getBaseIndividualCapacity ()
+  {
+    return baseIndividualCapacity;
+  }
+
+  public double[] getDailySkew ()
+  {
+    return dailySkew;
+  }
+
+  public double[] getHourlySkew ()
+  {
+    return hourlySkew;
+  }
+
+  public InfluenceKind getTemperatureInfluence ()
+  {
+    return InfluenceKind.valueOf(temperatureInfluence);
+  }
+
+  public Map<Integer, Double> getTemperatureMap ()
+  {
+    return temperatureMap;
+  }
+
+  public double getTemperatureReference ()
+  {
+    return temperatureReference;
+  }
+
+  public InfluenceKind getWindSpeedInfluence ()
+  {
+    return InfluenceKind.valueOf(windSpeedInfluence);
+  }
+
+  public Map<Integer, Double> getWindSpeedMap ()
+  {
+    return windSpeedMap;
+  }
+
+  public InfluenceKind getWindDirectionInfluence ()
+  {
+    return InfluenceKind.valueOf(windDirectionInfluence);
+  }
+
+  public Map<Integer, Double> getWindDirectionMap ()
+  {
+    return windDirectionMap;
+  }
+
+  public InfluenceKind getCloudCoverInfluence ()
+  {
+    return InfluenceKind.valueOf(cloudCoverInfluence);
+  }
+
+  public Map<Integer, Double> getCloudCoverMap ()
+  {
+    return cloudCoverMap;
+  }
+
+  public Map<Integer, Double> getBenchmarkRates ()
+  {
+    return benchmarkRates;
+  }
+
+  public ElasticityModelType getElasticityModelType ()
+  {
+    return ElasticityModelType.valueOf(elasticityModelType);
+  }
+
+  public double getElasticityRatio ()
+  {
+    return elasticityRatio;
+  }
+
+  public double[] getElasticityRange ()
+  {
+    return elasticityRange;
+  }
+
+  public double[][] getElasticityMap ()
+  {
+    return elasticityMap;
+  }
+
+  public double[] getCurtailmentShifts ()
+  {
+    return curtailmentShifts;
+  }
+}
+
 

@@ -16,106 +16,125 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.List;
-import java.util.ArrayList;
-import org.w3c.dom.*;
 import org.powertac.common.CustomerInfo;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.common.state.Domain;
+import org.powertac.factoredcustomer.interfaces.CapacityBundle;
+import org.powertac.factoredcustomer.interfaces.CapacityOriginator;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * A simple collection of capacity originators, all with the same base capacity
  * type;
  * i.e., CONSUMPTION or PRODUCTION.
- * 
+ *
  * @author Prashant Reddy
  */
 @Domain
-class DefaultCapacityBundle implements CapacityBundle
+public class DefaultCapacityBundle implements CapacityBundle, StructureInstance
 {
   protected FactoredCustomerService service;
-  private final CustomerStructure customerStructure;
+  private CustomerStructure customerStructure;
 
-  // identity
-  private final String name;
-  private final CustomerInfo customerInfo;
+  protected String name;
+  @ConfigurableValue(valueType = "Integer")
+  protected int count;
+  @ConfigurableValue(valueType = "Integer")
+  protected int population;
+  @ConfigurableValue(valueType = "String")
+  protected String type;
+  @ConfigurableValue(valueType = "Boolean")
+  protected boolean multiContracting;
+  @ConfigurableValue(valueType = "Boolean")
+  protected boolean canNegotiate;
 
-  // evaluation tools
-  //protected TariffEvaluator tariffEvaluator;
+  @ConfigurableValue(valueType = "Boolean")
+  protected boolean isAdaptive;
 
-  private final TariffSubscriberStructure subscriberStructure;
-  private final ProfileOptimizerStructure optimizerStructure;
+  private CustomerInfo customerInfo;
 
-  protected final List<CapacityOriginator> capacityOriginators =
-    new ArrayList<CapacityOriginator>();
+  private TariffSubscriberStructure subscriberStructure;
+  private ProfileOptimizerStructure optimizerStructure;
 
-  DefaultCapacityBundle (FactoredCustomerService service,
-                         CustomerStructure structure,
-                         Element xml)
+  protected List<CapacityOriginator> capacityOriginators = new ArrayList<>();
+
+  public DefaultCapacityBundle (String name)
   {
-    this.service = service;
-    customerStructure = structure;
-    //tariffEvaluator = new TariffEvaluator();
-
-    String bundleId = xml.getAttribute("id");
-    name =
-      (bundleId == null || bundleId.isEmpty())? customerStructure.name
-                                              : customerStructure.name + "@"
-                                                + bundleId;
-
-    customerInfo =
-      new CustomerInfo(name, Integer.parseInt(xml.getAttribute("population")))
-              .withPowerType(PowerType.valueOf(xml.getAttribute("powerType")))
-              .withMultiContracting(Boolean.parseBoolean(xml
-                                            .getAttribute("multiContracting")))
-              .withCanNegotiate(Boolean.parseBoolean(xml
-                                        .getAttribute("canNegotiate")));
-
-    Element tariffSubscriberElement =
-      (Element) xml.getElementsByTagName("tariffSubscriber").item(0);
-    subscriberStructure =
-      new TariffSubscriberStructure(service, structure, this, tariffSubscriberElement);
-
-    Element profileOptimizerElement =
-      (Element) xml.getElementsByTagName("profileOptimizer").item(0);
-    optimizerStructure =
-      new ProfileOptimizerStructure(structure, this, profileOptimizerElement);
+    this.name = name;
   }
 
   @Override
-  public void initialize (CustomerStructure structure,
-                          Element xml)
+  public void initialize (FactoredCustomerService service,
+                          CustomerStructure customerStructure)
   {
-    NodeList capacityNodes = xml.getElementsByTagName("capacity");
-    for (int i = 0; i < capacityNodes.getLength(); ++i) {
-      Element capacityElement = (Element) capacityNodes.item(i);
-      String name = capacityElement.getAttribute("name");
-      String countString = capacityElement.getAttribute("count");
-      if (countString == null || Integer.parseInt(countString) == 1) {
+    this.service = service;
+    this.customerStructure = customerStructure;
+
+    customerInfo = new CustomerInfo(name, this.population)
+        .withPowerType(PowerType.valueOf(this.type))
+        .withMultiContracting(this.multiContracting)
+        .withCanNegotiate(this.canNegotiate);
+
+    Config config = Config.getInstance();
+    Map<String, StructureInstance> subscribers =
+        config.getStructures().get("TariffSubscriberStructure");
+    Map<String, StructureInstance> optimizers =
+        config.getStructures().get("ProfileOptimizerStructure");
+    Map<String, StructureInstance> capacities =
+        config.getStructures().get("CapacityStructure");
+
+    subscriberStructure =
+        (TariffSubscriberStructure) subscribers.get(name);
+    if (subscriberStructure != null) {
+      subscriberStructure.initialize(service);
+    }
+    else {
+      throw new Error("No TariffSubscriberStructure for : " + name);
+    }
+
+    optimizerStructure =
+        (ProfileOptimizerStructure) optimizers.get(name);
+    if (optimizerStructure == null) {
+      optimizerStructure = new ProfileOptimizerStructure(name);
+    }
+
+    if (this.count > 1) {
+      for (int j = 0; j < this.count; j++) {
         CapacityStructure capacityStructure =
-          new CapacityStructure(service, name, capacityElement, this);
+            (CapacityStructure) capacities.get(name + (j + 1));
+        if (capacityStructure == null) {
+          throw new Error("No CapacityStructure for " + name + (j + 1));
+        }
+        capacityStructure.initialize(service);
         capacityOriginators.add(createCapacityOriginator(capacityStructure));
       }
-      else {
-        if (name == null)
-          name = "";
-        for (int j = 1; j < (1 + Integer.parseInt(countString)); ++j) {
-          CapacityStructure capacityStructure =
-            new CapacityStructure(service, name + j, capacityElement, this);
-          capacityOriginators.add(createCapacityOriginator(capacityStructure));
-        }
+    }
+    else {
+      CapacityStructure capacityStructure =
+          (CapacityStructure) capacities.get(name);
+      if (capacityStructure == null) {
+        throw new Error("No CapacityStructure for " + name);
       }
+      capacityStructure.initialize(service);
+      capacityOriginators.add(createCapacityOriginator(capacityStructure));
     }
   }
 
-  /** @Override hook **/
-  protected CapacityOriginator
-    createCapacityOriginator (CapacityStructure capacityStructure)
+  protected CapacityOriginator createCapacityOriginator (
+      CapacityStructure capacityStructure)
   {
-    return new DefaultCapacityOriginator(service,
-                                         capacityStructure,
-                                         this);
+    if (isAdaptive) {
+      return new AdaptiveCapacityOriginator(service, capacityStructure, this);
+    }
+    else {
+      return new DefaultCapacityOriginator(service, capacityStructure, this);
+    }
   }
 
   @Override
@@ -141,12 +160,6 @@ class DefaultCapacityBundle implements CapacityBundle
   {
     return customerInfo;
   }
-  
-  //@Override
-  //public TariffEvaluator getTariffEvaluator ()
-  //{
-    //return tariffEvaluator;
-  //}
 
   @Override
   public TariffSubscriberStructure getSubscriberStructure ()
@@ -165,12 +178,4 @@ class DefaultCapacityBundle implements CapacityBundle
   {
     return capacityOriginators;
   }
-
-  @Override
-  public String toString ()
-  {
-    return this.getClass().getCanonicalName() + ":" + customerStructure.name
-           + ":" + customerInfo.getPowerType();
-  }
-
-} // end class
+}

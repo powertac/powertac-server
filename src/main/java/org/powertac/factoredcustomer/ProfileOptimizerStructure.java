@@ -16,110 +16,126 @@
 
 package org.powertac.factoredcustomer;
 
-import org.w3c.dom.Element;
+import org.powertac.common.config.ConfigurableValue;
 import org.powertac.factoredcustomer.CapacityProfile.PermutationRule;
-import org.powertac.factoredcustomer.interfaces.CapacityBundle;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+
 
 /**
- * Data-holder class for parsed configuration elements that control the 
- * capacity profile optimization of a capacity bundle. Relevant members 
+ * Data-holder class for parsed configuration elements that control the
+ * capacity profile optimization of a capacity bundle. Relevant members
  * are declared final in the package scope.
  *
  * @author Prashant Reddy
  */
-public final class ProfileOptimizerStructure
+public final class ProfileOptimizerStructure implements StructureInstance
 {
-    enum UsageChargeStance { NEUTRAL, BENEFIT, THRESHOLD }
-    enum ProfileSelectionMethod { BEST_UTILITY, LOGIT_CHOICE }
-    
-    private static final double DEFAULT_REACTIVITY_FACTOR = 1.0; 
-    private static final double DEFAULT_RECEPTIVITY_FACTOR = 1.0; 
-    private static final double DEFAULT_RATIONALITY_FACTOR = 1.0; 
-    
-    private static final UsageChargeStance DEFAULT_USAGE_CHARGE_STANCE = UsageChargeStance.BENEFIT;   
-    private static final double DEFAULT_USAGE_CHARGE_PERCENT_BENEFIT = 0.01;  // 1% improvement 
-    
-    private static final double DEFAULT_PROFILE_CHANGE_WEIGHT = -1.0;
-    private static final double DEFAULT_BUNDLE_VALUE_WEIGHT = +10.0;
-    
-    private final CustomerStructure customerStructure;
-    private final CapacityBundle capacityBundle;
-    
-    final boolean receiveRecommendations;
-    final PermutationRule permutationRule;
-    final boolean raconcileRecommendations;
-    
-    //final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.LOGIT_CHOICE;
-    final ProfileSelectionMethod profileSelectionMethod = ProfileSelectionMethod.BEST_UTILITY; 
+  public enum UsageChargeStance
+  {
+    NEUTRAL, BENEFIT, THRESHOLD
+  }
 
-    // factors controlling responsiveness to recommendation
-    final double reactivityFactor;  // [0.0, 1.0]
-    final double receptivityFactor;  // [0.0, 1.0]
-    final double rationalityFactor;  // [0.0, 1.0]
-    
-    // required percent benefit in usage charge vs. forecast profile
-    final UsageChargeStance usageChargeStance;
-    final double usageChargePercentBenefit;
-    final double usageChargeThreshold;  // [0.0, +inf)
+  public enum ProfileSelectionMethod
+  {
+    BEST_UTILITY, LOGIT_CHOICE
+  }
 
-    // scoring weights of other factors relative to fixed usage charge weight of +/-1.
-    final double profileChangeWeight;  // (-inf, 0.0]
-    final double bundleValueWeight;  //  [0.0, inf]
+  private String name;
 
+  @ConfigurableValue(valueType = "Boolean")
+  private boolean receiveRecommendations = false;
+  @ConfigurableValue(valueType = "String")
+  private String permutationRule = null;
+  @ConfigurableValue(valueType = "String")
+  private String profileSelectionMethod =
+      ProfileSelectionMethod.BEST_UTILITY.toString();
 
-    
-    ProfileOptimizerStructure(CustomerStructure structure, CapacityBundle bundle, Element xml)
-    {
-        customerStructure = structure;
-        capacityBundle = bundle;        
-        
-        if (xml == null) {
-            //log.info("Daniel xml is null");
-            receiveRecommendations = false;
-            raconcileRecommendations = false;
-            permutationRule = null;
-            reactivityFactor = DEFAULT_REACTIVITY_FACTOR; 
-            receptivityFactor = DEFAULT_RECEPTIVITY_FACTOR; 
-            rationalityFactor = DEFAULT_RATIONALITY_FACTOR; 
-            usageChargeStance = DEFAULT_USAGE_CHARGE_STANCE;   
-            usageChargePercentBenefit = DEFAULT_USAGE_CHARGE_PERCENT_BENEFIT;   
-            usageChargeThreshold = Double.NaN;
-            profileChangeWeight = DEFAULT_PROFILE_CHANGE_WEIGHT;
-            bundleValueWeight = DEFAULT_BUNDLE_VALUE_WEIGHT;
-        } else {
-            //log.info("Daniel xml is not null");
-            receiveRecommendations = Boolean.parseBoolean(xml.getAttribute("recommendation"));
-            //log.info("Daniel receiveRecommendations " + receiveRecommendations);
-            raconcileRecommendations = Boolean.parseBoolean(xml.getAttribute("reconcile"));
-            permutationRule = Enum.valueOf(PermutationRule.class, xml.getAttribute("permutationRule"));
-            
-            Element responseFactorsElement = (Element) xml.getElementsByTagName("responseFactors").item(0);
-            reactivityFactor = Double.parseDouble(responseFactorsElement.getAttribute("reactivity"));
-            receptivityFactor = Double.parseDouble(responseFactorsElement.getAttribute("receptivity"));
-            rationalityFactor = Double.parseDouble(responseFactorsElement.getAttribute("rationality"));
-            
-            Element constraintsElement = (Element) xml.getElementsByTagName("constraints").item(0);
-            usageChargeStance = Enum.valueOf(UsageChargeStance.class, constraintsElement.getAttribute("usageChargeStance"));
-            String percentBenefitString = constraintsElement.getAttribute("percentBenefit");
-            usageChargePercentBenefit = percentBenefitString.isEmpty() ? Double.NaN : Double.parseDouble(percentBenefitString);
-            String thresholdString = constraintsElement.getAttribute("threshold");
-            usageChargeThreshold = thresholdString.isEmpty() ? Double.NaN : Double.parseDouble(thresholdString);
-            
-            Element scoringWeightsElement = (Element) xml.getElementsByTagName("scoringWeights").item(0);
-            profileChangeWeight = Double.parseDouble(scoringWeightsElement.getAttribute("profileChange"));
-            bundleValueWeight = Double.parseDouble(scoringWeightsElement.getAttribute("bundleValue"));
-        }
-    }
-    
-    CustomerStructure getCustomerStructure()
-    {
-        return customerStructure;
-    }
-    
-    CapacityBundle getCapacityBundle()
-    {
-        return capacityBundle;
-    }
-    
-} // end class
+  // factors controlling responsiveness to recommendation
+  @ConfigurableValue(valueType = "Double")
+  private double reactivityFactor = 1.0;  // [0.0, 1.0]
+  @ConfigurableValue(valueType = "Double")
+  private double receptivityFactor = 1.0;  // [0.0, 1.0]
+  @ConfigurableValue(valueType = "Double")
+  private double rationalityFactor = 1.0;  // [0.0, 1.0]
+
+  // required percent benefit in usage charge vs. forecast profile
+  @ConfigurableValue(valueType = "String")
+  private String usageChargeStance = UsageChargeStance.BENEFIT.toString();
+  @ConfigurableValue(valueType = "Double")
+  private double usageChargePercentBenefit= 0.01;  // 1% improvement
+  @ConfigurableValue(valueType = "Double")
+  private double usageChargeThreshold = Double.NaN;  // [0.0, +inf)
+
+  // scoring weights of other factors relative to fixed usage charge weight of +/-1.
+  @ConfigurableValue(valueType = "Double")
+  private double profileChangeWeight = -1.0;  // (-inf, 0.0]
+  @ConfigurableValue(valueType = "Double")
+  private double bundleValueWeight = +10.0;  //  [0.0, inf]
+
+  public ProfileOptimizerStructure (String name)
+  {
+    this.name = name;
+  }
+
+  @Override
+  public String getName ()
+  {
+    return name;
+  }
+
+  public boolean isReceiveRecommendations ()
+  {
+    return receiveRecommendations;
+  }
+
+  public PermutationRule getPermutationRule ()
+  {
+    return PermutationRule.valueOf(permutationRule);
+  }
+
+  public ProfileSelectionMethod getProfileSelectionMethod ()
+  {
+    return ProfileSelectionMethod.valueOf(profileSelectionMethod);
+  }
+
+  public double getReactivityFactor ()
+  {
+    return reactivityFactor;
+  }
+
+  public double getReceptivityFactor ()
+  {
+    return receptivityFactor;
+  }
+
+  public double getRationalityFactor ()
+  {
+    return rationalityFactor;
+  }
+
+  public UsageChargeStance getUsageChargeStance ()
+  {
+    return UsageChargeStance.valueOf(usageChargeStance);
+  }
+
+  public double getUsageChargePercentBenefit ()
+  {
+    return usageChargePercentBenefit;
+  }
+
+  public double getUsageChargeThreshold ()
+  {
+    return usageChargeThreshold;
+  }
+
+  public double getProfileChangeWeight ()
+  {
+    return profileChangeWeight;
+  }
+
+  public double getBundleValueWeight ()
+  {
+    return bundleValueWeight;
+  }
+}
 

@@ -20,30 +20,31 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.factoredcustomer.CapacityProfile;
 
+
 /**
  * @author Prashant Reddy
  */
 public interface CapacityOriginator
 {
-    CapacityProfile getCurrentForecast();
+  CapacityProfile getCurrentForecast ();
 
-    CapacityProfile getForecastForNextTimeslot();
+  CapacityProfile getForecastForNextTimeslot ();
 
-    CapacityProfile getCurrentForecastPerSub(TariffSubscription sub);
+  CapacityProfile getCurrentForecastPerSub (TariffSubscription sub);
 
-    double useCapacity(TariffSubscription subscription);
+  double useCapacity (TariffSubscription subscription);
 
-    double adjustCapacityForSubscription(int timeslot, double totalCapacity, TariffSubscription subscription);
+  double adjustCapacityForSubscription (int timeslot, double totalCapacity,
+                                        TariffSubscription subscription);
 
-    String getCapacityName();
+  String getCapacityName ();
 
-    CapacityBundle getParentBundle();
+  CapacityBundle getParentBundle ();
 
-    CapacityProfile getForecastPerSubStartingAt(int startingTimeslot,
-        TariffSubscription subscription);
+  CapacityProfile getForecastPerSubStartingAt (int startingTimeslot,
+                                               TariffSubscription subscription);
 
-    double getShiftingInconvenienceFactor(Tariff tariff);
-
+  double getShiftingInconvenienceFactor (Tariff tariff);
 }
 
 

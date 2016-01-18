@@ -19,25 +19,26 @@ package org.powertac.factoredcustomer;
 import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 
+
 /**
- * Creates instances of @code{LearningFactoredCustomer} through the @code{CustomerFactory}.
- * 
+ * Creates instances of @code{LearningFactoredCustomer}
+ * through the @code{CustomerFactory}.
+ *
  * @author Prashant Reddy
  */
 public class LearningCustomerCreator implements CustomerCreator
 {
-    @Override
-    public String getKey() 
-    {
-        return "LEARNING";
-    }
-        
-    @Override
-    public FactoredCustomer createModel(CustomerStructure structure)
-    {
-        return new LearningFactoredCustomer(structure);
-    }   
-    
-} // end class
+  @Override
+  public String getKey ()
+  {
+    return "LEARNING";
+  }
+
+  @Override
+  public FactoredCustomer createModel (CustomerStructure customerStructure)
+  {
+    return new LearningFactoredCustomer(customerStructure);
+  }
+}
 
 

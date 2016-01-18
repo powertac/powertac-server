@@ -66,7 +66,7 @@
         
   <bean id="factoredCustomerService"
         class="org.powertac.factoredcustomer.FactoredCustomerService">
-        <property name="timeslotPhase"><value>2</value></property> 
+        <property name="timeslotPhase"><value>2</value></property>
   </bean>
             
 </beans>

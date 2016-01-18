@@ -16,140 +16,156 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.List;
-import java.util.ArrayList;
-import org.w3c.dom.*;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.powertac.common.Timeslot;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.state.Domain;
-import org.powertac.factoredcustomer.interfaces.*;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
+import org.powertac.factoredcustomer.interfaces.CapacityBundle;
+import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
- * Key class that encapsulates the behavior of one customer.  Much of the functionality 
- * is delegated to contained utility optimizers and capacity bundles, however.
- * 
+ * Key class that encapsulates the behavior of one customer.
+ * Much of the functionality is delegated to contained utility optimizers and
+ * capacity bundles, however.
+ *
  * @author Prashant Reddy
  */
 @Domain
-class DefaultFactoredCustomer implements FactoredCustomer 
+class DefaultFactoredCustomer implements FactoredCustomer
 {
-    private static Logger log = LogManager.getLogger(DefaultFactoredCustomer.class);
+  private static Logger log = LogManager.getLogger(DefaultFactoredCustomer.class);
 
-    protected CustomerStructure customerStructure;    
-    protected UtilityOptimizer utilityOptimizer;        
-    protected final List<CapacityBundle> capacityBundles = new ArrayList<CapacityBundle>();
-    
-    protected FactoredCustomerService service;
-    
-    DefaultFactoredCustomer(CustomerStructure structure) 
-    {
-      super();
-      customerStructure = structure;
+  private CustomerStructure customerStructure;
+  private UtilityOptimizer utilityOptimizer;
+  private final List<CapacityBundle> capacityBundles = new ArrayList<>();
+
+  protected FactoredCustomerService service;
+
+  public DefaultFactoredCustomer (CustomerStructure customerStructure)
+  {
+    super();
+    this.customerStructure = customerStructure;
+  }
+
+  @Override
+  public void initialize (FactoredCustomerService service)
+  {
+    this.service = service;
+    Config config = Config.getInstance();
+    Map<String, StructureInstance> bundles =
+        config.getStructures().get("DefaultCapacityBundle");
+
+    log.info("Initializing customer " + customerStructure.getName());
+
+    for (int i = 0; i < customerStructure.getBundleCount(); ++i) {
+      String name = customerStructure.getName();
+      if (customerStructure.getBundleCount() > 1) {
+        name += "-" + (i + 1);
+      }
+      createCapacityBundle (bundles, customerStructure, name);
     }
-     
+    utilityOptimizer = createUtilityOptimizer(customerStructure, capacityBundles);
+    utilityOptimizer.initialize(service);
+    log.info("Successfully initialized customer " + customerStructure.getName());
+  }
+
+  private void createCapacityBundle (Map<String, StructureInstance> bundles,
+                                     CustomerStructure customerStructure,
+                                     String name)
+  {
+    CapacityBundle capacityBundle = (CapacityBundle) bundles.get(name);
+    if (capacityBundle == null) {
+      throw new Error("No CapacityBundle for " + name);
+    }
+    capacityBundle.initialize(service, customerStructure);
+    capacityBundles.add(capacityBundle);
+    getCustomerRepo().add(capacityBundle.getCustomerInfo());
+  }
+
+  // Component accessors
+  private CustomerRepo getCustomerRepo ()
+  {
+    return service.getCustomerRepo();
+  }
+
+  private TimeslotRepo getTimeslotRepo ()
+  {
+    return service.getTimeslotRepo();
+  }
+
+  /**
+   * @Override hook
+   **/
+  protected UtilityOptimizer createUtilityOptimizer (
+      CustomerStructure customerStructure, List<CapacityBundle> capacityBundles)
+  {
+    return new DefaultUtilityOptimizer(customerStructure, capacityBundles);
+  }
+
+  @Override
+  public void evaluateTariffs ()
+  {
+    Timeslot timeslot = getTimeslotRepo().currentTimeslot();
+    log.info("Customer " + getName() + " evaluating tariffs at timeslot "
+        + timeslot.getSerialNumber());
+    utilityOptimizer.evaluateTariffs();
+  }
+
+  @Override
+  public void updatedSubscriptionRepo ()
+  {
+    utilityOptimizer.updatedSubscriptionRepo();
+  }
+
+  @Override
+  public void handleNewTimeslot ()
+  {
+    Timeslot timeslot = getTimeslotRepo().currentTimeslot();
+    log.info("Customer " + getName() + " activated for timeslot "
+        + timeslot.getSerialNumber());
+    utilityOptimizer.handleNewTimeslot(timeslot);
+  }
+
+  String getName ()
+  {
+    return customerStructure.getName();
+  }
+
+  @Override
+  public String toString ()
+  {
+    return this.getClass().getCanonicalName() + ":" + getName();
+  }
+
+  public static class Creator implements CustomerCreator
+  {
     @Override
-    public void initialize(FactoredCustomerService service,
-                           CustomerStructure structure)
+    public String getKey ()
     {
-        log.info("Initializing customer " + customerStructure.name);
-        this.service = service;
-        NodeList capacityBundleNodes = customerStructure.getConfigXml().getElementsByTagName("capacityBundle");
-        for (int i=0; i < capacityBundleNodes.getLength(); ++i) {
-            Element capacityBundleElement = (Element) capacityBundleNodes.item(i);
-            CapacityBundle capacityBundle = createCapacityBundle(structure, capacityBundleElement);
-            capacityBundle.initialize(structure, capacityBundleElement);
-            capacityBundles.add(capacityBundle);
-            getCustomerRepo().add(capacityBundle.getCustomerInfo());
-        }
-        utilityOptimizer = createUtilityOptimizer(structure, capacityBundles);                
-        utilityOptimizer.initialize(service);
-	log.info("Successfully initialized customer " + customerStructure.name);
-    }
-    
-    // Component accessors
-    protected CustomerRepo getCustomerRepo ()
-    {
-      return service.getCustomerRepo();
-    }
-    
-    protected TimeslotRepo getTimeslotRepo ()
-    {
-      return service.getTimeslotRepo();
-    }
-
-    /** @Override hook **/
-    protected CapacityBundle createCapacityBundle(CustomerStructure structure, Element capacityBundleElement)
-    {
-        return new DefaultCapacityBundle(service, structure, capacityBundleElement);
-    }
-    
-    /** @Override hook **/
-    protected UtilityOptimizer createUtilityOptimizer(CustomerStructure structure, 
-                                                      List<CapacityBundle> capacityBundles)
-    {
-        return new DefaultUtilityOptimizer(structure, capacityBundles);        
-    }
-    
-    @Override 
-    public void evaluateTariffs()
-    {
-        Timeslot timeslot =  getTimeslotRepo().currentTimeslot();
-        log.info("Customer " + getName() + " evaluating tariffs at timeslot " + timeslot.getSerialNumber());
-        utilityOptimizer.evaluateTariffs();
-    }
-	    
-    @Override
-    public void updatedSubscriptionRepo() {
-      utilityOptimizer.updatedSubscriptionRepo();
-    }
-
-    @Override 
-    public void handleNewTimeslot()
-    {
-        Timeslot timeslot =  getTimeslotRepo().currentTimeslot();
-        log.info("Customer " + getName() + " activated for timeslot " + timeslot.getSerialNumber());   
-        utilityOptimizer.handleNewTimeslot(timeslot);
-    }
-	
-    String getName() 
-    {
-        return customerStructure.name;
-    }
-    
-    CustomerStructure getCustomerStructure()
-    {
-        return customerStructure;
+      return null;  // registered as default creator
     }
 
     @Override
-    public String toString() 
+    public FactoredCustomer createModel (CustomerStructure customerStructure)
     {
-	return this.getClass().getCanonicalName() + ":" + getName();
+      return new DefaultFactoredCustomer(customerStructure);
     }
-    
-    // STATIC INNER CLASS
-    
-    public static class Creator implements CustomerCreator
-    {
-        @Override
-        public String getKey() 
-        {
-            return null;  // registered as default creator
-        }
-        
-        @Override
-        public FactoredCustomer createModel(CustomerStructure structure)
-        {
-            return new DefaultFactoredCustomer(structure);
-        }
-    }   
-    private static Creator creator = new Creator();
-    public static CustomerCreator getCreator() { return creator; }
-    
-} // end class
+  }
 
+  private static Creator creator = new Creator();
 
+  public static CustomerCreator getCreator ()
+  {
+    return creator;
+  }
+}

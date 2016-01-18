@@ -15,287 +15,354 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.Random;
-import org.w3c.dom.*;
-import org.apache.commons.math3.distribution.*;
-import org.powertac.common.repo.RandomSeedRepo;
-import org.powertac.common.spring.SpringApplicationContext;
+import org.apache.commons.math3.distribution.AbstractIntegerDistribution;
+import org.apache.commons.math3.distribution.AbstractRealDistribution;
+import org.apache.commons.math3.distribution.BetaDistribution;
+import org.apache.commons.math3.distribution.BinomialDistribution;
+import org.apache.commons.math3.distribution.CauchyDistribution;
+import org.apache.commons.math3.distribution.ChiSquaredDistribution;
+import org.apache.commons.math3.distribution.ExponentialDistribution;
+import org.apache.commons.math3.distribution.FDistribution;
+import org.apache.commons.math3.distribution.GammaDistribution;
+import org.apache.commons.math3.distribution.NormalDistribution;
+import org.apache.commons.math3.distribution.PoissonDistribution;
+import org.apache.commons.math3.distribution.TDistribution;
+import org.apache.commons.math3.distribution.WeibullDistribution;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
+
+import java.util.Random;
+
 
 /**
  * Container class for one a large set of probability distribution samplers.
  * The various samplers are implemented as nested classes.
- * 
+ *
  * @author Prashant Reddy
  */
-final class ProbabilityDistribution
-{       
-    enum DistType { DEGENERATE, POINTMASS, UNIFORM, INTERVAL, NORMAL, GAUSSIAN, STDNORMAL, LOGNORMAL, 
-                    CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL, GAMMA, WEIBULL, STUDENT, SNEDECOR }  
+public class ProbabilityDistribution implements StructureInstance
+{
+  private enum DistributionType
+  {
+    DEGENERATE, POINTMASS, UNIFORM, INTERVAL, NORMAL, GAUSSIAN, STDNORMAL,
+    LOGNORMAL, CAUCHY, BETA, BINOMIAL, POISSON, CHISQUARED, EXPONENTIAL,
+    GAMMA, WEIBULL, STUDENT, SNEDECOR
+  }
 
-    private RandomSeedRepo randomSeedRepo = null;
+  private String name;
 
-    private static long distCounter = 0;
-    private final long distId = ++distCounter;
+  @ConfigurableValue(valueType = "String")
+  private String distribution;
+  @ConfigurableValue(valueType = "Double")
+  private double value;
+  @ConfigurableValue(valueType = "Double")
+  private double low;
+  @ConfigurableValue(valueType = "Double")
+  private double high;
+  @ConfigurableValue(valueType = "Double")
+  private double mean;
+  @ConfigurableValue(valueType = "Double")
+  private double stdDev;
+  @ConfigurableValue(valueType = "Double")
+  private double expMean;
+  @ConfigurableValue(valueType = "Double")
+  private double expStdDev;
+  @ConfigurableValue(valueType = "Double")
+  private double median;
+  @ConfigurableValue(valueType = "Double")
+  private double scale;
+  @ConfigurableValue(valueType = "Double")
+  private double alpha;
+  @ConfigurableValue(valueType = "Double")
+  private double beta;
+  @ConfigurableValue(valueType = "Double")
+  private double trials;
+  @ConfigurableValue(valueType = "Double")
+  private double success;
+  @ConfigurableValue(valueType = "Double")
+  private double lambda;
+  @ConfigurableValue(valueType = "Double")
+  private double dof;
+  @ConfigurableValue(valueType = "Double")
+  private double d1;
+  @ConfigurableValue(valueType = "Double")
+  private double d2;
 
-    private final DistType type;
-    private final Sampler sampler;
-    private double param1, param2, param3, param4;
-        
-    
-    ProbabilityDistribution(FactoredCustomerService service,
-                            Element xml)
-    {
-        if (null == randomSeedRepo)
-            randomSeedRepo = (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+  private Sampler sampler;
+  // TODO Check if we need to keep these, only used in toString
+  private double param1, param2, param3, param4;
 
-        type = Enum.valueOf(DistType.class, xml.getAttribute("distribution"));
-        switch (type) {
-        case POINTMASS:
-        case DEGENERATE:
-            param1 = Double.parseDouble(xml.getAttribute("value"));
-            sampler = new DegenerateSampler(param1);
-            break;
-        case UNIFORM:
-            param1 = Double.parseDouble(xml.getAttribute("low"));
-            param2 = Double.parseDouble(xml.getAttribute("high"));
-            sampler = new UniformSampler(param1, param2);
-            break;
-        case INTERVAL:
-            param1 = Double.parseDouble(xml.getAttribute("mean"));
-            param2 = Double.parseDouble(xml.getAttribute("stdDev"));
-            param3 = Double.parseDouble(xml.getAttribute("low"));
-            param4 = Double.parseDouble(xml.getAttribute("high")); 
-            sampler = new IntervalSampler(param1, param2, param3, param4);
-            break;
-        case NORMAL:
-        case GAUSSIAN:
-            param1 = Double.parseDouble(xml.getAttribute("mean"));
-            param2 = Double.parseDouble(xml.getAttribute("stdDev"));
-            sampler = new ContinuousSampler(new NormalDistribution(param1, param2));
-            break;
-        case STDNORMAL:
-            param1 = 0; param2 = 1;
-            sampler = new ContinuousSampler(new NormalDistribution(param1, param2));
-            break;
-        case LOGNORMAL:
-            param1 = Double.parseDouble(xml.getAttribute("expMean"));
-            param2 = Double.parseDouble(xml.getAttribute("expStdDev"));
-            sampler = new LogNormalSampler(param1, param2);
-            break;         
-        case CAUCHY:
-            param1 = Double.parseDouble(xml.getAttribute("median"));
-            param2 = Double.parseDouble(xml.getAttribute("scale"));
-            sampler = new ContinuousSampler(new CauchyDistribution(param1, param2));
-            break;
-        case BETA:
-            param1 = Double.parseDouble(xml.getAttribute("alpha"));
-            param2 = Double.parseDouble(xml.getAttribute("beta"));
-            sampler = new ContinuousSampler(new BetaDistribution(param1, param2));
-            break;
-        case BINOMIAL:
-            param1 = Double.parseDouble(xml.getAttribute("trials"));
-            param2 = Double.parseDouble(xml.getAttribute("success"));
-            sampler = new DiscreteSampler(new BinomialDistribution((int) param1, param2));
-            break;
-        case POISSON:
-            param1 = Double.parseDouble(xml.getAttribute("lambda"));
-            sampler = new DiscreteSampler(new PoissonDistribution(param1));
-            break;
-        case CHISQUARED:
-            param1 = Double.parseDouble(xml.getAttribute("dof"));
-            sampler = new ContinuousSampler(new ChiSquaredDistribution(param1));
-            break;
-        case EXPONENTIAL:
-            param1 = Double.parseDouble(xml.getAttribute("mean"));
-            sampler = new ContinuousSampler(new ExponentialDistribution(param1));
-            break;
-        case GAMMA:
-            param1 = Double.parseDouble(xml.getAttribute("alpha"));
-            param2 = Double.parseDouble(xml.getAttribute("beta"));
-            sampler = new ContinuousSampler(new GammaDistribution(param1, param2));
-            break;
-        case WEIBULL:
-            param1 = Double.parseDouble(xml.getAttribute("alpha"));
-            param2 = Double.parseDouble(xml.getAttribute("beta"));
-            sampler = new ContinuousSampler(new WeibullDistribution(param1, param2));
-            break;
-        case STUDENT:
-            param1 = Double.parseDouble(xml.getAttribute("dof"));
-            sampler = new ContinuousSampler(new TDistribution(param1));
-            break;
-        case SNEDECOR:
-            param1 = Double.parseDouble(xml.getAttribute("d1"));
-            param2 = Double.parseDouble(xml.getAttribute("d2"));
-            sampler = new ContinuousSampler(new FDistribution(param1, param2));
-            break;
-        default: throw new Error("Invalid probability distribution type!");
-        } 
-        sampler.reseedRandomGenerator
+  public ProbabilityDistribution (String name)
+  {
+    this.name = name;
+  }
+
+  public void initialize (FactoredCustomerService service)
+  {
+    switch (DistributionType.valueOf(distribution)) {
+      case POINTMASS:
+      case DEGENERATE:
+        param1 = value;
+        sampler = new DegenerateSampler(value);
+        break;
+      case UNIFORM:
+        param1 = low;
+        param2 = high;
+        sampler = new UniformSampler(low, high);
+        break;
+      case INTERVAL:
+        param1 = mean;
+        param2 = stdDev;
+        param3 = low;
+        param4 = high;
+        sampler = new IntervalSampler(mean, stdDev, low, high);
+        break;
+      case NORMAL:
+      case GAUSSIAN:
+        param1 = mean;
+        param2 = stdDev;
+        sampler = new ContinuousSampler(new NormalDistribution(mean, stdDev));
+        break;
+      case STDNORMAL:
+        param1 = 0;
+        param2 = 1;
+        sampler = new ContinuousSampler(new NormalDistribution(0, 1));
+        break;
+      case LOGNORMAL:
+        param1 = expMean;
+        param2 = expStdDev;
+        sampler = new LogNormalSampler(expMean, expStdDev);
+        break;
+      case CAUCHY:
+        param1 = median;
+        param2 = scale;
+        sampler = new ContinuousSampler(new CauchyDistribution(median, scale));
+        break;
+      case BETA:
+        param1 = alpha;
+        param2 = beta;
+        sampler = new ContinuousSampler(new BetaDistribution(alpha, beta));
+        break;
+      case BINOMIAL:
+        param1 = trials;
+        param2 = success;
+        sampler = new DiscreteSampler(new BinomialDistribution((int) trials, success));
+        break;
+      case POISSON:
+        param1 = lambda;
+        sampler = new DiscreteSampler(new PoissonDistribution(lambda));
+        break;
+      case CHISQUARED:
+        param1 = dof;
+        sampler = new ContinuousSampler(new ChiSquaredDistribution(dof));
+        break;
+      case EXPONENTIAL:
+        param1 = mean;
+        sampler = new ContinuousSampler(new ExponentialDistribution(mean));
+        break;
+      case GAMMA:
+        param1 = alpha;
+        param2 = beta;
+        sampler = new ContinuousSampler(new GammaDistribution(alpha, beta));
+        break;
+      case WEIBULL:
+        param1 = alpha;
+        param2 = beta;
+        sampler = new ContinuousSampler(new WeibullDistribution(alpha, beta));
+        break;
+      case STUDENT:
+        param1 = dof;
+        sampler = new ContinuousSampler(new TDistribution(dof));
+        break;
+      case SNEDECOR:
+        param1 = d1;
+        param2 = d2;
+        sampler = new ContinuousSampler(new FDistribution(d1, d2));
+        break;
+      default:
+        throw new Error("Invalid probability distribution type!");
+    }
+
+    sampler.reseedRandomGenerator
         (service.getRandomSeedRepo().getRandomSeed
-         ("factoredcustomer.ProbabilityDistribution", 
-          SeedIdGenerator.getId(), "Sampler").getValue());
-    }
-        
-    double drawSample()
+            ("factoredcustomer.ProbabilityDistribution",
+                SeedIdGenerator.getId(), "Sampler").getValue());
+  }
+
+  public double drawSample ()
+  {
+    return sampler.sample();
+  }
+
+  @Override
+  public String toString ()
+  {
+    return getClass().getCanonicalName() + ":" + distribution +
+        ":(" + param1 + ", " + param2 + ", " + param3 + ", " + param4 + ")";
+  }
+
+  public String getName ()
+  {
+    return name;
+  }
+
+  ///////////////////////////// HELPER CLASSES //////////////////////////////
+
+  private interface Sampler
+  {
+    public void reseedRandomGenerator (long seed);
+
+    public double sample ();
+  }
+
+  private final class DegenerateSampler implements Sampler
+  {
+    final double value;
+
+    DegenerateSampler (double v)
     {
-        return sampler.sample();
+      value = v;
     }
- 
+
     @Override
-    public String toString() 
+    public void reseedRandomGenerator (long seed)
     {
-        return this.getClass().getCanonicalName() + ":" + distId + ":" + type + 
-               "(" + param1 + ", " + param2 + ", " + param3 + ", " + param4 + ")";
     }
 
-    
-    ///////////////////////////// HELPER CLASSES //////////////////////////////
+    @Override
+    public double sample ()
+    {
+      return value;
+    }
+  }
 
-    interface Sampler
-    {
-        public void reseedRandomGenerator(long seed);
-        
-        public double sample();
-    }
-    
-    final class DegenerateSampler implements Sampler
-    {
-        final double value;
-        
-        DegenerateSampler(double v) { value = v; }
-        
-        @Override
-        public void reseedRandomGenerator(long seed) {}
-            
-        @Override
-        public double sample() { return value; }
-    }
-    
-    final class UniformSampler implements Sampler
-    {
-        final Random random;
-        final double low;
-        final int range;
-        
-        UniformSampler(double l, double h) 
-        { 
-            low = l; 
-            range = safeLongToInt(Math.round(h - low));
-            random = new Random();
-        }
-        
-        @Override
-        public void reseedRandomGenerator(long seed)
-        {
-            random.setSeed(seed);
-        }
-        
-        @Override
-        public double sample()
-        {
-            return low + random.nextInt(range);
-        }
+  private final class UniformSampler implements Sampler
+  {
+    final Random random;
+    final double low;
+    final int range;
 
-        protected int safeLongToInt(long x) 
-        {
-            if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
-                throw new IllegalArgumentException(x + " cannot be cast to int without changing its value.");
-            } else return (int) x;
-        }
-    }
-    
-    final class IntervalSampler implements Sampler
+    UniformSampler (double l, double h)
     {
-        final double low;
-        final double high;
-        final NormalDistribution normalSampler;
+      low = l;
+      range = safeLongToInt(Math.round(h - low));
+      random = new Random();
+    }
 
-        IntervalSampler(double m, double s, double l, double h) 
-        {
-            normalSampler = new NormalDistribution(m, s);
-            low = l;
-            high = h;
-        }
-        
-        @Override
-        public void reseedRandomGenerator(long seed)
-        {
-            normalSampler.reseedRandomGenerator(seed);
-        }
-        
-        @Override
-        public double sample()
-        {
-            return Math.min(high, Math.max(low, normalSampler.sample()));
-        }
-    }
-    
-    final class LogNormalSampler implements Sampler
+    @Override
+    public void reseedRandomGenerator (long seed)
     {
-        final NormalDistribution normalSampler;
+      random.setSeed(seed);
+    }
 
-        LogNormalSampler(double m, double s) 
-        {
-            normalSampler = new NormalDistribution(Math.log(m), Math.log(s));
-        }
-        
-        @Override
-        public void reseedRandomGenerator(long seed)
-        {
-            normalSampler.reseedRandomGenerator(seed);
-        }
-        
-        @Override
-        public double sample()
-        {
-            return Math.exp(normalSampler.sample());
-        }
-    }
-    
-    final class DiscreteSampler implements Sampler
+    @Override
+    public double sample ()
     {
-        final AbstractIntegerDistribution impl;
-        
-        DiscreteSampler(AbstractIntegerDistribution i)
-        {
-            impl = i;
-        }
-        
-        @Override
-        public void reseedRandomGenerator(long seed)
-        {
-            impl.reseedRandomGenerator(seed);
-        }
-        
-        @Override
-        public double sample()
-        {
-            return impl.sample();
-        }
+      return low + random.nextInt(range);
     }
-    
-    final class ContinuousSampler implements Sampler
+
+    protected int safeLongToInt (long x)
     {
-        final AbstractRealDistribution impl;
-        
-        ContinuousSampler(AbstractRealDistribution i)
-        {
-            impl = i;
-        }
-        
-        @Override
-        public void reseedRandomGenerator(long seed)
-        {
-            impl.reseedRandomGenerator(seed);
-        }
-        
-        @Override
-        public double sample()
-        {
-            return impl.sample();
-        }
+      if (x < Integer.MIN_VALUE || x > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException(x +
+            " cannot be cast to int without changing its value.");
+      }
+      else {
+        return (int) x;
+      }
     }
-    
+  }
+
+  private final class IntervalSampler implements Sampler
+  {
+    final double low;
+    final double high;
+    final NormalDistribution normalSampler;
+
+    IntervalSampler (double m, double s, double l, double h)
+    {
+      normalSampler = new NormalDistribution(m, s);
+      low = l;
+      high = h;
+    }
+
+    @Override
+    public void reseedRandomGenerator (long seed)
+    {
+      normalSampler.reseedRandomGenerator(seed);
+    }
+
+    @Override
+    public double sample ()
+    {
+      return Math.min(high, Math.max(low, normalSampler.sample()));
+    }
+  }
+
+  private final class LogNormalSampler implements Sampler
+  {
+    final NormalDistribution normalSampler;
+
+    LogNormalSampler (double m, double s)
+    {
+      normalSampler = new NormalDistribution(Math.log(m), Math.log(s));
+    }
+
+    @Override
+    public void reseedRandomGenerator (long seed)
+    {
+      normalSampler.reseedRandomGenerator(seed);
+    }
+
+    @Override
+    public double sample ()
+    {
+      return Math.exp(normalSampler.sample());
+    }
+  }
+
+  private final class DiscreteSampler implements Sampler
+  {
+    final AbstractIntegerDistribution impl;
+
+    DiscreteSampler (AbstractIntegerDistribution i)
+    {
+      impl = i;
+    }
+
+    @Override
+    public void reseedRandomGenerator (long seed)
+    {
+      impl.reseedRandomGenerator(seed);
+    }
+
+    @Override
+    public double sample ()
+    {
+      return impl.sample();
+    }
+  }
+
+  private final class ContinuousSampler implements Sampler
+  {
+    final AbstractRealDistribution impl;
+
+    ContinuousSampler (AbstractRealDistribution i)
+    {
+      impl = i;
+    }
+
+    @Override
+    public void reseedRandomGenerator (long seed)
+    {
+      impl.reseedRandomGenerator(seed);
+    }
+
+    @Override
+    public double sample ()
+    {
+      return impl.sample();
+    }
+  }
 }
-

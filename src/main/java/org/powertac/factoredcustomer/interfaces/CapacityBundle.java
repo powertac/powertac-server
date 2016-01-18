@@ -16,13 +16,14 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
-import java.util.List;
-import org.w3c.dom.Element;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.factoredcustomer.CustomerStructure;
+import org.powertac.factoredcustomer.FactoredCustomerService;
 import org.powertac.factoredcustomer.ProfileOptimizerStructure;
 import org.powertac.factoredcustomer.TariffSubscriberStructure;
+
+import java.util.List;
 
 
 /**
@@ -30,23 +31,20 @@ import org.powertac.factoredcustomer.TariffSubscriberStructure;
  */
 public interface CapacityBundle
 {
-    void initialize(CustomerStructure profile,
-                    Element xml);
+  void initialize (FactoredCustomerService service,
+                   CustomerStructure customerStructure);
 
-    String getName();
+  String getName ();
 
-    int getPopulation();
+  int getPopulation ();
 
-    PowerType getPowerType();
-    
-    CustomerInfo getCustomerInfo();
-    
-    //TariffEvaluator getTariffEvaluator();
-    
-    TariffSubscriberStructure getSubscriberStructure();
-    
-    ProfileOptimizerStructure getOptimizerStructure();
-    
-    List<CapacityOriginator> getCapacityOriginators();
+  PowerType getPowerType ();
 
+  CustomerInfo getCustomerInfo ();
+
+  TariffSubscriberStructure getSubscriberStructure ();
+
+  ProfileOptimizerStructure getOptimizerStructure ();
+
+  List<CapacityOriginator> getCapacityOriginators ();
 }
