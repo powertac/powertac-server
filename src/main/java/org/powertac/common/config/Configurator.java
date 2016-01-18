@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -165,7 +166,7 @@ public class Configurator
     }
     // for each name, create an instance, add it to the result, and
     // configure it.
-    HashMap<String, Object> itemMap = new HashMap<String, Object>();
+    LinkedHashMap<String, Object> itemMap = new LinkedHashMap<String, Object>();
     for (Object name : names) {
       try {
         Constructor<?> constructor = type.getConstructor(String.class);
