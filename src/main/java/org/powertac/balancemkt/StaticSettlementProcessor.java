@@ -498,15 +498,26 @@ public class StaticSettlementProcessor extends SettlementProcessor
 
   private void exerciseControls (ChargeInfo broker,
                                  SortedSet<BOWrapper> candidates,
-                                 double settlementPrice)
+                                 double settlementValue)
   {
     for (BOWrapper candidate: candidates) {
       if (candidate.info == broker && 0.0 != candidate.exercisedCapacity) {
+        // add up the exercised capacity first
+        broker.addCurtailment(candidate.exercisedCapacity);
+      }
+    }        
+        
+    for (BOWrapper candidate: candidates) {
+      if (candidate.info == broker && 0.0 != candidate.exercisedCapacity) {
+        // pro-rate settlement value over balancing orders
+        double boValue =
+            settlementValue
+            * candidate.exercisedCapacity
+            / broker.getCurtailment();
         capacityControlService
             .exerciseBalancingControl(candidate.balancingOrder,
                                       candidate.exercisedCapacity,
-                                      settlementPrice);
-        broker.addCurtailment(candidate.exercisedCapacity);
+                                      boValue);
       }
     }
   }
