@@ -22,28 +22,28 @@
       <BrooksideHomes>
         <count>1</count>
         <creatorKey/>
-        <entityType>RESIDENTIAL</entityType>
+        <!-- RESIDENTIAL -->
         <bundleCount>1</bundleCount>
       </BrooksideHomes>
 
       <FrostyStorage>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
       </FrostyStorage>
 
       <MedicalCenter>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>2</bundleCount>
       </MedicalCenter>
 
       <WindmillCoOp>
         <count>1</count>
         <creatorKey/>
-        <entityType>INDUSTRIAL</entityType>
+        <!-- INDUSTRIAL -->
         <bundleCount>2</bundleCount>
       </WindmillCoOp>
     </customerStructure>

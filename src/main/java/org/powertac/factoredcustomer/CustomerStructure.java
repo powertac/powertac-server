@@ -28,11 +28,6 @@ import org.powertac.factoredcustomer.interfaces.StructureInstance;
  */
 public final class CustomerStructure implements StructureInstance
 {
-  private enum EntityType
-  {
-    RESIDENTIAL, COMMERCIAL, INDUSTRIAL
-  }
-
   private String name;
 
   @ConfigurableValue(valueType = "String")

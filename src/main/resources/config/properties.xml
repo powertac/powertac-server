@@ -25,77 +25,77 @@
       <BrooksideHomes>
         <count>1</count>
         <creatorKey>LEARNING</creatorKey>
-        <entityType>RESIDENTIAL</entityType>
+        <!-- RESIDENTIAL -->
         <bundleCount>1</bundleCount>
       </BrooksideHomes>
 
       <CentervilleHomes>
         <count>1</count>
         <creatorKey>LEARNING</creatorKey>
-        <entityType>RESIDENTIAL</entityType>
+        <!-- RESIDENTIAL -->
         <bundleCount>1</bundleCount>
       </CentervilleHomes>
 
       <DowntownOffices>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
       </DowntownOffices>
 
       <EastsideOffices>
         <count>1</count>
         <creatorKey>LEARNING</creatorKey>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
       </EastsideOffices>
 
       <FrostyStorage>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
       </FrostyStorage>
 
       <HextraChemical>
         <count>1</count>
         <creatorKey/>
-        <entityType>INDUSTRIAL</entityType>
+        <!-- INDUSTRIAL -->
         <bundleCount>1</bundleCount>
       </HextraChemical>
 
       <MedicalCenter>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>2</bundleCount>
       </MedicalCenter>
 
       <SunnyhillSolar1>
         <count>2</count>
         <creatorKey/>
-        <entityType>INDUSTRIAL</entityType>
+        <!-- INDUSTRIAL -->
         <bundleCount>1</bundleCount>
       </SunnyhillSolar1>
 
       <SunnyhillSolar2>
         <count>2</count>
         <creatorKey/>
-        <entityType>INDUSTRIAL</entityType>
+        <!-- INDUSTRIAL -->
         <bundleCount>1</bundleCount>
       </SunnyhillSolar2>
 
       <WindmillCoOp>
         <count>1</count>
         <creatorKey/>
-        <entityType>INDUSTRIAL</entityType>
+        <!-- INDUSTRIAL -->
         <bundleCount>2</bundleCount>
       </WindmillCoOp>
 
       <SolarLeasing>
         <count>1</count>
         <creatorKey/>
-        <entityType>COMMERCIAL</entityType>
+        <!-- COMMERCIAL -->
         <bundleCount>1</bundleCount>
       </SolarLeasing>
     </customerStructure>
@@ -1037,7 +1037,6 @@
           10442.22,9183.137,9725.739,9809.689,8958.795,8644.652
         </refSeries>
       </BrooksideHomesPopulation>
-
     </timeseriesGenerator>
 
     <profileOptimizerStructure>
