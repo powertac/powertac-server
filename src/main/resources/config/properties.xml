@@ -163,7 +163,6 @@
       </HextraChemical>
 
       <MedicalCenter-1>
-        <id>1</id>
         <count>1</count>
         <population>1</population>
         <type>CONSUMPTION</type>
@@ -173,7 +172,6 @@
       </MedicalCenter-1>
 
       <MedicalCenter-2>
-        <id>2</id>
         <count>1</count>
         <population>1</population>
         <type>SOLAR_PRODUCTION</type>
@@ -201,7 +199,6 @@
       </SunnyhillSolar2>
 
       <WindmillCoOp-1>
-        <id>1</id>
         <count>1</count>
         <population>50</population>
         <type>WIND_PRODUCTION</type>
@@ -211,7 +208,6 @@
       </WindmillCoOp-1>
 
       <WindmillCoOp-2>
-        <id>2</id>
         <count>1</count>
         <population>40</population>
         <type>WIND_PRODUCTION</type>
