@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,35 +52,45 @@ public final class CapacityStructure implements StructureInstance
   private ProbabilityDistribution baseIndividualCapacity;
 
   // Calendar factors
-  private double[] dailySkew;
-  private double[] hourlySkew;
+  @ConfigurableValue(valueType = "List")
+  private List<String> dailySkew;
+  @ConfigurableValue(valueType = "List")
+  private List<String> hourlySkew;
 
   // Weather factors
   @ConfigurableValue(valueType = "String")
   private String temperatureInfluence;
-  private Map<Integer, Double> temperatureMap = new HashMap<>();  // key: degree Celsius
+  @ConfigurableValue(valueType = "List")
+  private List<String> temperatureMap;
   @ConfigurableValue(valueType = "Double")
   private double temperatureReference = Double.NaN;
   @ConfigurableValue(valueType = "String")
   private String windSpeedInfluence;
-  private Map<Integer, Double> windSpeedMap = new HashMap<>();  // key: speed in m/s
+  @ConfigurableValue(valueType = "List")
+  private List<String> windSpeedMap;
   @ConfigurableValue(valueType = "String")
   private String windDirectionInfluence;
-  private Map<Integer, Double> windDirectionMap = new HashMap<>();  // key: angle 0-360
+  @ConfigurableValue(valueType = "List")
+  private List<String> windDirectionMap;
   @ConfigurableValue(valueType = "String")
   private String cloudCoverInfluence;
-  private Map<Integer, Double> cloudCoverMap = new HashMap<>();  // key: 0 (clear) - 100 (cloudy)
+  @ConfigurableValue(valueType = "List")
+  private List<String> cloudCoverMap;
 
   // Market factors
-  private Map<Integer, Double> benchmarkRates = new HashMap<>();  // key: hour of day
+  @ConfigurableValue(valueType = "List")
+  private List<String> benchmarkRates;
   @ConfigurableValue(valueType = "String")
   private String elasticityModelType;
   @ConfigurableValue(valueType = "Double")
   private double elasticityRatio;
-  private double[] elasticityRange;
-  private double[][] elasticityMap;
+  @ConfigurableValue(valueType = "String")
+  private String elasticityRange;
+  @ConfigurableValue(valueType = "List")
+  private List<String> elasticityMap;
 
-  private double[] curtailmentShifts;  // index = timeslot
+  @ConfigurableValue(valueType = "List")
+  private List<String> curtailmentShifts;
 
   public CapacityStructure (String name)
   {
@@ -115,77 +124,6 @@ public final class CapacityStructure implements StructureInstance
     }
   }
 
-  // =================== Setters ======================
-
-  @ConfigurableValue(valueType = "List")
-  public void setDailySkew (List<String> data)
-  {
-    dailySkew = data.stream().mapToDouble(Double::parseDouble).toArray();
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setHourlySkew (List<String> data)
-  {
-    hourlySkew = data.stream().mapToDouble(Double::parseDouble).toArray();
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setTemperatureMap (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    temperatureMap = ParserFunctions.parseRangeMap(tmp);
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setWindSpeedMap (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    windSpeedMap = ParserFunctions.parseRangeMap(tmp);
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setWindDirectionMap (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    windDirectionMap = ParserFunctions.parseRangeMap(tmp);
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setCloudCoverMap (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    cloudCoverMap = ParserFunctions.parseRangeMap(tmp);
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setBenchmarkRates (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    benchmarkRates = ParserFunctions.parseRangeMap(tmp);
-  }
-
-  @ConfigurableValue(valueType = "String")
-  public void setElasticityRange (String data)
-  {
-    String[] minMax = data.split("~");
-    double low = Double.parseDouble(minMax[0]);
-    double high = Double.parseDouble(minMax[1]);
-    elasticityRange = new double[]{low, high};
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setElasticityMap (List<String> data)
-  {
-    String tmp = ("" + data).replace("[", "").replace("]", "");
-    elasticityMap = ParserFunctions.parseMapToDoubleArray(tmp);
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setCurtailmentShifts (List<String> data)
-  {
-    curtailmentShifts = data.stream().mapToDouble(Double::parseDouble).toArray();
-  }
-
   // =================== Accessors ====================
 
   public String getName ()
@@ -208,14 +146,10 @@ public final class CapacityStructure implements StructureInstance
     return baseIndividualCapacity;
   }
 
-  public double[] getDailySkew ()
+  public double getPeriodicSkew (int day, int hour)
   {
-    return dailySkew;
-  }
-
-  public double[] getHourlySkew ()
-  {
-    return hourlySkew;
+    return Double.parseDouble(dailySkew.get(day - 1)) *
+           Double.parseDouble(hourlySkew.get(hour));
   }
 
   public InfluenceKind getTemperatureInfluence ()
@@ -223,9 +157,10 @@ public final class CapacityStructure implements StructureInstance
     return InfluenceKind.valueOf(temperatureInfluence);
   }
 
-  public Map<Integer, Double> getTemperatureMap ()
+  public double getTemperatureFactor (int temperature)
   {
-    return temperatureMap;
+    String tmp = ("" + temperatureMap).replace("[", "").replace("]", "");
+    return ParserFunctions.parseRangeMap(tmp).get(temperature);
   }
 
   public double getTemperatureReference ()
@@ -238,9 +173,10 @@ public final class CapacityStructure implements StructureInstance
     return InfluenceKind.valueOf(windSpeedInfluence);
   }
 
-  public Map<Integer, Double> getWindSpeedMap ()
+  public double getWindspeedFactor (int windspeed)
   {
-    return windSpeedMap;
+    String tmp = ("" + windSpeedMap).replace("[", "").replace("]", "");
+    return ParserFunctions.parseRangeMap(tmp).get(windspeed);
   }
 
   public InfluenceKind getWindDirectionInfluence ()
@@ -248,9 +184,10 @@ public final class CapacityStructure implements StructureInstance
     return InfluenceKind.valueOf(windDirectionInfluence);
   }
 
-  public Map<Integer, Double> getWindDirectionMap ()
+  public double getWindDirectionFactor (int windDirection)
   {
-    return windDirectionMap;
+    String tmp = ("" + windDirectionMap).replace("[", "").replace("]", "");
+    return ParserFunctions.parseRangeMap(tmp).get(windDirection);
   }
 
   public InfluenceKind getCloudCoverInfluence ()
@@ -258,14 +195,16 @@ public final class CapacityStructure implements StructureInstance
     return InfluenceKind.valueOf(cloudCoverInfluence);
   }
 
-  public Map<Integer, Double> getCloudCoverMap ()
+  public double getCloudCoverFactor (int cloudCover)
   {
-    return cloudCoverMap;
+    String tmp = ("" + cloudCoverMap).replace("[", "").replace("]", "");
+    return ParserFunctions.parseRangeMap(tmp).get(cloudCover);
   }
 
-  public Map<Integer, Double> getBenchmarkRates ()
+  public double getBenchmarkRate (int hour)
   {
-    return benchmarkRates;
+    String tmp = ("" + benchmarkRates).replace("[", "").replace("]", "");
+    return ParserFunctions.parseRangeMap(tmp).get(hour);
   }
 
   public ElasticityModelType getElasticityModelType ()
@@ -273,22 +212,23 @@ public final class CapacityStructure implements StructureInstance
     return ElasticityModelType.valueOf(elasticityModelType);
   }
 
-  public double getElasticityRatio ()
+  public double determineContinuousElasticityFactor (double rateRatio)
   {
-    return elasticityRatio;
+    double percentChange = (rateRatio - 1.0);
+    String[] minMax = elasticityRange.split("~");
+    double low = Double.parseDouble(minMax[0]);
+    double high = Double.parseDouble(minMax[1]);
+    return Math.max(low,
+        Math.min(high, 1.0 + (percentChange * elasticityRatio)));
   }
 
-  public double[] getElasticityRange ()
+  public double[][] getElasticity ()
   {
-    return elasticityRange;
+    String tmp = ("" + elasticityMap).replace("[", "").replace("]", "");
+    return ParserFunctions.parseMapToDoubleArray(tmp);
   }
 
-  public double[][] getElasticityMap ()
-  {
-    return elasticityMap;
-  }
-
-  public double[] getCurtailmentShifts ()
+  public List<String> getCurtailmentShifts ()
   {
     return curtailmentShifts;
   }

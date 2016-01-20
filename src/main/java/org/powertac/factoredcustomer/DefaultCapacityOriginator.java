@@ -303,14 +303,13 @@ class DefaultCapacityOriginator implements CapacityOriginator
     double lastCurtailment = subscription.getCurtailment();
     if (Math.abs(lastCurtailment) > 0.01) { // != 0
       curtailedCapacities.put(timeslot - 1, lastCurtailment);
-      if (capacityStructure.getCurtailmentShifts() != null) {
-        for (int i = 0; i < capacityStructure.getCurtailmentShifts().length; ++i) {
-          double shiftingFactor = capacityStructure.getCurtailmentShifts()[i];
-          double shiftedCapacity = lastCurtailment * shiftingFactor;
-          Double previousShifts = shiftedCurtailments.get(timeslot + i);
-          shiftedCapacity += (previousShifts != null) ? previousShifts : 0;
-          shiftedCurtailments.put(timeslot + i, shiftedCapacity);
-        }
+      List<String> shifts = capacityStructure.getCurtailmentShifts();
+      for (int i = 0; i < shifts.size(); ++i) {
+        double shiftingFactor = Double.parseDouble(shifts.get(i));
+        double shiftedCapacity = lastCurtailment * shiftingFactor;
+        Double previousShifts = shiftedCurtailments.get(timeslot + i);
+        shiftedCapacity += (previousShifts != null) ? previousShifts : 0;
+        shiftedCurtailments.put(timeslot + i, shiftedCapacity);
       }
     }
     Double currentShift = shiftedCurtailments.get(timeslot);
@@ -323,8 +322,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     int day = when.getDayOfWeek(); // 1=Monday, 7=Sunday
     int hour = when.getHourOfDay(); // 0-23
 
-    double periodicSkew = capacityStructure.getDailySkew()[day - 1]
-        * capacityStructure.getHourlySkew()[hour];
+    double periodicSkew = capacityStructure.getPeriodicSkew(day, hour);
     if (verbose) {
       logCapacityDetails(logIdentifier + ": periodic skew = " + periodicSkew);
     }
@@ -354,7 +352,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     if (capacityStructure.getTemperatureInfluence() == InfluenceKind.DIRECT) {
       int temperature = (int) Math.round(weather.getTemperature());
       weatherFactor =
-          weatherFactor * capacityStructure.getTemperatureMap().get(temperature);
+          weatherFactor * capacityStructure.getTemperatureFactor(temperature);
     }
     else if (capacityStructure.getTemperatureInfluence() == InfluenceKind.DEVIATION) {
       int curr = (int) Math.round(weather.getTemperature());
@@ -362,25 +360,25 @@ class DefaultCapacityOriginator implements CapacityOriginator
       double deviationFactor = 1.0;
       if (curr > ref) {
         for (int t = ref + 1; t <= curr; ++t) {
-          deviationFactor += capacityStructure.getTemperatureMap().get(t);
+          deviationFactor += capacityStructure.getTemperatureFactor(t);
         }
       }
       else if (curr < ref) {
         for (int t = curr; t < ref; ++t) {
-          deviationFactor += capacityStructure.getTemperatureMap().get(t);
+          deviationFactor += capacityStructure.getTemperatureFactor(t);
         }
       }
       weatherFactor = weatherFactor * deviationFactor;
     }
     if (capacityStructure.getWindSpeedInfluence() == InfluenceKind.DIRECT) {
       int windSpeed = (int) Math.round(weather.getWindSpeed());
-      weatherFactor =
-          weatherFactor * capacityStructure.getWindSpeedMap().get(windSpeed);
+      weatherFactor = weatherFactor *
+                      capacityStructure.getWindspeedFactor(windSpeed);
       if (windSpeed > 0.0
           && capacityStructure.getWindDirectionInfluence() == InfluenceKind.DIRECT) {
         int windDirection = (int) Math.round(weather.getWindDirection());
-        weatherFactor =
-            weatherFactor * capacityStructure.getWindDirectionMap().get(windDirection);
+        weatherFactor = weatherFactor *
+                        capacityStructure.getWindDirectionFactor(windDirection);
       }
     }
     if (capacityStructure.getCloudCoverInfluence() == InfluenceKind.DIRECT) {
@@ -388,7 +386,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
       // to
       // ##%
       weatherFactor =
-          weatherFactor * capacityStructure.getCloudCoverMap().get(cloudCover);
+          weatherFactor * capacityStructure.getCloudCoverFactor(cloudCover);
     }
     if (verbose) {
       logCapacityDetails(logIdentifier + ": weather factor = " + weatherFactor);
@@ -436,7 +434,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
     double rateForBase = chargeForBase / baseCapacity;
 
     double benchmarkRate =
-        capacityStructure.getBenchmarkRates().get(timeService.getHourOfDay());
+        capacityStructure.getBenchmarkRate(timeService.getHourOfDay());
     double rateRatio = rateForBase / benchmarkRate;
 
     double tariffRatesFactor = determineTariffRatesFactor(rateRatio);
@@ -449,7 +447,7 @@ class DefaultCapacityOriginator implements CapacityOriginator
   {
     switch (capacityStructure.getElasticityModelType()) {
       case CONTINUOUS:
-        return determineContinuousElasticityFactor(rateRatio);
+        return capacityStructure.determineContinuousElasticityFactor(rateRatio);
       case STEPWISE:
         return determineStepwiseElasticityFactor(rateRatio);
       default:
@@ -458,18 +456,9 @@ class DefaultCapacityOriginator implements CapacityOriginator
     }
   }
 
-  private double determineContinuousElasticityFactor (double rateRatio)
-  {
-    double percentChange = (rateRatio - 1.0); // / 0.01;
-    double elasticityRatio = capacityStructure.getElasticityRatio();
-    double[] minMax = capacityStructure.getElasticityRange();
-    return Math.max(minMax[0],
-        Math.min(minMax[1], 1.0 + (percentChange * elasticityRatio)));
-  }
-
   private double determineStepwiseElasticityFactor (double rateRatio)
   {
-    double[][] elasticity = capacityStructure.getElasticityMap();
+    double[][] elasticity = capacityStructure.getElasticity();
     if (Math.abs(rateRatio - 1) < 0.01 || elasticity.length == 0) {
       return 1.0;
     }

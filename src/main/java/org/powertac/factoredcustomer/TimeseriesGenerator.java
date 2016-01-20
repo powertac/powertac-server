@@ -24,7 +24,6 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
 import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +49,10 @@ public final class TimeseriesGenerator implements StructureInstance
   // These will come from the properties file
   @ConfigurableValue(valueType = "Double")
   private double y0;
-  private double[] yd;
-  private double[] yh;
+  @ConfigurableValue(valueType = "List")
+  private List<String> yh;
+  @ConfigurableValue(valueType = "List")
+  private List<String> yd;
   @ConfigurableValue(valueType = "Double")
   private double phi1;
   @ConfigurableValue(valueType = "Double")
@@ -66,7 +67,8 @@ public final class TimeseriesGenerator implements StructureInstance
   private double lambda;
   @ConfigurableValue(valueType = "Double")
   private double gamma;
-  private List<Double> refSeries;
+  @ConfigurableValue(valueType = "List")
+  private List<String> refSeries;
 
   private final Map<Integer, Double> genSeries = new HashMap<>();
 
@@ -92,27 +94,6 @@ public final class TimeseriesGenerator implements StructureInstance
     return name;
   }
 
-  @ConfigurableValue(valueType = "List")
-  public void setYh (List<String> data)
-  {
-    yh = data.stream().mapToDouble(Double::parseDouble).toArray();
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setYd (List<String> data)
-  {
-    yd = data.stream().mapToDouble(Double::parseDouble).toArray();
-  }
-
-  @ConfigurableValue(valueType = "List")
-  public void setRefSeries (List<String> data)
-  {
-    refSeries = new ArrayList<>();
-    for (double ref : data.stream().mapToDouble(Double::parseDouble).toArray()) {
-      refSeries.add(ref);
-    }
-  }
-
   public double generateNext (int timeslot)
   {
     if (genSeries.isEmpty()) {
@@ -129,7 +110,7 @@ public final class TimeseriesGenerator implements StructureInstance
   private void initArima101x101GenSeries (int timeslot)
   {
     for (int i = 0; i < refSeries.size(); ++i) {
-      genSeries.put(timeslot + i, refSeries.get(i));
+      genSeries.put(timeslot + i, Double.parseDouble(refSeries.get(i)));
     }
   }
 
@@ -151,16 +132,19 @@ public final class TimeseriesGenerator implements StructureInstance
     int day = now.getDayOfWeek();   // 1=Monday, 7=Sunday
     int hour = now.getHourOfDay();  // 0-23
 
-    int t = timeslot;
+    double yh_hour = Double.parseDouble(yh.get(hour));
+    double yd_day = Double.parseDouble(yd.get(day - 1));
 
-    double logNext = y0 + yd[day - 1] + yh[hour]
-        + phi1 * getLog(t - 1) + Phi1 * getLog(t - 24)
-        + theta1 * (getLog(t - 1) - getLog(t - 2))
-        + Theta1 * (getLog(t - 24) - getLog(t - 25))
-        + theta1 * Theta1 * (getLog(t - 25) - getLog(t - 26));
-    logNext = logNext + (lambda * (Math.pow(Math.log(t - 26), 2) / Math.pow(Math.log(FORECAST_HORIZON - 26), 2))
-        * ((1 - gamma) * yh[hour] + gamma * yd[day - 1]));
-    logNext = logNext + Math.pow(sigma, 2) * arimaNoise.nextGaussian();
+    double logNext = y0 + yd_day + yh_hour
+        + phi1 * getLog(timeslot - 1) + Phi1 * getLog(timeslot - 24)
+        + theta1 * (getLog(timeslot - 1) - getLog(timeslot - 2))
+        + Theta1 * (getLog(timeslot - 24) - getLog(timeslot - 25))
+        + theta1 * Theta1 * (getLog(timeslot - 25) - getLog(timeslot - 26));
+    double nom = Math.pow(Math.log(timeslot - 26), 2);
+    double denom = Math.pow(Math.log(FORECAST_HORIZON - 26), 2);
+    double fact = ((1 - gamma) * yh_hour + gamma * yd_day);
+    logNext += lambda * (nom / denom) * fact;
+    logNext += Math.pow(sigma, 2) * arimaNoise.nextGaussian();
     double next = Math.exp(logNext);
     if (Double.isNaN(next)) {
       throw new Error("Generated NaN as next time series element!");

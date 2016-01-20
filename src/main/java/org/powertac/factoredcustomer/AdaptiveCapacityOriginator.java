@@ -32,6 +32,7 @@ import org.powertac.factoredcustomer.utils.SeedIdGenerator;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -187,7 +188,13 @@ final class AdaptiveCapacityOriginator extends DefaultCapacityOriginator
     // sort map entries, for reproducability
     ArrayList<Map.Entry<CapacityProfile, Double>> l =
         new ArrayList<>(rec.getProbabilities().entrySet());
-    Collections.sort(l, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+    // TODO Refactor once the new visualizer can handle lambdas
+    //Collections.sort(l, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+    Collections.sort(l, new Comparator<Map.Entry<CapacityProfile, Double>>(){
+      @Override
+      public int compare(Map.Entry<CapacityProfile, Double> o1, Map.Entry<CapacityProfile, Double> o2) {
+        return o1.getValue().compareTo(o2.getValue());
+      }});
     // use the sorted map and the draw to sample an entry
     double sumProb = 0.0;
     for (AbstractMap.Entry<CapacityProfile, Double> entry : l) {
