@@ -16,6 +16,7 @@
 package org.powertac.server;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
@@ -96,8 +97,9 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
       return;
     initialized = true;
 
-    // find and load the default properties file
     log.info("lazyInit");
+
+    // find and load the default properties file
     try {
       File defaultProps = new File("config/server.properties");
       if (defaultProps.canRead()) {
@@ -108,7 +110,34 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     catch (Exception e1) {
       log.warn("config/server.properties not found: " + e1.toString());
     }
-    
+
+    // Load custom (.xml and .properties) properties files
+    // We need to do this before the classpath props
+    FileFilter filter = new FileFilter() {
+      public boolean accept(File file) {
+        return file.exists() && !file.isDirectory() &&
+            !file.toString().equals("server.properties");
+      }
+    };
+    File[] files =  new File("config/").listFiles(filter);
+    if (files != null) {
+      for (File file : files) {
+        try {
+          if (file.toString().endsWith(".xml")) {
+            log.debug("adding " + file.getName());
+            config.addConfiguration(new XMLConfiguration(file));
+          }
+          else if (file.toString().endsWith(".properties")) {
+            log.debug("adding " + file.getName());
+            config.addConfiguration(new PropertiesConfiguration(file));
+          }
+        }
+        catch (Exception e) {
+          log.warn("Unable to load properties file: " + file);
+        }
+      }
+    }
+
     // set up the classpath props
     try {
       Resource[] xmlResources = context.getResources("classpath*:config/*.xml");
