@@ -111,7 +111,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     
     // set up the classpath props
     try {
-      Resource[] xmlResources = context.getResources("classpath*:config/properties.xml");
+      Resource[] xmlResources = context.getResources("classpath*:config/*.xml");
       for (Resource xml : xmlResources) {
         if (validXmlResource(xml)) {
           log.info("loading config from " + xml.getURI());
@@ -129,9 +129,6 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
           config.addConfiguration(pconfig);
         }
       }
-    }
-    catch (ConfigurationException e) {
-      log.error("Error loading configuration: " + e.toString());
     }
     catch (Exception e) {
       log.error("Error loading configuration: " + e.toString());
