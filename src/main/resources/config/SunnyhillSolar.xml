@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <SunnyhillSolar1>
+        <count>2</count>
+        <creatorKey />
+        <!-- INDUSTRIAL -->
+        <bundleCount>1</bundleCount>
+      </SunnyhillSolar1>
+
+      <SunnyhillSolar2>
+        <count>2</count>
+        <creatorKey />
+        <!-- INDUSTRIAL -->
+        <bundleCount>1</bundleCount>
+      </SunnyhillSolar2>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <SunnyhillSolar1>
+        <count>1</count>
+        <population>1</population>
+        <type>SOLAR_PRODUCTION</type>
+        <multiContracting>false</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </SunnyhillSolar1>
+
+      <SunnyhillSolar2>
+        <count>1</count>
+        <population>1</population>
+        <type>SOLAR_PRODUCTION</type>
+        <multiContracting>false</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </SunnyhillSolar2>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <SunnyhillSolar1>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          0.0,0.0,0.0,0.0,0.0,0.0,0.05,0.31,0.58,0.77,0.92,1.0,
+          1.0,0.92,0.77,0.58,0.31,0.05,0.0,0.0,0.0,0.0,0.0,0.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>DIRECT</cloudCoverInfluence>
+        <cloudCoverMap>
+          0~30: 1.0,
+          31~50: 0.8,
+          51~70: 0.5,
+          71~80: 0.35,
+          81~90: 0.25,
+          91~100: 0.15
+        </cloudCoverMap>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>0.0</elasticityRatio>
+        <elasticityRange>1.0~1.0</elasticityRange>
+      </SunnyhillSolar1>
+
+      <SunnyhillSolar2>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          0.0,0.0,0.0,0.0,0.0,0.0,0.05,0.31,0.58,0.77,0.92,1.0,
+          1.0,0.92,0.77,0.58,0.31,0.05,0.0,0.0,0.0,0.0,0.0,0.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>DIRECT</cloudCoverInfluence>
+        <cloudCoverMap>
+          0~30: 1.0,
+          31~50: 0.8,
+          51~70: 0.5,
+          71~80: 0.35,
+          81~90: 0.25,
+          91~100: 0.15
+        </cloudCoverMap>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>0.0</elasticityRatio>
+        <elasticityRange>1.0~1.0</elasticityRange>
+      </SunnyhillSolar2>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <SunnyhillSolar1>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.95</logitChoiceRationality>
+      </SunnyhillSolar1>
+
+      <SunnyhillSolar2>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.95</logitChoiceRationality>
+      </SunnyhillSolar2>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <SunnyhillSolar1Inertia>
+        <distribution>POINTMASS</distribution>
+        <value>0.3</value>
+      </SunnyhillSolar1Inertia>
+      <SunnyhillSolar1Population>
+        <distribution>NORMAL</distribution>
+        <mean>1500</mean>
+        <stdDev>100</stdDev>
+      </SunnyhillSolar1Population>
+
+      <SunnyhillSolar2Inertia>
+        <distribution>POINTMASS</distribution>
+        <value>0.3</value>
+      </SunnyhillSolar2Inertia>
+      <SunnyhillSolar2Population>
+        <distribution>NORMAL</distribution>
+        <mean>1500</mean>
+        <stdDev>100</stdDev>
+      </SunnyhillSolar2Population>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>

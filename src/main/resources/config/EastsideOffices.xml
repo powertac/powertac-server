@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <EastsideOffices>
+        <!-- COMMERCIAL -->
+        <count>1</count>
+        <creatorKey>LEARNING</creatorKey>
+        <bundleCount>1</bundleCount>
+      </EastsideOffices>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <EastsideOffices>
+        <count>1</count>
+        <population>25</population>
+        <type>CONSUMPTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>true</isAdaptive>
+      </EastsideOffices>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <EastsideOffices>
+        <baseCapacityType>POPULATION</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,0.6,0.6</dailySkew>
+        <hourlySkew>
+          0.3,0.3,0.3,0.3,0.4,0.5,0.6,0.8,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,0.9,0.7,0.5,0.4,0.3,0.3,0.3
+        </hourlySkew>
+
+        <temperatureInfluence>DEVIATION</temperatureInfluence>
+        <temperatureReference>20</temperatureReference>
+        <temperatureMap>
+          -50~0: +0.005,
+          1~16: +0.01,
+          17~30: 0.00,
+          31~40: +0.01,
+          41~50: +0.005
+        </temperatureMap>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>
+          00~05: -0.10,
+          06~19: -0.20,
+          20~23: -0.10
+        </benchmarkRates>
+        <elasticityModelType>STEPWISE</elasticityModelType>
+        <elasticityMap>1.5: 0.96, 2.0: 0.92</elasticityMap>
+      </EastsideOffices>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <EastsideOffices>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.95</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+      </EastsideOffices>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <EastsideOfficesInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.7</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </EastsideOfficesInertia>
+      <EastsideOfficesPopulation>
+        <distribution>NORMAL</distribution>
+        <mean>8000</mean>
+        <stdDev>500</stdDev>
+      </EastsideOfficesPopulation>
+    </probabilityDistribution>
+
+    <profileOptimizerStructure>
+      <EastsideOffices>
+        <receiveRecommendations>true</receiveRecommendations>
+        <permutationRule>ALL_SHIFTS</permutationRule>
+
+        <reactivityFactor>1.0</reactivityFactor>
+        <receptivityFactor>1.0</receptivityFactor>
+        <rationalityFactor>1.0</rationalityFactor>
+
+        <usageChargeStance>NEUTRAL</usageChargeStance>
+
+        <profileChangeWeight>-0.001</profileChangeWeight>
+        <bundleValueWeight>1.0</bundleValueWeight>
+      </EastsideOffices>
+    </profileOptimizerStructure>
+  </factoredcustomer>
+</factoredcustomer-root>

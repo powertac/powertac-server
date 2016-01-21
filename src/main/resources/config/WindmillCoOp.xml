@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <WindmillCoOp>
+        <count>1</count>
+        <creatorKey />
+        <!-- INDUSTRIAL -->
+        <bundleCount>2</bundleCount>
+      </WindmillCoOp>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <WindmillCoOp-1>
+        <count>1</count>
+        <population>50</population>
+        <type>WIND_PRODUCTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </WindmillCoOp-1>
+
+      <WindmillCoOp-2>
+        <count>1</count>
+        <population>40</population>
+        <type>WIND_PRODUCTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </WindmillCoOp-2>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <WindmillCoOp-1>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>DIRECT</windSpeedInfluence>
+        <windSpeedMap>
+          0~3: 0.0,
+          3~6: 0.5,
+          7~17: 1.0,
+          18~30: 1.2,
+          31~105: 0.0
+        </windSpeedMap>
+        <windDirectionInfluence>DIRECT</windDirectionInfluence>
+        <windDirectionMap>
+          0~90: 0.5,
+          91~180: 0.8,
+          181~270: 1.0,
+          271~360: 0.9
+        </windDirectionMap>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>0.0</elasticityRatio>
+        <elasticityRange>1.0~1.0</elasticityRange>
+      </WindmillCoOp-1>
+
+      <WindmillCoOp-2>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>DIRECT</windSpeedInfluence>
+        <windSpeedMap>
+          0~2: 0.0,
+          3~4: 0.4,
+          5~6: 0.7,
+          7~17: 1.0,
+          18~30: 1.2,
+          31~105: 0.0
+        </windSpeedMap>
+        <windDirectionInfluence>DIRECT</windDirectionInfluence>
+        <windDirectionMap>
+          0~90: 0.8,
+          91~180: 1.0,
+          181~270: 0.9,
+          271~360: 0.5
+        </windDirectionMap>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>0.0</elasticityRatio>
+        <elasticityRange>1.0~1.0</elasticityRange>
+      </WindmillCoOp-2>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <WindmillCoOp-1>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.95</logitChoiceRationality>
+      </WindmillCoOp-1>
+
+      <WindmillCoOp-2>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>1.0</logitChoiceRationality>
+      </WindmillCoOp-2>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <WindmillCoOp-1Inertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.3</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </WindmillCoOp-1Inertia>
+      <WindmillCoOp-1Population>
+        <distribution>NORMAL</distribution>
+        <mean>100</mean>
+        <stdDev>20</stdDev>
+      </WindmillCoOp-1Population>
+
+      <WindmillCoOp-2Inertia>
+        <distribution>POINTMASS</distribution>
+        <value>0.1</value>
+      </WindmillCoOp-2Inertia>
+      <WindmillCoOp-2Population>
+        <distribution>NORMAL</distribution>
+        <mean>180</mean>
+        <stdDev>15</stdDev>
+      </WindmillCoOp-2Population>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <HextraChemical>
+        <count>1</count>
+        <creatorKey />
+        <!-- INDUSTRIAL -->
+        <bundleCount>1</bundleCount>
+      </HextraChemical>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <HextraChemical>
+        <count>1</count>
+        <population>5</population>
+        <type>INTERRUPTIBLE_CONSUMPTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </HextraChemical>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <HextraChemical>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,0.05,0.05</dailySkew>
+        <hourlySkew>
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,
+          1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>
+          00~05: -0.10,
+          06~19: -0.20,
+          20~23: -0.10
+        </benchmarkRates>
+        <elasticityModelType>STEPWISE</elasticityModelType>
+        <elasticityMap>2.0: 0.95</elasticityMap>
+
+        <curtailmentShifts>0.25,0.25,0.25,0.25</curtailmentShifts>
+      </HextraChemical>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <HextraChemical>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+        <!-- <interruptibilityFactor>0.15</interruptibilityFactor> -->
+      </HextraChemical>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <HextraChemicalInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.7</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </HextraChemicalInertia>
+      <HextraChemicalPopulation>
+        <distribution>UNIFORM</distribution>
+        <low>700</low>
+        <high>1000</high>
+      </HextraChemicalPopulation>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>
