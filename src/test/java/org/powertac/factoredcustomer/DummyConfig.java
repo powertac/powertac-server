@@ -1,16 +1,13 @@
 package org.powertac.factoredcustomer;
 
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.powertac.common.config.Configurator;
 import org.powertac.common.interfaces.ServerConfiguration;
 
-import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-
-import static org.junit.Assert.fail;
 
 
 class DummyConfig implements ServerConfiguration
@@ -24,19 +21,23 @@ class DummyConfig implements ServerConfiguration
 
   void initialize ()
   {
-    CompositeConfiguration config = new CompositeConfiguration();
     configurator = new Configurator();
-    InputStream stream =
-        ConfigTest.class.getResourceAsStream("/config/test-properties.xml");
-    XMLConfiguration xconfig = new XMLConfiguration();
+    CompositeConfiguration config = new CompositeConfiguration();
+
+    String[] names = {"test-properties.xml", "BrooksideHomes.xml",
+        "FrostyStorage.xml", "MedicalCenter.xml", "WindmillCoOp.xml"};
+
     try {
-      xconfig.load(stream);
-      config.addConfiguration(xconfig);
+      for (String name : names) {
+        ClassLoader classLoader = getClass().getClassLoader();
+        URL url = classLoader.getResource("config/" + name);
+        XMLConfiguration xconfig = new XMLConfiguration(url);
+        config.addConfiguration(xconfig);
+      }
       configurator.setConfiguration(config);
     }
-    catch (ConfigurationException e) {
-      e.printStackTrace();
-      fail(e.toString());
+    catch (Exception e) {
+      System.out.println("Error loading configuration: " + e.toString());
     }
   }
 
