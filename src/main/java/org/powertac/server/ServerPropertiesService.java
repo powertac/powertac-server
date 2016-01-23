@@ -99,20 +99,8 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
 
     log.info("lazyInit");
 
-    // find and load the default properties file
-    try {
-      File defaultProps = new File("config/server.properties");
-      if (defaultProps.canRead()) {
-        log.debug("adding " + defaultProps.getName());
-        config.addConfiguration(new PropertiesConfiguration(defaultProps));
-      }
-    }
-    catch (Exception e1) {
-      log.warn("config/server.properties not found: " + e1.toString());
-    }
-
     // Load custom (.xml and .properties) properties files
-    // We need to do this before the classpath props
+    // We need to do this before the default config and classpath props
     FileFilter filter = new FileFilter() {
       public boolean accept(File file) {
         return file.exists() && !file.isDirectory() &&
@@ -136,6 +124,18 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
           log.warn("Unable to load properties file: " + file);
         }
       }
+    }
+
+    // find and load the default properties file
+    try {
+      File defaultProps = new File("config/server.properties");
+      if (defaultProps.canRead()) {
+        log.debug("adding " + defaultProps.getName());
+        config.addConfiguration(new PropertiesConfiguration(defaultProps));
+      }
+    }
+    catch (Exception e1) {
+      log.warn("config/server.properties not found: " + e1.toString());
     }
 
     // set up the classpath props
