@@ -16,8 +16,6 @@
 
 package org.powertac.factoredcustomer;
 
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.MapConfiguration;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
@@ -27,13 +25,23 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powertac.common.*;
-import org.powertac.common.config.Configurator;
+import org.powertac.common.Broker;
+import org.powertac.common.Competition;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.Rate;
+import org.powertac.common.Tariff;
+import org.powertac.common.TariffSpecification;
+import org.powertac.common.TariffTransaction;
+import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
-import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
-import org.powertac.common.repo.*;
+import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.CustomerRepo;
+import org.powertac.common.repo.RandomSeedRepo;
+import org.powertac.common.repo.TariffRepo;
+import org.powertac.common.repo.TariffSubscriptionRepo;
+import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,28 +49,29 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyDouble;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
 /**
- * @author Prashant Reddy, Antonios Chrysopoulos
+ * @author Prashant Reddy, Antonios Chrysopoulos, Govert Buijs
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:test-config.xml" })
+@ContextConfiguration(locations = {"classpath:test-config.xml" })
 @DirtiesContext
 @TestExecutionListeners(listeners = {
-  DependencyInjectionTestExecutionListener.class,
-  DirtiesContextTestExecutionListener.class
+    DependencyInjectionTestExecutionListener.class,
+    DirtiesContextTestExecutionListener.class
 })
 public class FactoredCustomerServiceTests
 {
@@ -96,8 +105,7 @@ public class FactoredCustomerServiceTests
   @Autowired
   private RandomSeedRepo randomSeedRepo;
 
-  @Autowired
-  private ServerConfiguration mockServerProperties;
+  private DummyConfig configSvc;
 
   private Instant exp;
   private Instant now;
@@ -108,10 +116,9 @@ public class FactoredCustomerServiceTests
   private Tariff defaultProductionTariff;
   private Competition comp;
   private List<Object[]> accountingArgs;
-  private Configurator config;
 
   @Before
-  public void setUp()
+  public void setUp ()
   {
     customerRepo.recycle();
     brokerRepo.recycle();
@@ -150,11 +157,12 @@ public class FactoredCustomerServiceTests
     when(mockTariffMarket.getDefaultTariff(PowerType.PRODUCTION))
         .thenReturn(defaultProductionTariff);
 
-    accountingArgs = new ArrayList<Object[]>();
+    accountingArgs = new ArrayList<>();
 
     // mock the AccountingService, capture args
-    doAnswer(new Answer<Object>() {
-      public Object answer(InvocationOnMock invocation)
+    doAnswer(new Answer<Object>()
+    {
+      public Object answer (InvocationOnMock invocation)
       {
         Object[] args = invocation.getArguments();
         accountingArgs.add(args);
@@ -164,16 +172,9 @@ public class FactoredCustomerServiceTests
         isA(TariffTransaction.Type.class), isA(Tariff.class),
         isA(CustomerInfo.class), anyInt(), anyDouble(), anyDouble());
 
-    // Set up serverProperties mock
-    config = new Configurator();
-    doAnswer(new Answer<Object>() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-        Object[] args = invocation.getArguments();
-        config.configureSingleton(args[0]);
-        return null;
-      }
-    }).when(mockServerProperties).configureMe(anyObject());
+    // Initialize Config
+    configSvc = new DummyConfig();
+    configSvc.initialize();
   }
 
   @After
@@ -189,7 +190,6 @@ public class FactoredCustomerServiceTests
     timeslotRepo = null;
     brokerRepo = null;
     randomSeedRepo = null;
-    mockServerProperties = null;
     exp = null;
     now = null;
     defaultBroker = null;
@@ -199,27 +199,26 @@ public class FactoredCustomerServiceTests
     defaultProductionTariff = null;
     comp = null;
     accountingArgs = null;
-    config = null;
   }
 
-  public void initializeService()
+  public void initializeService ()
   {
-    TreeMap<String, String> map = new TreeMap<String, String>();
-    map.put("factoredcustomer.factoredCustomerService.configResource",
-            "FactoredCustomers.xml");
-    Configuration mapConfig = new MapConfiguration(map);
-    config.setConfiguration(mapConfig);
-      List<String> inits = new ArrayList<String>();
-      inits.add("DefaultBroker");
-      inits.add("TariffMarket");
-      factoredCustomerService.initialize(comp, inits);
+    Config config = Config.getInstance();
+    ReflectionTestUtils.setField(config, "serverConfiguration", configSvc);
+    config.configure();
+
+    List<String> inits = new ArrayList<>();
+    inits.add("DefaultBroker");
+    inits.add("TariffMarket");
+
+    factoredCustomerService.initialize(comp, inits);
   }
 
   @Test
-  public void testServiceInitialization()
+  public void testServiceInitialization ()
   {
     initializeService();
     assertEquals("Configured number of customers created",
-        11, factoredCustomerService.getCustomers().size());
+        4, factoredCustomerService.getCustomers().size());
   }
-} // end class
+}

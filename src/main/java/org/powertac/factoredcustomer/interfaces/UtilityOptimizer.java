@@ -19,18 +19,19 @@ package org.powertac.factoredcustomer.interfaces;
 import org.powertac.common.Timeslot;
 import org.powertac.factoredcustomer.FactoredCustomerService;
 
+
 /**
  * @author Prashant Reddy
  */
 public interface UtilityOptimizer
 {
-    void initialize(FactoredCustomerService service);
-    
-    void evaluateTariffs ();
-    
-    void handleNewTimeslot(Timeslot timeslot);
+  void initialize (FactoredCustomerService service);
 
-    void updatedSubscriptionRepo();
+  void evaluateTariffs ();
+
+  void handleNewTimeslot (Timeslot timeslot);
+
+  void updatedSubscriptionRepo ();
 }
 
 

@@ -16,236 +16,149 @@
 
 package org.powertac.factoredcustomer;
 
-import java.io.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.joda.time.DateTime;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.repo.TimeslotRepo;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+import org.powertac.factoredcustomer.utils.SeedIdGenerator;
+
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import org.joda.time.DateTime;
-import org.powertac.factoredcustomer.utils.SeedIdGenerator;
-import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
-import org.powertac.common.repo.TimeslotRepo;
 
 /**
- * Utility class that generates various time series patterns that can be 
+ * Utility class that generates various time series patterns that can be
  * used as base capacity series by implementations of @code{CapacityOriginator}.
- * 
- * @author Prashant Reddy
+ *
+ * @author Prashant Reddy, Govert Buijs
  */
-final class TimeseriesGenerator
+public final class TimeseriesGenerator implements StructureInstance
 {
-    private static Logger log = LogManager.getLogger(TimeseriesGenerator.class);
+  private static Logger log = LogManager.getLogger(TimeseriesGenerator.class);
 
-    enum ModelType { ARIMA_101x101 }
-    enum DataSource { BUILTIN, CLASSPATH, FILEPATH }
+  private TimeslotRepo timeslotRepo;
 
-    private FactoredCustomerService service;
+  private final int FORECAST_HORIZON = 2 * 24; // two days
 
-    private final Properties modelParams = new Properties();
-    
-    private final List<Double> refSeries = new ArrayList<Double>();
-    private final Map<Integer, Double> genSeries = new HashMap<Integer, Double>();
-    
-    private final TimeseriesStructure tsStructure;
-    
-    private final int FORECAST_HORIZON = 2 * 24; // two days
-    
-    private double Y0;
-    private double[] Yd;
-    private double[] Yh;
-    private double phi1;
-    private double Phi1;
-    private double theta1;
-    private double Theta1;
-    private double sigma;
-    private double lambda;
-    private double gamma;
-    
-    private Random arimaNoise;
-    
-    
-    TimeseriesGenerator(FactoredCustomerService service,
-                        TimeseriesStructure structure) 
-    {
-        this.service = service;
-        tsStructure = structure;
-        
-        switch (tsStructure.modelType) {
-        case ARIMA_101x101:
-            initArima101x101();
-            break;
-        default: throw new Error("Unexpected timeseries model type: " + tsStructure.modelType);
-        }
+  private String name;
+
+  // These will come from the properties file
+  @ConfigurableValue(valueType = "Double")
+  private double y0;
+  @ConfigurableValue(valueType = "List")
+  private List<String> yh;
+  @ConfigurableValue(valueType = "List")
+  private List<String> yd;
+  @ConfigurableValue(valueType = "Double")
+  private double phi1;
+  @ConfigurableValue(valueType = "Double")
+  private double Phi1;
+  @ConfigurableValue(valueType = "Double")
+  private double theta1;
+  @ConfigurableValue(valueType = "Double")
+  private double Theta1;
+  @ConfigurableValue(valueType = "Double")
+  private double sigma;
+  @ConfigurableValue(valueType = "Double")
+  private double lambda;
+  @ConfigurableValue(valueType = "Double")
+  private double gamma;
+  @ConfigurableValue(valueType = "List")
+  private List<String> refSeries;
+
+  private final Map<Integer, Double> genSeries = new HashMap<>();
+
+  private Random arimaNoise;
+
+  public TimeseriesGenerator (String name)
+  {
+    this.name = name;
+  }
+
+  public void initialize (FactoredCustomerService service)
+  {
+    timeslotRepo = service.getTimeslotRepo();
+
+    arimaNoise = new Random(service.getRandomSeedRepo()
+        .getRandomSeed("factoredcustomer.TimeseriesGenerator",
+            SeedIdGenerator.getId(), "ArimaNoise").getValue());
+  }
+
+  @Override
+  public String getName ()
+  {
+    return name;
+  }
+
+  public double generateNext (int timeslot)
+  {
+    if (genSeries.isEmpty()) {
+      initArima101x101GenSeries(timeslot);
     }
-    
-    private void initArima101x101() 
-    {   
-        initArima101x101ModelParams();
-        initArima101x101RefSeries();
+    Double next = genSeries.get(timeslot);
+    if (next == null) {
+      next = generateNextArima101x101(timeslot);
+      genSeries.put(timeslot, next);
     }
-    
-    private void initArima101x101ModelParams()
-    {
-        InputStream paramsStream;
-        String paramsName = tsStructure.modelParamsName;
-        switch (tsStructure.modelParamsSource) {
-        case BUILTIN:
-            throw new Error("Unknown builtin model parameters with name: " + paramsName);
-            // break;
-        case CLASSPATH:
-            paramsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(paramsName);
-            break;
-        case FILEPATH:
-            try {
-                paramsStream = new FileInputStream(paramsName);  
-            } catch (FileNotFoundException e) {
-                throw new Error("Could not find file to initialize model parameters: " + paramsName);
-            }
-            break;
-        default: 
-            throw new Error("Unexpected reference timeseries source type: " + tsStructure.refSeriesSource);
-         }
-        if (paramsStream == null) throw new Error("Model parameters input stream is uninitialized!");
+    return next;
+  }
 
-        try {
-            modelParams.load(paramsStream);        
-        } catch (java.io.IOException e) {
-            throw new Error("Error reading model parameters from file: " + paramsName + "; caught IOException: " + e.toString());        
-        }
-        
-        Y0 = Double.parseDouble((String) modelParams.get("Y0"));
-        Yd = ParserFunctions.parseDoubleArray((String) modelParams.get("Yd"));
-        Yh = ParserFunctions.parseDoubleArray((String) modelParams.get("Yh"));        
-        phi1 = Double.parseDouble((String) modelParams.get("phi1"));
-        Phi1 = Double.parseDouble((String) modelParams.get("Phi1"));
-        theta1 = Double.parseDouble((String) modelParams.get("theta1"));
-        Theta1 = Double.parseDouble((String) modelParams.get("Theta1"));
-        lambda = Double.parseDouble((String) modelParams.get("lambda"));
-        gamma = Double.parseDouble((String) modelParams.get("gamma"));
-        sigma = Double.parseDouble((String) modelParams.get("sigma"));
-        
-        //randomSeedRepo =
-        //        (RandomSeedRepo) SpringApplicationContext.getBean("randomSeedRepo");
+  private void initArima101x101GenSeries (int timeslot)
+  {
+    for (int i = 0; i < refSeries.size(); ++i) {
+      genSeries.put(timeslot + i, Double.parseDouble(refSeries.get(i)));
+    }
+  }
 
-        arimaNoise =
-                new Random(service.getRandomSeedRepo()
-                           .getRandomSeed("factoredcustomer.TimeseriesGenerator", 
-                                          SeedIdGenerator.getId(),
-                                          "ArimaNoise").getValue());
-    }
-    
-    private void initArima101x101RefSeries()
-    {
-        InputStream refStream;
-        String seriesName = tsStructure.refSeriesName;
-        switch (tsStructure.refSeriesSource) {
-        case BUILTIN:
-            throw new Error("Unknown builtin series name: " + seriesName);
-            // break;
-        case CLASSPATH:
-            refStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(seriesName);
-            break;
-        case FILEPATH:
-            try {
-                refStream = new FileInputStream(seriesName);  
-            } catch (FileNotFoundException e) {
-                throw new Error("Could not find file to initialize reference timeseries: " + seriesName);
-            }
-            break;
-        default: 
-            throw new Error("Unexpected reference timeseries source type: " + tsStructure.refSeriesSource);
-         }
-        if (refStream == null) throw new Error("Reference timeseries input stream is uninitialized!");
-            
-        try {
-            List<String> series = (List<String>) IOUtils.readLines(refStream);
-            for (String line: series) {
-                Double element = Double.parseDouble(line);
-                refSeries.add(element);
-            }
-        } catch (java.io.EOFException e) {
-            final int MIN_TIMESERIES_LENGTH = 26;
-            if (refSeries.size() < MIN_TIMESERIES_LENGTH) {
-                throw new Error("Insufficient data in reference series; expected " + MIN_TIMESERIES_LENGTH 
-                                + " elements, found only " +  genSeries.size());
-            }
-        } catch (java.io.IOException e) {
-            throw new Error("Error reading timeseries data from file: " + seriesName + "; caught IOException: " + e.toString());        
-        }
-    }
+  private double generateNextArima101x101 (int timeslot)
+  {
+    /** R code
+     boostTimeSeries = function(Xt, lambda, t, N, Xht, Xdt, gamma) {
+     return (Xt + (lambda * ((log(t-26))^2/(log(N-26))^2) * ((1 - gamma) * Xht + gamma * Xdt)))
+     }
+     for (t in compRange) {
+     Zf[t] = Y0 + Yd[D[t]] + Yh[H[t]] + phi1 * Zf[t-1] + Phi1 * Zf[t-24] #+ rnorm(1, 0, sigma^2) +
+     theta1 * (Zf[t-1] - Zf[t-2]) + Theta1 * (Zf[t-24] - Zf[t-25]) +
+     theta1 * Theta1 * (Zf[t-25] - Zf[t-26])
+     Zbf[t] = boostTimeSeries(Zf[t], lambda, t, N, Yh[H[t]], Yd[D[t]], gamma) #+ rnorm(1, 0, sigma^2)
+     }
+     **/
 
-    public double generateNext(int timeslot)
-    {
-        Double next;
-        switch (tsStructure.modelType) {
-        case ARIMA_101x101:
-            if (genSeries.isEmpty()) {
-                initArima101x101GenSeries(timeslot);
-            }
-            next = genSeries.get(timeslot);
-            if (next == null) {
-                next = generateNextArima101x101(timeslot);
-                genSeries.put(timeslot, next); 
-            }
-            break;
-        default: throw new Error("Unexpected timeseries model type: " + tsStructure.modelType);
-        }
-        return next;
-    }
-    
-    private void initArima101x101GenSeries(int timeslot)
-    {
-        int start = timeslot;
-        for (int i=0; i < refSeries.size(); ++i) {
-            genSeries.put(start + i, refSeries.get(i));
-        }
-    }
+    DateTime now = timeslotRepo.getDateTimeForIndex(timeslot);
+    int day = now.getDayOfWeek();   // 1=Monday, 7=Sunday
+    int hour = now.getHourOfDay();  // 0-23
 
-    private double generateNextArima101x101(int timeslot)
-    {
-        /** R code
-        boostTimeSeries = function(Xt, lambda, t, N, Xht, Xdt, gamma) {
-            return (Xt + (lambda * ((log(t-26))^2/(log(N-26))^2) * ((1 - gamma) * Xht + gamma * Xdt)))
-        }
-        for (t in compRange) {                  
-            Zf[t] = Y0 + Yd[D[t]] + Yh[H[t]] + phi1 * Zf[t-1] + Phi1 * Zf[t-24] #+ rnorm(1, 0, sigma^2) + 
-                          theta1 * (Zf[t-1] - Zf[t-2]) + Theta1 * (Zf[t-24] - Zf[t-25]) + 
-                          theta1 * Theta1 * (Zf[t-25] - Zf[t-26]) 
-            Zbf[t] = boostTimeSeries(Zf[t], lambda, t, N, Yh[H[t]], Yd[D[t]], gamma) #+ rnorm(1, 0, sigma^2)
-        }
-        **/
+    double yh_hour = Double.parseDouble(yh.get(hour));
+    double yd_day = Double.parseDouble(yd.get(day - 1));
 
-      TimeslotRepo tsRepo = service.getTimeslotRepo();
-        DateTime now = tsRepo.getDateTimeForIndex(timeslot);
-        int day = now.getDayOfWeek();  // 1=Monday, 7=Sunday
-        int hour = now.getHourOfDay();  // 0-23
- 
-        int t = timeslot;
-        
-        double logNext = Y0 + Yd[day-1] + Yh[hour] + phi1 * getLog(t-1) + Phi1 * getLog(t-24) 
-                         + theta1 * (getLog(t-1) - getLog(t-2)) + Theta1 * (getLog(t-24) - getLog(t-25)) 
-                         + theta1 * Theta1 * (getLog(t-25) - getLog(t-26));
-        logNext = logNext + (lambda * (Math.pow(Math.log(t-26), 2) / Math.pow(Math.log(FORECAST_HORIZON - 26), 2)) 
-                                       * ((1 - gamma) * Yh[hour] + gamma * Yd[day-1]));
-        logNext = logNext + Math.pow(sigma, 2) * arimaNoise.nextGaussian();
-        double next = Math.exp(logNext);
-        if (Double.isNaN(next)) throw new Error("Generated NaN as next time series element!");
-        return next;
+    double logNext = y0 + yd_day + yh_hour
+        + phi1 * getLog(timeslot - 1) + Phi1 * getLog(timeslot - 24)
+        + theta1 * (getLog(timeslot - 1) - getLog(timeslot - 2))
+        + Theta1 * (getLog(timeslot - 24) - getLog(timeslot - 25))
+        + theta1 * Theta1 * (getLog(timeslot - 25) - getLog(timeslot - 26));
+    double nom = Math.pow(Math.log(timeslot - 26), 2);
+    double denom = Math.pow(Math.log(FORECAST_HORIZON - 26), 2);
+    double fact = ((1 - gamma) * yh_hour + gamma * yd_day);
+    logNext += lambda * (nom / denom) * fact;
+    logNext += Math.pow(sigma, 2) * arimaNoise.nextGaussian();
+    double next = Math.exp(logNext);
+    if (Double.isNaN(next)) {
+      throw new Error("Generated NaN as next time series element!");
     }
+    return next;
+  }
 
-    private double getLog(int timeslot)
-    {
-      Double val = genSeries.get(timeslot);
-      if (null == val) {
-        log.error("Null value in genSeries for ts " + timeslot);
-        return 1.0;
-      }
-      return Math.log(val);
+  private double getLog (int timeslot)
+  {
+    Double val = genSeries.get(timeslot);
+    if (null == val) {
+      log.error("Null value in genSeries for ts " + timeslot);
+      return 1.0;
     }
-} // end class
+    return Math.log(val);
+  }
+}

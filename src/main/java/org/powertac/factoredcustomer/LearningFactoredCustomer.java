@@ -16,42 +16,33 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.List;
-
-import org.w3c.dom.*;
 import org.powertac.common.state.Domain;
 import org.powertac.factoredcustomer.interfaces.CapacityBundle;
 import org.powertac.factoredcustomer.interfaces.UtilityOptimizer;
 
+import java.util.List;
+
+
 /**
- * Extends @code{DefaultFactoredCustomer} to create @code{LearningUtilityOptimizer}
- * and @code{AdaptiveCapacityBundle} instances.
- * 
+ * Extends @code{DefaultFactoredCustomer} to create
+ * @code{LearningUtilityOptimizer} instances.
+ *
  * @author Prashant Reddy
  */
 @Domain
 class LearningFactoredCustomer extends DefaultFactoredCustomer
 {
-  
-    LearningFactoredCustomer(CustomerStructure structure) 
-    {        
-        super(structure);
-    }
+  public LearningFactoredCustomer (CustomerStructure customerStructure)
+  {
+    super(customerStructure);
+  }
 
-    @Override
-    protected CapacityBundle createCapacityBundle(CustomerStructure structure, Element capacityBundleElement)
-    {
-        return new AdaptiveCapacityBundle(service, structure, capacityBundleElement);
-    }
-    
-    @Override
-    protected UtilityOptimizer createUtilityOptimizer(CustomerStructure structure, 
-                                                      List<CapacityBundle> capacityBundles)
-    {
-        return new LearningUtilityOptimizer(structure, capacityBundles);        
-    }
-
-
-} // end class
+  @Override
+  protected UtilityOptimizer createUtilityOptimizer (
+      CustomerStructure customerStructure, List<CapacityBundle> capacityBundles)
+  {
+    return new LearningUtilityOptimizer(customerStructure, capacityBundles);
+  }
+}
 
 

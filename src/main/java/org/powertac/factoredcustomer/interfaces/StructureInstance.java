@@ -16,22 +16,11 @@
 
 package org.powertac.factoredcustomer.interfaces;
 
-import org.powertac.factoredcustomer.FactoredCustomerService;
-
 
 /**
- * @author Prashant Reddy
+ * @author Govert Buijs
  */
-public interface FactoredCustomer
+public interface StructureInstance
 {
-  void initialize (FactoredCustomerService factoredCustomerService);
-
-  void evaluateTariffs ();
-
-  void handleNewTimeslot ();
-
-  void updatedSubscriptionRepo ();
+  String getName();
 }
-
-
-

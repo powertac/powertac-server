@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <config>
+      <allocationDetailsLogging>true</allocationDetailsLogging>
+      <capacityDetailsLogging>false</capacityDetailsLogging>
+      <usageChargesLogging>false</usageChargesLogging>
+
+      <structureTypes>
+        CustomerStructure,TariffSubscriberStructure,
+        CapacityStructure,DefaultCapacityBundle,
+        ProbabilityDistribution,TimeseriesGenerator,
+        ProfileOptimizerStructure
+      </structureTypes>
+    </config>
+
+    <customerStructure>
+      <instances>
+        BrooksideHomes,CentervilleHomes,DowntownOffices,
+        EastsideOffices,FrostyStorage,HextraChemical,
+        MedicalCenter,SunnyhillSolar1,SunnyhillSolar2,WindmillCoOp,
+        SolarLeasing
+      </instances>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <instances>
+        BrooksideHomes,CentervilleHomes,DowntownOffices,EastsideOffices,
+        FrostyStorage,HextraChemical,SunnyhillSolar1,SunnyhillSolar2,
+        MedicalCenter-1,MedicalCenter-2,WindmillCoOp-1,WindmillCoOp-2,
+        SolarLeasing
+      </instances>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <instances>
+        BrooksideHomes,CentervilleHomes,DowntownOffices,EastsideOffices,
+        FrostyStorage1,FrostyStorage2,FrostyStorage3,HextraChemical,
+        MedicalCenter-1,MedicalCenter-2,SunnyhillSolar1,SunnyhillSolar2,
+        WindmillCoOp-1,WindmillCoOp-2,SolarLeasing
+      </instances>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <instances>
+        BrooksideHomes,CentervilleHomes,DowntownOffices,EastsideOffices,
+        FrostyStorage,HextraChemical,MedicalCenter-1,MedicalCenter-2,
+        SunnyhillSolar1,SunnyhillSolar2,WindmillCoOp-1,WindmillCoOp-2,
+        SolarLeasing
+      </instances>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <instances>
+        BrooksideHomesInertia,
+        CentervilleHomesInertia,CentervilleHomesPopulation,
+        DowntownOfficesInertia,DowntownOfficesPopulation,
+        EastsideOfficesInertia,EastsideOfficesPopulation,
+        FrostyStorageInertia,FrostyStorage1Population,
+        FrostyStorage2Population,FrostyStorage3Population,
+        HextraChemicalInertia,HextraChemicalPopulation,
+        MedicalCenter-1Inertia,MedicalCenter-1Population,
+        MedicalCenter-2Inertia,MedicalCenter-2Population,
+        SunnyhillSolar1Inertia,SunnyhillSolar1Population,
+        SunnyhillSolar2Inertia,SunnyhillSolar2Population,
+        WindmillCoOp-1Inertia,WindmillCoOp-1Population,
+        WindmillCoOp-2Inertia,WindmillCoOp-2Population,
+        SolarLeasingInertia,SolarLeasingPopulation
+      </instances>
+    </probabilityDistribution>
+
+    <timeseriesGenerator>
+      <instances>
+        BrooksideHomesPopulation
+      </instances>
+    </timeseriesGenerator>
+
+    <profileOptimizerStructure>
+      <instances>
+        BrooksideHomes,CentervilleHomes,EastsideOffices
+      </instances>
+    </profileOptimizerStructure>
+  </factoredcustomer>
+</factoredcustomer-root>

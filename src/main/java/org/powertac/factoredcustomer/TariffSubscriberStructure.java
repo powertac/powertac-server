@@ -16,247 +16,159 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.ArrayList;
-import java.util.List;
-import org.w3c.dom.*;
-import org.powertac.factoredcustomer.ProbabilityDistribution;
-import org.powertac.factoredcustomer.interfaces.CapacityBundle;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+
+import java.util.Map;
+
 
 /**
  * Data-holder class for parsed configuration elements of one tariff subscriber,
  * which typically corresponds to one capapcity bundle. Relevant members are
  * declared final in the package scope.
- * 
+ *
  * @author Prashant Reddy
  */
-public final class TariffSubscriberStructure
+public final class TariffSubscriberStructure implements StructureInstance
 {
-  enum AllocationMethod {
+  private enum AllocationMethod
+  {
     TOTAL_ORDER, LOGIT_CHOICE
   }
 
-  private final CustomerStructure customerStructure;
-  private final CapacityBundle capacityBundle;
+  private String name;
 
-  final boolean benchmarkRiskEnabled;
-  final double benchmarkRiskRatio;
-  // final boolean tariffThrottlingEnabled;
-
-  double inconvenienceWeight = 0.2;
   // inconvenience factors - all should be [0..1]
-  double touFactor = 0.05;
-  double interruptibilityFactor = 0.5;
-  double variablePricingFactor = 0.7;
-  double tieredRateFactor = 0.1;
-  double tariffSwitchFactor = 0.1;
-  double brokerSwitchFactor = 0.02;
-  int expectedDuration = 14; // expected subscription duration, days
-  double lambdaMax = 100.0; // convert [0..1] to [0..100]
+  private double inconvenienceWeight = 0.2;
+  private double touFactor = 0.05;
+  @ConfigurableValue(valueType = "Double")
+  private double interruptibilityFactor = 0.5;
+  private double variablePricingFactor = 0.7;
+  private double tieredRateFactor = 0.1;
+  private double tariffSwitchFactor = 0.1;
+  private double brokerSwitchFactor = 0.02;
+  private int expectedDuration = 14; // expected subscription duration, days
 
-  final Double expMeanPriceWeight;
-  final Double maxValuePriceWeight;
-  final Double realizedPriceWeight;
-  final Double tariffVolumeThreshold = 20000.0;
-  final AllocationMethod allocationMethod;
-  final List<List<Double>> totalOrderRules = new ArrayList<List<Double>>();
-  final double logitChoiceRationality;
-  final int reconsiderationPeriod;
-  final ProbabilityDistribution inertiaDistribution;
-  final ProbabilityDistribution customerWealthDistribution;
-  final double customerWealthReferenceMedian;
-  final ProbabilityDistribution newTariffsExposure;
-  final ProbabilityDistribution switchingDelay;
-  final ProbabilityDistribution waitAfterSwitch;
+  @ConfigurableValue(valueType = "Double")
+  private Double expMeanPriceWeight;
+  @ConfigurableValue(valueType = "Double")
+  private Double maxValuePriceWeight;
+  @ConfigurableValue(valueType = "Double")
+  private Double realizedPriceWeight;
+  @ConfigurableValue(valueType = "Double")
+  private Double tariffVolumeThreshold = 20000.0;
+  @ConfigurableValue(valueType = "String")
+  private String allocationMethod;
+  @ConfigurableValue(valueType = "Double")
+  private double logitChoiceRationality;
 
-  TariffSubscriberStructure (FactoredCustomerService service,
-                             CustomerStructure structure,
-                             CapacityBundle bundle,
-                             Element xml)
+  private ProbabilityDistribution inertiaDistribution;
+
+  public TariffSubscriberStructure (String name)
   {
-    customerStructure = structure;
-    capacityBundle = bundle;
+    this.name = name;
+  }
 
-    Element constraintsElement =
-      (Element) xml.getElementsByTagName("constraints").item(0);
-    if (constraintsElement != null) {
-      Element benchmarkRiskElement =
-        (Element) constraintsElement.getElementsByTagName("benchmarkRisk")
-                .item(0);
-      if (benchmarkRiskElement != null) {
-        benchmarkRiskEnabled =
-          Boolean.parseBoolean(benchmarkRiskElement.getAttribute("enable"));
-        double[][] ratio =
-          ParserFunctions.parseMapToDoubleArray(benchmarkRiskElement
-                  .getAttribute("ratio"));
-        benchmarkRiskRatio = ratio[0][0] / ratio[0][1];
-      }
-      else {
-        benchmarkRiskEnabled = false;
-        benchmarkRiskRatio = Double.NaN;
-      }
-      // Element tariffThrottlingElement = (Element)
-      // constraintsElement.getElementsByTagName("tariffThrottling").item(0);
-      // if (tariffThrottlingElement != null) {
-      // tariffThrottlingEnabled =
-      // Boolean.parseBoolean(tariffThrottlingElement.getAttribute("enable"));
-      // } else tariffThrottlingEnabled = false;
-    }
-    else
-      throw new Error(
-                      "Tariff subscriber constraints element must be included, even if empty.");
-
-    Element influenceFactorsElement =
-      (Element) xml.getElementsByTagName("influenceFactors").item(0);
-    if (influenceFactorsElement != null) {
-//      Element interruptibilityElement =
-//        (Element) influenceFactorsElement
-//                .getElementsByTagName("interruptibility").item(0);
-//      if (interruptibilityElement != null) {
-//        interruptibilityDiscount =
-//          Double.parseDouble(interruptibilityElement.getAttribute("discount"));
-//      }
-//      else
-//        interruptibilityDiscount = 0.0;
-      // normalize inconvenience factors
-      double divisor = (touFactor + interruptibilityFactor
-              + variablePricingFactor + tieredRateFactor
-              + tariffSwitchFactor + brokerSwitchFactor);
+  public void initialize (FactoredCustomerService service)
+  {
+    double divisor = touFactor + interruptibilityFactor + variablePricingFactor
+        + tieredRateFactor + tariffSwitchFactor + brokerSwitchFactor;
+    if (divisor != 0.0) {
       touFactor /= divisor;
       interruptibilityFactor /= divisor;
       variablePricingFactor /= divisor;
       tieredRateFactor /= divisor;
       tariffSwitchFactor /= divisor;
       brokerSwitchFactor /= divisor;
-
-      Element priceWeightsElement =
-        (Element) influenceFactorsElement.getElementsByTagName("priceWeights")
-                .item(0);
-      if (priceWeightsElement != null) {
-        expMeanPriceWeight =
-          Double.parseDouble(priceWeightsElement.getAttribute("expMean"));
-        maxValuePriceWeight =
-          Double.parseDouble(priceWeightsElement.getAttribute("maxValue"));
-        realizedPriceWeight =
-          Double.parseDouble(priceWeightsElement.getAttribute("realized"));
-      }
-      else {
-        expMeanPriceWeight = null;
-        maxValuePriceWeight = null;
-        realizedPriceWeight = null;
-      }
     }
-    else
-      throw new Error(
-                      "Tariff subscriber influence factors element must be included, even if empty.");
 
-    Element allocationElement =
-      (Element) xml.getElementsByTagName("allocation").item(0);
-    allocationMethod =
-      Enum.valueOf(AllocationMethod.class,
-                   allocationElement.getAttribute("method"));
-    if (allocationMethod == AllocationMethod.TOTAL_ORDER) {
-      Element totalOrderElement =
-        (Element) allocationElement.getElementsByTagName("totalOrder").item(0);
-      populateTotalOrderRules(totalOrderElement.getAttribute("rules"));
+    if (this.allocationMethod.equals(AllocationMethod.TOTAL_ORDER.toString())) {
       logitChoiceRationality = 1.0;
     }
-    else {
-      Element logitChoiceElement =
-        (Element) allocationElement.getElementsByTagName("logitChoice").item(0);
-      logitChoiceRationality = 
-              Double.parseDouble(logitChoiceElement.
-                                 getAttribute("rationality"));
-    }
 
-    Element reconsiderationElement =
-      (Element) xml.getElementsByTagName("reconsideration").item(0);
-    reconsiderationPeriod =
-      Integer.parseInt(reconsiderationElement.getAttribute("period"));
-    Element inertiaElement =
-      (Element) xml.getElementsByTagName("switchingInertia").item(0);
-    Node inertiaDistributionNode =
-      inertiaElement.getElementsByTagName("inertiaDistribution").item(0);
-    if (inertiaDistributionNode != null) {
-      Element inertiaDistributionElement = (Element) inertiaDistributionNode;
-      inertiaDistribution =
-        new ProbabilityDistribution(service, inertiaDistributionElement);
-
-      customerWealthDistribution = null;
-      customerWealthReferenceMedian = 0.0;
-      newTariffsExposure = null;
-      switchingDelay = null;
-      waitAfterSwitch = null;
-    }
-    else {
-      inertiaDistribution = null;
-
-      Node inertiaFactorsNode =
-        inertiaElement.getElementsByTagName("inertiaFactors").item(0);
-      if (inertiaFactorsNode == null) {
-        throw new Error(
-                        "TariffSubscriberStructure(): Inertia distribution and factors are both undefined!");
-      }
-      Element inertiaFactorsElement = (Element) inertiaFactorsNode;
-      Element customerWealthElement =
-        (Element) inertiaFactorsElement.getElementsByTagName("customerWealth")
-                .item(0);
-      customerWealthDistribution =
-        new ProbabilityDistribution(service, customerWealthElement);
-      customerWealthReferenceMedian =
-        Double.parseDouble(customerWealthElement
-                .getAttribute("referenceMedian"));
-      Element newTariffsExposureElement =
-        (Element) inertiaFactorsElement
-                .getElementsByTagName("newTariffsExposure").item(0);
-      newTariffsExposure =
-        new ProbabilityDistribution(service, newTariffsExposureElement);
-      Element switchingDelayElement =
-        (Element) inertiaFactorsElement.getElementsByTagName("switchingDelay")
-                .item(0);
-      switchingDelay = new ProbabilityDistribution(service, switchingDelayElement);
-      Element waitAfterSwitchElement =
-        (Element) inertiaFactorsElement.getElementsByTagName("waitAfterSwitch")
-                .item(0);
-      waitAfterSwitch = new ProbabilityDistribution(service, waitAfterSwitchElement);
+    Map<String, StructureInstance> map =
+        Config.getInstance().getStructures().get("ProbabilityDistribution");
+    inertiaDistribution = (ProbabilityDistribution) map.get(name + "Inertia");
+    if (inertiaDistribution != null) {
+      inertiaDistribution.initialize(service);
     }
   }
 
-  private void populateTotalOrderRules (String config)
+  // =================== Accessors ====================
+
+  @Override
+  public String getName ()
   {
-    // example config:
-    // "0.7:0.3, 0.5:0.3:0.2, 0.4:0.3:0.2:0.1, 0.4:0.3:0.2:0.05:0.05"
-    // which yields the following rules:
-    // size = 2, rule = [0.7, 0.3]
-    // size = 3, rule = [0.5, 0.3, 0.2]
-    // size = 4, rule = [0.4, 0.3, 0.2, 0.1]
-    // size = 5, rule = [0.4, 0.3, 0.2, 0.05, 0.05]
-
-    String[] rules = config.split(",");
-
-    List<Double> degenerateRule = new ArrayList<Double>(1);
-    degenerateRule.add(1.0);
-    totalOrderRules.add(degenerateRule);
-
-    for (int i = 0; i < rules.length; ++i) {
-      if (rules[i].length() > 0) {
-        String[] vals = rules[i].split(":");
-        List<Double> rule = new ArrayList<Double>(vals.length);
-        for (int j = 0; j < vals.length; ++j) {
-          rule.add(Double.parseDouble(vals[j]));
-        }
-        totalOrderRules.add(rule);
-      }
-    }
+    return name;
   }
 
-  CustomerStructure getCustomerStructure ()
+  public double getInconvenienceWeight ()
   {
-    return customerStructure;
+    return inconvenienceWeight;
   }
 
-  CapacityBundle getCapacityBundle ()
+  public double getTouFactor ()
   {
-    return capacityBundle;
+    return touFactor;
   }
 
-} // end class
+  public double getInterruptibilityFactor ()
+  {
+    return interruptibilityFactor;
+  }
+
+  public double getVariablePricingFactor ()
+  {
+    return variablePricingFactor;
+  }
+
+  public double getTieredRateFactor ()
+  {
+    return tieredRateFactor;
+  }
+
+  public double getTariffSwitchFactor ()
+  {
+    return tariffSwitchFactor;
+  }
+
+  public double getBrokerSwitchFactor ()
+  {
+    return brokerSwitchFactor;
+  }
+
+  public int getExpectedDuration ()
+  {
+    return expectedDuration;
+  }
+
+  public Double getExpMeanPriceWeight ()
+  {
+    return expMeanPriceWeight;
+  }
+
+  public Double getMaxValuePriceWeight ()
+  {
+    return maxValuePriceWeight;
+  }
+
+  public Double getRealizedPriceWeight ()
+  {
+    return realizedPriceWeight;
+  }
+
+  public Double getTariffVolumeThreshold ()
+  {
+    return tariffVolumeThreshold;
+  }
+
+  public double getLogitChoiceRationality ()
+  {
+    return logitChoiceRationality;
+  }
+
+  public ProbabilityDistribution getInertiaDistribution ()
+  {
+    return inertiaDistribution;
+  }
+}

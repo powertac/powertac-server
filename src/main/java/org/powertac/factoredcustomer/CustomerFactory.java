@@ -16,60 +16,67 @@
 
 package org.powertac.factoredcustomer;
 
-import java.util.Map;
-import java.util.HashMap;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import org.powertac.factoredcustomer.interfaces.*;
+import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
+
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
- * Register CustomerCategory-specific creators.  Creators implement the nested 
+ * Register CustomerCategory-specific creators.  Creators implement the nested
  * public interface @code{CustomerCreator}.
- * 
+ *
  * @author Prashant Reddy
  */
 @Domain
 final class CustomerFactory
 {
-    public interface CustomerCreator {
-        public String getKey();
-        public FactoredCustomer createModel(CustomerStructure structure);
-    }
-    
-    CustomerCreator defaultCreator;
-    Map<String, CustomerCreator> customerCreators = new HashMap<String, CustomerCreator>();
-    
-    @StateChange
-    void registerDefaultCreator(CustomerCreator creator) 
-    {
-        defaultCreator = creator;
-    }
-	
-    @StateChange
-    void registerCreator(CustomerCreator creator)
-    {
-        registerCreator(creator.getKey(), creator);
-    }
-        
-    @StateChange
-    void registerCreator(String key, CustomerCreator creator) 
-    {
-        customerCreators.put(key, creator);
+  public interface CustomerCreator
+  {
+    public String getKey ();
+
+    public FactoredCustomer createModel (CustomerStructure customerStructure);
+  }
+
+  private CustomerCreator defaultCreator;
+  private Map<String, CustomerCreator> customerCreators = new HashMap<>();
+
+  @StateChange
+  void registerDefaultCreator (CustomerCreator creator)
+  {
+    defaultCreator = creator;
+  }
+
+  @StateChange
+  void registerCreator (CustomerCreator creator)
+  {
+    registerCreator(creator.getKey(), creator);
+  }
+
+  @StateChange
+  private void registerCreator (String key, CustomerCreator creator)
+  {
+    customerCreators.put(key, creator);
+  }
+
+  FactoredCustomer processStructure (CustomerStructure customerStructure)
+  {
+    if (customerStructure.getCreatorKey() == null ||
+        customerStructure.getCreatorKey().trim().isEmpty()) {
+      return defaultCreator.createModel(customerStructure);
     }
 
-    FactoredCustomer processStructure(CustomerStructure structure) 
-    {
-        CustomerCreator creator;
-        if (structure.creatorKey == null || structure.creatorKey.trim().isEmpty()) {
-            creator = defaultCreator;
-        } else {
-            creator = customerCreators.get(structure.creatorKey);
-            if (creator == null) {
-                throw new Error("CustomerFactory does not have a registered creator for key: " + structure.creatorKey);
-            }
-        }
-        return creator.createModel(structure);            
+    CustomerCreator creator =
+        customerCreators.get(customerStructure.getCreatorKey());
+    if (creator != null) {
+      return creator.createModel(customerStructure);
     }
 
-} // end class
+    throw new Error(
+        "CustomerFactory does not have a registered creator for key: "
+            + customerStructure.getCreatorKey());
+  }
+}
 

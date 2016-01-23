@@ -15,49 +15,54 @@
 
 package org.powertac.factoredcustomer;
 
+import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * Utility class with functions used to build the various structure objects.
- * 
+ *
  * @author Prashant Reddy
  */
 final class ParserFunctions
 {
-    static double[] parseDoubleArray(String input) {
-        String[] items = input.split(",");
-        double[] ret = new double[items.length];
-        for (int i=0; i < items.length; ++i) {
-            ret[i] = Double.parseDouble(items[i]);
-        }
-        return ret;
+  static double[] parseDoubleArray (String input)
+  {
+    String[] items = input.split(",");
+    double[] ret = new double[items.length];
+    for (int i = 0; i < items.length; ++i) {
+      ret[i] = Double.parseDouble(items[i]);
     }
-    
-    static double[][] parseMapToDoubleArray(String input) {
-        String[] pairs = input.split(",");
-        double[][] ret = new double[pairs.length][2];
-        for (int i=0; i < pairs.length; ++i) {
-            String[] vals = pairs[i].split(":");
-            ret[i][0] = Double.parseDouble(vals[0]);
-            ret[i][1] = Double.parseDouble(vals[1]);
-        }
-        return ret;
-    }
+    return ret;
+  }
 
-    static void parseRangeMap(String input, Map<Integer, Double> map) 
-    {
-        String[] pairs = input.split(",");
-        for (int i=0; i < pairs.length; ++i) {
-            String[] parts = pairs[i].split(":");
-            Double value = Double.parseDouble(parts[1]);
-            String[] range = parts[0].split("~");
-            Integer start = Integer.parseInt(range[0].trim());
-            Integer end = Integer.parseInt(range[1].trim());
-            for (Integer key=start; key <= end; ++key) {
-                map.put(key, value);
-            }
-        }        
+  static double[][] parseMapToDoubleArray (String input)
+  {
+    String[] pairs = input.split(",");
+    double[][] ret = new double[pairs.length][2];
+    for (int i = 0; i < pairs.length; ++i) {
+      String[] vals = pairs[i].split(":");
+      ret[i][0] = Double.parseDouble(vals[0]);
+      ret[i][1] = Double.parseDouble(vals[1]);
     }
-        
-} // end class
+    return ret;
+  }
+
+  static Map<Integer, Double> parseRangeMap (String input)
+  {
+    Map<Integer, Double> map = new HashMap<>();
+    String[] pairs = input.split(",");
+    for (String pair : pairs) {
+      String[] parts = pair.split(":");
+      Double value = Double.parseDouble(parts[1]);
+      String[] range = parts[0].split("~");
+      Integer start = Integer.parseInt(range[0].trim());
+      Integer end = Integer.parseInt(range[1].trim());
+      for (Integer key = start; key <= end; ++key) {
+        map.put(key, value);
+      }
+    }
+    return map;
+  }
+}
 

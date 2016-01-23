@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <CentervilleHomes>
+        <!-- RESIDENTIAL -->
+        <count>1</count>
+        <creatorKey>LEARNING</creatorKey>
+        <bundleCount>1</bundleCount>
+      </CentervilleHomes>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <CentervilleHomes>
+        <count>1</count>
+        <population>20000</population>
+        <type>CONSUMPTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>true</isAdaptive>
+      </CentervilleHomes>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <CentervilleHomes>
+        <baseCapacityType>POPULATION</baseCapacityType>
+
+        <dailySkew>0.8,0.8,0.8,0.8,0.8,1.0,0.9</dailySkew>
+        <hourlySkew>
+          0.5,0.4,0.4,0.5,0.5,0.6,0.6,0.6,0.7,0.6,0.6,0.6,
+          0.6,0.6,0.6,0.6,0.7,0.8,0.9,1.0,1.0,0.9,0.7,0.5
+        </hourlySkew>
+
+        <temperatureInfluence>DEVIATION</temperatureInfluence>
+        <temperatureReference>20</temperatureReference>
+        <temperatureMap>
+          -50~-21: +0.005,
+          -20~0: +0.01,
+          1~16: +0.02,
+          17~24: 0.00,
+          25~35: +0.01,
+          36~50: +0.005
+        </temperatureMap>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>NONE</cloudCoverInfluence>
+
+        <benchmarkRates>00~23: -0.15</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>-0.01</elasticityRatio>
+        <elasticityRange>0.9~1.0</elasticityRange>
+      </CentervilleHomes>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <CentervilleHomes>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.95</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>1.0</logitChoiceRationality>
+      </CentervilleHomes>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <CentervilleHomesInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.8</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </CentervilleHomesInertia>
+      <CentervilleHomesPopulation>
+        <distribution>NORMAL</distribution>
+        <mean>22000</mean>
+        <stdDev>2000</stdDev>
+      </CentervilleHomesPopulation>
+    </probabilityDistribution>
+
+    <profileOptimizerStructure>
+      <CentervilleHomes>
+        <receiveRecommendations>true</receiveRecommendations>
+        <permutationRule>ALL_SHIFTS</permutationRule>
+
+        <reactivityFactor>1.0</reactivityFactor>
+        <receptivityFactor>1.0</receptivityFactor>
+        <rationalityFactor>1.0</rationalityFactor>
+
+        <usageChargeStance>NEUTRAL</usageChargeStance>
+
+        <profileChangeWeight>-0.001</profileChangeWeight>
+        <bundleValueWeight>1.0</bundleValueWeight>
+      </CentervilleHomes>
+    </profileOptimizerStructure>
+  </factoredcustomer>
+</factoredcustomer-root>

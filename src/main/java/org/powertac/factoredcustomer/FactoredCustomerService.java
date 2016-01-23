@@ -16,23 +16,14 @@
 
 package org.powertac.factoredcustomer;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.ArrayList;
-import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
-import org.w3c.dom.*;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
 import org.powertac.common.Competition;
 import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
-import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
-import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.CustomerRepo;
@@ -44,114 +35,104 @@ import org.powertac.common.repo.WeatherForecastRepo;
 import org.powertac.common.repo.WeatherReportRepo;
 import org.powertac.factoredcustomer.CustomerFactory.CustomerCreator;
 import org.powertac.factoredcustomer.interfaces.FactoredCustomer;
-import org.powertac.factoredcustomer.utils.SeedIdGenerator;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+
 /**
- * Key class that processes the configuration file and creates a collection of customers 
- * during the initialization process.  It also delegates tariff selection callbacks and 
+ * Key class that processes the configuration file and creates a collection of customers
+ * during the initialization process.  It also delegates tariff selection callbacks and
  * timeslot activation (i.e., capacity reporting) to the collection of customers.
- * 
+ *
  * @author Prashant Reddy
  */
 @Service  // allow autowiring
 public class FactoredCustomerService extends TimeslotPhaseProcessor
     implements InitializationService, NewTariffListener
 {
-    private static Logger log = LogManager.getLogger(FactoredCustomerService.class.getName());
+  private static Logger log =
+      LogManager.getLogger(FactoredCustomerService.class.getName());
 
-    @Autowired
-    private TimeService timeService;
-    
-    @Autowired
-    private TariffMarket tariffMarketService;
-    
-    @Autowired
-    private TariffRepo tariffRepo;
-  
-    @Autowired
-    private ServerConfiguration serverConfig;
-    
-    @Autowired
-    private CustomerRepo customerRepo;
-    
-    //@Autowired
-    //private TariffRepo getTariffRepo;
-    
-    @Autowired
-    private TimeslotRepo timeslotRepo;
-    
-    @Autowired
-    private RandomSeedRepo randomSeedRepo;
-    
-    @Autowired
-    private TariffSubscriptionRepo tariffSubscriptionRepo;
-    
-    @Autowired
-    private WeatherReportRepo weatherReportRepo;
-    
-    @Autowired
-    private WeatherForecastRepo weatherForecastRepo;
+  @Autowired
+  private TimeService timeService;
 
-    @ConfigurableValue(valueType = "String", description = "Resource name for configuration data")
-    private String configResource = null;
+  @Autowired
+  private TariffMarket tariffMarketService;
 
-    @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of tariff allocation details")
-    private boolean allocationDetailsLogging = true;
-    @ConfigurableValue(valueType = "Boolean", description = "Toogle logging of capacity adjustment details")
-    private boolean capacityDetailsLogging = false;
-    @ConfigurableValue(valueType = "Boolean", description = "Toggle logging of expected usage charges")
-    private boolean usageChargesLogging = true;
+  @Autowired
+  private TariffRepo tariffRepo;
 
-    private List<CustomerStructure> customerStructures = new ArrayList<CustomerStructure>();
-    private List<FactoredCustomer> customers = new ArrayList<FactoredCustomer>();
-    private CustomerFactory customerFactory = new CustomerFactory();
-    private boolean newTariffs = false; // When true, check for new subscriptions
+  @Autowired
+  private CustomerRepo customerRepo;
 
+  @Autowired
+  private TimeslotRepo timeslotRepo;
 
-    public FactoredCustomerService()
-    {
-        super();
+  @Autowired
+  private RandomSeedRepo randomSeedRepo;
+
+  @Autowired
+  private TariffSubscriptionRepo tariffSubscriptionRepo;
+
+  @Autowired
+  private WeatherReportRepo weatherReportRepo;
+
+  @Autowired
+  private WeatherForecastRepo weatherForecastRepo;
+
+  private List<FactoredCustomer> customers = new ArrayList<>();
+  private CustomerFactory customerFactory = new CustomerFactory();
+  private boolean newTariffs = false; // When true, check for new subscriptions
+
+  public FactoredCustomerService ()
+  {
+    super();
+  }
+
+  /**
+   * This is called once at the beginning of each game.
+   */
+  @Override
+  public String initialize (Competition competition, List<String> completedInits)
+  {
+    if (!completedInits.contains("DefaultBroker") || !completedInits.contains("TariffMarket")) {
+      log.debug("Waiting for DefaultBroker and TariffMarket to initialize");
+      return null;
     }
 
-    /**
-     * This is called once at the beginning of each game.
-     */
-    @Override
-    public String initialize (Competition competition, List<String> completedInits)
-    {
-        if (! completedInits.contains("DefaultBroker") || ! completedInits.contains("TariffMarket")) {
-            log.debug("Waiting for DefaultBroker and TariffMarket to initialize");
-            return null;
-        }
+    super.init();
+    customers.clear(); // recycle between games
+    tariffMarketService.registerNewTariffListener(this);
 
-        customerStructures.clear();
-        customers.clear();
-        SeedIdGenerator.reset();
-        newTariffs = false;
+    registerAvailableCustomerCreators();
 
-        super.init();
-        serverConfig.configureMe(this);
+    Config config = Config.getInstance();
+    Map<String, StructureInstance> customerStructures =
+        config.getStructures().get("CustomerStructure");
 
-        tariffMarketService.registerNewTariffListener(this);
-    
-        registerAvailableCustomerCreators();
-    
-        loadCustomerStructures(configResource);
-    
-        log.info("Creating factored customers from configuration structures...");
-        for (CustomerStructure customerStructure: customerStructures) { 
-            FactoredCustomer customer = customerFactory.processStructure(customerStructure);
-            if (customer != null) {
-                customer.initialize(this, customerStructure);
-                customers.add(customer);
-            } else throw new Error("Could not create factored customer for structure: " + customerStructure.name);
-        }
-        log.info("Successfully initialized " + customers.size() + " factored customers from " + customerStructures.size() + " structures");     
-        return "FactoredCustomer";
+    log.info("Creating factored customers from configuration structures...");
+    for (StructureInstance instance : customerStructures.values()) {
+      CustomerStructure customerStructure = (CustomerStructure) instance;
+      FactoredCustomer customer = customerFactory.processStructure(customerStructure);
+      if (customer != null) {
+        customer.initialize(this);
+        customers.add(customer);
+      }
+      else {
+        throw new Error("Could not create factored customer for structure: " +
+            customerStructure.getName());
+      }
+    }
+    log.info("Successfully initialized " + customers.size() +
+        " factored customers from " + customerStructures.size() + " structures");
+    return "FactoredCustomer";
   }
-    
+
   // mockable component access methods - package visibility
   TimeService getTimeService ()
   {
@@ -162,109 +143,67 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   {
     return customerRepo;
   }
-  
+
   TariffRepo getTariffRepo ()
   {
     return tariffRepo;
   }
-  
+
   org.powertac.common.repo.TimeslotRepo getTimeslotRepo ()
   {
     return timeslotRepo;
   }
-  
+
   RandomSeedRepo getRandomSeedRepo ()
   {
     return randomSeedRepo;
   }
-  
+
   TariffSubscriptionRepo getTariffSubscriptionRepo ()
   {
     return tariffSubscriptionRepo;
   }
-  
+
   TariffMarket getTariffMarket ()
   {
     return tariffMarketService;
   }
-  
+
   WeatherReportRepo getWeatherReportRepo ()
   {
     return weatherReportRepo;
   }
-  
+
   WeatherForecastRepo getWeatherForecastRepo ()
   {
     return weatherForecastRepo;
   }
 
-  private void registerAvailableCustomerCreators()
+  private void registerAvailableCustomerCreators ()
   {
-      customerFactory.registerDefaultCreator(DefaultFactoredCustomer.getCreator());
-      log.info("Registered default factored customer creator");
-      
-      List<String> creatorNames = new ArrayList<String>();
-      creatorNames.add("org.powertac.factoredcustomer.LearningCustomerCreator");
-      
-      for (String name: creatorNames) {
-          try {
-              CustomerCreator creator = (CustomerCreator) Class.forName(name).newInstance();
-              customerFactory.registerCreator(creator);
-              log.info("Registered creator: " + name);
-          } catch (ClassNotFoundException e) {
-              continue;
-          } catch (Exception e) {
-              throw new Error("Could not register creator for name: " + name + "; caught exception: " + e);
-          }
-      }
-  }
+    customerFactory.registerDefaultCreator(DefaultFactoredCustomer.getCreator());
+    log.info("Registered default factored customer creator");
 
-  protected void loadCustomerStructures(String configResource)
-  {
-      log.info("Attempting to load factored customer structures from config resource: " + configResource);
+    List<String> creatorNames = new ArrayList<>();
+    creatorNames.add("org.powertac.factoredcustomer.LearningCustomerCreator");
+
+    for (String name : creatorNames) {
       try {
-          InputStream configStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(configResource);
-          
-          DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
-          DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
-          Document doc = docBuilder.parse(configStream);
-
-          NodeList customerNodes = doc.getElementsByTagName("customer");
-          int numStructures = customerNodes.getLength();
-          log.info("Loading " + numStructures + " factored customer structures");
-        
-          for (int i = 0; i < numStructures; ++i) {
-              Element customerElement = (Element) customerNodes.item(i);
-              String name = customerElement.getAttribute("name");
-              String countString = customerElement.getAttribute("count");
-              int count;
-              if (countString == null || countString.trim().isEmpty()) {
-                  count = 1;
-              } else {
-                  count = Integer.parseInt(countString);            
-              }
-              if (count == 0) {
-                  // ignore structure
-              } else if (count == 1) {
-                  CustomerStructure structure = new CustomerStructure(name, customerElement);
-                  customerStructures.add(structure);                    
-              } else {
-                  for (int j=1; j <= count; ++j) {
-                      CustomerStructure structure = new CustomerStructure(name + j, customerElement);
-                      customerStructures.add(structure);                    
-                  }
-              }
-          }
-      } catch (Exception e) {
-          log.error("Error loading factored customer structures from config resourcee: " + configResource + 
-                    "; exception = " + e.toString());
-          throw new Error(e);
+        CustomerCreator creator = (CustomerCreator) Class.forName(name).newInstance();
+        customerFactory.registerCreator(creator);
+        log.info("Registered creator: " + name);
       }
-      log.info("Successfully loaded factored customer structures");
+      catch (ClassNotFoundException ignored) {
+      }
+      catch (Exception e) {
+        throw new Error("Could not register creator for name: "
+            + name + "; caught exception: " + e);
+      }
+    }
   }
 
   @Override
-  public void publishNewTariffs(List<Tariff> tariffs)
+  public void publishNewTariffs (List<Tariff> tariffs)
   {
     // Find the subset of tariffs to evaluate
     for (FactoredCustomer customer : customers) {
@@ -273,7 +212,8 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     newTariffs = true;
   }
 
-  private void updatedSubscriptionRepo() {
+  private void updatedSubscriptionRepo ()
+  {
     // Find the subset of tariffs to evaluate
     log.info("Time to handle new subscriptions");
     for (FactoredCustomer customer : customers) {
@@ -282,61 +222,23 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   }
 
   @Override
-  public void activate(Instant now, int phase)
+  public void activate (Instant now, int phase)
   {
     if (newTariffs) {
       // possible new subscriptions in last timeslot
       newTariffs = false;
       updatedSubscriptionRepo();
     }
-      for (FactoredCustomer customer : customers) {
-          customer.handleNewTimeslot();
-      }
+    for (FactoredCustomer customer : customers) {
+      customer.handleNewTimeslot();
+    }
   }
 
-  String getConfigResource() 
+  /**
+   * package scope for testing
+   **/
+  List<FactoredCustomer> getCustomers ()
   {
-      return configResource;
+    return customers;
   }
-
-  void setConfigResource(String resource) 
-  {
-      configResource = resource;
-  }
-
-  boolean getAllocationDetailsLogging()
-  {
-      return allocationDetailsLogging;
-  }
-  
-  void setAllocationDetailsLogging(boolean value)
-  {
-      allocationDetailsLogging = value;
-  }
-  
-  boolean getCapacityDetailsLogging()
-  {
-      return capacityDetailsLogging;
-  }
-  
-  void setCapacityDetailsLogging(boolean value)
-  {
-      capacityDetailsLogging = value;
-  }
-  
-  boolean getUsageChargesLogging()
-  {
-      return usageChargesLogging;
-  }
-  
-  void setUsageChargesLogging(boolean value)
-  {
-      usageChargesLogging = value;
-  }
-  
-  /** package scope for testing **/
-  List<FactoredCustomer> getCustomers() 
-  {
-      return customers;
-  }    
 }

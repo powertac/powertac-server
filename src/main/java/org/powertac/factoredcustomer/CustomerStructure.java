@@ -16,41 +16,49 @@
 
 package org.powertac.factoredcustomer;
 
-import org.w3c.dom.*;
+import org.powertac.common.config.ConfigurableValue;
+import org.powertac.factoredcustomer.interfaces.StructureInstance;
+
 
 /**
  * Data-holder class for parsed configuration elements of one customer.
  * All members are declared final in the package scope.
- * 
+ *
  * @author Prashant Reddy
  */
-public final class CustomerStructure
+public final class CustomerStructure implements StructureInstance
 {
-    enum EntityType { RESIDENTIAL, COMMERCIAL, INDUSTRIAL };
-    	
-    private final Element configXml;
-    
-    private static long structureCounter = 0;
-    
-    final long structureId = ++structureCounter;
-    final String name;
-    final String creatorKey;
-    final EntityType entityType;
-    
-    CustomerStructure(String nameWithCount, Element xml)
-    {
-        name = nameWithCount;
-        configXml = xml;
-        
-        creatorKey = xml.getAttribute("creatorKey");
-        
-        entityType = Enum.valueOf(EntityType.class, xml.getAttribute("entityType"));
-    }
+  private String name;
 
-    public Element getConfigXml()
-    {
-        return configXml;
-    }
-        
-} // end class
+  @ConfigurableValue(valueType = "String")
+  private String creatorKey;
+  @ConfigurableValue(valueType = "Integer")
+  private int count = 1;
+  @ConfigurableValue(valueType = "Integer")
+  private int bundleCount = 1;
 
+  public CustomerStructure (String name)
+  {
+    this.name = name;
+  }
+
+  public String getName ()
+  {
+    return name;
+  }
+
+  public String getCreatorKey ()
+  {
+    return creatorKey;
+  }
+
+  public int getCount ()
+  {
+    return count;
+  }
+
+  public int getBundleCount ()
+  {
+    return bundleCount;
+  }
+}

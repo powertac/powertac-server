@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<factoredcustomer-root>
+  <factoredcustomer>
+    <customerStructure>
+      <SolarLeasing>
+        <count>1</count>
+        <creatorKey />
+        <!-- COMMERCIAL -->
+        <bundleCount>1</bundleCount>
+      </SolarLeasing>
+    </customerStructure>
+
+    <defaultCapacityBundle>
+      <SolarLeasing>
+        <count>1</count>
+        <population>7000</population>
+        <type>SOLAR_PRODUCTION</type>
+        <multiContracting>true</multiContracting>
+        <canNegotiate>false</canNegotiate>
+        <isAdaptive>false</isAdaptive>
+      </SolarLeasing>
+    </defaultCapacityBundle>
+
+    <capacityStructure>
+      <SolarLeasing>
+        <baseCapacityType>INDIVIDUAL</baseCapacityType>
+
+        <dailySkew>1.0,1.0,1.0,1.0,1.0,1.0,1.0</dailySkew>
+        <hourlySkew>
+          0.0,0.0,0.0,0.0,0.0,0.0,0.05,0.31,0.58,0.77,0.92,1.0,
+          1.0,0.92,0.77,0.58,0.31,0.05,0.0,0.0,0.0,0.0,0.0,0.0
+        </hourlySkew>
+
+        <temperatureInfluence>NONE</temperatureInfluence>
+        <windSpeedInfluence>NONE</windSpeedInfluence>
+        <windDirectionInfluence>NONE</windDirectionInfluence>
+        <cloudCoverInfluence>DIRECT</cloudCoverInfluence>
+        <cloudCoverMap>
+          0~30: 1.0,
+          31~50: 0.8,
+          51~70: 0.5,
+          71~80: 0.35,
+          81~90: 0.25,
+          91~100: 0.15
+        </cloudCoverMap>
+
+        <benchmarkRates>00~23: 0.08</benchmarkRates>
+        <elasticityModelType>CONTINUOUS</elasticityModelType>
+        <elasticityRatio>0.0</elasticityRatio>
+        <elasticityRange>1.0~1.0</elasticityRange>
+      </SolarLeasing>
+    </capacityStructure>
+
+    <tariffSubscriberStructure>
+      <SolarLeasing>
+        <expMeanPriceWeight>0.6</expMeanPriceWeight>
+        <maxValuePriceWeight>0.4</maxValuePriceWeight>
+        <realizedPriceWeight>0.8</realizedPriceWeight>
+
+        <allocationMethod>LOGIT_CHOICE</allocationMethod>
+        <logitChoiceRationality>0.9</logitChoiceRationality>
+      </SolarLeasing>
+    </tariffSubscriberStructure>
+
+    <probabilityDistribution>
+      <SolarLeasingInertia>
+        <distribution>INTERVAL</distribution>
+        <mean>0.7</mean>
+        <stdDev>0.1</stdDev>
+        <low>0</low>
+        <high>1</high>
+      </SolarLeasingInertia>
+      <SolarLeasingPopulation>
+        <distribution>NORMAL</distribution>
+        <mean>5</mean>
+        <stdDev>2</stdDev>
+      </SolarLeasingPopulation>
+    </probabilityDistribution>
+  </factoredcustomer>
+</factoredcustomer-root>
