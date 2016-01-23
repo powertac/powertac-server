@@ -170,6 +170,14 @@ implements InitializationService
 
     serverProps.configureMe(this);
 
+    // init local data
+    timeslotOffset = null;
+    runningMean = 0.0;
+    runningVar = 0.0;
+    runningSigma = 0.0;
+    runningCount = 0;
+    lastAssessmentTimeslot = 0;
+
     // initialize peak-demand data
     if (useCapacityFee) {
       netDemand = new double[assessmentInterval];
@@ -218,8 +226,8 @@ implements InitializationService
       }
     }
     // Initialize running mean, sigma
-    for (double net: result) {
-      updateStats(net);
+    for (int i = 0; i < result.length; i++) {
+      updateStats(result[i]);
     }
     log.info("Bootstrap data: n = {}, mean = {}, sigma = {}",
              runningCount, runningMean, runningSigma);
