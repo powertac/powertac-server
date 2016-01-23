@@ -120,7 +120,6 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
   public OfficeComplexCustomerService ()
   {
     super();
-    officeComplexList = new ArrayList<OfficeComplex>();
   }
 
   /**
@@ -139,11 +138,10 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
         || !completedInits.contains("TariffMarket"))
       return null;
     super.init();
+    officeComplexList = new ArrayList<OfficeComplex>();
     tariffMarketService.registerNewTariffListener(this);
 
     serverPropertiesService.configureMe(this);
-
-    officeComplexList.clear();
 
     //tariffMarketService.registerNewTariffListener(this);
 
