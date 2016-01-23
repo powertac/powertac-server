@@ -106,7 +106,7 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     }
 
     super.init();
-
+    customers.clear(); // recycle between games
     tariffMarketService.registerNewTariffListener(this);
 
     registerAvailableCustomerCreators();
