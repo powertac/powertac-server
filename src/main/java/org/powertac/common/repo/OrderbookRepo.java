@@ -158,6 +158,7 @@ public class OrderbookRepo implements DomainRepo
     timeslotIndex.clear();
     spotIndex.clear();
     minAskPrices = null;
+    maxAskPrices = null;
   }
 
 }
