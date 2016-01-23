@@ -69,7 +69,7 @@ implements CapacityControl, InitializationService
   
   // future economic controls
   HashMap<Integer, List<EconomicControlEvent>> pendingEconomicControls =
-      new HashMap<Integer, List<EconomicControlEvent>>();
+      new HashMap<>();
   
   // ignore quantities less than epsilon
   private double epsilon = 1e-6;

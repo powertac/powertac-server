@@ -109,6 +109,7 @@ public class AccountingService
   public String initialize (Competition competition, List<String> completedInits)
   {
     pendingTransactions.clear();
+    pendingMarketTransactions.clear();
     super.init();
     bankInterest = null;
     serverProps.configureMe(this);
@@ -294,6 +295,8 @@ public class AccountingService
   public void activate(Instant time, int phaseNumber) 
   {
     log.info("Activate: " + pendingTransactions.size() + " messages");
+    totalConsumption = 0.0;
+    totalProduction = 0.0;
     HashMap<Broker, List<Object>> brokerMsg = new HashMap<Broker, List<Object>>();
     for (Broker broker : brokerRepo.list()) {
       brokerMsg.put(broker, new ArrayList<Object>());
