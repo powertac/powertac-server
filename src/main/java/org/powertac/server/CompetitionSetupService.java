@@ -379,6 +379,7 @@ public class CompetitionSetupService
       return;
     log.info("Reading configuration from " + config);
     serverProps.setUserConfig(makeUrl(config));
+    //log.info("Server version {}", System.getProperty("server.pomId"));
   }
 
   private void loadTimeslotCountsMaybe ()
@@ -563,7 +564,6 @@ public class CompetitionSetupService
         cc.setAuthorizedBrokerList(brokers);
         cc.setInputQueueName(inputQueueName);
         if (preGame(bootDataset)) {
-          //cc.setBootstrapDataset(processBootDataset(bootDataset));
           bootstrapDataRepo.add(processBootDataset(bootDataset));
           cc.runOnce(false);
           gameId += 1;
