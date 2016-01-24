@@ -111,7 +111,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
    * This is the configuration file that will be utilized to pass the parameters
    * that can be adjusted by user
    */
-  Properties configuration = new Properties();
+  Properties configuration;
 
   /** List of the Office Customers in the competition */
   ArrayList<OfficeComplex> officeComplexList;
@@ -138,6 +138,7 @@ public class OfficeComplexCustomerService extends TimeslotPhaseProcessor
         || !completedInits.contains("TariffMarket"))
       return null;
     super.init();
+    configuration = new Properties();
     officeComplexList = new ArrayList<OfficeComplex>();
     tariffMarketService.registerNewTariffListener(this);
 
