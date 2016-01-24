@@ -109,7 +109,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   private ServerConfiguration serverProps;
 
   // These dates need to be fetched when using not blocking
-  private List<DateTime> aheadDays = new CopyOnWriteArrayList<DateTime>();
+  private List<DateTime> aheadDays;
   private DateTime simulationBaseTime;
   private int daysAhead = 3;
 
@@ -251,6 +251,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   public String initialize (Competition competition, List<String> completedInits)
   {
     super.init();
+    aheadDays = new CopyOnWriteArrayList<DateTime>();
     serverProps.configureMe(this);
     weatherReqInterval = Math.min(24, weatherReqInterval);
     simulationBaseTime = competition.getSimulationBaseTime().toDateTime();
