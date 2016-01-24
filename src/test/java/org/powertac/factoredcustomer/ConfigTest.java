@@ -41,6 +41,7 @@ public class ConfigTest
   {
     configSvc = new DummyConfig();
     configSvc.initialize();
+    Config.recycle();
   }
 
   @Test
@@ -57,8 +58,7 @@ public class ConfigTest
   public void testPropertyConfig ()
   {
     Config config = Config.getInstance();
-    ReflectionTestUtils.setField(config, "serverConfiguration", configSvc);
-    config.configure();
+    config.configure(configSvc);
 
     assertEquals("ConfiguredValue allocationDetailsLogging",
         config.isAllocationDetailsLogging(), true);
@@ -75,8 +75,7 @@ public class ConfigTest
   public void testStructureKeys ()
   {
     Config config = Config.getInstance();
-    ReflectionTestUtils.setField(config, "serverConfiguration", configSvc);
-    config.configure();
+    config.configure(configSvc);
 
     Set<String> names = config.getStructures().keySet();
 
@@ -102,8 +101,7 @@ public class ConfigTest
   public void testStructureConfig ()
   {
     Config config = Config.getInstance();
-    ReflectionTestUtils.setField(config, "serverConfiguration", configSvc);
-    config.configure();
+    config.configure(configSvc);
     Map<String, Map<String, StructureInstance>> structures = config.getStructures();
 
     // Customer structures

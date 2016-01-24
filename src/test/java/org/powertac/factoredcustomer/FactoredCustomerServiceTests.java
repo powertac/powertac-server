@@ -126,6 +126,7 @@ public class FactoredCustomerServiceTests
     tariffSubscriptionRepo.recycle();
     randomSeedRepo.recycle();
     timeslotRepo.recycle();
+    Config.recycle();
     reset(mockTariffMarket);
     reset(mockAccounting);
 
@@ -203,14 +204,16 @@ public class FactoredCustomerServiceTests
 
   public void initializeService ()
   {
-    Config config = Config.getInstance();
-    ReflectionTestUtils.setField(config, "serverConfiguration", configSvc);
-    config.configure();
-
     List<String> inits = new ArrayList<>();
     inits.add("DefaultBroker");
     inits.add("TariffMarket");
 
+    ReflectionTestUtils.setField(factoredCustomerService,
+                                 "serverConfiguration",
+                                 configSvc);
+
+    // Note that this won't work now that factoredCustomerService recycles
+    // config
     factoredCustomerService.initialize(comp, inits);
   }
 

@@ -24,6 +24,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TimeService;
 import org.powertac.common.interfaces.InitializationService;
 import org.powertac.common.interfaces.NewTariffListener;
+import org.powertac.common.interfaces.ServerConfiguration;
 import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.interfaces.TimeslotPhaseProcessor;
 import org.powertac.common.repo.CustomerRepo;
@@ -85,8 +86,11 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
   @Autowired
   private WeatherForecastRepo weatherForecastRepo;
 
-  private List<FactoredCustomer> customers = new ArrayList<>();
-  private CustomerFactory customerFactory = new CustomerFactory();
+  @Autowired
+  private ServerConfiguration serverConfiguration;
+
+  private List<FactoredCustomer> customers;
+  private CustomerFactory customerFactory;
   private boolean newTariffs = false; // When true, check for new subscriptions
 
   public FactoredCustomerService ()
@@ -106,12 +110,17 @@ public class FactoredCustomerService extends TimeslotPhaseProcessor
     }
 
     super.init();
-    customers.clear(); // recycle between games
+    customers = new ArrayList<>(); // recycle between games
+    customerFactory = new CustomerFactory();
+    newTariffs = false;
     tariffMarketService.registerNewTariffListener(this);
 
     registerAvailableCustomerCreators();
 
+    Config.recycle();
     Config config = Config.getInstance();
+    config.configure(serverConfiguration);
+    
     Map<String, StructureInstance> customerStructures =
         config.getStructures().get("CustomerStructure");
 
