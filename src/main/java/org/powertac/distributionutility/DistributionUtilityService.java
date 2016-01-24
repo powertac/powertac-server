@@ -171,6 +171,8 @@ implements InitializationService
     serverProps.configureMe(this);
 
     // init local data
+    netDemand = null;
+    brokerNetDemand = null;
     timeslotOffset = null;
     runningMean = 0.0;
     runningVar = 0.0;
