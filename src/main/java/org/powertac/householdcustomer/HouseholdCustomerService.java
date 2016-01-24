@@ -106,7 +106,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
    * This is the configuration file that will be utilized to pass the parameters
    * that can be adjusted by user
    */
-  Properties configuration = new Properties();
+  Properties configuration;
 
   /** List of the Household Customers in the competition */
   ArrayList<Village> villageList;
@@ -137,6 +137,7 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     super.init();
     tariffMarketService.registerNewTariffListener(this);
 
+    configuration = new Properties();
     villageList = new ArrayList<Village>();
 
     serverPropertiesService.configureMe(this);
