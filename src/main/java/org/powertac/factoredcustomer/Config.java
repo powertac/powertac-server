@@ -32,7 +32,7 @@ import java.util.Map;
 
 
 /**
- * Singleton configuration class shared by all the ev-customer types
+ * Singleton configuration class shared by all the factored-customer types
  *
  * @author John Collins, Govert Buijs
  */
