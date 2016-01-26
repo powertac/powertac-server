@@ -16,17 +16,31 @@
 
 package org.powertac.evcustomer.customers;
 
-import org.powertac.common.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.powertac.common.CustomerInfo;
+import org.powertac.common.RandomSeed;
+import org.powertac.common.Tariff;
 import org.powertac.common.config.ConfigurableInstance;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.customer.AbstractCustomer;
 import org.powertac.evcustomer.Config;
-import org.powertac.evcustomer.beans.*;
+import org.powertac.evcustomer.beans.Activity;
+import org.powertac.evcustomer.beans.CarType;
+import org.powertac.evcustomer.beans.ClassCar;
+import org.powertac.evcustomer.beans.ClassGroup;
+import org.powertac.evcustomer.beans.GroupActivity;
+import org.powertac.evcustomer.beans.SocialGroup;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 /**
  * Instances represent identifiable "classes" of EV customers. 
@@ -111,10 +125,13 @@ public class EvSocialClass extends AbstractCustomer
   {
     super.initialize();
     log.info("Initialize " + name);
-    Map<String, Collection<?>> beans; //= new HashMap<String, Collection<?>>();
-    this.generator = service.getRandomSeedRepo().
+    Map<String, Collection<?>> beans;
+    generator = service.getRandomSeedRepo().
         getRandomSeed("EvSocialClass-" + name, 1, "initialize");
+
+    Config.recycle();
     config = Config.getInstance();
+    config.configure(service.getServerConfiguration());
 
     beans = config.getBeans();
     unpackBeans(beans);
@@ -200,7 +217,7 @@ public class EvSocialClass extends AbstractCustomer
     CustomerInfo info =
         customer.initialize(thisGroup, gender, activities,
                             getGroupActivities(beans, thisGroup),
-                            car, service);
+                            car, service, config);
     addCustomerInfo(info);
     service.getCustomerRepo().add(info);
     return customer;

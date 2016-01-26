@@ -130,15 +130,16 @@ public class EvCustomer
                                   Map<Integer, Activity> activities,
                                   Map<Integer, GroupActivity> groupActivities,
                                   CarType car,
-                                  CustomerServiceAccessor service)
+                                  CustomerServiceAccessor service,
+                                  Config config)
   {
-    config = Config.getInstance();
     this.socialGroup = socialGroup;
     this.activities = activities;
     this.groupActivities = groupActivities;
     this.gender = gender;
     this.car = car;
     this.service = service;
+    this.config = config;
     this.generator =
         service.getRandomSeedRepo().getRandomSeed(name, 1, "model");
     setCurrentCapacity(0.5 * car.getMaxCapacity());

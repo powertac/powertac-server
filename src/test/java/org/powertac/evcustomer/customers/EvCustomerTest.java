@@ -28,6 +28,7 @@ import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TariffSubscriptionRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.repo.WeatherReportRepo;
+import org.powertac.evcustomer.Config;
 import org.powertac.evcustomer.PredictableRandom;
 import org.powertac.evcustomer.beans.Activity;
 import org.powertac.evcustomer.beans.GroupActivity;
@@ -93,15 +94,16 @@ public class EvCustomerTest
   public void initialize (String gender)
   {
     if (activities == null) {
-      activities = new HashMap<Integer, Activity>();
+      activities = new HashMap<>();
       activities.put(activity.getId(), activity);
     }
     if (details == null) {
-      details = new HashMap<Integer, GroupActivity>();
+      details = new HashMap<>();
       details.put(detail.getActivityId(), detail);
     }
-    evCustomer.initialize(socialGroup, gender,
-                          activities, details, carType, service);
+    Config config = Config.getInstance();
+    evCustomer.initialize(socialGroup, gender, activities, details,
+        carType, service, config);
   }
 
   @Test
