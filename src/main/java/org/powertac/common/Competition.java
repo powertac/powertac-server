@@ -57,6 +57,10 @@ public class Competition //implements Serializable
   /** Optional text that further describes the competition    */
   private String description = "";
 
+  /** POM ID from server.properties */
+  @XStreamAsAttribute
+  private String pomId = "unknown";
+
   /** length of a timeslot in simulation minutes    */
   @XStreamAsAttribute
   private int timeslotLength = 60;
@@ -182,7 +186,7 @@ public class Competition //implements Serializable
   {
     return description;
   }
-  
+
   /**
    * Fluent setter for competition description.
    */
@@ -195,7 +199,28 @@ public class Competition //implements Serializable
     this.description = description;
     return this;
   }
-  
+
+  /**
+   * Returns the pom version id from the server on which this Competition
+   * was created.
+   */
+  public String getPomId ()
+  {
+    return pomId;
+  }
+
+  /** Fluent setter for Pom ID.
+   */
+  @ConfigurableValue(
+      description = "maven version identifier from server",
+      valueType = "String")
+  @StateChange
+  public Competition withPomId (String id)
+  {
+    this.pomId = id;
+    return this;
+  }
+
   /**
    * Returns the length of a timeslot in minutes (sim time).
    */
@@ -203,7 +228,7 @@ public class Competition //implements Serializable
   {
     return timeslotLength;
   }
-  
+
   /**
    * Returns the duration of a timeslot in milliseconds sim-time.
    */
