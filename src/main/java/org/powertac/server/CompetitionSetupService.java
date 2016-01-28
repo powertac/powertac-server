@@ -584,10 +584,11 @@ public class CompetitionSetupService
   public void preGame ()
   {    
     String suffix = serverProps.getProperty("server.logfileSuffix", "x");
-    String pomId = serverProps.getProperty("server.pomId", "0");
     logService.startLog(suffix);
+    extractPomId();
     log.info("preGame() - start game " + gameId);
-    log.info("POM version ID: " + pomId);
+    log.info("POM version ID: {}",
+             serverProps.getProperty("common.competition.pomId"));
     IdGenerator.recycle();
     // Create competition instance
     competition = Competition.newInstance("game-" + gameId);
@@ -768,5 +769,22 @@ public class CompetitionSetupService
       log.error("nodeToString Transformer Exception " + te.toString());
     }
     return sw.toString();
+  }
+
+  // Extracts the pom ID from the manifest, adds it to server properties
+  private void extractPomId ()
+  {
+    try {
+      Properties props = new Properties();
+      InputStream is =
+          getClass().getResourceAsStream("/META-INF/maven/org.powertac/server-main/pom.properties");
+      if (null != is) {
+        props.load(is);
+        serverProps.setProperty("common.competition.pomId",
+                                props.getProperty("version"));;
+      }
+    } catch (Exception e) {
+      log.error("Failed to load properties from manifest");
+    }
   }
 }
