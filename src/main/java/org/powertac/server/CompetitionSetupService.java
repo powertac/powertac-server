@@ -110,7 +110,9 @@ public class CompetitionSetupService
   private TimeService timeService;
 
   private Competition competition;
-  private int gameId = 0;
+  //private String sessionPrefix = "game-";
+  private int sessionCount = 0;
+  private String gameId = null;
   private URL controllerURL;
   private String seedSource = null;
   private Thread session = null;
@@ -159,8 +161,8 @@ public class CompetitionSetupService
         parser.accepts("boot").withRequiredArg().ofType(String.class);
     OptionSpec<URL> controllerOption =
         parser.accepts("control").withRequiredArg().ofType(URL.class);
-    OptionSpec<Integer> gameOpt = 
-    	parser.accepts("game-id").withRequiredArg().ofType(Integer.class);
+    OptionSpec<String> gameOpt = 
+    	parser.accepts("game-id").withRequiredArg().ofType(String.class);
     OptionSpec<String> serverConfigUrl =
         parser.accepts("config").withRequiredArg().ofType(String.class);
     OptionSpec<String> logSuffixOption =
@@ -186,18 +188,19 @@ public class CompetitionSetupService
       seedSource = null;
       String logSuffix = options.valueOf(logSuffixOption);
       controllerURL = options.valueOf(controllerOption);
-      Integer game = options.valueOf(gameOpt);
+      String game = options.valueOf(gameOpt);
       String serverConfig = options.valueOf(serverConfigUrl);
-      
+
+      if (null == game) {
+        log.error("gameId not given");
+        gameId = Integer.toString(sessionCount);
+      }
+      else {
+        gameId = game;
+      }
+
       // process tournament scheduler based info
       if (controllerURL != null) {
-        if (null == game) {
-          log.error("controller URL " + controllerURL + " without gameId");
-          gameId = 0;
-        }
-        else {
-          gameId = game;
-        }
         tss.setTournamentSchedulerUrl(controllerURL.toString());
         tss.setGameId(game);
         serverConfig = tss.getConfigUrl().toExternalForm();
@@ -269,7 +272,8 @@ public class CompetitionSetupService
       loadTimeslotCountsMaybe();
 
       // set the logfile suffix
-      setLogSuffix(logSuffix, "boot");
+      ensureGameId();
+      setLogSuffix(logSuffix, "boot-" + gameId);
 
       File bootFile = new File(bootFilename);
       if (!bootFile
@@ -331,6 +335,7 @@ public class CompetitionSetupService
       loadTimeslotCountsMaybe();
 
       // set the logfile suffix
+      ensureGameId();
       setLogSuffix(logfileSuffix, "sim-" + gameId);
 
       // jms setup overrides config
@@ -566,12 +571,26 @@ public class CompetitionSetupService
         if (preGame(bootDataset)) {
           bootstrapDataRepo.add(processBootDataset(bootDataset));
           cc.runOnce(false);
-          gameId += 1;
-        }        
+          nextGameId();
+        }
       }
     };
     session.start();
-  }  
+  }
+
+  // Create a gameId if it's not already set (mainly for Viz-driven games)
+  private void ensureGameId ()
+  {
+    if (null == gameId)
+      gameId = Integer.toString(sessionCount);
+  }
+
+  // Names of multi-session games use the default session prefix
+  private void nextGameId ()
+  {
+    sessionCount += 1;
+    gameId = Integer.toString(sessionCount);
+  }
 
   /**
    * Pre-game server setup - creates the basic configuration elements
@@ -591,7 +610,7 @@ public class CompetitionSetupService
              serverProps.getProperty("common.competition.pomId"));
     IdGenerator.recycle();
     // Create competition instance
-    competition = Competition.newInstance("game-" + gameId);
+    competition = Competition.newInstance(gameId);
     Competition.setCurrent(competition);
     
     // Set up all the plugin configurations

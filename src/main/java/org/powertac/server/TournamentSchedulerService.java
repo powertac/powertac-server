@@ -26,14 +26,14 @@ public class TournamentSchedulerService
 
   private String propertiesUrl = "faces/properties.jsp";
 
-  private int gameId = 0;
+  private String gameId = "0";
 
-  public int getGameId ()
+  public String getGameId ()
   {
     return gameId;
   }
 
-  public void setGameId (int gameId)
+  public void setGameId (String gameId)
   {
     this.gameId = gameId;
   }
