@@ -77,7 +77,7 @@ public class WeatherService extends TimeslotPhaseProcessor implements
   private String weatherLocation = "rotterdam";
 
   @ConfigurableValue(valueType = "String", description = "Location of weather server rest url")
-  private String serverUrl = "http://wolf-08.fbk.eur.nl:8080/WeatherServer/faces/index.xhtml";
+  private String serverUrl = "http://wolf31.ict.eur.nl:8080/WeatherServer/faces/index.xhtml";
 
   // If network requests should be made asynchronously or not.
   @ConfigurableValue(valueType = "Boolean", description = "If network calls to weather server should block until finished")
