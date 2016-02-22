@@ -35,6 +35,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
+
 
 /**
  * A competition instance represents a single PowerTAC competition and
@@ -74,10 +76,10 @@ public class Competition //implements Serializable
   private int bootstrapDiscardedTimeslots = 24;
 
   /** Minimum number of timeslots, aka competition length    */
-  @XStreamAsAttribute
+  @XStreamOmitField
   private int minimumTimeslotCount = 480;
-  
-  @XStreamAsAttribute
+
+  @XStreamOmitField
   private int expectedTimeslotCount = 600;
 
   /** concurrently open timeslots, i.e. time window in which broker actions like trading are allowed   */
