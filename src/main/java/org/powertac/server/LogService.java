@@ -88,8 +88,9 @@ public class LogService
         filename += "-" + id;
       }
       
-      System.setProperty("logfile", "log/" + filename + ".trace");
-      System.setProperty("statefile", "log/" + filename + ".state");
+      String logDir = System.getProperty("logdir", "log");
+      System.setProperty("logfile", logDir + "/" + filename + ".trace");
+      System.setProperty("statefile", logDir + "/" + filename + ".state");
       
       ((LoggerContext) LogManager.getContext(false)).reconfigure();
     }
