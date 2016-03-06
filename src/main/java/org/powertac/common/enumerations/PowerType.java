@@ -37,7 +37,7 @@ public class PowerType
   private enum TypeLabel {
   CONSUMPTION,
   PRODUCTION,
-  //STORAGE,
+  STORAGE,
   INTERRUPTIBLE_CONSUMPTION,
   THERMAL_STORAGE_CONSUMPTION,
   SOLAR_PRODUCTION, WIND_PRODUCTION,
@@ -59,8 +59,8 @@ public class PowerType
       new PowerType(TypeLabel.CONSUMPTION);
   public static final PowerType PRODUCTION =
       new PowerType(TypeLabel.PRODUCTION);
-  //public static final PowerType STORAGE =
-  //    new PowerType(TypeLabel.STORAGE);
+  public static final PowerType STORAGE =
+      new PowerType(TypeLabel.STORAGE);
   public static final PowerType INTERRUPTIBLE_CONSUMPTION =
       new PowerType(TypeLabel.INTERRUPTIBLE_CONSUMPTION);
   public static final PowerType THERMAL_STORAGE_CONSUMPTION =
@@ -128,7 +128,8 @@ public class PowerType
     return (this.equals(tariffType)
             || (isConsumption() && tariffType.label == TypeLabel.CONSUMPTION)
             || (isProduction() && tariffType.label == TypeLabel.PRODUCTION)
-            || (isInterruptible() && tariffType.label == TypeLabel.INTERRUPTIBLE_CONSUMPTION));
+            || (isInterruptible() && tariffType.label == TypeLabel.INTERRUPTIBLE_CONSUMPTION)
+            || (isStorage() && tariffType.label == TypeLabel.STORAGE));
   }
   
   /**
@@ -147,7 +148,8 @@ public class PowerType
    */
   public boolean isStorage ()
   {
-    return (label == TypeLabel.THERMAL_STORAGE_CONSUMPTION
+    return (label == TypeLabel.STORAGE
+            || label == TypeLabel.THERMAL_STORAGE_CONSUMPTION
             || label == TypeLabel.BATTERY_STORAGE
             || label == TypeLabel.ELECTRIC_VEHICLE
             || label == TypeLabel.PUMPED_STORAGE_PRODUCTION);
@@ -162,8 +164,8 @@ public class PowerType
       return CONSUMPTION;
     else if (isProduction())
       return PRODUCTION;
-    //else if (isStorage())
-    //  return STORAGE;
+    else if (isStorage())
+      return STORAGE;
     else
       return null;
   }
