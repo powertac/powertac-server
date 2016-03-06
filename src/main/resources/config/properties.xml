@@ -11,7 +11,7 @@
 	<minTemp>-30</minTemp>
 	<newStockTemp>-2</newStockTemp>
 	<roofArea>625</roofArea>
-	<wallArea>1000</wallArea>
+	<wallArea>240</wallArea>
 	<stockCapacity>400</stockCapacity>
 	<turnoverRatio>0.15</turnoverRatio>
 	<cop>1.2</cop>
@@ -24,20 +24,33 @@
 	<minTemp>-30</minTemp>
 	<newStockTemp>-2</newStockTemp>
 	<roofArea>1600</roofArea>
-	<wallArea>1920</wallArea>
+	<wallArea>960</wallArea>
 	<stockCapacity>900</stockCapacity>
 	<turnoverRatio>0.15</turnoverRatio>
 	<cop>1.5</cop>
 	<unitSize>50</unitSize>
 	<nonCoolingUsage>15</nonCoolingUsage>
       </seafood-2>
+      <seafood-3>
+        <maxTemp>-10</maxTemp>
+        <nominalTemp>-20</nominalTemp>
+        <minTemp>-30</minTemp>
+        <newStockTemp>-2</newStockTemp>
+        <roofArea>2500</roofArea>
+        <wallArea>1200</wallArea>
+        <stockCapacity>2400</stockCapacity>
+        <turnoverRatio>0.2</turnoverRatio>
+        <cop>1.5</cop>
+        <unitSize>80</unitSize>
+        <nonCoolingUsage>25</nonCoolingUsage>
+      </seafood-3>
       <freezeco-1>
 	<maxTemp>-5</maxTemp>
 	<nominalTemp>-15</nominalTemp>
 	<minTemp>-35</minTemp>
 	<newStockTemp>0</newStockTemp>
 	<roofArea>400</roofArea>
-	<wallArea>720</wallArea>
+	<wallArea>320</wallArea>
 	<stockCapacity>250</stockCapacity>
 	<turnoverRatio>0.05</turnoverRatio>
 	<cop>1.4</cop>
@@ -48,9 +61,9 @@
 	<maxTemp>-5</maxTemp>
 	<nominalTemp>-15</nominalTemp>
 	<minTemp>-35</minTemp>
-	<newStockTemp>0</newStockTemp>
+	<newStockTemp>10</newStockTemp>
 	<roofArea>600</roofArea>
-	<wallArea>1500</wallArea>
+	<wallArea>500</wallArea>
 	<stockCapacity>375</stockCapacity>
 	<turnoverRatio>0.08</turnoverRatio>
 	<cop>1.6</cop>
@@ -75,13 +88,20 @@
 
   <model>
     <liftTruck>
-      <instances>sf2,fc2,fc3</instances>
+      <instances>sf2,sf3,fc2,fc3</instances>
       <sf2>
-	<!-- 2 trucks, one shift 6 days -->
-	<nBatteries>3</nBatteries>
-	<nChargers>2</nChargers>
-	<shiftData>block,1,2,3,4,5,6, shift,8,8,2</shiftData>
+	<!-- 3 trucks, one 10-hr shift 6 days -->
+	<nBatteries>4</nBatteries>
+	<nChargers>5</nChargers>
+	<shiftData>block,1,2,3,4,5,6, shift,7,10,4</shiftData>
       </sf2>
+      <sf3>
+        <!-- 12 trucks, 3 shifts weekdays, 1 shift weekends -->
+        <nBatteries>24</nBatteries>
+        <nChargers>14</nChargers>
+        <shiftData>block,1,2,3,4,5, shift,0,8,8, shift,8,8,12, shift,16,8,8
+                   block,6,7, shift,8,8,10</shiftData>
+      </sf3>
       <fc2>
 	<!-- 1 truck, 3 shifts weekdays -->
 	<nBatteries>3</nBatteries>
@@ -96,5 +116,161 @@
                    block,6,7, shift,8,8,4</shiftData>
       </fc3>
     </liftTruck>
+
+    <battery>
+      <instances>b1,b2,b3,b4,b5,b6,b7,b8,b9,b10,
+                 b11,b12,b13,b14,b15,b16,b17,b18,b19,b20,
+                 b21,b22,b23,b24,b25,b26,b27,b28,b29,b30</instances>
+      <b1>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b1>
+      <b2>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b2>
+      <b3>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b3>
+      <b4>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b4>
+      <b5>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b5>
+      <b6>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b6>
+      <b7>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b7>
+      <b8>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b8>
+      <b9>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b9>
+      <b10>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b10>
+      <b11>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b11>
+      <b12>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b12>
+      <b13>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b13>
+      <b14>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b14>
+      <b15>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b15>
+      <b16>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b16>
+      <b17>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b17>
+      <b18>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b18>
+      <b19>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b19>
+      <b20>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b20>
+      <b21>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b21>
+      <b22>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b22>
+      <b23>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b23>
+      <b24>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b24>
+      <b25>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b25>
+      <b26>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b26>
+      <b27>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b27>
+      <b28>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b28>
+      <b29>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b29>
+      <b30>
+        <capacityKWh>90</capacityKWh>
+        <maxChargeKW>30</maxChargeKW>
+        <maxDischargeKW>-30</maxDischargeKW>
+      </b30>
+    </battery>
   </model>
 </customer></customer-model-root>
