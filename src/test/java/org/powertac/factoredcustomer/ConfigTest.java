@@ -18,7 +18,6 @@ package org.powertac.factoredcustomer;
 import org.junit.Before;
 import org.junit.Test;
 import org.powertac.factoredcustomer.interfaces.StructureInstance;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -162,67 +161,4 @@ public class ConfigTest
     optimizerNames.addAll(structures.get("ProfileOptimizerStructure").keySet());
     assertEquals("0 Timeseries Structures", 0, optimizerNames.size());
   }
-
-  /*
-  public class DummyConfig implements ServerConfiguration
-  {
-    private Configurator configurator;
-
-    DummyConfig ()
-    {
-      super();
-    }
-
-    void initialize ()
-    {
-      config = new CompositeConfiguration();
-      configurator = new Configurator();
-      InputStream stream =
-          ConfigTest.class.getResourceAsStream("/config/test-properties.xml");
-      XMLConfiguration xconfig = new XMLConfiguration();
-      try {
-        xconfig.load(stream);
-        config.addConfiguration(xconfig);
-        configurator.setConfiguration(config);
-      }
-      catch (ConfigurationException e) {
-        e.printStackTrace();
-        fail(e.toString());
-      }
-    }
-
-    @Override
-    public void configureMe (Object target)
-    {
-      configurator.configureSingleton(target);
-    }
-
-    @Override
-    public Collection<?> configureInstances (Class<?> target)
-    {
-      return configurator.configureInstances(target);
-    }
-
-    @Override
-    public void publishConfiguration (Object target)
-    {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void saveBootstrapState (Object thing)
-    {
-      // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public Collection<?> configureNamedInstances (List<?> instances)
-    {
-      // Auto-generated method stub
-      return null;
-    }
-  }
-  */
 }
