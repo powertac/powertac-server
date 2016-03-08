@@ -40,6 +40,8 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Order;
+import org.powertac.common.RateCore;
+import org.powertac.common.RegulationRate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.TimeService;
@@ -232,15 +234,16 @@ public class DefaultBrokerServiceTests
         return null;
       }
     }).when(mockMarket).setDefaultTariff(isA(TariffSpecification.class));
-    
+
     Broker face = init();
 
     // should now have two tariff specs, one for production and
     // one for consumption
     boolean foundProduction = false;
     boolean foundConsumption = false;
-    
-    assertEquals("two default tariffs", 2, specs.size());
+    boolean foundStorage = false;
+
+    assertEquals("three default tariffs", 3, specs.size());
     for (TariffSpecification spec : specs) {
       if (spec.getPowerType() == PowerType.CONSUMPTION) {
         foundConsumption = true;
@@ -258,9 +261,18 @@ public class DefaultBrokerServiceTests
         assertTrue("fixed rate", rates.get(0).isFixed());
         assertEquals("correct rate", 0.01, rates.get(0).getValue(), 1e-6);
       }
+      else if (spec.getPowerType() == PowerType.STORAGE) {
+        foundStorage = true;
+        assertEquals("correct issuer", face, spec.getBroker());
+        List<RegulationRate> rrates = spec.getRegulationRates();
+        assertEquals("just one rate", 1, rrates.size());
+        List<Rate> rates = spec.getRates();
+        assertEquals("one normal rate", 1, rates.size());
+      }
     }
     assertTrue("found a consumption tariff", foundConsumption);
     assertTrue("found a production tariff", foundProduction);
+    assertTrue("found a storage tariff", foundStorage);
   }
 
   // incoming messages drive all activity. These include TariffTransaction,
