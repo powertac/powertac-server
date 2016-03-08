@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -561,21 +560,41 @@ public class CompetitionSetupService
   // Runs a simulation session
   private void startSimSession (final List<String> brokers,
                                 final String inputQueueName,
-                                final URL bootDataset)
+                                final URL bootUrl)
   {
     session = new Thread() {
       @Override
       public void run () {
         cc.setAuthorizedBrokerList(brokers);
         cc.setInputQueueName(inputQueueName);
-        if (preGame(bootDataset)) {
-          bootstrapDataRepo.add(processBootDataset(bootDataset));
-          cc.runOnce(false);
-          nextGameId();
+        Document document = getDocument(bootUrl);
+        if (document != null) {
+          if (preGame(document)) {
+            bootstrapDataRepo.add(processBootDataset(document));
+            cc.runOnce(false);
+            nextGameId();
+          }
         }
       }
     };
     session.start();
+  }
+
+  private Document getDocument (URL bootUrl)
+  {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    factory.setNamespaceAware(true);
+    DocumentBuilder builder;
+    Document doc = null;
+    try {
+      builder = factory.newDocumentBuilder();
+      doc = builder.parse(bootUrl.openStream());
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return doc;
   }
 
   // Create a gameId if it's not already set (mainly for Viz-driven games)
@@ -642,7 +661,7 @@ public class CompetitionSetupService
   /**
    * Sets up the simulator, with config overrides provided in a file.
    */
-  public boolean preGame (URL bootFile)
+  private boolean preGame (Document document)
   {
     log.info("preGame(File) - start");
     // run the basic pre-game setup
@@ -656,19 +675,18 @@ public class CompetitionSetupService
       // first grab the Competition
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/config/competition");
-      NodeList nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
-                                     XPathConstants.NODESET);
+      NodeList nodes = (NodeList) exp.evaluate(document,
+          XPathConstants.NODESET);
       String xml = nodeToString(nodes.item(0));
-      bootstrapCompetition = (Competition)messageConverter.fromXML(xml);
+      bootstrapCompetition = (Competition) messageConverter.fromXML(xml);
 
       // next, grab the bootstrap-state and add it to the config
       exp = xPath.compile("/powertac-bootstrap-data/bootstrap-state/properties");
-      nodes = (NodeList)exp.evaluate(new InputSource(bootFile.openStream()),
-                                     XPathConstants.NODESET);
+      nodes = (NodeList) exp.evaluate(document, XPathConstants.NODESET);
       if (null != nodes && nodes.getLength() > 0) {
         // handle the case where there is no bootstrap-state clause
         xml = nodeToString(nodes.item(0));
-        Properties bootState = (Properties)messageConverter.fromXML(xml);
+        Properties bootState = (Properties) messageConverter.fromXML(xml);
         serverProps.addProperties(bootState);
       }
     }
@@ -677,11 +695,7 @@ public class CompetitionSetupService
       System.out.println("preGame: Error reading boot dataset: " + xee.toString());
       return false;
     }
-    catch (IOException ioe) {
-      log.error("preGame: Error opening file " + bootFile + ": " + ioe.toString());
-      System.out.println("preGame: Error opening file " + bootFile + ": " + ioe.toString());
-      return false;
-    }
+
     // update the existing Competition - should be the current competition
     Competition.currentCompetition().update(bootstrapCompetition);
     timeService.setClockParameters(competition);
@@ -746,18 +760,17 @@ public class CompetitionSetupService
   }
 
   // Extracts a bootstrap dataset from its file
-  private ArrayList<Object> processBootDataset (URL bootDataset)
+  private ArrayList<Object> processBootDataset (Document document)
   {
     // Read and convert the bootstrap dataset
-    ArrayList<Object> result = new ArrayList<Object>();
+    ArrayList<Object> result = new ArrayList<>();
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
     try {
-      InputSource source = new InputSource(bootDataset.openStream());
       // we want all the children of the bootstrap node
       XPathExpression exp =
           xPath.compile("/powertac-bootstrap-data/bootstrap/*");
-      NodeList nodes = (NodeList)exp.evaluate(source, XPathConstants.NODESET);
+      NodeList nodes = (NodeList)exp.evaluate(document, XPathConstants.NODESET);
       log.info("Found " + nodes.getLength() + " bootstrap nodes");
       // Each node is a bootstrap data item
       for (int i = 0; i < nodes.getLength(); i++) {
@@ -768,9 +781,6 @@ public class CompetitionSetupService
     }
     catch (XPathExpressionException xee) {
       log.error("runOnce: Error reading config file: " + xee.toString());
-    }
-    catch (IOException ioe) {
-      log.error("runOnce: reset fault: " + ioe.toString());
     }
     return result;
   }
