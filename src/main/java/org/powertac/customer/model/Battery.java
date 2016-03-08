@@ -109,7 +109,6 @@ implements CustomerModelAccessor
     // conservative interruptible capacity
     double interruptible = maxChargeKW;
     info.withPowerType(powerType)
-        .withCustomerClass(CustomerClass.LARGE)
         .withControllableKW(-interruptible)
         .withStorageCapacity(capacityKWh)
         .withUpRegulationKW(maxDischargeKW)
@@ -146,7 +145,8 @@ implements CustomerModelAccessor
 
     // set up the tariff evaluator. We are wide-open to variable pricing.
     tariffEvaluator = new TariffEvaluator(this);
-    tariffEvaluator.withInertia(0.7).withPreferredContractDuration(14);
+    tariffEvaluator.withInertia(0.7).withRationality(0.99)
+        .withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
     tariffEvaluator.initializeRegulationFactors(-maxChargeKW * 0.5,
                                                 maxDischargeKW * 0.5,
@@ -204,6 +204,7 @@ implements CustomerModelAccessor
                               maxChargeKW * timeslotLength)));
     subscription.setRegulationCapacity(new RegulationCapacity(subscription,
                                                               up, down));
+    subscription.usePower(0.0);
   }
 
   // ================ getters and setters =====================
