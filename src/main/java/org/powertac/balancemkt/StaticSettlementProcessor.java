@@ -539,7 +539,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       super();
       this.info = info;
       this.balancingOrder = bo;
-      this.price = bo.getPrice(); 
+      this.price = bo.getPrice();
     }
 
     // constructs an intermediate dummy
@@ -624,6 +624,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
       else
         return (balancingOrder.getBroker().getUsername()
                 + ":" + balancingOrder.getTariffId()
+                + ":" + price
                 + ":" + availableCapacity
                 + ":" + exercisedCapacity);
     }
