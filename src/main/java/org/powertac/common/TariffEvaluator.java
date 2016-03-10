@@ -324,6 +324,8 @@ public class TariffEvaluator
 
     // Get the cost eval for the appropriate default tariff
     EvalData defaultEval = getDefaultTariffEval();
+    log.debug("customer {}: defaultEval={}",
+              getName(), defaultEval.costEstimate);
     
     // ensure we have the cost eval for each of the new tariffs
     for (Tariff tariff : newTariffs) {
@@ -419,8 +421,9 @@ public class TariffEvaluator
       tariffs.add(currentTariff);
     }
 
-    // for each tariff, including the current and default tariffs,
-    // compute the utility
+    // Compute the final cost number for each tariff
+    HashMap<Tariff, EvalData> costs = new HashMap<Tariff, EvalData>();
+    double maxCost = 0.0;
     for (Tariff tariff: tariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
@@ -440,18 +443,34 @@ public class TariffEvaluator
           log.error(getName() + ": cost is NaN for tariff "
                     + tariff.getId());
         }
+        //else {
+        //  maxCost = Math.max(maxCost, cost);
+        //}
       }
+      costs.put(tariff, new EvalData(cost, inconvenience));
+    }
+
+    // for each tariff, including the current and default tariffs,
+    // compute the utility
+    for (Tariff tariff: tariffs) {
+      EvalData finalCost = costs.get(tariff);
       // don't consider current tariff if it's revoked
       if (!revoked || tariff != currentTariff) {
-        double utility = computeNormalizedDifference(cost,
-                                                     defaultEval.costEstimate);
-        utility -= inconvenienceWeight * inconvenience;
+        double utility =
+            computeNormalizedDifference(finalCost.costEstimate - maxCost,
+                                        defaultEval.costEstimate - maxCost);
+        utility -= inconvenienceWeight * finalCost.inconvenience;
         //log.info("adding TariffUtility(" + tariff.getId() + ", " + constrainUtility(utility) + " (" + utility + ")");
         if (Double.isNaN(utility)) {
           log.error(getName() + ": utility is NaN for tariff "
                     + tariff.getId());
         }
-        evals.add(new TariffUtility(tariff, constrainUtility(utility)));
+        log.debug("tariff {}: maxCost={}, adjCost={}, default={}, utility={}",
+                  tariff.getId(), maxCost, finalCost.costEstimate - maxCost,
+                  defaultEval.costEstimate - maxCost, utility);
+        TariffUtility tu =
+            new TariffUtility(tariff, constrainUtility(utility));
+        evals.add(tu);
       }
     }
     
@@ -476,6 +495,8 @@ public class TariffEvaluator
                   + ", tariff " + util.tariff);
         util.probability = 0.0;
       }
+      log.debug("Tariff {} probability={}",
+                util.tariff.getId(), util.probability);
     }
     int remainingPopulation = population;
     int chunk = remainingPopulation;
@@ -499,6 +520,8 @@ public class TariffEvaluator
       // walk down the list until we run out of probability
       boolean allocated = false;
       for (TariffUtility tu : evals) {
+        log.debug("tariff {}: sample={}, probability={}",
+                  tu.tariff.getId(), tariffSample, tu.probability);
         if (tariffSample <= tu.probability) {
           addAllocation(currentTariff, tu.tariff, count);
           allocated = true;
@@ -569,6 +592,7 @@ public class TariffEvaluator
   private double computeNormalizedDifference (double cost, double defaultCost)
   {
     // Daniel temporary bug fix
+    // John -- TODO -- I REALLY don't like this
     if (defaultCost == 0) {
       // this means that capacity is 0, so we don't want any changes
       // so return small utility
@@ -622,10 +646,9 @@ public class TariffEvaluator
     if (Double.isNaN(scale)) {
       log.error(getName() + ": scale NaN for tariff " + tariff.getId());
     }
-    log.debug("inconv profileCost=" + profileCost + " inconv=" + inconv
-        + " scaled-charge=" + profileCost * scale + " scaled (cost+inconv)="
-        + (profileCost + inconv) * scale + " ratio= "
-        + (profileCost + inconv) * scale / (profileCost * scale));
+    log.debug("tariff {}: profileCost={}, inconv={}, scaled-charge={}, scaled (cost+inconv)={}",
+              tariff.getId(), profileCost, inconv, profileCost * scale, (profileCost + inconv) * scale,
+              (profileCost + inconv) * scale / (profileCost * scale));
     return (profileCost + inconv) * scale;
   }
 
@@ -785,6 +808,7 @@ public class TariffEvaluator
   class TariffUtility implements Comparable<TariffUtility>
   {
     Tariff tariff;
+    double adjustedCost = 0.0;
     double utility;
     double probability = 0.0;
 
