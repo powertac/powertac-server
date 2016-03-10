@@ -88,7 +88,7 @@ public class TariffEvaluationHelper
   
   // need time service, but this is not a Spring managed bean
   private TimeService timeService;
-  
+
   /**
    * Default constructor
    */
@@ -96,7 +96,7 @@ public class TariffEvaluationHelper
   {
     super();
   }
-  
+
   /**
    * Initializes, setting parameters, then normalize the weights for
    * expectedMean and maxValue.
@@ -148,8 +148,11 @@ public class TariffEvaluationHelper
   /**
    * Initializes regulation factors. Applicable only for tariffs with
    * @link{RegulationRate}s. See Section 4.1.1 of the 2014 spec for
-   * details. If this method is not called, default values are zero
-   * for all factors.
+   * details, especially Eq. 5. Signs are from the standpoint of the
+   * customer -- expectedCurtailment and expectedDischarge are negative,
+   * expectedDownReg is positive.
+   * 
+   * If this method is not called, default values are zero for all factors.
    */
   public void initializeRegulationFactors (double expectedCurtailment,
                                            double expectedDischarge,
@@ -196,6 +199,15 @@ public class TariffEvaluationHelper
       else {
         dailyUsage += usage[index];
       }
+    }
+    // Account for regulation. In general, customers get paid (+) for up-reg
+    // and must pay (-) for down. Also, in general, the amounts are positive
+    // for up-reg and negative for down-reg. This explains the signs used here.
+    if (tariff.hasRegulationRate()) {
+      result +=
+          tariff.getRegulationCharge((expCurtail + expDischarge), 0.0, false);
+      result -=
+          tariff.getRegulationCharge(expDown, 0.0, false);
     }
     return result;
   }
