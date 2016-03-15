@@ -148,7 +148,7 @@ implements CustomerModelAccessor
     tariffEvaluator.withInertia(0.7).withRationality(0.99)
         .withPreferredContractDuration(14);
     tariffEvaluator.initializeInconvenienceFactors(0.0, 0.01, 0.0, 0.0);
-    tariffEvaluator.initializeRegulationFactors(-maxChargeKW * 0.5,
+    tariffEvaluator.initializeRegulationFactors(0.0,
                                                 maxDischargeKW * 0.5,
                                                 maxChargeKW * 0.5);
   }
