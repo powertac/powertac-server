@@ -36,7 +36,7 @@ import com.thoughtworks.xstream.annotations.*;
  * are communicated to Customers and to Brokers when tariffs are published.
  * Energy and money quantities in Rates are given from the customer's viewpoint.
  * In other words, a Rate for a consumption tariff will typically specify that
- * the customer pays (negative money value) to recieve energy
+ * the customer pays (negative money value) to receive energy
  * (positive energy quantity).
  * <p>
  * Each <code>TariffSpecification</code> must include at least one <code>Rate</code>.

@@ -203,13 +203,14 @@ public class TariffEvaluationHelper
     // Account for regulation. In general, customers get paid (+) for up-reg
     // and must pay (-) for down. Also, in general, the amounts are positive
     // for up-reg and negative for down-reg. This explains the signs used here.
+    double adj = 0.0;
     if (tariff.hasRegulationRate()) {
-      result +=
+      adj -=
           tariff.getRegulationCharge((expCurtail + expDischarge), 0.0, false);
-      result -=
+      adj +=
           tariff.getRegulationCharge(expDown, 0.0, false);
     }
-    return result;
+    return result + adj * usage.length;
   }
 
   /**

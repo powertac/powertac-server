@@ -416,10 +416,14 @@ public class TariffEvaluationHelperTest
     teh.initializeRegulationFactors(-2.0, 0.0, 1.0);
     double[] usage = {100.0, 200.0};
     double result = teh.estimateCost(tariff, usage, start);
-    assertEquals("correct result", (- 100 * (0.1 * (1 - .01)
-                                             - 0.2 * 2.0 / 100 - 0.04 / 100)
-                                    - 200 * (0.1 * (1 - .005)
-                                             - 0.2 * 2.0 / 200 - 0.04 / 200)),
-                                    result, 1e-6);
+//    assertEquals("correct result", (- 100 * (0.1 * (1 - .01)
+//                                             - 0.2 * 2.0 / 100 - 0.04 / 100)
+//                                    - 200 * (0.1 * (1 - .005)
+//                                             - 0.2 * 2.0 / 200 - 0.04 / 200)),
+//                                    result, 1e-6);
+    assertEquals("correct result",
+                 (- (100.0 - 2.0) * 0.1 + 2.0 * 0.2 + 0.04
+                  - (200.0 - 2.0) * 0.1 + 2.0 * 0.2 + 0.04),
+                  result, 1e-6);
   }
 }

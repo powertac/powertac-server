@@ -394,16 +394,14 @@ public class Tariff
       // Find the regulation adjustment, if any
       if (tiers.size() == 1) {
         Rate rate = findRate(0, di);
-        double perKWh =
-          applyRegulationAdjustment(rate.getValue(when, helper), kwh, helper);
-        result = kwh * perKWh;
+        double perKWh = rate.getValue(when, helper);
+        result = regulatedKWh(kwh, helper) * perKWh;
       }
       else {
-        List<RateKwh> rkList = getRateKwhList(di, kwh, cumulativeUsage);
+        List<RateKwh> rkList =
+            getRateKwhList(di, regulatedKWh(kwh, helper), cumulativeUsage);
         for (RateKwh rk: rkList) {
-          double perKWh =
-            applyRegulationAdjustment(rk.rate.getValue(when, helper), kwh,
-                                      helper);
+          double perKWh = rk.rate.getValue(when, helper);
           result += rk.kwh * perKWh;
         }
       }
@@ -411,28 +409,12 @@ public class Tariff
     return sign * result;
   }
 
-  // Adjusts hourly rate for estimated regulation payments.
-  private double applyRegulationAdjustment (double value, double kwh,
-                                            TariffEvaluationHelper helper)
+  // Adjusts energy produced or consumed based on expected regulation
+  private double regulatedKWh(double kwh, TariffEvaluationHelper helper)
   {
-    if (null == helper || kwh == 0.0 || !this.hasRegulationRate())
-      return value;
-    double p1 =
-      getRegulationCharge(helper.getExpectedCurtailment() / kwh, 0.0, false);
-    double p2 =
-      getRegulationCharge(helper.getExpectedDischarge() / kwh, 0.0, false);
-    double p3 =
-      getRegulationCharge(helper.getExpectedDownRegulation() / kwh, 0.0, false);
-    double result =
-      (value * (1.0 - (helper.getExpectedDischarge()
-                       + helper.getExpectedDownRegulation()) / kwh)
-       - p1 + p2 + p3);
-//    log.info("tariff " + getId() + " regulation adj (v,r,dis,dwn,p1,p2,p3): ("
-//             + value + "," + result
-//             + "," + helper.getExpectedDischarge() / kwh
-//             + "," + helper.getExpectedDownRegulation() / kwh
-//             + "," + p1 + "," + p2 + "," + p3 + ")");
-    return result;
+    if (null != helper && kwh > 0.0)
+      return Math.max(0.0, kwh + helper.getExpectedCurtailment());
+    return kwh;
   }
 
   private int getTimeIndex (Instant when)
