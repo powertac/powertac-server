@@ -82,7 +82,8 @@ public class CapacityTransactionTests
     CapacityTransaction ct =
         new CapacityTransaction(broker, 24, 22, 110.0, 42.1, 3.22);
     String sut = ct.toString();
-    assertEquals("match", "Capacity tx 24-Sally-(22,110.00,42.10)-3.22", sut);
+    assertEquals("match", String.format("Capacity tx %d-%s-(%d,%.2f,%.2f)-%.2f",
+                          24,"Sally",22, 110.0, 42.1, 3.22), sut); 
   }
 
   @Test
