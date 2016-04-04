@@ -549,7 +549,7 @@ implements BrokerContext
   }
 
   /**
-   * CashPosition is the last message sent by Accounting.
+   * TimeslotComplete is the last message sent by the server in each timeslot.
    * This is normally when any broker would submit its bids, so that's when
    * this Broker will do it.
    */
