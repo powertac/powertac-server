@@ -61,6 +61,7 @@ public class BrokerRunner
     OptionSpec<String> serverQueueOption =
             parser.accepts("server-queue").withRequiredArg().ofType(String.class);
     parser.accepts("no-ntp");
+    parser.accepts("interactive");
 
     // do the parse
     OptionSet options = parser.parse(args);
@@ -68,6 +69,7 @@ public class BrokerRunner
     File configFile = null;
     String jmsUrl = null;
     boolean noNtp = false;
+    boolean interactive = false;
     String queueName = null;
     String serverQueue = null;
     Integer repeatCount = 1;
@@ -106,7 +108,11 @@ public class BrokerRunner
         serverQueue = options.valueOf(serverQueueOption);
         System.out.println("  server-queue=" + serverQueue);
       }
-      
+      if (options.has("interactive")) {
+        interactive = true;
+        System.out.println("  interactive=true");
+      }
+
       // at this point, we are either done, or we need to repeat
       int counter = 0;
       while ((null != repeatCount && repeatCount > 0) ||
@@ -130,7 +136,8 @@ public class BrokerRunner
         broker = (PowerTacBroker)context.getBeansOfType(PowerTacBroker.class).values().toArray()[0];
         System.out.println("Starting session " + counter);
         log.info("Starting session {}", counter);
-        broker.startSession(configFile, jmsUrl, noNtp, queueName, serverQueue, end);
+        broker.startSession(configFile, jmsUrl, noNtp,
+                            queueName, serverQueue, end, interactive);
         if (null != repeatCount)
           repeatCount -= 1;
       }
