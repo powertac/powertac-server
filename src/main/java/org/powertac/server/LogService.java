@@ -71,6 +71,11 @@ public class LogService
     filenamePrefix = prefix;
   }
   
+  public String getPrefix ()
+  {
+    return filenamePrefix;
+  }
+  
   public Logger getStateLogger ()
   {
     return LogManager.getLogger("State");
