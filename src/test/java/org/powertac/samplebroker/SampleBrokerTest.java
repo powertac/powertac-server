@@ -31,6 +31,7 @@ import org.powertac.common.msg.BrokerAccept;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.samplebroker.core.BrokerMessageReceiver;
 import org.powertac.samplebroker.core.MessageDispatcher;
 import org.powertac.samplebroker.core.PowerTacBroker;
 import org.springframework.context.ApplicationContext;
@@ -67,6 +68,7 @@ public class SampleBrokerTest
 
     // set up the autowired dependencies
     ApplicationContext ctx = mock(ApplicationContext.class);
+    BrokerMessageReceiver bmr = mock(BrokerMessageReceiver.class);
     SpringApplicationContext sac = new SpringApplicationContext();
     sac.setApplicationContext(ctx);
     MessageDispatcher messageDispatcher = new MessageDispatcher();
@@ -77,6 +79,7 @@ public class SampleBrokerTest
     ReflectionTestUtils.setField(broker, "brokerRepo", brokerRepo);
     ReflectionTestUtils.setField(broker, "username", "Sample");
     ReflectionTestUtils.setField(broker, "timeService", timeService);
+    ReflectionTestUtils.setField(broker, "brokerMessageReceiver", bmr);
 
     broker.init();
   }

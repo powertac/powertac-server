@@ -206,6 +206,7 @@ implements BrokerContext
     brokerRepo.add(adapter); // to resolve incoming messages correctly
 
     // initialize services
+    brokerMessageReceiver.initialize();
     List<Initializable> initializers =
         SpringApplicationContext.listBeansOfType(Initializable.class);
     for (Initializable svc : initializers) {

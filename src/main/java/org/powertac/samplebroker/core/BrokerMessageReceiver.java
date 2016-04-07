@@ -15,6 +15,9 @@
  */
 package org.powertac.samplebroker.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -23,6 +26,7 @@ import javax.jms.TextMessage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.XMLMessageConverter;
+import org.powertac.common.config.ConfigurableValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,6 +44,26 @@ public class BrokerMessageReceiver implements MessageListener
   
   @Autowired 
   MessageDispatcher messageDispatcher;
+
+  @Autowired
+  private BrokerPropertiesService propertiesService;
+
+  @ConfigurableValue(valueType = "Boolean",
+      description = "If true, then some messages are not converted to java")
+  private Boolean rawXML = false;
+
+  @ConfigurableValue(valueType = "List",
+      description = "These xml message types are passed without conversion")
+  private List<String> rawMsgTypes = new ArrayList<>();
+
+  @ConfigurableValue(valueType = "List",
+      description = "These xml message types are passed after conversion")
+  private List<String> cookedMsgTypes = new ArrayList<>();
+
+  public void initialize ()
+  {
+    propertiesService.configureMe(this);
+  }
 
   @Override
   public void onMessage (Message message)
