@@ -44,10 +44,11 @@ public class BalanceReport
   /**
    * Constructed as balanced. Call addImbalance to fill it in.
    */
-  public BalanceReport (int timeslotIndex)
+  public BalanceReport (int timeslotIndex, double value)
   {
     super();
     this.timeslotIndex = timeslotIndex;
+    this.netImbalance = value;
   }
 
   /**
@@ -56,15 +57,6 @@ public class BalanceReport
   public long getId ()
   {
     return id;
-  }
-
-  /**
-   * Adds to the netImbalance. Value must be positive for surplus, negative for
-   * shortage.
-   */
-  public void addImbalance (double kwh)
-  {
-    netImbalance += kwh;
   }
 
   public double getNetImbalance ()
