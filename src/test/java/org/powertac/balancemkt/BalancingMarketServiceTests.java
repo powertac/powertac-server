@@ -186,11 +186,13 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
     double marketBalance = -150.0; // Compute market balance
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    BalancingMarketService.DoubleWrapper report =
+        balancingMarketService.makeDoubleWrapper();
+    //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
         balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct balance report",
-                 marketBalance, report.getNetImbalance(), 1e-6);
+                 marketBalance, report.getValue(), 1e-6);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList.values()) {
@@ -208,11 +210,13 @@ public class BalancingMarketServiceTests
     double marketBalance = 150.0; // Compute market balance
 
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    BalancingMarketService.DoubleWrapper report =
+        balancingMarketService.makeDoubleWrapper();
+    //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> theChargeInfoList =
         balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct balance report",
-                 marketBalance, report.getNetImbalance(), 1e-6);
+                 marketBalance, report.getValue(), 1e-6);
 
     assertEquals("correct number of balance tx", 3, theChargeInfoList.size());
     for (ChargeInfo ci : theChargeInfoList.values()) {
@@ -241,7 +245,9 @@ public class BalancingMarketServiceTests
     }
 
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    BalancingMarketService.DoubleWrapper report =
+        balancingMarketService.makeDoubleWrapper();
+    //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
         balancingMarketService.balanceTimeslot(brokerList, report);
 
@@ -273,7 +279,9 @@ public class BalancingMarketServiceTests
     // List solution =
     // balancingMarketService.computeNonControllableBalancingCharges(brokerList)
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    BalancingMarketService.DoubleWrapper report =
+        balancingMarketService.makeDoubleWrapper();
+    //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
         balancingMarketService.balanceTimeslot(brokerList, report);
 
@@ -360,7 +368,9 @@ public class BalancingMarketServiceTests
                  tariffRepo.getBalancingOrders().size());
 
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    BalancingMarketService.DoubleWrapper report =
+        balancingMarketService.makeDoubleWrapper();
+    //BalanceReport report = new BalanceReport(current.getSerialNumber());
     Map<Broker, ChargeInfo> chargeInfos =
             balancingMarketService.balanceTimeslot(brokerList, report);
     assertEquals("correct count", 3, chargeInfos.size());
@@ -391,5 +401,27 @@ public class BalancingMarketServiceTests
     orders = c1b2.getBalancingOrders();
     assertEquals("found 1 balancing order", 1, orders.size());
     assertTrue("contains bo2t1", orders.contains(bo2t1));
+  }
+
+
+  class DoubleWrapper
+  {
+    double value = 0.0;
+
+    DoubleWrapper()
+    {
+      super();
+    }
+
+    double add (double addend)
+    {
+      value += addend;
+      return value;
+    }
+
+    double getValue ()
+    {
+      return value;
+    }
   }
 }

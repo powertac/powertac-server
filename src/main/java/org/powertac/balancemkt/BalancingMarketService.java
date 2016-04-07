@@ -171,14 +171,16 @@ implements BalancingMarket, SettlementContext, InitializationService
 
     // create the BalanceReport to carry the total imbalance
     Timeslot current = timeslotRepo.currentTimeslot();
-    BalanceReport report = new BalanceReport(current.getSerialNumber());
+    DoubleWrapper sum = makeDoubleWrapper();
 
     // Run the balancing market
     // Transactions are posted to the Accounting Service and Brokers are
     // notified of balancing transactions
-    balancingResults = balanceTimeslot(brokerList, report);
+    balancingResults = balanceTimeslot(brokerList, sum);
 
     // Send the balance report
+    BalanceReport report = new BalanceReport(current.getSerialNumber(),
+                                             sum.getValue());
     brokerProxyService.broadcastMessage(report);
   }
 
@@ -190,7 +192,7 @@ implements BalancingMarket, SettlementContext, InitializationService
    * @return List of ChargeInfo instances
    */
   public Map<Broker, ChargeInfo> balanceTimeslot (List<Broker> brokerList,
-                                                  BalanceReport report)
+                                                  DoubleWrapper report)
   {
     Map<Broker, ChargeInfo> chargeInfoMap = new LinkedHashMap<>();
 
@@ -198,7 +200,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     for (Broker broker : brokerList) {
       double imbalance = getMarketBalance(broker);
       ChargeInfo info = new ChargeInfo(broker, imbalance);
-      report.addImbalance(imbalance);
+      report.add(imbalance);
       chargeInfoMap.put(broker, info);
     }
     
@@ -393,5 +395,36 @@ implements BalancingMarket, SettlementContext, InitializationService
   void setRmPremium (double value)
   {
     rmPremium = value;
+  }
+
+  /**
+   * Mutable double to support computation of total imbalance
+   * @author jcollins
+   */
+  class DoubleWrapper
+  {
+    double value = 0.0;
+
+    DoubleWrapper()
+    {
+      super();
+    }
+
+    double add (double addend)
+    {
+      value += addend;
+      return value;
+    }
+
+    double getValue ()
+    {
+      return value;
+    }
+  }
+
+  // needed for testing
+  DoubleWrapper makeDoubleWrapper()
+  {
+    return new DoubleWrapper();
   }
 }
