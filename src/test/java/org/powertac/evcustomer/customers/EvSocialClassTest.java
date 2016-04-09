@@ -103,44 +103,6 @@ public class EvSocialClassTest
                                  serverConfiguration);
 
     service = new ServiceAccessor();
-
-//    socialGroup = new SocialGroup(groupId, groupName);
-//    socialGroups = new HashMap<Integer, SocialGroup>();
-//    activities = new HashMap<Integer, Activity>();
-//    activity = new Activity(0, "Test Activity", 1.0, 1.0);
-//    groupActivities = new HashMap<Integer, GroupActivity>();
-//    groupActivity = new GroupActivity(0, 10, 10, 1.0, 1.0);
-//    carTypes = new ArrayList<CarType>();
-//
-//    customerRepo.recycle();
-//    tariffSubscriptionRepo.recycle();
-//    tariffRepo.recycle();
-//    Broker broker1 = new Broker("Joe");
-//
-//    now = new DateTime(2011, 1, 10, 0, 0, 0, 0, DateTimeZone.UTC).toInstant();
-//    timeService.setCurrentTime(now.toInstant());
-//    Instant exp = new Instant(now.getMillis() + TimeService.WEEK * 10);
-//
-//    defaultTariffSpec =
-//        new TariffSpecification(broker1, PowerType.CONSUMPTION)
-//            .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-//            .addRate(new Rate().withValue(-0.222));
-//    defaultTariff = new Tariff(defaultTariffSpec);
-//    defaultTariff.init();
-//    defaultTariff.setState(Tariff.State.OFFERED);
-//
-//    defaultTariffSpecEV =
-//        new TariffSpecification(broker1, PowerType.ELECTRIC_VEHICLE)
-//            .withExpiration(exp).withMinDuration(TimeService.WEEK * 8)
-//            .addRate(new Rate().withValue(-0.121).withMaxCurtailment(0.3));
-//    defaultTariffEV = new Tariff(defaultTariffSpecEV);
-//    defaultTariffEV.init();
-//    defaultTariffEV.setState(Tariff.State.OFFERED);
-//
-//    when(mockTariffMarket.getDefaultTariff(PowerType.CONSUMPTION))
-//        .thenReturn(defaultTariff);
-//    when(mockTariffMarket.getDefaultTariff(PowerType.ELECTRIC_VEHICLE))
-//        .thenReturn(defaultTariffEV);
   }
 
   @After

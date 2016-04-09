@@ -179,8 +179,10 @@ public final class Config
   // =================== Configuration ================
   /**
    * Configures this singleton when it's needed. Not called during instance
-   * creation to allow testing without a full Spring setup.
+   * creation to allow testing without a full Spring setup. This version is
+   * Deprecated! Please use configure(ServerConfiguration) instead.
    */
+  @Deprecated
   public void configure ()
   {
     if (null == serverConfiguration) {
@@ -197,15 +199,26 @@ public final class Config
   }
 
   /**
+   * Configures this instance from the given configuration service.
+   */
+  public void configure (ServerConfiguration configSource)
+  {
+    serverConfiguration = configSource;
+    configSource.configureMe(this);
+  }
+
+  /**
    * Retrieves the list of configured beans
    */
   public Map<String, Collection<?>> getBeans ()
   {
-    if (null != beans)
+    if (null != beans) {
       // already configured
       return beans;
+    }
+
     configure();
-    beans = new HashMap<String, Collection<?>>();
+    beans = new HashMap<>();
     for (String classname : beanTypes) {
       Class<?> clazz;
       try {
@@ -230,7 +243,7 @@ public final class Config
     if (null == instance)
     {
       instance = new Config();
-      instance.configure();
+      //instance.configure();
     }
     return instance;
   }
