@@ -26,7 +26,6 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.Accounting;
 import org.powertac.common.interfaces.ServerConfiguration;
-import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.Broker;
 import org.powertac.common.Competition;
@@ -185,7 +184,7 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentMarketPosition((Broker) anyObject())).thenReturn(0.0);
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(-50.0);    
     double marketBalance = -150.0; // Compute market balance
-    Timeslot current = timeslotRepo.currentTimeslot();
+    //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
         balancingMarketService.makeDoubleWrapper();
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
@@ -209,7 +208,7 @@ public class BalancingMarketServiceTests
     when(accountingService.getCurrentNetLoad((Broker) anyObject())).thenReturn(50.0);    
     double marketBalance = 150.0; // Compute market balance
 
-    Timeslot current = timeslotRepo.currentTimeslot();
+    //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
         balancingMarketService.makeDoubleWrapper();
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
@@ -244,7 +243,7 @@ public class BalancingMarketServiceTests
       balance += balancingMarketService.getMarketBalance(b);
     }
 
-    Timeslot current = timeslotRepo.currentTimeslot();
+    //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
         balancingMarketService.makeDoubleWrapper();
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
@@ -278,7 +277,7 @@ public class BalancingMarketServiceTests
 
     // List solution =
     // balancingMarketService.computeNonControllableBalancingCharges(brokerList)
-    Timeslot current = timeslotRepo.currentTimeslot();
+    //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
         balancingMarketService.makeDoubleWrapper();
     //BalanceReport report = new BalanceReport(current.getSerialNumber());
@@ -367,7 +366,7 @@ public class BalancingMarketServiceTests
     assertEquals("correct number of bo", 3,
                  tariffRepo.getBalancingOrders().size());
 
-    Timeslot current = timeslotRepo.currentTimeslot();
+    //Timeslot current = timeslotRepo.currentTimeslot();
     BalancingMarketService.DoubleWrapper report =
         balancingMarketService.makeDoubleWrapper();
     //BalanceReport report = new BalanceReport(current.getSerialNumber());

@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.interfaces.CapacityControl;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.repo.TariffRepo;
@@ -90,7 +90,7 @@ public class StaticSettlementProcessor extends SettlementProcessor
     ArrayList<BOWrapper> possibles = new ArrayList<BOWrapper> ();
     possibles.addAll(candidates);
     for (BOWrapper bo: possibles) {
-      RegulationCapacity cap =
+      RegulationAccumulator cap =
         capacityControlService.getRegulationCapacity(bo.balancingOrder);
       log.info("tariff " + bo.balancingOrder.getTariffId()
                + ": up=" + cap.getUpRegulationCapacity()

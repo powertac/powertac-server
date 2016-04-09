@@ -28,7 +28,7 @@ import org.powertac.balancemkt.SettlementContext;
 import org.powertac.balancemkt.StaticSettlementProcessor;
 import org.powertac.common.Broker;
 import org.powertac.common.Rate;
-import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.enumerations.PowerType;
@@ -134,37 +134,37 @@ public class StaticSettlementProcessorTest
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, 0.6, 0.03);
     tariffRepo.addBalancingOrder(bo1);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 3.5, 0.0));
+      thenReturn(new RegulationAccumulator(3.5, 0.0));
 
     BalancingOrder bo2 = new BalancingOrder(b3, spec3, 0.6, 0.042);
     tariffRepo.addBalancingOrder(bo2);
     when(capacityControlService.getRegulationCapacity(bo2)).
-      thenReturn(new RegulationCapacity(null, 2.0, 0.0));
+      thenReturn(new RegulationAccumulator(2.0, 0.0));
 
     BalancingOrder bo3 = new BalancingOrder(b2, spec2, 0.6, 0.051);
     tariffRepo.addBalancingOrder(bo3);
     when(capacityControlService.getRegulationCapacity(bo3)).
-      thenReturn(new RegulationCapacity(null, 6.7, 0.0));
+      thenReturn(new RegulationAccumulator(6.7, 0.0));
 
     BalancingOrder bo4 = new BalancingOrder(b3, spec3, 0.6, 0.062);
     tariffRepo.addBalancingOrder(bo4);
     when(capacityControlService.getRegulationCapacity(bo4)).
-      thenReturn(new RegulationCapacity(null, 3.9, 0.0));
+      thenReturn(new RegulationAccumulator(3.9, 0.0));
 
     BalancingOrder bo5 = new BalancingOrder(b2, spec2, 0.6, 0.08);
     tariffRepo.addBalancingOrder(bo5);
     when(capacityControlService.getRegulationCapacity(bo5)).
-      thenReturn(new RegulationCapacity(null, 3.0, 0.0));
+      thenReturn(new RegulationAccumulator(3.0, 0.0));
 
     BalancingOrder bo6 = new BalancingOrder(b1, spec1, 0.6, 0.091);
     tariffRepo.addBalancingOrder(bo6);
     when(capacityControlService.getRegulationCapacity(bo6)).
-      thenReturn(new RegulationCapacity(null, 6.2, -5.4));
+      thenReturn(new RegulationAccumulator(6.2, -5.4));
 
     BalancingOrder bo6d = new BalancingOrder(b1, spec1, -0.6, -0.091);
     tariffRepo.addBalancingOrder(bo6d);
     when(capacityControlService.getRegulationCapacity(bo6d)).
-      thenReturn(new RegulationCapacity(null, 6.2, -5.4));
+      thenReturn(new RegulationAccumulator(6.2, -5.4));
 
     ChargeInfo ci1 = new ChargeInfo(b1, 0);
     ci1.addBalancingOrder(bo1);
@@ -220,37 +220,37 @@ public class StaticSettlementProcessorTest
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, -0.6, -0.03);
     tariffRepo.addBalancingOrder(bo1);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 1.2, -3.5));
+      thenReturn(new RegulationAccumulator(1.2, -3.5));
 
     BalancingOrder bo2 = new BalancingOrder(b3, spec3, -0.6, -0.042);
     tariffRepo.addBalancingOrder(bo2);
     when(capacityControlService.getRegulationCapacity(bo2)).
-      thenReturn(new RegulationCapacity(null, 0.5, -2.0));
+      thenReturn(new RegulationAccumulator(0.5, -2.0));
 
     BalancingOrder bo3 = new BalancingOrder(b2, spec2, -0.6, -0.051);
     tariffRepo.addBalancingOrder(bo3);
     when(capacityControlService.getRegulationCapacity(bo3)).
-      thenReturn(new RegulationCapacity(null, 12.1, -6.7));
+      thenReturn(new RegulationAccumulator(12.1, -6.7));
 
     BalancingOrder bo4 = new BalancingOrder(b3, spec3, -0.6, -0.062);
     tariffRepo.addBalancingOrder(bo4);
     when(capacityControlService.getRegulationCapacity(bo4)).
-      thenReturn(new RegulationCapacity(null, 6.2, -3.9));
+      thenReturn(new RegulationAccumulator(6.2, -3.9));
 
     BalancingOrder bo5 = new BalancingOrder(b2, spec2, -0.6, -0.08);
     tariffRepo.addBalancingOrder(bo5);
     when(capacityControlService.getRegulationCapacity(bo5)).
-      thenReturn(new RegulationCapacity(null, 0.1, -3.0));
+      thenReturn(new RegulationAccumulator(0.1, -3.0));
 
     BalancingOrder bo6 = new BalancingOrder(b1, spec1, -0.6, -0.091);
     tariffRepo.addBalancingOrder(bo6);
     when(capacityControlService.getRegulationCapacity(bo6)).
-      thenReturn(new RegulationCapacity(null, 6.2, -5.4));
+      thenReturn(new RegulationAccumulator(6.2, -5.4));
 
     BalancingOrder bo6d = new BalancingOrder(b1, spec1, 0.6, 0.091);
     tariffRepo.addBalancingOrder(bo6d);
     when(capacityControlService.getRegulationCapacity(bo6d)).
-      thenReturn(new RegulationCapacity(null, 6.2, -5.4));
+      thenReturn(new RegulationAccumulator(6.2, -5.4));
 
     ChargeInfo ci1 = new ChargeInfo(b1, 0);
     ci1.addBalancingOrder(bo1);
@@ -323,17 +323,17 @@ public class StaticSettlementProcessorTest
     BalancingOrder bo1 = new BalancingOrder(b1, spec1, -0.6, -0.009);
     tariffRepo.addBalancingOrder(bo1);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 1.2, -50.0));
+      thenReturn(new RegulationAccumulator(1.2, -50.0));
 
     BalancingOrder bo2 = new BalancingOrder(b2, spec2, -0.6, -0.008);
     tariffRepo.addBalancingOrder(bo2);
     when(capacityControlService.getRegulationCapacity(bo2)).
-      thenReturn(new RegulationCapacity(null, 12.1, -30.0));
+      thenReturn(new RegulationAccumulator(12.1, -30.0));
 
     BalancingOrder bo3 = new BalancingOrder(b3, spec3, -0.6, -0.006);
     tariffRepo.addBalancingOrder(bo3);
     when(capacityControlService.getRegulationCapacity(bo3)).
-      thenReturn(new RegulationCapacity(null, 6.2, -40.0));
+      thenReturn(new RegulationAccumulator(6.2, -40.0));
 
     ChargeInfo ci1 = new ChargeInfo(b1, 0);
     ci1.addBalancingOrder(bo1);
@@ -420,32 +420,32 @@ public class StaticSettlementProcessorTest
     BalancingOrder bo1 = new BalancingOrder(b0, spec0, 0.6, 0.003);
     tariffRepo.addBalancingOrder(bo1);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 35.0, 0.0));
+      thenReturn(new RegulationAccumulator(35.0, 0.0));
 
     BalancingOrder bo2 = new BalancingOrder(b0, spec0, 0.6, 0.0091);
     tariffRepo.addBalancingOrder(bo2);
     when(capacityControlService.getRegulationCapacity(bo2)).
-      thenReturn(new RegulationCapacity(null, 62.0, 0.0));
+      thenReturn(new RegulationAccumulator(62.0, 0.0));
 
     BalancingOrder bo3 = new BalancingOrder(b1, spec1, 0.6, 0.0051);
     tariffRepo.addBalancingOrder(bo3);
     when(capacityControlService.getRegulationCapacity(bo3)).
-      thenReturn(new RegulationCapacity(null, 67.0, 0.0));
+      thenReturn(new RegulationAccumulator(67.0, 0.0));
 
     BalancingOrder bo4 = new BalancingOrder(b1, spec1, 0.6, 0.008);
     tariffRepo.addBalancingOrder(bo4);
     when(capacityControlService.getRegulationCapacity(bo4)).
-      thenReturn(new RegulationCapacity(null, 30.0, 0.0));
+      thenReturn(new RegulationAccumulator(30.0, 0.0));
 
     BalancingOrder bo5 = new BalancingOrder(b2, spec2, 0.6, 0.0042);
     tariffRepo.addBalancingOrder(bo5);
     when(capacityControlService.getRegulationCapacity(bo5)).
-      thenReturn(new RegulationCapacity(null, 20.0, 0.0));
+      thenReturn(new RegulationAccumulator(20.0, 0.0));
 
     BalancingOrder bo6 = new BalancingOrder(b2, spec2, 0.6, 0.0062);
     tariffRepo.addBalancingOrder(bo6);
     when(capacityControlService.getRegulationCapacity(bo6)).
-      thenReturn(new RegulationCapacity(null, 39.0, 0.0));
+      thenReturn(new RegulationAccumulator(39.0, 0.0));
 
     ChargeInfo ci0 = new ChargeInfo(b0, 0);
     ci0.addBalancingOrder(bo1);
@@ -633,7 +633,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 5.0, 0.0));
+      thenReturn(new RegulationAccumulator(5.0, 0.0));
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(eq(bo1),
                                                             eq(5.0),
@@ -657,7 +657,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 5.0, 0.0));
+      thenReturn(new RegulationAccumulator(5.0, 0.0));
     uut.settle(context, brokerData);
     verify(capacityControlService, never())
       .exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
@@ -680,7 +680,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1))
-        .thenReturn(new RegulationCapacity(null, 5.0, 0.0));
+        .thenReturn(new RegulationAccumulator(5.0, 0.0));
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(eq(bo1), eq(5.0),
                                                             eq(0.379, 1e-4));
@@ -703,7 +703,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1))
-        .thenReturn(new RegulationCapacity(null, 5.0, -0.0));
+        .thenReturn(new RegulationAccumulator(5.0, -0.0));
     uut.settle(context, brokerData);
     verify(capacityControlService, never())
       .exerciseBalancingControl(isA(BalancingOrder.class), anyDouble(), anyDouble());
@@ -726,7 +726,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1))
-        .thenReturn(new RegulationCapacity(null, 5.0, -5.0));
+        .thenReturn(new RegulationAccumulator(5.0, -5.0));
     uut.settle(context, brokerData);
     verify(capacityControlService)
       .exerciseBalancingControl(eq(bo1), eq(-5.0), eq(-0.0325, 1e-5));
@@ -754,7 +754,7 @@ public class StaticSettlementProcessorTest
     ChargeInfo ci2 = new ChargeInfo(b2, 10.0);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 15.0, 0.0));
+      thenReturn(new RegulationAccumulator(15.0, 0.0));
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(bo1, 10.0, 0.601);
     assertEquals("-1.202 for b1", -1.202, ci1.getBalanceChargeP1(), 1e-6);
@@ -779,9 +779,9 @@ public class StaticSettlementProcessorTest
     ci2.addBalancingOrder(bo2);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1)).
-      thenReturn(new RegulationCapacity(null, 10.0, 0.0));
+      thenReturn(new RegulationAccumulator(10.0, 0.0));
     when(capacityControlService.getRegulationCapacity(bo2)).
-      thenReturn(new RegulationCapacity(null, 5.0, 0.0));
+      thenReturn(new RegulationAccumulator(5.0, 0.0));
     
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(eq(bo1),
@@ -812,9 +812,9 @@ public class StaticSettlementProcessorTest
     ci2.addBalancingOrder(bo2);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1))
-        .thenReturn(new RegulationCapacity(null, 16.0, 0.0));
+        .thenReturn(new RegulationAccumulator(16.0, 0.0));
     when(capacityControlService.getRegulationCapacity(bo2))
-        .thenReturn(new RegulationCapacity(null, 16.0, 0.0));
+        .thenReturn(new RegulationAccumulator(16.0, 0.0));
     
     uut.settle(context, brokerData);
     verify(capacityControlService).exerciseBalancingControl(eq(bo1), 
@@ -853,11 +853,11 @@ public class StaticSettlementProcessorTest
     ci2.addBalancingOrder(bo2);
     brokerData.add(ci2);
     when(capacityControlService.getRegulationCapacity(bo1))
-        .thenReturn(new RegulationCapacity(null, 10.0, 0.0));
+        .thenReturn(new RegulationAccumulator(10.0, 0.0));
     when(capacityControlService.getRegulationCapacity(bo1a))
-        .thenReturn(new RegulationCapacity(null, 0.0, 0.0));
+        .thenReturn(new RegulationAccumulator(0.0, 0.0));
     when(capacityControlService.getRegulationCapacity(bo2))
-        .thenReturn(new RegulationCapacity(null, 5.0, 0.0));
+        .thenReturn(new RegulationAccumulator(5.0, 0.0));
 
     uut.settle(context, brokerData);
     //System.out.println("(b1.p2,b2.p2) = ("
