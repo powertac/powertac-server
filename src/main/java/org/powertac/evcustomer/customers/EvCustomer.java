@@ -24,6 +24,7 @@ import org.powertac.common.CapacityProfile;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.RandomSeed;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffEvaluator;
@@ -262,9 +263,7 @@ public class EvCustomer
   {
     if (null == sub) 
       return;
-    RegulationCapacity regulationCapacity =
-        new RegulationCapacity(sub, up, down);
-    sub.setRegulationCapacity(regulationCapacity);
+    sub.setRegulationCapacity(new RegulationCapacity(sub, up, down));
     log.info(name + " setting regulation, up: " + up + "; down: " + down);
   }
 
