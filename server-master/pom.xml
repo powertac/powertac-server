@@ -33,18 +33,20 @@
   </properties>
 
   <!-- Put version info into jar files -->
-  <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-jar-plugin</artifactId>
-    <configuration>
-      <archive>                   
-        <manifest>
-          <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-          <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-        </manifest>
-      </archive>
-    </configuration>
-  </plugin>
+  <plugins>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-jar-plugin</artifactId>
+      <configuration>
+	<archive>                   
+          <manifest>
+            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+          </manifest>
+	</archive>
+      </configuration>
+    </plugin>
+  </plugins>
 
   <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
