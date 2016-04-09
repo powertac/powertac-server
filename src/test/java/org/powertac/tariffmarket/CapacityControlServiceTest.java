@@ -36,6 +36,7 @@ import org.powertac.common.Broker;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.RegulationRate;
 import org.powertac.common.Tariff;
@@ -196,7 +197,7 @@ public class CapacityControlServiceTest
     sub1.usePower(200);
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, spec, 1.0, 0.1);
-    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
     assertEquals("correct up-regulation", 0.4 * 500.0,
                  cap.getUpRegulationCapacity(), 1e-6);
     assertEquals("correct down-regulation", 0.0,
@@ -227,7 +228,7 @@ public class CapacityControlServiceTest
     sub2.setRegulationCapacity(new RegulationCapacity(sub2, 2.0, -1.1));
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, specRR, 1.0, 0.1);
-    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
     assertEquals("correct up-regulation", 700.0,
                  cap.getUpRegulationCapacity(), 1e-6);
     assertEquals("correct down-regulation", -370.0,
@@ -249,7 +250,7 @@ public class CapacityControlServiceTest
     sub1.usePower(200);
     sub2.usePower(300);
     BalancingOrder order = new BalancingOrder(broker, spec, 1.0, 0.1);
-    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
     assertEquals("correct up-regulation", 0.4 * 500.0,
                  cap.getUpRegulationCapacity(), 1e-6);
     assertEquals("correct down-regulation", 0.0,
@@ -336,7 +337,7 @@ public class CapacityControlServiceTest
     sub2.usePower(300); // avail down-regulation is -220
     
     BalancingOrder order = new BalancingOrder(broker, specRR1, -1.0, -0.04);
-    RegulationCapacity cap = capacityControl.getRegulationCapacity(order); 
+    RegulationAccumulator cap = capacityControl.getRegulationCapacity(order); 
     assertEquals("correct up-regulation", 700.0,
                  cap.getUpRegulationCapacity(), 1e-6);
     assertEquals("correct down-regulation", -370.0,

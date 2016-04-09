@@ -23,7 +23,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.Competition;
-import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.interfaces.Accounting;
@@ -98,7 +98,7 @@ implements CapacityControl, InitializationService
         new HashMap<TariffSubscription, Double>(); 
     for (TariffSubscription sub : subs) {
       if (sub.getCustomersCommitted() > 0) {
-        RegulationCapacity value = sub.getRemainingRegulationCapacity();
+        RegulationAccumulator value = sub.getRemainingRegulationCapacity();
         if (kwh > 0) {
           // up-regulation
           amts.put(sub, value.getUpRegulationCapacity());
@@ -151,15 +151,15 @@ implements CapacityControl, InitializationService
    * @see org.powertac.common.interfaces.CapacityControl#getCurtailableUsage(org.powertac.common.msg.BalancingOrder)
    */
   @Override
-  public RegulationCapacity getRegulationCapacity (BalancingOrder order)
+  public RegulationAccumulator getRegulationCapacity (BalancingOrder order)
   {
     Tariff tariff = tariffRepo.findTariffById(order.getTariffId());
     if (null == tariff) {
       // broker error, most likely
       log.warn("Null tariff " + order.getTariffId() + " for balancing order");
-      return new RegulationCapacity(null, 0.0, 0.0);
+      return new RegulationAccumulator(0.0, 0.0);
     }
-    RegulationCapacity result = new RegulationCapacity(null, 0.0, 0.0);
+    RegulationAccumulator result = new RegulationAccumulator(0.0, 0.0);
     List<TariffSubscription> subs =
         tariffSubscriptionRepo.findSubscriptionsForTariff(tariff);
     for (TariffSubscription sub : subs) {
