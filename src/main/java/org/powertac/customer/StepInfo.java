@@ -15,7 +15,7 @@
  */
 package org.powertac.customer;
 
-import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.TariffSubscription;
 import org.powertac.common.Timeslot;
 
@@ -31,7 +31,7 @@ public class StepInfo
   private double kWh = 0.0;
 
   // regulation capacity available at end of step
-  private RegulationCapacity regulationCapacity;
+  private RegulationAccumulator regulationAccumulator;
 
   // current timeslot: immutable
   private Timeslot timeslot;
@@ -49,7 +49,7 @@ public class StepInfo
     super();
     timeslot = slot;
     subscription = sub;
-    regulationCapacity = new RegulationCapacity(sub, 0.0, 0.0);
+    regulationAccumulator = new RegulationAccumulator(0.0, 0.0);
   }
 
   public double getKWh ()
@@ -67,19 +67,19 @@ public class StepInfo
     this.kWh += kWh;
   }
 
-  public RegulationCapacity getRegulationCapacity ()
+  public RegulationAccumulator getRegulationCapacity ()
   {
-    return regulationCapacity;
+    return regulationAccumulator;
   }
 
-  public void setRegulationCapacity (RegulationCapacity capacity)
+  public void setRegulationCapacity (RegulationAccumulator capacity)
   {
-    this.regulationCapacity = capacity;
+    this.regulationAccumulator = capacity;
   }
 
-  public void addRegulationCapacity (RegulationCapacity capacity)
+  public void addRegulationCapacity (RegulationAccumulator capacity)
   {
-    regulationCapacity.add(capacity);
+    regulationAccumulator.add(capacity);
   }
 
   public Timeslot getTimeslot ()

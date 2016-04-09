@@ -23,7 +23,6 @@ import org.joda.time.Instant;
 import org.powertac.common.CapacityProfile;
 import org.powertac.common.Competition;
 import org.powertac.common.CustomerInfo;
-import org.powertac.common.CustomerInfo.CustomerClass;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.RegulationCapacity;
 import org.powertac.common.Tariff;
