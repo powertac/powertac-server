@@ -32,6 +32,20 @@
     <mockito.version>1.10.19</mockito.version>
   </properties>
 
+  <!-- Put version info into jar files -->
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+      <archive>                   
+        <manifest>
+          <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+          <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+        </manifest>
+      </archive>
+    </configuration>
+  </plugin>
+
   <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
     <groupId>org.sonatype.oss</groupId>
