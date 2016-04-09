@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 by the original author
+ * Copyright (c) 2016 by John E. Collins
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ package org.powertac.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.common.state.Domain;
 
 /**
- * Represents available regulation capacity for a given TariffSubscription.
+ * Accumulates available regulation capacity for a given TariffSubscription.
  * This is basically a data structure that holds two numbers: an amount of
  * up-regulation capacity (non-negative), and an amount of down-regulation
  * capacity (non-positive). The subscription is also included to simplify
@@ -28,7 +29,7 @@ import org.apache.logging.log4j.Logger;
  * 
  * @author John Collins
  */
-//@Domain
+@Domain
 public class RegulationCapacity
 {
   protected static Logger log = LogManager.getLogger(RegulationCapacity.class.getName());
@@ -36,17 +37,14 @@ public class RegulationCapacity
   long id = IdGenerator.createId();
 
   // ignore small numbers
-  private static double epsilon = 1e-4;
+  private static double epsilon = 1e-10;
 
   private double upRegulationCapacity = 0.0;
 
   private double downRegulationCapacity = 0.0;
-  
-  @SuppressWarnings("unused")
-  private TariffSubscription subscription;
 
   /**
-   * Creates a new RegulationCapacity instance specifying the amounts of
+   * Creates a new RegulationAccumulator instance specifying the amounts of
    * regulating capacity available for up-regulation and down-regulation.
    * Values are expressed with respect to the balancing market; a negative
    * value means power is delivered to the customer (down-regulation), and a
@@ -58,16 +56,15 @@ public class RegulationCapacity
                              double downRegulationCapacity)
   {
     super();
-    this.subscription = subscription;
     if (upRegulationCapacity < 0.0) {
-      upRegulationCapacity = 0.0;
-      if (upRegulationCapacity < -1.0e-12)
+      if (upRegulationCapacity < -epsilon)
         log.warn("upRegulationCapacity " + upRegulationCapacity + " < 0.0");
+      upRegulationCapacity = 0.0;
     }
     if (downRegulationCapacity > 0.0) {
-      downRegulationCapacity = 0.0;
-      if (downRegulationCapacity > 1.0e-12)
+      if (downRegulationCapacity > epsilon)
         log.warn("downRegulationCapacity " + downRegulationCapacity + " > 0.0");
+      downRegulationCapacity = 0.0;
     }
     this.upRegulationCapacity = upRegulationCapacity;
     this.downRegulationCapacity = downRegulationCapacity;
@@ -88,87 +85,11 @@ public class RegulationCapacity
   }
 
   /**
-   * Sets the up-regulation value.
-   * Argument must be non-negative.
-   */
-  //@StateChange
-  public void setUpRegulationCapacity (double value)
-  {
-    double filteredValue = filterValue(value);
-    if (filteredValue < 0.0) {
-      log.warn("Attempt to set negative up-regulation capacity "
-               + filteredValue);
-      return;
-    }
-    upRegulationCapacity = filteredValue;
-  }
-
-  /**
    * Returns the available down-regulation capacity in kWh.
    * Value is non-positive.
    */
   public double getDownRegulationCapacity ()
   {
     return downRegulationCapacity;
-  }
-
-  /**
-   * Sets the down-regulation value.
-   * Argument must be non-negative.
-   */
-  //@StateChange
-  public void setDownRegulationCapacity (double value)
-  {
-    double filteredValue = filterValue(value);
-    if (filteredValue > 0.0) {
-      log.warn("Attempt to set positive down-regulation capacity " + filteredValue);
-      return;
-    }
-    downRegulationCapacity = filteredValue;
-  }
-
-  /**
-   * Adds the capacities in the given RegulationCapacity instance to this
-   * instance. 
-   */
-  public void add (RegulationCapacity rc)
-  {
-    setUpRegulationCapacity(upRegulationCapacity + rc.upRegulationCapacity);
-    setDownRegulationCapacity(downRegulationCapacity + rc.downRegulationCapacity);
-  }
-
-  /**
-   * Adds the given amount of up-regulation capacity.
-   * Amount must be non-negative.
-   */
-  public void addUpRegulation (double amount)
-  {
-    if (amount < 0.0) {
-      log.warn("Attempt to add negative up-regulation capacity " + amount);
-      return;
-    }
-    setUpRegulationCapacity(upRegulationCapacity + amount);
-  }
-
-  /**
-   * Adds the given amount of down-regulation capacity.
-   * Amount must be non-positive.
-   */
-  public void addDownRegulation (double amount)
-  {
-    if (amount > 0.0) {
-      log.warn("Attempt to add positive down-regulation capacity " + amount);
-      return;
-    }
-    setDownRegulationCapacity(downRegulationCapacity + amount);
-  }
-
-  // filter out small values
-  private double filterValue (double original)
-  {
-    if (Math.abs(original) < epsilon)
-      return 0.0;
-    return original;
-
   }
 }

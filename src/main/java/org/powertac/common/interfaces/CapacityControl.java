@@ -16,7 +16,7 @@
 
 package org.powertac.common.interfaces;
 
-import org.powertac.common.RegulationCapacity;
+import org.powertac.common.RegulationAccumulator;
 import org.powertac.common.msg.BalancingOrder;
 import org.powertac.common.msg.EconomicControlEvent;
 
@@ -40,7 +40,7 @@ public interface CapacityControl {
    * Gathers up power usage data for the current timeslot that could be
    * subject to a BalancingOrder. Return value is in kwh. 
    */
-  public RegulationCapacity getRegulationCapacity (BalancingOrder order);
+  public RegulationAccumulator getRegulationCapacity (BalancingOrder order);
   
   // ------------------- TariffMarket API -----------------
   /**

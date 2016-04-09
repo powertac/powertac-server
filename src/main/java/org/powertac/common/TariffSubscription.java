@@ -81,7 +81,7 @@ public class TariffSubscription
   private double pendingRegulationRatio = 0.0;
 
   /** Available regulation capacity for the current timeslot. */
-  RegulationCapacity regulationCapacity;
+  RegulationAccumulator regulationAccumulator;
 
   /** Actual up-regulation (positive) or down-regulation (negative)
    * from previous timeslot.
@@ -97,7 +97,7 @@ public class TariffSubscription
     this.customer = customer;
     this.tariff = tariff;
     expirations = new ArrayList<ExpirationRecord>();
-    setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
+    setRegulationCap(new RegulationAccumulator(0.0, 0.0));
   }
 
   public long getId ()
@@ -201,7 +201,7 @@ public class TariffSubscription
     pendingUnsubscribeCount = 0;
     if (customerCount == customersCommitted) {
       // common case
-      setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
+      setRegulationCap(new RegulationAccumulator(0.0, 0.0));
       setRegulation(0.0);
     }
 
@@ -235,8 +235,8 @@ public class TariffSubscription
     setCustomersCommitted(getCustomersCommitted() - customerCount);
     // if count is now zero, set regulation capacity to zero
     if (0 == getCustomersCommitted()) {
-      regulationCapacity.setDownRegulationCapacity(0.0);
-      regulationCapacity.setUpRegulationCapacity(0.0);
+      regulationAccumulator.setDownRegulationCapacity(0.0);
+      regulationAccumulator.setUpRegulationCapacity(0.0);
     }
     // Post withdrawal and possible penalties
     double withdrawPayment = -tariff.getEarlyWithdrawPayment();
@@ -257,9 +257,9 @@ public class TariffSubscription
 
 //  private void adjustRegulationCapacity (double ratio)
 //  {
-//    regulationCapacity.setUpRegulationCapacity(regulationCapacity
+//    regulationAccumulator.setUpRegulationCapacity(regulationAccumulator
 //        .getUpRegulationCapacity() * ratio);
-//    regulationCapacity.setDownRegulationCapacity(regulationCapacity
+//    regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
 //        .getDownRegulationCapacity() * ratio);
 //  }
 
@@ -398,17 +398,23 @@ public class TariffSubscription
   @StateChange
   public void setRegulationCapacity (RegulationCapacity capacity)
   {
-    regulationCapacity = capacity;
+    regulationAccumulator = new RegulationAccumulator(capacity);
   }
-  
+
+  // Local Regulation management
+  void setRegulationCap (RegulationAccumulator capacity)
+  {
+    regulationAccumulator = capacity;
+  }
+
   /**
-   * Ensures that regulationCapacity is non-null -
+   * Ensures that regulationAccumulator is non-null -
    * needed for non-regulatable customer models
    */
   public void ensureRegulationCapacity ()
   {
-    if (null == regulationCapacity) {
-      setRegulationCapacity(new RegulationCapacity(this, 0.0, 0.0));
+    if (null == regulationAccumulator) {
+      setRegulationCap(new RegulationAccumulator(0.0, 0.0));
     }
   }
 
@@ -459,26 +465,26 @@ public class TariffSubscription
         // down-regulation - negative result
         result =
           (-pendingRegulationRatio)
-              * regulationCapacity.getDownRegulationCapacity();
-        regulationCapacity.setDownRegulationCapacity(regulationCapacity
+              * regulationAccumulator.getDownRegulationCapacity();
+        regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
             .getDownRegulationCapacity() - result);
       }
       else if (pendingRegulationRatio > 1.0) {
         // discharge: between proposed usage and up-regulation capacity
-        if (regulationCapacity.getUpRegulationCapacity() > proposedUsage) {
+        if (regulationAccumulator.getUpRegulationCapacity() > proposedUsage) {
           double excess =
-            regulationCapacity.getUpRegulationCapacity() - proposedUsage;
+            regulationAccumulator.getUpRegulationCapacity() - proposedUsage;
           result =
             proposedUsage + (pendingRegulationRatio - 1.0) * excess;
-          regulationCapacity.setUpRegulationCapacity(regulationCapacity
+          regulationAccumulator.setUpRegulationCapacity(regulationAccumulator
               .getUpRegulationCapacity() - result);
         }
       }
       else {
         // curtailment based on regulation capacity
         result =
-          pendingRegulationRatio * regulationCapacity.getUpRegulationCapacity();
-        regulationCapacity.setUpRegulationCapacity(regulationCapacity
+          pendingRegulationRatio * regulationAccumulator.getUpRegulationCapacity();
+        regulationAccumulator.setUpRegulationCapacity(regulationAccumulator
             .getUpRegulationCapacity() - result);
       }
     }
@@ -489,7 +495,7 @@ public class TariffSubscription
       result = Math.min(proposedUpRegulation, mur);
       log.debug("proposedUpRegulation=" + proposedUpRegulation
                 + ", maxUpRegulation=" + mur);
-      regulationCapacity.setUpRegulationCapacity(mur - result);
+      regulationAccumulator.setUpRegulationCapacity(mur - result);
     }
     addRegulation(result); // saved until next timeslot
     pendingRegulationRatio = 0.0;
@@ -533,11 +539,11 @@ public class TariffSubscription
     addRegulation(kWhPerMember);
     if (kWhPerMember >= 0.0) {
       // up-regulation
-      regulationCapacity.setUpRegulationCapacity(regulationCapacity
+      regulationAccumulator.setUpRegulationCapacity(regulationAccumulator
           .getUpRegulationCapacity() - kWhPerMember);
     }
     else {
-      regulationCapacity.setDownRegulationCapacity(regulationCapacity
+      regulationAccumulator.setDownRegulationCapacity(regulationAccumulator
           .getDownRegulationCapacity() - kWhPerMember);
     }
     totalUsage -= kWhPerMember;
@@ -552,22 +558,22 @@ public class TariffSubscription
    * that the value will have to be changed due to a change in customer count.
    * TODO: may need to be modified -- see issue #733.
    */
-  public RegulationCapacity getRemainingRegulationCapacity ()
+  public RegulationAccumulator getRemainingRegulationCapacity ()
   {
     if (0 == customersCommitted) {
       // nothing to do here...
-      return new RegulationCapacity(this, 0.0, 0.0);
+      return new RegulationAccumulator(0.0, 0.0);
     }
     // generate aggregate value here
     double up =
-      regulationCapacity.getUpRegulationCapacity() * customersCommitted;
+      regulationAccumulator.getUpRegulationCapacity() * customersCommitted;
     double down =
-      regulationCapacity.getDownRegulationCapacity() * customersCommitted;
+      regulationAccumulator.getDownRegulationCapacity() * customersCommitted;
     if (0 == pendingUnsubscribeCount) {
       log.info("regulation capacity for " + getCustomer().getName()
                + ":" + this.getTariff().getId()
                + " (" + up + ", " + down + ")");
-      return new RegulationCapacity(this, up, down);
+      return new RegulationAccumulator(up, down);
     }
     else {
       // we have some unsubscribes - need to adjust 
@@ -577,7 +583,7 @@ public class TariffSubscription
                + getCustomer().getName() + ":" + this.getTariff().getId()
                + " reduced by " + ratio
                + " to (" + up * ratio + ", " + down * ratio + ")");
-      return new RegulationCapacity(this, up * ratio, down * ratio);
+      return new RegulationAccumulator(up * ratio, down * ratio);
     }
   }
 
