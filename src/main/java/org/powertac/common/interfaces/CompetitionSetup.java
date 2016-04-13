@@ -38,6 +38,7 @@ public interface CompetitionSetup
    * name of an output file where the bootstrap dataset will be stored.</li>
    * <li>configFilename is the (optional) name of a server-configuration file;
    * if the name contains a ":" it will be treated as a URL.</li>
+   * <li>gameId is an (optional) game id, the default is a numerical session counter.</li>
    * <li>logfileSuffix is an (optional) filename suffix for the log output
    * files; default value is "boot".</li>
    * <li>weatherData is the (optional) name of a file containing weather data
@@ -47,6 +48,7 @@ public interface CompetitionSetup
    */
   public String bootSession (String bootFilename,
                              String configFilename,
+                             String gameId,
                              String logfileSuffix,
                              String seedData,
                              String weatherData);
@@ -64,6 +66,7 @@ public interface CompetitionSetup
    * <li>jmsUrl is the URL on which the server should listen for JMS connections.
    * This is required if the server is to interact with brokers on separate
    * machines. If given, all brokers must use this URL to contact the server.
+   * <li>gameId is an (optional) game id, the default is a numerical session counter.</li>
    * <li>logfileSuffix is an (optional) filename suffix for the log output
    * files; default value is "sim".</li>
    * <li>brokerUsernames is a list of Strings giving the usernames of brokers
@@ -84,6 +87,7 @@ public interface CompetitionSetup
   public String simSession (String bootData,
                             String config,
                             String jmsUrl,
+                            String gameId,
                             String logfileSuffix,
                             List<String> brokerUsernames,
                             String seedData,
