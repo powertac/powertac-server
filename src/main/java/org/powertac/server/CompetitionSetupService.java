@@ -192,11 +192,9 @@ public class CompetitionSetupService
 
       if (null == game) {
         log.error("gameId not given");
-        gameId = Integer.toString(sessionCount);
+        game = Integer.toString(sessionCount);
       }
-      else {
-        gameId = game;
-      }
+      gameId = game;
 
       // process tournament scheduler based info
       if (controllerURL != null) {
@@ -209,6 +207,7 @@ public class CompetitionSetupService
         // bootstrap session
         bootSession(options.valueOf(bootOutput),
                     serverConfig,
+                    game,
                     logSuffix,
                     options.valueOf(seedData),
                     options.valueOf(weatherData));
@@ -218,6 +217,7 @@ public class CompetitionSetupService
         simSession(options.valueOf(bootData),
                    serverConfig,
                    options.valueOf(jmsUrl),
+                   game,
                    logSuffix,
                    options.valuesOf(brokerList),
                    options.valueOf(seedData),
@@ -247,6 +247,7 @@ public class CompetitionSetupService
   // ---------- top-level boot and sim session control ----------
   @Override
   public String bootSession (String bootFilename, String config,
+                             String game,
                              String logSuffix,
                              String seedData,
                              String weatherData)
@@ -255,6 +256,7 @@ public class CompetitionSetupService
     try {
       log.info("bootSession: bootFilename=" + bootFilename
           + ", config=" + config
+          + ", game=" + game
           + ", logSuffix=" + logSuffix);
       // process serverConfig now, because other options may override
       // parts of it
@@ -271,7 +273,7 @@ public class CompetitionSetupService
       loadTimeslotCountsMaybe();
 
       // set the logfile suffix
-      ensureGameId();
+      ensureGameId(game);
       setLogSuffix(logSuffix, "boot-" + gameId);
 
       File bootFile = new File(bootFilename);
@@ -305,7 +307,8 @@ public class CompetitionSetupService
 
   @Override
   public String simSession (String bootData, String config, String jmsUrl,
-                     String logfileSuffix,
+                     String game,
+                     String logSuffix,
                      List<String> brokerUsernames,
                      String seedData,
                      String weatherData,
@@ -316,6 +319,8 @@ public class CompetitionSetupService
       log.info("simSession: bootData=" + bootData
                + ", config=" + config
                + ", jmsUrl=" + jmsUrl
+               + ", game=" + game
+               + ", logSuffix=" + logSuffix
                + ", seedData=" + seedData
                + ", weatherData=" + weatherData
                + ", inputQueue=" + inputQueueName);
@@ -334,8 +339,8 @@ public class CompetitionSetupService
       loadTimeslotCountsMaybe();
 
       // set the logfile suffix
-      ensureGameId();
-      setLogSuffix(logfileSuffix, "sim-" + gameId);
+      ensureGameId(game);
+      setLogSuffix(logSuffix, "sim-" + gameId);
 
       // jms setup overrides config
       if (jmsUrl != null) {
@@ -598,10 +603,9 @@ public class CompetitionSetupService
   }
 
   // Create a gameId if it's not already set (mainly for Viz-driven games)
-  private void ensureGameId ()
+  private void ensureGameId (String game)
   {
-    if (null == gameId)
-      gameId = Integer.toString(sessionCount);
+    gameId = null == game ? Integer.toString(sessionCount) : game;
   }
 
   // Names of multi-session games use the default session prefix
