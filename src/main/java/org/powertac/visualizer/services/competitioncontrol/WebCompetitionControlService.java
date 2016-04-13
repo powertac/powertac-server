@@ -62,6 +62,7 @@ public class WebCompetitionControlService
     String result =  css.simSession(gameParameters.getBootstrapData(),
                                     gameParameters.getServerConfig(),
                                     gameParameters.getJmsUrl(),
+                                    null,
                                     gameParameters.getLogSuffix(),
                                     names,
                                     gameParameters.getSeedName(),
@@ -93,6 +94,7 @@ public class WebCompetitionControlService
 
     String result = css.bootSession(gameParameters.getBootstrapFilename(),
                                     gameParameters.getServerConfig(),
+                                    null,
                                     gameParameters.getLogSuffix(),
                                     gameParameters.getSeedName(),
                                     gameParameters.getWeatherName());
