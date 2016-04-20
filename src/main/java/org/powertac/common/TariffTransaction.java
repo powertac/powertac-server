@@ -66,7 +66,7 @@ public class TariffTransaction extends BrokerTransaction
 
   @XStreamConverter(TariffSpecificationConverter.class)
   private TariffSpecification tariffSpec;
-  
+
   /**
    * Creates a new TariffTransaction for broker of type txType against
    * a particular tariff spec and customer. Energy quantity and charge
