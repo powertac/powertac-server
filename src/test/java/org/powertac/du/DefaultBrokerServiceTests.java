@@ -303,7 +303,7 @@ public class DefaultBrokerServiceTests
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
                                               customer1.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     // now one customer, population=1000
     customerCounts = service.getCustomerCounts();
     assertEquals("one customer", 1, customerCounts.size());
@@ -337,7 +337,7 @@ public class DefaultBrokerServiceTests
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
                                               customer1.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     // now one customer, population=1000
     customerCounts = service.getCustomerCounts();
     assertEquals("one customer", 1, customerCounts.size());
@@ -351,7 +351,7 @@ public class DefaultBrokerServiceTests
                                               specs.get(PowerType.PRODUCTION),
                                               customer2, 
                                               42, // population
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     customerCounts = service.getCustomerCounts();
     assertEquals("two customers", 2, customerCounts.size());
     count = customerCounts.get(customer1.getName() + PowerType.CONSUMPTION);
@@ -366,7 +366,7 @@ public class DefaultBrokerServiceTests
                                               specs.get(PowerType.CONSUMPTION),
                                               customer1, 
                                               400,
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     customerCounts = service.getCustomerCounts();
     assertEquals("still two customers", 2, customerCounts.size());
     count = customerCounts.get(customer1.getName() + PowerType.CONSUMPTION);
@@ -402,7 +402,7 @@ public class DefaultBrokerServiceTests
                                               spec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     // now one customer, population=1000. Consume some power.
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
@@ -410,7 +410,7 @@ public class DefaultBrokerServiceTests
                                               spec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              500.0, 4.2));
+                                              500.0, 4.2, false));
     // check usage in current timeslot
     double usage = service.getUsageForCustomer(customer1, spec, 0);
     assertEquals("500 kwh", 500.0, usage, 1e-6);
@@ -426,7 +426,7 @@ public class DefaultBrokerServiceTests
                                               spec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              450.0, 4.2));
+                                              450.0, 4.2, false));
     usage = service.getUsageForCustomer(customer1, spec, 0);
     assertEquals("500 kwh", 500.0, usage, 1e-6);
     // check usage in next two timeslots
@@ -519,14 +519,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     // usage = 500 in ts0
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
@@ -534,7 +534,7 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -500.0, 4.2));
+                                              -500.0, 4.2, false));
     //TimeslotComplete tc = new TimeslotComplete(0);
     face.receiveMessage(endTimeslot()); // last message in ts0
     assertEquals("24 orders", 24, orderList.size());
@@ -569,14 +569,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -450.0, 4.2));
+                                              -450.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              30.0, -0.15));
+                                              30.0, -0.15, false));
     // accounting runs ts1
     face.receiveMessage(endTimeslot()); // end of ts0: 1 disabled, 24 enabled
 
@@ -621,14 +621,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -550.0, 4.2));
+                                              -550.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              40.0, -0.15));
+                                              40.0, -0.15, false));
     // accounting runs ts2
     face.receiveMessage(endTimeslot()); // ts2 disabled, ts26 enabled
     // broker sends bids for ts3...ts26
@@ -693,14 +693,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.SIGNUP, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              0.0, 4.2));
+                                              0.0, 4.2, false));
     // usage = 500 in ts0
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
@@ -708,7 +708,7 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -500.0, 4.2));
+                                              -500.0, 4.2, false));
     CashPosition cp = new CashPosition(face, 0.0, timeslotRepo.currentSerialNumber());
     face.receiveMessage(cp); // last message in ts0
 
@@ -723,14 +723,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -450.0, 4.2));
+                                              -450.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              30.0, -0.15));
+                                              30.0, -0.15, false));
     // accounting runs ts1
     face.receiveMessage(endTimeslot());
     // broker sends bids for ts2...ts24
@@ -747,14 +747,14 @@ public class DefaultBrokerServiceTests
                                               cspec,
                                               customer1, 
                                               customer1.getPopulation(),
-                                              -550.0, 4.2));
+                                              -550.0, 4.2, false));
     face.receiveMessage(new TariffTransaction(face,
                                               timeslotRepo.currentSerialNumber(),
                                               TariffTransaction.Type.PRODUCE, 
                                               pspec,
                                               customer2, 
                                               customer2.getPopulation(),
-                                              40.0, -0.15));
+                                              40.0, -0.15, false));
     // accounting runs ts2
     face.receiveMessage(endTimeslot());
     // broker sends bids for ts3...ts25
