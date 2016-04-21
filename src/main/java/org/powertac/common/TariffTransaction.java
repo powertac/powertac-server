@@ -17,6 +17,7 @@
 package org.powertac.common;
 
 
+import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
@@ -33,13 +34,15 @@ import com.thoughtworks.xstream.annotations.*;
  *
  * @author Carsten Block, John Collins
  */
-@Domain(fields = {"postedTimeslot", "txType", "customerInfo", "customerCount", "KWh", "charge"})
+@Domain(fields = {"postedTimeslot", "txType", "customerInfo", "customerCount",
+                  "KWh", "charge", "isRegulation"})
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {
   //static private Logger log = Logger.getLogger(TariffTransaction.class);
 
-  public enum Type { PUBLISH, PRODUCE, CONSUME, PERIODIC, SIGNUP, WITHDRAW, REVOKE, REFUND }
+  public enum Type { PUBLISH, PRODUCE, CONSUME,
+                     PERIODIC, SIGNUP, WITHDRAW, REVOKE, REFUND }
   
   /** Purpose of this transaction */
   @XStreamAsAttribute
@@ -64,8 +67,31 @@ public class TariffTransaction extends BrokerTransaction
   @XStreamAsAttribute
   private double charge = 0.0;
 
+  /** True just in case this transaction is related to regulation.
+   * If isRegulation is true, then a PRODUCE transaction indicates
+   * up-regulation, while a CONSUME transaction indicates down-regulation.
+   */
+  @XStreamAsAttribute
+  private boolean isRegulation = false;
+
   @XStreamConverter(TariffSpecificationConverter.class)
   private TariffSpecification tariffSpec;
+
+  /**
+   * Creates a new TariffTransaction that is not a regulation transaction.
+   */
+  @ChainedConstructor
+  @Deprecated
+  public TariffTransaction (Broker broker, int when, 
+                            Type txType,
+                            TariffSpecification spec, 
+                            CustomerInfo customer,
+                            int customerCount,
+                            double kWh, double charge)
+  {
+    this(broker, when, txType, spec, customer, customerCount,
+         kWh, charge, false);
+  }
 
   /**
    * Creates a new TariffTransaction for broker of type txType against
@@ -78,7 +104,8 @@ public class TariffTransaction extends BrokerTransaction
                             TariffSpecification spec, 
                             CustomerInfo customer,
                             int customerCount,
-                            double kWh, double charge)
+                            double kWh, double charge,
+                            boolean isRegulation)
   {
     super(when, broker);
     this.txType = txType;
@@ -87,6 +114,7 @@ public class TariffTransaction extends BrokerTransaction
     this.customerCount = customerCount;
     this.kWh = kWh;
     this.charge = charge;
+    this.isRegulation = isRegulation;
   }
 
   public Type getTxType ()
