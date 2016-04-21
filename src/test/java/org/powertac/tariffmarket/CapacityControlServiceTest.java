@@ -260,8 +260,7 @@ public class CapacityControlServiceTest
     reset(mockAccounting);
     final HashMap<CustomerInfo, Object[]> answers =
         new HashMap<CustomerInfo, Object[]>();
-    when(mockAccounting.addTariffTransaction(any(TariffTransaction.Type.class),
-                                             any(Tariff.class),
+    when(mockAccounting.addRegulationTransaction(any(Tariff.class),
                                              any(CustomerInfo.class),
                                              anyInt(),
                                              anyDouble(),
@@ -270,7 +269,7 @@ public class CapacityControlServiceTest
           @Override
           public Object answer(InvocationOnMock invocation) {
             Object[] args = invocation.getArguments();
-            CustomerInfo customer = (CustomerInfo)args[2];
+            CustomerInfo customer = (CustomerInfo)args[1];
             answers.put(customer, args);
             return null;
           }
@@ -295,21 +294,21 @@ public class CapacityControlServiceTest
     assertEquals("correct # of calls", 2, answers.size());
     Object[] args = answers.get(customer1);
     assertNotNull("customer1 included", args);
-    assertEquals("correct arg count", 6, args.length);
-    assertEquals("correct type", TariffTransaction.Type.PRODUCE,
-                 (TariffTransaction.Type) args[0]);
-    assertEquals("correct tariff", tariff, (Tariff) args[1]);
-    assertEquals("correct kwh", 40.0, (Double) args[4], 1e-6);
-    assertEquals("correct charge", -4.4, (Double) args[5], 1e-6);
+    assertEquals("correct arg count", 5, args.length);
+    //assertEquals("correct type", TariffTransaction.Type.PRODUCE,
+    //             (TariffTransaction.Type) args[0]);
+    assertEquals("correct tariff", tariff, (Tariff) args[0]);
+    assertEquals("correct kwh", 40.0, (Double) args[3], 1e-6);
+    assertEquals("correct charge", -4.4, (Double) args[4], 1e-6);
     
     args = answers.get(customer2);
     assertNotNull("customer2 included", args);
-    assertEquals("correct arg count", 6, args.length);
-    assertEquals("correct type", TariffTransaction.Type.PRODUCE,
-                 (TariffTransaction.Type) args[0]);
-    assertEquals("correct tariff", tariff, (Tariff) args[1]);
-    assertEquals("correct kwh", 60.0, (Double) args[4], 1e-6);
-    assertEquals("correct charge", -6.6, (Double) args[5], 1e-6);
+    assertEquals("correct arg count", 5, args.length);
+    //assertEquals("correct type", TariffTransaction.Type.PRODUCE,
+    //             (TariffTransaction.Type) args[0]);
+    assertEquals("correct tariff", tariff, (Tariff) args[0]);
+    assertEquals("correct kwh", 60.0, (Double) args[3], 1e-6);
+    assertEquals("correct charge", -6.6, (Double) args[4], 1e-6);
   }
 
   /**
@@ -348,8 +347,7 @@ public class CapacityControlServiceTest
     reset(mockAccounting);
     final HashMap<CustomerInfo, Object[]> answers =
         new HashMap<CustomerInfo, Object[]>();
-        when(mockAccounting.addTariffTransaction(any(TariffTransaction.Type.class),
-                                                 any(Tariff.class),
+        when(mockAccounting.addRegulationTransaction(any(Tariff.class),
                                                  any(CustomerInfo.class),
                                                  anyInt(),
                                                  anyDouble(),
@@ -358,7 +356,7 @@ public class CapacityControlServiceTest
                                                    @Override
                                                    public Object answer(InvocationOnMock invocation) {
                                                      Object[] args = invocation.getArguments();
-                                                     CustomerInfo customer = (CustomerInfo)args[2];
+                                                     CustomerInfo customer = (CustomerInfo)args[1];
                                                      answers.put(customer, args);
                                                      return null;
                                                    }
@@ -383,25 +381,25 @@ public class CapacityControlServiceTest
         assertEquals("correct # of calls", 2, answers.size());
         Object[] args = answers.get(customer1);
         assertNotNull("customer1 included", args);
-        assertEquals("correct arg count", 6, args.length);
-        assertEquals("correct type", TariffTransaction.Type.CONSUME,
-                     (TariffTransaction.Type) args[0]);
-        assertEquals("correct tariff", tariffRR1, (Tariff) args[1]);
+        assertEquals("correct arg count", 5, args.length);
+        //assertEquals("correct type", TariffTransaction.Type.CONSUME,
+        //             (TariffTransaction.Type) args[0]);
+        assertEquals("correct tariff", tariffRR1, (Tariff) args[0]);
         assertEquals("correct kwh",
-                     -15000.0/370.0, (Double) args[4], 1e-6);
+                     -15000.0/370.0, (Double) args[3], 1e-6);
         assertEquals("correct charge",
-                     0.05 * 15000.0/370.0, (Double) args[5], 1e-6);
+                     0.05 * 15000.0/370.0, (Double) args[4], 1e-6);
 
         args = answers.get(customer2);
         assertNotNull("customer2 included", args);
-        assertEquals("correct arg count", 6, args.length);
-        assertEquals("correct type", TariffTransaction.Type.CONSUME,
-                     (TariffTransaction.Type) args[0]);
-        assertEquals("correct tariff", tariffRR1, (Tariff) args[1]);
+        assertEquals("correct arg count", 5, args.length);
+        //assertEquals("correct type", TariffTransaction.Type.CONSUME,
+        //             (TariffTransaction.Type) args[0]);
+        assertEquals("correct tariff", tariffRR1, (Tariff) args[0]);
         assertEquals("correct kwh",
-                     -22000.0/370.0, (Double) args[4], 1e-6);
+                     -22000.0/370.0, (Double) args[3], 1e-6);
         assertEquals("correct charge",
-                     0.05 * 22000.0/370.0, (Double) args[5], 1e-6);
+                     0.05 * 22000.0/370.0, (Double) args[4], 1e-6);
   }
 
   /**

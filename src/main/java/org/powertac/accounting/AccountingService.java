@@ -174,6 +174,25 @@ public class AccountingService
   }
 
   @Override
+  public synchronized TariffTransaction
+  addRegulationTransaction (Tariff tariff, CustomerInfo customer,
+                            int customerCount, double kWh, double charge)
+  {
+    TariffTransaction.Type txType = TariffTransaction.Type.CONSUME;
+    if (kWh > 0.0)
+      txType = TariffTransaction.Type.PRODUCE;
+    TariffTransaction ttx =
+        txFactory.makeTariffTransaction(tariff.getBroker(), txType, 
+                                        tariffRepo.findSpecificationById(tariff.getSpecId()),
+                                        customer, customerCount,
+                                        kWh, charge, true);
+    if (null == ttx.getTariffSpec())
+      log.error("Null tariff spec in addTariffTx()");
+    pendingTransactions.add(ttx);
+    return ttx;
+  }
+
+  @Override
   public synchronized DistributionTransaction
   addDistributionTransaction (Broker broker, int nSmall, int nLarge,
                               double transport, double distroCharge)
