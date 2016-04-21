@@ -35,27 +35,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class TransactionFactory
 {
-  
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
   private int getTimeslotIndex ()
   {
     return timeslotRepo.currentSerialNumber();
   }
-  
+
   public BankTransaction makeBankTransaction (Broker broker, double amount)
   {
     return new BankTransaction(broker, amount, getTimeslotIndex());
   }
-  
+
   public BalancingTransaction
   makeBalancingTransaction (Broker broker, double kWh, double charge)
   {
     return new BalancingTransaction(broker, getTimeslotIndex(),
                                     kWh, charge);
   }
-  
+
   public CashPosition makeCashPosition (Broker broker, double balance)
   {
     return new CashPosition(broker, balance, getTimeslotIndex());
@@ -69,7 +68,7 @@ public class TransactionFactory
                                        nSmall, nLarge, transport,
                                        distroCharge);
   }
-  
+
   public MarketTransaction
   makeMarketTransaction (Broker broker, Timeslot timeslot,
                          double mWh, double price)
@@ -77,7 +76,10 @@ public class TransactionFactory
     return new MarketTransaction(broker, getTimeslotIndex(),
                                  timeslot, mWh, price);
   }
-  
+
+  /**
+   * Creates a tariff transaction that is not a regulation transaction.
+   */
   public TariffTransaction
   makeTariffTransaction(Broker broker, TariffTransaction.Type txType,
                         TariffSpecification spec,
@@ -87,7 +89,24 @@ public class TransactionFactory
   {
     return new TariffTransaction (broker, getTimeslotIndex(),
                                   txType, spec, customer,
-                                  customerCount, kWh, charge);
+                                  customerCount, kWh, charge, false);
+  }
+
+  /**
+   * Creates a tariff transaction that could be a regulation transaction,
+   * depending on the value of the isRegulation parameter.
+   */
+  public TariffTransaction
+  makeTariffTransaction(Broker broker, TariffTransaction.Type txType,
+                        TariffSpecification spec,
+                        CustomerInfo customer,
+                        int customerCount,
+                        double kWh, double charge,
+                        boolean isRegulation)
+  {
+    return new TariffTransaction (broker, getTimeslotIndex(),
+                                  txType, spec, customer,
+                                  customerCount, kWh, charge, isRegulation);
   }
 
   public CapacityTransaction

@@ -375,7 +375,7 @@ public class TariffSubscriptionTests
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
     sub.postBalancingControl(30.0); // balancing takes some back
     verify(mockAccounting)
-        .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
+        .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
     assertEquals("correct charge", -2.7, chargeArg.getValue(), 1e-6);
@@ -410,7 +410,7 @@ public class TariffSubscriptionTests
     assertEquals("correct charge", 9.0, chargeArg.getValue(), 1e-6);
     sub.postBalancingControl(-30.0);
     verify(mockAccounting)
-        .addTariffTransaction(eq(TariffTransaction.Type.CONSUME), eq(tariff),
+        .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(-30.0),
                               chargeArg.capture());
     assertEquals("correct charge", 2.7, chargeArg.getValue(), 1e-6);
@@ -453,7 +453,7 @@ public class TariffSubscriptionTests
                  cap.getDownRegulationCapacity(), 1e-6);
     sub.postBalancingControl(30.0);
     verify(mockAccounting)
-        .addTariffTransaction(eq(TariffTransaction.Type.PRODUCE), eq(tariff),
+        .addRegulationTransaction(eq(tariff),
                               eq(customer), eq(10), eq(30.0),
                               chargeArg.capture());
     assertEquals("correct charge", -4.5, chargeArg.getValue(), 1e-6);

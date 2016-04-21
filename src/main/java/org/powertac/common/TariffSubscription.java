@@ -527,10 +527,7 @@ public class TariffSubscription
   public synchronized void postBalancingControl (double kwh)
   {
     // issue compensating tariff transaction
-    TariffTransaction.Type txType =
-      kwh > 0? TariffTransaction.Type.PRODUCE: TariffTransaction.Type.CONSUME;
-      // simple net metering
-    getAccounting().addTariffTransaction(txType, tariff,
+    getAccounting().addRegulationTransaction(tariff,
         customer, customersCommitted, kwh,
         customersCommitted *
           tariff.getRegulationCharge(-kwh / customersCommitted, 
