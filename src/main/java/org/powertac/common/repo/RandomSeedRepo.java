@@ -26,7 +26,7 @@ import java.util.HashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.RandomSeed;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for RandomSeed instances. RandomSeeds are acquired by calls
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
  * 
  * @author John Collins
  */
-@Repository
+@Service
 public class RandomSeedRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(RandomSeedRepo.class.getName());
@@ -147,6 +147,7 @@ public class RandomSeedRepo implements DomainRepo
     return buf.toString();
   }
   
+  @Override
   public void recycle ()
   {
     seedMap.clear();

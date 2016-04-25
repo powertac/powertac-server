@@ -27,7 +27,7 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSubscription;
 import org.powertac.util.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for TariffSubscriptions. This cannot be in common, because
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Repository;
  * 
  * @author John Collins
  */
-@Repository
+@Service
 public class TariffSubscriptionRepo implements DomainRepo
 {
   // subscriptions are indexed by Tariff, CustomerInfo, and Broker

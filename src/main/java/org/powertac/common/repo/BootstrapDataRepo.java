@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for data contained in a bootstrap record.
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Repository;
  * 
  * @author John Collins
  */
-@Repository
+@Service
 public class BootstrapDataRepo implements DomainRepo
 {
   // The data store
