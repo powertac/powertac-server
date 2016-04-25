@@ -26,13 +26,13 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.util.Predicate;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Simple repository for Customer instances.
  * @author John Collins
  */
-@Repository
+@Service
 public class CustomerRepo implements DomainRepo
 {
   @SuppressWarnings("unused")

@@ -23,13 +23,13 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.Broker;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for Brokers, including competitors and other market participants.
  * @author John Collins
  */
-@Repository
+@Service
 public class BrokerRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(BrokerRepo.class.getName());

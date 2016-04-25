@@ -25,14 +25,14 @@ import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for Orderbooks. Orderbooks are created with makeOrderbook().
  * Query methods include findByTimeslot().
  * @author John Collins
  */
-@Repository
+@Service
 public class OrderbookRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(OrderbookRepo.class.getName());

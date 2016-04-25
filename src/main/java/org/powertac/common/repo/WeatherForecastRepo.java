@@ -25,7 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.WeatherForecast;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.powertac.common.exceptions.PowerTacException;
 
 /**
@@ -35,7 +35,7 @@ import org.powertac.common.exceptions.PowerTacException;
  * 
  * @author Erik Onarheim
  */
-@Repository
+@Service
 public class WeatherForecastRepo implements DomainRepo
 {
   static private Logger log =

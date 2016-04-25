@@ -31,13 +31,13 @@ import org.powertac.common.Tariff;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.msg.BalancingOrder;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for TariffSpecifications, Tariffs, Rates, and other related types.
  * @author John Collins
  */
-@Repository
+@Service
 public class TariffRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(TariffRepo.class.getName());

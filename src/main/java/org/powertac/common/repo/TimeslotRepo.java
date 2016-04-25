@@ -27,7 +27,7 @@ import org.powertac.common.Competition;
 import org.powertac.common.TimeService;
 import org.powertac.common.Timeslot;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 /**
  * Repository for Timeslots. 
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Repository;
  * previous timeslots ends.
  * @author John Collins
  */
-@Repository
+@Service
 public class TimeslotRepo implements DomainRepo
 {
   static private Logger log = LogManager.getLogger(TimeslotRepo.class.getName());
