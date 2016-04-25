@@ -152,9 +152,7 @@ public class TariffSubscription
     long minDuration = tariff.getMinDuration();
     //if (minDuration > 0) {
     // Compute the 00:00 Instant for the current time
-    Instant start =
-            getTimeService().truncateInstant(getTimeService().getCurrentTime(),
-                                             TimeService.DAY);
+    Instant start = getTimeService().getCurrentTime();
     if (expirations.size() > 0 &&
         expirations.get(expirations.size() - 1).getHorizon() == start.getMillis() + minDuration) {
       // update existing entry
@@ -626,11 +624,9 @@ public class TariffSubscription
   public int getExpiredCustomerCount ()
   {
     int cc = 0;
-    Instant today =
-            getTimeService().truncateInstant(getTimeService().getCurrentTime(),
-                                             TimeService.DAY);
+    Instant now = getTimeService().getCurrentTime();
     for (ExpirationRecord exp : expirations) {
-      if (exp.getHorizon() <= today.getMillis()) {
+      if (exp.getHorizon() <= now.getMillis()) {
         cc += exp.getCount();
       }
     }
