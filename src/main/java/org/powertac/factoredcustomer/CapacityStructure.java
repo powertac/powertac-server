@@ -126,6 +126,7 @@ public final class CapacityStructure implements StructureInstance
 
   // =================== Accessors ====================
 
+  @Override
   public String getName ()
   {
     return name;
