@@ -10,9 +10,9 @@
   </parent>
 
   <artifactId>visualizer</artifactId>
+  <version>1.3.1-SNAPSHOT</version>
   <name>Power TAC visualizer</name>
   <packaging>war</packaging>
-  <version>1.3.1-SNAPSHOT</version>
 
   <properties>
     <!-- from webapp-dependencies
@@ -80,7 +80,7 @@
         <dependency>
           <groupId>org.powertac</groupId>
           <artifactId>server-main</artifactId>
-          <version>1.3.1-SNAPSHOT</version>
+          <version>${powertac.version}</version>
         </dependency>
       </dependencies>
     
@@ -128,7 +128,7 @@
         <dependency>
           <groupId>org.powertac</groupId>
           <artifactId>server-main</artifactId>
-          <version>1.3.1-SNAPSHOT</version>
+          <version>${powertac.version}</version>
         </dependency>
       </dependencies>
 
