@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>broker-core</artifactId>
-  <version>1.3.1</version>
+  <version>1.3.1-SNAPSHOT</version>
   <description>Common core of a Power TAC broker implementation</description>
   <packaging>jar</packaging>
 
@@ -130,4 +130,10 @@
       </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <connection>scm:git:git//github.com/powertac/broker-core.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/broker-core.git</developerConnection>
+    <url>https://github.com/powertac</url>
+  </scm>
 </project>
