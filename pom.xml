@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>visualizer</artifactId>
-  <version>1.3.1-SNAPSHOT</version>
+  <version>1.3.1</version>
   <name>Power TAC visualizer</name>
   <packaging>war</packaging>
 
