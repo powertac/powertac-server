@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
-      <version>${powertac-version}</version>
+      <version>${powertac.version}</version>
     </dependency>
   </dependencies>
   
