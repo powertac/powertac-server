@@ -1,0 +1,92 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <name>powertac-logtool</name>
+  <url>http://www.powertac.org</url>
+
+  <parent>
+    <groupId>org.powertac</groupId>
+    <artifactId>server-master</artifactId>
+    <version>1.3.1</version>
+    <relativePath />
+  </parent>
+
+  <artifactId>logtool</artifactId>
+  <version>1.3.1-SNAPSHOT</version>
+  <description>
+    Tool for analyzing state logs produced by the Power TAC
+    simulation server
+  </description>
+  <packaging>jar</packaging>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <exec.args />
+  </properties>
+
+  <!-- Sonatype OSS repo for resolving snapshot modules -->
+  <repositories>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+  </repositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>default-broker</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>genco</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>evcustomer</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>customer-models</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-interface</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+  </dependencies>
+
+  <!-- The exec setup is for experimental purposes. The logtool core
+       is intended to be wrapped by a main class that extends
+       LogtoolContext and implements Analyzer -->
+  <build>
+    <finalName>logtool</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+          </execution>
+         </executions>
+        <configuration>
+          <executable>java</executable>
+          <commandlineArgs>-server -Xmx512m -classpath %classpath org.powertac.logtool.Logtool ${exec.args}</commandlineArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+   </build>
+</project>
