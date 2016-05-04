@@ -245,7 +245,7 @@ public class AccountingServiceTests
     Broker b2 = brokerRepo.findByUsername("Bob");
     assertEquals("bob in db by name", bob, b2);
   }
-  
+
   // create and test tariff transactions
   @Test
   public void testTariffTransaction ()
@@ -254,9 +254,13 @@ public class AccountingServiceTests
     accountingService.addTariffTransaction(TariffTransaction.Type.SIGNUP,
       tariffB1, customerInfo1, 2, 0.0, 42.1);
     accountingService.addTariffTransaction(TariffTransaction.Type.CONSUME,
-      tariffB1, customerInfo2, 7, 77.0, 7.7);
-    assertEquals("correct number in list", 2, accountingService.getPendingTransactions().size());
-    assertEquals("correct number in ttx list", 2, accountingService.getPendingTariffTransactions().size());
+      tariffB1, customerInfo2, 7, -77.0, 7.7);
+    accountingService.addRegulationTransaction(tariffB1, customerInfo1,
+                                               2, 10.0, -2.5);
+    accountingService.addRegulationTransaction(tariffB1, customerInfo2,
+                                               7, -10.0, 2.0);
+    assertEquals("correct number in list", 4, accountingService.getPendingTransactions().size());
+    assertEquals("correct number in ttx list", 4, accountingService.getPendingTariffTransactions().size());
     List<BrokerTransaction> pending = accountingService.getPendingTransactions();
     List<BrokerTransaction> signups = filter(pending,
                                              new Predicate<BrokerTransaction>() {
@@ -279,12 +283,33 @@ public class AccountingServiceTests
             ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.CONSUME);
       }
     });
-    assertEquals("one signup", 1, consumes.size());
+    assertEquals("two consumes", 2, consumes.size());
     ttx = (TariffTransaction)consumes.get(0);
     assertNotNull("second ttx not null", ttx);
-    assertEquals("correct amount id 1", 77.0, ttx.getKWh(), 1e-6);
+    TariffTransaction ttx1 = (TariffTransaction)consumes.get(1);
+    assertNotNull("third ttx not null", ttx1);
+    if (ttx.isRegulation()) {
+      // swap
+      ttx = ttx1;
+      ttx1 = (TariffTransaction)consumes.get(0);
+    }
+    assertEquals("correct amount 1", -77.0, ttx.getKWh(), 1e-6);
+    assertFalse("not regulation", ttx.isRegulation());
+    assertEquals("correct amount 2", -10.0, ttx1.getKWh(), 1e-6);
+    assertTrue("regulation", ttx1.isRegulation());
+    List<BrokerTransaction> produces = filter(pending,
+                                              new Predicate<BrokerTransaction>() {
+      public boolean apply (BrokerTransaction tx) {
+        return (tx instanceof TariffTransaction &&
+            ((TariffTransaction)tx).getTxType() == TariffTransaction.Type.PRODUCE);
+      }
+    });
+    assertEquals("one produce", 1, produces.size());
+    ttx = (TariffTransaction)produces.get(0);
+    assertEquals("correct amount 3", 10.0, ttx.getKWh(), 1e-6);
+    assertTrue("regulation", ttx.isRegulation());
   }
-  
+
   @Test
   public void testCurrentNetLoad ()
   {
