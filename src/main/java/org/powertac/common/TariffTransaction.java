@@ -35,7 +35,7 @@ import com.thoughtworks.xstream.annotations.*;
  * @author Carsten Block, John Collins
  */
 @Domain(fields = {"postedTimeslot", "txType", "customerInfo", "customerCount",
-                  "KWh", "charge", "isRegulation"})
+                  "KWh", "charge", "regulation"})
 @XStreamAlias("tariff-tx")
 public class TariffTransaction extends BrokerTransaction
 {
@@ -68,11 +68,11 @@ public class TariffTransaction extends BrokerTransaction
   private double charge = 0.0;
 
   /** True just in case this transaction is related to regulation.
-   * If isRegulation is true, then a PRODUCE transaction indicates
+   * If regulation is true, then a PRODUCE transaction indicates
    * up-regulation, while a CONSUME transaction indicates down-regulation.
    */
   @XStreamAsAttribute
-  private boolean isRegulation = false;
+  private boolean regulation = false;
 
   @XStreamConverter(TariffSpecificationConverter.class)
   private TariffSpecification tariffSpec;
@@ -105,7 +105,7 @@ public class TariffTransaction extends BrokerTransaction
                             CustomerInfo customer,
                             int customerCount,
                             double kWh, double charge,
-                            boolean isRegulation)
+                            boolean regulation)
   {
     super(when, broker);
     this.txType = txType;
@@ -114,7 +114,7 @@ public class TariffTransaction extends BrokerTransaction
     this.customerCount = customerCount;
     this.kWh = kWh;
     this.charge = charge;
-    this.isRegulation = isRegulation;
+    this.regulation = regulation;
   }
 
   public Type getTxType ()
@@ -155,6 +155,18 @@ public class TariffTransaction extends BrokerTransaction
     return charge;
   }
 
+  /**
+   * True just in case this is transaction reports exercise of regulation
+   * capacity.
+   */
+  public boolean isRegulation ()
+  {
+    return regulation;
+  }
+
+  /**
+   * Returns the TariffSpecification instance to which this transaction applies.
+   */
   public TariffSpecification getTariffSpec ()
   {
     return tariffSpec;
