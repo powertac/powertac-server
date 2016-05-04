@@ -81,7 +81,7 @@ public class TariffTransactionTests
     xstream.processAnnotations(TariffTransaction.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(ttx));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     TariffTransaction xttx =
         (TariffTransaction) xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xttx);
