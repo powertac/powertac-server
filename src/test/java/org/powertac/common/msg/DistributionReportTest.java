@@ -53,7 +53,7 @@ public class DistributionReportTest
   {
     DistributionReport dr = new DistributionReport(1, 2.0, 3.0);
     assertNotNull("created it", dr);
-    assertEquals("timeslotIndex", 1, dr.getTimeslotIndex());
+    assertEquals("timeslotIndex", 1, dr.getTimeslot());
     assertEquals("cons", 2.0, dr.getTotalConsumption(), 1e-6);
     assertEquals("prod", 3.0, dr.getTotalProduction(), 1e-6);
   }
@@ -71,7 +71,7 @@ public class DistributionReportTest
     DistributionReport xdr1 =
         (DistributionReport)xstream.fromXML(serialized.toString());
     assertNotNull("deserialized something", xdr1);
-    assertEquals("correct timeslot", 2, xdr1.getTimeslotIndex());
+    assertEquals("correct timeslot", 2, xdr1.getTimeslot());
     assertEquals("correct consumption", 3.3, xdr1.getTotalConsumption(), 1e-6);
     assertEquals("correct production", 2.2, xdr1.getTotalProduction(), 1e-6);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by the original author
+ * Copyright (c) 2012-2016 by the original author
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
+import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -27,18 +29,21 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
-@Domain
+@Domain(fields = {"timeslot", "totalConsumption", "totalProduction"})
 @XStreamAlias("distribution-report")
-public class DistributionReport
+public class DistributionReport extends XStreamStateLoggable
 {
+  @XStreamAsAttribute
+  protected long id = IdGenerator.createId();
+
+  @XStreamAsAttribute
+  private int timeslot;
+
   @XStreamAsAttribute
   private double totalConsumption;
   
   @XStreamAsAttribute
   private double totalProduction;
-
-  @XStreamAsAttribute
-  private int timeslotIndex;
 
   /**
    * Dummy constructor.
@@ -48,21 +53,26 @@ public class DistributionReport
     super();
     totalConsumption = 0.0;
     totalProduction = 0.0;
-    timeslotIndex = 0;
+    timeslot = 0;
   }
 
-  public DistributionReport (int timeslotIndex,
+  public DistributionReport (int timeslot,
                              double consumption, double production)
   {
     super();
-    this.timeslotIndex = timeslotIndex;
+    this.timeslot = timeslot;
     totalConsumption = consumption;
     totalProduction = production;
   }
 
-  public int getTimeslotIndex()
+  public long getId()
   {
-    return timeslotIndex;
+    return id;
+  }
+
+  public int getTimeslot()
+  {
+    return timeslot;
   }
 
   public double getTotalConsumption ()

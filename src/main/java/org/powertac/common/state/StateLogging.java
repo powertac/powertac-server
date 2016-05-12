@@ -55,25 +55,21 @@ public class StateLogging
   private Logger stateLog = LogManager.getLogger("State");
 
   // state-change methods
-  //public pointcut setState() :
-  //  execution (@StateChange * * (..));
   @Pointcut ("execution (@StateChange * * (..))")
   public void setState () {}
-  
-  //public pointcut newState() :
-  //  execution ((@Domain *).new (..));
+
   @Pointcut ("execution ((@Domain *).new (..))")
   public void domainConstructor() {}
-    
+
   @Pointcut ("execution (Object XStreamStateLoggable.readResolve())")
   public void readResolveMethod() {}
-  
+
   @Pointcut("execution (@ChainedConstructor *.new (..))")
   public void chainedConstructor() {}
-  
+
   @Pointcut ("(domainConstructor() && !chainedConstructor()) || readResolveMethod()")
   public void newState() {}
-  
+
   @AfterReturning ("setState()")
   public void setstate (JoinPoint jp)
   {
@@ -83,7 +79,7 @@ public class StateLogging
     Long id = findId(thing);
     writeLog(thing.getClass().getName(), id, sig.getName(), args);
   }
-  
+
   @AfterReturning ("newState()")
   public void newstate (JoinPoint jp)
   {
@@ -174,7 +170,7 @@ public class StateLogging
       buf.append(arg.toString());
     }
   }
-  
+
   Long findId (Object thing)
   {
     Long id = null;
@@ -184,6 +180,6 @@ public class StateLogging
     }
     catch (Exception ex) {
     }
-    return id;    
+    return id;
   }
 }
