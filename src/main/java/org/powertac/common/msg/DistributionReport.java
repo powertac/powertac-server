@@ -37,6 +37,9 @@ public class DistributionReport
   @XStreamAsAttribute
   private double totalProduction;
 
+  @XStreamAsAttribute
+  private int timeslotIndex;
+
   /**
    * Dummy constructor.
    */
@@ -45,13 +48,21 @@ public class DistributionReport
     super();
     totalConsumption = 0.0;
     totalProduction = 0.0;
+    timeslotIndex = 0;
   }
 
-  public DistributionReport (double consumption, double production)
+  public DistributionReport (int timeslotIndex,
+                             double consumption, double production)
   {
     super();
+    this.timeslotIndex = timeslotIndex;
     totalConsumption = consumption;
     totalProduction = production;
+  }
+
+  public int getTimeslotIndex()
+  {
+    return timeslotIndex;
   }
 
   public double getTotalConsumption ()
