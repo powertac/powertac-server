@@ -363,7 +363,8 @@ public class AccountingService
     }
     // build and send the distribution report
     distributionReport =
-        new DistributionReport(totalConsumption, totalProduction);
+        new DistributionReport(timeslotRepo.currentSerialNumber(),
+                               totalConsumption, totalProduction);
     brokerProxyService.broadcastMessage(distributionReport);
   }
   
