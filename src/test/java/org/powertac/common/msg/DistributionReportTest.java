@@ -66,7 +66,7 @@ public class DistributionReportTest
     xstream.processAnnotations(DistributionReport.class);
     StringWriter serialized = new StringWriter();
     serialized.write(xstream.toXML(dr1));
-    System.out.println(serialized.toString());
+    //System.out.println(serialized.toString());
     
     DistributionReport xdr1 =
         (DistributionReport)xstream.fromXML(serialized.toString());
