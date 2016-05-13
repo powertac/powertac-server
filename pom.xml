@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>server-interface</artifactId>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.3.2</version>
   <name>Power TAC server interface</name>
   <description>
     interfaces and domain types shared by multiple server components
