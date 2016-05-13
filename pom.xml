@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.3.2</version>
     <relativePath />
   </parent>
 
   <artifactId>genco</artifactId>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.3.2</version>
   <name>Power TAC genco</name>
   <description>
     Models of simple wholesale power producers, and a wholesale buyer
