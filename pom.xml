@@ -4,12 +4,12 @@
   <parent>
     <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.3.2</version>
     <relativePath />
   </parent>
 
   <artifactId>auctioneer</artifactId>
-  <version>1.3.2-SNAPSHOT</version>
+  <version>1.3.2</version>
   <name>Power TAC wholesale market</name>
   <description>
     simulation of day-ahead wholesale market for trading electric power
