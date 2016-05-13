@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.powertac</groupId>
   <artifactId>common</artifactId>
-  <version>1.3.2</version>
+  <version>1.3.3-SNAPSHOT</version>
   <name>Power TAC common domain model</name>
   <url>https://github.com/powertac/common</url>
   <description>domain types, services, utilities shared by Power TAC server and agents</description>
