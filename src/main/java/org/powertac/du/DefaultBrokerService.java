@@ -413,7 +413,7 @@ public class DefaultBrokerService
         log.info("consumption by subset " + ttx.getCustomerCount() +
                  " of subscribed population " + record.subscribedPopulation);
       }
-      record.produceConsume(ttx.getKWh(), ttx.getPostedTime());      
+      record.produceConsume(ttx.getKWh(), ttx.getPostedTime());
     }
   }
   
@@ -486,12 +486,23 @@ public class DefaultBrokerService
         record = new CustomerRecord(customer, customer.getPopulation());
         customerMap.put(customer, record);
       }
-      int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
-          - cbd.getNetUsage().length);
+      if (cbd.getNetUsage().length <
+          Competition.currentCompetition().getBootstrapTimeslotCount()) {
+        log.error("Short boot record {} for customer {} -- filling with zeros",
+                  cbd.getNetUsage().length,
+                  customer.getName());
+      }
+      //int offset = (timeslotRepo.currentTimeslot().getSerialNumber()
+      //    - cbd.getNetUsage().length);
       //log.info("sn=" + timeslotRepo.currentTimeslot().getSerialNumber()
       //         + ", offset=" + offset);
       for (int i = 0; i < cbd.getNetUsage().length; i++) {
-        record.produceConsume(cbd.getNetUsage()[i], i + offset);
+        record.produceConsume(cbd.getNetUsage()[i], i);// + offset);
+      }
+      for (int i = cbd.getNetUsage().length;
+          i < Competition.currentCompetition().getBootstrapTimeslotCount();
+          i++) {
+        record.produceConsume(0.0, i);//) + offset);
       }
     }
   }
@@ -521,6 +532,16 @@ public class DefaultBrokerService
   public void handleMessage (TimeslotComplete tc)
   {
     this.activate();
+    // In bootstrap mode,
+    // fill out customer records for which no transactions have arrived
+    if (bootstrapMode) {
+      for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
+        for (CustomerRecord record : customerMap.values()) {
+          record.fillBootstrapUsage(0.0, timeslotRepo.currentSerialNumber());
+        }
+      }
+
+    }
   }
 
   /**
@@ -786,19 +807,7 @@ public class DefaultBrokerService
     // store profile data at the given index
     void produceConsume (double kwh, int rawIndex)
     {
-      // in bootstrap mode, we also record everything raw
-      if (bootstrapMode) {
-        if (bootstrapUsage.size() <= rawIndex) {
-          while (bootstrapUsage.size() < rawIndex)
-            bootstrapUsage.add(0.0);
-          bootstrapUsage.add(kwh);
-        }
-        else {
-          bootstrapUsage.set(rawIndex, bootstrapUsage.get(rawIndex) + kwh);
-        }
-        //log.info("bootstrapUsage customer " + customer.getName()
-        //         + "[" + rawIndex + "]=" + bootstrapUsage.get(rawIndex));
-      }
+      fillBootstrapUsage(kwh, rawIndex);
       int index = getIndex(rawIndex);
       double kwhPerCustomer = kwh / (double)subscribedPopulation;
       double oldUsage = usage[index];
@@ -813,7 +822,24 @@ public class DefaultBrokerService
       log.debug("consume " + kwh + " at " + index +
                 ", customer " + customer.getName());
     }
-    
+
+    void fillBootstrapUsage (double kwh, int rawIndex)
+    {
+      // in bootstrap mode, we also record everything raw
+      if (bootstrapMode) {
+        if (bootstrapUsage.size() <= rawIndex) {
+          while (bootstrapUsage.size() < rawIndex)
+            bootstrapUsage.add(0.0);
+          bootstrapUsage.add(kwh);
+        }
+        else {
+          bootstrapUsage.set(rawIndex, bootstrapUsage.get(rawIndex) + kwh);
+        }
+        //log.info("bootstrapUsage customer " + customer.getName()
+        //         + "[" + rawIndex + "]=" + bootstrapUsage.get(rawIndex));
+      }
+    }
+
     double getUsage (int index)
     {
       if (index < 0) {

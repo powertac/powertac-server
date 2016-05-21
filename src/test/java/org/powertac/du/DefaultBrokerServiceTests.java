@@ -713,6 +713,11 @@ public class DefaultBrokerServiceTests
     face.receiveMessage(cp); // last message in ts0
 
     nextTimeslot();
+
+    // Should be two customer records, each should have one entry
+    //List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData(2);
+    //
+
     //timeService.setCurrentTime(timeslotRepo.currentTimeslot().getEndInstant());
     
     // market clears ts1
@@ -748,22 +753,24 @@ public class DefaultBrokerServiceTests
                                               customer1, 
                                               customer1.getPopulation(),
                                               -550.0, 4.2, false));
-    face.receiveMessage(new TariffTransaction(face,
-                                              timeslotRepo.currentSerialNumber(),
-                                              TariffTransaction.Type.PRODUCE, 
-                                              pspec,
-                                              customer2, 
-                                              customer2.getPopulation(),
-                                              40.0, -0.15, false));
+//    face.receiveMessage(new TariffTransaction(face,
+//                                              timeslotRepo.currentSerialNumber(),
+//                                              TariffTransaction.Type.PRODUCE, 
+//                                              pspec,
+//                                              customer2, 
+//                                              customer2.getPopulation(),
+//                                              40.0, -0.15, false));
     // accounting runs ts2
     face.receiveMessage(endTimeslot());
     // broker sends bids for ts3...ts25
     
     // check the customer bootstrap data
-    List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData(2);
+    List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData(3);
     assertEquals("Two entries in cbd", 2, cbd.size());
     CustomerBootstrapData first = cbd.get(0);
-    assertEquals("Three usage records", 2, first.getNetUsage().length);
+    assertEquals("Three usage records 1", 3, first.getNetUsage().length);
+    CustomerBootstrapData second = cbd.get(1);
+    assertEquals("Three usage records 2", 3, second.getNetUsage().length);
   }
   
   // set up some timeslots - ts0 is disabled, then 23 enabled slots
