@@ -308,6 +308,50 @@ public class AuctionServiceTests
     assertNull("fourth price null", minAsks[3]);
   }
 
+  // one ask, one bid, equal qty, tradeable
+  @Test
+  public void testActivate1HighMargin ()
+  {
+    Order sell = new Order(s1, ts1.getSerialNumber(), -1.0, 20.0);
+    Order buy = new Order(b1, ts1.getSerialNumber(), 1.0, -32.0);
+    svc.handleMessage(sell);
+    svc.handleMessage(buy);
+    assertEquals("two orders received", 2, svc.getIncoming().size());
+    svc.activate(timeService.getCurrentTime(), 2);
+    assertEquals("accounting called twice", 2, accountingArgs.size());
+    // first tx should be ask, second bid
+    Object[] args = accountingArgs.get(0);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("ts1", ts1, args[1]);
+    assertEquals("mWh", -1.0, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+    args = accountingArgs.get(1);
+    assertEquals("b1", b1, args[0]);
+    assertEquals("ts1", ts1, args[1]);
+    assertEquals("mWh", 1.0, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+    // two broker messages
+    assertEquals("2 messages", 2, brokerMsgs.size());
+    assertTrue("first is orderbook", brokerMsgs.get(0) instanceof Orderbook);
+    Orderbook ob = (Orderbook) brokerMsgs.get(0);
+    assertEquals("no uncleared asks", 0, ob.getAsks().size());
+    assertEquals("no uncleared bids", 0, ob.getBids().size());
+    assertEquals("correct timeslot", ts1, ob.getTimeslot());
+    assertEquals("correct clearing", 21.0, ob.getClearingPrice(), 1e-6);
+    assertTrue("second is clearedTrade", brokerMsgs.get(1) instanceof ClearedTrade);
+    ClearedTrade ct = (ClearedTrade) brokerMsgs.get(1);
+    assertEquals("correct timeslot", ts1, ct.getTimeslot());
+    assertEquals("correct mWh", 1.0, ct.getExecutionMWh(), 1e-6);
+    assertEquals("correct price", 21.0, ct.getExecutionPrice(), 1e-6);
+    // check minAsk data
+    Double[] minAsks = orderbookRepo.getMinAskPrices();
+    assertEquals("four prices", 4, minAsks.length);
+    assertEquals("correct first price", 20.0, minAsks[0], 1e-6);
+    assertNull("second price null", minAsks[1]);
+    assertNull("third price null", minAsks[2]);
+    assertNull("fourth price null", minAsks[3]);
+  }
+
   // one ask, one bid, equal qty, not tradeable
   @Test
   public void testActivate1_no ()
@@ -641,12 +685,13 @@ public class AuctionServiceTests
     assertEquals("s2", s2, args[0]);
     assertEquals("ts2", ts2, args[1]);
     assertEquals("mWh", -0.6, (Double) args[2], 1e-6);
-    assertEquals("price", 19.5, (Double) args[3], 1e-6);
+    double exPrice = 18 * 1.05;
+    assertEquals("price", exPrice, (Double) args[3], 1e-6);
 
     args = accountingArgs.get(1);
     assertEquals("b2", b2, args[0]);
     assertEquals("mWh", 0.6, (Double) args[2], 1e-6);
-    assertEquals("price", -19.5, (Double) args[3], 1e-6);
+    assertEquals("price", -exPrice, (Double) args[3], 1e-6);
 
     // check the cleared trade
     assertTrue("ClearedTrade sent",
@@ -654,7 +699,7 @@ public class AuctionServiceTests
     ClearedTrade ct = (ClearedTrade) brokerMsgs.get(1);
     assertEquals("correct timeslot", ts2, ct.getTimeslot());
     assertEquals("correct mWh", 1.9, ct.getExecutionMWh(), 1e-6);
-    assertEquals("correct price", 19.5, ct.getExecutionPrice(), 1e-6);
+    assertEquals("correct price", exPrice, ct.getExecutionPrice(), 1e-6);
   }
 
   // two asks, two bids, market order on one ask, zero qty bid

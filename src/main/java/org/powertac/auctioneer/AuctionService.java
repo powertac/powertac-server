@@ -109,6 +109,11 @@ public class AuctionService
       description = "Proportion of market surplus allocated to the seller")
   private double sellerSurplusRatio;
 
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "maximum seller margin")
+  private double sellerMaxMargin = 0.05;
+
   private double epsilon = 1e-6; // position balance less than this is ignored
 
   private List<Order> incoming;
@@ -305,7 +310,10 @@ public class AuctionService
       double clearingPrice;
       if (bidPrice != null) {
         if (askPrice != null) {
-          clearingPrice = askPrice + sellerSurplusRatio * (-bidPrice - askPrice);
+          clearingPrice =
+              askPrice + sellerSurplusRatio * (-bidPrice - askPrice);
+          clearingPrice =
+              Math.min(clearingPrice, askPrice * (1.0 + sellerMaxMargin));
         }
         else {
           // ask price is null
