@@ -1,0 +1,15 @@
+version: '2'
+services:
+    visualizer2-app:
+        image: visualizer2
+        external_links:
+            - visualizer2-mysql:mysql
+        environment:
+            - SPRING_PROFILES_ACTIVE=prod
+            - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/visualizer2?useUnicode=true&characterEncoding=utf8&useSSL=false
+        ports:
+            - 8080:8080
+    visualizer2-mysql:
+        extends:
+            file: mysql.yml
+            service: visualizer2-mysql
