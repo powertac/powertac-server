@@ -779,6 +779,24 @@
 
         <profile>
             <id>tournament</id>
+            <build>
+                <plugins>
+                    <!-- TODO maybe use Cargo instead? -->
+                    <plugin>
+                        <groupId>org.apache.tomcat.maven</groupId>
+                        <artifactId>tomcat7-maven-plugin</artifactId>
+                        <version>2.2</version>
+                        <configuration>
+                            <url>http://${vizHost}.ict.eur.nl:8080/manager/text</url>
+                            <username>admin</username>
+                            <password>********</password>
+                            <path>/visualizer/${simHost}</path>
+                            <update>true</update>
+                            <warFile>target/${project.build.finalName}.war.original</warFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
             <properties>
                 <visualizer.mode>tournament</visualizer.mode>
             </properties>
@@ -892,7 +910,7 @@
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <configuration>
-                            <executable>true</executable>
+                            <executable>false</executable>
                         </configuration>
                     </plugin>
                 </plugins>
