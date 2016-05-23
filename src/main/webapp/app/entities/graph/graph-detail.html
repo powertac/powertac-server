@@ -1,0 +1,33 @@
+
+<div>
+    <h2><span>Graph</span> {{vm.graph.id}}</h2>
+    <hr>
+    <dl class="dl-horizontal">
+        <dt><span>Name</span></dt>
+        <dd>
+            <span>{{vm.graph.name}}</span>
+        </dd>
+        <hr>
+        <dt><span>Type</span></dt>
+        <dd>
+            <span translate="{{'visualizer2App.GraphType.' + vm.graph.type}}">{{vm.graph.type}}</span>
+        </dd>
+        <hr>
+        <dt><span>Shared</span></dt>
+        <dd>
+            <span>{{vm.graph.shared}}</span>
+        </dd>
+        <hr>
+        <dt><span>Owner</span></dt>
+        <dd>
+            {{vm.graph.owner.login}}
+        </dd>
+        <hr>
+    </dl>
+
+    <button type="submit"
+            onclick="window.history.back()"
+            class="btn btn-info">
+        <span class="glyphicon glyphicon-arrow-left"></span>&nbsp;<span> Back</span>
+    </button>
+</div>
