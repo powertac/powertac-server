@@ -769,11 +769,12 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <!--
-             TODO see old visualizer pom.xml:
-             - configure war plugin ?
-             - TODO jetty plugin ?
-           -->
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-jetty</artifactId>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -781,11 +782,12 @@
             <properties>
                 <visualizer.mode>tournament</visualizer.mode>
             </properties>
-            <!--
-             TODO see old visualizer pom.xml:
-             - configure war plugin ?
-             - TODO tomcat plugin ?
-           -->
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -815,7 +817,7 @@
                         <artifactId>maven-war-plugin</artifactId>
                         <configuration>
                             <warSourceDirectory>src/main/webapp/</warSourceDirectory>
-                            <packagingExcludes>WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+                            <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -836,10 +838,6 @@
                     <optional>true</optional>
                 </dependency>
                 -->
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </dependency>
             </dependencies>
         </profile>
         <profile>
@@ -887,7 +885,7 @@
                         <artifactId>maven-war-plugin</artifactId>
                         <configuration>
                             <warSourceDirectory>target/www/</warSourceDirectory>
-                            <packagingExcludes>WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+                            <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -905,12 +903,6 @@
                 <!-- default Spring profiles -->
                 <spring.profiles.active>prod${profile.no-liquibase}${profile.no-swagger},${visualizer.mode}</spring.profiles.active>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 
