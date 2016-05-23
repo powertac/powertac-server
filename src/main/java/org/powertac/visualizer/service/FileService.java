@@ -1,6 +1,7 @@
 package org.powertac.visualizer.service;
 
 import org.powertac.visualizer.domain.File;
+import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.domain.enumeration.FileType;
 import org.powertac.visualizer.repository.FileRepository;
 import org.slf4j.Logger;
@@ -89,5 +90,22 @@ public class FileService {
         File file = fileRepository.findOne(id);
         fileRepository.delete(id);
         file.delete();
+    }
+
+    /**
+     * Create a new file
+     *
+     * @param type
+     * @param name
+     * @param owner
+     * @return The new file
+     */
+    public File createFile(FileType type, String name, User owner) {
+        File file = new File();
+        file.setType(type);
+        file.setName(name);
+        file.setOwner(owner);
+        file.setShared(false);
+        return save(file);
     }
 }

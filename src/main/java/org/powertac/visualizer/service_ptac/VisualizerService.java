@@ -117,4 +117,5 @@ public class VisualizerService {
         this.state = state;
         pusher.sendGameStatusMessage(state);
     }
+
 }

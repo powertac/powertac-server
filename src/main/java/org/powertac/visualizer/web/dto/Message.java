@@ -10,6 +10,7 @@ public class Message {
     }
 
     private Type type;
+    private String gameName;
     private Object message;
     private long time;
 
@@ -17,10 +18,19 @@ public class Message {
 
     }
 
-    public Message(Type type, Object message) {
+    public Message(Type type, String gameName, Object message) {
         this.type = type;
+        this.gameName = gameName;
         this.message = message;
         this.time = System.currentTimeMillis();
+    }
+
+    public String getGame() {
+        return gameName;
+    }
+
+    public void setGame(String gameName) {
+        this.gameName = gameName;
     }
 
     public Object getMessage() {

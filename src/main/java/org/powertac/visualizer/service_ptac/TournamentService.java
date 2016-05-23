@@ -555,7 +555,7 @@ public class TournamentService implements MessageListener {
                 public void handleEvent(TournamentEvent event) {
                     if (event == TournamentEvent.VSR) {
                         setTournamentState(loggedIn);
-                        visualizerService.setState(VisualizerState.IDLE);
+                        visualizerService.setState(VisualizerState.WAITING);
                     } else if (event == TournamentEvent.TICK) {
                         gameLogin();
                     }
@@ -578,6 +578,7 @@ public class TournamentService implements MessageListener {
                 public void handleEvent(TournamentEvent event) {
                     if (event == TournamentEvent.VSR) {
                         setTournamentState(loggedIn);
+                        visualizerService.setState(VisualizerState.WAITING);
                     } else if (event == TournamentEvent.TICK) {
                         long now = new Date().getTime();
                         // limit harrassment of running game
@@ -602,6 +603,7 @@ public class TournamentService implements MessageListener {
 
                 @Override
                 public void handleEvent(TournamentEvent event) {
+
                     if (event == TournamentEvent.SIMEND) {
                         setTournamentState(initial);
                     } else if (event == TournamentEvent.TICK && isInactive()) {

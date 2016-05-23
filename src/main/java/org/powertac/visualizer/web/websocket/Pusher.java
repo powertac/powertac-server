@@ -46,7 +46,7 @@ public class Pusher {
 
     @SubscribeMapping(TOPIC_MESSAGE)
     public Message pusherInit() {
-        return new Message(Message.Type.INIT,
+        return new Message(Message.Type.INIT, currentCompetition.getName(),
                 new InitMessage(visualizerService.getState(),
                         currentCompetition, brokerRepository.findAll(),
                         customerRepository.findAll(),
@@ -55,17 +55,17 @@ public class Pusher {
 
     public void sendInitMessage(InitMessage initMessage) {
         messagingTemplate.convertAndSend(TOPIC_MESSAGE,
-                new Message(Message.Type.INIT, initMessage));
+                new Message(Message.Type.INIT, currentCompetition.getName(), initMessage));
     }
 
     public void sendTickSnapshotUpdates(TickSnapshot payload) {
         messagingTemplate.convertAndSend(TOPIC_MESSAGE,
-                new Message(Message.Type.DATA, payload));
+                new Message(Message.Type.DATA, currentCompetition.getName(), payload));
     }
 
     public void sendGameStatusMessage(VisualizerState status) {
         messagingTemplate.convertAndSend(TOPIC_MESSAGE,
-                new Message(Message.Type.INFO, status));
+                new Message(Message.Type.INFO, currentCompetition.getName(), status));
     }
 
 }

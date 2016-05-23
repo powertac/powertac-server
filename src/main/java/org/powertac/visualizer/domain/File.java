@@ -4,6 +4,8 @@ package org.powertac.visualizer.domain;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Objects;
 
 import org.powertac.visualizer.domain.enumeration.FileType;
@@ -16,6 +18,17 @@ import org.powertac.visualizer.domain.enumeration.FileType;
 public class File implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    public static final String separator = java.io.File.separator;
+    
+    public static final String getSafeName(String name) {
+        try {
+            name = name == null ? null : URLEncoder.encode(name, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // should never happen
+        }
+        return name;
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

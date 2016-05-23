@@ -113,10 +113,10 @@ public class ExceptionTranslator {
         ResponseStatus responseStatus = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);
         if (responseStatus != null) {
             builder = ResponseEntity.status(responseStatus.value());
-            errorDTO = new ErrorDTO("error." + responseStatus.value().value(), responseStatus.reason());
+            errorDTO = new ErrorDTO("error." + responseStatus.value().value(), responseStatus.reason() + ": " + ex.getMessage());
         } else {
             builder = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            errorDTO = new ErrorDTO(ErrorConstants.ERR_INTERNAL_SERVER_ERROR, "Internal server error");
+            errorDTO = new ErrorDTO(ErrorConstants.ERR_INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage());
         }
         return builder.body(errorDTO);
     }

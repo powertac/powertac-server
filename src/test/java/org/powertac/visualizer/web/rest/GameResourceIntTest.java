@@ -3,6 +3,7 @@ package org.powertac.visualizer.web.rest;
 import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.Game;
 import org.powertac.visualizer.repository.GameRepository;
+import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.GameService;
 
 import org.junit.Before;
@@ -68,6 +69,9 @@ public class GameResourceIntTest {
     private GameRepository gameRepository;
 
     @Inject
+    private UserRepository userRepository;
+
+    @Inject
     private GameService gameService;
 
     @Inject
@@ -85,6 +89,7 @@ public class GameResourceIntTest {
         MockitoAnnotations.initMocks(this);
         GameResource gameResource = new GameResource();
         ReflectionTestUtils.setField(gameResource, "gameService", gameService);
+        ReflectionTestUtils.setField(gameResource, "userRepository", userRepository);
         this.restGameMockMvc = MockMvcBuilders.standaloneSetup(gameResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();
