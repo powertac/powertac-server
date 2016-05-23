@@ -3,6 +3,7 @@ package org.powertac.visualizer.web.rest;
 import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.Chart;
 import org.powertac.visualizer.repository.ChartRepository;
+import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.ChartService;
 
 import org.junit.Before;
@@ -52,6 +53,9 @@ public class ChartResourceIntTest {
     private ChartRepository chartRepository;
 
     @Inject
+    private UserRepository userRepository;
+
+    @Inject
     private ChartService chartService;
 
     @Inject
@@ -69,6 +73,7 @@ public class ChartResourceIntTest {
         MockitoAnnotations.initMocks(this);
         ChartResource chartResource = new ChartResource();
         ReflectionTestUtils.setField(chartResource, "chartService", chartService);
+        ReflectionTestUtils.setField(chartResource, "userRepository", userRepository);
         this.restChartMockMvc = MockMvcBuilders.standaloneSetup(chartResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();

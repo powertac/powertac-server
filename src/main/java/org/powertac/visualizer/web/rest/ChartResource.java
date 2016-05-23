@@ -2,6 +2,9 @@ package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 import org.powertac.visualizer.domain.Chart;
+import org.powertac.visualizer.domain.User;
+import org.powertac.visualizer.repository.UserRepository;
+import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.ChartService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
@@ -30,10 +33,13 @@ import java.util.Optional;
 public class ChartResource {
 
     private final Logger log = LoggerFactory.getLogger(ChartResource.class);
-        
+
     @Inject
     private ChartService chartService;
-    
+
+    @Inject
+    private UserRepository userRepository;
+
     /**
      * POST  /charts : Create a new chart.
      *
@@ -50,6 +56,12 @@ public class ChartResource {
         if (chart.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("chart", "idexists", "A new chart cannot already have an ID")).body(null);
         }
+
+        String login = SecurityUtils.getCurrentUserLogin();
+        User user = userRepository.findOneByLogin(login).orElse(null);
+
+        chart.setOwner(user);
+
         Chart result = chartService.save(chart);
         return ResponseEntity.created(new URI("/api/charts/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert("chart", result.getId().toString()))
@@ -135,4 +147,17 @@ public class ChartResource {
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("chart", id.toString())).build();
     }
 
+    /**
+     * Get all charts owned by logged in user, plus all shared charts.
+     */
+    @RequestMapping(value = "/mycharts",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    public ResponseEntity<List<Chart>> getMyGames() throws URISyntaxException {
+        log.debug("REST request to get owned and shared charts");
+        String login = SecurityUtils.getCurrentUserLogin();
+        List<Chart> list = chartService.findByOwnerIsCurrentUserOrShared(login);
+        return new ResponseEntity<>(list, HttpStatus.OK);
+    }
 }

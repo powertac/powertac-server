@@ -50,6 +50,18 @@ public class ChartService {
     }
 
     /**
+     *  Get all the charts owned by this user, plus all shared charts.
+     *  
+     *  @return the list of entities
+     */
+    @Transactional(readOnly = true) 
+    public List<Chart> findByOwnerIsCurrentUserOrShared(String login) {
+        log.debug("Request to get all owned and shared Charts");
+        List<Chart> result = chartRepository.findByOwnerIsCurrentUserOrShared(login); 
+        return result;
+    }
+
+    /**
      *  Get one chart by id.
      *
      *  @param id the id of the entity

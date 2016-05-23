@@ -11,8 +11,11 @@ import java.util.List;
  */
 public interface ChartRepository extends JpaRepository<Chart,Long> {
 
-    @Query("select chart from Chart chart where chart.owner.login = ?#{principal.username}")
-    List<Chart> findByOwnerIsCurrentUser();
+    @Query("select chart from Chart chart where chart.owner.login = :login")
+    List<Chart> findByOwnerIsCurrentUser(@Param("login") String login);
+
+    @Query("select chart from Chart chart where chart.shared = TRUE or chart.owner.login = :login")
+    List<Chart> findByOwnerIsCurrentUserOrShared(@Param("login") String login);
 
     @Query("select distinct chart from Chart chart left join fetch chart.graphs")
     List<Chart> findAllWithEagerRelationships();
