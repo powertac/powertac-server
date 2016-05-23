@@ -11,7 +11,7 @@
         $stateProvider
         .state('graphs', {
             parent: 'app',
-            url: '/graphs',
+            url: '/',
             data: {
                 pageTitle: 'Graphs'
             },
