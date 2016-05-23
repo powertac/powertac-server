@@ -351,4 +351,11 @@ button.btn {
     min-width: 80px;
 }
 
+label {
+    -moz-user-select: none;
+    -ie-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 /* jhipster-needle-css-add-main JHipster will add new css style */
