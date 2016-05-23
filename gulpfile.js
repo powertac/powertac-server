@@ -152,11 +152,18 @@ gulp.task('html', function () {
 });
 
 gulp.task('ngconstant:dev', function () {
+    var cfg = require('./src/main/resources/config/mode.json');
+    if (cfg.mode === '@visualizer.mode@') {
+      cfg.mode = 'research';
+    }
     return ngConstant({
         name: 'visualizer2App',
         constants: {
             VERSION: util.parseVersion(),
-            DEBUG_INFO_ENABLED: true
+            DEBUG_INFO_ENABLED: true,
+            CONFIG: {
+                mode: cfg.mode
+            }
         },
         template: config.constantTemplate,
         stream: true
@@ -166,11 +173,18 @@ gulp.task('ngconstant:dev', function () {
 });
 
 gulp.task('ngconstant:prod', function () {
+    var cfg = require('./src/main/resources/config/mode.json');
+    if (cfg.mode === '@visualizer.mode@') {
+      cfg.mode = 'research';
+    }
     return ngConstant({
         name: 'visualizer2App',
         constants: {
             VERSION: util.parseVersion(),
-            DEBUG_INFO_ENABLED: false
+            DEBUG_INFO_ENABLED: false,
+            CONFIG: {
+                mode: cfg.mode
+            }
         },
         template: config.constantTemplate,
         stream: true

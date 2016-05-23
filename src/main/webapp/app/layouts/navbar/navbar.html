@@ -25,20 +25,20 @@
                         <span class="hidden-sm">Graphs</span>
                     </a>
                 </li>
-                <li ui-sref-active="active" ng-switch-when="true">
+                <li ui-sref-active="active" ng-switch-when="true" ng-show="{{CONFIG.mode!=='tournament'}}">
                     <a ui-sref="files" ng-click="vm.collapseNavbar()">
                         <span class="glyphicon glyphicon-file"></span>
                         <span class="hidden-sm">Files</span>
                     </a>
                 </li>
-                <li ui-sref-active="active" ng-switch-when="true">
+                <li ui-sref-active="active" ng-switch-when="true" ng-show="{{CONFIG.mode!=='tournament'}}">
                     <a ui-sref="games" ng-click="vm.collapseNavbar()">
                         <span class="glyphicon glyphicon-flag"></span>
                         <span class="hidden-sm">Games</span>
                     </a>
                 </li>
                 <!-- jhipster-needle-add-element-to-menu - JHipster will add new menu items here -->
-                <li ng-class="{active: vm.$state.includes('entity')}" ng-switch-when="true" uib-dropdown class="dropdown pointer">
+                <li ng-class="{active: vm.$state.includes('entity')}" ng-switch-when="true" ng-show="{{CONFIG.mode!=='tournament'}}" uib-dropdown class="dropdown pointer">
                     <a class="dropdown-toggle" uib-dropdown-toggle href="" id="entity-menu">
                         <span>
                             <span class="glyphicon glyphicon-th-list"></span>
@@ -148,7 +148,7 @@
                         </li>
                     </ul>
                 </li>
-                <li ng-class="{active: vm.$state.includes('account')}" uib-dropdown class="dropdown pointer">
+                <li ng-class="{active: vm.$state.includes('account')}" ng-show="{{CONFIG.mode!=='tournament'}}" uib-dropdown class="dropdown pointer">
                     <a class="dropdown-toggle" uib-dropdown-toggle href="" id="account-menu">
                         <span>
                             <span class="glyphicon glyphicon-user"></span>

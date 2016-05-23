@@ -6,16 +6,17 @@
         .factory('stateHandler', stateHandler);
 
     stateHandler.$inject = ['$rootScope', '$state', '$sessionStorage',  '$window',
-        'Auth', 'Principal', 'VERSION'];
+                          'Auth', 'Principal', 'VERSION', 'CONFIG'];
 
     function stateHandler($rootScope, $state, $sessionStorage,  $window,
-        Auth, Principal, VERSION) {
+                          Auth, Principal, VERSION, CONFIG) {
         return {
             initialize: initialize
         };
 
         function initialize() {
             $rootScope.VERSION = VERSION;
+            $rootScope.CONFIG = CONFIG;
 
             var stateChangeStart = $rootScope.$on('$stateChangeStart', function (event, toState, toStateParams, fromState) {
                 $rootScope.toState = toState;
@@ -32,7 +33,7 @@
                     Auth.authorize();
                 }
 
-                
+
             });
 
             var stateChangeSuccess = $rootScope.$on('$stateChangeSuccess',  function(event, toState, toParams, fromState, fromParams) {
@@ -56,3 +57,4 @@
         }
     }
 })();
+
