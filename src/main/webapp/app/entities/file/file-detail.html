@@ -1,0 +1,33 @@
+
+<div>
+    <h2><span>File</span> {{vm.file.id}}</h2>
+    <hr>
+    <dl class="dl-horizontal">
+        <dt><span>Type</span></dt>
+        <dd>
+            <span translate="{{'visualizer2App.FileType.' + vm.file.type}}">{{vm.file.type}}</span>
+        </dd>
+        <hr>
+        <dt><span>Name</span></dt>
+        <dd>
+            <span>{{vm.file.name}}</span>
+        </dd>
+        <hr>
+        <dt><span>Shared</span></dt>
+        <dd>
+            <span>{{vm.file.shared}}</span>
+        </dd>
+        <hr>
+        <dt><span>Owner</span></dt>
+        <dd>
+            {{vm.file.owner.login}}
+        </dd>
+        <hr>
+    </dl>
+
+    <button type="submit"
+            onclick="window.history.back()"
+            class="btn btn-info">
+        <span class="glyphicon glyphicon-arrow-left"></span>&nbsp;<span> Back</span>
+    </button>
+</div>
