@@ -1,7 +1,7 @@
 package org.powertac.visualizer.repository_ptac;
 
 import org.powertac.visualizer.domain.Tariff;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
  */
-@Repository
+@Service
 public class TariffRepository implements RecycleRepository<Tariff> {
 
     private Map<Long, Tariff> tariffMap = new LinkedHashMap<>();
