@@ -17,6 +17,8 @@ package org.powertac.auctioneer;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.joda.time.Instant;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,6 +28,7 @@ import org.mockito.stubbing.Answer;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Competition;
+import org.powertac.common.MarketPosition;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.TimeService;
@@ -78,6 +81,8 @@ import static org.mockito.Mockito.verify;
 })
 public class AuctionServiceTests
 {
+  static private Logger log = LogManager.getLogger(AuctionServiceTests.class.getName());
+
   @Autowired
   private AuctionService svc;
 
@@ -999,6 +1004,168 @@ public class AuctionServiceTests
     assertEquals("correct first max price", sell3.getLimitPrice(), maxAsks[1], 1e-6);
     assertNull("third price null", maxAsks[2]);
     assertNull("fourth price null", maxAsks[3]);
+  }
+
+  // three asks, five bids, wide numeric range
+  @Test
+  public void testPositionLimit24h ()
+  {
+    log.info("testPositionLimit24h");
+    competition.withMinimumOrderQuantity(0.001);
+    // activate once to get enabledTimeslots initialized correctly
+    svc.activate(timeService.getCurrentTime(), 1);
+
+    // supply is 150 in each ts
+    // use ts1, ts2, and t4
+    int ts1 = 1;
+    int ts2 = 2;
+    int ts4 = 4;
+    svc.handleMessage(new Order(s1, ts1, -36.0, 20.0));
+    svc.handleMessage(new Order(s2, ts1, -39.0, 30.0));
+    svc.handleMessage(new Order(s2, ts1, -75.0, 50.0));
+    svc.handleMessage(new Order(s1, ts2, -36.0, 20.0));
+    svc.handleMessage(new Order(s2, ts2, -39.0, 30.0));
+    svc.handleMessage(new Order(s2, ts2, -75.0, 50.0));
+    svc.handleMessage(new Order(s1, ts4, -36.0, 20.0));
+    svc.handleMessage(new Order(s2, ts4, -39.0, 30.0));
+    svc.handleMessage(new Order(s2, ts4, -75.0, 50.0));
+
+    // max for ts1 is 143
+    MarketPosition mp1 =
+        new MarketPosition(b2, ts1, 130.0);
+    b2.addMarketPosition(mp1, ts1);
+    svc.handleMessage(new Order(b2, ts1, 6.0, -55.0));
+    svc.handleMessage(new Order(b2, ts1, 1.0, -60.0));
+    svc.handleMessage(new Order(b2, ts1, 8.0, null));
+    // these should clear as 8.0, 1.0, 4.0 to stay under 143
+
+    // max for ts2 is 90 + 2 * (143 - 90) / 3 = 125.3333...
+    MarketPosition mp2 =
+        new MarketPosition(b2, ts2, 115.0);
+    b2.addMarketPosition(mp2, ts2);
+    svc.handleMessage(new Order(b2, ts2, 10.0, -37.0));
+    svc.handleMessage(new Order(b2, ts2, 10.0, -35.0));
+    // these should clear as 10.0, 0.333333333
+
+    // max for ts4 is 90.0
+    MarketPosition mp4 =
+        new MarketPosition(b2, ts4, 0.0);
+    b2.addMarketPosition(mp4, ts4);
+    svc.handleMessage(new Order(b2, ts4, 40.0, -56.0));
+    svc.handleMessage(new Order(b2, ts4, 35.0, -60.0));
+    svc.handleMessage(new Order(b2, ts4, 30.0, -70.0));
+    // these should clear as 30.0, 35.0, 25.0
+
+    assertEquals("17 orders received", 17, svc.getIncoming().size());
+    // Advance time before activation, otherwise offsets are incorrect
+    timeService.setCurrentTime(timeService.getCurrentTime().plus(TimeService.HOUR));
+    svc.activate(timeService.getCurrentTime(), 1);
+    assertEquals("accounting: 20 calls", 20, accountingArgs.size());
+    // first tx should be ask, second bid
+    // For ts1, we should have quantities 8, 1, 4
+    Object[] args = accountingArgs.get(0);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -8.0, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(1);
+    assertEquals("b2", b2, args[0]); // b2 had market order
+    assertEquals("mWh", 8, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(2);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -1.0, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(3);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("mWh", 1.0, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(4);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -4.0, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(5);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("mWh", 4.0, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    // for ts2, quantities should be 10.0, 4.75, all from s1@21
+    args = accountingArgs.get(6);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -10.0, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(7);
+    assertEquals("b2", b2, args[0]); 
+    assertEquals("mWh", 10.0, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(8);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("mWh", -0.33333333, (Double) args[2], 1e-6);
+    assertEquals("price", 21.0, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(9);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("mWh", 0.333333333, (Double) args[2], 1e-6);
+    assertEquals("price", -21.0, (Double) args[3], 1e-6);
+
+    // ts4 should be 30, 35, 25 at 52.5
+    // from s1 we get 30 + 6, from s2 we get 29 + 10 + 25
+    args = accountingArgs.get(10);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("30 MWh", -30.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", 52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(11);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("30 MWh", 30.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", -52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(12);
+    assertEquals("s1", s1, args[0]);
+    assertEquals("6 MWh", -6.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", 52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(13);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("6 MWh", 6.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", -52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(14);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("29 MWh", -29.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", 52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(15);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("29 MWh", 29.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", -52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(16);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("10 MWh", -10.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", 52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(17);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("10 MWh", 10.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", -52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(18);
+    assertEquals("s2", s2, args[0]);
+    assertEquals("15 MWh", -15.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", 52.5, (Double) args[3], 1e-6);
+
+    args = accountingArgs.get(19);
+    assertEquals("b2", b2, args[0]);
+    assertEquals("15 MWh", 15.0, (Double) args[2], 1e-6);
+    assertEquals("price 52.5", -52.5, (Double) args[3], 1e-6);
+
   }
 
   @Test

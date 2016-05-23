@@ -21,6 +21,7 @@ import org.joda.time.Instant;
 import org.powertac.common.Broker;
 import org.powertac.common.ClearedTrade;
 import org.powertac.common.Competition;
+import org.powertac.common.MarketPosition;
 import org.powertac.common.Order;
 import org.powertac.common.Orderbook;
 import org.powertac.common.OrderbookOrder;
@@ -113,6 +114,16 @@ public class AuctionService
       publish = true,
       description = "maximum seller margin")
   private double sellerMaxMargin = 0.05;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "maximum market position at maximum leadtime")
+  private double mktPosnLimitInitial = 90.0;
+
+  @ConfigurableValue(valueType = "Double",
+      publish = true,
+      description = "maximum market position at minimum leadtime")
+  private double mktPosnLimitFinal = 143.0;
 
   private double epsilon = 1e-6; // position balance less than this is ignored
 
@@ -266,7 +277,9 @@ public class AuctionService
   {
     List<OrderWrapper> bids = sortedBids.get(timeslot);
     List<OrderWrapper> asks = sortedAsks.get(timeslot);
-    if (bids != null || asks != null) {
+    if (null != bids)
+      constrainMarketPositions(bids, timeslot.getSerialNumber());
+    if (null != bids || null != asks) {
       // we have bids and/or asks to match up
       if (bids != null && asks != null)
         log.info("Timeslot " + timeslot.getSerialNumber() + 
@@ -366,6 +379,48 @@ public class AuctionService
     }
   }
 
+  // Walks through a sorted list of bids, modifying quantities as necessary
+  // to impose market position limits.
+  private void constrainMarketPositions (List<OrderWrapper> bids, int ts)
+  {
+    HashMap<Broker, Double>remainingPosn = new HashMap<>();
+    for (OrderWrapper bid: bids) {
+      double remaining = getRemaining(bid.getBroker(), remainingPosn, ts);
+      remaining -= bid.getMWh();
+      if (remaining < 0.0) {
+        // adjust bid
+        double qty = bid.getMWh() + remaining;
+        remaining = 0.0;
+        log.info("Adjusting bid of {} from {} to {}",
+                 bid.getBroker().getUsername(),
+                 bid.getMWh(), qty);
+        bid.setMWh(qty);
+      }
+      remainingPosn.put(bid.getBroker(), remaining);
+    }
+  }
+
+  // Returns remaining position for broker/timeslot
+  private double getRemaining (Broker broker,
+                               HashMap<Broker, Double> posns,
+                               int ts)
+  {
+    Double result = posns.get(broker);
+    if (null == result) {
+      MarketPosition posn = broker.findMarketPositionByTimeslot(ts);
+      // offset is zero for final ts
+      int offset = ts - timeslotRepo.currentSerialNumber();
+      double limit = mktPosnLimitFinal;
+      if (enabledTimeslots.size() > 1) {
+        limit -= (offset * (mktPosnLimitFinal - mktPosnLimitInitial)
+                  / (enabledTimeslots.size() - 1));
+      }
+      result = Math.max(0.0, limit - posn.getOverallBalance());
+      posns.put(broker, result);
+    }
+    return result;
+  }
+
   private void addAsk (OrderWrapper marketOrder)
   {
     Timeslot timeslot = marketOrder.getTimeslot();
@@ -445,45 +500,52 @@ public class AuctionService
   {
     Order order;
     double executionMWh = 0.0;
-    
+    double adjustedMWh = 0.0;
+
     OrderWrapper(Order order)
     {
       super();
       this.order = order;
+      this.adjustedMWh = order.getMWh();
     }
-    
+
     // delegation API
     Broker getBroker ()
     {
       return order.getBroker();
     }
-    
+
     // valid if qty is non-zero
     boolean isValid ()
     {
-      return (order.getMWh() != 0.0);
+      return (adjustedMWh != 0.0);
     }
-    
+
     boolean isMarketOrder ()
     {
       return (order.getLimitPrice() == null);
     }
-    
+
     Double getLimitPrice ()
     {
       return order.getLimitPrice();
     }
-    
+
     double getMWh ()
     {
-      return order.getMWh();
+      return adjustedMWh;
     }
-    
+
+    void setMWh (double newValue)
+    {
+      adjustedMWh = newValue;
+    }
+
     Timeslot getTimeslot ()
     {
       return order.getTimeslot();
     }
-    
+
     boolean isBuyOrder ()
     {
       return (order.getMWh() > 0.0);
