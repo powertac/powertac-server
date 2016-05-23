@@ -18,23 +18,20 @@ spring:
         livereload:
             enabled: false
     datasource:
-        url: jdbc:mysql://localhost:3306/visualizer2?useUnicode=true&characterEncoding=utf8&useSSL=false
+        url: jdbc:h2:file:./target/h2db/db/visualizer2
         name:
-        username: root
+        username: visualizer2
         password:
-        hikari:
-            data-source-properties:
-                cachePrepStmts: true
-                prepStmtCacheSize: 250
-                prepStmtCacheSqlLimit: 2048
-                useServerPrepStmts: true
+    h2:
+        console:
+            enabled: false
     jpa:
-        database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
-        database: MYSQL
+        database-platform: org.powertac.visualizer.domain.util.FixedH2Dialect
+        database: H2
         show_sql: false
         properties:
             hibernate.cache.use_second_level_cache: false
-            hibernate.cache.use_query_cache: false
+            hibernate.cache.use_query_cache: true
             hibernate.generate_statistics: false
     mail:
         host: localhost

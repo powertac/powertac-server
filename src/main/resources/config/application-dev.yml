@@ -28,7 +28,7 @@ spring:
     jpa:
         database-platform: org.powertac.visualizer.domain.util.FixedH2Dialect
         database: H2
-        show_sql: true
+        show_sql: false
         properties:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
