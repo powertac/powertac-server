@@ -5,6 +5,8 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 import org.powertac.visualizer.domain.enumeration.GameType;
@@ -64,6 +66,9 @@ public class Game implements Serializable {
     @ManyToOne
     private File weatherFile;
 
+    @Transient
+    private List<String> brokerList;
+
     public Long getId() {
         return id;
     }
@@ -108,8 +113,16 @@ public class Game implements Serializable {
         return brokers;
     }
 
+    public List<String> getBrokerList() {
+        if (brokerList == null && brokers != null) {
+            brokerList = Arrays.asList(brokers.split("\\s*,\\s*"));
+        }
+        return brokerList;
+    }
+
     public void setBrokers(String brokers) {
         this.brokers = brokers;
+        this.brokerList = null;
     }
 
     public User getOwner() {
@@ -124,12 +137,36 @@ public class Game implements Serializable {
         return traceFile;
     }
 
+    public String getTraceFileName() {
+        return getFileName(getTraceFile());
+    }
+
+    public String getTraceFilePath() {
+        return getFilePath(getTraceFile());
+    }
+
+    public Long getTraceFileId() {
+        return getFileId(getTraceFile());
+    }
+
     public void setTraceFile(File file) {
         this.traceFile = file;
     }
 
     public File getStateFile() {
         return stateFile;
+    }
+
+    public String getStateFileName() {
+        return getFileName(getStateFile());
+    }
+
+    public String getStateFilePath() {
+        return getFilePath(getStateFile());
+    }
+
+    public Long getStateFileId() {
+        return getFileId(getStateFile());
     }
 
     public void setStateFile(File file) {
@@ -140,12 +177,36 @@ public class Game implements Serializable {
         return seedFile;
     }
 
+    public String getSeedFileName() {
+        return getFileName(getSeedFile());
+    }
+
+    public String getSeedFilePath() {
+        return getFilePath(getSeedFile());
+    }
+
+    public Long getSeedFileId() {
+        return getFileId(getSeedFile());
+    }
+
     public void setSeedFile(File file) {
         this.seedFile = file;
     }
 
     public File getBootFile() {
         return bootFile;
+    }
+
+    public String getBootFileName() {
+        return getFileName(getBootFile());
+    }
+
+    public String getBootFilePath() {
+        return getFilePath(getBootFile());
+    }
+
+    public Long getBootFileId() {
+        return getFileId(getBootFile());
     }
 
     public void setBootFile(File file) {
@@ -156,12 +217,36 @@ public class Game implements Serializable {
         return configFile;
     }
 
+    public String getConfigFileName() {
+        return getFileName(getConfigFile());
+    }
+
+    public String getConfigFilePath() {
+        return getFilePath(getConfigFile());
+    }
+
+    public Long getConfigFileId() {
+        return getFileId(getConfigFile());
+    }
+
     public void setConfigFile(File file) {
         this.configFile = file;
     }
 
     public File getWeatherFile() {
         return weatherFile;
+    }
+
+    public String getWeatherFileName() {
+        return getFileName(getWeatherFile());
+    }
+
+    public String getWeatherFilePath() {
+        return getFilePath(getWeatherFile());
+    }
+
+    public Long getWeatherFileId() {
+        return getFileId(getWeatherFile());
     }
 
     public void setWeatherFile(File file) {
@@ -198,5 +283,17 @@ public class Game implements Serializable {
             ", date='" + date + "'" +
             ", brokers='" + brokers + "'" +
             '}';
+    }
+
+    private String getFileName(File file) {
+        return file == null ? null : file.getName();
+    }
+
+    private String getFilePath(File file) {
+        return file == null ? null : file.getPath();
+    }
+
+    private Long getFileId(File file) {
+        return file == null ? null : file.getId();
     }
 }

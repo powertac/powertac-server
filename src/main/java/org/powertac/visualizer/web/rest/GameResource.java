@@ -1,6 +1,7 @@
 package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
 import org.powertac.visualizer.domain.Game;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.GameService;

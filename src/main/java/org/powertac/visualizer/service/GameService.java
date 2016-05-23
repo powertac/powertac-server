@@ -23,6 +23,9 @@ public class GameService {
     private final Logger log = LoggerFactory.getLogger(GameService.class);
 
     @Inject
+    private FileService fileService;
+
+    @Inject
     private GameRepository gameRepository;
     
     /**
@@ -95,6 +98,15 @@ public class GameService {
      */
     public void delete(Long id) {
         log.debug("Request to delete Game : {}", id);
+        Game game = gameRepository.findOne(id);
+        Long fileId = game.getStateFileId();
+        if (fileId != null) {
+            fileService.delete(fileId);
+        }
+        fileId = game.getTraceFileId();
+        if (fileId != null) {
+            fileService.delete(fileId);
+        }
         gameRepository.delete(id);
     }
 }
