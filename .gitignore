@@ -2,6 +2,7 @@
 # Project Specific
 ######################
 /target/www/**
+/src/main/resources/config/*.yml
 
 ######################
 # Node
