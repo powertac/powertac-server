@@ -29,7 +29,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  * 
  * @author John Collins
  */
-@Domain
+@Domain(fields = { "tariffId", "kwh", "payment", "timeslotIndex" })
 @XStreamAlias("balancing-control")
 public class BalancingControlEvent extends ControlEvent
 {

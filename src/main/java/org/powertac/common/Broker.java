@@ -172,12 +172,17 @@ public class Broker
   }
   
   /**
-   * Returns the MarketPosition associated with the given Timeslot. Result will
-   * be null if addMarketPosition has never been called for this Timeslot.
+   * Returns the MarketPosition associated with the given Timeslot.
+   * Result is guaranteed to be non-null.
    */
   public MarketPosition findMarketPositionByTimeslot (int slot)
   {
-    return mktPositions.get(slot);
+    MarketPosition posn = mktPositions.get(slot);
+    if (null == posn) {
+      posn = new MarketPosition(this, slot, 0.0);
+      mktPositions.put(slot, posn);
+    }
+    return posn;
   }
   
   // backward compatibility
