@@ -1,6 +1,7 @@
 package org.powertac.visualizer.service;
 
 import org.powertac.visualizer.domain.File;
+import org.powertac.visualizer.domain.enumeration.FileType;
 import org.powertac.visualizer.repository.FileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -49,6 +52,21 @@ public class FileService {
     }
 
     /**
+     *  Get all the files owned by this user, plus all shared files.
+     *  
+     *  @return the list of entities
+     */
+    @Transactional(readOnly = true) 
+    public List<File> findByOwnerIsCurrentUserOrShared(String login, FileType type) {
+        log.debug("Request to get all owned and shared Files");
+        if (type != null && type.equals(FileType.ANY)) {
+            type = null;
+        }
+        List<File> result = fileRepository.findByOwnerIsCurrentUserOrShared(login, type);
+        return result;
+    }
+
+    /**
      *  Get one file by id.
      *
      *  @param id the id of the entity
@@ -68,6 +86,8 @@ public class FileService {
      */
     public void delete(Long id) {
         log.debug("Request to delete File : {}", id);
+        File file = fileRepository.findOne(id);
         fileRepository.delete(id);
+        file.delete();
     }
 }

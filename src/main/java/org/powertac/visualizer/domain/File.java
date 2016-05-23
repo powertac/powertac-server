@@ -107,4 +107,31 @@ public class File implements Serializable {
             ", shared='" + shared + "'" +
             '}';
     }
+
+    public boolean exists() {
+        return exists(getOwner());
+    }
+
+    public boolean exists(User user) {
+        return getType().getFile(user, getName()).exists();
+    }
+
+    public boolean delete() {
+        return delete(getOwner());
+    }
+
+    public boolean delete(User user) {
+        return getType().getFile(user, getName()).delete();
+    }
+
+    public String getPath() {
+        return getPath(getOwner());
+    }
+
+    public String getPath(User user) {
+        FileType type = getType();
+        java.io.File raw = type == null ? null : type.getFile(user, getName());
+        return raw == null ? null : raw.getPath();
+    }
+
 }

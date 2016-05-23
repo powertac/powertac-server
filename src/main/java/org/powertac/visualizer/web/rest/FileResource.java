@@ -2,6 +2,10 @@ package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
 import org.powertac.visualizer.domain.File;
+import org.powertac.visualizer.domain.User;
+import org.powertac.visualizer.domain.enumeration.FileType;
+import org.powertac.visualizer.repository.UserRepository;
+import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.FileService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -30,10 +36,13 @@ import java.util.Optional;
 public class FileResource {
 
     private final Logger log = LoggerFactory.getLogger(FileResource.class);
-        
+
     @Inject
     private FileService fileService;
-    
+
+    @Inject
+    private UserRepository userRepository;
+
     /**
      * POST  /files : Create a new file.
      *
@@ -50,6 +59,12 @@ public class FileResource {
         if (file.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("file", "idexists", "A new file cannot already have an ID")).body(null);
         }
+
+        String login = SecurityUtils.getCurrentUserLogin();
+        User user = userRepository.findOneByLogin(login).orElse(null);
+
+        file.setOwner(user);
+
         File result = fileService.save(file);
         return ResponseEntity.created(new URI("/api/files/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert("file", result.getId().toString()))
@@ -133,6 +148,22 @@ public class FileResource {
         log.debug("REST request to delete File : {}", id);
         fileService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("file", id.toString())).build();
+    }
+
+    /**
+     * Get all files owned by logged in user, plus all shared files.
+     */
+    @RequestMapping(value = "/myfiles/{type}/",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    public ResponseEntity<List<File>> getMyFiles(
+            @Valid @NotNull @PathVariable String type) throws URISyntaxException {
+        FileType fileType = FileType.valueOf(type.toUpperCase());
+        log.debug("REST request to get owned and shared files, type = " + type);
+        String login = SecurityUtils.getCurrentUserLogin();
+        List<File> list = fileService.findByOwnerIsCurrentUserOrShared(login, fileType);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
 }

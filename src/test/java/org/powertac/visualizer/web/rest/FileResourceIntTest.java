@@ -3,6 +3,7 @@ package org.powertac.visualizer.web.rest;
 import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.File;
 import org.powertac.visualizer.repository.FileRepository;
+import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.FileService;
 
 import org.junit.Before;
@@ -56,6 +57,9 @@ public class FileResourceIntTest {
     private FileRepository fileRepository;
 
     @Inject
+    private UserRepository userRepository;
+
+    @Inject
     private FileService fileService;
 
     @Inject
@@ -73,6 +77,7 @@ public class FileResourceIntTest {
         MockitoAnnotations.initMocks(this);
         FileResource fileResource = new FileResource();
         ReflectionTestUtils.setField(fileResource, "fileService", fileService);
+        ReflectionTestUtils.setField(fileResource, "userRepository", userRepository);
         this.restFileMockMvc = MockMvcBuilders.standaloneSetup(fileResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();
