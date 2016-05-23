@@ -727,11 +727,15 @@
                 <spring.profiles.active>dev${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
             </properties>
             <dependencies>
+                <!-- Commenting this for the moment: prefer to run in
+                     IDE and this prevents hot-swapping bytecode,
+                     and also causes issues with XStream deserialization.
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-devtools</artifactId>
                     <optional>true</optional>
                 </dependency>
+                -->
                 <dependency>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-tomcat</artifactId>
