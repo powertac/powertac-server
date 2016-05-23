@@ -5,6 +5,7 @@ import java.util.List;
 import org.powertac.common.CustomerInfo;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 /**
@@ -52,6 +53,8 @@ public class Customer {
     // relevant field from PowerType:
     private String genericPowerType;
 
+    // Don't include this in  the messages
+    @JsonIgnore
     private List<Double> bootstrapNetUsage;
 
     private RetailKPIHolder retailKPIHolder = new RetailKPIHolder();
