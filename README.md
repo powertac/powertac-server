@@ -1,4 +1,53 @@
-# visualizer2
+# Visualizer2
+
+## Getting started
+
+(The following assume you're at the project root.)
+
+Before you can run or package the visualizer, copy configuration templates and edit them according to your needs:
+
+```sh
+cp src/main/resources/config/templates/* src/main/resources/config/
+```
+
+## Modes and Profiles
+
+There are four mode/profile-specific configuration files
+
+You can run the visualizer in two modes, "research" and "tournament". In the first case, you will get some additional tabs in the
+GUI to start/stop games, which are run embedded in the visualizer. In the second case, you will be able to passively view the progress
+of games run by an external tournament scheduler.
+
+Additionally, you can build the visualizer with "dev" or in "prod" profiles, the latter meaning that the javascript, styles, and html
+templates will be concatenated and compressed -- making the pages slightly faster to load.
+
+So you will have to pick one of four combinations. To run the visualizer in, e.g. research mode and production profile, do
+
+```sh
+mvn -Pprod,research
+```
+
+This will select the default Maven goal, which is `spring-boot:run`. Alternatively, you can select the `package` goal to build a WAR
+file, e.g. in tournament mode and production profile:
+
+```sh
+mvn -Pprod,tournament package
+```
+
+Note, this will create *two* WAR files, in the `target` directory. One contains an embedded Tomcat servlet container, and can be run as
+an executable jar:
+
+```sh
+java -jar target/xxxxx.war
+```
+
+The other WAR file is called `xxxxx.war.original` and can be deployed to external servlet containers like Tomcat 8.
+
+Unless you're actually developing the visualizer itself, you'll probably want to use the "prod" profile. However, this will cause the
+build process to take a long time, in particular it will be doing a lot of tests. If you would like to skip these, you can add `-DskipTests`
+to your Maven commands.
+
+# JHipster generic documentation
 
 This application was generated using JHipster, you can find documentation and help at [https://jhipster.github.io](https://jhipster.github.io).
 
@@ -40,7 +89,7 @@ these new files.
 
 To ensure everything worked, run:
 
-    java -jar target/*.war --spring.profiles.active=prod
+    java -jar target/*.war
 
 Then navigate to [http://localhost:8080](http://localhost:8080) in your browser.
 
