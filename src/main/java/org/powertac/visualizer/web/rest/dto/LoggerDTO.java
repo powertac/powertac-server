@@ -1,6 +1,7 @@
 package org.powertac.visualizer.web.rest.dto;
 
-import ch.qos.logback.classic.Logger;
+
+import org.apache.logging.log4j.Logger;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class LoggerDTO {
@@ -11,7 +12,7 @@ public class LoggerDTO {
 
     public LoggerDTO(Logger logger) {
         this.name = logger.getName();
-        this.level = logger.getEffectiveLevel().toString();
+        this.level = logger.getLevel().toString();
     }
 
     @JsonCreator

@@ -2,15 +2,20 @@ package org.powertac.visualizer.web.rest;
 
 import org.powertac.visualizer.web.rest.dto.LoggerDTO;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.LoggerContext;
+
 import com.codahale.metrics.annotation.Timed;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -25,9 +30,11 @@ public class LogsResource {
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
     public List<LoggerDTO> getList() {
-        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        return context.getLoggerList()
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        Configuration config = context.getConfiguration();
+        return new TreeSet<String>(config.getLoggers().keySet())
             .stream()
+            .map(LogManager::getLogger)
             .map(LoggerDTO::new)
             .collect(Collectors.toList());
     }
@@ -37,7 +44,10 @@ public class LogsResource {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Timed
     public void changeLevel(@RequestBody LoggerDTO jsonLogger) {
-        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.getLogger(jsonLogger.getName()).setLevel(Level.valueOf(jsonLogger.getLevel()));
+        LoggerContext context = (LoggerContext) LogManager.getContext(false);
+        Configuration config = context.getConfiguration();
+        LoggerConfig logger = config.getLoggerConfig(jsonLogger.getName());
+        logger.setLevel(Level.toLevel(jsonLogger.getLevel()));
+        context.updateLoggers();
     }
 }

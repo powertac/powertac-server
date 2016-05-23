@@ -33,7 +33,6 @@
         <liquibase-hibernate4.version>3.5</liquibase-hibernate4.version>
         <liquibase-slf4j.version>1.2.1</liquibase-slf4j.version>
         <liquibase.version>3.4.2</liquibase.version>
-        <logstash-logback-encoder.version>4.6</logstash-logback-encoder.version>
         <mapstruct.version>1.0.0.Final</mapstruct.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
@@ -224,25 +223,6 @@
         </dependency>
         <!-- Spring Cloud -->
         <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>${logstash-logback-encoder.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>logback-core</artifactId>
-                    <groupId>ch.qos.logback</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>logback-classic</artifactId>
-                    <groupId>ch.qos.logback</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>logback-access</artifactId>
-                    <groupId>ch.qos.logback</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>${assertj-core.version}</version>
@@ -295,6 +275,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -302,7 +288,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-logging</artifactId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -736,7 +722,7 @@
             </build>
             <properties>
                 <!-- log configuration -->
-                <logback.loglevel>DEBUG</logback.loglevel>
+                <log4j2.loglevel>debug</log4j2.loglevel>
                 <!-- default Spring profiles -->
                 <spring.profiles.active>dev${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
             </properties>
@@ -811,7 +797,7 @@
             </build>
             <properties>
                 <!-- log configuration -->
-                <logback.loglevel>INFO</logback.loglevel>
+                <log4j2.loglevel>info</log4j2.loglevel>
                 <!-- default Spring profiles -->
                 <spring.profiles.active>prod${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
             </properties>
