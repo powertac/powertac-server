@@ -5,9 +5,9 @@
         .module('visualizer2App')
         .factory('Push', Push);
 
-    Push.$inject = ['$q', '$timeout', '$log'];
+    Push.$inject = ['$q', '$timeout', '$log', 'DEBUG_INFO_ENABLED'];
 
-    function Push ($q, $timeout, $log) {
+    function Push ($q, $timeout, $log, DEBUG_INFO_ENABLED) {
         var service = {
             receive: receive
         };
@@ -50,6 +50,9 @@
             socket.stomp = Stomp.over(socket.client);
             socket.stomp.connect({}, startListener);
             socket.stomp.onclose = reconnect;
+            if (!DEBUG_INFO_ENABLED) {
+                socket.stomp.debug = null;
+            }
         }
 
         initialize();
