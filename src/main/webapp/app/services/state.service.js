@@ -13,6 +13,7 @@
         service.aggCustomers = [];
         service.timeInstances = [];
         service.gameName = '';
+        service.queue = [];
         service.gameStatus = '';
         service.gameStatusStyle = 'default';
 
@@ -229,15 +230,9 @@
             var message = obj.message;
             var type = obj.type;
 
-            service.gameName = obj.game;
-            if (type.localeCompare('INFO') === 0) {
-                setStatus(message);
-            }
-            else if (type.localeCompare('DATA') === 0) {
-                processSnapshot(message);
-            }
-            else if (type.localeCompare('INIT') === 0) {
+            if (type.localeCompare('INIT') === 0) {
                 // initialize the front-end model
+                service.gameName = obj.game;
                 setStatus(message.state);
                 service.timeInstances = [];
                 processCompetition(message.competition);
@@ -247,6 +242,26 @@
                     processSnapshot(snapshot);
                 });
                 $rootScope.$broadcast('gameInitialized');
+                service.queue.forEach(function(obj) {
+                    if (obj.game === service.gameName) {
+                        handlePushMessage(obj);
+                    } else {
+                        console.log('ignore ' + obj.type + ' ' + obj.game);
+                    }
+                });
+                service.queue = [];
+                return;
+            }
+            if (service.gameName !== obj.game) {
+                console.log('queue ' + obj.type + ' ' + obj.game);
+                service.queue.push(obj);
+                return;
+            }
+            if (type.localeCompare('INFO') === 0) {
+                setStatus(message);
+            }
+            else if (type.localeCompare('DATA') === 0) {
+                processSnapshot(message);
             }
         }
 
