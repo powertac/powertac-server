@@ -19,6 +19,12 @@
                         <span class="hidden-sm">Home</span>
                     </a>
                 </li>
+                <li ui-sref-active="active">
+                    <a ui-sref="graphs" ng-click="vm.collapseNavbar()">
+                        <span class="glyphicon glyphicon-stats"></span>
+                        <span class="hidden-sm">Graphs</span>
+                    </a>
+                </li>
                 <li ui-sref-active="active" ng-switch-when="true">
                     <a ui-sref="files" ng-click="vm.collapseNavbar()">
                         <span class="glyphicon glyphicon-file"></span>

@@ -9,19 +9,20 @@
 
     function stateConfig($stateProvider) {
         $stateProvider
-        .state('home', {
+        .state('graphs', {
             parent: 'app',
-            url: '/',
+            url: '/graphs',
             data: {
-                authorities: []
+                pageTitle: 'Graphs'
             },
             views: {
                 'content@': {
-                    templateUrl: 'app/home/home.html',
-                    controller: 'HomeController',
+                    templateUrl: 'app/graphs/graphs.html',
+                    controller: 'GraphsController',
                     controllerAs: 'vm'
                 }
             }
         });
     }
+
 })();
