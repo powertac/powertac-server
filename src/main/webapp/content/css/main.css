@@ -97,11 +97,11 @@ Main page styles
     letter-spacing: -1px;
 }
 
-.hipster {
+.powerman {
     display: inline-block;
     width: 347px;
     height: 497px;
-    background: url("../images/hipster.png") no-repeat center top;
+    background: url("../images/powerman.png") no-repeat center top;
     background-size: contain;
 }
 
@@ -113,8 +113,8 @@ only screen and (     -o-min-device-pixel-ratio: 2/1),
 only screen and (        min-device-pixel-ratio: 2),
 only screen and (                min-resolution: 192dpi),
 only screen and (                min-resolution: 2dppx) {
-    .hipster {
-        background: url("../images/hipster2x.png") no-repeat center top;
+    .powerman {
+        background: url("../images/powerman@2x.png") no-repeat center top;
         background-size: contain;
     }
 }
@@ -330,5 +330,18 @@ ui bootstrap tweaks
 }
 
 
+/* Project-specific */
+
+.center {
+    text-align: center;
+}
+
+.table tbody td {
+    vertical-align: middle !important;
+}
+
+.table input {
+    font-weight: normal;
+}
 
 /* jhipster-needle-css-add-main JHipster will add new css style */
