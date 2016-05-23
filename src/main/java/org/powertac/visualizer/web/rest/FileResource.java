@@ -1,6 +1,9 @@
 package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
+import org.apache.commons.io.FileExistsException;
+import org.apache.commons.io.IOUtils;
 import org.powertac.visualizer.domain.File;
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.domain.enumeration.FileType;
@@ -18,11 +21,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.inject.Inject;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -146,7 +158,9 @@ public class FileResource {
     @Timed
     public ResponseEntity<Void> deleteFile(@PathVariable Long id) {
         log.debug("REST request to delete File : {}", id);
+        File file = fileService.findOne(id);
         fileService.delete(id);
+        file.getType().getFile(file.getOwner(), file.getName()).delete();
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("file", id.toString())).build();
     }
 
@@ -164,6 +178,85 @@ public class FileResource {
         String login = SecurityUtils.getCurrentUserLogin();
         List<File> list = fileService.findByOwnerIsCurrentUserOrShared(login, fileType);
         return new ResponseEntity<>(list, HttpStatus.OK);
+    }
+
+    /**
+     * Download a file.
+     * TODO document.
+     * 
+     * @param type
+     * @param name
+     * @param response
+     * @throws IOException
+     */
+    @RequestMapping(value = "/myfiles/{type}/{id}", method = RequestMethod.GET)
+    @Timed
+    public void getMyFile (@Valid @NotNull @PathVariable String type,
+                @Valid @NotNull @PathVariable Long id,
+                HttpServletResponse response) throws IOException {
+        log.debug("REST request to download a file");
+        FileType fileType = FileType.valueOf(type.toUpperCase());
+        if (fileType == null) {
+            throw new IllegalArgumentException("Unknown type " + type);
+        }
+        File file = fileService.findOne(id);
+        java.io.File raw = fileType.getFile(file.getOwner(), file.getName());
+        try (
+            InputStream in = new BufferedInputStream(new FileInputStream(raw));
+            OutputStream out = new BufferedOutputStream(response.getOutputStream())
+        ) {
+            response.setHeader("Content-Disposition", "attachment; filename=" + file.getName());
+            response.setHeader("Content-Type", fileType.getContentType());
+            IOUtils.copy(in, out);
+        }
+    }
+
+    /**
+     * Upload a file.
+     * TODO document.
+     * 
+     * @param part
+     * @param type
+     * @param shared
+     * @throws FileExistsException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    @RequestMapping(value = "/myfiles/{type}/", method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    public ResponseEntity<File> postFile (@Valid @NotNull @PathVariable String type,
+                @RequestParam("shared") Boolean shared,
+                @Valid @NotNull @RequestParam("file") MultipartFile part)
+                throws IOException, URISyntaxException {
+        String name = part.getOriginalFilename();
+        log.debug("REST request to upload a " + type.toString() + " file: " +
+                name + " @ " + part.getSize() + " bytes.");
+        String login = SecurityUtils.getCurrentUserLogin();
+        User user = userRepository.findOneByLogin(login).orElse(null);
+
+        FileType fileType = FileType.valueOf(type.toUpperCase());
+        java.io.File raw = fileType.getFile(user, name);
+        if (raw.exists()) {
+            throw new FileExistsException();
+        }
+        try (
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(raw))
+        ) {
+            byte[] bytes = part.getBytes();
+            out.write(bytes);
+            out.close();
+
+            File file = new File();
+            file.setType(fileType);
+            file.setName(name);
+            file.setOwner(user);
+            file.setShared(shared);
+            file = fileService.save(file);
+            return ResponseEntity.created(new URI("/api/files/" + file.getId()))
+                .headers(HeaderUtil.createEntityCreationAlert("file", file.getId().toString()))
+                .body(file);
+        }
     }
 
 }
