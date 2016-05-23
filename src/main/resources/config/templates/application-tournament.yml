@@ -1,0 +1,9 @@
+# If serverUrl.isEmpty() ? embedded mode : tournament mode
+# If tournament mode without tournamentUrl : connect to sim directly
+visualizer:
+    mode: tournament
+    connect:
+        machineName:
+        serverUrl:
+        tournamentUrl:
+        tournamentLogin: /faces/visualizerLogin.jsp

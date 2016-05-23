@@ -3,6 +3,7 @@ package org.powertac.visualizer;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.config.DefaultProfileUtil;
 import org.powertac.visualizer.config.JHipsterProperties;
+import org.powertac.visualizer.config.VisualizerProperties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +22,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collection;
 
-@ComponentScan
+@ComponentScan({ "org.powertac" })
 @EnableAutoConfiguration(exclude = { MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class })
-@EnableConfigurationProperties({ JHipsterProperties.class, LiquibaseProperties.class })
+@EnableConfigurationProperties({ JHipsterProperties.class, VisualizerProperties.class, LiquibaseProperties.class })
 public class Visualizer2App {
 
     private static final Logger log = LoggerFactory.getLogger(Visualizer2App.class);

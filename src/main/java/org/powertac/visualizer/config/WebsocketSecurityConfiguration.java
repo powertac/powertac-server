@@ -12,6 +12,10 @@ public class WebsocketSecurityConfiguration extends AbstractSecurityWebSocketMes
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages) {
         messages
+            // allow all to connect
+            .simpTypeMatchers(SimpMessageType.CONNECT).permitAll()
+            // allow all subscribe to Pusher
+            .simpSubscribeDestMatchers("/topic/push").permitAll()
             // message types other than MESSAGE and SUBSCRIBE
             .nullDestMatcher().authenticated()
             // matches any destination that starts with /rooms/

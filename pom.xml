@@ -2,6 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <!-- TODO Do we need to have server-master as parent? It might get kind of awkward
+         to obtain all the spring boot stuff in that case:
+         http://stackoverflow.com/questions/21317006/spring-boot-parent-pom-when-you-already-have-a-parent-pom
+    -->
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
@@ -18,6 +22,12 @@
     <prerequisites>
         <maven>3.0.0</maven>
     </prerequisites>
+
+    <scm>
+        <connection>scm:git:git//github.com/powertac/visualizer2.git</connection>
+        <developerConnection>scm:git:git@github.com:powertac/visualizer2.git</developerConnection>
+        <url>https://github.com/powertac/visualizer2</url>
+    </scm>
 
     <properties>
         <assertj-core.version>3.3.0</assertj-core.version>
@@ -42,6 +52,7 @@
         <metrics-spring.version>3.1.3</metrics-spring.version>
         <node.version>v4.4.3</node.version>
         <npm.version>3.8.3</npm.version>
+        <powertac.version>1.3.2-SNAPSHOT</powertac.version>
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.no-liquibase />
         <profile.no-swagger />
@@ -63,9 +74,11 @@
         <sortpom-maven-plugin.version>2.5.0</sortpom-maven-plugin.version>
         <spring-security.version>4.1.0.RELEASE</spring-security.version>
         <springfox.version>2.4.0</springfox.version>
+        <visualizer.mode>research</visualizer.mode>
     </properties>
 
     <dependencies>
+
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-hibernate4</artifactId>
@@ -251,6 +264,22 @@
             <artifactId>mapstruct-jdk8</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+        <!--  PowerTAC -->
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>common</artifactId>
+            <version>${powertac.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>logtool-core</artifactId>
+            <version>${powertac.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.powertac</groupId>
+            <artifactId>server-main</artifactId>
+            <version>${powertac.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
@@ -345,6 +374,24 @@
         </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
     </dependencies>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>spring-milestones</id>
+            <url>http://repo.spring.io/milestone</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <build>
         <defaultGoal>spring-boot:run</defaultGoal>
         <pluginManagement>
@@ -499,6 +546,15 @@
                             <message>You are running an older version of Java. JHipster requires at least JDK ${java.version}</message>
                             <version>[${java.version}.0,)</version>
                         </requireJavaVersion>
+                        <requireFilesExist>
+                            <files>
+                                <file>${project.basedir}/src/main/resources/config/application.yml</file>
+                                <file>${project.basedir}/src/main/resources/config/application-dev.yml</file>
+                                <file>${project.basedir}/src/main/resources/config/application-prod.yml</file>
+                                <file>${project.basedir}/src/main/resources/config/application-research.yml</file>
+                                <file>${project.basedir}/src/main/resources/config/application-tournament.yml</file>
+                            </files>
+                        </requireFilesExist>
                     </rules>
                 </configuration>
             </plugin>
@@ -506,6 +562,25 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>src/main/resources/config</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <filtering>true</filtering>
+                                    <directory>src/main/resources/config/templates</directory>
+                                    <includes>
+                                        <include>mode.json</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>default-resources</id>
                         <phase>validate</phase>
@@ -688,6 +763,31 @@
                 <profile.no-swagger>,no-swagger</profile.no-swagger>
             </properties>
         </profile>
+
+        <profile>
+            <id>research</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <!--
+             TODO see old visualizer pom.xml:
+             - configure war plugin ?
+             - TODO jetty plugin ?
+           -->
+        </profile>
+
+        <profile>
+            <id>tournament</id>
+            <properties>
+                <visualizer.mode>tournament</visualizer.mode>
+            </properties>
+            <!--
+             TODO see old visualizer pom.xml:
+             - configure war plugin ?
+             - TODO tomcat plugin ?
+           -->
+        </profile>
+
         <profile>
             <id>dev</id>
             <activation>
@@ -724,7 +824,7 @@
                 <!-- log configuration -->
                 <log4j2.loglevel>debug</log4j2.loglevel>
                 <!-- default Spring profiles -->
-                <spring.profiles.active>dev${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
+                <spring.profiles.active>dev${profile.no-liquibase}${profile.no-swagger},${visualizer.mode}</spring.profiles.active>
             </properties>
             <dependencies>
                 <!-- Commenting this for the moment: prefer to run in
@@ -803,7 +903,7 @@
                 <!-- log configuration -->
                 <log4j2.loglevel>info</log4j2.loglevel>
                 <!-- default Spring profiles -->
-                <spring.profiles.active>prod${profile.no-liquibase}${profile.no-swagger}</spring.profiles.active>
+                <spring.profiles.active>prod${profile.no-liquibase}${profile.no-swagger},${visualizer.mode}</spring.profiles.active>
             </properties>
             <dependencies>
                 <dependency>
