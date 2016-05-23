@@ -3,6 +3,9 @@ package org.powertac.visualizer.web.rest;
 import com.codahale.metrics.annotation.Timed;
 
 import org.powertac.visualizer.domain.Graph;
+import org.powertac.visualizer.domain.User;
+import org.powertac.visualizer.repository.UserRepository;
+import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.GraphService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
@@ -31,10 +34,13 @@ import java.util.Optional;
 public class GraphResource {
 
     private final Logger log = LoggerFactory.getLogger(GraphResource.class);
-        
+
     @Inject
     private GraphService graphService;
-    
+
+    @Inject
+    private UserRepository userRepository;
+
     /**
      * POST  /graphs : Create a new graph.
      *
@@ -51,6 +57,12 @@ public class GraphResource {
         if (graph.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("graph", "idexists", "A new graph cannot already have an ID")).body(null);
         }
+
+        String login = SecurityUtils.getCurrentUserLogin();
+        User user = userRepository.findOneByLogin(login).orElse(null);
+
+        graph.setOwner(user);
+
         Graph result = graphService.save(graph);
         return ResponseEntity.created(new URI("/api/graphs/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert("graph", result.getId().toString()))
@@ -75,6 +87,7 @@ public class GraphResource {
         if (graph.getId() == null) {
             return createGraph(graph);
         }
+
         Graph result = graphService.save(graph);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert("graph", graph.getId().toString()))
@@ -135,4 +148,19 @@ public class GraphResource {
         graphService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("graph", id.toString())).build();
     }
+
+    /**
+     * Get all graphs owned by logged in user, plus all shared graphs.
+     */
+    @RequestMapping(value = "/mygraphs",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    public ResponseEntity<List<Graph>> getMyGraphs() throws URISyntaxException {
+        log.debug("REST request to get owned and shared graphs");
+        String login = SecurityUtils.getCurrentUserLogin();
+        List<Graph> list = graphService.findByOwnerIsCurrentUserOrShared(login);
+        return new ResponseEntity<>(list, HttpStatus.OK);
+    }
+
 }

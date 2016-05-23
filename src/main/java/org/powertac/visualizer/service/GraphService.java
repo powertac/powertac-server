@@ -50,6 +50,18 @@ public class GraphService {
     }
 
     /**
+     *  Get all the graphs owned by this user, plus all shared graphs.
+     *  
+     *  @return the list of entities
+     */
+    @Transactional(readOnly = true) 
+    public List<Graph> findByOwnerIsCurrentUserOrShared(String login) {
+        log.debug("Request to get all owned and shared Graphs");
+        List<Graph> result = graphRepository.findByOwnerIsCurrentUserOrShared(login); 
+        return result;
+    }
+
+    /**
      *  Get one graph by id.
      *
      *  @param id the id of the entity

@@ -3,6 +3,7 @@ package org.powertac.visualizer.web.rest;
 import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.Graph;
 import org.powertac.visualizer.repository.GraphRepository;
+import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.service.GraphService;
 
 import org.junit.Before;
@@ -56,6 +57,9 @@ public class GraphResourceIntTest {
     private GraphRepository graphRepository;
 
     @Inject
+    private UserRepository userRepository;
+
+    @Inject
     private GraphService graphService;
 
     @Inject
@@ -73,6 +77,7 @@ public class GraphResourceIntTest {
         MockitoAnnotations.initMocks(this);
         GraphResource graphResource = new GraphResource();
         ReflectionTestUtils.setField(graphResource, "graphService", graphService);
+        ReflectionTestUtils.setField(graphResource, "userRepository", userRepository);
         this.restGraphMockMvc = MockMvcBuilders.standaloneSetup(graphResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();
