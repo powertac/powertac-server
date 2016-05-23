@@ -9,11 +9,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>org.powertac.visualizer</groupId>
-    <artifactId>visualizer-2</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <groupId>org.powertac</groupId>
+    <artifactId>visualizer2</artifactId>
+    <version>1.3.2-SNAPSHOT</version>
     <packaging>war</packaging>
-    <name>visualizer2</name>
+    <name>Power TAC Visualizer v2</name>
 
     <prerequisites>
         <maven>3.0.0</maven>
