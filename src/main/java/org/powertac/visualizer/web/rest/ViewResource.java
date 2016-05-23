@@ -1,7 +1,11 @@
 package org.powertac.visualizer.web.rest;
 
 import com.codahale.metrics.annotation.Timed;
+
+import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.domain.View;
+import org.powertac.visualizer.repository.UserRepository;
+import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.ViewService;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
 import org.powertac.visualizer.web.rest.util.PaginationUtil;
@@ -33,7 +37,10 @@ public class ViewResource {
         
     @Inject
     private ViewService viewService;
-    
+
+    @Inject
+    private UserRepository userRepository;
+
     /**
      * POST  /views : Create a new view.
      *
@@ -50,6 +57,12 @@ public class ViewResource {
         if (view.getId() != null) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("view", "idexists", "A new view cannot already have an ID")).body(null);
         }
+
+        String login = SecurityUtils.getCurrentUserLogin();
+        User user = userRepository.findOneByLogin(login).orElse(null);
+
+        view.setOwner(user);
+
         View result = viewService.save(view);
         return ResponseEntity.created(new URI("/api/views/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert("view", result.getId().toString()))
@@ -133,6 +146,20 @@ public class ViewResource {
         log.debug("REST request to delete View : {}", id);
         viewService.delete(id);
         return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert("view", id.toString())).build();
+    }
+
+    /**
+     * Get all views owned by logged in user, plus all shared views.
+     */
+    @RequestMapping(value = "/myviews",
+        method = RequestMethod.GET,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Timed
+    public ResponseEntity<List<View>> getMyViews() throws URISyntaxException {
+        log.debug("REST request to get owned and shared views");
+        String login = SecurityUtils.getCurrentUserLogin();
+        List<View> list = viewService.findByOwnerIsCurrentUserOrShared(login);
+        return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
 }

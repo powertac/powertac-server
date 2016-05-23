@@ -2,6 +2,7 @@ package org.powertac.visualizer.web.rest;
 
 import org.powertac.visualizer.Visualizer2App;
 import org.powertac.visualizer.domain.View;
+import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.repository.ViewRepository;
 import org.powertac.visualizer.service.ViewService;
 
@@ -44,14 +45,17 @@ public class ViewResourceIntTest {
 
     private static final String DEFAULT_NAME = "A";
     private static final String UPDATED_NAME = "B";
-    private static final String DEFAULT_GRAPHS = "A";
-    private static final String UPDATED_GRAPHS = "B";
+    private static final String DEFAULT_GRAPHS = "1";
+    private static final String UPDATED_GRAPHS = "2";
 
     private static final Boolean DEFAULT_SHARED = false;
     private static final Boolean UPDATED_SHARED = true;
 
     @Inject
     private ViewRepository viewRepository;
+
+    @Inject
+    private UserRepository userRepository;
 
     @Inject
     private ViewService viewService;
@@ -71,6 +75,7 @@ public class ViewResourceIntTest {
         MockitoAnnotations.initMocks(this);
         ViewResource viewResource = new ViewResource();
         ReflectionTestUtils.setField(viewResource, "viewService", viewService);
+        ReflectionTestUtils.setField(viewResource, "userRepository", userRepository);
         this.restViewMockMvc = MockMvcBuilders.standaloneSetup(viewResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setMessageConverters(jacksonMessageConverter).build();

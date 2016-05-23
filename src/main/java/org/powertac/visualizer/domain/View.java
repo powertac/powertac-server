@@ -4,7 +4,10 @@ package org.powertac.visualizer.domain;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * A View.
@@ -28,6 +31,9 @@ public class View implements Serializable {
     @Size(min = 1, max = 255)
     @Column(name = "graphs", length = 255, nullable = false)
     private String graphs;
+
+    @Transient
+    private List<Long> graphIdList;
 
     @NotNull
     @Column(name = "shared", nullable = false)
@@ -59,8 +65,19 @@ public class View implements Serializable {
         return graphs;
     }
 
+    public List<Long> getGraphIdList() {
+        if (graphIdList == null && graphs != null) {
+            graphIdList = Arrays.asList(graphs.split("\\s*,\\s*"))
+                    .stream()
+                    .map(s -> Long.parseLong(s))
+                    .collect(Collectors.toList());
+        }
+        return graphIdList;
+    }
+
     public void setGraphs(String graphs) {
         this.graphs = graphs;
+        this.graphIdList = null;
     }
 
     public Boolean isShared() {

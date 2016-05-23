@@ -50,6 +50,18 @@ public class ViewService {
     }
 
     /**
+     *  Get all the views owned by this user, plus all shared views.
+     *  
+     *  @return the list of entities
+     */
+    @Transactional(readOnly = true) 
+    public List<View> findByOwnerIsCurrentUserOrShared(String login) {
+        log.debug("Request to get all owned and shared Graphs");
+        List<View> result = viewRepository.findByOwnerIsCurrentUserOrShared(login); 
+        return result;
+    }
+
+    /**
      *  Get one view by id.
      *
      *  @param id the id of the entity
