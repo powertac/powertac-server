@@ -166,7 +166,7 @@ public class BrokerTournamentService
           serverQueueName = checkServerQueue;
           log.info("serverQueueName=" + checkServerQueue);
 
-          System.out.printf("Login message receieved!\n  jmsUrl=%s\n  queueName=%s\n  serverQueue=%s\n",
+          System.out.printf("Login message received!\n  jmsUrl=%s\n  queueName=%s\n  serverQueue=%s\n",
                             checkJmsUrl, checkBrokerQueue, checkServerQueue);
           return true;
         }
