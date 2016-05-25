@@ -106,6 +106,7 @@ public class DefaultBrokerService
 
   private HashMap<TariffSpecification,
                   HashMap<CustomerInfo, CustomerRecord>> customerSubscriptions;
+  private HashMap<CustomerInfo, CustomerRecord> bootProfiles;
   private RandomSeed randomSeed;
   private HashMap<Timeslot, Order> lastOrder;
 
@@ -146,6 +147,7 @@ public class DefaultBrokerService
     bootstrapMode = competitionControlService.isBootstrapMode();
     log.info("init, bootstrapMode=" + bootstrapMode);
     customerSubscriptions = new LinkedHashMap<>();
+    bootProfiles = new LinkedHashMap<>();
     lastOrder = new HashMap<>();
     randomSeed = randomSeedRepo.getRandomSeed(this.getClass().getName(),
                                               0, "pricing");
@@ -265,6 +267,17 @@ public class DefaultBrokerService
     }
   }
 
+  private void ensureBootProfiles ()
+  {
+    if (0 == bootProfiles.size()) {
+      for (CustomerInfo customer : customerRepo.list()) {
+        bootProfiles.put(customer,
+                         new CustomerRecord(customer,
+                                            customer.getPopulation()));
+      }
+    }
+  }
+
   // default visibility for testing
   double collectUsage (int index)
   {
@@ -378,7 +391,7 @@ public class DefaultBrokerService
     HashMap<CustomerInfo, CustomerRecord> customerMap = 
       customerSubscriptions.get(ttx.getTariffSpec());
     CustomerRecord record = customerMap.get(customer);
-    
+
     if (TariffTransaction.Type.SIGNUP == txType) {
       // keep track of customer counts
       if (record == null) {
@@ -415,8 +428,17 @@ public class DefaultBrokerService
       }
       record.produceConsume(ttx.getKWh(), ttx.getPostedTime());
     }
+
+    // fill out bootstrap record if needed
+    if (bootstrapMode &&
+        (TariffTransaction.Type.PRODUCE == txType ||
+        TariffTransaction.Type.CONSUME == txType)) {
+      ensureBootProfiles();
+      record = bootProfiles.get(ttx.getCustomerInfo());
+      record.produceConsume(ttx.getKWh(), ttx.getPostedTime());
+    }
   }
-  
+
   /**
    * Receives a new WeatherReport. We only care about this if in bootstrap
    * mode, in which case we simply store it in the bootstrap dataset.
@@ -535,12 +557,9 @@ public class DefaultBrokerService
     // In bootstrap mode,
     // fill out customer records for which no transactions have arrived
     if (bootstrapMode) {
-      for (HashMap<CustomerInfo, CustomerRecord> customerMap : customerSubscriptions.values()) {
-        for (CustomerRecord record : customerMap.values()) {
-          record.fillBootstrapUsage(0.0, timeslotRepo.currentSerialNumber());
-        }
+      for (CustomerRecord record : bootProfiles.values()) {
+        record.fillBootstrapUsage(0.0, timeslotRepo.currentSerialNumber());
       }
-
     }
   }
 
@@ -606,23 +625,18 @@ public class DefaultBrokerService
    */
   List<CustomerBootstrapData> getCustomerBootstrapData (int maxTimeslots)
   {
-    ArrayList<CustomerBootstrapData> result = new ArrayList<CustomerBootstrapData>();
-    // iterate through the tariffs
-    for (TariffSpecification spec : customerSubscriptions.keySet()) {
-      HashMap<CustomerInfo, CustomerRecord> customerMap
-          = customerSubscriptions.get(spec);
-      // then iterate through the customers
-      for (CustomerInfo customer : customerMap.keySet()) {
-        CustomerRecord record = customerMap.get(customer);
-        ArrayList<Double>usageList = record.bootstrapUsage;
-        int startIndex = Math.max(0, usageList.size() - maxTimeslots);
-        double[] usage = new double[usageList.size() - startIndex];
-        for (int i = 0; i < usage.length; i++)
-          usage[i] = usageList.get(i + startIndex);
-        result.add(new CustomerBootstrapData(customer,
-                                             customer.getPowerType(),
-                                             usage));
-      }
+    ArrayList<CustomerBootstrapData> result = new ArrayList<>();
+    // iterate through the customers
+    for (CustomerInfo customer : bootProfiles.keySet()) {
+      CustomerRecord record = bootProfiles.get(customer);
+      ArrayList<Double>usageList = record.bootstrapUsage;
+      int startIndex = Math.max(0, usageList.size() - maxTimeslots);
+      double[] usage = new double[usageList.size() - startIndex];
+      for (int i = 0; i < usage.length; i++)
+        usage[i] = usageList.get(i + startIndex);
+      result.add(new CustomerBootstrapData(customer,
+                                           customer.getPowerType(),
+                                           usage));
     }
     return result;
   }

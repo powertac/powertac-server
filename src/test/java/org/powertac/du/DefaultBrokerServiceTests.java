@@ -55,6 +55,7 @@ import org.powertac.common.interfaces.TariffMarket;
 import org.powertac.common.msg.CustomerBootstrapData;
 import org.powertac.common.msg.TimeslotComplete;
 import org.powertac.common.repo.BrokerRepo;
+import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,22 +85,25 @@ public class DefaultBrokerServiceTests
 {
   @Autowired
   private TimeService timeService;
-  
+
   @Autowired 
   private CompetitionControl mockCompetitionControl;
-  
+
   @Autowired
   private ServerConfiguration serverPropertiesService;
-  
+
   @Autowired
   private TimeslotRepo timeslotRepo;
-  
+
   @Autowired
   private BrokerRepo brokerRepo;
 
   @Autowired
+  private CustomerRepo customerRepo;
+
+  @Autowired
   private BrokerProxy mockProxy;
-  
+
   private TariffMarket mockMarket; // not autowired
   private RandomSeedRepo mockRandom; // not autowired
 
@@ -121,9 +125,12 @@ public class DefaultBrokerServiceTests
     competition = Competition.newInstance("db-test");
     start = competition.getSimulationBaseTime();
     timeService.setCurrentTime(start);
+    customerRepo.recycle();
     customer1 = new CustomerInfo("town", 1000);
+    customerRepo.add(customer1);
     customer2 = new CustomerInfo("village", 200);
-    
+    customerRepo.add(customer2);
+
     service = new DefaultBrokerService();
     mockMarket = mock(TariffMarket.class);
     mockRandom = mock(RandomSeedRepo.class);
@@ -136,6 +143,7 @@ public class DefaultBrokerServiceTests
     ReflectionTestUtils.setField(service, "brokerProxyService", mockProxy);
     ReflectionTestUtils.setField(service, "timeslotRepo", timeslotRepo);
     ReflectionTestUtils.setField(service, "brokerRepo", brokerRepo);
+    ReflectionTestUtils.setField(service, "customerRepo", customerRepo);
     ReflectionTestUtils.setField(service, "serverPropertiesService",
                                  serverPropertiesService);
     ReflectionTestUtils.setField(service, "randomSeedRepo", mockRandom);
@@ -762,7 +770,6 @@ public class DefaultBrokerServiceTests
 //                                              40.0, -0.15, false));
     // accounting runs ts2
     face.receiveMessage(endTimeslot());
-    // broker sends bids for ts3...ts25
     
     // check the customer bootstrap data
     List<CustomerBootstrapData> cbd = service.getCustomerBootstrapData(3);

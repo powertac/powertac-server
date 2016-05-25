@@ -47,6 +47,10 @@
         class="org.powertac.common.repo.BrokerRepo">
   </bean>
 
+  <bean id="customerRepo"
+        class="org.powertac.common.repo.CustomerRepo">
+  </bean>
+
   <bean id="springApplicationContext"
         class="org.powertac.common.spring.SpringApplicationContext" />
 
