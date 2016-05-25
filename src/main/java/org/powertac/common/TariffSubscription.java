@@ -306,7 +306,7 @@ public class TariffSubscription
   }
 
   /**
-   * Generates and returns a TariffTransaction instance for the current timeslot that
+   * Generates and posts a TariffTransaction instance for the current timeslot that
    * represents the amount of production (negative amount) or consumption
    * (positive amount), along with the credit/debit that results. Also generates
    * a separate TariffTransaction for the fixed periodic payment if it's non-zero.
