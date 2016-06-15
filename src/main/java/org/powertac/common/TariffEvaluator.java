@@ -348,7 +348,7 @@ public class TariffEvaluator
             findActiveSubscriptionsForCustomer(customerInfo)) {
       Tariff subTariff = subscription.getTariff();
       // find out how many of these customers can withdraw without penalty
-      double withdrawCost = subTariff.getEarlyWithdrawPayment(); 
+      double withdrawCost = subTariff.getEarlyWithdrawPayment();
       int committedCount = subscription.getCustomersCommitted();
       int expiredCount = subscription.getExpiredCustomerCount();
       if (withdrawCost == 0.0 || expiredCount == committedCount) {
@@ -446,6 +446,10 @@ public class TariffEvaluator
         //else {
         //  maxCost = Math.max(maxCost, cost);
         //}
+      }
+      else if (tariff == currentTariff) {
+        // don't include signup cost/bonus for current tariff
+        cost -= currentTariff.getSignupPayment();
       }
       costs.put(tariff, new EvalData(cost, inconvenience));
     }

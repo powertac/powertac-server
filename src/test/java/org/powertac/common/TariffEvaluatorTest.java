@@ -731,6 +731,54 @@ public class TariffEvaluatorTest
   }
 
   @Test
+  public void oldSignupBonus ()
+  {
+    TariffSpecification jimTS =
+        new TariffSpecification(jim, PowerType.CONSUMPTION)
+            .withSignupPayment(200.0).addRate(new Rate().withValue(-0.4));
+    Tariff jimTariff = new Tariff(jimTS);
+    initTariff(jimTariff);
+    subscribeTo(jimTariff, customer.getPopulation());
+    TariffSpecification bobTS =
+      new TariffSpecification(bob, PowerType.CONSUMPTION)
+          .addRate(new Rate().withValue(-0.35));
+    Tariff bobTariff = new Tariff(bobTS);
+    initTariff(bobTariff);
+    ArrayList<Tariff> tariffs = new ArrayList<Tariff>();
+    tariffs.add(defaultConsumption);
+    tariffs.add(bobTariff);
+    tariffs.add(jimTariff);
+    when(tariffRepo.findRecentActiveTariffs(anyInt(), any(PowerType.class)))
+        .thenReturn(tariffs);
+
+    double[] profile = {1.0, 2.0};
+    cma.capacityProfile = new CapacityProfile(profile, start);
+    cma.setChoiceSamples(0.4, 0.6);
+
+    // capture calls to tariffMarket
+    final HashMap<Tariff, Integer> calls = new HashMap<Tariff, Integer>();
+    doAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+        assertEquals("correct customer", customer, args[1]);
+        calls.put((Tariff)args[0], (Integer)args[2]);
+        return null;
+      }
+    }).when(tariffMarket).subscribeToTariff(any(Tariff.class),
+                                            any(CustomerInfo.class),
+                                            anyInt());
+
+    evaluator.withChunkSize(50); // 200 chunks
+    evaluator.evaluateTariffs();
+    assertEquals("two tariffs", 2, calls.size());
+    assertEquals("-10000 for default",
+                 new Integer(-10000), calls.get(jimTariff));
+    assertEquals("+10000 for jim",
+                 new Integer(10000), calls.get(bobTariff));
+  }
+
+  @Test
   public void signupCharge ()
   {
     subscribeTo(defaultConsumption, customer.getPopulation());
