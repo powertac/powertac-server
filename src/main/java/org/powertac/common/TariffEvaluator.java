@@ -73,6 +73,7 @@ public class TariffEvaluator
   private int maxChunkCount = 200; // max number of chunks
   private int tariffEvalDepth = 5; // # of tariffs/powerType to eval
   private double inertia = 0.8;
+  private double signupBonusFactor = 0.0; // inertia multiplier for signup bonus
   private double rationality = 0.9;
   private double inconvenienceWeight = 0.2;
   private double tariffSwitchFactor = 0.04;
@@ -219,6 +220,17 @@ public class TariffEvaluator
   public TariffEvaluator withInertia (double inertia)
   {
     this.inertia = inertia;
+    return this;
+  }
+
+  /**
+   * Sets the factor by which inertia is multiplied for the case where
+   * the current tariff had a positive signup bonus. Should be 0 <= sbf <= 1.
+   * Default value is zero.
+   */
+  public TariffEvaluator withSignupBonusFactor (double factor)
+  {
+    this.signupBonusFactor = factor;
     return this;
   }
 
@@ -515,6 +527,11 @@ public class TariffEvaluator
         // or if there is no payment possible from withdrawing,
         // or if the customer was not induced by a positive signup cost,
         // or if the customer is not paying attention.
+        continue;
+      }
+      else if (signupCost > 0.0 &&
+          inertiaSample < inertia * signupBonusFactor) {
+        // Use lower inertia in case the current tariff had a signup bonus
         continue;
       }
       double tariffSample = accessor.getTariffChoiceSample();
