@@ -424,32 +424,27 @@ public class TariffEvaluator
     // Compute the final cost number for each tariff
     HashMap<Tariff, EvalData> costs = new HashMap<Tariff, EvalData>();
     double maxCost = 0.0;
+    double signupCost = 0.0;
     for (Tariff tariff: tariffs) {
       EvalData eval = evaluatedTariffs.get(tariff);
       double inconvenience = eval.inconvenience;
       double cost = eval.costEstimate;
-      //log.info("cost=" + cost + " inconvenience=" + inconvenience);
       if (tariff != currentTariff
               && tariff != replacementTariff) {
+        // add in tariff-switch factors
         inconvenience += tariffSwitchFactor;
         if (tariff.getBroker() != currentTariff.getBroker()) {
           inconvenience +=
                   accessor.getBrokerSwitchFactor(revoked);
         }
-        cost += computeSignupCost(tariff);
+        signupCost = computeSignupCost(tariff);
+        cost += signupCost;
         cost += withdraw0; // withdraw from current tariff
         cost += computeWithdrawCost(tariff);
         if (Double.isNaN(cost)) {
           log.error(getName() + ": cost is NaN for tariff "
                     + tariff.getId());
         }
-        //else {
-        //  maxCost = Math.max(maxCost, cost);
-        //}
-      }
-      else if (tariff == currentTariff) {
-        // don't include signup cost/bonus for current tariff
-        cost -= currentTariff.getSignupPayment();
       }
       costs.put(tariff, new EvalData(cost, inconvenience));
     }
@@ -514,9 +509,11 @@ public class TariffEvaluator
       remainingPopulation -= count;
       // allocate a chunk
       double inertiaSample = accessor.getInertiaSample();
-      if (!revoked && withdraw0 <= 0.0 && inertiaSample < inertia) {
+      if (!revoked && withdraw0 <= 0.0 &&
+          signupCost <= 0.0 && inertiaSample < inertia) {
         // skip this one if not processing revoked tariff,
         // or if there is no payment possible from withdrawing,
+        // or if the customer was not induced by a positive signup cost,
         // or if the customer is not paying attention.
         continue;
       }
