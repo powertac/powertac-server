@@ -282,9 +282,10 @@ implements BalancingMarket, SettlementContext, InitializationService
     }
     return result / 1000.0; // convert to kwh
   }
-  
+
   /**
-   * Returns the maximum price for energy in the current timeslot
+   * Returns the maximum price for energy in the current timeslot.
+   * Units are per kWh
    */
   @Override
   public double getPPlus ()
@@ -304,7 +305,7 @@ implements BalancingMarket, SettlementContext, InitializationService
     }
     return result * rmPremium / 1000.0;
   }
-  
+
   /**
    * Returns the minimum price for energy in the current timeslot
    */
