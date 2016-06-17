@@ -73,7 +73,7 @@ public class TariffEvaluator
   private int maxChunkCount = 200; // max number of chunks
   private int tariffEvalDepth = 5; // # of tariffs/powerType to eval
   private double inertia = 0.8;
-  private double signupBonusFactor = 0.0; // inertia multiplier for signup bonus
+  private double signupBonusFactor = 0.1; // inertia multiplier for signup bonus
   private double rationality = 0.9;
   private double inconvenienceWeight = 0.2;
   private double tariffSwitchFactor = 0.04;
