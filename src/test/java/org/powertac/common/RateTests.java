@@ -353,6 +353,21 @@ public class RateTests
     assertFalse("high out of bounds", r.addHourlyCharge(hc));
   }
 
+  // test HC persistence
+  @Test
+  public void hcPersistence ()
+  {
+    Rate r = new Rate().withFixed(false).withValue(-0.1)
+        .withMaxValue(-0.3).withExpectedMean(-0.2).withNoticeInterval(2);
+    Instant now = timeService.getCurrentTime();
+    HourlyCharge hc = new HourlyCharge(now.plus(TimeService.HOUR * 3), -0.25);
+    r.addHourlyCharge(hc);
+    assertEquals("hc applies 3h", -0.25,
+                 r.getValue(now.plus(TimeService.HOUR * 3)), 1e-6);
+    assertEquals("hc does not apply applies 4h", -0.2,
+                 r.getValue(now.plus(TimeService.HOUR * 4)), 1e-6);
+  }
+
   @Test
   public void xmlSerializationTest ()
   {
