@@ -140,7 +140,7 @@ public class CompetitionControlService
   @ConfigurableValue(valueType = "Integer",
       description = "Maximum time in msec to wait for subsequent broker login")
   private int loginTimeout = 0;
-  
+
   @ConfigurableValue(valueType = "Boolean",
       description = "If true, then brokers can send PauseRequest messages")
   private boolean brokerPauseAllowed = false;
@@ -222,12 +222,14 @@ public class CompetitionControlService
   @Override
   public void setAuthorizedBrokerList (List<String> brokerList)
   {
-    this.brokerNames = brokerList;
+    //this.brokerNames = brokerList;
+    this.brokerNames = new ArrayList<>();
     loginCount = brokerList.size();
-    pendingLogins = new ArrayList<String>();
+    pendingLogins = new ArrayList<>();
     authorizedBrokerMap = new HashMap<String, String>();
     for (String brokerName : alwaysAuthorizedBrokers) {
       authorizedBrokerMap.put(brokerName, brokerName);
+      brokerNames.add(brokerName);
       log.info("pre-authorized " + brokerName);
     }
     for (String broker : brokerList) {
@@ -237,6 +239,7 @@ public class CompetitionControlService
         log.error("Bad broker spec " + broker);
       else {
         String brokerName = components[0];
+        brokerNames.add(brokerName);
         String queueName = brokerName;
         if (components.length > 1)
           queueName = components[1];
@@ -538,7 +541,10 @@ public class CompetitionControlService
    */
   private int getBrokerPrefix (Broker broker)
   {
-    return brokerNames.indexOf(broker.getUsername()) + 2;
+    int posn = brokerNames.indexOf(broker.getUsername());
+    if (-1 == posn)
+      log.error("Broker {} not found in brokerNames", broker.getUsername());
+    return posn + 1;
   }
 
   private void computeBrokerKey (Broker broker)
@@ -1126,5 +1132,11 @@ public class CompetitionControlService
       log.info("Stop simulation");
       clock.stop();
     }
+  }
+
+  // Test support
+  List<String> getBrokerNames()
+  {
+    return brokerNames;
   }
 }

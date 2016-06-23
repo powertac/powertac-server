@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -124,5 +126,34 @@ public class CompetitionControlServiceTests
     DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd");
     DateTime dt = fmt.parseDateTime(dateString);
     assertEquals("correct time translation", val, dt.toInstant());
+  }
+
+  @Test
+  public void setAuthorizedBrokers ()
+  {
+    CompetitionControlService ccs = new CompetitionControlService();
+    List<String> aaNames = Arrays.asList("default broker");
+    ccs.setAlwaysAuthorizedBrokers(aaNames);
+    List<String> usernames = Arrays.asList("Sally", "Jenny");
+    ccs.setAuthorizedBrokerList(usernames);
+    List<String> names = ccs.getBrokerNames();
+    assertEquals("3 names", 3, names.size());
+    assertEquals("defaut first", 0, names.indexOf("default broker"));
+    assertEquals("Sally second", 1, names.indexOf("Sally"));
+    assertEquals("Jenny third", 2, names.indexOf("Jenny"));
+  }
+
+  @Test
+  public void setAuthorizedBrokersWithQueues ()
+  {
+    CompetitionControlService ccs = new CompetitionControlService();
+    List<String> aaNames = Arrays.asList("buyer", "genco");
+    ccs.setAlwaysAuthorizedBrokers(aaNames);
+    List<String> usernames = Arrays.asList("Sally/S1", "Jenny/J1");
+    ccs.setAuthorizedBrokerList(usernames);
+    List<String> names = ccs.getBrokerNames();
+    assertEquals("4 names", 4, names.size());
+    assertEquals("Sally first", 2, names.indexOf("Sally"));
+    assertEquals("Jenny second", 3, names.indexOf("Jenny"));
   }
 }
