@@ -134,23 +134,25 @@ public class TournamentSchedulerService
       return;
     }
 
-    try {
-      String finalUrl = tournamentSchedulerUrl + interfaceUrl
-          + "?action=heartbeat"
-          + "&gameId=" + gameId
-          + "&message=" + timeslotIndex
-          + "&standings=" + URLEncoder.encode(standings, "UTF-8")
-          + "&elapsedTime=" + elapsed;
+    new Thread(() -> {
+      try {
+        String finalUrl = tournamentSchedulerUrl + interfaceUrl
+            + "?action=heartbeat"
+            + "&gameId=" + gameId
+            + "&message=" + timeslotIndex
+            + "&standings=" + URLEncoder.encode(standings, "UTF-8")
+            + "&elapsedTime=" + elapsed;
 
-      URL url = new URL(finalUrl);
-      URLConnection conn = url.openConnection();
-      // Get the response
-      conn.getInputStream();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      System.out.println("heartbeat failure");
-    }
+        URL url = new URL(finalUrl);
+        URLConnection conn = url.openConnection();
+        // Get the response
+        conn.getInputStream();
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        System.out.println("heartbeat failure");
+      }
+    }).start();
   }
 
   public void sendResults (String results)
@@ -172,7 +174,6 @@ public class TournamentSchedulerService
       wr.write(postData);
       wr.flush();
       // Get the response
-      // TODO is this necessary? already doing an output write/flush
       conn.getInputStream();
     }
     catch (Exception e) {
