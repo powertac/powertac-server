@@ -395,18 +395,25 @@ implements InitializationService
     int index = (timeslot - timeslotOffset) % assessmentInterval;
     double totalConsumption = 0.0;
     for (Broker broker: totals.keySet()) {
-      Map<TariffTransaction.Type, Double> data = totals.get(broker);
-      if (null == data)
-        continue;
-      double netConsumption =
-          -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
+      // pull up the netDemand array for this broker
       double[] brokerDemand = brokerNetDemand.get(broker);
       if (null == brokerDemand) {
         log.warn("Broker {} not in brokerNetDemand map", broker.getUsername());
-        brokerNetDemand.put(broker, new double[assessmentInterval]);
+        brokerDemand = new double[assessmentInterval];
+        brokerNetDemand.put(broker, brokerDemand);
       }
-      brokerNetDemand.get(broker)[index] = netConsumption;
-      totalConsumption += netConsumption;
+      // update net demand for this ts
+      Map<TariffTransaction.Type, Double> data = totals.get(broker);
+      if (null == data) {
+        // zero out this broker
+        brokerDemand[index] = 0.0;
+      }
+      else {
+        double netConsumption =
+            -(data.get(Type.PRODUCE) + data.get(Type.CONSUME));
+        brokerDemand[index] = netConsumption;
+        totalConsumption += netConsumption;
+      }
     }
     log.info("Total net consumption for ts {} = {}",
              timeslot, totalConsumption);
