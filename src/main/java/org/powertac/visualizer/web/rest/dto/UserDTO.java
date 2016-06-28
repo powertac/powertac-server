@@ -5,8 +5,6 @@ import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.domain.Authority;
 import org.powertac.visualizer.domain.User;
 
-import org.hibernate.validator.constraints.Email;
-
 import javax.validation.constraints.*;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,12 +24,6 @@ public class UserDTO {
     @Size(max = 50)
     private String lastName;
 
-    @Email
-    @Size(min = 5, max = 100)
-    private String email;
-
-    private boolean activated = false;
-
     @Size(min = 2, max = 5)
     private String langKey;
 
@@ -42,19 +34,16 @@ public class UserDTO {
 
     public UserDTO(User user) {
         this(user.getLogin(), user.getFirstName(), user.getLastName(),
-            user.getEmail(), user.getActivated(), user.getLangKey(),
-            user.getAuthorities().stream().map(Authority::getName)
-                .collect(Collectors.toSet()));
+            user.getLangKey(),
+            user.getAuthorities().stream().map(Authority::getName).collect(Collectors.toSet()));
     }
 
     public UserDTO(String login, String firstName, String lastName,
-        String email, boolean activated, String langKey, Set<String> authorities) {
+        String langKey, Set<String> authorities) {
 
         this.login = login;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.email = email;
-        this.activated = activated;
         this.langKey = langKey;
         this.authorities = authorities;
     }
@@ -71,14 +60,6 @@ public class UserDTO {
         return lastName;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public boolean isActivated() {
-        return activated;
-    }
-
     public String getLangKey() {
         return langKey;
     }
@@ -93,8 +74,6 @@ public class UserDTO {
             "login='" + login + '\'' +
             ", firstName='" + firstName + '\'' +
             ", lastName='" + lastName + '\'' +
-            ", email='" + email + '\'' +
-            ", activated=" + activated +
             ", langKey='" + langKey + '\'' +
             ", authorities=" + authorities +
             "}";

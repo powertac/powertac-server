@@ -1,5 +1,5 @@
 # ===================================================================
-# Spring Boot configuration for the "prod" profile.
+# Spring Boot configuration for the "dev" profile.
 #
 # This configuration overrides the application.yml file.
 # ===================================================================
@@ -14,11 +14,11 @@
 spring:
     devtools:
         restart:
-            enabled: false
+            enabled: true
         livereload:
-            enabled: false
+            enabled: false # we use gulp + BrowserSync for livereload
     datasource:
-        url: jdbc:h2:file:./target/h2db/db/visualizer2
+        url: jdbc:h2:file:./target/h2db/db/visualizer2;DB_CLOSE_DELAY=-1
         name:
         username: visualizer2
         password:
@@ -32,43 +32,27 @@ spring:
         properties:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false
-            hibernate.generate_statistics: false
-    mail:
-        host: smtp.gmail.com
-        port: 587
-        username: gmailuser@gmail.com
-        password: .....
-        protocol: smtp
-        tls: true
-        properties.mail.smtp:
-            auth: true
-            starttls.enable: true
-            ssl.trust: smtp.gmail.com
+            hibernate.generate_statistics: true
+    messages:
+        cache-seconds: 1
     thymeleaf:
-        cache: true
+        cache: false
 
 liquibase:
-    contexts: prod
+    contexts: dev
 
 server:
     port: 8080
-    compression:
-        enabled: true
-        mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
-        min-response-size: 1024
 
 # ===================================================================
 # JHipster specific properties
 # ===================================================================
 
 jhipster:
-    http:
-        cache: # Used by the CachingHttpHeadersFilter
-            timeToLiveInDays: 1461
     security:
         rememberMe:
             # security key (this key should be unique for your application, and kept secret)
-            key: 593720d7de1cf84f01cf323c8062a8bb180db465
+            key: 9cd88e03c45ed1cb0bb3a97e1b1d26a71caf9f49
     mail: # specific JHipster mail property, for standard properties see MailProperties
         from: visualizer2@localhost
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
@@ -91,5 +75,5 @@ jhipster:
             host: localhost
             port: 5000
             queueSize: 512
-    swagger: # swagger is disabled. It can be disabled by pasing 'no-swagger' profile at run time as well
-        enabled: false
+    swagger: # swagger is enabled. It can be disabled by pasing 'no-swagger' profile at run time as well
+        enabled: true

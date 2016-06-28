@@ -2,7 +2,6 @@
 # Project Specific
 ######################
 /target/www/**
-/src/main/resources/config/*.yml
 /src/main/resources/config/*.json
 /files/**
 

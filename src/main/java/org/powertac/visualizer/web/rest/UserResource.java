@@ -7,7 +7,6 @@ import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.AuthorityRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.AuthoritiesConstants;
-import org.powertac.visualizer.service.MailService;
 import org.powertac.visualizer.service.UserService;
 import org.powertac.visualizer.web.rest.dto.ManagedUserDTO;
 import org.powertac.visualizer.web.rest.util.HeaderUtil;
@@ -65,10 +64,6 @@ public class UserResource {
     private UserRepository userRepository;
 
     @Inject
-    private MailService mailService;
-
-
-    @Inject
     private AuthorityRepository authorityRepository;
 
     @Inject
@@ -100,19 +95,8 @@ public class UserResource {
             return ResponseEntity.badRequest()
                 .headers(HeaderUtil.createFailureAlert("userManagement", "userexists", "Login already in use"))
                 .body(null);
-        } else if (userRepository.findOneByEmail(managedUserDTO.getEmail()).isPresent()) {
-            return ResponseEntity.badRequest()
-                .headers(HeaderUtil.createFailureAlert("userManagement", "emailexists", "Email already in use"))
-                .body(null);
         } else {
             User newUser = userService.createUser(managedUserDTO);
-            String baseUrl = request.getScheme() + // "http"
-            "://" +                                // "://"
-            request.getServerName() +              // "myhost"
-            ":" +                                  // ":"
-            request.getServerPort() +              // "80"
-            request.getContextPath();              // "/myContextPath" or "" if deployed in root context
-            mailService.sendCreationEmail(newUser, baseUrl);
             return ResponseEntity.created(new URI("/api/users/" + newUser.getLogin()))
                 .headers(HeaderUtil.createAlert( "A user is created with identifier " + newUser.getLogin(), newUser.getLogin()))
                 .body(newUser);
@@ -135,11 +119,7 @@ public class UserResource {
     @Secured(AuthoritiesConstants.ADMIN)
     public ResponseEntity<ManagedUserDTO> updateUser(@RequestBody ManagedUserDTO managedUserDTO) {
         log.debug("REST request to update User : {}", managedUserDTO);
-        Optional<User> existingUser = userRepository.findOneByEmail(managedUserDTO.getEmail());
-        if (existingUser.isPresent() && (!existingUser.get().getId().equals(managedUserDTO.getId()))) {
-            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "emailexists", "E-mail already in use")).body(null);
-        }
-        existingUser = userRepository.findOneByLogin(managedUserDTO.getLogin().toLowerCase());
+        Optional<User> existingUser = userRepository.findOneByLogin(managedUserDTO.getLogin().toLowerCase());
         if (existingUser.isPresent() && (!existingUser.get().getId().equals(managedUserDTO.getId()))) {
             return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert("userManagement", "userexists", "Login already in use")).body(null);
         }
@@ -149,8 +129,6 @@ public class UserResource {
                 user.setLogin(managedUserDTO.getLogin());
                 user.setFirstName(managedUserDTO.getFirstName());
                 user.setLastName(managedUserDTO.getLastName());
-                user.setEmail(managedUserDTO.getEmail());
-                user.setActivated(managedUserDTO.isActivated());
                 user.setLangKey(managedUserDTO.getLangKey());
                 Set<Authority> authorities = user.getAuthorities();
                 authorities.clear();

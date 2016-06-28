@@ -4,11 +4,11 @@
 
 (The following assume you're at the project root.)
 
-Before you can run or package the visualizer, copy configuration templates and edit them according to your needs:
+## User accounts
 
-```sh
-cp src/main/resources/config/templates/* src/main/resources/config/
-```
+Out of the box, two accounts are created: `admin` and `user`. The passwords are 
+initially `admin` and `user`, respectively. You may want to change that when
+you're up and running.
 
 ## Modes and Profiles
 

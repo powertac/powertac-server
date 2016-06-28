@@ -30,23 +30,12 @@
             <column name="password_hash" type="varchar(60)"/>
             <column name="first_name" type="varchar(50)"/>
             <column name="last_name" type="varchar(50)"/>
-            <column name="email" type="varchar(100)">
-                <constraints unique="true" nullable="true"/>
-            </column>
-            <column name="activated" type="boolean" valueBoolean="false">
-                <constraints nullable="false" />
-            </column>
             <column name="lang_key" type="varchar(5)"/>
-            <column name="activation_key" type="varchar(20)"/>
-            <column name="reset_key" type="varchar(20)"/>
             <column name="created_by" type="varchar(50)">
                 <constraints nullable="false"/>
             </column>
             <column name="created_date" type="timestamp" defaultValueDate="${now}">
                 <constraints nullable="false"/>
-            </column>
-            <column name="reset_date" type="timestamp">
-                <constraints nullable="true"/>
             </column>
             <column name="last_modified_by" type="varchar(50)"/>
             <column name="last_modified_date" type="timestamp"/>
@@ -58,12 +47,6 @@
             <column name="login" type="varchar(50)"/>
         </createIndex>
 
-        <createIndex indexName="idx_user_email"
-            tableName="jhi_user"
-            unique="true">
-            <column name="email" type="varchar(100)"/>
-        </createIndex>
-        
         <createTable tableName="jhi_authority">
             <column name="name" type="varchar(50)">
                 <constraints primaryKey="true" nullable="false"/>
