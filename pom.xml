@@ -45,6 +45,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+	<maven-javadoc.version>2.10.3</maven-javadoc.version>
         <metrics-spark-reporter.version>1.2</metrics-spark-reporter.version>
         <metrics-spring.version>3.1.3</metrics-spring.version>
         <node.version>v4.4.3</node.version>
