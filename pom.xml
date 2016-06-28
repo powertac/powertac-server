@@ -67,7 +67,6 @@
         <sonar.sources>${project.basedir}/src/main/</sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/src/test/</sonar.tests>
-        <sortpom-maven-plugin.version>2.5.0</sortpom-maven-plugin.version>
         <spring-security.version>4.1.0.RELEASE</spring-security.version>
         <springfox.version>2.4.0</springfox.version>
         <visualizer.mode>research</visualizer.mode>
@@ -474,27 +473,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.github.ekryd.sortpom</groupId>
-                <artifactId>sortpom-maven-plugin</artifactId>
-                <version>${sortpom-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sort</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <sortProperties>true</sortProperties>
-                    <nrOfIndentSpace>4</nrOfIndentSpace>
-                    <sortDependencies>groupId,artifactId</sortDependencies>
-                    <sortPlugins>groupId,artifactId</sortPlugins>
-                    <keepBlankLines>true</keepBlankLines>
-                    <expandEmptyElements>false</expandEmptyElements>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.spotify</groupId>
