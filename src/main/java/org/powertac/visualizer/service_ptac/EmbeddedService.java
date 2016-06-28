@@ -1,7 +1,6 @@
 package org.powertac.visualizer.service_ptac;
 
 import org.apache.commons.io.FileExistsException;
-import org.powertac.common.interfaces.VisualizerMessageListener;
 import org.powertac.common.interfaces.VisualizerProxy;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.server.CompetitionControlService;
@@ -248,7 +247,6 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
         // register with a visualizer proxy in order to get messages
         visualizerProxy = context.getBean(VisualizerProxy.class);
         visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
-        visualizerProxy.registerVisualizerMessageListener(this);
     }
 
     private String checkRun() {
