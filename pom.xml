@@ -711,6 +711,17 @@
                 </configuration>
             </plugin>
             <!-- jhipster-needle-maven-add-plugin -->
+
+	    <!-- javadoc config -->
+	    <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>${maven-javadoc.version}</version>
+              <configuration>
+		<failOnError>false</failOnError>
+		<additionalparam>-Xdoclint:none</additionalparam>
+              </configuration>
+	    </plugin>
         </plugins>
     </build>
 
