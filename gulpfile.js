@@ -36,7 +36,7 @@ gulp.task('clean', function () {
 });
 
 gulp.task('copy', function () {
-    return es.merge( 
+    return es.merge(
         gulp.src(config.bower + 'bootstrap/fonts/*.*')
         .pipe(plumber({errorHandler: handleErrors}))
         .pipe(changed(config.dist + 'content/fonts/'))
@@ -87,6 +87,18 @@ gulp.task('styles', [], function () {
         .pipe(browserSync.reload({stream: true}));
 });
 
+gulp.task('template:index', function () {
+    return gulp.src(config.app + 'index.template.html')
+        .pipe(rename('index.html'))
+        .pipe(gulp.dest(config.app));
+});
+
+gulp.task('template:test', function () {
+    return gulp.src(config.test + 'karma.conf.template.js')
+        .pipe(rename('karma.conf.js'))
+        .pipe(gulp.dest(config.test));
+});
+
 gulp.task('inject', ['inject:dep', 'inject:app']);
 gulp.task('inject:dep', ['inject:test', 'inject:vendor']);
 
@@ -110,7 +122,7 @@ gulp.task('inject:vendor', function () {
     return stream;
 });
 
-gulp.task('inject:test', function () {
+gulp.task('inject:test', ['template:test'], function () {
     return gulp.src(config.test + 'karma.conf.js')
         .pipe(plumber({errorHandler: handleErrors}))
         .pipe(inject(gulp.src(bowerFiles({includeDev: true, filter: ['**/*.js']}), {read: false}), {
@@ -231,7 +243,7 @@ gulp.task('watch', function () {
 });
 
 gulp.task('install', function () {
-    runSequence(['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot');
+    runSequence('template:index', ['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot');
 });
 
 gulp.task('serve', function () {
@@ -239,7 +251,7 @@ gulp.task('serve', function () {
 });
 
 gulp.task('build', ['clean'], function (cb) {
-    runSequence(['copy', 'inject:vendor', 'ngconstant:prod'], 'inject:app', 'inject:troubleshoot', 'assets:prod', cb);
+    runSequence('template:index', ['copy', 'inject:vendor', 'ngconstant:prod'], 'inject:app', 'inject:troubleshoot', 'assets:prod', cb);
 });
 
 gulp.task('default', ['serve']);

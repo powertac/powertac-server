@@ -5,6 +5,10 @@
 /src/main/resources/config/*.json
 /files/**
 
+/src/main/webapp/index.html
+/src/main/webapp/app/app.constants.js
+/src/test/javascript/karma.conf.js
+
 ######################
 # Node
 ######################
