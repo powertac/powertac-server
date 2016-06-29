@@ -22,12 +22,12 @@
                     controllerAs: 'vm'
                 }
             },
-            onEnter: function(JhiTrackerService) {
+            onEnter: ['JhiTrackerService', function(JhiTrackerService) {
                 JhiTrackerService.subscribe();
-            },
-            onExit: function(JhiTrackerService) {
+            }],
+            onExit: ['JhiTrackerService', function(JhiTrackerService) {
                 JhiTrackerService.unsubscribe();
-            }
+            }]
         });
     }
 })();

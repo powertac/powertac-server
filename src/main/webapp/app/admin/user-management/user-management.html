@@ -11,15 +11,13 @@
     <div class="table-responsive">
         <table class="table table-striped">
             <thead>
-            <tr>
-                <th>ID</th>
-                <th>Login</th>
-                <th></th>
-                
-                <th>Profiles</th>
-                <th>Created Date</th>
-                <th>Last Modified By</th>
-                <th>Last Modified Date</th>
+            <tr jh-sort="vm.predicate" ascending="vm.reverse" callback="vm.transition()">
+                <th jh-sort-by="id"><span>ID</span><span class="glyphicon glyphicon-sort"></span></th>
+                <th jh-sort-by="login"><span>Login</span> <span class="glyphicon glyphicon-sort"></span></th>
+                <th><span>Profiles</span></th>
+                <th jh-sort-by="createdDate"><span>Created Date</span> <span class="glyphicon glyphicon-sort"></span></th>
+                <th jh-sort-by="lastModifiedBy"><span>Last Modified By</span> <span class="glyphicon glyphicon-sort"></span></th>
+                <th jh-sort-by="lastModifiedDate"><span>Last Modified Date</span> <span class="glyphicon glyphicon-sort"></span></th>
                 <th></th>
             </tr>
             </thead>
@@ -27,13 +25,6 @@
             <tr ng-repeat="user in vm.users track by user.id">
                 <td><a ui-sref="user-management-detail({login:user.login})">{{user.id}}</a></td>
                 <td>{{user.login}}</td>
-                <td>
-                    <span class="label label-danger" ng-click="vm.setActive(user, true)" ng-show="!user.activated"
-                          style="cursor: pointer;">Deactivated</span>
-                    <span class="label label-success" ng-click="vm.setActive(user, false)" ng-show="user.activated"
-                          style="cursor: pointer;">Activated</span>
-                </td>
-                
                 <td>
                     <div ng-repeat="authority in user.authorities">
                         <span class="label label-info">{{ authority }}</span>
@@ -69,6 +60,7 @@
         </table>
     </div>
     <div class="text-center">
-        <uib-pagination class="pagination-sm" total-items="vm.totalItems" ng-model="vm.page" ng-change="vm.loadAll()"></uib-pagination>
+        <jhi-item-count page="vm.page" total="vm.queryCount" items-per-page="vm.itemsPerPage"></jhi-item-count>
+        <uib-pagination class="pagination-sm" total-items="vm.totalItems" ng-model="vm.page" ng-change="vm.transition()"></uib-pagination>
     </div>
 </div>
