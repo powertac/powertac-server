@@ -5,6 +5,7 @@ import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.AuthorityRepository;
 import org.powertac.visualizer.repository.PersistentTokenRepository;
 import org.powertac.visualizer.repository.UserRepository;
+import org.powertac.visualizer.security.AuthoritiesConstants;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.util.RandomUtil;
 import org.powertac.visualizer.web.rest.dto.ManagedUserDTO;
@@ -47,7 +48,7 @@ public class UserService {
         String langKey) {
 
         User newUser = new User();
-        Authority authority = authorityRepository.findOne("ROLE_USER");
+        Authority authority = authorityRepository.findOne(AuthoritiesConstants.USER);
         Set<Authority> authorities = new HashSet<>();
         String encryptedPassword = passwordEncoder.encode(password);
         newUser.setLogin(login);
