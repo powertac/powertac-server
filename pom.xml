@@ -7,12 +7,18 @@
          http://stackoverflow.com/questions/21317006/spring-boot-parent-pom-when-you-already-have-a-parent-pom
          for details. As a result, the contents of server-master/pom.xml are copied into
          this pom, and must be maintained appropriately. 
-    -->
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
         <version>1.3.5.RELEASE</version>
         <relativePath />
+    </parent>
+    -->
+    <parent>
+      <groupId>org.powertac</groupId>
+      <artifactId>server-master</artifactId>
+      <version>1.3.3</version>
+      <relativePath />
     </parent>
 
     <groupId>org.powertac</groupId>
@@ -26,7 +32,6 @@
     </prerequisites>
 
     <properties>
-        <powertac.version>1.3.3</powertac.version>
         <assertj-core.version>3.3.0</assertj-core.version>
         <awaitility.version>1.7.0</awaitility.version>
         <commons-io.version>2.4</commons-io.version>
@@ -72,6 +77,19 @@
         <springfox.version>2.4.0</springfox.version>
         <visualizer.mode>research</visualizer.mode>
     </properties>
+
+    <dependencyManagement>
+      <dependencies>
+	<dependency>
+          <!-- Import dependency management from Spring Boot -->
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-dependencies</artifactId>
+          <version>1.3.5.RELEASE</version>
+          <type>pom</type>
+          <scope>import</scope>
+	</dependency>
+      </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!--  PowerTAC -->
@@ -375,10 +393,6 @@
         <repository>
             <id>spring-milestones</id>
             <url>http://repo.spring.io/milestone</url>
-        </repository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </repository>
     </repositories>
     <pluginRepositories>
@@ -712,17 +726,6 @@
                 </configuration>
             </plugin>
             <!-- jhipster-needle-maven-add-plugin -->
-
-	    <!-- javadoc config -->
-	    <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-javadoc-plugin</artifactId>
-              <version>${maven-javadoc.version}</version>
-              <configuration>
-		<failOnError>false</failOnError>
-		<additionalparam>-Xdoclint:none</additionalparam>
-              </configuration>
-	    </plugin>
         </plugins>
     </build>
 
@@ -914,7 +917,6 @@
         <connection>scm:git:git//github.com/powertac/visualizer2.git</connection>
         <developerConnection>scm:git:git@github.com:powertac/visualizer2.git</developerConnection>
         <url>https://github.com/powertac/visualizer2</url>
-    <tag>HEAD</tag>
   </scm>
 
 </project>
