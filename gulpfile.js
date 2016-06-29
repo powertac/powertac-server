@@ -192,7 +192,7 @@ gulp.task('ngconstant:prod', function () {
     return ngConstant({
         name: 'visualizer2App',
         constants: {
-            VERSION: util.parseVersion(),
+            VERSION: util.parseVersion().replace(/-SNAPSHOT/, ''),
             DEBUG_INFO_ENABLED: false,
             CONFIG: {
                 mode: cfg.mode
