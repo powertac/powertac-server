@@ -5,9 +5,9 @@
         .module('visualizer2App')
         .factory('Auth', Auth);
 
-    Auth.$inject = ['$rootScope', '$state', '$sessionStorage', '$q', 'Principal', 'AuthServerProvider', 'Account', 'LoginService', 'Register', 'Activate', 'Password', 'PasswordResetInit', 'PasswordResetFinish', 'JhiTrackerService'];
+    Auth.$inject = ['$rootScope', '$state', '$sessionStorage', '$q', 'Principal', 'AuthServerProvider', 'Account', 'LoginService', 'Register', 'Activate', 'Password', 'JhiTrackerService'];
 
-    function Auth ($rootScope, $state, $sessionStorage, $q, Principal, AuthServerProvider, Account, LoginService, Register, Activate, Password, PasswordResetInit, PasswordResetFinish, JhiTrackerService) {
+    function Auth ($rootScope, $state, $sessionStorage, $q, Principal, AuthServerProvider, Account, LoginService, Register, Activate, Password, JhiTrackerService) {
         var service = {
             activateAccount: activateAccount,
             authorize: authorize,
@@ -16,8 +16,6 @@
             getPreviousState: getPreviousState,
             login: login,
             logout: logout,
-            resetPasswordFinish: resetPasswordFinish,
-            resetPasswordInit: resetPasswordInit,
             resetPreviousState: resetPreviousState,
             storePreviousState: storePreviousState,
             updateAccount: updateAccount
@@ -33,6 +31,7 @@
                     return cb(response);
                 },
                 function (err) {
+                    return cb(err);
                     return cb(err);
                 }.bind(this)).$promise;
         }
@@ -126,26 +125,6 @@
         function logout () {
             AuthServerProvider.logout();
             Principal.authenticate(null);
-        }
-
-        function resetPasswordFinish (keyAndPassword, callback) {
-            var cb = callback || angular.noop;
-
-            return PasswordResetFinish.save(keyAndPassword, function () {
-                return cb();
-            }, function (err) {
-                return cb(err);
-            }).$promise;
-        }
-
-        function resetPasswordInit (mail, callback) {
-            var cb = callback || angular.noop;
-
-            return PasswordResetInit.save(mail, function() {
-                return cb();
-            }, function (err) {
-                return cb(err);
-            }).$promise;
         }
 
         function updateAccount (account, callback) {
