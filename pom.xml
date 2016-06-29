@@ -3,7 +3,7 @@
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
-    <version>1.3.3</version>
+    <version>1.4.0-SNAPSHOT</version>
     <!-- prevents local resolution - you must install the parent locally
          if it is not in the central or snapshot repo -->
     <relativePath /> 
