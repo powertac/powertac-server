@@ -18,7 +18,8 @@ package org.powertac.logtool.common;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
@@ -42,7 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DomainBuilder implements Analyzer
 {
-  static private Logger log = Logger.getLogger(DomainBuilder.class.getName());
+  static private Logger log = LogManager.getLogger(DomainBuilder.class.getName());
 
   @Autowired
   private DomainObjectReader dor;
