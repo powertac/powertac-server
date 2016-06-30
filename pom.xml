@@ -819,6 +819,7 @@
                         <configuration>
                             <warSourceDirectory>src/main/webapp/</warSourceDirectory>
                             <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+			    <failOnMissingWebXml>false</failOnMissingWebXml>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -887,9 +888,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
+			<version>2.6</version>
                         <configuration>
                             <warSourceDirectory>target/www/</warSourceDirectory>
                             <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+			    <failOnMissingWebXml>false</failOnMissingWebXml>
                         </configuration>
                     </plugin>
                     <plugin>
