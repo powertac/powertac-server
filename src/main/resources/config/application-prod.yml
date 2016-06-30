@@ -18,7 +18,7 @@ spring:
         livereload:
             enabled: false
     datasource:
-        url: jdbc:h2:file:./target/h2db/db/visualizer2
+        url: jdbc:h2:file:./files/system/db/visualizer2
         name:
         username: visualizer2
         password:
