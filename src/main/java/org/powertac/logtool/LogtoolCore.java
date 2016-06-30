@@ -25,7 +25,8 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.powertac.common.msg.SimEnd;
 import org.powertac.logtool.common.DomainObjectReader;
 import org.powertac.logtool.common.MissingDomainObject;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogtoolCore
 {
-  static private Logger log = Logger.getLogger(LogtoolCore.class.getName());
+  static private Logger log = LogManager.getLogger(LogtoolCore.class.getName());
 
   @Autowired
   private DomainObjectReader reader;

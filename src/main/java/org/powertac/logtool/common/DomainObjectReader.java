@@ -28,7 +28,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import org.joda.time.Instant;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
@@ -51,7 +52,7 @@ import org.springframework.util.ReflectionUtils;
 @Service
 public class DomainObjectReader
 {
-  static private Logger log = Logger.getLogger(DomainObjectReader.class.getName());
+  static private Logger log = LogManager.getLogger(DomainObjectReader.class.getName());
   
   @Autowired
   private TimeService timeService;
