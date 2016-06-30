@@ -52,6 +52,10 @@
       <AppenderRef ref="VizFile" />
     </Logger>
 
+    <Logger name="org.powertac.logtool" level="#log4j2.loglevel#">
+      <AppenderRef ref="VizFile" />
+    </Logger>
+
     <Logger name="javax.activation" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
