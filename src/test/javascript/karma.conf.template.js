@@ -35,7 +35,7 @@ module.exports = function (config) {
 
 
         // list of files / patterns to exclude
-        exclude: [],
+        exclude: ['**/*.template.js'],
 
         preprocessors: {
             './**/*.js': sourcePreprocessors
