@@ -6,7 +6,7 @@
          spring boot. See
          http://stackoverflow.com/questions/21317006/spring-boot-parent-pom-when-you-already-have-a-parent-pom
          for details. As a result, the contents of server-master/pom.xml are copied into
-         this pom, and must be maintained appropriately. 
+         this pom, and must be maintained appropriately.
     <parent>
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
@@ -15,10 +15,10 @@
     </parent>
     -->
     <parent>
-      <groupId>org.powertac</groupId>
-      <artifactId>server-master</artifactId>
-      <version>1.3.3</version>
-      <relativePath />
+        <groupId>org.powertac</groupId>
+        <artifactId>server-master</artifactId>
+        <version>1.3.3</version>
+        <relativePath />
     </parent>
 
     <groupId>org.powertac</groupId>
@@ -53,7 +53,7 @@
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-	<maven-javadoc.version>2.10.3</maven-javadoc.version>
+        <maven-javadoc.version>2.10.3</maven-javadoc.version>
         <metrics-spark-reporter.version>1.2</metrics-spark-reporter.version>
         <metrics-spring.version>3.1.3</metrics-spring.version>
         <node.version>v4.4.3</node.version>
@@ -83,14 +83,14 @@
 
     <dependencyManagement>
       <dependencies>
-	<dependency>
-          <!-- Import dependency management from Spring Boot -->
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-dependencies</artifactId>
-          <version>1.3.5.RELEASE</version>
-          <type>pom</type>
-          <scope>import</scope>
-	</dependency>
+          <dependency>
+              <!-- Import dependency management from Spring Boot -->
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-dependencies</artifactId>
+              <version>1.3.5.RELEASE</version>
+              <type>pom</type>
+              <scope>import</scope>
+          </dependency>
       </dependencies>
     </dependencyManagement>
 
@@ -793,9 +793,6 @@
 
         <profile>
             <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -843,6 +840,9 @@
         </profile>
         <profile>
             <id>prod</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
