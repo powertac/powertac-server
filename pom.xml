@@ -21,14 +21,13 @@
         <relativePath />
     </parent>
 
-    <groupId>org.powertac</groupId>
     <artifactId>visualizer2</artifactId>
     <version>1.3.3-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Power TAC Visualizer v2</name>
 
     <prerequisites>
-        <maven>3.0.0</maven>
+        <maven>3.1.0</maven>
     </prerequisites>
 
     <properties>
@@ -50,6 +49,7 @@
         <mapstruct.version>1.0.0.Final</mapstruct.version>
         <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
         <maven-resources-plugin.version>3.0.0</maven-resources-plugin.version>
+        <maven-war-plugin.version>2.6</maven-war-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
@@ -76,7 +76,7 @@
         <sonar.sources>${project.basedir}/src/main/</sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/src/test/</sonar.tests>
-	<spring-boot.version>1.3.5.RELEASE</spring-boot.version>
+        <spring-boot.version>1.3.5.RELEASE</spring-boot.version>
         <spring-security.version>4.1.0.RELEASE</spring-security.version>
         <springfox.version>2.4.0</springfox.version>
         <visualizer.mode>research</visualizer.mode>
@@ -650,6 +650,21 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>${maven-war-plugin.version}</version>
+                <configuration>
+                    <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <manifest>
+                            <mainClass>${start-class}</mainClass>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
                 <version>${sonar-maven-plugin.version}</version>
@@ -722,14 +737,22 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-		<version>${spring-boot.version}</version>
+                <version>${spring-boot.version}</version>
                 <configuration>
                     <executable>false</executable>
+                    <mainClass>${start-class}</mainClass>
                     <!--
                     Enable the line below to have remote debugging of your application on port 5005
                     <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
                     -->
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!-- jhipster-needle-maven-add-plugin -->
         </plugins>
@@ -815,11 +838,8 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-			<version>2.6</version>
                         <configuration>
                             <warSourceDirectory>src/main/webapp/</warSourceDirectory>
-                            <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
-			    <failOnMissingWebXml>false</failOnMissingWebXml>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -888,11 +908,8 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
-			<version>2.6</version>
                         <configuration>
                             <warSourceDirectory>target/www/</warSourceDirectory>
-                            <packagingExcludes>WEB-INF/lib/jetty-*.jar,WEB-INF/lib/tomcat-*.jar</packagingExcludes>
-			    <failOnMissingWebXml>false</failOnMissingWebXml>
                         </configuration>
                     </plugin>
                     <plugin>
