@@ -43,8 +43,8 @@ security:
         enabled: false
 
 multipart:
-    maxFileSize: 512MB
-    maxRequestSize: 512MB
+    maxFileSize: 1024MB
+    maxRequestSize: 1024MB
 
 # ===================================================================
 # JHipster specific properties
