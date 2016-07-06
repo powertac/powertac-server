@@ -65,14 +65,3 @@ jhipster:
             key: 593720d7de1cf84f01cf323c8062a8bb180db465
     metrics: # DropWizard Metrics configuration, used by MetricsConfiguration
         jmx.enabled: true
-    swagger:
-        title: visualizer2 API
-        description: visualizer2 API documentation
-        version: 0.0.1
-        termsOfServiceUrl:
-        contactName:
-        contactUrl:
-        contactEmail:
-        license:
-        licenseUrl:
-        enabled: false

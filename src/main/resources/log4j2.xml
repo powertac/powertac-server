@@ -104,9 +104,6 @@
     <Logger name="org.xnio" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
-    <Logger name="springfox" level="warn">
-      <AppenderRef ref="VizFile" />
-    </Logger>
     <Logger name="sun.rmi" level="warn">
       <AppenderRef ref="VizFile" />
     </Logger>
