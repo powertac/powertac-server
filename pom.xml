@@ -234,7 +234,7 @@
         <executions>
           <execution>
             <id>bundle-sources</id>
-            <phase>package</phase>
+            <phase>deploy</phase>
             <goals>
               <!-- produce source artifact for main project sources -->
               <goal>jar-no-fork</goal>
