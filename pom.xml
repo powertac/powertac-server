@@ -735,13 +735,6 @@
                     <jvmArguments>-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005</jvmArguments>
                     -->
                 </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <!-- jhipster-needle-maven-add-plugin -->
         </plugins>
@@ -778,6 +771,17 @@
                            </packagingExcludes>
                         </configuration>
                     </plugin>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>repackage</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -797,7 +801,7 @@
                             <password>********</password>
                             <path>/visualizer/${simHost}</path>
                             <update>true</update>
-                            <warFile>target/${project.build.finalName}.war.original</warFile>
+                            <warFile>target/${project.build.finalName}.war</warFile>
                         </configuration>
                     </plugin>
                 </plugins>
