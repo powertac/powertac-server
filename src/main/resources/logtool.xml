@@ -25,5 +25,7 @@
   <bean id="customerRepo" class="org.powertac.common.repo.CustomerRepo" />
   <bean id="orderbookRepo" class="org.powertac.common.repo.OrderbookRepo" />
   <bean id="timeslotRepo" class="org.powertac.common.repo.TimeslotRepo" />
+  <bean id="bootstrapRepo" class="org.powertac.common.repo.BootstrapDataRepo" />
+  <bean id="messageConverter" class="org.powertac.common.XMLMessageConverter" />
 
 </beans>
