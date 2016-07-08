@@ -27,7 +27,7 @@
     <name>Power TAC Visualizer v2</name>
 
     <prerequisites>
-        <maven>3.1.0</maven>
+        <maven>3.2.0</maven>
     </prerequisites>
 
     <properties>
@@ -883,13 +883,6 @@
                         <artifactId>maven-war-plugin</artifactId>
                         <configuration>
                             <warSourceDirectory>target/www/</warSourceDirectory>
-                        </configuration>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <executable>false</executable>
                         </configuration>
                     </plugin>
                 </plugins>
