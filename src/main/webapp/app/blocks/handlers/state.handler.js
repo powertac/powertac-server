@@ -6,10 +6,10 @@
         .factory('stateHandler', stateHandler);
 
     stateHandler.$inject = ['$rootScope', '$state', '$sessionStorage',  '$window',
-                          'Auth', 'Principal', 'VERSION', 'CONFIG'];
+                          'Auth', 'Principal', 'VERSION', 'CONFIG', 'DEBUG_INFO_ENABLED'];
 
     function stateHandler($rootScope, $state, $sessionStorage,  $window,
-                          Auth, Principal, VERSION, CONFIG) {
+                          Auth, Principal, VERSION, CONFIG, DEBUG_INFO_ENABLED) {
         return {
             initialize: initialize
         };
@@ -17,6 +17,7 @@
         function initialize() {
             $rootScope.VERSION = VERSION;
             $rootScope.CONFIG = CONFIG;
+            $rootScope.DEBUG_INFO_ENABLED = DEBUG_INFO_ENABLED;
 
             var stateChangeStart = $rootScope.$on('$stateChangeStart', function (event, toState, toStateParams, fromState) {
                 $rootScope.toState = toState;
