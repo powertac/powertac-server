@@ -21,7 +21,12 @@
                     enabled: true
                 },
                 navigator: {
-                    enabled: true
+                    enabled: true,
+                    adaptToUpdatedData: false,
+                    series: {
+                        type: 'line',
+                        lineWidth: 0,
+                    }
                 }
             },
             series: [],
