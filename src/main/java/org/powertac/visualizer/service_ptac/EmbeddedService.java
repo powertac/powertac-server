@@ -173,6 +173,8 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
             return error;
         }
 
+        visualizerService.recycleAll();
+
         replayGameThread = new Thread() {
             @Override
             public void run() {
