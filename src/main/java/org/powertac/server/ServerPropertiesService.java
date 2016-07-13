@@ -104,7 +104,7 @@ implements ServerProperties, ServerConfiguration, ApplicationContextAware
     FileFilter filter = new FileFilter() {
       public boolean accept(File file) {
         return file.exists() && !file.isDirectory() &&
-            !file.toString().equals("server.properties");
+            !file.getName().equals("server.properties");
       }
     };
     File[] files =  new File("config/").listFiles(filter);
