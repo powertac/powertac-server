@@ -71,10 +71,6 @@ public class VisualizerService {
         return visualizerProperties.getConnect().getMachineName();
     }
 
-    public String getJmsUrl() {
-        return visualizerProperties.getConnect().getJmsUrl();
-    }
-
     public String getServerUrl() {
         return visualizerProperties.getConnect().getServerUrl();
     }

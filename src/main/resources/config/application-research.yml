@@ -2,5 +2,3 @@
 # If tournament mode without tournamentUrl : connect to sim directly
 visualizer:
     mode: research
-    connect:
-        jmsUrl: tcp://localhost:61616

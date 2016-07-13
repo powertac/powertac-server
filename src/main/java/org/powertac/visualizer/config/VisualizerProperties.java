@@ -23,7 +23,6 @@ public class VisualizerProperties {
     public static class Connect {
         private String machineName = "";
         private String serverUrl = "";
-        private String jmsUrl = "";
         private String tournamentUrl = "";
         private String tournamentPath = "";
 
@@ -41,14 +40,6 @@ public class VisualizerProperties {
 
         public void setServerUrl(String serverUrl) {
             this.serverUrl = serverUrl;
-        }
-
-        public String getJmsUrl() {
-            return jmsUrl;
-        }
-
-        public void setJmsUrl(String jmsUrl) {
-            this.jmsUrl = jmsUrl;
         }
 
         public String getTournamentUrl() {

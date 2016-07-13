@@ -146,7 +146,7 @@ public class EmbeddedService {
         error = competitionSetupService.simSession(
                 game.getBootFilePath(),
                 game.getConfigFilePath(),
-                visualizerService.getJmsUrl(),
+                null,
                 id,
                 suffix,
                 game.getBrokerList(),
