@@ -12,7 +12,6 @@ import org.powertac.common.repo.DomainRepo;
 import org.powertac.visualizer.config.Constants;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
@@ -64,31 +63,10 @@ public class TournamentService implements MessageListener {
     @Inject
     private ApplicationContext context;
 
-    @Bean(name = "jmsFactory")
-    public CachingConnectionFactory cachingConnectionFactory() {
-        ActiveMQConnectionFactory amqFactory = new ActiveMQConnectionFactory();
-        amqFactory.setUseAsyncSend(true);
-        amqFactory.setConsumerFailoverRedeliveryWaitPeriod(1000);
-
-        CachingConnectionFactory ccFactory = new CachingConnectionFactory();
-        ccFactory.setTargetConnectionFactory(amqFactory);
-        ccFactory.setSessionCacheSize(10);
-
-        return ccFactory;
-    }
-
     @Resource(name = "jmsFactory")
     private CachingConnectionFactory connectionFactory;
 
-    @Bean(name = "ptacTaskExecutor")
-    public ThreadPoolTaskExecutor getTaskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(5);
-        taskExecutor.setMaxPoolSize(25);
-        return taskExecutor;
-    }
-
-    @Resource(name = "ptacTaskExecutor")
+    @Inject
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Inject
