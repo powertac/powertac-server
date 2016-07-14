@@ -57,7 +57,11 @@
 	<bean id="brokerRepo"
 	      class="org.powertac.common.repo.BrokerRepo">
 	</bean>
-        
+
+        <bean id="xmlMessageConverter"
+              class="org.powertac.common.XMLMessageConverter">
+        </bean>
+
         <bean id="distributionUtilityService"
               class="org.powertac.distributionutility.DistributionUtilityService">
         </bean>

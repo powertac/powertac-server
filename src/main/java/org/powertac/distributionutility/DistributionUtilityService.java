@@ -385,16 +385,16 @@ implements InitializationService
       lastAssessmentTimeslot = timeslot;
     }
     // keep track of demand peaks for next assessment
-    recordNetDemand(timeslot, totals);
+    recordNetDemand(timeslot, brokerList, totals);
   }
 
   // Records hourly net demand, updates running stats
-  private void recordNetDemand (int timeslot,
+  private void recordNetDemand (int timeslot, List<Broker> brokerList,
                                 Map<Broker, Map<Type, Double>> totals)
   {
     int index = (timeslot - timeslotOffset) % assessmentInterval;
     double totalConsumption = 0.0;
-    for (Broker broker: totals.keySet()) {
+    for (Broker broker: brokerList) {
       // pull up the netDemand array for this broker
       double[] brokerDemand = brokerNetDemand.get(broker);
       if (null == brokerDemand) {
