@@ -16,13 +16,9 @@ import org.powertac.visualizer.service.GameService;
 import org.powertac.visualizer.service_ptac.VisualizerService.VisualizerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationListener;
-
-import org.springframework.context.event.ApplicationContextEvent;
-import org.springframework.context.event.ContextClosedEvent;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
@@ -31,7 +27,7 @@ import javax.inject.Inject;
  * @author Jurica Babic, Govert Buijs, Erik Kemperman
  */
 @Service
-public class EmbeddedService implements ApplicationListener<ApplicationContextEvent> {
+public class EmbeddedService {
 
     private final Logger log = LoggerFactory.getLogger(EmbeddedService.class);
 
@@ -47,19 +43,26 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
     @Inject
     private MessageDispatcher messageDispatcher;
 
+    @Inject
     private CompetitionSetupService competitionSetupService;
 
+    @Inject
     private CompetitionControlService competitionControlService;
 
+    @Inject
     private LogService logService;
 
+    @Inject
     private VisualizerProxy visualizerProxy;
 
     private Thread replayGameThread;
     
-    private ClassPathXmlApplicationContext context;
-
     private Game currentGame;
+
+    @PostConstruct
+    private void afterPropertiesSet() {
+        visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
+    }
 
     /*
      * (non-Javadoc)
@@ -72,8 +75,6 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
         if (error != null) {
             return error;
         }
-
-        refreshContext(false);
 
         visualizerService.recycleAll();
         visualizerService.setState(VisualizerState.WAITING);
@@ -126,8 +127,6 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
             return error;
         }
 
-        refreshContext(false);
-
         visualizerService.recycleAll();
         visualizerService.setState(VisualizerState.WAITING);
 
@@ -147,7 +146,7 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
         error = competitionSetupService.simSession(
                 game.getBootFilePath(),
                 game.getConfigFilePath(),
-                visualizerService.getJmsUrl(),
+                null,
                 id,
                 suffix,
                 game.getBrokerList(),
@@ -172,6 +171,8 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
         if (error != null) {
             return error;
         }
+
+        visualizerService.recycleAll();
 
         replayGameThread = new Thread() {
             @Override
@@ -211,42 +212,6 @@ public class EmbeddedService implements ApplicationListener<ApplicationContextEv
         }
 
         visualizerService.setState(VisualizerState.FINISHED);
-    }
-
-    @Override
-    public void onApplicationEvent(ApplicationContextEvent event) {
-        if (event instanceof ContextClosedEvent) {
-            log.info("Context closed");
-        }
-    }
-
-    private void refreshContext(boolean force) {
-        if (visualizerService.getMode().equals(Constants.MODE_TOURNAMENT)) {
-            return;
-        }
-
-        if (context == null) {
-            context = new ClassPathXmlApplicationContext("powertac.xml");
-        } else if (force) {
-            if (competitionControlService != null) {
-                competitionControlService.shutDown();
-            }
-            context.close();
-            context.refresh();
-        } else {
-            return;
-        }
-
-        context.registerShutdownHook();
-        context.addApplicationListener(this);
-
-        competitionSetupService = context.getBean(CompetitionSetupService.class);
-        competitionControlService = context.getBean(CompetitionControlService.class);
-        logService = context.getBean(LogService.class);
-
-        // register with a visualizer proxy in order to get messages
-        visualizerProxy = context.getBean(VisualizerProxy.class);
-        visualizerProxy.registerVisualizerMessageListener(messageDispatcher);
     }
 
     private String checkRun() {

@@ -35,8 +35,6 @@ spring:
     mvc:
         favicon:
             enabled: false
-    thymeleaf:
-        mode: XHTML
 
 security:
     basic:
@@ -64,16 +62,6 @@ jhipster:
         #max-age: 1800
     mail:
         from: visualizer2@localhost
-    swagger:
-        title: visualizer2 API
-        description: visualizer2 API documentation
-        version: 0.0.1
-        termsOfServiceUrl:
-        contactName:
-        contactUrl:
-        contactEmail:
-        license:
-        licenseUrl:
     ribbon:
         # comma seperated list of profiles to show a ribbon on the GUI
         displayOnActiveProfiles: dev

@@ -35,8 +35,6 @@ spring:
             hibernate.generate_statistics: true
     messages:
         cache-seconds: 1
-    thymeleaf:
-        cache: false
 
 liquibase:
     contexts: dev
