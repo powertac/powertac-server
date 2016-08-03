@@ -17,12 +17,12 @@
     <parent>
         <groupId>org.powertac</groupId>
         <artifactId>server-master</artifactId>
-        <version>1.3.3</version>
+        <version>1.4.0-SNAPSHOT</version>
         <relativePath />
     </parent>
 
     <artifactId>visualizer2</artifactId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.4.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>Power TAC Visualizer v2</name>
 
