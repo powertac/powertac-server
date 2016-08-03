@@ -10,6 +10,10 @@ Out of the box, two accounts are created: `admin` and `user`. The passwords are
 initially `admin` and `user`, respectively. You may want to change that when
 you're up and running.
 
+In the new visualizer, games are owned by the user who logged in to create/start
+them. To account for this, the log files are now written to user-specific
+directories, e.g. "files/admin/log".
+
 ## Modes and Profiles
 
 There are four mode/profile-specific configuration files
