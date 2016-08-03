@@ -399,11 +399,11 @@ public class CompetitionControlService
 
     // send the Competition instance, then the broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
+    brokerProxyService.broadcastMessage(competition);
+    Properties published = configService.getPublishedConfiguration();
+    brokerProxyService.broadcastMessage(published);
     if (!bootstrapMode) {
-      brokerProxyService.broadcastMessage(competition);
-      Properties published = configService.getPublishedConfiguration();
       log.info("Published configuration: {}", published.toString());
-      brokerProxyService.broadcastMessage(published);
       List<Object> bootstrapDataset = bootstrapDataRepo.getData();
       brokerProxyService.broadcastMessages(bootstrapDataset);
       // pull out the weather reports and stick them in their repo
