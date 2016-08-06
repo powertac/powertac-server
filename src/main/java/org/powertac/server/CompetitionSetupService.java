@@ -585,6 +585,7 @@ public class CompetitionSetupService
     session.start();
   }
 
+  // copied to BootstrapDataRepo
   private Document getDocument (URL bootUrl)
   {
     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -672,9 +673,22 @@ public class CompetitionSetupService
     preGame();
 
     // read the config info from the bootReader - We need to find a Competition
-    Competition bootstrapCompetition = null;
+    Competition bootstrapCompetition = readBootRecord(document);
+    if (null == bootstrapCompetition)
+      return false;
+
+    // update the existing Competition - should be the current competition
+    Competition.currentCompetition().update(bootstrapCompetition);
+    timeService.setClockParameters(competition);
+    timeService.setCurrentTime(competition.getSimulationBaseTime());
+    return true;
+  }
+
+  Competition readBootRecord (Document document)
+  {
     XPathFactory factory = XPathFactory.newInstance();
     XPath xPath = factory.newXPath();
+    Competition bootstrapCompetition = null;
     try {
       // first grab the Competition
       XPathExpression exp =
@@ -697,14 +711,8 @@ public class CompetitionSetupService
     catch (XPathExpressionException xee) {
       log.error("preGame: Error reading boot dataset: " + xee.toString());
       System.out.println("preGame: Error reading boot dataset: " + xee.toString());
-      return false;
     }
-
-    // update the existing Competition - should be the current competition
-    Competition.currentCompetition().update(bootstrapCompetition);
-    timeService.setClockParameters(competition);
-    timeService.setCurrentTime(competition.getSimulationBaseTime());
-    return true;
+    return bootstrapCompetition;
   }
 
   // method broken out to simplify testing
