@@ -14,9 +14,9 @@
   </parent>
 
   <properties>
-    <springwebflow-version>2.4.2.RELEASE</springwebflow-version>
-    <springsecurity-version>4.0.3.RELEASE</springsecurity-version>
-    <active-mq.version>5.7.0</active-mq.version>
+    <springwebflow-version>2.4.4.RELEASE</springwebflow-version>
+    <springsecurity-version>4.1.2.RELEASE</springsecurity-version>
+    <active-mq.version>5.13.4</active-mq.version>
   </properties>
 
   <dependencies>
@@ -29,7 +29,7 @@
     </dependency>
     <dependency>    
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
+      <artifactId>activemq-broker</artifactId>
       <version>${active-mq.version}</version>
     </dependency>
     <dependency>    
