@@ -14,10 +14,8 @@
   <description />
 
   <properties>
-    <aspectj-plugin.version>1.8</aspectj-plugin.version>
-    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
-    <commons-math.version>3.5</commons-math.version>
-    <joptimizer.version>3.4.0</joptimizer.version>
+    <commons-math.version>3.6.1</commons-math.version>
+    <joptimizer.version>3.5.1</joptimizer.version>
   </properties>
   
   <dependencies>
@@ -58,25 +56,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>${aspectj-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-            <configuration>
-              <verbose>false</verbose>
-              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
-              <weaveDependencies>
-                <weaveDependency>
-                  <groupId>org.powertac</groupId>
-                  <artifactId>common</artifactId>
-                </weaveDependency>
-              </weaveDependencies>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
