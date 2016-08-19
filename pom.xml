@@ -24,8 +24,8 @@
   </repositories>
   
   <properties>
-    <commons-math.version>3.5</commons-math.version>
-    <commons-io.version>2.4</commons-io.version>
+    <commons-math.version>3.6.1</commons-math.version>
+    <commons-io.version>2.5</commons-io.version>
   </properties>
 
   <dependencies>
