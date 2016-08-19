@@ -30,6 +30,7 @@
       <version>${powertac.version}</version>
     </dependency>
     <dependency>
+      <!-- TODO this is quite far out of date, but upgrade not trivial -->
       <groupId>org.ojalgo</groupId>
       <artifactId>ojalgo</artifactId>
       <version>31.0</version>
