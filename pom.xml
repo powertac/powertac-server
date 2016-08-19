@@ -12,29 +12,30 @@
   <properties>
     <java.version>1.8</java.version>
     
-    <spring.version>4.2.3.RELEASE</spring.version>
+    <spring.version>4.3.2.RELEASE</spring.version>
     <junit.version>4.12</junit.version>
-    <maven-compiler.version>3.3</maven-compiler.version>
+    <maven-compiler.version>3.5.1</maven-compiler.version>
     <maven-compiler.source>${java.version}</maven-compiler.source>
     <maven-compiler.target>${java.version}</maven-compiler.target>
 
-    <maven-surefire.version>2.19</maven-surefire.version>
+    <maven-surefire.version>2.19.1</maven-surefire.version>
     
-    <aspectj-rt.version>1.8.7</aspectj-rt.version>
+    <aspectj.version>1.8.9</aspectj.version>
     <aspectj-plugin.version>1.8</aspectj-plugin.version>
     <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
 
-    <maven-javadoc.version>2.10.3</maven-javadoc.version>
+    <maven-source.version>3.0.1</maven-source.version>
+    <maven-javadoc.version>2.10.4</maven-javadoc.version>
 
-    <log4j.version>2.4.1</log4j.version>
+    <log4j.version>2.6.2</log4j.version>
     <commons-logging.version>1.2</commons-logging.version>
-    <slf4j.version>1.7.13</slf4j.version>
+    <slf4j.version>1.7.21</slf4j.version>
 
     <commons-configuration.version>1.10</commons-configuration.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>
     
-    <joda-time.version>2.9.1</joda-time.version>
-    <xstream.version>1.4.8</xstream.version>
+    <joda-time.version>2.9.4</joda-time.version>
+    <xstream.version>1.4.9</xstream.version>
 
     <mockito.version>1.10.19</mockito.version>
   </properties>
@@ -80,7 +81,7 @@
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjrt</artifactId>
-      <version>${aspectj-rt.version}</version>
+      <version>${aspectj.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -187,6 +188,13 @@
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
         <version>${aspectj-plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjtools</artifactId>
+            <version>${aspectj.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <goals>
@@ -229,8 +237,9 @@
 
       <!--  bundle sources for javadoc prep -->
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
-        <version>2.1.1</version>
+        <version>${maven-source.version}</version>
         <executions>
           <execution>
             <id>bundle-sources</id>
