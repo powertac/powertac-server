@@ -26,14 +26,14 @@ public class ExceptionTranslator {
     @ExceptionHandler(ConcurrencyFailureException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    public ErrorDTO processConcurencyError(ConcurrencyFailureException ex) {
-        return new ErrorDTO(ErrorConstants.ERR_CONCURRENCY_FAILURE);
+    public ErrorVM processConcurencyError(ConcurrencyFailureException ex) {
+        return new ErrorVM(ErrorConstants.ERR_CONCURRENCY_FAILURE);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ErrorDTO processValidationError(MethodArgumentNotValidException ex) {
+    public ErrorVM processValidationError(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         List<FieldError> fieldErrors = result.getFieldErrors();
 
@@ -43,54 +43,54 @@ public class ExceptionTranslator {
     @ExceptionHandler(CustomParameterizedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public ParameterizedErrorDTO processParameterizedValidationError(CustomParameterizedException ex) {
-        return ex.getErrorDTO();
+    public ParameterizedErrorVM processParameterizedValidationError(CustomParameterizedException ex) {
+        return ex.getErrorVM();
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
-    public ErrorDTO processAccessDeniedException(AccessDeniedException e) {
-        return new ErrorDTO(ErrorConstants.ERR_ACCESS_DENIED, e.getMessage());
+    public ErrorVM processAccessDeniedException(AccessDeniedException e) {
+        return new ErrorVM(ErrorConstants.ERR_ACCESS_DENIED, e.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorDTO processIllegalArgumentException (IllegalArgumentException e) {
-      return new ErrorDTO(ErrorConstants.ERR_ILLEGAL_ARGUMENT, e.getMessage());
+    public ErrorVM processIllegalArgumentException (IllegalArgumentException e) {
+      return new ErrorVM(ErrorConstants.ERR_ILLEGAL_ARGUMENT, e.getMessage());
     }
 
     @ExceptionHandler(FileNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ResponseBody
-    public ErrorDTO processFileNotFoundException(FileNotFoundException e) {
-        return new ErrorDTO(ErrorConstants.ERR_FILE_NOT_FOUND, e.getMessage());
+    public ErrorVM processFileNotFoundException(FileNotFoundException e) {
+        return new ErrorVM(ErrorConstants.ERR_FILE_NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(FileExistsException.class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
     @ResponseBody
-    public ErrorDTO processFileExistsException(FileExistsException e) {
-        return new ErrorDTO(ErrorConstants.ERR_FILE_EXISTS, e.getMessage());
+    public ErrorVM processFileExistsException(FileExistsException e) {
+        return new ErrorVM(ErrorConstants.ERR_FILE_EXISTS, e.getMessage());
     }
 
     @ExceptionHandler(MultipartException.class)
     @ResponseStatus(HttpStatus.PAYLOAD_TOO_LARGE)
     @ResponseBody
-    public ErrorDTO processMultipartException(MultipartException e) {
-        return new ErrorDTO(ErrorConstants.ERR_FILE_TOO_LARGE, e.getMessage());
+    public ErrorVM processMultipartException(MultipartException e) {
+        return new ErrorVM(ErrorConstants.ERR_FILE_TOO_LARGE, e.getMessage());
     }
 
     @ExceptionHandler(SecurityException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ResponseBody
-    public ErrorDTO processSecurityException(SecurityException e) {
-        return new ErrorDTO(ErrorConstants.ERR_FORBIDDEN, e.getMessage());
+    public ErrorVM processSecurityException(SecurityException e) {
+        return new ErrorVM(ErrorConstants.ERR_FORBIDDEN, e.getMessage());
     }
 
-    private ErrorDTO processFieldErrors(List<FieldError> fieldErrors) {
-        ErrorDTO dto = new ErrorDTO(ErrorConstants.ERR_VALIDATION);
+    private ErrorVM processFieldErrors(List<FieldError> fieldErrors) {
+        ErrorVM dto = new ErrorVM(ErrorConstants.ERR_VALIDATION);
 
         for (FieldError fieldError : fieldErrors) {
             dto.add(fieldError.getObjectName(), fieldError.getField(), fieldError.getCode());
@@ -102,22 +102,22 @@ public class ExceptionTranslator {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-    public ErrorDTO processMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
-        return new ErrorDTO(ErrorConstants.ERR_METHOD_NOT_SUPPORTED, exception.getMessage());
+    public ErrorVM processMethodNotSupportedException(HttpRequestMethodNotSupportedException exception) {
+        return new ErrorVM(ErrorConstants.ERR_METHOD_NOT_SUPPORTED, exception.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorDTO> processRuntimeException(Exception ex) throws Exception {
+    public ResponseEntity<ErrorVM> processRuntimeException(Exception ex) throws Exception {
         BodyBuilder builder;
-        ErrorDTO errorDTO;
+        ErrorVM errorVM;
         ResponseStatus responseStatus = AnnotationUtils.findAnnotation(ex.getClass(), ResponseStatus.class);
         if (responseStatus != null) {
             builder = ResponseEntity.status(responseStatus.value());
-            errorDTO = new ErrorDTO("error." + responseStatus.value().value(), responseStatus.reason() + ": " + ex.getMessage());
+            errorVM = new ErrorVM("error." + responseStatus.value().value(), responseStatus.reason() + ": " + ex.getMessage());
         } else {
             builder = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
-            errorDTO = new ErrorDTO(ErrorConstants.ERR_INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage());
+            errorVM = new ErrorVM(ErrorConstants.ERR_INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage());
         }
-        return builder.body(errorDTO);
+        return builder.body(errorVM);
     }
 }

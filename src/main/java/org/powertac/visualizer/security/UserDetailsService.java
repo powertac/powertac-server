@@ -1,4 +1,5 @@
 package org.powertac.visualizer.security;
+
 import org.powertac.visualizer.domain.User;
 import org.powertac.visualizer.repository.UserRepository;
 import org.slf4j.Logger;

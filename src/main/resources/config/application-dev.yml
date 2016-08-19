@@ -17,7 +17,10 @@ spring:
             enabled: true
         livereload:
             enabled: false # we use gulp + BrowserSync for livereload
+    jackson:
+        serialization.indent_output: true
     datasource:
+        type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:h2:file:./files/system/db/visualizer2;DB_CLOSE_DELAY=-1
         name:
         username: visualizer2
@@ -73,5 +76,3 @@ jhipster:
             host: localhost
             port: 5000
             queueSize: 512
-    swagger: # swagger is enabled. It can be disabled by pasing 'no-swagger' profile at run time as well
-        enabled: true

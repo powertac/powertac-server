@@ -9,8 +9,9 @@ import org.powertac.visualizer.repository.PersistentTokenRepository;
 import org.powertac.visualizer.repository.UserRepository;
 import org.powertac.visualizer.security.SecurityUtils;
 import org.powertac.visualizer.service.UserService;
-import org.powertac.visualizer.web.rest.dto.ManagedUserDTO;
-import org.powertac.visualizer.web.rest.dto.UserDTO;
+import org.powertac.visualizer.service.dto.UserDTO;
+import org.powertac.visualizer.web.rest.vm.ManagedUserVM;
+import org.powertac.visualizer.web.rest.util.HeaderUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public class AccountResource {
     /**
      * POST  /register : register the user.
      *
-     * @param managedUserDTO the managed user DTO
+     * @param managedUserVM the managed user View Model
      * @param request the HTTP request
      * @return the ResponseEntity with status 200 (OK) and the registered user in body,
      *  or 400 (Bad Request) if the login is already in use.
@@ -58,16 +59,16 @@ public class AccountResource {
                     method = RequestMethod.POST,
                     produces={MediaType.APPLICATION_JSON_VALUE, MediaType.TEXT_PLAIN_VALUE})
     @Timed
-    public ResponseEntity<?> registerAccount(@Valid @RequestBody ManagedUserDTO managedUserDTO, HttpServletRequest request) {
+    public ResponseEntity<?> registerAccount(@Valid @RequestBody ManagedUserVM managedUserVM, HttpServletRequest request) {
 
         HttpHeaders textPlainHeaders = new HttpHeaders();
         textPlainHeaders.setContentType(MediaType.TEXT_PLAIN);
 
-        return userRepository.findOneByLogin(managedUserDTO.getLogin().toLowerCase())
+        return userRepository.findOneByLogin(managedUserVM.getLogin().toLowerCase())
             .map(user -> new ResponseEntity<>("login already in use", textPlainHeaders, HttpStatus.BAD_REQUEST))
             .orElseGet(() -> {
-                User user = userService.createUserInformation(managedUserDTO.getLogin(), managedUserDTO.getPassword(),
-                managedUserDTO.getFirstName(), managedUserDTO.getLastName(), managedUserDTO.getLangKey());
+                User user = userService.createUser(managedUserVM.getLogin(), managedUserVM.getPassword(),
+                managedUserVM.getFirstName(), managedUserVM.getLastName(), managedUserVM.getLangKey());
                 return new ResponseEntity<>(HttpStatus.OK);
             });
     }
@@ -116,7 +117,7 @@ public class AccountResource {
         return userRepository
             .findOneByLogin(SecurityUtils.getCurrentUserLogin())
             .map(u -> {
-                userService.updateUserInformation(userDTO.getFirstName(), userDTO.getLastName(),
+                userService.updateUser(userDTO.getFirstName(), userDTO.getLastName(),
                     userDTO.getLangKey());
                 return new ResponseEntity<String>(HttpStatus.OK);
             })
@@ -189,7 +190,7 @@ public class AccountResource {
 
     private boolean checkPasswordLength(String password) {
         return (!StringUtils.isEmpty(password) &&
-            password.length() >= ManagedUserDTO.PASSWORD_MIN_LENGTH &&
-            password.length() <= ManagedUserDTO.PASSWORD_MAX_LENGTH);
+            password.length() >= ManagedUserVM.PASSWORD_MIN_LENGTH &&
+            password.length() <= ManagedUserVM.PASSWORD_MAX_LENGTH);
     }
 }

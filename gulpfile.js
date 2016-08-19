@@ -1,4 +1,4 @@
-// Generated on 2016-06-29 using generator-jhipster 3.4.2
+// Generated on 2016-08-19 using generator-jhipster 3.6.1
 'use strict';
 
 var gulp = require('gulp'),
@@ -9,25 +9,20 @@ var gulp = require('gulp'),
     ngConstant = require('gulp-ng-constant'),
     rename = require('gulp-rename'),
     eslint = require('gulp-eslint'),
-    es = require('event-stream'),
-    flatten = require('gulp-flatten'),
     del = require('del'),
     runSequence = require('run-sequence'),
     browserSync = require('browser-sync'),
     KarmaServer = require('karma').Server,
     plumber = require('gulp-plumber'),
     changed = require('gulp-changed'),
-    gulpIf = require('gulp-if'),
-    inject = require('gulp-inject'),
-    angularFilesort = require('gulp-angular-filesort'),
-    naturalSort = require('gulp-natural-sort'),
-    bowerFiles = require('main-bower-files');
+    gulpIf = require('gulp-if');
 
-var handleErrors = require('./gulp/handleErrors'),
+var handleErrors = require('./gulp/handle-errors'),
     serve = require('./gulp/serve'),
     util = require('./gulp/utils'),
+    copy = require('./gulp/copy'),
+    inject = require('./gulp/inject'),
     build = require('./gulp/build');
-
 
 var config = require('./gulp/config');
 
@@ -35,35 +30,15 @@ gulp.task('clean', function () {
     return del([config.dist], { dot: true });
 });
 
-gulp.task('copy', function () {
-    return es.merge(
-        gulp.src(config.bower + 'bootstrap/fonts/*.*')
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(changed(config.dist + 'content/fonts/'))
-        .pipe(rev())
-        .pipe(gulp.dest(config.dist + 'content/fonts/'))
-        .pipe(rev.manifest(config.revManifest, {
-            base: config.dist,
-            merge: true
-        }))
-        .pipe(gulp.dest(config.dist)),
-        gulp.src(config.app + 'content/**/*.{woff,woff2,svg,ttf,eot,otf}')
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(changed(config.dist + 'content/fonts/'))
-        .pipe(flatten())
-        .pipe(rev())
-        .pipe(gulp.dest(config.dist + 'content/fonts/'))
-        .pipe(rev.manifest(config.revManifest, {
-            base: config.dist,
-            merge: true
-        }))
-        .pipe(gulp.dest(config.dist)),
-        gulp.src([config.app + 'robots.txt', config.app + 'favicon.ico', config.app + '.htaccess'], { dot: true })
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(changed(config.dist))
-        .pipe(gulp.dest(config.dist))
-    );
-});
+gulp.task('copy', ['copy:fonts', 'copy:common']);
+
+gulp.task('copy:fonts', copy.fonts);
+
+gulp.task('copy:common', copy.common);
+
+gulp.task('copy:swagger', copy.swagger);
+
+gulp.task('copy:images', copy.images);
 
 gulp.task('images', function () {
     return gulp.src(config.app + 'content/images/**')
@@ -79,7 +54,6 @@ gulp.task('images', function () {
         .pipe(gulp.dest(config.dist))
         .pipe(browserSync.reload({stream: true}));
 });
-
 
 
 gulp.task('styles', [], function () {
@@ -99,58 +73,21 @@ gulp.task('template:test', function () {
         .pipe(gulp.dest(config.test));
 });
 
-gulp.task('inject', ['inject:dep', 'inject:app']);
+gulp.task('inject', function() {
+    runSequence('inject:dep', 'inject:app');
+});
+
 gulp.task('inject:dep', ['inject:test', 'inject:vendor']);
 
-gulp.task('inject:app', function () {
-    return gulp.src(config.app + 'index.html')
-        .pipe(inject(gulp.src(config.app + 'app/**/*.js')
-            .pipe(naturalSort())
-            .pipe(angularFilesort()), {relative: true}))
-        .pipe(gulp.dest(config.app));
-});
+gulp.task('inject:app', inject.app);
 
-gulp.task('inject:vendor', function () {
-    var stream = gulp.src(config.app + 'index.html')
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(inject(gulp.src(bowerFiles(), {read: false}), {
-            name: 'bower',
-            relative: true
-        }))
-        .pipe(gulp.dest(config.app));
+gulp.task('inject:vendor', inject.vendor);
 
-    return stream;
-});
+gulp.task('inject:test', ['template:test'], inject.test);
 
-gulp.task('inject:test', ['template:test'], function () {
-    return gulp.src(config.test + 'karma.conf.js')
-        .pipe(plumber({errorHandler: handleErrors}))
-        .pipe(inject(gulp.src(bowerFiles({includeDev: true, filter: ['**/*.js']}), {read: false}), {
-            starttag: '// bower:js',
-            endtag: '// endbower',
-            transform: function (filepath) {
-                return '\'' + filepath.substring(1, filepath.length) + '\',';
-            }
-        }))
-        .pipe(gulp.dest(config.test));
-});
+gulp.task('inject:troubleshoot', inject.troubleshoot);
 
-gulp.task('inject:troubleshoot', function () {
-    /* this task removes the troubleshooting content from index.html*/
-    return gulp.src(config.app + 'index.html')
-        .pipe(plumber({errorHandler: handleErrors}))
-        /* having empty src as we dont have to read any files*/
-        .pipe(inject(gulp.src('', {read: false}), {
-            starttag: '<!-- inject:troubleshoot -->',
-            removeTags: true,
-            transform: function () {
-                return '<!-- Angular views -->';
-            }
-        }))
-        .pipe(gulp.dest(config.app));
-});
-
-gulp.task('assets:prod', ['images', 'styles', 'html'], build);
+gulp.task('assets:prod', ['images', 'styles', 'html', 'copy:swagger', 'copy:images'], build);
 
 gulp.task('html', function () {
     return gulp.src(config.app + 'app/**/*.html')
@@ -246,9 +183,7 @@ gulp.task('install', function () {
     runSequence('template:index', ['inject:dep', 'ngconstant:dev'], 'inject:app', 'inject:troubleshoot');
 });
 
-gulp.task('serve', function () {
-    runSequence('install', serve);
-});
+gulp.task('serve', ['install'], serve);
 
 gulp.task('build', ['clean'], function (cb) {
     runSequence('template:index', ['copy', 'inject:vendor', 'ngconstant:prod'], 'inject:app', 'inject:troubleshoot', 'assets:prod', cb);

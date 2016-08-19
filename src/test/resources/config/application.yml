@@ -13,7 +13,10 @@
 spring:
     application:
         name: visualizer2
+    jackson:
+        serialization.write_dates_as_timestamps: false
     datasource:
+        type: com.zaxxer.hikari.HikariDataSource
         url: jdbc:h2:mem:visualizer2;DB_CLOSE_DELAY=-1
         name:
         username:
@@ -22,10 +25,11 @@ spring:
         database-platform: org.powertac.visualizer.domain.util.FixedH2Dialect
         database: H2
         open-in-view: false
-        show_sql: true
+        show-sql: true
         hibernate:
             ddl-auto: none
-            naming-strategy: org.springframework.boot.orm.jpa.hibernate.SpringNamingStrategy
+            naming:
+                strategy: org.springframework.boot.orm.jpa.hibernate.SpringNamingStrategy
         properties:
             hibernate.cache.use_second_level_cache: false
             hibernate.cache.use_query_cache: false

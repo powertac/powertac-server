@@ -224,13 +224,14 @@ public class GameResource {
         if (game.getDate() == null) {
             game.setDate(ZonedDateTime.now());
         }
-        game = gameService.save(game);
 
         String error = embeddedService.runBootGame(game, user);
         if (error != null) {
             embeddedService.closeGame();
             throw new RuntimeException(error);
         }
+
+        game = gameService.save(game);
 
         return ResponseEntity.created(new URI("/api/games/" + game.getId()))
                 .headers(HeaderUtil.createAlert(game.getType() + " game '" + game.getName() + "' started", null))
@@ -273,13 +274,14 @@ public class GameResource {
         if (game.getDate() == null) {
             game.setDate(ZonedDateTime.now());
         }
-        game = gameService.save(game);
 
         String error = embeddedService.runSimGame(game, user);
         if (error != null) {
             embeddedService.closeGame();
             throw new RuntimeException(error);
         }
+
+        game = gameService.save(game);
 
         return ResponseEntity.created(new URI("/api/games/" + game.getId()))
                 .headers(HeaderUtil.createAlert(game.getType() + " game '" + game.getName() + "' started", null))

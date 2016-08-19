@@ -1,6 +1,6 @@
 package org.powertac.visualizer.web.rest;
 
-import org.powertac.visualizer.web.rest.dto.LoggerDTO;
+import org.powertac.visualizer.web.rest.vm.LoggerVM;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -29,13 +29,13 @@ public class LogsResource {
         method = RequestMethod.GET,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Timed
-    public List<LoggerDTO> getList() {
+    public List<LoggerVM> getList() {
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
         return new TreeSet<String>(config.getLoggers().keySet())
             .stream()
             .map(LogManager::getLogger)
-            .map(LoggerDTO::new)
+            .map(LoggerVM::new)
             .collect(Collectors.toList());
     }
 
@@ -43,7 +43,7 @@ public class LogsResource {
         method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Timed
-    public void changeLevel(@RequestBody LoggerDTO jsonLogger) {
+    public void changeLevel(@RequestBody LoggerVM jsonLogger) {
         LoggerContext context = (LoggerContext) LogManager.getContext(false);
         Configuration config = context.getConfiguration();
         LoggerConfig logger = config.getLoggerConfig(jsonLogger.getName());
