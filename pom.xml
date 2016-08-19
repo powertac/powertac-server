@@ -9,8 +9,8 @@
   </parent>
 
   <properties>
-    <active-mq.version>5.7.0</active-mq.version>
-    <jopt.version>4.9</jopt.version>
+    <active-mq.version>5.13.4</active-mq.version>
+    <jopt.version>5.0.2</jopt.version>
   </properties>
 
   <artifactId>server-main</artifactId>
@@ -22,7 +22,7 @@
     <!-- ActiveMQ -->
     <dependency>    
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
+      <artifactId>activemq-broker</artifactId>
       <version>${active-mq.version}</version>
     </dependency>
     <dependency>    
