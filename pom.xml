@@ -2,18 +2,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Please note: This module does not inherit from server-master, but rather from
-         spring boot. See
-         http://stackoverflow.com/questions/21317006/spring-boot-parent-pom-when-you-already-have-a-parent-pom
-         for details. As a result, the contents of server-master/pom.xml are copied into
-         this pom, and must be maintained appropriately.
-    <parent>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <groupId>org.springframework.boot</groupId>
-        <version>1.4.0.RELEASE</version>
-        <relativePath />
-    </parent>
-    -->
     <parent>
         <groupId>org.powertac</groupId>
         <artifactId>server-master</artifactId>
