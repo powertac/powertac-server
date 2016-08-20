@@ -309,6 +309,8 @@ public class CapacityControlServiceTest
     assertEquals("correct tariff", tariff, (Tariff) args[0]);
     assertEquals("correct kwh", 60.0, (Double) args[3], 1e-6);
     assertEquals("correct charge", -6.6, (Double) args[4], 1e-6);
+    // check for postBalancingControl()
+    verify(mockAccounting).postBalancingControl(bce);
   }
 
   /**

@@ -123,6 +123,7 @@ implements CapacityControl, InitializationService
     BalancingControlEvent bce = 
         new BalancingControlEvent(tariff.getTariffSpec(), kwh, payment,
                                   timeslotRepo.currentTimeslot().getSerialNumber());
+    accountingService.postBalancingControl(bce);
     brokerProxy.sendMessage(tariff.getBroker(), bce);
   }
 

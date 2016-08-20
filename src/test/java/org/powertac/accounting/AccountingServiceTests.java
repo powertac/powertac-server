@@ -42,6 +42,7 @@ import org.powertac.common.config.Configurator;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.interfaces.BrokerProxy;
 import org.powertac.common.interfaces.ServerConfiguration;
+import org.powertac.common.msg.BalancingControlEvent;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
@@ -642,5 +643,19 @@ public class AccountingServiceTests
     assertNotNull("found cash posn", cp1);
     assertEquals("correct amount", -1000.0 * (1.0 + 0.12 / 365.0), 
                  ((CashPosition)cp1).getBalance(), 1e-6);
+  }
+
+  // Post balancing control
+  @Test
+  public void testPostBalancingControl ()
+  {
+    initializeService();
+    bob.updateCash(0.0);
+    assertEquals("no cash", 0.0, bob.getCashBalance(), 1e-6);
+    BalancingControlEvent bce =
+        new BalancingControlEvent(tariffB1.getTariffSpec(),
+                                  -42.0, 4.2, 0);
+    accountingService.postBalancingControl(bce);
+    assertEquals("correct cash", 4.2, bob.getCashBalance(), 1e-6);
   }
 }

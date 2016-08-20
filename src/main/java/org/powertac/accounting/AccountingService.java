@@ -30,6 +30,7 @@ import org.powertac.common.*;
 import org.powertac.common.TariffTransaction.Type;
 import org.powertac.common.config.ConfigurableValue;
 import org.powertac.common.interfaces.*;
+import org.powertac.common.msg.BalancingControlEvent;
 import org.powertac.common.msg.DistributionReport;
 import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
@@ -227,6 +228,14 @@ public class AccountingService
     return ctx;
   }
 
+  @Override
+  public synchronized void postBalancingControl (BalancingControlEvent bce)
+  {
+    log.info("post balancing control for {}, payment {}",
+             bce.getBroker().getUsername(), bce.getPayment());
+    updateCash(bce.getBroker(), bce.getPayment());
+  }
+
   /**
    * Returns the net load for the given broker in the current timeslot.
    * Note that this only works AFTER the customer models have run, and
@@ -252,7 +261,7 @@ public class AccountingService
     log.info("net load for " + broker.getUsername() + ": " + netLoad);
     return netLoad;
   }
-  
+
   /**
    * Returns a mapping of brokers to total supply and demand among subscribed
    * customers.
