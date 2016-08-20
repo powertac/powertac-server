@@ -231,8 +231,9 @@ public class AccountingService
   @Override
   public synchronized void postBalancingControl (BalancingControlEvent bce)
   {
-    log.info("post balancing control for {}, payment {}",
-             bce.getBroker().getUsername(), bce.getPayment());
+    log.info("post balancing control for {}, payment={}, tariff={}, ts={}",
+             bce.getBroker().getUsername(), bce.getPayment(),
+             bce.getTariffId(), bce.getTimeslotIndex());
     updateCash(bce.getBroker(), bce.getPayment());
   }
 
