@@ -96,11 +96,6 @@
         <!--  PowerTAC -->
         <dependency>
             <groupId>org.powertac</groupId>
-            <artifactId>common</artifactId>
-            <version>${powertac.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.powertac</groupId>
             <artifactId>logtool-core</artifactId>
             <version>${powertac.version}</version>
         </dependency>
