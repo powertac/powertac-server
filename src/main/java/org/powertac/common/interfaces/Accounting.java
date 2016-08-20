@@ -24,6 +24,7 @@ import org.powertac.common.MarketTransaction;
 import org.powertac.common.Tariff;
 import org.powertac.common.TariffTransaction;
 import org.powertac.common.Timeslot;
+import org.powertac.common.msg.BalancingControlEvent;
 
 /**
  * Common interface for the PowerTAC accounting service. The accouting service
@@ -94,6 +95,12 @@ public interface Accounting
   public BalancingTransaction addBalancingTransaction (Broker broker,
                                                        double imbalance,
                                                        double charge);
+
+  /**
+   * Updates a broker's cash position resulting from the Balancing Market
+   * payment for Demand Response exercise.
+   */
+  public void postBalancingControl (BalancingControlEvent bce);
 
   /**
    * Returns the current net load represented by unprocessed TariffTransactions
