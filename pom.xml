@@ -19,15 +19,11 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     
-    <active-mq.version>5.7.0</active-mq.version>
+    <active-mq.version>5.13.4</active-mq.version>
     <xbean-spring.version>4.5</xbean-spring.version>
-    <jopt-simple.version>4.9</jopt-simple.version>
+    <jopt-simple.version>5.0.2</jopt-simple.version>
     <json-lib.version>2.4</json-lib.version>
-    <commons-io.version>2.4</commons-io.version>
-
-    <aspectj-rt.version>1.8.7</aspectj-rt.version>
-    <aspectj-plugin.version>1.8</aspectj-plugin.version>
-    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
+    <commons-io.version>2.5</commons-io.version>
   </properties>
 
   <!-- Sonatype OSS repo for resolving snapshot modules -->
@@ -48,7 +44,7 @@
     <!-- ActiveMQ -->
     <dependency>    
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
+      <artifactId>activemq-broker</artifactId>
       <version>${active-mq.version}</version>
     </dependency>
     <dependency>    
@@ -93,25 +89,6 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>${aspectj-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-            <configuration>
-              <verbose>false</verbose>
-              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
-              <weaveDependencies>
-                <weaveDependency>
-                  <groupId>org.powertac</groupId>
-                  <artifactId>common</artifactId>
-                </weaveDependency>
-              </weaveDependencies>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
       <!--  bundle sources for javadoc prep -->
