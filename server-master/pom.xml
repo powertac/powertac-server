@@ -148,41 +148,42 @@
 
       <!-- compiler compliance level -->
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<version>${maven-compiler.version}</version>
-	<configuration>
-	  <source>${maven-compiler.source}</source>
-	  <target>${maven-compiler.target}</target>
-	  <excludes>
-	  </excludes>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler.version}</version>
+        <configuration>
+          <source>${maven-compiler.source}</source>
+          <target>${maven-compiler.target}</target>
+          <excludes>
+          </excludes>
+        </configuration>
       </plugin>
+
       <!-- Testing support -->
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-surefire-plugin</artifactId>
-	<version>${maven-surefire.version}</version>
-	<configuration>
-	  <includes>
-	    <include>**/*Tests.java</include>
-	    <include>**/*Test.java</include>
-	  </includes>
-	</configuration>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire.version}</version>
+        <configuration>
+          <includes>
+            <include>**/*Tests.java</include>
+            <include>**/*Test.java</include>
+          </includes>
+        </configuration>
       </plugin>
 
       <!-- Put version info into jar files -->
       <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-jar-plugin</artifactId>
-	<configuration>
-	  <archive>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
             <manifest>
-	      <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-	      <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
             </manifest>
-	  </archive>
-	</configuration>
+          </archive>
+        </configuration>
       </plugin>
 
       <!--  bundle sources for javadoc prep -->
@@ -224,7 +225,7 @@
               <artifactId>maven-javadoc-plugin</artifactId>
               <version>${maven-javadoc.version}</version>
               <configuration>
-		<failOnError>false</failOnError>
+                <failOnError>false</failOnError>
                 <additionalparam>-Xdoclint:none</additionalparam>
               </configuration>
             </plugin>
@@ -267,27 +268,27 @@
     <profile>
       <id>release-sign-artifacts</id>
       <activation>
-	<property>
+        <property>
           <name>performRelease</name>
           <value>true</value>
-	</property>
+        </property>
       </activation>
       <build>
-	<plugins>
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-	    <artifactId>maven-gpg-plugin</artifactId>
-	    <executions>
-	      <execution>
-		<id>sign-artifacts</id>
-		<phase>verify</phase>
-		<goals>
-		  <goal>sign</goal>
-		</goals>
-	      </execution>
-	    </executions>
-	  </plugin>
-	</plugins>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
   </profiles>
@@ -318,10 +319,10 @@
       <url>http://www.cs.umn.edu/~jcollins</url>
       <organization>University of Minnesota</organization>
       <roles>
-	<role>game designer</role>
-	<role>architect</role>
-	<role>project manager</role>
-	<role>developer</role>
+        <role>game designer</role>
+        <role>architect</role>
+        <role>project manager</role>
+        <role>developer</role>
       </roles>
       <timezone>-6</timezone>
     </developer>
@@ -333,8 +334,8 @@
       <organization>Rotterdam School of Management, Erasmus
       University</organization>
       <roles>
-	<role>project lead</role>
-	<role>game design</role>
+        <role>project lead</role>
+        <role>game design</role>
       </roles>
     </developer>
   </developers>
