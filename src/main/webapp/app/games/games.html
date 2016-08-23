@@ -1,7 +1,4 @@
 <div ng-cloak>
-
-  <jhi-alert></jhi-alert>
-  <jhi-alert-error></jhi-alert-error>
   <p class="">
     Game status:
     <a href="#/" ui-sref="graphs" class="label label-{{vm.state.gameStatusStyle}}">
@@ -285,14 +282,19 @@
         </fieldset>
 
       </form>
-    </div>
-  </div>
-</div>
 
-<!-- Big bad stop button -->
-<button type="button" class="btn btn-lg btn-block btn-raised btn-danger"
-        ng-show="!vm.isStopButtonDisabled()"
-        ng-click="vm.stop()">
-  <span>Stop game</span>
-</button>
+    </div>
+    <!-- Big bad stop button -->
+    <button type="button" class="btn btn-lg btn-block btn-raised btn-danger"
+            ng-show="!vm.isStopButtonDisabled()"
+            ng-click="vm.stop()">
+      <span>Stop game</span>
+    </button>
+  </div>
+
+  <br />
+  <jhi-alert></jhi-alert>
+  <jhi-alert-error></jhi-alert-error>
+
+</div>
 
