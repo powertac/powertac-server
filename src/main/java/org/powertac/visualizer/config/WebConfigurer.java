@@ -84,8 +84,8 @@ public class WebConfigurer implements ServletContextInitializer, EmbeddedServlet
             tomcatFactory.addContextCustomizers((TomcatContextCustomizer) context -> {
                 // See https://github.com/jhipster/generator-jhipster/issues/3995
                 StandardRoot resources = new StandardRoot();
-                resources.setCacheMaxSize(40960);
-                resources.setCacheObjectMaxSize(2048);
+                resources.setCacheMaxSize(65536);
+                resources.setCacheObjectMaxSize(1024);
                 context.setResources(resources);
             });
         }
