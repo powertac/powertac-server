@@ -15,8 +15,9 @@
  */
 package org.powertac.common;
 
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+import org.powertac.aop.state.Domain;
+import org.powertac.aop.state.StateChange;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**

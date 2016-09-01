@@ -18,8 +18,8 @@ package org.powertac.common;
 
 import java.util.HashMap;
 
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+import org.powertac.aop.state.Domain;
+import org.powertac.aop.state.StateChange;
 
 /**
  * A broker instance represents a competition participant.

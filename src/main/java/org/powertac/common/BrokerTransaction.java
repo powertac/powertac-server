@@ -16,9 +16,9 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
+import org.powertac.aop.state.XStreamStateLoggable;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

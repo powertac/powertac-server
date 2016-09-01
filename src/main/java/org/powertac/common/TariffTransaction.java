@@ -17,8 +17,8 @@
 package org.powertac.common;
 
 
-import org.powertac.common.state.ChainedConstructor;
-import org.powertac.common.state.Domain;
+import org.powertac.aop.state.ChainedConstructor;
+import org.powertac.aop.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
 

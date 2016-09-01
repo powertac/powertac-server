@@ -15,10 +15,10 @@
  */
 package org.powertac.common.msg;
 
+import org.powertac.aop.state.Domain;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.state.Domain;
 import org.powertac.common.xml.DoubleArrayConverter;
 
 import com.thoughtworks.xstream.annotations.*;

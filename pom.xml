@@ -1,312 +1,165 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.powertac</groupId>
+
   <artifactId>common</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC common domain model</name>
-  <url>https://github.com/powertac/common</url>
-  <description>domain types, services, utilities shared by Power TAC server and agents</description>
   <packaging>jar</packaging>
 
-  <properties>
-    <java.version>1.8</java.version>
-    
-    <spring.version>4.3.2.RELEASE</spring.version>
-    <junit.version>4.12</junit.version>
-    <maven-compiler.version>3.5.1</maven-compiler.version>
-    <maven-compiler.source>${java.version}</maven-compiler.source>
-    <maven-compiler.target>${java.version}</maven-compiler.target>
+  <name>Power TAC common domain model</name>
+  <description>Domain types, services, utilities shared by Power TAC server and agents</description>
+  <url>https://github.com/powertac/common/</url>
 
-    <maven-surefire.version>2.19.1</maven-surefire.version>
-    
-    <aspectj.version>1.8.9</aspectj.version>
-    <aspectj-plugin.version>1.8</aspectj-plugin.version>
-    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
-
-    <maven-source.version>3.0.1</maven-source.version>
-    <maven-javadoc.version>2.10.4</maven-javadoc.version>
-
-    <log4j.version>2.6.2</log4j.version>
-    <commons-logging.version>1.2</commons-logging.version>
-    <slf4j.version>1.7.21</slf4j.version>
-
-    <commons-configuration.version>1.10</commons-configuration.version>
-    <commons-beanutils.version>1.9.2</commons-beanutils.version>
-    
-    <joda-time.version>2.9.4</joda-time.version>
-    <xstream.version>1.4.9</xstream.version>
-
-    <mockito.version>1.10.19</mockito.version>
-  </properties>
-
-  <!-- pull in the sonatype repo definitions -->
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
+    <groupId>org.powertac</groupId>
+    <artifactId>powertac-parent</artifactId>
+    <version>1.4.0-SNAPSHOT</version>
+    <relativePath />
   </parent>
-  
+
+
   <dependencies>
+
+    <!-- Power TAC -->
+
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>powertac-aop</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+
+    <!-- Spring -->
+
+    <!--  TODO which of these are needed here? -->
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>${spring.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>${spring.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>${spring.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>${spring.version}</version>
     </dependency>
-    <dependency>
-      <groupId>commons-configuration</groupId>
-      <artifactId>commons-configuration</artifactId>
-      <version>${commons-configuration.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-beanutils</groupId>
-      <artifactId>commons-beanutils</artifactId>
-      <version>${commons-beanutils.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-      <version>${aspectj.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-      <version>${joda-time.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.thoughtworks.xstream</groupId>
-      <artifactId>xstream</artifactId>
-      <version>${xstream.version}</version>
-      <type>jar</type>
-      <scope>compile</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-core</artifactId>
-      <version>${log4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-jcl</artifactId>
-      <version>${log4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-logging</groupId>
-      <artifactId>commons-logging</artifactId>
-      <version>${commons-logging.version}</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
-      <version>${log4j.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    
-    <!-- Test dependencies; these are NOT inherited -->
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${spring.version}</version>
-      <scope>test</scope>
     </dependency>
+
+
+    <!-- Logging -->
+
+    <!--  TODO which of these are needed here? -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-jcl</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+
+    <!-- Utilities -->
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.thoughtworks.xstream</groupId>
+      <artifactId>xstream</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-configuration</groupId>
+      <artifactId>commons-configuration</artifactId>
+    </dependency>
+
+
+    <!-- Testing - these are NOT transitive, due to test scope -->
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+    </dependency>
+
   </dependencies>
-  
+
+
   <build>
-    <directory>${project.basedir}/target</directory>
-    <outputDirectory>${project.build.directory}/classes</outputDirectory>
-    <finalName>${project.artifactId}-${project.version}</finalName>
-    <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
 
-    <pluginManagement>
+    <plugins>
 
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven-surefire.version}</version>
-          <configuration>
-            <includes>
-              <include>**/*Tests.java</include>
-              <include>**/*Test.java</include>
-            </includes>
-          </configuration>
-        </plugin>
+      <!-- Needs AspectJ build -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>aspectj-maven-plugin</artifactId>
+        <configuration>
+          <aspectLibraries>
+            <aspectLibrary>
+              <groupId>org.powertac</groupId>
+              <artifactId>powertac-aop</artifactId>
+            </aspectLibrary>
+          </aspectLibraries>
+        </configuration>
+      </plugin>
 
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>${maven-compiler.version}</version>
-          <configuration>
-            <source>${maven-compiler.source}</source>
-            <target>${maven-compiler.target}</target>
-            <excludes>
-            </excludes>
-          </configuration>
-        </plugin>
+    </plugins>
 
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>aspectj-maven-plugin</artifactId>
-          <version>${aspectj-plugin.version}</version>
-          <dependencies>
-            <dependency>
-              <groupId>org.aspectj</groupId>
-              <artifactId>aspectjtools</artifactId>
-              <version>${aspectj.version}</version>
-            </dependency>
-          </dependencies>
-          <executions>
-            <execution>
-              <goals>
-                <goal>compile</goal>
-                <goal>test-compile</goal>
-              </goals>
-              <configuration>
-                <verbose>false</verbose>
-                <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-
-        <!-- Make m2e and maven-enforcer-plugin get along -->
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-enforcer-plugin</artifactId>
-                    <versionRange>[1.0.0,)</versionRange>
-                    <goals>
-                      <goal>enforce</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-
-        <!--  bundle sources for javadoc prep -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <version>${maven-source.version}</version>
-          <executions>
-            <execution>
-              <id>bundle-sources</id>
-              <phase>deploy</phase>
-              <goals>
-                <!-- produce source artifact for main project sources -->
-                <goal>jar-no-fork</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-
-        <!-- javadoc config -->
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${maven-javadoc.version}</version>
-          <configuration>
-            <failOnError>false</failOnError>
-            <additionalparam>-Xdoclint:none</additionalparam>
-          </configuration>
-        </plugin>
-      </plugins>
-
-    </pluginManagement>
   </build>
 
-  <!-- sign releases - see
-    https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
-  <profiles>
-    <profile>
-      <id>release-sign-artifacts</id>
-      <activation>
-        <property>
-         <name>performRelease</name>
-         <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-  
-  <scm>
-    <connection>scm:git:git//github.com/powertac/common.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
-    <url>https://github.com/powertac/common</url>
-  </scm>
+
+  <organization>
+    <name>Power TAC</name>
+    <url>http://www.powertac.org/</url>
+  </organization>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/powertac/powertac-server/issues/</url>
+  </issueManagement>
+
 
   <licenses>
     <license>
@@ -317,12 +170,14 @@
     </license>
   </licenses>
 
+
   <developers>
+
     <developer>
       <id>john</id>
       <name>John Collins</name>
       <email>jcollins.cs@gmail.com</email>
-      <url>http://www.cs.umn.edu/~jcollins</url>
+      <url>http://www.cs.umn.edu/~jcollins/</url>
       <organization>University of Minnesota</organization>
       <roles>
         <role>game designer</role>
@@ -332,18 +187,28 @@
       </roles>
       <timezone>-6</timezone>
     </developer>
+
     <developer>
       <id>wolf</id>
       <name>Wolf Ketter</name>
       <email>wolf.ketter@gmail.com</email>
-      <url>http://ketter.ws</url>
-      <organization>Rotterdam School of Management, Erasmus
-      University</organization>
+      <url>http://ketter.ws/</url>
+      <organization>Rotterdam School of Management, Erasmus University</organization>
       <roles>
-        <role>project lead</role>
-        <role>game design</role>
+        <role>project leader</role>
+        <role>game designer</role>
       </roles>
       <timezone>+1</timezone>
     </developer>
+
   </developers>
+
+
+  <scm>
+    <connection>scm:git:git//github.com/powertac/common.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/common.git</developerConnection>
+    <url>https://github.com/powertac/common/</url>
+  </scm>
+
+
 </project>

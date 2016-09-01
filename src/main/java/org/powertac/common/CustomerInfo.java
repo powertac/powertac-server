@@ -18,9 +18,10 @@ package org.powertac.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.powertac.aop.state.Domain;
+import org.powertac.aop.state.StateChange;
 import org.powertac.common.enumerations.PowerType;
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
+
 import com.thoughtworks.xstream.annotations.*;
 
 /**

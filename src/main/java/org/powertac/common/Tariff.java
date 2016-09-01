@@ -27,11 +27,11 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+import org.powertac.aop.state.Domain;
+import org.powertac.aop.state.StateChange;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.spring.SpringApplicationContext;
-import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 
 /**
  * Entity wrapper for TariffSpecification that supports Tariff evaluation 
