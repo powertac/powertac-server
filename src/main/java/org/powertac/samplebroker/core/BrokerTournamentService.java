@@ -181,6 +181,9 @@ public class BrokerTournamentService
         }
       }
       else { // response type was json parse accordingly
+        
+        /* TODO Seem like json is never used, remove responseType config? */
+
         String jsonTxt = IOUtils.toString(input);
 
         JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonTxt);
