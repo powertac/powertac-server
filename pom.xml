@@ -1,5 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>household-customer</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Power TAC household customer</name>
+  <description>Bottom-up model of a household energy customer</description>
+  <url>https://github.com/powertac/household-customer/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
@@ -8,30 +19,22 @@
     <relativePath />
   </parent>
 
-  <artifactId>household-customer</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC household customer</name>
-  <description>Bottom-up model of a household energy customer</description>
-
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
 
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
   </dependencies>
-  
+
+
   <scm>
     <connection>scm:git:git//github.com/powertac/household-customer.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/household-customer.git</developerConnection>
-    <url>https://github.com/powertac/household-customer</url>
+    <url>https://github.com/powertac/household-customer/</url>
   </scm>
+
 </project>
