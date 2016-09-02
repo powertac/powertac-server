@@ -16,6 +16,7 @@
 package org.powertac.common;
 
 import org.joda.time.Instant;
+
 import org.powertac.aop.state.XStreamStateLoggable;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;

@@ -19,7 +19,9 @@ import org.powertac.aop.state.Domain;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.xml.DoubleArrayConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * Encapsulates market prices and quantities over the bootstrap period. Prices
@@ -57,7 +59,7 @@ public class MarketBootstrapData
   {
     return mwh;
   }
-  
+
   public double[] getMarketPrice ()
   {
     return marketPrice;

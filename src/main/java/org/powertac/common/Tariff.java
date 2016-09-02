@@ -27,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
+
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.StateChange;
 import org.powertac.common.enumerations.PowerType;

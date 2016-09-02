@@ -18,7 +18,8 @@ package org.powertac.common;
 
 import org.powertac.aop.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
 * A weather forecast report instance that describes the weather data

@@ -26,6 +26,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.StateChange;
 import org.powertac.common.config.ConfigurableValue;

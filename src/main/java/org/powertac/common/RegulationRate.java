@@ -18,7 +18,8 @@ package org.powertac.common;
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.StateChange;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Tariffs are composed of Rates, including RegulationRates.

@@ -16,11 +16,13 @@
 package org.powertac.common.msg;
 
 import org.joda.time.Instant;
+
 import org.powertac.aop.state.Domain;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Request to change expiration date on an existing tariff. There are no

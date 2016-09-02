@@ -21,7 +21,8 @@ import org.powertac.aop.state.Domain;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
 * A weather report instance that describes the weather data for one hour of the
@@ -40,7 +41,6 @@ public class WeatherReport
   
   /** the current or reference timeslot from which the weather (forecast) is generated */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int currentTimeslot;
   
   /** the current timeslot's temperature*/

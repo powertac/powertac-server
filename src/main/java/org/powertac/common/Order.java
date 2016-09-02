@@ -18,6 +18,7 @@ package org.powertac.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.powertac.aop.state.ChainedConstructor;
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.XStreamStateLoggable;
@@ -65,7 +66,6 @@ public class Order extends XStreamStateLoggable
 
   /** the timeslot for which the product should be bought or sold */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
 
   /** product quantity in mWh - positive to buy, negative to sell */

@@ -19,6 +19,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.joda.time.Instant;
+
 import org.powertac.aop.state.ChainedConstructor;
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.StateChange;
@@ -27,7 +28,6 @@ import org.powertac.common.spring.SpringApplicationContext;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-//import com.thoughtworks.xstream.annotations.XStreamConverter;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
@@ -52,7 +52,6 @@ public class Orderbook
 
   /** the timeslot this orderbook is generated for  */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
 
   /** last clearing price, expressed as a positive number - the price/mwh paid

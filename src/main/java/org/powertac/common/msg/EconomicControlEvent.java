@@ -17,6 +17,7 @@ package org.powertac.common.msg;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.powertac.aop.state.Domain;
 import org.powertac.common.TariffSpecification;
 

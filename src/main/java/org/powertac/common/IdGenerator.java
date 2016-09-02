@@ -16,7 +16,6 @@
 
 package org.powertac.common;
 
-
 /**
  * Generates numeric ID values for domain types. ID values are of the
  * form xA+B, where x is the multiplier, A is a prefix, and B is the 

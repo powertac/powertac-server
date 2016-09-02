@@ -19,7 +19,7 @@ import org.powertac.aop.state.Domain;
 import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Message created by a broker to request revocation of an existing tariff.

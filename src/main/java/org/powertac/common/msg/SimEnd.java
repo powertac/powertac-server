@@ -17,7 +17,7 @@ package org.powertac.common.msg;
 
 import org.powertac.aop.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * This message is used to communicate the end of a simulation. It is intended

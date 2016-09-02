@@ -17,7 +17,9 @@ package org.powertac.common.msg;
 
 import org.powertac.common.Broker;
 import org.powertac.common.xml.BrokerConverter;
-import com.thoughtworks.xstream.annotations.*;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * This message is used by a broker to request a pause in the simulation. 

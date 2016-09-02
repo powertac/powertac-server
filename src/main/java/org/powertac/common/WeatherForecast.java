@@ -23,8 +23,9 @@ import org.powertac.aop.state.Domain;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 
-//import org.powertac.common.xml.TimeslotConverter;
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
 /**
 * A collection of weatherReports giving hourly forecasts for future timeslot.

@@ -16,17 +16,16 @@
 
 package org.powertac.common;
 
-//import org.codehaus.groovy.grails.commons.ApplicationHolder
-//import org.joda.time.Instant
-import org.powertac.common.xml.BrokerConverter;
 import org.powertac.aop.state.ChainedConstructor;
 import org.powertac.aop.state.Domain;
 import org.powertac.aop.state.StateChange;
-//import org.powertac.common.xml.TimeslotConverter;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.xml.BrokerConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A {@code MarketPosition} domain instance represents the current position of a
@@ -50,7 +49,6 @@ public class MarketPosition //implements Serializable
   
   /** the timeslot this position belongs to */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
   
   /** The running total position in mWh the broker owns (> 0) / owes (< 0)
