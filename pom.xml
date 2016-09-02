@@ -22,7 +22,7 @@
         <assertj-core.version>3.5.2</assertj-core.version>
         <awaitility.version>1.7.0</awaitility.version>
         <commons-io.version>2.5</commons-io.version>
-        <commons-lang.version>2.6</commons-lang.version>
+        <commons-lang.version>3.4</commons-lang.version>
         <dropwizard-metrics.version>3.1.2</dropwizard-metrics.version>
         <frontend-maven-plugin.version>1.0</frontend-maven-plugin.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
@@ -175,8 +175,8 @@
             <version>${commons-io.version}</version>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
             <version>${commons-lang.version}</version>
         </dependency>
         <!-- reporting -->
