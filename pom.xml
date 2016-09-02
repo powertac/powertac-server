@@ -20,12 +20,6 @@
   </parent>
 
 
-  <properties>
-    <json-lib.version>2.4</json-lib.version>
-  </properties>
-
-  
-
   <dependencies>
 
     <!-- Power TAC -->
@@ -76,19 +70,6 @@
     <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-
-    <!-- TODO this is ancient.. Can we use Jackson? -->
-    <dependency>   
-      <groupId>net.sf.json-lib</groupId>   
-      <artifactId>json-lib</artifactId>   
-      <version>${json-lib.version}</version>   
-      <classifier>jdk15</classifier>   
     </dependency>
 
   </dependencies>

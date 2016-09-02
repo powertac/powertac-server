@@ -22,10 +22,7 @@ import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import net.sf.json.JSONObject;
-import net.sf.json.JSONSerializer;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.powertac.common.config.ConfigurableValue;
@@ -180,21 +177,10 @@ public class BrokerTournamentService
           return false;
         }
       }
-      else { // response type was json parse accordingly
-        
-        /* TODO Seem like json is never used, remove responseType config? */
-
-        String jsonTxt = IOUtils.toString(input);
-
-        JSONObject json = (JSONObject) JSONSerializer.toJSON(jsonTxt);
-        int retry = json.getInt("retry");
-        System.out.println("Retry message received for : " + retry
-                           + " seconds");
-        spin(retry);
+      else {
+        // TODO Only xml is supported by TS -- get rid of responseType config?
+        log.fatal("Error: invalid responseType " + this.responseType);
         return false;
-
-        // TODO: Good Json Parsing
-        // JEC: not sure why this is important...
       }
     }
     catch (Exception e) { // exception hit return false
