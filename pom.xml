@@ -1,5 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>factored-customer</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Power TAC factored customer</name>
+  <description>Top-down statistical model framework for different classes of customers.</description>
+  <url>https://github.com/powertac/factored-customer/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
@@ -8,48 +19,27 @@
     <relativePath />
   </parent>
 
-  <artifactId>factored-customer</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC factored customer</name>
-  <description>
-    Top-down statistical model framework for different classes of customers.
-  </description>
-
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
-  
-  <properties>
-    <commons-math.version>3.6.1</commons-math.version>
-    <commons-io.version>2.5</commons-io.version>
-  </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>${commons-math.version}</version>
-      <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${commons-io.version}</version>
-    </dependency>
+
   </dependencies>
-  
+
+
   <scm>
     <connection>scm:git:git//github.com/powertac/factored-customer.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/factored-customer.git</developerConnection>
-    <url>https://github.com/powertac/factored-customer</url>
+    <url>https://github.com/powertac/factored-customer/</url>
   </scm>
+
 </project>
