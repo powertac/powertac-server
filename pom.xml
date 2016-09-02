@@ -1,39 +1,40 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
+  <artifactId>distribution-utility</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Power TAC distribution utility</name>
+  <description>Models the regulated monopoly that owns and maintains the distribution infrastructure.</description>
+  <url>https://github.com/powertac/distribution-utility/</url>
+
   <parent>
-    <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
+    <artifactId>server-master</artifactId>
     <version>1.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
-  
-  <artifactId>distribution-utility</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC distribution utility</name>
-  <description>
-    Balances supply and demand in the current timeslot
-  </description>
 
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
 
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
   </dependencies>
-  
+
+
   <scm>
     <connection>scm:git:git//github.com/powertac/distribution-utility.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/distribution-utility.git</developerConnection>
-    <url>https://github.com/powertac/distribution-utility</url>
+    <url>https://github.com/powertac/distribution-utility/</url>
   </scm>
+
 </project>
