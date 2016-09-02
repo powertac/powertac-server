@@ -1,63 +1,72 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
-  
+
+  <artifactId>customer-models</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Power TAC customer models</name>
+  <description>Set of bottom-up customer implementations</description>
+  <url>https://github.com/powertac/customer-models/</url>
+
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
     <version>1.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
-  
-  <artifactId>customer-models</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC customer models</name>
-  <description />
+
 
   <properties>
-    <commons-math.version>3.6.1</commons-math.version>
     <joptimizer.version>3.5.1</joptimizer.version>
   </properties>
-  
+
+
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-math3</artifactId>
-      <version>${commons-math.version}</version>
     </dependency>
+
     <dependency>
       <groupId>com.joptimizer</groupId>
       <artifactId>joptimizer</artifactId>
       <version>${joptimizer.version}</version>
     </dependency>
-  </dependencies>
-  
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
-  
-  <scm>
-    <connection>scm:git:git//github.com/powertac/customer-models.git</connection>
-    <developerConnection>scm:git:git@github.com:powertac/customer-models.git</developerConnection>
-    <url>https://github.com/powertac/customer-models</url>
-  </scm>
 
-  <!-- needs AspectJ build -->
+  </dependencies>
+
+
   <build>
+
     <plugins>
+
+      <!-- Needs AspectJ build -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
       </plugin>
+
     </plugins>
+
   </build>
+
+
+  <scm>
+    <connection>scm:git:git//github.com/powertac/customer-models.git</connection>
+    <developerConnection>scm:git:git@github.com:powertac/customer-models.git</developerConnection>
+    <url>https://github.com/powertac/customer-models/</url>
+  </scm>
+
 
 </project>
