@@ -16,8 +16,7 @@
 package org.powertac.common.msg;
 
 import org.joda.time.Instant;
-
-import org.powertac.aop.state.Domain;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 

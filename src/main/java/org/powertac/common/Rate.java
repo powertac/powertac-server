@@ -29,10 +29,9 @@ import org.joda.time.Instant;
 import org.joda.time.ReadablePartial;
 import org.joda.time.base.AbstractDateTime;
 import org.joda.time.base.AbstractInstant;
-
-import org.powertac.aop.state.Domain;
-import org.powertac.aop.state.StateChange;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

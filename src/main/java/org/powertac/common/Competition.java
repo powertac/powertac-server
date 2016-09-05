@@ -26,10 +26,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import org.powertac.aop.state.Domain;
-import org.powertac.aop.state.StateChange;
 import org.powertac.common.config.ConfigurableValue;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.FullCustomerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;

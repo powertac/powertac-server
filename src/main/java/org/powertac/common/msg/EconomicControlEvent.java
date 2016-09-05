@@ -17,9 +17,8 @@ package org.powertac.common.msg;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import org.powertac.aop.state.Domain;
 import org.powertac.common.TariffSpecification;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

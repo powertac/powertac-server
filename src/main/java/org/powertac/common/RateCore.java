@@ -15,8 +15,8 @@
  */
 package org.powertac.common;
 
-import org.powertac.aop.state.StateChange;
-import org.powertac.aop.state.XStreamStateLoggable;
+import org.powertac.common.state.StateChange;
+import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 

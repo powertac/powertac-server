@@ -15,10 +15,10 @@
  */
 package org.powertac.common.msg;
 
-import org.powertac.aop.state.Domain;
 import org.powertac.common.Broker;
 import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
+import org.powertac.common.state.Domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;

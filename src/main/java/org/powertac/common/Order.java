@@ -18,12 +18,11 @@ package org.powertac.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import org.powertac.aop.state.ChainedConstructor;
-import org.powertac.aop.state.Domain;
-import org.powertac.aop.state.XStreamStateLoggable;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.XStreamStateLoggable;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;

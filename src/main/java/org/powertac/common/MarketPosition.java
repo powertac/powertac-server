@@ -16,11 +16,11 @@
 
 package org.powertac.common;
 
-import org.powertac.aop.state.ChainedConstructor;
-import org.powertac.aop.state.Domain;
-import org.powertac.aop.state.StateChange;
 import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
+import org.powertac.common.state.ChainedConstructor;
+import org.powertac.common.state.Domain;
+import org.powertac.common.state.StateChange;
 import org.powertac.common.xml.BrokerConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;

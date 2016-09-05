@@ -27,9 +27,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.base.AbstractDateTime;
-
-import org.powertac.aop.state.StateChange;
-
+import org.powertac.common.state.StateChange;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
