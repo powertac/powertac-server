@@ -1,4 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <!--
@@ -16,7 +20,11 @@
      and snapshot deployment.
    -->
 
-  <!-- pull in the project master pom -->
+  <artifactId>powertac-server</artifactId>
+  <packaging>pom</packaging>
+  <name>Power TAC server modules</name>
+
+  <!-- Pull in the project master pom -->
   <parent>
     <groupId>org.powertac</groupId>
     <artifactId>server-master</artifactId>
@@ -24,9 +32,6 @@
     <relativePath />
   </parent>
 
-  <artifactId>powertac-server</artifactId>
-  <packaging>pom</packaging>
-  <name>Power TAC server modules</name>
 
   <!-- server components -->
   <modules>
@@ -47,26 +52,27 @@
     <module>visualizer</module>
   </modules>
 
+
   <build>
+
     <plugins>
+
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>${maven-javadoc.version}</version>
         <configuration>
-          <failOnError>false</failOnError>
-          <additionalparam>-Xdoclint:none</additionalparam>
-	  <additionalDependencies>
-	    <additionalDependency>
-	      <groupId>org.powertac</groupId>
-	      <artifactId>common</artifactId>
-	      <version>${powertac.version}</version>
-	    </additionalDependency>
-	  </additionalDependencies>
-	  <includeDependencySources>true</includeDependencySources>
+          <includeDependencySources>true</includeDependencySources>
+          <additionalDependencies>
+            <additionalDependency>
+              <groupId>org.powertac</groupId>
+              <artifactId>common</artifactId>
+              <version>${powertac.version}</version>
+            </additionalDependency>
+          </additionalDependencies>
         </configuration>
         <executions>
           <execution>
-	    <id>aggregate</id>
+            <id>aggregate</id>
             <phase>verify</phase>
             <goals>
               <goal>aggregate</goal>
@@ -74,20 +80,16 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
+
   </build>
 
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
-  
+
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
-    <url>https://github.com/powertac/powertac-server</url>
+    <url>https://github.com/powertac/powertac-server/</url>
   </scm>
+
 </project>
