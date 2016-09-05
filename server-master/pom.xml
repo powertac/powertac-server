@@ -24,6 +24,7 @@
 
 
   <!-- Common dependencies across all server modules -->
+
   <dependencies>
 
     <dependency>
@@ -46,32 +47,6 @@
     </dependency>
 
   </dependencies>
-
-
-  <build>
-
-    <pluginManagement>
-
-      <plugins>
-
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>aspectj-maven-plugin</artifactId>
-          <configuration>
-            <aspectLibraries>
-              <aspectLibrary>
-                <groupId>org.powertac</groupId>
-                <artifactId>powertac-aop</artifactId>
-              </aspectLibrary>
-            </aspectLibraries>
-          </configuration>
-        </plugin>
-
-      </plugins>
-
-    </pluginManagement>
-
-  </build>
 
 
   <organization>
