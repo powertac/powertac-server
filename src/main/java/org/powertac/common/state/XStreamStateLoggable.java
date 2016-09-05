@@ -1,4 +1,4 @@
-package org.powertac.aop.state;
+package org.powertac.common.state;
 
 public class XStreamStateLoggable
 {  
