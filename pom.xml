@@ -78,9 +78,14 @@
 
     <plugins>
 
+      <!-- Needs AspectJ build -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
+        <configuration>
+          <!-- Override powertac-parent config to make this empty -->
+          <aspectLibraries combine.self="override" />
+        </configuration>
       </plugin>
 
     </plugins>
