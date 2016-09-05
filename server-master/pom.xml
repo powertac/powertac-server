@@ -1,306 +1,89 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <!--
-     Master pom for powertac server components. Must be
-     installed/deployed first in order to successfully install or
-     deploy server components. 
-   -->
+  <!-- Parent POM for all components in Power TAC server. -->
+  <!-- Must be installed/deployed first to install or deploy server components. -->
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.powertac</groupId>
+
   <artifactId>server-master</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+
   <name>Power TAC server master</name>
-  <description>Dependencies and structure for all powertac server modules</description>
-  <url>http://www.powertac.org</url>
+  <description>Dependencies and structure for all Power TAC server modules</description>
+  <url>https://github.com/powertac/powertac-server/</url>
 
-
-  <properties>
-    <powertac.version>1.4.0-SNAPSHOT</powertac.version>
-    <java.version>1.8</java.version>
-
-    <aspectj.version>1.8.9</aspectj.version>
-    <aspectj-plugin.version>1.8</aspectj-plugin.version>
-    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
-
-    <spring.version>4.3.2.RELEASE</spring.version>
-    <junit.version>4.12</junit.version>
-    <maven-compiler.version>3.5.1</maven-compiler.version>
-    <maven-compiler.source>${java.version}</maven-compiler.source>
-    <maven-compiler.target>${java.version}</maven-compiler.target>
-
-    <maven-javadoc.version>2.10.4</maven-javadoc.version>
-    <maven-site.version>3.5.1</maven-site.version>
-    <maven-source.version>3.0.1</maven-source.version>
-    <maven-surefire.version>2.19.1</maven-surefire.version>
-
-    <mockito.version>1.10.19</mockito.version>
-  </properties>
-
-  <!-- pull in the sonatype repo definitions for deployment -->
   <parent>
-    <groupId>org.sonatype.oss</groupId>
-    <artifactId>oss-parent</artifactId>
-    <version>9</version>
+    <groupId>org.powertac</groupId>
+    <artifactId>powertac-parent</artifactId>
+    <version>1.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
-  <!-- Sonatype OSS repo for resolving modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
 
-  <!-- control versions of transitive dependencies -->
-  <dependencyManagement>
-    <dependencies>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <!-- common dependencies across all modules -->
+  <!-- Common dependencies across all server modules -->
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>common</artifactId>
       <version>${powertac.version}</version>
     </dependency>
-    
-    <!-- Test dependencies - not inherited from common -->
+
+
+    <!-- Testing - not inherited from common due to test scope -->
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>${mockito.version}</version>
-      <scope>test</scope>
     </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
+
   </dependencies>
 
+
   <build>
-    <!-- <finalName>server</finalName> -->
+
     <pluginManagement>
-    <plugins>
-      <!-- Common config for aspectj plugin -->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>aspectj-maven-plugin</artifactId>
-        <version>${aspectj-plugin.version}</version>
-        <!-- Need to override aspectjtools version, see -->
-        <!-- http://www.mojohaus.org/aspectj-maven-plugin/usage.html -->
-        <dependencies>
-          <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjtools</artifactId>
-            <version>${aspectj.version}</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-            <configuration>
-              <verbose>false</verbose>
-              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
-              <weaveDependencies>
-                <weaveDependency>
-                  <groupId>org.powertac</groupId>
-                  <artifactId>common</artifactId>
-                </weaveDependency>
-              </weaveDependencies>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
 
-      <!-- compiler compliance level -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven-compiler.version}</version>
-        <configuration>
-          <source>${maven-compiler.source}</source>
-          <target>${maven-compiler.target}</target>
-          <excludes>
-          </excludes>
-        </configuration>
-      </plugin>
+      <plugins>
 
-      <!-- Testing support -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven-surefire.version}</version>
-        <configuration>
-          <includes>
-            <include>**/*Tests.java</include>
-            <include>**/*Test.java</include>
-          </includes>
-        </configuration>
-      </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>aspectj-maven-plugin</artifactId>
+          <configuration>
+            <aspectLibraries>
+              <aspectLibrary>
+                <groupId>org.powertac</groupId>
+                <artifactId>powertac-aop</artifactId>
+              </aspectLibrary>
+            </aspectLibraries>
+          </configuration>
+        </plugin>
 
-      <!-- Put version info into jar files -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifest>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
+      </plugins>
 
-      <!--  bundle sources for javadoc prep -->
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>${maven-source.version}</version>
-        <executions>
-          <execution>
-            <id>bundle-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <!-- produce source artifact for main project sources -->
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <!-- javadoc config -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc.version}</version>
-        <configuration>
-          <failOnError>false</failOnError>
-          <additionalparam>-Xdoclint:none</additionalparam>
-        </configuration>
-      </plugin>
-
-      <!-- site config (used by release) -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-site-plugin</artifactId>
-        <version>${maven-site.version}</version>
-        <configuration>
-          <reportPlugins>
-            <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-javadoc-plugin</artifactId>
-              <version>${maven-javadoc.version}</version>
-              <configuration>
-                <failOnError>false</failOnError>
-                <additionalparam>-Xdoclint:none</additionalparam>
-              </configuration>
-            </plugin>
-          </reportPlugins>
-        </configuration>
-      </plugin>
-
-      <!-- Make m2e and maven-enforcer-plugin get along -->
-      <plugin>
-        <groupId>org.eclipse.m2e</groupId>
-        <artifactId>lifecycle-mapping</artifactId>
-        <version>1.0.0</version>
-        <configuration>
-          <lifecycleMappingMetadata>
-            <pluginExecutions>
-              <pluginExecution>
-                <pluginExecutionFilter>
-                  <groupId>org.apache.maven.plugins</groupId>
-                  <artifactId>maven-enforcer-plugin</artifactId>
-                  <versionRange>[1.0.0,)</versionRange>
-                  <goals>
-                    <goal>enforce</goal>
-                  </goals>
-                </pluginExecutionFilter>
-                <action>
-                  <ignore />
-                </action>
-              </pluginExecution>
-            </pluginExecutions>
-          </lifecycleMappingMetadata>
-        </configuration>
-      </plugin>
-    </plugins>
     </pluginManagement>
+
   </build>
 
-  <!-- sign releases - see
-    https://docs.sonatype.org/display/Repository/How+To+Generate+PGP+Signatures+With+Maven -->
-  <profiles>
-    <profile>
-      <id>release-sign-artifacts</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 
   <organization>
     <name>Power TAC</name>
-    <url>http://www.powertac.org</url>
+    <url>http://www.powertac.org/</url>
   </organization>
+
   <issueManagement>
     <system>github</system>
-    <url>https://github.com/powertac/powertac-server/issues</url>
+    <url>https://github.com/powertac/powertac-server/issues/</url>
   </issueManagement>
+
 
   <licenses>
     <license>
@@ -311,12 +94,14 @@
     </license>
   </licenses>
 
+
   <developers>
+
     <developer>
       <id>john</id>
       <name>John Collins</name>
       <email>jcollins.cs@gmail.com</email>
-      <url>http://www.cs.umn.edu/~jcollins</url>
+      <url>http://www.cs.umn.edu/~jcollins/</url>
       <organization>University of Minnesota</organization>
       <roles>
         <role>game designer</role>
@@ -326,23 +111,27 @@
       </roles>
       <timezone>-6</timezone>
     </developer>
+
     <developer>
       <id>wolf</id>
       <name>Wolf Ketter</name>
       <email>wolf.ketter@gmail.com</email>
-      <url>http://ketter.ws</url>
-      <organization>Rotterdam School of Management, Erasmus
-      University</organization>
+      <url>http://ketter.ws/</url>
+      <organization>Rotterdam School of Management, Erasmus University</organization>
       <roles>
-        <role>project lead</role>
-        <role>game design</role>
+        <role>project leader</role>
+        <role>game designer</role>
       </roles>
     </developer>
+
   </developers>
+
 
   <scm>
     <connection>scm:git:git//github.com/powertac/powertac-server.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/powertac-server.git</developerConnection>
-    <url>https://github.com/powertac/powertac-server</url>
+    <url>https://github.com/powertac/powertac-server/</url>
   </scm>
+
+
 </project>
