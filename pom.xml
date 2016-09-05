@@ -52,7 +52,7 @@
     </dependency>
 
 
-    <!-- Testing; these are NOT transitive -->
+    <!-- Testing - these are NOT transitive, due to test scope -->
 
     <dependency>
       <groupId>junit</groupId>
@@ -76,20 +76,17 @@
 
 
   <build>
+
     <plugins>
+
+      <!-- Needs AspectJ build -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <configuration>
-          <aspectLibraries>
-            <aspectLibrary>
-              <groupId>org.powertac</groupId>
-              <artifactId>powertac-aop</artifactId>
-            </aspectLibrary>
-          </aspectLibraries>
-        </configuration>
       </plugin>
+
     </plugins>
+
   </build>
 
 
