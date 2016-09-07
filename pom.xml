@@ -84,6 +84,7 @@
     <maven-clean.version>3.0.0</maven-clean.version>
     <maven-dependency.version>2.10</maven-dependency.version>
     <maven-enforcer.version>1.4.1</maven-enforcer.version>
+    <maven-resources-plugin.version>3.0.1</maven-resources-plugin.version>
     <maven-install.version>2.5.2</maven-install.version>
     <maven-deploy.version>2.8.2</maven-deploy.version>
 
@@ -91,6 +92,7 @@
     <!-- https://github.com/tesla/m2eclipse-mavenarchiver/issues/8 -->
     <maven-jar.version>2.6</maven-jar.version>
 
+    <maven-war-plugin.version>2.6</maven-war-plugin.version>
     <maven-source.version>3.0.1</maven-source.version>
     <maven-javadoc.version>2.10.4</maven-javadoc.version>
     <maven-gpg.version>1.6</maven-gpg.version>
