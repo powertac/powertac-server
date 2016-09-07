@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
- * Copy of {@link org.powertac.samplebroker.PortfolioManagerService}.
- * <p>
  * Keeps track of customer status and usage. Usage is stored per-customer-unit,
  * but reported as the product of the per-customer quantity and the subscribed
  * population. This allows the broker to use historical usage data as the
