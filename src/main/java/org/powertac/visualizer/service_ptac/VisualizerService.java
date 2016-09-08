@@ -35,6 +35,7 @@ public class VisualizerService {
     @Inject
     private Pusher pusher;
 
+    @SuppressWarnings("rawtypes")
     private Collection<RecycleRepository> repositories;
 
     private VisualizerState state;
@@ -96,6 +97,7 @@ public class VisualizerService {
       repositories = context.getBeansOfType(RecycleRepository.class).values();
     }
 
+    @SuppressWarnings("rawtypes")
     public void recycleAll() {
         for (RecycleRepository repository: repositories) {
             repository.recycle();

@@ -84,7 +84,7 @@ implements VisualizerMessageListener, NewObjectListener {
         Logger log = LoggerFactory.getLogger(target.getClass().getName());
         Object result = null;
         try {
-            Class[] classes = new Class[args.length];
+            Class<?>[] classes = new Class[args.length];
             for (int index = 0; index < args.length; index++) {
                 classes[index] = (args[index].getClass());
             }
@@ -162,7 +162,7 @@ implements VisualizerMessageListener, NewObjectListener {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T getTargetObject(Object proxy, Class targetClass) throws Exception {
+    private <T> T getTargetObject(Object proxy, Class<?> targetClass) throws Exception {
         // TODO Replace with if?
         while ((AopUtils.isJdkDynamicProxy(proxy))) {
             return (T) getTargetObject(

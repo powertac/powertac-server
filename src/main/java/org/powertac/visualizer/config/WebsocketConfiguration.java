@@ -1,8 +1,6 @@
 package org.powertac.visualizer.config;
 
 import org.powertac.visualizer.security.AuthoritiesConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
@@ -11,7 +9,6 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.AbstractWebSocketMessageBrokerConfigurer;
@@ -28,8 +25,6 @@ import java.util.Map;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebsocketConfiguration extends AbstractWebSocketMessageBrokerConfigurer {
-
-    private final Logger log = LoggerFactory.getLogger(WebsocketConfiguration.class);
 
     public static final String IP_ADDRESS = "IP_ADDRESS";
 

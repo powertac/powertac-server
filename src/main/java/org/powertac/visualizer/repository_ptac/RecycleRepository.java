@@ -8,7 +8,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 @NoRepositoryBean
 public interface RecycleRepository<T> extends Repository<T, Long> {
 
-  <S extends T> S save (S ts);
+  T save (T t);
 
   List<T> findAll ();
 
