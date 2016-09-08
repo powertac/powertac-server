@@ -26,8 +26,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @Configuration
-@ImportResource("classpath:powertac.xml")
-@ComponentScan({ "org.powertac" })
+@ImportResource({ "classpath:powertac.xml", "classpath:logtool.xml" })
+@ComponentScan({ "org.powertac.visualizer" })
 @EnableAutoConfiguration(exclude = { MetricFilterAutoConfiguration.class, MetricRepositoryAutoConfiguration.class, JmsAutoConfiguration.class })
 @EnableConfigurationProperties({ JHipsterProperties.class, VisualizerProperties.class, LiquibaseProperties.class })
 public class Visualizer2App {
