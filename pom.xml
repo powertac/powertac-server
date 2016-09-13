@@ -1,139 +1,153 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>broker-core</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <description>Common core of a Power TAC broker implementation</description>
   <packaging>jar</packaging>
 
   <name>broker-core</name>
-  <url>http://www.powertac.org</url>
+  <description>Common core of a Power TAC broker implementation</description>
+  <url>https://github.com/powertac/broker-core/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
-    <artifactId>server-master</artifactId>
+    <artifactId>powertac-parent</artifactId>
     <version>1.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    
-    <active-mq.version>5.7.0</active-mq.version>
-    <xbean-spring.version>4.5</xbean-spring.version>
-    <jopt-simple.version>4.9</jopt-simple.version>
-    <json-lib.version>2.4</json-lib.version>
-    <commons-io.version>2.4</commons-io.version>
 
-    <aspectj-rt.version>1.8.7</aspectj-rt.version>
-    <aspectj-plugin.version>1.8</aspectj-plugin.version>
-    <aspectj-plugin.compliance>1.8</aspectj-plugin.compliance>
-  </properties>
+  <dependencies>
 
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
+    <!-- Power TAC -->
 
-  <dependencies>    
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>common</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+
+    <!-- Spring -->
+
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-jms</artifactId>
-      <version>${spring.version}</version>
     </dependency>
-    
+
+
     <!-- ActiveMQ -->
-    <dependency>    
+
+    <dependency>
       <groupId>org.apache.activemq</groupId>
-      <artifactId>activemq-core</artifactId>
-      <version>${active-mq.version}</version>
+      <artifactId>activemq-broker</artifactId>
     </dependency>
-    <dependency>    
+
+    <dependency>
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-pool</artifactId>
-      <version>${active-mq.version}</version>
     </dependency>
+
+
+    <!-- Testing - these are NOT transitive, due to test scope -->
+
     <dependency>
-      <groupId>org.apache.xbean</groupId>
-      <artifactId>xbean-spring</artifactId>
-      <version>${xbean-spring.version}</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+    </dependency>
+
+
+    <!-- Utilities -->
+
     <dependency>
       <groupId>net.sf.jopt-simple</groupId>
       <artifactId>jopt-simple</artifactId>
-      <version>${jopt-simple.version}</version>
     </dependency>
-    <dependency>   
-      <groupId>net.sf.json-lib</groupId>   
-      <artifactId>json-lib</artifactId>   
-      <version>${json-lib.version}</version>   
-      <classifier>jdk15</classifier>   
-    </dependency>
-    <dependency>   
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>${commons-io.version}</version>
-    </dependency>
+
   </dependencies>
 
+
   <build>
-    <finalName>broker-core</finalName>
+
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>${maven-compiler.source}</source>
-          <target>${maven-compiler.target}</target>
-        </configuration>
-      </plugin>
+
+      <!-- Needs AspectJ build -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>aspectj-maven-plugin</artifactId>
-        <version>${aspectj-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>compile</goal>
-              <goal>test-compile</goal>
-            </goals>
-            <configuration>
-              <verbose>false</verbose>
-              <complianceLevel>${aspectj-plugin.compliance}</complianceLevel>
-              <weaveDependencies>
-                <weaveDependency>
-                  <groupId>org.powertac</groupId>
-                  <artifactId>common</artifactId>
-                </weaveDependency>
-              </weaveDependencies>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
 
-      <!--  bundle sources for javadoc prep -->
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>bundle-sources</id>
-            <phase>package</phase>
-            <goals>
-              <!-- produce source artifact for main project sources -->
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
+
   </build>
+
+
+  <organization>
+    <name>Power TAC</name>
+    <url>http://www.powertac.org/</url>
+  </organization>
+
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/powertac/powertac-server/issues/</url>
+  </issueManagement>
+
+
+  <licenses>
+    <license>
+      <name>Apache 2</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+
+  <developers>
+
+    <developer>
+      <id>john</id>
+      <name>John Collins</name>
+      <email>jcollins.cs@gmail.com</email>
+      <url>http://www.cs.umn.edu/~jcollins/</url>
+      <organization>University of Minnesota</organization>
+      <roles>
+        <role>game designer</role>
+        <role>architect</role>
+        <role>project manager</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-6</timezone>
+    </developer>
+
+    <developer>
+      <id>wolf</id>
+      <name>Wolf Ketter</name>
+      <email>wolf.ketter@gmail.com</email>
+      <url>http://ketter.ws/</url>
+      <organization>Rotterdam School of Management, Erasmus University</organization>
+      <roles>
+        <role>project leader</role>
+        <role>game designer</role>
+      </roles>
+      <timezone>+1</timezone>
+    </developer>
+
+  </developers>
+
 
   <scm>
     <connection>scm:git:git//github.com/powertac/broker-core.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/broker-core.git</developerConnection>
-    <url>https://github.com/powertac</url>
+    <url>https://github.com/powertac/broker-core/</url>
   </scm>
+
 </project>
