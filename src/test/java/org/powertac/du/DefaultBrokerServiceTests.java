@@ -27,12 +27,16 @@ import java.util.TreeMap;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.MapConfiguration;
+
 import org.joda.time.Instant;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+
 import org.powertac.common.Broker;
 import org.powertac.common.CashPosition;
 import org.powertac.common.Competition;
@@ -40,7 +44,6 @@ import org.powertac.common.CustomerInfo;
 import org.powertac.common.RandomSeed;
 import org.powertac.common.Rate;
 import org.powertac.common.Order;
-import org.powertac.common.RateCore;
 import org.powertac.common.RegulationRate;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.TariffTransaction;
@@ -58,6 +61,7 @@ import org.powertac.common.repo.BrokerRepo;
 import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.RandomSeedRepo;
 import org.powertac.common.repo.TimeslotRepo;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
