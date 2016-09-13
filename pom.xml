@@ -1,44 +1,47 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
+  <artifactId>balancing-market</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Power TAC intra-hour market-based balancing</name>
+  <description>Balances supply and demand in the current timeslot</description>
+  <url>https://github.com/powertac/balancing-market/</url>
+
   <parent>
-    <artifactId>server-master</artifactId>
     <groupId>org.powertac</groupId>
+    <artifactId>server-master</artifactId>
     <version>1.4.0-SNAPSHOT</version>
     <relativePath />
   </parent>
-  
-  <artifactId>balancing-market</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <name>Power TAC intra-hour market-based balancing</name>
-  <description>
-    Balances supply and demand in the current timeslot
-  </description>
 
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
 
   <dependencies>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
+    <!-- TODO this is quite far out of date, but upgrade needs work -->
     <dependency>
       <groupId>org.ojalgo</groupId>
       <artifactId>ojalgo</artifactId>
       <version>31.0</version>
     </dependency>
+
   </dependencies>
-  
+
+
   <scm>
     <connection>scm:git:git//github.com/powertac/balancing-market.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/balancing-market.git</developerConnection>
-    <url>https://github.com/powertac/balancing-market</url>
+    <url>https://github.com/powertac/balancing-market/</url>
   </scm>
+
 </project>
