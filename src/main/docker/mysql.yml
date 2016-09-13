@@ -2,7 +2,7 @@ version: '2'
 services:
     visualizer2-mysql:
         container_name: visualizer2-mysql
-        image: mysql:5.7.12
+        image: mysql:5.7.14
         # volumes:
         #     - ~/volumes/jhipster/visualizer2/mysql/:/var/lib/mysql/
         environment:

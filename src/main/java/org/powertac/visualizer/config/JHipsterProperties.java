@@ -5,7 +5,6 @@ import javax.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.web.cors.CorsConfiguration;
 
-
 /**
  * Properties specific to JHipster.
  *
@@ -213,7 +212,6 @@ public class JHipsterProperties {
             return logs;
         }
 
-
         public static class Jmx {
 
             private boolean enabled = true;
@@ -366,6 +364,7 @@ public class JHipsterProperties {
 
     }
 
+
     public static class Ribbon {
 
         private String[] displayOnActiveProfiles;
@@ -373,10 +372,9 @@ public class JHipsterProperties {
         public String[] getDisplayOnActiveProfiles() {
             return displayOnActiveProfiles;
         }
-        
+
         public void setDisplayOnActiveProfiles(String[] displayOnActiveProfiles) {
             this.displayOnActiveProfiles = displayOnActiveProfiles;
         }
-    }  
-
+    }
 }

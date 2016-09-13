@@ -1,8 +1,8 @@
-package org.powertac.visualizer.web.rest.mapper;
+package org.powertac.visualizer.service.mapper;
 
 import org.powertac.visualizer.domain.Authority;
 import org.powertac.visualizer.domain.User;
-import org.powertac.visualizer.web.rest.dto.UserDTO;
+import org.powertac.visualizer.service.dto.UserDTO;
 import org.mapstruct.*;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface UserMapper {
     UserDTO userToUserDTO(User user);
 
     List<UserDTO> usersToUserDTOs(List<User> users);
-    
+
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)

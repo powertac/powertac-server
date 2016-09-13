@@ -1,4 +1,4 @@
-package org.powertac.visualizer.web.rest.dto;
+package org.powertac.visualizer.service.dto;
 
 import org.powertac.visualizer.config.Constants;
 

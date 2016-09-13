@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Please note: This module does not inherit from server-master, but rather from
-         spring boot. See
-         http://stackoverflow.com/questions/21317006/spring-boot-parent-pom-when-you-already-have-a-parent-pom
-         for details. As a result, the contents of server-master/pom.xml are copied into
-         this pom, and must be maintained appropriately.
-    <parent>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <groupId>org.springframework.boot</groupId>
-        <version>1.3.5.RELEASE</version>
-        <relativePath />
-    </parent>
-    -->
+    <artifactId>visualizer2</artifactId>
+    <packaging>war</packaging>
+
+    <name>Power TAC Visualizer v2</name>
+    <url>https://github.com/powertac/visualizer/</url>
+
+
     <parent>
         <groupId>org.powertac</groupId>
         <artifactId>server-master</artifactId>
@@ -21,46 +19,37 @@
         <relativePath />
     </parent>
 
-    <artifactId>visualizer2</artifactId>
-    <version>1.4.0-SNAPSHOT</version>
-    <packaging>war</packaging>
-    <name>Power TAC Visualizer v2</name>
 
     <prerequisites>
-        <maven>3.2.0</maven>
+        <maven>3.2.1</maven>
     </prerequisites>
 
+
     <properties>
-        <assertj-core.version>3.3.0</assertj-core.version>
+        <assertj-core.version>3.5.2</assertj-core.version>
         <awaitility.version>1.7.0</awaitility.version>
-        <commons-io.version>2.4</commons-io.version>
-        <commons-lang.version>2.6</commons-lang.version>
+        <commons-io.version>2.5</commons-io.version>
+        <commons-lang.version>3.4</commons-lang.version>
         <dropwizard-metrics.version>3.1.2</dropwizard-metrics.version>
         <frontend-maven-plugin.version>1.0</frontend-maven-plugin.version>
         <hibernate.version>4.3.11.Final</hibernate.version>
         <hikaricp.version>2.4.6</hikaricp.version>
-        <jackson.version>2.6.6</jackson.version>
-        <jacoco-maven-plugin.version>0.7.6.201602180812</jacoco-maven-plugin.version>
+        <jackson.version>2.8.1</jackson.version>
+        <jacoco-maven-plugin.version>0.7.7.201606060606</jacoco-maven-plugin.version>
         <java.version>1.8</java.version>
         <javax.inject.version>1</javax.inject.version>
         <liquibase-hibernate4.version>3.5</liquibase-hibernate4.version>
-        <liquibase-slf4j.version>1.2.1</liquibase-slf4j.version>
+        <liquibase-slf4j.version>2.0.0</liquibase-slf4j.version>
         <liquibase.version>3.4.2</liquibase.version>
         <mapstruct.version>1.0.0.Final</mapstruct.version>
-        <maven-enforcer-plugin.version>1.4.1</maven-enforcer-plugin.version>
-        <maven-resources-plugin.version>3.0.0</maven-resources-plugin.version>
-        <maven-war-plugin.version>2.6</maven-war-plugin.version>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-        <maven-javadoc.version>2.10.3</maven-javadoc.version>
         <metrics-spark-reporter.version>1.2</metrics-spark-reporter.version>
         <metrics-spring.version>3.1.3</metrics-spring.version>
-        <node.version>v4.4.3</node.version>
-        <npm.version>3.8.3</npm.version>
+        <node.version>v4.5.0</node.version>
+        <npm.version>3.10.6</npm.version>
         <!-- These remain empty unless the corresponding profile is active -->
         <profile.no-liquibase />
-        <profile.no-swagger />
+        <profile.swagger />
         <project.testresult.directory>${project.build.directory}/test-results</project.testresult.directory>
         <run.addResources>false</run.addResources>
         <!-- Sonar properties -->
@@ -69,15 +58,12 @@
         <sonar.jacoco.itReportPath>${project.testresult.directory}/coverage/jacoco/jacoco-it.exec</sonar.jacoco.itReportPath>
         <sonar.jacoco.reportPath>${project.testresult.directory}/coverage/jacoco/jacoco.exec</sonar.jacoco.reportPath>
         <sonar.java.codeCoveragePlugin>jacoco</sonar.java.codeCoveragePlugin>
-
         <sonar.javascript.jstestdriver.reportsPath>${project.testresult.directory}/karma</sonar.javascript.jstestdriver.reportsPath>
         <sonar.javascript.lcov.reportPath>${project.testresult.directory}/coverage/report-lcov/lcov.info</sonar.javascript.lcov.reportPath>
-
         <sonar.sources>${project.basedir}/src/main/</sonar.sources>
         <sonar.surefire.reportsPath>${project.testresult.directory}/surefire-reports</sonar.surefire.reportsPath>
         <sonar.tests>${project.basedir}/src/test/</sonar.tests>
-        <spring-boot.version>1.3.5.RELEASE</spring-boot.version>
-        <spring-security.version>4.1.0.RELEASE</spring-security.version>
+        <spring-boot.version>1.4.0.RELEASE</spring-boot.version>
         <visualizer.mode>research</visualizer.mode>
     </properties>
 
@@ -96,11 +82,6 @@
 
     <dependencies>
         <!--  PowerTAC -->
-        <dependency>
-            <groupId>org.powertac</groupId>
-            <artifactId>common</artifactId>
-            <version>${powertac.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.powertac</groupId>
             <artifactId>logtool-core</artifactId>
@@ -124,7 +105,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-json-org</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -194,8 +174,8 @@
             <version>${commons-io.version}</version>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
             <version>${commons-lang.version}</version>
         </dependency>
         <!-- reporting -->
@@ -351,6 +331,11 @@
             <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-cloudfoundry-connector</artifactId>
         </dependency>
@@ -370,7 +355,6 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-messaging</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <!-- jhipster-needle-maven-add-dependency -->
     </dependencies>
@@ -478,7 +462,7 @@
             <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.4.5</version>
+                <version>0.4.10</version>
                 <configuration>
                     <imageName>visualizer2</imageName>
                     <dockerDirectory>src/main/docker</dockerDirectory>
@@ -494,7 +478,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-versions</id>
@@ -528,7 +511,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
@@ -708,6 +690,11 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
+            </plugin>
+            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
@@ -821,7 +808,7 @@
                 <!-- log configuration -->
                 <log4j2.loglevel>debug</log4j2.loglevel>
                 <!-- default Spring profiles -->
-                <spring.profiles.active>dev${profile.no-liquibase},no-swagger,${visualizer.mode}</spring.profiles.active>
+                <spring.profiles.active>dev${profile.no-liquibase},${visualizer.mode}</spring.profiles.active>
             </properties>
             <dependencies>
                 <!-- Commenting this for the moment: prefer to run in
@@ -869,7 +856,6 @@
                     </plugin>
                     <plugin>
                         <artifactId>maven-clean-plugin</artifactId>
-                        <version>2.5</version>
                         <configuration>
                             <filesets>
                                 <fileset>
@@ -891,7 +877,7 @@
                 <!-- log configuration -->
                 <log4j2.loglevel>info</log4j2.loglevel>
                 <!-- default Spring profiles -->
-                <spring.profiles.active>prod${profile.no-liquibase},no-swagger,${visualizer.mode}</spring.profiles.active>
+                <spring.profiles.active>prod${profile.no-liquibase},${visualizer.mode}</spring.profiles.active>
             </properties>
         </profile>
     </profiles>
@@ -900,6 +886,6 @@
         <connection>scm:git:git//github.com/powertac/visualizer2.git</connection>
         <developerConnection>scm:git:git@github.com:powertac/visualizer2.git</developerConnection>
         <url>https://github.com/powertac/visualizer2</url>
-    </scm>
+  </scm>
 
 </project>

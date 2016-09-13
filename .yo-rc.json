@@ -1,6 +1,6 @@
 {
   "generator-jhipster": {
-    "jhipsterVersion": "3.4.2",
+    "jhipsterVersion": "3.6.1",
     "baseName": "visualizer2",
     "packageName": "org.powertac.visualizer",
     "packageFolder": "org/powertac/visualizer",
