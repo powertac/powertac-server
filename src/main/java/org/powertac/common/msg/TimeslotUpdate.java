@@ -19,7 +19,8 @@ import org.joda.time.Instant;
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Message type that communicates to brokers the set of timeslots that are

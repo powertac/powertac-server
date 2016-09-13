@@ -19,7 +19,9 @@ import org.powertac.common.Broker;
 import org.powertac.common.TariffMessage;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import com.thoughtworks.xstream.annotations.*;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Represents a response from server to broker to publication or update

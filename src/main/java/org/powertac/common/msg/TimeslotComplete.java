@@ -16,7 +16,8 @@
 
 package org.powertac.common.msg;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Message type that is guaranteed to be sent to brokers as the last

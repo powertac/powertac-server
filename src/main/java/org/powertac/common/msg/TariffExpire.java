@@ -20,7 +20,8 @@ import org.powertac.common.Broker;
 import org.powertac.common.TariffSpecification;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Request to change expiration date on an existing tariff. There are no

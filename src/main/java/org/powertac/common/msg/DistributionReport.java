@@ -17,7 +17,6 @@ package org.powertac.common.msg;
 
 import org.powertac.common.IdGenerator;
 import org.powertac.common.state.Domain;
-import org.powertac.common.state.StateChange;
 import org.powertac.common.state.XStreamStateLoggable;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;

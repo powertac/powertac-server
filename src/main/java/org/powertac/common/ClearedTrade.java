@@ -21,11 +21,9 @@ import org.powertac.common.repo.TimeslotRepo;
 import org.powertac.common.spring.SpringApplicationContext;
 import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
-//import org.powertac.common.xml.TimeslotConverter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-//import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A ClearedTrade instance reports public information about a specific
@@ -43,7 +41,6 @@ public class ClearedTrade
 
   /** underlying timeslot for the trade (e.g. for a future the timeslot when real-world exchanges happen)*/
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
 
   /** the transactionId is generated during the execution of a trade in market and

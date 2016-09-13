@@ -16,13 +16,14 @@
 
 package org.powertac.common;
 
-
 import org.powertac.common.state.ChainedConstructor;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.CustomerConverter;
 import org.powertac.common.xml.TariffSpecificationConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * A {@code TariffTransaction} instance represents the kWh of energy consumed

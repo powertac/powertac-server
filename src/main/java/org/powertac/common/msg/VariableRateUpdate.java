@@ -20,7 +20,8 @@ import org.powertac.common.HourlyCharge;
 import org.powertac.common.Rate;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Conveys an HourlyCharge instance, labeled by its Tariff and

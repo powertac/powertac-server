@@ -15,7 +15,6 @@
  */
 package org.powertac.common.msg;
 
-
 import org.powertac.common.Broker;
 import org.powertac.common.xml.BrokerConverter;
 

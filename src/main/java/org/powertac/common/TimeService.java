@@ -19,15 +19,15 @@ package org.powertac.common;
 import java.util.Map;
 import java.util.TreeSet;
 
-import org.powertac.common.state.StateChange;
-
 import org.apache.commons.configuration.MapConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Instant;
 import org.joda.time.base.AbstractDateTime;
+import org.powertac.common.state.StateChange;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 

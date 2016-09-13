@@ -18,7 +18,7 @@ package org.powertac.common.msg;
 import org.joda.time.Instant;
 import org.powertac.common.state.Domain;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * This message is used to communicate a revised simulation start time

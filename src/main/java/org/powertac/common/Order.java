@@ -65,7 +65,6 @@ public class Order extends XStreamStateLoggable
 
   /** the timeslot for which the product should be bought or sold */
   @XStreamAsAttribute
-  //@XStreamConverter(TimeslotConverter.class)
   private int timeslot;
 
   /** product quantity in mWh - positive to buy, negative to sell */

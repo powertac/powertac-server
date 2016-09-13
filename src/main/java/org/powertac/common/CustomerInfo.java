@@ -21,7 +21,9 @@ import org.apache.logging.log4j.Logger;
 import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.state.StateChange;
-import com.thoughtworks.xstream.annotations.*;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * A CustomerInfo instance represents a customer model (i.e. a consumer or a producer)

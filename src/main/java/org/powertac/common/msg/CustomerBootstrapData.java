@@ -21,7 +21,9 @@ import org.powertac.common.enumerations.PowerType;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.DoubleArrayConverter;
 
-import com.thoughtworks.xstream.annotations.*;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 
 /**
  * This message encapsulates net power usage by timeslot for a customer
@@ -34,15 +36,15 @@ public class CustomerBootstrapData
 {
   @XStreamAsAttribute
   private long id = IdGenerator.createId();
-  
+
   // cannot use Customer here, because identity (and id value) is not
   // preserved across process boundaries
   @XStreamAsAttribute
   private String customerName;
-  
+
   @XStreamAsAttribute
   private PowerType powerType;
-  
+
   @XStreamConverter(DoubleArrayConverter.class)
   private double[] netUsage;
 
@@ -64,7 +66,7 @@ public class CustomerBootstrapData
   {
     return customerName;
   }
-  
+
   public PowerType getPowerType ()
   {
     return powerType;
