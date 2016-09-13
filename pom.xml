@@ -1,8 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
+  <artifactId>logtool-core</artifactId>
+  <packaging>jar</packaging>
+
   <name>Power TAC logtool core</name>
-  <url>http://www.powertac.org</url>
+  <description>Tool for analyzing state logs produced by the Power TAC server</description>
+  <url>https://github.com/powertac/logtool-core/</url>
 
   <parent>
     <groupId>org.powertac</groupId>
@@ -11,83 +19,71 @@
     <relativePath />
   </parent>
 
-  <artifactId>logtool-core</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
-  <description>
-    Tool for analyzing state logs produced by the Power TAC
-    simulation server
-  </description>
-  <packaging>jar</packaging>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <exec.args />
+    <maven-exec.flags>-server -Xmx512m -classpath %classpath</maven-exec.flags>
+    <maven-exec.class>org.powertac.logtool.Logtool</maven-exec.class>
+    <maven-exec.args></maven-exec.args>
   </properties>
 
-  <!-- Sonatype OSS repo for resolving snapshot modules -->
-  <repositories>
-    <repository>
-      <id>sonatype</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
-
   <dependencies>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>default-broker</artifactId>
-      <version>${powertac.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>genco</artifactId>
-      <version>${powertac.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>evcustomer</artifactId>
-      <version>${powertac.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.powertac</groupId>
-      <artifactId>customer-models</artifactId>
-      <version>${powertac.version}</version>
-    </dependency>
+
     <dependency>
       <groupId>org.powertac</groupId>
       <artifactId>server-interface</artifactId>
       <version>${powertac.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>default-broker</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>customer-models</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>evcustomer</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.powertac</groupId>
+      <artifactId>genco</artifactId>
+      <version>${powertac.version}</version>
+    </dependency>
+
   </dependencies>
 
-  <!-- The exec setup is for experimental purposes. The logtool core
-       is intended to be wrapped by a main class that extends
-       LogtoolContext and implements Analyzer -->
+
   <build>
-    <finalName>logtool-core</finalName>
+
     <plugins>
+
+      <!--
+       The exec setup is for experimental purposes. The logtool core is
+       intended to be wrapped by a main class that extends LogtoolContext and
+       implements Analyzer.
+      -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
-        <version>1.4.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-          </execution>
-         </executions>
-        <configuration>
-          <executable>java</executable>
-          <commandlineArgs>-server -Xmx512m -classpath %classpath org.powertac.logtool.Logtool ${exec.args}</commandlineArgs>
-        </configuration>
       </plugin>
+
     </plugins>
-   </build>
+
+  </build>
+
 
   <scm>
     <connection>scm:git:git//github.com/powertac/logtool-core.git</connection>
     <developerConnection>scm:git:git@github.com:powertac/logtool-core.git</developerConnection>
-    <url>https://github.com/powertac</url>
+    <url>https://github.com/powertac/logtool-core/</url>
   </scm>
+
 </project>
