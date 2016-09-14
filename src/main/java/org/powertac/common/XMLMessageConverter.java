@@ -45,7 +45,7 @@ import org.springframework.util.SystemPropertyUtils;
 
 import com.thoughtworks.xstream.XStream;
 
-@Service
+@Service("xmlMessageConverter")
 public class XMLMessageConverter 
 {
   private static final Logger log = LogManager.getLogger(XMLMessageConverter.class);
@@ -58,6 +58,7 @@ public class XMLMessageConverter
   
   // inject context here so that it would be initialized before this class
   // @PostConstruct method get called and use the singleton.
+  @SuppressWarnings("unused")
   @Autowired
   private SpringApplicationContext context;
 
