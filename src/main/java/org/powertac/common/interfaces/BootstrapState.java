@@ -32,7 +32,7 @@ public interface BootstrapState
    * ServerPropertiesService.saveBootstrapState(arg), where arg is either a
    * single configurable object (configured with configureMe() or
    * configureSingleton()), or a list of objects annotated with
-   * @ConfigurableInstance.
+   * {@link org.powertac.common.config.ConfigurableInstance}.
    */
   public void saveBootstrapState();
 }
