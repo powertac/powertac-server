@@ -220,7 +220,7 @@ public class DomainObjectReader
         return null;
       }
       Method[] methods = clazz.getMethods();
-      ArrayList<Method> candidates = new ArrayList<Method>();
+      ArrayList<Method> candidates = new ArrayList<>();
       for (Method method : methods) {
         if (method.getName().equals(methodName)) {
           candidates.add(method);
