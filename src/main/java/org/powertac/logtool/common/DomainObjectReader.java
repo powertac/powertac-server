@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+
 import org.joda.time.Instant;
 import org.powertac.common.TimeService;
 import org.powertac.common.enumerations.PowerType;
@@ -37,6 +38,7 @@ import org.powertac.common.msg.BalanceReport;
 import org.powertac.common.state.Domain;
 import org.powertac.common.xml.PowerTypeConverter;
 import org.powertac.du.DefaultBroker;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.test.util.ReflectionTestUtils;

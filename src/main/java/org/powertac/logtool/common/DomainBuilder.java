@@ -20,6 +20,7 @@ import java.util.HashMap;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+
 import org.powertac.common.Broker;
 import org.powertac.common.CustomerInfo;
 import org.powertac.common.Rate;
@@ -30,7 +31,9 @@ import org.powertac.common.repo.CustomerRepo;
 import org.powertac.common.repo.OrderbookRepo;
 import org.powertac.common.repo.TariffRepo;
 import org.powertac.common.repo.TimeslotRepo;
+
 import org.powertac.logtool.ifc.Analyzer;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
