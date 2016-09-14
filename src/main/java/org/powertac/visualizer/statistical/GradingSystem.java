@@ -32,7 +32,7 @@ public class GradingSystem {
 	 * Calculates how well did broker perform in the wholesale market. It currently depends on ratio between the number of successful market transactions and the total number of broker's published orders. 
 	 * @param noOrders
 	 * @param noMarketTransactions
-	 * @return
+	 * @return wholesale market grade
 	 */
 	public static double getWholesaleMarketGrade(int noOrders,
 			int noMarketTransactions) {
