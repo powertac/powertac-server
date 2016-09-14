@@ -198,8 +198,6 @@ public class Appliance
    * This function is used to create the weekly possibility operation vector of
    * each appliance taking into consideration the times that this appliance
    * could be able to function.
-   * 
-   * @return
    */
   public void createWeeklyPossibilityOperationVector ()
   {
@@ -211,10 +209,9 @@ public class Appliance
    * This is the initialization function. It uses the variable values for the
    * configuration file to create the appliance as it should for this type.
    * 
-   * @param household
+   * @param office
    * @param conf
-   * @param gen
-   * @return
+   * @param seed
    */
   public void initialize (String office, Properties conf, int seed)
   {
@@ -225,12 +222,12 @@ public class Appliance
    * This is a complex function that changes the appliance's function in order
    * to have the most cost effective operation load in a day schedule.
    * 
-   * @param gen
    * @param tariff
-   * @param now
+   * @param nonDominantLoad
+   * @param tariffEvalHelper
    * @param day
    * @param start 
-   * @return
+   * @return TODO
    */
   public double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                                  TariffEvaluationHelper tariffEvalHelper,
@@ -244,7 +241,7 @@ public class Appliance
    * that will be used in the shifting procedure.
    * 
    * @param day
-   * @return
+   * @return TODO
    */
   boolean[] createShiftingOperationMatrix (int day)
   {
@@ -271,8 +268,7 @@ public class Appliance
    * This function fills out all the quarters of the appliance functions for a
    * single day of the week.
    * 
-   * @param gen
-   * @return
+   * @param times
    */
   public void fillDailyOperation (int times)
   {
@@ -282,9 +278,6 @@ public class Appliance
   /**
    * This function fills out all the days of the appliance functions for each
    * day of the week.
-   * 
-   * @param gen
-   * @return
    */
   public void fillWeeklyOperation ()
   {
@@ -295,8 +288,6 @@ public class Appliance
   /**
    * This is the function utilized to show the information regarding the
    * appliance in question, its variables values etc.
-   * 
-   * @return
    */
   public void showStatus ()
   {
@@ -329,10 +320,6 @@ public class Appliance
    * At the end of each week the appliance models refresh their schedule. This
    * way we have a realistic and dynamic model, changing function hours,
    * consuming power and so on.
-   * 
-   * @param conf
-   * @param gen
-   * @return
    */
   public void refresh ()
   {
@@ -346,8 +333,6 @@ public class Appliance
   /**
    * This is an function to fill the maps utilized by Services in order to keep
    * the vectors of each appliance during the runtime.
-   * 
-   * @return
    */
   public void setOperationDays ()
   {
@@ -368,8 +353,6 @@ public class Appliance
    * This is an function created to estimate the overall power consumption of a
    * certain appliance in a single operation the vectors of each appliance
    * during the runtime.
-   * 
-   * @return
    */
   public void calculateOverallPower ()
   {

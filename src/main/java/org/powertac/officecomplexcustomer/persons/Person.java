@@ -106,8 +106,7 @@ public class Person
    * @param AgentName
    * @param conf
    * @param publicVacationVector
-   * @param gen
-   * @return
+   * @param seed
    */
   public void initialize (String AgentName, Properties conf,
                           Vector<Integer> publicVacationVector, int seed)
@@ -117,7 +116,7 @@ public class Person
   /**
    * This function checks if the person is at home.
    * 
-   * @return
+   * @return true if the person is at home
    */
   boolean isAtHome ()
   {
@@ -130,7 +129,7 @@ public class Person
   /**
    * This function checks if the person is at work.
    * 
-   * @return
+   * @return true if the person is at work
    */
   boolean isAtWork ()
   {
@@ -143,7 +142,7 @@ public class Person
   /**
    * This function checks if the person is on a break.
    * 
-   * @return
+   * @return true if the person is on a break
    */
   boolean isOnBreak ()
   {
@@ -156,7 +155,7 @@ public class Person
   /**
    * This function checks if the person is on vacation.
    * 
-   * @return
+   * @return true if the person is on vacation
    */
   boolean isVacation ()
   {
@@ -169,7 +168,7 @@ public class Person
   /**
    * This function checks if the person is sick.
    * 
-   * @return
+   * @return true if the person is sick
    */
   boolean isSick ()
   {
@@ -197,8 +196,7 @@ public class Person
    * 
    * @param mean
    * @param dev
-   * @param gen
-   * @return
+   * @return vector with sick days
    */
   Vector<Integer> createSicknessVector (double mean, double dev)
   {
@@ -237,9 +235,6 @@ public class Person
    * vacation etc.
    * 
    * @param day
-   * @param vacationAbsence
-   * @param gen
-   * @return
    */
   public void fillDailyRoutine (int day)
   {
@@ -271,8 +266,6 @@ public class Person
   /**
    * This function fills out the daily routine of the person as if he stays in
    * the house all day long.
-   * 
-   * @return
    */
   void normalFill ()
   {
@@ -286,8 +279,6 @@ public class Person
   /**
    * This function fills out the daily routine of the person that is sick for
    * the day.
-   * 
-   * @return
    */
   void fillSick ()
   {
@@ -302,8 +293,6 @@ public class Person
    * This function fill the daily program of the person with the suitable
    * working activities taking in consideration the working habits, duration and
    * shifts.
-   * 
-   * @return
    */
   void fillWork ()
   {
@@ -313,8 +302,6 @@ public class Person
   /**
    * This is the function utilized to show the information regarding the person
    * in question, its variables values etc.
-   * 
-   * @return
    */
   public void showInfo ()
   {
@@ -331,9 +318,7 @@ public class Person
    * we have a realistic and dynamic model, changing working hours, leisure
    * activities and so on.
    * 
-   * @param conf
-   * @param gen
-   * @return
+   * @param config
    */
   public void refresh (Properties config)
   {

@@ -176,8 +176,7 @@ public class Office
    * @param OfficeName
    * @param conf
    * @param publicVacationVector
-   * @param gen
-   * @return
+   * @param seed
    */
   public void initialize (String OfficeName, Properties conf,
                           Vector<Integer> publicVacationVector, int seed)
@@ -284,8 +283,6 @@ public class Office
    * @param counter
    * @param conf
    * @param publicVacationVector
-   * @param gen
-   * @return
    */
   void addPerson (int counter, Properties conf,
                   Vector<Integer> publicVacationVector)
@@ -399,8 +396,7 @@ public class Office
    * persons in an office and gives back a number randomly.
    * 
    * @param conf
-   * @param gen
-   * @return
+   * @return TODO
    */
   int memberRandomizer (Properties conf)
   {
@@ -440,8 +436,6 @@ public class Office
    * possibility check and install or not the appliance in the current office.
    * 
    * @param app
-   * @param gen
-   * @return
    */
   void checkProbability (Appliance app)
   {
@@ -464,8 +458,6 @@ public class Office
    * and the members of the office.
    * 
    * @param conf
-   * @param gen
-   * @return
    */
   void fillAppliances (Properties conf)
   {
@@ -565,7 +557,7 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return true if any of the workers in the office are working
    */
   public boolean isWorking (int weekday, int quarter)
   {
@@ -584,7 +576,7 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return true if any of the workers of the office are on break
    */
   public boolean isOnBreak (int weekday, int quarter)
   {
@@ -602,8 +594,8 @@ public class Office
    * This function checks if all the workers of the office are away on vacation
    * or sick on a certain day
    * 
-   * @param quarter
-   * @return
+   * @param weekday
+   * @return true all the workers of the office are away on vacation or sick
    */
   public boolean isOnVacation (int weekday)
   {
@@ -623,8 +615,9 @@ public class Office
    * This function checks if all the workers of the office are away on vacation
    * or sick on a certain day
    * 
-   * @param quarter
-   * @return
+   * @param weekday
+   * @return true if all the workers of the office are away on vacation
+   * or sick
    */
   public boolean isWorkingDayOfWeek (int weekday)
   {
@@ -650,8 +643,9 @@ public class Office
    * This function checks if all the workers of the office are away on vacation
    * or sick on a certain day
    * 
-   * @param quarter
-   * @return
+   * @param day
+   * @return boolean if all the workers of the office are away on vacation
+   * or sick
    */
   public boolean isWorkingDay (int day)
   {
@@ -674,7 +668,7 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return true if none of the workers are in the office.
    */
   public boolean isEmpty (int weekday, int quarter)
   {
@@ -692,7 +686,8 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return the number of working employees in the office in a
+   * specific quarter
    */
   public int employeeWorkingNumber (int weekday, int quarter)
   {
@@ -712,7 +707,8 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return the number of employees on a break in the office in a
+   * specific quarter
    */
   public int employeeOnBreakNumber (int weekday, int quarter)
   {
@@ -732,7 +728,8 @@ public class Office
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return the number of employees in the office in a specific quarter,
+   *         either working either on break
    */
   public int employeeNumber (int weekday, int quarter)
   {
@@ -746,8 +743,6 @@ public class Office
   /**
    * This is the function utilized to show the information regarding the office
    * in question, its variables values etc.
-   * 
-   * @return
    */
   void showStatus ()
   {
@@ -805,8 +800,8 @@ public class Office
    * This function is used in order to fill the daily Base Load of the office
    * for each quarter of the hour.
    * 
-   * @param weekday
-   * @return
+   * @param day
+   * @return daily base load
    */
   Vector<Integer> fillDailyBaseLoad (int day)
   {
@@ -829,8 +824,8 @@ public class Office
    * This function is used in order to fill the daily Controllable Load of the
    * office for each quarter of the hour.
    * 
-   * @param weekday
-   * @return
+   * @param day
+   * @return daily controllable load
    */
   Vector<Integer> fillDailyControllableLoad (int day)
   {
@@ -853,8 +848,8 @@ public class Office
    * This function is used in order to fill the daily weather sensitive load of
    * the office for each quarter of the hour.
    * 
-   * @param weekday
-   * @return
+   * @param day
+   * @return daily weather sensitive load
    */
   Vector<Integer> fillDailyWeatherSensitiveLoad (int day)
   {
@@ -877,8 +872,8 @@ public class Office
    * This function is used in order to fill the daily dominant load of
    * the household for each quarter of the hour.
    * 
-   * @param weekday
-   * @return
+   * @param day
+   * @return daily dominant load
    */
   Vector<Integer> fillDailyDominantLoad (int day)
   {
@@ -903,8 +898,8 @@ public class Office
    * This function is used in order to fill the daily non dominant load of
    * the household for each quarter of the hour.
    * 
-   * @param weekday
-   * @return
+   * @param day
+   * @return daily non-dominant load
    */
   Vector<Integer> fillDailyNonDominantLoad (int day)
   {
@@ -927,7 +922,7 @@ public class Office
    * This function fills out the daily Base Load in hours vector taking in
    * consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily base load in hours
    */
   Vector<Integer> fillDailyBaseLoadInHours ()
   {
@@ -955,7 +950,7 @@ public class Office
    * This function fills out the daily Controllable Load in hours vector taking
    * in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily controllable load in hours
    */
   Vector<Integer> fillDailyControllableLoadInHours ()
   {
@@ -983,7 +978,7 @@ public class Office
    * This function fills out the daily weather sensitive Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily weather sensitive load in hours
    */
   Vector<Integer> fillDailyWeatherSensitiveLoadInHours ()
   {
@@ -1012,7 +1007,7 @@ public class Office
    * This function fills out the daily dominant Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily dominant load in hours
    */
   Vector<Integer> fillDailyDominantLoadInHours ()
   {
@@ -1040,7 +1035,7 @@ public class Office
    * This function fills out the daily non dominant Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily non-dominant load in hours
    */
   Vector<Integer> fillDailyNonDominantLoadInHours ()
   {
@@ -1070,8 +1065,6 @@ public class Office
    * power and so on.
    * 
    * @param conf
-   * @param gen
-   * @return
    */
   void refresh (Properties conf)
   {
@@ -1153,9 +1146,11 @@ public class Office
    * evaluation.
    * 
    * @param tariff
-   * @param now
+   * @param nonDominantLoad
+   * @param tariffEvalHelper
    * @param day
-   * @return
+   * @param start
+   * @return TODO
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                           TariffEvaluationHelper tariffEvalHelper, int day,
@@ -1189,8 +1184,7 @@ public class Office
    * This function prints to the screen the daily load of the office for the
    * weekday at hand.
    * 
-   * @param weekday
-   * @return
+   * @param day
    */
   public void printDailyLoad (int day)
   {
