@@ -45,8 +45,8 @@ import org.powertac.util.Predicate;
  * class is the classname (but the first character is lowercase),
  * instance is an optional instance name,
  * and property is the property name. 
- * The target property must be annotated with
- * @ConfigurableValue, either on the property itself, or on a setter method.
+ * The target property must be annotated with {@link ConfigurableValue},
+ * either on the property itself, or on a setter method.
  * For example, the following property will set the jmsBrokerUrl property
  * of the class JmsManagementService.</p>
  * <p>
