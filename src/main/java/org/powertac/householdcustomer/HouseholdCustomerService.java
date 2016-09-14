@@ -262,13 +262,6 @@ public class HouseholdCustomerService extends TimeslotPhaseProcessor
     configFile1 = null;
   }
 
-  /**
-   * This function finds all the available Household Consumers in the
-   * competition and creates a list of their customerInfo.
-   * 
-   * @return List<CustomerInfo>
-   */
-
   @Override
   public void activate (Instant time, int phaseNumber)
   {

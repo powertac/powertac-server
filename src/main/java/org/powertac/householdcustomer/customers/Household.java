@@ -185,8 +185,7 @@ public class Household
    * @param HouseName
    * @param conf
    * @param publicVacationVector
-   * @param gen
-   * @return
+   * @param seed
    */
   public void initialize (String HouseName, Properties conf,
                           Vector<Integer> publicVacationVector, int seed)
@@ -644,7 +643,8 @@ public class Household
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return true if all the inhabitants of the household are out of the
+   * household
    */
   public boolean isEmpty (int weekday, int quarter)
   {
@@ -667,7 +667,7 @@ public class Household
    * 
    * @param weekday
    * @param quarter
-   * @return
+   * @return the number of tenants in the house in a specific quarter
    */
   public int tenantsNumber (int weekday, int quarter)
   {
@@ -686,8 +686,6 @@ public class Household
   /**
    * This is the function utilized to show the information regarding the
    * household in question, its variables values etc.
-   * 
-   * @return
    */
   void showStatus ()
   {
@@ -734,7 +732,7 @@ public class Household
    * for each quarter of the hour.
    * 
    * @param weekday
-   * @return
+   * @return daily base load
    */
   Vector<Integer> fillDailyBaseLoad (int day)
   {
@@ -757,7 +755,7 @@ public class Household
    * household for each quarter of the hour.
    * 
    * @param weekday
-   * @return
+   * @return daily controllable load
    */
   Vector<Integer> fillDailyControllableLoad (int day)
   {
@@ -780,7 +778,7 @@ public class Household
    * the household for each quarter of the hour.
    * 
    * @param weekday
-   * @return
+   * @return daily weather sensitive load
    */
   Vector<Integer> fillDailyWeatherSensitiveLoad (int day)
   {
@@ -803,7 +801,7 @@ public class Household
    * the household for each quarter of the hour.
    * 
    * @param weekday
-   * @return
+   * @return daily dominant load
    */
   Vector<Integer> fillDailyDominantLoad (int day)
   {
@@ -842,7 +840,7 @@ public class Household
    * the household for each quarter of the hour.
    * 
    * @param weekday
-   * @return
+   * @return daily non-dominant load
    */
   Vector<Integer> fillDailyNonDominantLoad (int day)
   {
@@ -864,8 +862,8 @@ public class Household
    * This function checks if all the inhabitants of the household are away on
    * vacation on a certain day
    * 
-   * @param quarter
-   * @return
+   * @param day
+   * @return true if all inhabitants are on vacation
    */
   public boolean isOnVacation (int day)
   {
@@ -881,7 +879,7 @@ public class Household
    * This function fills out the daily Base Load in hours vector taking in
    * consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily base load in hours
    */
   Vector<Integer> fillDailyBaseLoadInHours ()
   {
@@ -905,7 +903,7 @@ public class Household
    * This function fills out the daily Controllable Load in hours vector taking
    * in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily controllable load in hours
    */
   Vector<Integer> fillDailyControllableLoadInHours ()
   {
@@ -935,7 +933,7 @@ public class Household
    * This function fills out the daily weather sensitive Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily weather sensitive load in hours
    */
   Vector<Integer> fillDailyWeatherSensitiveLoadInHours ()
   {
@@ -962,7 +960,7 @@ public class Household
    * This function fills out the daily dominant Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily dominant load in hours
    */
   Vector<Integer> fillDailyDominantLoadInHours ()
   {
@@ -989,7 +987,7 @@ public class Household
    * This function fills out the daily non dominant Load in hours vector
    * taking in consideration the load per quarter of an hour.
    * 
-   * @return
+   * @return daily non-dominant load in hours
    */
   Vector<Integer> fillDailyNonDominantLoadInHours ()
   {
@@ -1021,8 +1019,6 @@ public class Household
    * consuming power and so on.
    * 
    * @param conf
-   * @param gen
-   * @return
    */
   void refresh (Properties conf)
   {
@@ -1131,10 +1127,12 @@ public class Household
    * evaluation.
    * 
    * @param tariff
-   * @param now
+   * @param nonDominantLoad
+   * @param tariffEvalHelper
    * @param day
-   * @param start 
-   * @return
+   * @param gen
+   * @param start
+   * @return TODO
    */
   double[] dailyShifting (Tariff tariff, double[] nonDominantLoad,
                           TariffEvaluationHelper tariffEvalHelper, int day,
