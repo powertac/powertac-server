@@ -107,6 +107,12 @@ public class GameService {
         if (fileId != null) {
             fileService.delete(fileId);
         }
+        if (game.getType().equals(GameType.BOOT)) {
+          fileId = game.getBootFileId();
+          if (fileId != null) {
+            fileService.delete(fileId);
+          }
+        }
         gameRepository.delete(id);
     }
 }
