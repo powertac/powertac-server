@@ -52,7 +52,7 @@ public class SpringApplicationContext implements ApplicationContextAware
   public void setApplicationContext (ApplicationContext appContext)
   throws BeansException
   {
-    context = appContext;    
+    context = appContext;
   }
   
   /**
