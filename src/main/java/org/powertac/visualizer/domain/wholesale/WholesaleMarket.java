@@ -49,7 +49,7 @@ public class WholesaleMarket  {
 	 * number index is created.
 	 * 
 	 * @param timeslotSerialNumber
-	 * @return
+	 * @return wholesale snapshot
 	 */
 	public WholesaleSnapshot findSnapshot(int timeslotSerialNumber) {
 

@@ -50,7 +50,7 @@ public class Genco implements TimeslotModelUpdate {
 	 * timeslot
 	 * 
 	 * @param timeslot
-	 * @return
+	 * @return wholesale data
 	 */
 	public WholesaleDataGenco findWholesaleDataByTimeslot(Timeslot timeslot) {
 		int serialNumber = timeslot.getSerialNumber();
