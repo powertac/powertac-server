@@ -215,7 +215,7 @@ public class TimeService
   }
 
   /**
-   * @deprecated  use {@link setClockParameters} instead
+   * @deprecated  use {@link #setClockParameters} instead
    */
   @Deprecated
   public void setBase (long value)
@@ -240,7 +240,7 @@ public class TimeService
   }
   
   /**
-   * @deprecated  use {@link setClockParameters} instead
+   * @deprecated  use {@link #setClockParameters} instead
    */
   @Deprecated
   public void setRate (long value)
@@ -254,7 +254,7 @@ public class TimeService
   }
   
   /**
-   * @deprecated  use {@link setClockParameters} instead
+   * @deprecated  use {@link #setClockParameters} instead
    */
   @Deprecated
   public void setModulo (long value)

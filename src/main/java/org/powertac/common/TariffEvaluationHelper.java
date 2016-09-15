@@ -148,7 +148,7 @@ public class TariffEvaluationHelper
 
   /**
    * Initializes regulation factors. Applicable only for tariffs with
-   * @link{RegulationRate}s. See Section 4.1.1 of the 2014 spec for
+   * {@link RegulationRate}s. See Section 4.1.1 of the 2014 spec for
    * details, especially Eq. 5. Signs are from the standpoint of the
    * customer -- expectedCurtailment and expectedDischarge are negative,
    * expectedDownReg is positive.
