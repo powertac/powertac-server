@@ -100,11 +100,7 @@
     <maven-site.version>3.5.1</maven-site.version>
     <maven-surefire.version>2.19.1</maven-surefire.version>
     <maven-shade.version>2.4.3</maven-shade.version>
-
     <maven-exec.version>1.5.0</maven-exec.version>
-    <maven-exec.flags />
-    <maven-exec.class />
-    <maven-exec.args />
 
   </properties>
 
@@ -423,17 +419,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
           <version>${maven-exec.version}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>exec</goal>
-              </goals>
-            </execution>
-           </executions>
-          <configuration>
-            <executable>java</executable>
-            <commandlineArgs>${maven-exec.flags} ${maven-exec.class} ${maven-exec.args}</commandlineArgs>
-          </configuration>
         </plugin>
 
 
