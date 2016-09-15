@@ -79,11 +79,11 @@ public interface Accounting
   /**
    * Adds a capacity transaction to represent charges for contribution to
    * a demand peak. One is generated for each peak event.
-   * @param peakTimeslot: when the peak occurred
-   * @param threshold: assessment threshold
-   * @param kWh: total net demand among broker's customers during timeslot
-   * @param fee: assessed capacity fee for this peak event
-   * @return 
+   * @param broker
+   * @param peakTimeslot when the peak occurred
+   * @param threshold    assessment threshold
+   * @param kWh          total net demand among broker's customers during timeslot
+   * @param fee          assessed capacity fee for this peak event
    */
   public CapacityTransaction
   addCapacityTransaction (Broker broker, int peakTimeslot,

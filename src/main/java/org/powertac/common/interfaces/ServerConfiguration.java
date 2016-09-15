@@ -22,24 +22,25 @@ import java.util.List;
  * Support for annotation-driven configuration. Configurable services, including
  * services that create configurable instances (such as gencos or customer models),
  * configure themselves by calling configure(). The result is that properties
- * annotated as @ConfigurableValue will be matched with configuration
- * data, and classes annotated as @ConfigurableInstance will have instances
- * created and configured as specified in the server configuration.
+ * annotated as {@link org.powertac.common.config.ConfigurableValue} will be
+ * matched with configuration data, and classes annotated as
+ * {@link org.powertac.common.config.ConfigurableInstance} will have
+ * instances created and configured as specified in the server configuration.
  * @author John Collins
  */
 public interface ServerConfiguration
 {
   /**
    * Configures a target object by matching configuration clauses with 
-   * @ConfigurableValue annotations on the target object. This is typically
-   * called in the initialize() method.
+   * {@link org.powertac.common.config.ConfigurableValue} annotations on the
+   * target object. This is typically called in the initialize() method.
    */
   public void configureMe (Object target);
 
   /**
    * Creates and configures potentially multiple instances of a target class
-   * annotated as @ConfigurableInstance. Returns the created instances in 
-   * a list in no particular order.
+   * annotated as {@link org.powertac.common.config.ConfigurableInstance}.
+   * Returns the created instances in a list in no particular order.
    */
   public Collection<?> configureInstances (Class<?> target);
 
@@ -52,21 +53,22 @@ public interface ServerConfiguration
   public Collection<?> configureNamedInstances (List<?> instances);
 
   /**
-   * Gathers public configuration data for publication to brokers. Data is gathered
-   * from @ConfigurableValue properties with publish=true. Note that such properties
-   * must either be fields, or have a "standard" getter, or must specify a getter
-   * that produces the value as a String. This is typically called at the end of
-   * the initialize() method.
+   * Gathers public configuration data for publication to brokers. Data is
+   * gathered from {@link org.powertac.common.config.ConfigurableValue}
+   * properties with publish=true. Note that such properties must either be
+   * fields, or have a "standard" getter, or must specify a getter that produces
+   * the value as a String. This is typically called at the end of the
+   * initialize() method.
    */
   public void publishConfiguration (Object target);
 
   /**
-   * Gathers state information at the end of a boot session to be restored
-   * in a subsequent sim session. Data is gathered from @ConfigurableValue
-   * properties with bootstrapState=true. Such properties can be fields, or
-   * may have "standard" getters and setters. This method is called at the
-   * end of a bootstrap session by a component that wishes to have its state
-   * saved in the boot record.
+   * Gathers state information at the end of a boot session to be restored in a
+   * subsequent sim session. Data is gathered from
+   * {@link org.powertac.common.config.ConfigurableValue} properties with
+   * bootstrapState=true. Such properties can be fields, or may have "standard"
+   * getters and setters. This method is called at the end of a bootstrap session
+   * session by a component that wishes to have its state saved in the boot record.
    */
   public void saveBootstrapState (Object thing);
 }
