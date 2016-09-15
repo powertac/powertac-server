@@ -258,7 +258,8 @@ public class Village extends AbstractCustomer
    * them with persons and appliances.
    * 
    * @param conf
-   * @param gen
+   * @param seed
+   * @param mapping
    */
   public void initialize (Properties conf, int seed,
                           Map<CustomerInfo, String> mapping)
