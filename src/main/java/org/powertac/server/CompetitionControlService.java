@@ -399,11 +399,11 @@ public class CompetitionControlService
 
     // send the Competition instance, then the broadcast deferred messages
     brokerProxyService.setDeferredBroadcast(false);
+    brokerProxyService.broadcastMessage(competition);
+    Properties published = configService.getPublishedConfiguration();
+    brokerProxyService.broadcastMessage(published);
     if (!bootstrapMode) {
-      brokerProxyService.broadcastMessage(competition);
-      Properties published = configService.getPublishedConfiguration();
       log.info("Published configuration: {}", published.toString());
-      brokerProxyService.broadcastMessage(published);
       List<Object> bootstrapDataset = bootstrapDataRepo.getData();
       brokerProxyService.broadcastMessages(bootstrapDataset);
       // pull out the weather reports and stick them in their repo
@@ -650,31 +650,34 @@ public class CompetitionControlService
       }
     }
 
-    int tryCounter = deferredInitializers.size();
-    while (deferredInitializers.size() > 0 && tryCounter > 0) {
-      InitializationService initializer = deferredInitializers.get(0);
-      log.info("additional attempt to initialize " + initializer.toString());
-      if (deferredInitializers.size() > 1) {
-        deferredInitializers.remove(0);
+    while (deferredInitializers.size() > 0) {
+      int startSize = deferredInitializers.size();
+
+      for (Iterator<InitializationService> it = deferredInitializers.iterator();
+           it.hasNext();) {
+        InitializationService initializer = it.next();
+        log.info("additional attempt to initialize " + initializer.toString());
+        String success = initializer.initialize(competition, completedPlugins);
+
+        if (success == null) {
+          // defer this one
+          log.info("deferring " + initializer.toString());
+        }
+        else {
+          log.info("completed " + success);
+          completedPlugins.add(success);
+          it.remove();
+        }
       }
-      else {
-        deferredInitializers.clear();
-      }
-      String success = initializer.initialize(competition, completedPlugins);
-      if (success == null) {
-        // defer this one
-        log.info("deferring " + initializer.toString());
-        deferredInitializers.add(initializer);
-        tryCounter -= 1;
-      }
-      else {
-        log.info("completed " + success);
-        completedPlugins.add(success);
+
+      if (deferredInitializers.size() == startSize) {
+        for (InitializationService initializer : deferredInitializers) {
+          log.error("Failed to initialize " + initializer.toString());
+        }
+        return false;
       }
     }
-    for (InitializationService initializer : deferredInitializers) {
-      log.error("Failed to initialize " + initializer.toString());
-    }
+
     return true;
   }
 
